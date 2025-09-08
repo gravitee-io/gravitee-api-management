@@ -22,6 +22,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.event.use_case.CleanupEventsUseCase;
+import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.cluster.Member;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import java.time.Duration;
@@ -49,6 +51,9 @@ class ScheduledEventsCleaningServiceTest {
     @Mock
     private TaskScheduler scheduler;
 
+    @Mock
+    private ClusterManager clusterManager;
+
     private ScheduledEventsCleaningService scheduledEventsCleaningService;
 
     @BeforeEach
@@ -59,6 +64,7 @@ class ScheduledEventsCleaningServiceTest {
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 "@daily",
                 5,
                 true,
@@ -69,12 +75,17 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_be_enabled_by_default() throws Exception {
         // Given
+        Member mockMember = org.mockito.Mockito.mock(Member.class);
+        when(mockMember.primary()).thenReturn(true);
+        when(clusterManager.self()).thenReturn(mockMember);
+
         scheduledEventsCleaningService =
             new ScheduledEventsCleaningService(
                 cleanupEventsUseCase,
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 "@daily",
                 5,
                 true, // enabled = true
@@ -91,6 +102,9 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_schedule_task_when_enabled() throws Exception {
         // Given
+        Member mockMember = org.mockito.Mockito.mock(Member.class);
+        when(mockMember.primary()).thenReturn(true);
+        when(clusterManager.self()).thenReturn(mockMember);
         String cronExpression = "@hourly";
         scheduledEventsCleaningService =
             new ScheduledEventsCleaningService(
@@ -98,6 +112,7 @@ class ScheduledEventsCleaningServiceTest {
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 cronExpression,
                 5,
                 true,
@@ -114,6 +129,9 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_use_correct_cron_expression() throws Exception {
         // Given
+        Member mockMember = org.mockito.Mockito.mock(Member.class);
+        when(mockMember.primary()).thenReturn(true);
+        when(clusterManager.self()).thenReturn(mockMember);
         String cronExpression = "0 0 2 * * ?"; // Daily at 2 AM
         scheduledEventsCleaningService =
             new ScheduledEventsCleaningService(
@@ -121,6 +139,7 @@ class ScheduledEventsCleaningServiceTest {
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 cronExpression,
                 5,
                 true,
@@ -144,6 +163,7 @@ class ScheduledEventsCleaningServiceTest {
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 "@daily",
                 eventsKeep,
                 true,
@@ -167,6 +187,7 @@ class ScheduledEventsCleaningServiceTest {
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 "@daily",
                 5,
                 true,
@@ -189,6 +210,7 @@ class ScheduledEventsCleaningServiceTest {
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 "@daily",
                 5, // Use default value instead of null
                 true,
@@ -211,6 +233,7 @@ class ScheduledEventsCleaningServiceTest {
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 "@daily",
                 5,
                 true,
@@ -233,6 +256,7 @@ class ScheduledEventsCleaningServiceTest {
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 "@daily",
                 5,
                 true, // Use default value instead of null
@@ -254,6 +278,7 @@ class ScheduledEventsCleaningServiceTest {
             organizationService,
             environmentService,
             scheduler,
+            clusterManager,
             "@daily",
             5,
             true,
@@ -275,12 +300,16 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_log_info_message_when_starting() throws Exception {
         // Given
+        Member mockMember = org.mockito.Mockito.mock(Member.class);
+        when(mockMember.primary()).thenReturn(true);
+        when(clusterManager.self()).thenReturn(mockMember);
         scheduledEventsCleaningService =
             new ScheduledEventsCleaningService(
                 cleanupEventsUseCase,
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 "@daily",
                 5,
                 true,
@@ -299,12 +328,16 @@ class ScheduledEventsCleaningServiceTest {
     @Test
     void should_not_log_warning_when_enabled() throws Exception {
         // Given
+        Member mockMember = org.mockito.Mockito.mock(Member.class);
+        when(mockMember.primary()).thenReturn(true);
+        when(clusterManager.self()).thenReturn(mockMember);
         scheduledEventsCleaningService =
             new ScheduledEventsCleaningService(
                 cleanupEventsUseCase,
                 organizationService,
                 environmentService,
                 scheduler,
+                clusterManager,
                 "@daily",
                 5,
                 true, // enabled = true
