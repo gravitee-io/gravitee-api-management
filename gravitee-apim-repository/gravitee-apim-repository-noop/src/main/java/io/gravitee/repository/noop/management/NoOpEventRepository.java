@@ -61,7 +61,7 @@ public class NoOpEventRepository extends AbstractNoOpManagementRepository<Event,
     }
 
     @Override
-    public Stream<EventToClean> findEventsToClean(String environmentId) {
+    public Stream<EventToClean> findGatewayEvents(String environmentId) {
         return Stream.empty();
     }
 

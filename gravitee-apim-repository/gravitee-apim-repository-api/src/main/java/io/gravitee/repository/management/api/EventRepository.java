@@ -20,10 +20,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -97,58 +95,9 @@ public interface EventRepository extends CrudRepository<Event, String> {
      */
     List<Event> findByOrganizationId(String organizationId);
 
-    Stream<EventToClean> findEventsToClean(String environmentId);
+    Stream<EventToClean> findGatewayEvents(String environmentId);
 
     void delete(Collection<String> ids);
 
-    record EventToClean(String id, EventToCleanGroup group) {}
-
-    record EventToCleanGroup(String type, String referenceId) {}
-
-    /**
-     * Helper class for determining group keys for event cleanup.
-     */
-    final class EventGroupKeyHelper {
-
-        private EventGroupKeyHelper() {
-            // Utility class, prevent instantiation
-        }
-
-        /**
-         * Creates a structured group for event cleanup that includes both event type and reference ID.
-         *
-         * @param eventType the event type
-         * @param properties the event properties map
-         * @return the structured group, or null if the event should not be grouped
-         */
-        public static EventToCleanGroup determineGroup(EventType eventType, Map<String, String> properties) {
-            if (eventType == null || properties == null) {
-                return null;
-            }
-
-            String referenceId =
-                switch (eventType) {
-                    case PUBLISH_API,
-                        PUBLISH_API_RESULT,
-                        UNPUBLISH_API,
-                        UNPUBLISH_API_RESULT,
-                        START_API,
-                        STOP_API,
-                        DEBUG_API -> properties.get(Event.EventProperties.API_ID.getValue()); // API events are grouped by API ID
-                    case PUBLISH_DICTIONARY, UNPUBLISH_DICTIONARY, START_DICTIONARY, STOP_DICTIONARY -> properties.get( // Dictionary events are grouped by dictionary ID
-                        Event.EventProperties.DICTIONARY_ID.getValue()
-                    );
-                    case PUBLISH_ORGANIZATION, PUBLISH_ORGANIZATION_LICENSE -> properties.get( // Organization events are grouped by organization ID
-                        Event.EventProperties.ORGANIZATION_ID.getValue()
-                    );
-                    case DEPLOY_SHARED_POLICY_GROUP, UNDEPLOY_SHARED_POLICY_GROUP -> properties.get( // Shared policy group events are grouped by shared policy group ID
-                        Event.EventProperties.SHARED_POLICY_GROUP_ID.getValue()
-                    );
-                    case GATEWAY_STARTED, GATEWAY_STOPPED -> properties.get(Event.EventProperties.ID.getValue()); // Gateway events are grouped by gateway ID (if available)
-                    default -> properties.get(Event.EventProperties.ID.getValue()); // For unknown event types, try to use a generic ID property
-                };
-
-            return referenceId != null && !referenceId.isBlank() ? new EventToCleanGroup(eventType.name(), referenceId) : null;
-        }
-    }
+    record EventToClean(String id, String apiId) {}
 }
