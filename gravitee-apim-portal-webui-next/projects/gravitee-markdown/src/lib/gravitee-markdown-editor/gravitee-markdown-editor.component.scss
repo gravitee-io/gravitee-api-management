@@ -33,13 +33,34 @@
 $border-color: #b2aaa9;
 
 .container {
+  display: flex;
   height: 100%;
-  padding: 16px;
   background-color: #fff;
 
-  &__inner-border {
-    padding: 4px 0;
-    border: 1px solid $border-color;
-    border-radius: 4px;
+  .section {
+    display: flex;
+    width: calc(50% - 0.5px);
+    box-sizing: border-box;
+    padding: 16px;
+
+    &__inner-border {
+      overflow: auto;
+      flex: 1;
+      border: 1px solid $border-color;
+      border-radius: 4px;
+    }
+
+    &__inner-border--padding {
+      padding: 16px;
+    }
+  }
+
+  hr {
+    width: 1px;
+    flex: 0 0 auto;
+    align-self: stretch;
+    border: none;
+    margin: 16px 0;
+    background-color: $border-color;
   }
 }

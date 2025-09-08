@@ -21,9 +21,10 @@ import { MonacoEditorComponent } from './components/monaco-editor/monaco-editor.
 import { GraviteeMarkdownEditorComponent } from './gravitee-markdown-editor.component';
 import { GmdMonacoEditorConfig } from './models/monaco-editor-config';
 import { GMD_CONFIG } from './tokens/gmd-config.token';
+import { GraviteeMarkdownViewerModule } from '../gravitee-markdown-viewer/gravitee-markdown-viewer.module';
 
 @NgModule({
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, GraviteeMarkdownViewerModule],
   exports: [GraviteeMarkdownEditorComponent, MonacoEditorComponent],
   declarations: [MonacoEditorComponent, GraviteeMarkdownEditorComponent],
   providers: [
