@@ -15,10 +15,16 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import javax.annotation.Nonnull;
 
 public record GraviteeMarkdown(@Nonnull String content) {
     public boolean isEmpty() {
         return content.isBlank();
+    }
+
+    @JsonValue
+    public String asString() {
+        return content();
     }
 }
