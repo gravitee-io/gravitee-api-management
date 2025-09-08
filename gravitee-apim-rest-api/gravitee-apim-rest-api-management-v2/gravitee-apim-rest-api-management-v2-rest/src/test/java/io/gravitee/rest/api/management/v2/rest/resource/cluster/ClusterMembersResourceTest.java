@@ -36,13 +36,12 @@ import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUs
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.member.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.AddMember;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
-import io.gravitee.rest.api.management.v2.rest.model.TransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateMember;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -267,13 +266,18 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
         @Test
         void should_transfer_ownership() {
             when(transferClusterOwnershipUseCase.execute(any())).thenReturn(new TransferClusterOwnershipUseCase.Output());
-            Response response = target.request().post(json(new TransferOwnership()));
+            Response response = target.request().post(json(new ClusterTransferOwnership()));
             assertThat(response.getStatus()).isEqualTo(NO_CONTENT_204);
         }
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, UPDATE, () -> target.request().post(json(new TransferOwnership())));
+            shouldReturn403(
+                RolePermission.CLUSTER_MEMBER,
+                CLUSTER_ID,
+                UPDATE,
+                () -> target.request().post(json(new ClusterTransferOwnership()))
+            );
         }
     }
 }

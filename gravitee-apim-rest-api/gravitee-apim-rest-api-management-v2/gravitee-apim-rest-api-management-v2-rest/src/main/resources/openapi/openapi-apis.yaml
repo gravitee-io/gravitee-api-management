@@ -849,7 +849,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/members:
@@ -870,7 +870,7 @@ paths:
             operationId: listApiMembers
             responses:
                 "200":
-                    $ref: "#/components/responses/MembersResponse"
+                    $ref: "./openapi-environments.yaml#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -889,7 +889,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/AddMember"
+                            $ref: "./openapi-environments.yaml#/components/schemas/AddMember"
                 required: true
             responses:
                 "201":
@@ -897,14 +897,14 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/members/{memberId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
-            - $ref: "#/components/parameters/memberIdParam"
+            - $ref: "./openapi-environments.yaml#/components/parameters/memberId"
         put:
             tags:
                 - API Members
@@ -921,7 +921,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateMember"
+                            $ref: "./openapi-environments.yaml#/components/schemas/UpdateMember"
                 required: true
             responses:
                 "200":
@@ -929,7 +929,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -1222,7 +1222,7 @@ paths:
             operationId: listGroupMembers
             responses:
                 "200":
-                    $ref: "#/components/responses/MembersResponse"
+                    $ref: "./openapi-environments.yaml#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -1438,7 +1438,7 @@ paths:
             operationId: listIntegrationMembers
             responses:
                 "200":
-                    $ref: "#/components/responses/MembersResponse"
+                    $ref: "./openapi-environments.yaml#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -1457,7 +1457,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/AddMember"
+                            $ref: "./openapi-environments.yaml#/components/schemas/AddMember"
                 required: true
             responses:
                 "201":
@@ -1465,14 +1465,14 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/integrations/{integrationId}/members/{memberId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/integrationIdParam"
-            - $ref: "#/components/parameters/memberIdParam"
+            - $ref: "./openapi-environments.yaml#/components/parameters/memberId"
         put:
             tags:
                 - Integration Members
@@ -1489,7 +1489,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateMember"
+                            $ref: "./openapi-environments.yaml#/components/schemas/UpdateMember"
                 required: true
             responses:
                 "200":
@@ -1497,7 +1497,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -2957,19 +2957,6 @@ paths:
 
 components:
     schemas:
-        TransferOwnership:
-            type: object
-            properties:
-                newPrimaryOwnerId:
-                    type: string
-                    description: The new primary owner ID (user's technical identifier). Can be null if userReference is defined.
-                userReference:
-                    type: string
-                    description: The new primary owner reference (user's reference provided by an identity provider). Can be null if userId is defined.
-                currentPrimaryOwnerNewRole:
-                    type: string
-                    description: The name of the role that will be assigned to the current primary owner after the transfer.
-
         Analytics:
             type: object
             properties:
@@ -3547,7 +3534,7 @@ components:
                     type: array
                     description: The list of members associated with this API.
                     items:
-                        $ref: "#/components/schemas/Member"
+                        $ref: "./openapi-environments.yaml#/components/schemas/Member"
                     uniqueItems: true
                 metadata:
                     type: array
@@ -5568,67 +5555,6 @@ components:
                     items:
                         type: string
                     uniqueItems: true
-        Member:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: Member's uuid.
-                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                displayName:
-                    type: string
-                    description: Member's name.
-                    example: John Doe
-                    minLength: 1
-                roles:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Role"
-                    description: The list of roles for this Member.
-        Role:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: Role's name.
-                    example: OWNER
-                scope:
-                    $ref: "#/components/schemas/RoleScope"
-        RoleScope:
-            type: string
-            description: Scope of a role.
-            enum:
-                - API
-                - APPLICATION
-                - GROUP
-                - ENVIRONMENT
-                - ORGANIZATION
-                - PLATFORM
-                - INTEGRATION
-                - CLUSTER
-        AddMember:
-            type: object
-            description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
-            properties:
-                userId:
-                    type: string
-                    description: Technical identifier for existing user.
-                externalReference:
-                    type: string
-                    description: User's reference for user provided from an identity provider.
-                roleName:
-                    type: string
-                    description: The name of the role
-                    minLength: 1
-            required: [roleName]
-        UpdateMember:
-            type: object
-            properties:
-                roleName:
-                    type: string
-                    description: The name of the role
-                    minLength: 1
-            required: [roleName]
         PrimaryOwner:
             type: object
             properties:
@@ -8137,13 +8063,6 @@ components:
             description: Id of a group.
             schema:
                 type: string
-        memberIdParam:
-            name: memberId
-            in: path
-            required: true
-            description: Id of an API member.
-            schema:
-                type: string
         pageIdParam:
             name: pageId
             in: path
@@ -8595,24 +8514,6 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
 
-        MembersResponse:
-            description: Page of API members
-            content:
-                application/json:
-                    schema:
-                        title: "MembersResponse"
-                        properties:
-                            data:
-                                description: List of API members.
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/Member"
-                            links:
-                                $ref: "#/components/schemas/Links"
-                            metadata:
-                                $ref: "#/components/schemas/ResponseMetadata"
-                            pagination:
-                                $ref: "#/components/schemas/Pagination"
         SchemaFormResponse:
             description: Schema form of a plugin
             content:

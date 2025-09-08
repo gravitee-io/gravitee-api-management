@@ -26,8 +26,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MembershipMapper;
 import io.gravitee.rest.api.management.v2.rest.model.AddMember;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
-import io.gravitee.rest.api.management.v2.rest.model.TransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateMember;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -37,8 +37,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -86,10 +84,6 @@ public class ClusterMembersResource extends AbstractResource {
     }
 
     @POST
-    @Operation(summary = "Add a cluster member", description = "User must have the CLUSTER_MEMBER permission to use this service")
-    @ApiResponse(responseCode = "201", description = "Member has been added successfully")
-    @ApiResponse(responseCode = "400", description = "Membership parameter is not valid")
-    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.CREATE) })
     public Response addClusterMember(@Valid @NotNull AddMember addMember) {
         var executionContext = GraviteeContext.getExecutionContext();
@@ -123,7 +117,7 @@ public class ClusterMembersResource extends AbstractResource {
         var output = updateClusterMemberUseCase.execute(
             new UpdateClusterMemberUseCase.Input(updateMember.getRoleName(), memberId, clusterId)
         );
-        return Response.ok().entity(output.updatedMember()).build();
+        return Response.ok().entity(MemberMapper.INSTANCE.map(output.updatedMember())).build();
     }
 
     @Path("/{memberId}")
@@ -138,7 +132,7 @@ public class ClusterMembersResource extends AbstractResource {
     @POST
     @Path("/_transfer-ownership")
     @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = RolePermissionAction.UPDATE) })
-    public Response transferClusterOwnership(TransferOwnership transferOwnership) {
+    public Response transferClusterOwnership(ClusterTransferOwnership transferOwnership) {
         transferClusterOwnershipUseCase.execute(
             new TransferClusterOwnershipUseCase.Input(MembershipMapper.INSTANCE.map(transferOwnership), clusterId)
         );
