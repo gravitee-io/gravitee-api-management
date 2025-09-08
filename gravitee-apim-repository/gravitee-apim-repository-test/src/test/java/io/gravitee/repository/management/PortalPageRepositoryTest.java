@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.ExpandsViewContext;
 import io.gravitee.repository.management.model.PortalPage;
 import java.util.Date;
 import java.util.List;
@@ -184,5 +185,43 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         // Then
         assertThat(pages).isNotNull();
         assertThat(pages).isEmpty();
+    }
+
+    @Test
+    public void should_find_by_ids_with_expand_including_content() {
+        // Given
+        var ids = List.of("test-portal-page-id", "update-portal-page", "delete-portal-page");
+
+        // When
+        var pages = portalPageRepository.findByIdsWithExpand(ids, List.of(ExpandsViewContext.CONTENT));
+
+        // Then
+        assertThat(pages).isNotNull();
+        assertThat(pages.size()).isEqualTo(3);
+
+        // Content should be present when explicitly expanded
+        var page = pages
+            .stream()
+            .filter(p -> p.getId().equals("test-portal-page-id"))
+            .findFirst();
+        assertThat(page).isPresent();
+        assertThat(page.get().getContent()).isEqualTo(
+            "This is a test portal page content with some sample text to verify the repository functionality."
+        );
+    }
+
+    @Test
+    public void should_find_by_ids_with_expand_excluding_content_or_invalid_values() {
+        // Given
+        var ids = List.of("test-portal-page-id", "update-portal-page", "delete-portal-page");
+
+        // When: expand does not include content
+        var pagesWithoutContent = portalPageRepository.findByIdsWithExpand(ids, List.of(ExpandsViewContext.CREATED_AT));
+        // And: expand is null
+        var pagesWithNullExpand = portalPageRepository.findByIdsWithExpand(ids, null);
+
+        // Then: content should be null in all cases above
+        assertThat(pagesWithoutContent).allMatch(p -> p.getContent() == null);
+        assertThat(pagesWithNullExpand).allMatch(p -> p.getContent() == null);
     }
 }
