@@ -22,6 +22,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.use_case.RemoveOldAuditDataUseCase;
+import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.cluster.Member;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -52,6 +54,9 @@ class ScheduledAuditCleanerServiceTest {
     @Mock
     TaskScheduler scheduler;
 
+    @Mock
+    ClusterManager clusterManager;
+
     ScheduledAuditCleanerService sut;
 
     @Captor
@@ -59,7 +64,17 @@ class ScheduledAuditCleanerServiceTest {
 
     @BeforeEach
     void setup() {
-        sut = new ScheduledAuditCleanerService(scheduler, "", true, 1, removeOldAuditDataUseCase, organizationService, environmentService);
+        sut =
+            new ScheduledAuditCleanerService(
+                scheduler,
+                "",
+                true,
+                1,
+                removeOldAuditDataUseCase,
+                organizationService,
+                environmentService,
+                clusterManager
+            );
     }
 
     @Test
