@@ -15,56 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_ASC_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_DESC_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CREATED_AT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_LOWERCASE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS_LOWERCASE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_METADATA;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_METADATA_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME_LOWERCASE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ORIGIN;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_LOWERCASE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_MAIL;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PORTAL_STATUS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PORTAL_STATUS_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_ASC_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_DESC_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_UPDATED_AT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_VISIBILITY;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_VISIBILITY_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.SPECIAL_CHARS;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.*;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -201,6 +158,8 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             transformV4Api(doc, indexableApi);
+        } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+            transformV2Api(doc, indexableApi);
         }
 
         return doc;
@@ -222,8 +181,8 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         if (api.getDefinitionVersion() != null) {
             return switch (api.getDefinitionVersion()) {
-                case V4, FEDERATED, FEDERATED_AGENT -> true;
-                case V1, V2 -> false;
+                case V4, FEDERATED, FEDERATED_AGENT, V2 -> true;
+                case V1 -> false;
             };
         }
         return true;
@@ -295,6 +254,84 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         if (host != null && !host.isEmpty()) {
             doc.add(new StringField(FIELD_HOSTS, host, Field.Store.NO));
             doc.add(new TextField(FIELD_HOSTS_SPLIT, host, Field.Store.NO));
+        }
+    }
+
+    private void transformV2Api(Document doc, IndexableApi indexableApi) {
+        var api = indexableApi.getApi();
+
+        // Handle v2 API paths from proxy configuration
+        if (api.getApiDefinition() != null && api.getApiDefinition().getProxy() != null) {
+            final int[] pathIndex = { 0 };
+            api
+                .getApiDefinition()
+                .getProxy()
+                .getVirtualHosts()
+                .forEach(virtualHost -> appendPath(doc, pathIndex, virtualHost.getHost(), virtualHost.getPath()));
+        }
+
+        // Handle v2 API tags
+        if (api.getApiDefinition() != null && api.getApiDefinition().getTags() != null && !api.getApiDefinition().getTags().isEmpty()) {
+            for (String tag : api.getApiDefinition().getTags()) {
+                doc.add(new StringField(FIELD_TAGS, tag, Field.Store.NO));
+                doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
+            }
+            String tagsAsc = api.getApiDefinition().getTags().stream().sorted().collect(Collectors.joining(","));
+            String tagsDesc = api.getApiDefinition().getTags().stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
+            doc.add(new SortedDocValuesField(FIELD_TAGS_ASC_SORTED, toSortedValue(tagsAsc)));
+            doc.add(new SortedDocValuesField(FIELD_TAGS_DESC_SORTED, toSortedValue(tagsDesc)));
+        }
+
+        // Handle v2 API health check
+        doc.add(new StringField(FIELD_HAS_HEALTH_CHECK, Boolean.toString(hasHealthCheckEnabledV2(api)), Field.Store.NO));
+    }
+
+    private boolean hasHealthCheckEnabledV2(Api api) {
+        if (api.getApiDefinition() == null) {
+            return false;
+        }
+
+        var apiDefinition = api.getApiDefinition();
+
+        // Check for global health check services at API level
+        if (apiDefinition.getServices() != null) {
+            boolean hasGlobalHealthCheck = apiDefinition
+                .getServices()
+                .getAll()
+                .stream()
+                .anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
+            if (hasGlobalHealthCheck) {
+                return true;
+            }
+        }
+
+        // Check for endpoint-level health checks
+        if (apiDefinition.getProxy() != null && apiDefinition.getProxy().getGroups() != null) {
+            return apiDefinition
+                .getProxy()
+                .getGroups()
+                .stream()
+                .anyMatch(group ->
+                    group.getEndpoints() != null &&
+                    group
+                        .getEndpoints()
+                        .stream()
+                        .anyMatch(endpoint -> endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled())
+                );
+        }
+
+        return false;
+    }
+
+    private void appendPath(final Document doc, final int[] pathIndex, final String host, final String path) {
+        doc.add(new StringField(FIELD_PATHS, path, Field.Store.NO));
+        doc.add(new TextField(FIELD_PATHS_SPLIT, path, Field.Store.NO));
+        if (host != null && !host.isEmpty()) {
+            doc.add(new StringField(FIELD_HOSTS, host, Field.Store.NO));
+            doc.add(new TextField(FIELD_HOSTS_SPLIT, host, Field.Store.NO));
+        }
+        if (pathIndex[0]++ == 0) {
+            doc.add(new SortedDocValuesField(FIELD_PATHS_SORTED, toSortedValue(path)));
         }
     }
 
