@@ -18,10 +18,7 @@ package io.gravitee.repository.mongodb;
 import com.mongodb.client.MongoClient;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.config.TestRepositoryInitializer;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.IndexMongoUpgrader;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
-import java.util.concurrent.TimeUnit;
 import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,17 +54,6 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
                     upgrader.upgrade();
                 } catch (UpgraderException e) {
                     LOG.error("Failed to upgrade MongoDB with upgrader: {}", upgrader.getClass().getName(), e);
-                }
-            });
-
-        applicationContext
-            .getBeansOfType(IndexMongoUpgrader.class)
-            .values()
-            .forEach(upgrader -> {
-                try {
-                    upgrader.upgrade();
-                } catch (UpgraderException e) {
-                    LOG.error("Failed to upgrade MongoDB with index upgrader: {}", upgrader.getClass().getName(), e);
                 }
             });
     }

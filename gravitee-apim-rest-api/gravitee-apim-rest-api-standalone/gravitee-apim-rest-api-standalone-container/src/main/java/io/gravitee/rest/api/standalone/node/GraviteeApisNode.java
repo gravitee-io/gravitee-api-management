@@ -64,6 +64,7 @@ public class GraviteeApisNode extends AbstractNode {
     @Override
     public List<Class<? extends LifecycleComponent>> components() {
         final List<Class<? extends LifecycleComponent>> components = super.components();
+        components.add(JettyEmbeddedContainer.class);
         components.add(AlertTriggerProviderManager.class);
         components.add(AlertEventProducerManager.class);
         components.add(ScheduledCommandService.class);
@@ -72,9 +73,6 @@ public class GraviteeApisNode extends AbstractNode {
         // Keep it at the end
         components.addAll(UpgraderConfiguration.getComponents());
         components.addAll(InitializerConfiguration.getComponents());
-
-        // Start Jetty server after upgraders to ensure database is validated first
-        components.add(JettyEmbeddedContainer.class);
         return components;
     }
 }
