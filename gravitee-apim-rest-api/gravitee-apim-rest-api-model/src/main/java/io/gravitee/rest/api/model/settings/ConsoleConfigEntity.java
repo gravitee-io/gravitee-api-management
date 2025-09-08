@@ -39,6 +39,7 @@ public class ConsoleConfigEntity {
     private Federation federation;
     private CloudHosted cloudHosted;
     private UserGroup userGroup;
+    private NewtAIELGen elGen;
 
     public ConsoleConfigEntity() {
         super();
@@ -58,5 +59,6 @@ public class ConsoleConfigEntity {
         federation = new Federation();
         cloudHosted = new CloudHosted();
         userGroup = new UserGroup();
+        elGen = new NewtAIELGen();
     }
 }

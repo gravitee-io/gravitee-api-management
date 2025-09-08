@@ -42,7 +42,9 @@ export class NewtAIService {
   private context: Partial<Record<NewtAIContextKeys, string>> = {};
 
   constructor() {
-    this.gioElService.promptCallback = (p) => this.promptEL(p);
+    if (this.constants?.org?.settings?.elGen?.enabled ?? false) {
+      this.gioElService.promptCallback = (p) => this.promptEL(p);
+    }
   }
 
   public promptEL(prompt: string): Observable<ElAiPromptState> {
