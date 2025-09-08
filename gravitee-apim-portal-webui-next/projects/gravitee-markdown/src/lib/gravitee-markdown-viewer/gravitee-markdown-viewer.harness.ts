@@ -13,3 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+
+export class GraviteeMarkdownViewerHarness extends ComponentHarness {
+  static hostSelector = 'gmd-viewer';
+
+  async getRenderedHtml(): Promise<string> {
+    const innerContainer = await this.locatorFor('ngx-dynamic-hooks')();
+    return innerContainer.getProperty('innerHTML');
+  }
+}

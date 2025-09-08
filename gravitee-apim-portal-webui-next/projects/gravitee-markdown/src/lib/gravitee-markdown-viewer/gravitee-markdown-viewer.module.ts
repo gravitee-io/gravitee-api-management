@@ -17,9 +17,11 @@ import { NgModule } from '@angular/core';
 import { DynamicHooksComponent } from 'ngx-dynamic-hooks';
 
 import { GraviteeMarkdownViewerComponent } from './gravitee-markdown-viewer.component';
+import { GraviteeMarkdownViewerService } from './gravitee-markdown-viewer.service';
 
 @NgModule({
   imports: [DynamicHooksComponent],
+  providers: [GraviteeMarkdownViewerService],
   exports: [GraviteeMarkdownViewerComponent],
   declarations: [GraviteeMarkdownViewerComponent],
 })
