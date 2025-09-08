@@ -50,6 +50,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private Federation federation;
     private CloudHosted cloudHosted;
     private UserGroup userGroup;
+    private NewtAIELGen elGen;
 
     public ConsoleSettingsEntity() {
         super();
@@ -70,6 +71,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         federation = new Federation();
         cloudHosted = new CloudHosted();
         userGroup = new UserGroup();
+        elGen = new NewtAIELGen();
     }
 
     //Classes
