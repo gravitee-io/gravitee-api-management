@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -31,8 +31,8 @@ class PortalPageAdapterTest {
         repoPage.setContent("markdown content");
         var corePage = PortalPageAdapter.INSTANCE.toEntity(repoPage);
         assertThat(corePage).isNotNull();
-        assertThat(corePage.id().toString()).isEqualTo("123e4567-e89b-12d3-a456-426614174000");
-        assertThat(corePage.pageContent().content()).isEqualTo("markdown content");
+        assertThat(corePage.getId().toString()).isEqualTo("123e4567-e89b-12d3-a456-426614174000");
+        assertThat(corePage.getPageContent().content()).isEqualTo("markdown content");
     }
 
     @Test
