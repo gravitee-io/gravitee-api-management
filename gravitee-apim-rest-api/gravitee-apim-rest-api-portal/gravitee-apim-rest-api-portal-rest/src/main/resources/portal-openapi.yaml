@@ -43,6 +43,54 @@ security:
     - CookieAuth: []
 
 paths:
+    /pages/_homepage:
+        get:
+            tags:
+                - Portal
+            summary: Get Portal homepage
+            description: Returns the Portal homepage with its content.
+            operationId: getPortalHomepage
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: Homepage found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    id:
+                                        type: string
+                                        description: ID of the homepage
+                                    name:
+                                        type: string
+                                        description: Name of the homepage
+                                        nullable: true
+                                    createdAt:
+                                        type: string
+                                        format: date-time
+                                        description: Creation date of the homepage
+                                        nullable: true
+                                    updatedAt:
+                                        type: string
+                                        format: date-time
+                                        description: Last update date of the homepage
+                                        nullable: true
+                                    content:
+                                        type: string
+                                        description: Markdown content of the homepage
+                                    type:
+                                        type: string
+                                        description: Content type
+                                        enum: [GRAVITEE_MARKDOWN]
+                                required: [id, content, type]
+                404:
+                    description: Homepage not found or not published/accessible
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /apis:
         get:
             tags:
