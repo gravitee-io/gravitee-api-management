@@ -21,7 +21,6 @@ import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,7 +32,6 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.cluster.use_case.members.AddClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.DeleteClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
-import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.member.model.Member;
@@ -52,7 +50,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -66,9 +63,6 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
 
     @Inject
     private GetClusterMembersUseCase getClusterMembersUseCase;
-
-    @Inject
-    private GetClusterPermissionsUseCase getClusterPermissionsUseCase;
 
     @Inject
     private AddClusterMemberUseCase addClusterMemberUseCase;
@@ -106,52 +100,7 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(
-            getClusterMembersUseCase,
-            getClusterPermissionsUseCase,
-            addClusterMemberUseCase,
-            updateClusterMemberUseCase,
-            deleteClusterMemberUseCase
-        );
-    }
-
-    @Nested
-    class GetClusterMembersPermissionsTest {
-
-        private WebTarget target;
-
-        @BeforeEach
-        void setUp() {
-            target = rootTarget("permissions");
-        }
-
-        @Test
-        void should_get_cluster_members_permissions() {
-            var output = Map.of(
-                ClusterPermission.MEMBER.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() },
-                ClusterPermission.DEFINITION.getName(),
-                new char[] { READ.getId() }
-            );
-            when(getClusterPermissionsUseCase.execute(any())).thenReturn(new GetClusterPermissionsUseCase.Output(output));
-
-            final Response response = target.request().get();
-
-            assertThat(response.getStatus()).isEqualTo(OK_200);
-
-            Map<String, String> permissionsResponse = (Map<String, String>) response.readEntity(Map.class);
-
-            assertAll(
-                () -> assertThat(permissionsResponse.size()).isEqualTo(2),
-                () -> assertThat(permissionsResponse.get(ClusterPermission.MEMBER.getName())).isEqualTo("CRUD"),
-                () -> assertThat(permissionsResponse.get(ClusterPermission.DEFINITION.getName())).isEqualTo("R")
-            );
-        }
-
-        @Test
-        public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, RolePermissionAction.READ, () -> target.request().get());
-        }
+        reset(getClusterMembersUseCase, addClusterMemberUseCase, updateClusterMemberUseCase, deleteClusterMemberUseCase);
     }
 
     @Nested

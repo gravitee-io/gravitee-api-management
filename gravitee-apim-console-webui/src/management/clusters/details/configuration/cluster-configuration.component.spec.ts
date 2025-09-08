@@ -25,7 +25,7 @@ import { ClusterConfigurationHarness } from './cluster-configuration.harness';
 
 import { GioTestingModule } from '../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { expectGetClusterRequest, expectUpdateClusterRequest } from '../../../../services-ngx/clusters.service.spec';
+import { expectGetClusterRequest, expectUpdateClusterRequest } from '../../../../services-ngx/cluster.service.spec';
 import { fakeCluster, fakeUpdateCluster } from '../../../../entities/management-api-v2';
 
 describe('ClusterConfigurationComponent', () => {

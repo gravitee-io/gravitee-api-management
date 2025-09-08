@@ -34,7 +34,7 @@ import {
   expectCreateClusterRequest,
   expectDeleteClusterRequest,
   expectListClusterRequest,
-} from '../../../services-ngx/clusters.service.spec';
+} from '../../../services-ngx/cluster.service.spec';
 import { fakeCluster, fakeCreateCluster, fakePagedResult } from '../../../entities/management-api-v2';
 
 describe('ClustersListPageComponent', () => {

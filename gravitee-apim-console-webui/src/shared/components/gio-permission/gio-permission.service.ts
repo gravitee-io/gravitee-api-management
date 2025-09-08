@@ -19,7 +19,6 @@ import { intersection, toLower } from 'lodash';
 import { map, shareReplay } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 
-import { ClusterMemberService } from '../../../services-ngx/cluster-member.service';
 import UserService from '../../../services/user.service';
 import { ApiService } from '../../../services-ngx/api.service';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
@@ -28,6 +27,7 @@ import { CurrentUserService as AjsCurrentUserService } from '../../../ajs-upgrad
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { GroupV2Service } from '../../../services-ngx/group-v2.service';
+import { ClusterService } from '../../../services-ngx/cluster.service';
 
 export type GioTestingPermission = string[];
 
@@ -63,7 +63,7 @@ export class GioPermissionService {
     private readonly environmentService: EnvironmentService,
     private readonly applicationService: ApplicationService,
     private readonly integrationService: IntegrationsService,
-    private readonly clusterMemberService: ClusterMemberService,
+    private readonly clusterService: ClusterService,
     private readonly groupService: GroupV2Service,
   ) {
     if (this.gioTestingPermission) {
@@ -162,7 +162,7 @@ export class GioPermissionService {
   }
 
   loadClusterPermissions(clusterId: string): Observable<void> {
-    return this.clusterMemberService.getPermissions(clusterId).pipe(
+    return this.clusterService.getPermissions(clusterId).pipe(
       map((clusterPermissions) => {
         this.currentClusterPermissions = Object.entries(clusterPermissions).flatMap(([key, crudValues]) =>
           crudValues.split('').map((crudValue) => toLower(`cluster-${key}-${crudValue}`)),
@@ -215,7 +215,7 @@ export class GioPermissionService {
         permissions$ = this.applicationService.getPermissions(id).pipe(map(mapToStringPermissions));
         break;
       case 'CLUSTER':
-        permissions$ = this.clusterMemberService.getPermissions(id).pipe(map(mapToStringPermissions));
+        permissions$ = this.clusterService.getPermissions(id).pipe(map(mapToStringPermissions));
         break;
       default:
         permissions$ = of([]);

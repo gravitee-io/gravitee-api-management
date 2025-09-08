@@ -566,6 +566,19 @@ paths:
             description: Cluster deleted
           default:
             $ref: "#/components/responses/Error"
+    /clusters/{clusterId}/permissions:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      get:
+        tags:
+          - Clusters
+        summary: Get cluster's permissions of current user
+        operationId: getClusterPermissions
+        responses:
+          "200":
+            $ref: "#/components/responses/ClusterPermissionsResponse"
+          default:
+            $ref: "#/components/responses/Error"
 
 
     # NewAI
@@ -1547,6 +1560,19 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+        ClusterPermissionsResponse:
+          description: Cluster permissions
+          content:
+            application/json:
+              schema:
+                title: "ClusterPermissionsResponse"
+                properties:
+                  data:
+                    description: Key/Value list of permissions. The key is the permission name and the value is the permission CRUD value.
+                    example: { "DEFINITION": "CRUD", "MEMBER": "R" }
+                    type: object
+                    additionalProperties:
+                      type: string
 
         # Analytics
         EnvironmentAnalyticsResponseStatusRangesResponse:

@@ -31,7 +31,7 @@ import {
   expectDeleteClusterRequest,
   expectGetClusterRequest,
   expectUpdateClusterRequest,
-} from '../../../../services-ngx/clusters.service.spec';
+} from '../../../../services-ngx/cluster.service.spec';
 import { fakeCluster, fakeUpdateCluster } from '../../../../entities/management-api-v2';
 
 describe('ClusterGeneralComponent', () => {

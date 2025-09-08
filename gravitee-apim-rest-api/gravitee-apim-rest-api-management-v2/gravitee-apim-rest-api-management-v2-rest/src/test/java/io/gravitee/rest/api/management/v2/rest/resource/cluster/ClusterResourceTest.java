@@ -17,6 +17,10 @@ package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -32,15 +36,18 @@ import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
 import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateCluster;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -69,6 +76,9 @@ class ClusterResourceTest extends AbstractResourceTest {
     @Inject
     private DeleteClusterUseCase deleteClusterUseCase;
 
+    @Inject
+    private GetClusterPermissionsUseCase getClusterPermissionsUseCase;
+
     @Autowired
     private UpdateClusterGroupsUseCase updateClusterGroupsUseCase;
 
@@ -96,7 +106,7 @@ class ClusterResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(updateClusterUseCase, deleteClusterUseCase);
+        reset(updateClusterUseCase, deleteClusterUseCase, getClusterPermissionsUseCase);
     }
 
     @Nested
@@ -275,6 +285,40 @@ class ClusterResourceTest extends AbstractResourceTest {
                 soft.assertThat(input.groups()).containsExactlyInAnyOrder("G1", "G2");
                 soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
             });
+        }
+    }
+
+    @Nested
+    class GetClusterPermissionsTest {
+
+        private WebTarget target;
+
+        @BeforeEach
+        void setUp() {
+            target = rootTarget("permissions");
+        }
+
+        @Test
+        void should_get_cluster_permissions() {
+            var output = Map.of(
+                ClusterPermission.MEMBER.getName(),
+                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() },
+                ClusterPermission.DEFINITION.getName(),
+                new char[] { READ.getId() }
+            );
+            when(getClusterPermissionsUseCase.execute(any())).thenReturn(new GetClusterPermissionsUseCase.Output(output));
+
+            final Response response = target.request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+
+            Map<String, String> permissionsResponse = (Map<String, String>) response.readEntity(Map.class);
+
+            assertAll(
+                () -> assertThat(permissionsResponse.size()).isEqualTo(2),
+                () -> assertThat(permissionsResponse.get(ClusterPermission.MEMBER.getName())).isEqualTo("CRUD"),
+                () -> assertThat(permissionsResponse.get(ClusterPermission.DEFINITION.getName())).isEqualTo("R")
+            );
         }
     }
 }

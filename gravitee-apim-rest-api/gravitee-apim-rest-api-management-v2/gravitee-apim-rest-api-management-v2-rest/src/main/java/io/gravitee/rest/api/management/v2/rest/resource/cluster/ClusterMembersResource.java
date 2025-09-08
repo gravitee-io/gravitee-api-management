@@ -20,7 +20,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.use_case.members.AddClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.DeleteClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
-import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.common.http.MediaType;
@@ -33,16 +32,12 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateMember;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -67,9 +62,6 @@ public class ClusterMembersResource extends AbstractResource {
     private GetClusterMembersUseCase getClusterMembersUseCase;
 
     @Inject
-    private GetClusterPermissionsUseCase getClusterPermissionsUseCase;
-
-    @Inject
     private AddClusterMemberUseCase addClusterMemberUseCase;
 
     @Inject
@@ -80,30 +72,6 @@ public class ClusterMembersResource extends AbstractResource {
 
     @Inject
     private TransferClusterOwnershipUseCase transferClusterOwnershipUseCase;
-
-    @GET
-    @Path("permissions")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(
-        summary = "Get cluster members permissions",
-        description = "User must have the CLUSTER_MEMBER permission to use this service"
-    )
-    @ApiResponse(
-        responseCode = "200",
-        description = "Cluster member's permissions",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = MemberEntity.class))
-        )
-    )
-    @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = { RolePermissionAction.READ }) })
-    public Response getClusterMembersPermissions() {
-        var output = getClusterPermissionsUseCase.execute(
-            new GetClusterPermissionsUseCase.Input(isAuthenticated(), isAdmin(), getAuthenticatedUser(), clusterId)
-        );
-        return Response.ok(output.permissions()).build();
-    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
