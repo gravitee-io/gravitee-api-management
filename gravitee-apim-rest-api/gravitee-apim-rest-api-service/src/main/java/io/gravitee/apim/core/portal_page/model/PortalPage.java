@@ -16,13 +16,16 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import javax.annotation.Nonnull;
+import lombok.Getter;
 
 public class PortalPage {
 
     @Nonnull
+    @Getter
     private final PageId id;
 
     @Nonnull
+    @Getter
     private final GraviteeMarkdown pageContent;
 
     PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
@@ -36,14 +39,6 @@ public class PortalPage {
 
     public static PortalPage of(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
         return new PortalPage(id, pageContent);
-    }
-
-    public PageId id() {
-        return id;
-    }
-
-    public GraviteeMarkdown pageContent() {
-        return pageContent;
     }
 
     @Override
