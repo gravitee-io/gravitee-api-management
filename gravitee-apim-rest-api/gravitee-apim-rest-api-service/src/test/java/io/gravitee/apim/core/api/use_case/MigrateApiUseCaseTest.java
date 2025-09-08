@@ -48,7 +48,6 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.mapper.V2toV4MigrationOperator;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -85,6 +84,7 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
@@ -1575,27 +1575,26 @@ class MigrateApiUseCaseTest {
             .hasValueSatisfying(api -> {
                 assertApiV4(api);
                 var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
-                assertThat(endpointGroups).hasSize(1);
 
-                var sharedConfiguration = endpointGroups.get(0).getSharedConfiguration();
-                assertThat(sharedConfiguration).isNotNull();
-
-                assertSoftly(softly -> {
-                    softly.assertThat(sharedConfiguration).contains("\"version\":\"HTTP_1_1\"");
-                    softly.assertThat(sharedConfiguration).contains("\"keepAlive\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"keepAliveTimeout\":30000");
-                    softly.assertThat(sharedConfiguration).contains("\"connectTimeout\":5000");
-                    softly.assertThat(sharedConfiguration).contains("\"pipelining\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"readTimeout\":10000");
-                    softly.assertThat(sharedConfiguration).contains("\"useCompression\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"propagateClientAcceptEncoding\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"idleTimeout\":60000");
-                    softly.assertThat(sharedConfiguration).contains("\"followRedirects\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"maxConcurrentConnections\":100");
-
-                    softly.assertThat(sharedConfiguration).doesNotContain("clearTextUpgrade");
-                    softly.assertThat(sharedConfiguration).doesNotContain("http2MultiplexingLimit");
-                });
+                assertThat(endpointGroups)
+                    .map(AbstractEndpointGroup::getSharedConfiguration)
+                    .singleElement()
+                    .isNotNull()
+                    .asString()
+                    .contains(
+                        "\"version\":\"HTTP_1_1\"",
+                        "\"keepAlive\":true",
+                        "\"keepAliveTimeout\":30000",
+                        "\"connectTimeout\":5000",
+                        "\"pipelining\":false",
+                        "\"readTimeout\":10000",
+                        "\"useCompression\":true",
+                        "\"propagateClientAcceptEncoding\":false",
+                        "\"idleTimeout\":60000",
+                        "\"followRedirects\":false",
+                        "\"maxConcurrentConnections\":100"
+                    )
+                    .doesNotContain("clearTextUpgrade", "http2MultiplexingLimit");
             });
     }
 
@@ -1644,27 +1643,27 @@ class MigrateApiUseCaseTest {
             .hasValueSatisfying(api -> {
                 assertApiV4(api);
                 var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
-                assertThat(endpointGroups).hasSize(1);
-
-                var sharedConfiguration = endpointGroups.get(0).getSharedConfiguration();
-                assertThat(sharedConfiguration).isNotNull();
 
                 // Verify HTTP 2 configuration contains all required fields
-                assertSoftly(softly -> {
-                    softly.assertThat(sharedConfiguration).contains("\"version\":\"HTTP_2\"");
-                    softly.assertThat(sharedConfiguration).contains("\"keepAlive\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"keepAliveTimeout\":30000");
-                    softly.assertThat(sharedConfiguration).contains("\"connectTimeout\":5000");
-                    softly.assertThat(sharedConfiguration).contains("\"pipelining\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"readTimeout\":10000");
-                    softly.assertThat(sharedConfiguration).contains("\"useCompression\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"propagateClientAcceptEncoding\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"idleTimeout\":60000");
-                    softly.assertThat(sharedConfiguration).contains("\"followRedirects\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"maxConcurrentConnections\":100");
-                    softly.assertThat(sharedConfiguration).contains("\"clearTextUpgrade\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"http2MultiplexingLimit\":-1");
-                });
+                assertThat(endpointGroups)
+                    .map(EndpointGroup::getSharedConfiguration)
+                    .singleElement()
+                    .asString()
+                    .contains(
+                        "\"version\":\"HTTP_2\"",
+                        "\"keepAlive\":true",
+                        "\"keepAliveTimeout\":30000",
+                        "\"connectTimeout\":5000",
+                        "\"pipelining\":false",
+                        "\"readTimeout\":10000",
+                        "\"useCompression\":true",
+                        "\"propagateClientAcceptEncoding\":false",
+                        "\"idleTimeout\":60000",
+                        "\"followRedirects\":false",
+                        "\"maxConcurrentConnections\":100",
+                        "\"clearTextUpgrade\":true",
+                        "\"http2MultiplexingLimit\":-1"
+                    );
             });
     }
 
