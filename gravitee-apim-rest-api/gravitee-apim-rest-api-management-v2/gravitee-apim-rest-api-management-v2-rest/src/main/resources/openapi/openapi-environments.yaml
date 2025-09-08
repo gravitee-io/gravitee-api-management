@@ -484,6 +484,8 @@ paths:
         tags:
           - Clusters
         summary: Create a cluster
+        description: |-
+          User must have the ENVIRONMENT_CLUSTER[CREATE] permission.
         operationId: createCluster
         requestBody:
           content:
@@ -504,6 +506,8 @@ paths:
         tags:
           - Clusters
         summary: Search clusters
+        description: |-
+          User must have the ENVIRONMENT_CLUSTER[READ] permission.
         operationId: searchClusters
         parameters:
           - $ref: "#/components/parameters/pageParam"
@@ -514,15 +518,16 @@ paths:
             $ref: "#/components/responses/ClustersResponse"
           default:
             $ref: "#/components/responses/Error"
-
     /clusters/{clusterId}:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
       get:
         tags:
           - Clusters
         summary: Get a cluster
+        description: |-
+          User must have the CLUSTER_DEFINITION[READ] permission.
         operationId: getCluster
-        parameters:
-          - $ref: "#/components/parameters/clusterId"
         responses:
           "200":
             description: Cluster found
@@ -536,9 +541,9 @@ paths:
         tags:
           - Clusters
         summary: Update a cluster
+        description: |-
+          User must have the CLUSTER_DEFINITION[UPDATE] permission.
         operationId: updateCluster
-        parameters:
-          - $ref: "#/components/parameters/clusterId"
         requestBody:
           content:
             application/json:
@@ -558,12 +563,39 @@ paths:
         tags:
           - Clusters
         summary: Delete a cluster
+        description: |-
+          User must have the CLUSTER_DEFINITION[DELETE] permission.
         operationId: deleteCluster
         parameters:
           - $ref: "#/components/parameters/clusterId"
         responses:
           "204":
             description: Cluster deleted
+          default:
+            $ref: "#/components/responses/Error"
+    /clusters/{clusterId}/groups:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      put:
+        tags:
+          - Clusters
+        summary: Update a cluster's groups
+        description: |-
+          User must have the CLUSTER_DEFINITION[UPDATE] permission.
+        operationId: updateClusterGroups
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateClusterGroups"
+          required: true
+        responses:
+          "200":
+            description: Cluster groups updated
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ClusterGroups"
           default:
             $ref: "#/components/responses/Error"
     /clusters/{clusterId}/permissions:
@@ -580,6 +612,103 @@ paths:
           default:
             $ref: "#/components/responses/Error"
 
+    # Cluster members
+    /clusters/{clusterId}/members:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      get:
+        tags:
+          - Clusters
+        summary: Get cluster's members
+        description: |-
+          User must have the CLUSTER_MEMBER[READ] permission.
+        operationId: getClusterMembers
+        responses:
+          "200":
+            $ref: "#/components/responses/MembersResponse"
+          default:
+            $ref: "#/components/responses/Error"
+      post:
+        tags:
+          - Clusters
+        summary: Add a cluster member
+        description: |-
+          User must have the CLUSTER_MEMBER[CREATE] permission.
+        operationId: addClusterMember
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddMember"
+          required: true
+        responses:
+          "201":
+            description: Member successfully added
+          default:
+            $ref: "#/components/responses/Error"
+    /clusters/{clusterId}/members/{memberId}:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+        - $ref: "#/components/parameters/memberId"
+      put:
+        tags:
+          - Clusters
+        summary: Update a cluster's member
+        operationId: updateClusterMember
+        description: |-
+          User must have the CLUSTER_MEMBER[UPDATE] permission.
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateMember"
+          required: true
+        responses:
+          "200":
+            description: Updated member
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Member"
+          default:
+            $ref: "#/components/responses/Error"
+      delete:
+        tags:
+          - Clusters
+        summary: Delete a cluster's member
+        description: |-
+          User must have the CLUSTER_MEMBER[DELETE] permission.
+        operationId: deleteClusterMember
+        responses:
+          "204":
+            description: Member removed
+          default:
+            $ref: "#/components/responses/Error"
+    /clusters/{clusterId}/members/_transfer-ownership:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      post:
+        tags:
+          - Clusters
+        summary: Transfer cluster ownership
+        description: |-
+          Transfer the ownership of the Cluster to a user, a group or an cluster member.
+          
+          Return a 404 HTTP Error if Cluster cannot be found.
+          
+          User must have the CLUSTER_MEMBER[UPDATE] permission.
+        operationId: transferClusterOwnership
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterTransferOwnership"
+          required: true
+        responses:
+          "204":
+            description: Ownership has been transferred successfully
+          default:
+            $ref: "#/components/responses/Error"
 
     # NewAI
     /newtai/el/_generate:
@@ -599,30 +728,6 @@ paths:
         responses:
           "200":
             $ref: "#/components/responses/GenerateExpressionLanguageResponse"
-          default:
-            $ref: "#/components/responses/Error"
-
-    /clusters/{clusterId}/groups:
-      put:
-        tags:
-          - Clusters
-        summary: Update a cluster's groups
-        operationId: updateClusterGroups
-        parameters:
-          - $ref: "#/components/parameters/clusterId"
-        requestBody:
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UpdateClusterGroups"
-          required: true
-        responses:
-          "200":
-            description: Cluster groups updated
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ClusterGroups"
           default:
             $ref: "#/components/responses/Error"
 
@@ -761,7 +866,6 @@ components:
                     items:
                         $ref: "#/components/schemas/StepV4"
             required: ["name", "apiType", "phase"]
-
         UpdateSharedPolicyGroup:
             type: object
             description: Update payload for a shared policy group
@@ -935,6 +1039,18 @@ components:
             type: array
             items:
                 type: string
+        ClusterTransferOwnership:
+          type: object
+          properties:
+            newPrimaryOwnerId:
+              type: string
+              description: The new primary owner ID (user's technical identifier). Can be null if userReference is defined.
+            userReference:
+              type: string
+              description: The new primary owner reference (user's reference provided by an identity provider). Can be null if userId is defined.
+            currentPrimaryOwnerNewRole:
+              type: string
+              description: The name of the role that will be assigned to the current primary owner after the transfer.
 
         # Scoring
         EnvironmentApiScore:
@@ -1245,6 +1361,69 @@ components:
                           type: string
                           description: The message condition of the step
 
+        # Members (Shared by api, cluster, integration, ...)
+        Role:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Role's name.
+              example: OWNER
+            scope:
+              $ref: "#/components/schemas/RoleScope"
+        RoleScope:
+          type: string
+          description: Scope of a role.
+          enum:
+            - API
+            - APPLICATION
+            - GROUP
+            - ENVIRONMENT
+            - ORGANIZATION
+            - PLATFORM
+            - INTEGRATION
+            - CLUSTER
+        Member:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Member's uuid.
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            displayName:
+              type: string
+              description: Member's name.
+              example: John Doe
+              minLength: 1
+            roles:
+              type: array
+              items:
+                $ref: "#/components/schemas/Role"
+              description: The list of roles for this Member.
+        AddMember:
+          type: object
+          description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
+          properties:
+            userId:
+              type: string
+              description: Technical identifier for existing user.
+            externalReference:
+              type: string
+              description: User's reference for user provided from an identity provider.
+            roleName:
+              type: string
+              description: The name of the role
+              minLength: 1
+          required: [roleName]
+        UpdateMember:
+          type: object
+          properties:
+            roleName:
+              type: string
+              description: The name of the role
+              minLength: 1
+          required: [roleName]
+
         Error:
             type: object
             properties:
@@ -1320,6 +1499,9 @@ components:
                 next:
                     type: string
                     description: In a paginated response, link to the next page. Maybe null if current is the last page
+        ResponseMetadata:
+          description: Generic object to handle additional information about an entity. Can also be used for pagination data.
+          type: object
 
         FeedbackRequestId:
           description: newt AI feedback request id.
@@ -1385,6 +1567,15 @@ components:
             schema:
                 type: integer
                 format: int64
+
+        # Members (Shared by api, cluster, integration, ...)
+        memberId:
+          name: memberId
+          in: path
+          required: true
+          description: Id of an API member.
+          schema:
+            type: string
 
         # Shared policy group
         sharedPolicyGroupId:
@@ -1467,7 +1658,6 @@ components:
           required: true
           schema:
             type: string
-
         clusterSortByParam:
           name: sortBy
           in: query
@@ -1510,6 +1700,26 @@ components:
               schema:
                 $ref: "#/components/schemas/Error"
 
+        # Members (Shared by api, cluster, integration, ...)
+        MembersResponse:
+          description: Page of members
+          content:
+            application/json:
+              schema:
+                title: "MembersResponse"
+                properties:
+                  data:
+                    description: List of members.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Member"
+                  links:
+                    $ref: "#/components/schemas/Links"
+                  metadata:
+                    $ref: "#/components/schemas/ResponseMetadata"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
         # Shared policy group
         SharedPolicyGroupsResponse:
             description: Page of shared policy groups
@@ -1544,6 +1754,7 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
 
+        # Cluster
         ClustersResponse:
             description: Page of clusters
             content:
@@ -1561,11 +1772,11 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
         ClusterPermissionsResponse:
-          description: Cluster permissions
+          description: Permissions response
           content:
             application/json:
               schema:
-                title: "ClusterPermissionsResponse"
+                title: "PermissionsResponse"
                 properties:
                   data:
                     description: Key/Value list of permissions. The key is the permission name and the value is the permission CRUD value.
@@ -1752,6 +1963,7 @@ components:
                                 items:
                                     $ref: "#/components/schemas/ScoringFunction"
 
+        # NewAI
         GenerateExpressionLanguageResponse:
           description: Response an expression language generation
           content:
@@ -1764,8 +1976,8 @@ components:
                     type: string
                   feedbackRequestId:
                     $ref: '#/components/schemas/FeedbackRequestId'
-                    
-        
+
+
         # Instances
         InstanceDetailResponse:
           description: The gateway instance details.
