@@ -23,16 +23,17 @@ import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class PortalPageContextCrudServiceImpl implements PortalPageContextCrudService {
 
-    @Lazy
     private final PortalPageContextRepository portalPageContextRepository;
+
+    public PortalPageContextCrudServiceImpl(@Lazy PortalPageContextRepository portalPageContextRepository) {
+        this.portalPageContextRepository = portalPageContextRepository;
+    }
 
     @Override
     public List<PageId> findAllIdsByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId) {

@@ -21,18 +21,19 @@ import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.infra.adapter.PortalPageAdapter;
 import io.gravitee.repository.management.api.PortalPageRepository;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class PortalPageCrudServiceImpl implements PortalPageCrudService {
 
-    @Lazy
     private final PortalPageRepository portalPageRepository;
 
     private final PortalPageAdapter portalPageAdapter = PortalPageAdapter.INSTANCE;
+
+    public PortalPageCrudServiceImpl(@Lazy PortalPageRepository portalPageRepository) {
+        this.portalPageRepository = portalPageRepository;
+    }
 
     @Override
     public List<PortalPage> findByIds(List<PageId> pageIds) {
