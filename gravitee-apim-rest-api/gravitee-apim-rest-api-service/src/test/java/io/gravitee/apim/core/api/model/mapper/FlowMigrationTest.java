@@ -297,7 +297,7 @@ class FlowMigrationTest {
                 .startsWith(
                     "Multiple groovy scripts found in groovy policy configuration (non 'content' scripts are ignored if a 'content' script is present)"
                 );
-            assertThat(result.issues().iterator().next().state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
+            assertThat(result.issues().iterator().next().state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         }
 
         private Flow buildV2Flow(String groovyPolicyCfg) {
