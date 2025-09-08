@@ -33,7 +33,7 @@
     <properties>
         <gravitee-reporter-common.version>1.7.0-alpha.7</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>6.3.0-alpha.5</gravitee-common-elasticsearch.version>
-        <opensearch-testcontainers.version>2.1.3</opensearch-testcontainers.version>
+        <opensearch-testcontainers.version>2.1.4</opensearch-testcontainers.version>
 
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/plugins/repositories</publish-folder-path>
