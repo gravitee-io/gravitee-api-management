@@ -3082,6 +3082,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A."
   dependencies:
+    marked-gfm-heading-id: "npm:3.2.0"
+    ngx-dynamic-hooks: "npm:^3.1.2"
     tslib: "npm:^2.3.0"
   peerDependencies:
     "@angular/common": ^19.2.0
@@ -11998,6 +12000,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"github-slugger@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "github-slugger@npm:2.0.0"
+  checksum: 10c0/21b912b6b1e48f1e5a50b2292b48df0ff6abeeb0691b161b3d93d84f4ae6b1acd6ae23702e914af7ea5d441c096453cf0f621b72d57893946618d21dd1a1c486
+  languageName: node
+  linkType: hard
+
 "gitignore-to-glob@npm:^0.3.0":
   version: 0.3.0
   resolution: "gitignore-to-glob@npm:0.3.0"
@@ -14956,6 +14965,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"marked-gfm-heading-id@npm:3.2.0":
+  version: 3.2.0
+  resolution: "marked-gfm-heading-id@npm:3.2.0"
+  dependencies:
+    github-slugger: "npm:^2.0.0"
+  peerDependencies:
+    marked: ">=4 <13"
+  checksum: 10c0/aba170f042049248047db4c1202c9cf3434858ca8e15b1b0d42905a6086135e98ac5edc8437c48c1206402cdb1f0fd0fbdcad410792a7d7150bec6095108b365
+  languageName: node
+  linkType: hard
+
 "marked-highlight@npm:2.2.1":
   version: 2.2.1
   resolution: "marked-highlight@npm:2.2.1"
@@ -15810,6 +15830,20 @@ __metadata:
   peerDependencies:
     angular: ^1.2.0
   checksum: 10c0/a6c43d4c2a118540491700d20040c4cac70717bbed9df9335b0aa0d797d0d75118d6e001f7fa86b2e68ec54f495edf87dcca57c93b93d950855d9bfdd58418f2
+  languageName: node
+  linkType: hard
+
+"ngx-dynamic-hooks@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "ngx-dynamic-hooks@npm:3.1.2"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/common": ">=17"
+    "@angular/core": ">=17"
+    "@angular/platform-browser": ">=17"
+    rxjs: ">=7"
+  checksum: 10c0/99d1b3b07f12aabd31fe1a5b3f763232451f41d35fea9b08ab79649e4e5ec6b4e10a12d9f287baf1807bf755f8a585a61a124eb080e1eb7228b64d9f96d73dc4
   languageName: node
   linkType: hard
 
