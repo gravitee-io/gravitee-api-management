@@ -15,7 +15,7 @@
  */
 import { importProvidersFrom } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
+import { applicationConfig, Args, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { GraviteeMarkdownEditorComponent } from './gravitee-markdown-editor.component';
 import { GraviteeMarkdownEditorModule } from './gravitee-markdown-editor.module';
@@ -157,4 +157,54 @@ export const WithFormControl: StoryObj<GraviteeMarkdownEditorComponent> = {
       },
     },
   }),
+};
+
+export const ThemeVariants: StoryObj = {
+  argTypes: {
+    borderColor: {
+      control: { type: 'color' },
+      description: 'The color of the editor border',
+    },
+  },
+  args: {
+    borderColor: '#b2aaa9',
+  },
+  render: (args: Args) => ({
+    template: `
+      <div>
+        <h3>Border Color Test</h3>
+        <p>Use the color control below to change the border color dynamically.</p>
+
+        <div style="height: 400px; --gmd-editor-container-outline-color: {{ borderColor }};">
+          <gmd-editor [formControl]="contentControl"></gmd-editor>
+        </div>
+      </div>
+    `,
+    props: {
+      contentControl: new FormControl(`# Border Color Test
+
+This editor allows you to test different border colors dynamically.
+
+## Features
+- **Dynamic border color** - Change the color using the control panel
+- **Real-time updates** - See changes immediately
+- **Token system** - Uses CSS custom properties for theming
+
+## Sample Content
+- *Italic text* and **bold text**
+- \`Inline code\`
+- [Links](https://gravitee.io)
+
+> This demonstrates the token-based theming system`),
+      borderColor: args['borderColor'] || '#b2aaa9',
+    },
+  }),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story allows you to dynamically change the border color using a color picker control. The border color is controlled by the CSS custom property `--gmd-editor-container-outline-color`.',
+      },
+    },
+  },
 };

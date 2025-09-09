@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use './overrides' as overrides;
 @use '../scss/token-utils' as token-utils;
 
-$token-mapping: overrides.tokens();
+@function tokens() {
+  @return (
+    container-outline-color: (
+      value: #b2aaa9,
+      css-var: --gmd-editor-container-outline-color,
+    )
+  );
+}
 
-.container {
-  height: 100%;
-  padding: 16px;
-  background-color: #fff;
-
-  &__inner-border {
-    padding: 4px 0;
-    border: 1px solid token-utils.slot(container-outline-color, $token-mapping);
-    border-radius: 4px;
-  }
+// Component-level override mixin
+@mixin overrides($overrides: ()) {
+  @include token-utils.apply-token-overrides(tokens(), $overrides);
 }

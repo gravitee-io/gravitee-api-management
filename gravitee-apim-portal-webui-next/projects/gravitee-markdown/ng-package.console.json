@@ -3,5 +3,6 @@
   "dest": "../../../gravitee-apim-console-webui/dist-lib/gravitee-markdown",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "assets": ["index.scss", "src/public-api.scss", "src/scss/**/*.scss", "src/lib/**/!(*.component).scss"]
 }
