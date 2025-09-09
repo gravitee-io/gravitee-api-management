@@ -25,7 +25,6 @@ import { CommonModule, NgForOf } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 
-import { Constants } from '../../../../../entities/Constants';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 import { SearchableUser } from '../../../../../entities/user/searchableUser';
 import { Role } from '../../../../../entities/role/role';
@@ -50,9 +49,9 @@ export interface TransferOwnershipDialogResult {
 type TransferOwnershipMode = 'ENTITY_MEMBER' | 'OTHER_USER';
 
 @Component({
-  selector: 'cluster-transfer-ownership',
-  templateUrl: './cluster-transfer-ownership.component.html',
-  styleUrls: ['./cluster-transfer-ownership.component.scss'],
+  selector: 'cluster-transfer-ownership-dialog',
+  templateUrl: './cluster-transfer-ownership-dialog.component.html',
+  styleUrls: ['./cluster-transfer-ownership-dialog.component.scss'],
   imports: [
     CommonModule,
     MatFormFieldModule,
@@ -67,14 +66,13 @@ type TransferOwnershipMode = 'ENTITY_MEMBER' | 'OTHER_USER';
     MatButtonToggleGroup,
   ],
 })
-export class ClusterTransferOwnershipComponent implements OnInit {
+export class ClusterTransferOwnershipDialogComponent implements OnInit {
   form: FormGroup;
   mode: TransferOwnershipMode = 'ENTITY_MEMBER';
   poRoles: Role[];
   entityMembers: Member[];
 
   constructor(
-    @Inject(Constants) private readonly constants: Constants,
     @Inject(MAT_DIALOG_DATA) dialogData: TransferOwnershipDialogData,
     public dialogRef: MatDialogRef<TransferOwnershipDialogData, TransferOwnershipDialogResult>,
   ) {

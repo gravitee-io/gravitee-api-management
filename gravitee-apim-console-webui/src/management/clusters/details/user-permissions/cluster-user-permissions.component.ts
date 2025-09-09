@@ -36,7 +36,10 @@ import {
   ClusterManageGroupsDialogResult,
 } from './manage-groups-dialog/cluster-manage-groups-dialog.component';
 import { ClusterGroupMembersComponent } from './group-members/cluster-group-members.component';
-import { ClusterTransferOwnershipComponent, TransferOwnershipDialogData } from './transfer-ownership/cluster-transfer-ownership.component';
+import {
+  ClusterTransferOwnershipDialogComponent,
+  TransferOwnershipDialogData,
+} from './transfer-ownership/cluster-transfer-ownership-dialog.component';
 
 import { ClusterMemberService } from '../../../../services-ngx/cluster-member.service';
 import {
@@ -198,7 +201,7 @@ export class ClusterUserPermissionsComponent implements OnInit {
 
   public transferOwnership() {
     this.matDialog
-      .open<ClusterTransferOwnershipComponent, TransferOwnershipDialogData>(ClusterTransferOwnershipComponent, {
+      .open<ClusterTransferOwnershipDialogComponent, TransferOwnershipDialogData>(ClusterTransferOwnershipDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         role: 'alertdialog',
         id: 'transferOwnershipDialog',
