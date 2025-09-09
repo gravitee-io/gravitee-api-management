@@ -20,7 +20,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { TransferOwnership } from '../management/clusters/details/user-permissions/transfer-ownership/cluster-transfer-ownership.component';
+import { TransferOwnership } from '../management/clusters/details/user-permissions/transfer-ownership/cluster-transfer-ownership-dialog.component';
 
 @Injectable({
   providedIn: 'root',
