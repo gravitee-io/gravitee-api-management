@@ -1,9 +1,7 @@
 <#ftl output_format="JSON">
 {
     "index_patterns": ["${indexName}*"],
-    "data_stream": {},
     "settings": {
-        "index.mode": "time_series",
         "index.lifecycle.name": "event-metrics-ilm-policy"
     },
     "mappings": {
@@ -104,9 +102,5 @@
                 "type": "date"
             }
         }
-    },
-    "priority": 9344,
-    "_meta": {
-        "description": "Template for event metrics time series data stream"
     }
 }
