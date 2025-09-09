@@ -3888,6 +3888,7 @@ components:
             type: string
             description: The visibility of the resource regarding the portal.
             example: PUBLIC
+            default: PRIVATE
             enum:
                 - PUBLIC
                 - PRIVATE
