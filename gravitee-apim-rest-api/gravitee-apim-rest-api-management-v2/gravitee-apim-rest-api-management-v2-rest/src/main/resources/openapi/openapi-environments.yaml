@@ -513,6 +513,7 @@ paths:
           - $ref: "#/components/parameters/pageParam"
           - $ref: "#/components/parameters/perPageParam"
           - $ref: "#/components/parameters/clusterSortByParam"
+          - $ref: "#/components/parameters/clusterSearchParam"
         responses:
           "200":
             $ref: "#/components/responses/ClustersResponse"
@@ -1676,6 +1677,14 @@ components:
               - -createdAt
               - updatedAt
               - -updatedAt
+        clusterSearchParam:
+            name: q
+            in: query
+            description: |-
+                A search query to filter clusters.
+            schema:
+                type: string
+                example: my cluster
 
         # Instances
         instanceId:

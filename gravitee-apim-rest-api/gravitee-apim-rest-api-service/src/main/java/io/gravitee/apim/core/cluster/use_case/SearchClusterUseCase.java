@@ -37,7 +37,7 @@ public class SearchClusterUseCase {
     private final MembershipQueryService membershipQueryService;
 
     @Builder
-    public record Input(String environmentId, Pageable pageable, String sortBy, boolean isAdmin, String userId) {}
+    public record Input(String environmentId, String query, Pageable pageable, String sortBy, boolean isAdmin, String userId) {}
 
     public record Output(Page<Cluster> pageResult) {}
 
@@ -49,6 +49,9 @@ public class SearchClusterUseCase {
         if (!input.isAdmin) {
             var clustersIdsUserCanRead = membershipQueryService.findClustersIdsThatUserBelongsTo(input.userId);
             criteriaBuilder.ids(clustersIdsUserCanRead);
+        }
+        if (input.query != null && !input.query.isBlank()) {
+            criteriaBuilder.query(input.query);
         }
 
         var pageable = Optional.ofNullable(input.pageable).orElse(new PageableImpl(1, 10));
