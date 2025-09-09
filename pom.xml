@@ -161,12 +161,12 @@
         <jsonschema2pojo-maven-plugin.version>1.2.2</jsonschema2pojo-maven-plugin.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
         <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
-        <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
+        <swagger-maven-plugin.version>&gt;2.2.9</swagger-maven-plugin.version>
         <skip.validation>false</skip.validation>
 
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
-        <gravitee-alert-engine-connectors-ws.version>2.1.0</gravitee-alert-engine-connectors-ws.version>
+        <gravitee-alert-engine-connectors-ws.version>2.2.0</gravitee-alert-engine-connectors-ws.version>
         <gravitee-connector-http.version>5.0.5</gravitee-connector-http.version>
         <gravitee-policy-apikey.version>5.1.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>3.0.2</gravitee-policy-assign-attributes.version>
