@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-import { Component, computed, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map, shareReplay } from 'rxjs/operators';
 
-import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
-import {
-  ApiAnalyticsProxyFilterBarComponent,
-  ApiAnalyticsProxyFilters,
-} from '../components/api-analytics-proxy-filter-bar/api-analytics-proxy-filter-bar.component';
+import { ApiAnalyticsProxyFilterBarComponent } from '../components/api-analytics-proxy-filter-bar/api-analytics-proxy-filter-bar.component';
+import { AnalyticsLayoutComponent } from '../components/analytics-layout/analytics-layout.component';
 import {
   AggregationFields,
   AggregationTypes,
@@ -39,10 +34,10 @@ import {
   ApiAnalyticsWidgetConfig,
   ApiAnalyticsWidgetType,
 } from '../components/api-analytics-widget/api-analytics-widget.component';
-import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../api-analytics-widget.service';
+import { ApiAnalyticsWidgetService } from '../api-analytics-widget.service';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
-import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { FILTER_FIELDS } from '../components/common/common-filters.types';
 
 type WidgetDisplayConfig = {
   title: string;
@@ -79,15 +74,6 @@ type WidgetDataConfig = {
   };
 };
 
-interface QueryParamsBase {
-  from?: string;
-  to?: string;
-  period?: string;
-  httpStatuses?: string;
-  plans?: string;
-  applications?: string[];
-}
-
 export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetDataConfig;
 
 @Component({
@@ -100,20 +86,19 @@ export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetData
     ApiAnalyticsProxyFilterBarComponent,
     ApiAnalyticsWidgetComponent,
     GioChartPieModule,
+    AnalyticsLayoutComponent,
   ],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
 })
-export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
+export class ApiAnalyticsProxyComponent implements OnInit {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
-  private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
-  private planService = inject(ApiPlanV2Service);
+
+  filterFields = FILTER_FIELDS.PROXY;
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
-
-  public activeFilters: Signal<ApiAnalyticsProxyFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
 
   private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
@@ -330,25 +315,12 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     },
   ];
 
-  apiPlans$ = this.planService
-    .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
-    .pipe(
-      map((plans) => plans.data),
-      shareReplay(1),
-    );
-
   constructor(
     private readonly activatedRoute: ActivatedRoute,
-    private readonly router: Router,
     private readonly apiAnalyticsWidgetService: ApiAnalyticsWidgetService,
-  ) {
-    effect(() => {
-      this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activatedRouteQueryParams()));
-    });
-  }
+  ) {}
 
   ngOnInit(): void {
-    // Initialize widgets
     this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
@@ -360,116 +332,5 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     this.rightColumnTransformed$ = this.rightColumnWidgets.map((widgetConfig) => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
-  }
-
-  onFiltersChange(filters: ApiAnalyticsProxyFilters): void {
-    this.updateQueryParamsFromFilters(filters);
-  }
-
-  onRefreshFilters(): void {
-    this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activeFilters()));
-  }
-
-  ngOnDestroy(): void {
-    this.apiAnalyticsWidgetService.clearStatsCache();
-  }
-
-  private updateQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): void {
-    const queryParams = this.createQueryParamsFromFilters(filters);
-    this.router.navigate([], {
-      queryParams,
-      queryParamsHandling: 'replace',
-    });
-  }
-
-  private createQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): Record<string, any> {
-    const params: Record<string, any> = {};
-
-    if (filters.period === 'custom' && filters.from && filters.to) {
-      params.from = filters.from;
-      params.to = filters.to;
-      params.period = 'custom';
-    } else {
-      params.period = filters.period;
-    }
-
-    if (filters.httpStatuses?.length) {
-      params.httpStatuses = filters.httpStatuses.join(',');
-    }
-
-    if (filters.plans?.length) {
-      params.plans = filters.plans.join(',');
-    }
-
-    if (filters.applications?.length) {
-      params.applications = filters.applications.join(',');
-    }
-
-    return params;
-  }
-
-  private mapQueryParamsToUrlParamsData(queryParams: unknown): ApiAnalyticsWidgetUrlParamsData {
-    const params = queryParams as QueryParamsBase;
-    const normalizedPeriod = params.period || '1d';
-    const filters = this.getFilterFields(params);
-
-    if (normalizedPeriod === 'custom' && params.from && params.to) {
-      return <ApiAnalyticsWidgetUrlParamsData>{
-        timeRangeParams: {
-          from: +params.from,
-          to: +params.to,
-          interval: this.calculateCustomInterval(+params.from, +params.to),
-        },
-        ...filters,
-      };
-    }
-
-    const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
-    return {
-      timeRangeParams: timeFrame.timeFrameRangesParams(),
-      ...filters,
-    };
-  }
-
-  private mapQueryParamsToFilters(queryParams: unknown): ApiAnalyticsProxyFilters {
-    const params = queryParams as QueryParamsBase;
-    const normalizedPeriod = params.period || '1d';
-    const filters = this.getFilterFields(params);
-
-    if (normalizedPeriod === 'custom' && params.from && params.to) {
-      return <ApiAnalyticsProxyFilters>{
-        period: normalizedPeriod,
-        from: +params.from,
-        to: +params.to,
-        ...filters,
-      };
-    }
-
-    return {
-      period: normalizedPeriod,
-      from: null,
-      to: null,
-      ...filters,
-    };
-  }
-
-  private getFilterFields(queryParams: QueryParamsBase) {
-    return {
-      httpStatuses: this.processFilter(queryParams.httpStatuses),
-      plans: this.processFilter(queryParams.plans),
-      applications: this.processFilter(queryParams.applications),
-    };
-  }
-
-  private processFilter(value: string | string[] | undefined): string[] | undefined {
-    if (value === undefined) {
-      return undefined;
-    }
-    return Array.isArray(value) ? value : value.split(',');
-  }
-
-  private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {
-    const range: number = to - from;
-    return Math.floor(range / nbValuesByBucket);
   }
 }

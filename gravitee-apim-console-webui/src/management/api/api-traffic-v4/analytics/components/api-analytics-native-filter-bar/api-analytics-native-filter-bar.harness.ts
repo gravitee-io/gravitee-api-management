@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { BaseFilterBarHarness } from '../common/base-filter-bar.harness';
 
-import { ApiAnalyticsNativeFilterBarHarness } from '../components/api-analytics-native-filter-bar/api-analytics-native-filter-bar.harness';
-
-export class ApiAnalyticsNativeHarness extends ComponentHarness {
-  static hostSelector = 'api-analytics-native';
-
-  protected emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
-
-  getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsNativeFilterBarHarness);
-
-  async isEmptyPanelDisplayed(): Promise<boolean> {
-    return (await this.emptyPanelHarness()) !== null;
-  }
+export class ApiAnalyticsNativeFilterBarHarness extends BaseFilterBarHarness {
+  static hostSelector = 'api-analytics-native-filter-bar';
 }
