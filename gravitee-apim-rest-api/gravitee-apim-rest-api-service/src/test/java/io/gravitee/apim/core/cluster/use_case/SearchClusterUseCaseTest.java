@@ -46,7 +46,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_search_admin_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -61,7 +61,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_search_not_admin_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, false, "member-1"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "member-1"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -77,7 +77,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     void should_search_admin_with_pageable_no_sort_by() {
         Pageable pageable = new PageableImpl(2, 5);
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, pageable, null, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, pageable, null, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
@@ -93,7 +93,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     void should_search_admin_no_pageable_with_sort_by() {
         String sortBy = "id";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, sortBy, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, sortBy, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -112,7 +112,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
         Pageable pageable = new PageableImpl(2, 5);
         String sortBy = "id";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, pageable, sortBy, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, pageable, sortBy, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
@@ -123,6 +123,23 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                     .isEqualTo(
                         initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).toList().subList(5, 10)
                     )
+        );
+    }
+
+    @Test
+    void should_search_with_query() {
+        Pageable pageable = new PageableImpl(1, 10);
+        String query = "Cluster 1";
+        // When
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, query, pageable, null, true, "admin"));
+        // Then
+        assertAll(
+            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
+            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(3),
+            () ->
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
+                    .isEqualTo(List.of("Cluster 1", "Cluster 12", "Cluster 13"))
         );
     }
 

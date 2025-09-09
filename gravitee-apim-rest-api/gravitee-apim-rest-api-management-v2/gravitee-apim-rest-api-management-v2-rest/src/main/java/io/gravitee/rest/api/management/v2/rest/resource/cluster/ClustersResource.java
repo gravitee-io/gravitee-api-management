@@ -91,12 +91,17 @@ public class ClustersResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
-    public ClustersResponse searchClusters(@BeanParam @Valid PaginationParam paginationParam, @QueryParam("sortBy") String sortBy) {
+    public ClustersResponse searchClusters(
+        @QueryParam("q") String q,
+        @BeanParam @Valid PaginationParam paginationParam,
+        @QueryParam("sortBy") String sortBy
+    ) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         SearchClusterUseCase.Output result = searchClusterUseCase.execute(
             new SearchClusterUseCase.Input(
                 executionContext.getEnvironmentId(),
+                q,
                 paginationParam.toPageable(),
                 sortBy,
                 isAdmin(),
