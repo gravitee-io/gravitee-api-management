@@ -6,43 +6,23 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .transfer-ownership {
-  margin: 20px;
+  color: inherit;
 
-  &__header {
-    margin-bottom: 24px;
+  &__userOrGroup_radio {
+    padding-left: 8px;
+  }
 
-    &__title {
-      @include mat.m2-typography-level($typography, headline-6);
-    }
-
-    &__subtitle {
-      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.m2-typography-level($typography, body-2);
+  &__userOrGroup {
+    &__field {
+      width: 100%;
     }
   }
 
-  &__body {
-    &__userOrGroup_radio {
-      padding-left: 8px;
-    }
-
-    &__userOrGroup {
-      &__field {
-        width: 100%;
-      }
-    }
-
-    &__userOrGroup__toggle-group {
-      @include gio.gio-button-toggle-group;
-    }
-
-    &__new-role {
-      display: block;
-    }
+  &__userOrGroup__toggle-group {
+    @include gio.gio-button-toggle-group;
   }
 
-  &__actions {
-    display: flex;
-    justify-content: end;
+  &__new-role {
+    display: block;
   }
 }

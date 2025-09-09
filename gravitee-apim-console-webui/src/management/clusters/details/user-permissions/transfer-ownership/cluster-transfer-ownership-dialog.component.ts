@@ -16,7 +16,7 @@
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -64,6 +64,9 @@ type TransferOwnershipMode = 'ENTITY_MEMBER' | 'OTHER_USER';
     GioBannerModule,
     GioFormUserAutocompleteModule,
     MatButtonToggleGroup,
+    MatDialogTitle,
+    MatDialogContent,
+    MatDialogActions,
   ],
 })
 export class ClusterTransferOwnershipDialogComponent implements OnInit {
