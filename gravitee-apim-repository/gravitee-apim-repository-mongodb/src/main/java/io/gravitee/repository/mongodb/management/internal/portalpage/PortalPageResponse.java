@@ -15,15 +15,14 @@
  */
 package io.gravitee.repository.mongodb.management.internal.portalpage;
 
-import io.gravitee.repository.mongodb.management.internal.model.PortalPageMongo;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+public interface PortalPageResponse {
+    String getId();
 
-/**
- * @author GraviteeSource Team
- */
-@Repository
-public interface PortalPageMongoRepository extends MongoRepository<PortalPageMongo, String> {
-    @org.springframework.data.mongodb.repository.Query(value = "{ '_id': { $in: ?0 } }", fields = "{ 'content': 0 }")
-    java.util.List<PortalPageResponse> findPortalPagesByIdIn(java.util.List<String> ids);
+    String getEnvironmentId();
+
+    String getName();
+
+    java.util.Date getCreatedAt();
+
+    java.util.Date getUpdatedAt();
 }

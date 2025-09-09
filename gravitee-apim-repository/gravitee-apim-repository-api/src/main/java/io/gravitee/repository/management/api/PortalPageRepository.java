@@ -23,4 +23,12 @@ import java.util.List;
  */
 public interface PortalPageRepository extends CrudRepository<PortalPage, String> {
     List<PortalPage> findByIds(List<String> ids);
+
+    /**
+     * Returns pages without the content field for the given ids.
+     */
+    default List<PortalPage> findPortalPagesByIds(List<String> ids) {
+        // Default implementation falls back to full fetch; implementations can override to optimize.
+        return findByIds(ids);
+    }
 }

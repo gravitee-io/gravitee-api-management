@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.portal.PortalApisResource;
+import io.gravitee.rest.api.management.rest.resource.portal.PortalPagesViewResource;
 import io.gravitee.rest.api.management.rest.resource.portal.SocialIdentityProvidersResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.settings.PortalConfigEntity;
@@ -35,7 +38,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -98,6 +105,11 @@ public class PortalResource {
     @Path("media")
     public PortalMediaResource getPortalMediaResource() {
         return resourceContext.getResource(PortalMediaResource.class);
+    }
+
+    @Path("pages-view")
+    public PortalPagesViewResource getPortalPagesViewResource() {
+        return resourceContext.getResource(PortalPagesViewResource.class);
     }
 
     @Deprecated

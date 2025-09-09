@@ -44,4 +44,9 @@ public class PortalPageQueryServiceInMemory implements PortalPageQueryService, I
     public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
         return storage.stream().filter(pageWithViewDetails -> pageWithViewDetails.viewDetails().context().equals(context)).toList();
     }
+
+    @Override
+    public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context, boolean expand) {
+        return findByEnvironmentIdAndContext(environmentId, context);
+    }
 }

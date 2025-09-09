@@ -20,5 +20,9 @@ import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.List;
 
 public interface PortalPageQueryService {
-    List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context);
+    default List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
+        return findByEnvironmentIdAndContext(environmentId, context, true);
+    }
+
+    List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context, boolean expand);
 }
