@@ -514,6 +514,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                                         .integrationId("integration-id")
                                         .build()
                                 )
+                                .visibility(io.gravitee.rest.api.management.v2.rest.model.Visibility.PRIVATE)
                                 .disableMembershipNotifications(false)
                                 .responseTemplates(Collections.emptyMap())
                                 .links(
