@@ -1,3 +1,10 @@
+# [6.2.0-alpha.11](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.10...6.2.0-alpha.11) (2025-09-09)
+
+
+### Bug Fixes
+
+* failed repository tests on ES7x ([94ed41b](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/94ed41b505ecc5d152859992f71fc7a8a808a998))
+
 # [6.2.0-alpha.10](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.9...6.2.0-alpha.10) (2025-09-08)
 
 
