@@ -95,7 +95,7 @@ public class FailoverInvoker implements HttpInvoker, Invoker {
             .timeout(failoverConfiguration.getSlowCallDuration(), TimeUnit.MILLISECONDS)
             .retry(failoverConfiguration.getMaxRetries())
             .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))
-            .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502)));
+            .onErrorResumeNext(t -> ctx.interruptWith(new ExecutionFailure(502).cause(t)));
     }
 
     private CircuitBreaker circuitBreaker(HttpExecutionContext ctx) {

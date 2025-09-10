@@ -106,7 +106,7 @@ class ApiTemplateVariableProviderTest {
                 .assertError(e -> {
                     assertThat(e)
                         .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(SpelEvaluationException.class)
+                        .hasCauseInstanceOf(IllegalArgumentException.class)
                         .hasStackTraceContaining("EL1012E: Cannot index into a null value");
 
                     return true;
@@ -183,7 +183,7 @@ class ApiTemplateVariableProviderTest {
                 .assertError(e -> {
                     assertThat(e)
                         .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(SpelEvaluationException.class)
+                        .hasCauseInstanceOf(IllegalArgumentException.class)
                         .hasStackTraceContaining("EL1012E: Cannot index into a null value");
 
                     return true;

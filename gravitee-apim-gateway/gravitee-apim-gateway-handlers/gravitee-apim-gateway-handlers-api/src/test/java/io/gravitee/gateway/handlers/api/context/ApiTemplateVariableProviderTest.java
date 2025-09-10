@@ -112,7 +112,7 @@ class ApiTemplateVariableProviderTest {
             .assertError(e -> {
                 assertThat(e)
                     .isInstanceOf(ExpressionEvaluationException.class)
-                    .hasCauseInstanceOf(SpelEvaluationException.class)
+                    .hasCauseInstanceOf(IllegalArgumentException.class)
                     .hasStackTraceContaining("EL1012E: Cannot index into a null value");
 
                 return true;
@@ -123,9 +123,9 @@ class ApiTemplateVariableProviderTest {
             .assertError(e -> {
                 assertThat(e)
                     .isInstanceOf(ExpressionEvaluationException.class)
-                    .hasCauseInstanceOf(SpelEvaluationException.class)
+                    .hasCauseInstanceOf(IllegalArgumentException.class)
                     .hasStackTraceContaining(
-                        "EL1021E: A problem occurred whilst attempting to access the property 'properties': 'Unable to access property 'properties' through getter method"
+                        "Expression: #api.properties[prop1] failed with message Cannot invoke \"io.gravitee.definition.model.Properties.getValues()\" because the return value of \"io.gravitee.definition.model.Api.getProperties()\" is null"
                     );
 
                 return true;

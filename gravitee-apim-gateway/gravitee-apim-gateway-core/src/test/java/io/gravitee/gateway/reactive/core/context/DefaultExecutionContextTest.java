@@ -31,19 +31,23 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -74,9 +78,13 @@ class DefaultExecutionContextTest {
     @Mock
     protected Api api;
 
+    @Mock
+    protected Metrics metrics;
+
     @BeforeEach
     void init() {
         cut = new DefaultExecutionContext(request, response);
+        cut.metrics(metrics);
     }
 
     @Test
@@ -418,5 +426,89 @@ class DefaultExecutionContextTest {
         assertThat(parseDouble(actual.get(1).toString()))
             .isEqualTo(123_456_789_123_456_789.123_456_789_123_456_789, offset(0.000_000_000_000_000_1d));
         assertThatCode(() -> actual.add(new Object())).isOfAnyClassIn(UnsupportedOperationException.class);
+    }
+
+    @Nested
+    @DisplayName("Warning functionality")
+    class WarningFunctionalityTests {
+
+        @Test
+        void should_add_warning_when_warnings_enabled() {
+            // Given
+            ExecutionWarn warning = new ExecutionWarn("WARNING_KEY").message("This is a warning");
+            ((DefaultExecutionContext) cut).setWarningsEnabled(true);
+
+            // When
+            cut.warnWith(warning);
+
+            // Then
+            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            assertThat(warnings).isNotNull();
+            assertThat(warnings).hasSize(1);
+            assertThat(warnings.get(0)).isEqualTo(warning);
+        }
+
+        @Test
+        void should_not_add_warning_when_warnings_disabled() {
+            // Given
+            ExecutionWarn warning = new ExecutionWarn("WARNING_KEY").message("This is a warning");
+            ((DefaultExecutionContext) cut).setWarningsEnabled(false);
+
+            // When
+            cut.warnWith(warning);
+
+            // Then
+            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            assertThat(warnings).isNull();
+        }
+
+        @Test
+        void should_add_multiple_warnings_when_warnings_enabled() {
+            // Given
+            ExecutionWarn warning1 = new ExecutionWarn("WARNING_KEY_1").message("First warning");
+            ExecutionWarn warning2 = new ExecutionWarn("WARNING_KEY_2").message("Second warning");
+            ((DefaultExecutionContext) cut).setWarningsEnabled(true);
+
+            // When
+            cut.warnWith(warning1);
+            cut.warnWith(warning2);
+
+            // Then
+            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            assertThat(warnings).isNotNull();
+            assertThat(warnings).hasSize(2);
+            assertThat(warnings).containsExactly(warning1, warning2);
+        }
+
+        @Test
+        void should_add_warning_with_cause() {
+            // Given
+            RuntimeException cause = new RuntimeException("Root cause");
+            ExecutionWarn warning = new ExecutionWarn("WARNING_KEY").message("This is a warning").cause(cause);
+            ((DefaultExecutionContext) cut).setWarningsEnabled(true);
+
+            // When
+            cut.warnWith(warning);
+
+            // Then
+            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            assertThat(warnings).isNotNull();
+            assertThat(warnings).hasSize(1);
+            assertThat(warnings.get(0).cause()).isEqualTo(cause);
+        }
+
+        @Test
+        void should_default_warnings_enabled_to_true() {
+            // Given
+            ExecutionWarn warning = new ExecutionWarn("WARNING_KEY").message("This is a warning");
+
+            // When
+            cut.warnWith(warning);
+
+            // Then
+            List<ExecutionWarn> warnings = cut.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+            assertThat(warnings).isNotNull();
+            assertThat(warnings).hasSize(1);
+        }
     }
 }

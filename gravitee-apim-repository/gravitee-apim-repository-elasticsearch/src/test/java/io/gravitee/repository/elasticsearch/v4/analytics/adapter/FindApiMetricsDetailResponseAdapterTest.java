@@ -21,6 +21,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.elasticsearch.AbstractAdapterTest;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -67,6 +68,7 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
                             .endpointResponseTime(16L)
                             .method(HttpMethod.GET)
                             .endpoint("https://api.gravitee.io/echo")
+                            .warnings(List.of())
                             .build()
                     )
                 );
