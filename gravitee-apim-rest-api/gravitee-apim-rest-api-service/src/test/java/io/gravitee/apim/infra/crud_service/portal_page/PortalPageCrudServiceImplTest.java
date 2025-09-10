@@ -49,9 +49,9 @@ class PortalPageCrudServiceImplTest {
     @Test
     void should_return_pages_when_ids_provided() {
         PageId pageId1 = PageId.random();
-        var page1 = PortalPage.of(pageId1, new GraviteeMarkdown("content1"));
+        var page1 = new PortalPage(pageId1, new GraviteeMarkdown("content1"));
         PageId pageId2 = PageId.random();
-        var page2 = PortalPage.of(pageId2, new GraviteeMarkdown("content2"));
+        var page2 = new PortalPage(pageId2, new GraviteeMarkdown("content2"));
 
         when(pageRepository.findByIds(List.of(pageId1.toString(), pageId2.toString())))
             .thenReturn(
@@ -59,12 +59,12 @@ class PortalPageCrudServiceImplTest {
                     io.gravitee.repository.management.model.PortalPage
                         .builder()
                         .id(pageId1.toString())
-                        .content(page1.getPageContent().content())
+                        .content(page1.pageContent().content())
                         .build(),
                     io.gravitee.repository.management.model.PortalPage
                         .builder()
                         .id(pageId2.toString())
-                        .content(page2.getPageContent().content())
+                        .content(page2.pageContent().content())
                         .build()
                 )
             );

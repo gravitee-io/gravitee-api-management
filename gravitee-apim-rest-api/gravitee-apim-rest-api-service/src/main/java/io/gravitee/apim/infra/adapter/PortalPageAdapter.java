@@ -32,7 +32,7 @@ public interface PortalPageAdapter {
             return null;
         }
 
-        return io.gravitee.apim.core.portal_page.model.PortalPage.of(mapId(portalPage.getId()), mapContent(portalPage.getContent()));
+        return new io.gravitee.apim.core.portal_page.model.PortalPage(mapId(portalPage.getId()), mapContent(portalPage.getContent()));
     }
 
     io.gravitee.repository.management.model.PortalPage toRepository(io.gravitee.apim.core.portal_page.model.PortalPage portalPage);
@@ -63,6 +63,6 @@ public interface PortalPageAdapter {
         if (value == null) {
             return null;
         }
-        return io.gravitee.apim.core.portal_page.model.PortalPage.of(mapId(value.getId()), mapContent(value.getContent()));
+        return new io.gravitee.apim.core.portal_page.model.PortalPage(mapId(value.getId()), mapContent(value.getContent()));
     }
 }

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
@@ -33,7 +32,7 @@ class PortalPagesMapperTest {
 
     @Test
     void map_portal_page_with_view_details_should_return_response() {
-        PortalPage page = PortalPage.of(PageId.random(), new GraviteeMarkdown("Sample Content"));
+        PortalPage page = PortalPage.create(new GraviteeMarkdown("Sample Content"));
         PortalPageView view = new PortalPageView(PortalViewContext.HOMEPAGE, true);
         PortalPageWithViewDetails input = new PortalPageWithViewDetails(page, view);
         var homepage = new GetHomepageUseCase.Output(input);
@@ -42,7 +41,7 @@ class PortalPagesMapperTest {
         assertThat(portalPage.getContent()).isEqualTo("Sample Content");
         assertThat(portalPage.getType())
             .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
-        assertThat(portalPage.getId()).isEqualTo(page.getId().toString());
+        assertThat(portalPage.getId()).isEqualTo(page.id().toString());
         assertThat(portalPage.getContext())
             .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse.ContextEnum.HOMEPAGE);
     }
