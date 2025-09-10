@@ -15,6 +15,10 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_NAME;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE;
+
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
@@ -67,7 +71,15 @@ public abstract class AbstractPolicyChain<T extends BasePolicy> implements Polic
      */
     @Override
     public Completable execute(BaseExecutionContext ctx) {
-        return policies.concatMapCompletable(policy -> executePolicy(ctx, policy));
+        return policies.concatMapCompletable(policy -> {
+            ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.POLICY);
+            ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, policy.id());
+            return executePolicy(ctx, policy)
+                .doFinally(() -> {
+                    ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
+                    ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
+                });
+        });
     }
 
     protected abstract Completable executePolicy(final BaseExecutionContext ctx, final T policy);

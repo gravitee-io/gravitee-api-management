@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.security.plan;
 
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
@@ -38,8 +40,8 @@ import jakarta.annotation.Nonnull;
  */
 public class HttpSecurityPlan extends AbstractSecurityPlan<HttpSecurityPolicy, HttpPlainExecutionContext> {
 
-    public HttpSecurityPlan(@Nonnull final String planId, @Nonnull final HttpSecurityPolicy policy, final String selectionRule) {
-        super(planId, policy, selectionRule);
+    public HttpSecurityPlan(@Nonnull final SecurityPlanContext planContext, @Nonnull final HttpSecurityPolicy policy) {
+        super(planContext, policy);
     }
 
     @Override

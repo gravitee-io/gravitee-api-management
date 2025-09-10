@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.core.processor;
 
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;

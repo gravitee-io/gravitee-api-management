@@ -107,6 +107,7 @@ public class WebSocketConnector extends HttpConnector {
                                 ctx.interruptWith(
                                     new ExecutionFailure(rejectedException.getStatus())
                                         .key(HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE)
+                                        .cause(throwable.getCause())
                                         .message(rejectedException.getMessage())
                                 )
                             );
@@ -118,6 +119,7 @@ public class WebSocketConnector extends HttpConnector {
                             ctx.interruptWith(
                                 new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
                                     .key(HTTP_PROXY_WEBSOCKET_FAILURE)
+                                    .cause(throwable)
                                     .message("Endpoint Websocket connection in error")
                             )
                         );

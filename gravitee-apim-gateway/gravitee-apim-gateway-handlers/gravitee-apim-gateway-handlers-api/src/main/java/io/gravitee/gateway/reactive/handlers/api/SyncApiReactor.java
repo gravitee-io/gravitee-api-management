@@ -20,6 +20,8 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_NAME;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
@@ -35,6 +37,7 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.opentelemetry.TracingContext;
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
@@ -311,7 +314,17 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                     HttpInvoker invoker = getInvoker(ctx);
 
                     if (invoker != null) {
-                        return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
+                        // Set component type and name for proper error reporting
+                        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.ENDPOINT);
+                        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, invoker.getId());
+
+                        return HookHelper
+                            .hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null)
+                            .doFinally(() -> {
+                                // Clean up component attributes after completion
+                                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
+                                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
+                            });
                     }
                 }
                 return Completable.complete();
@@ -358,11 +371,24 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                     requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
                 ),
                 TimeUnit.MILLISECONDS,
-                ctx
-                    .interruptWith(
-                        new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key("REQUEST_TIMEOUT").message("Request timeout")
+                Completable
+                    .fromRunnable(() -> {
+                        // Set component type and name for proper error reporting
+                        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.SYSTEM);
+                        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, "request-timeout");
+                    })
+                    .andThen(
+                        ctx
+                            .interruptWith(
+                                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key("REQUEST_TIMEOUT").message("Request timeout")
+                            )
+                            .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
+                            .doFinally(() -> {
+                                // Clean up component attributes after completion
+                                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
+                                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
+                            })
                     )
-                    .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
             )
         );
     }

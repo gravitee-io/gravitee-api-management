@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.log;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.log.extended.Request;
 import io.gravitee.rest.api.model.log.extended.Response;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,6 +46,11 @@ public class ApplicationRequest {
     private String user;
     private String securityType;
     private String securityToken;
+    private String message;
+    private String errorKey;
+    private String errorComponentName;
+    private String errorComponentType;
+    private List<DiagnosticItem> warnings;
 
     public String getId() {
         return id;
@@ -196,6 +202,46 @@ public class ApplicationRequest {
 
     public void setSecurityToken(String securityToken) {
         this.securityToken = securityToken;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getErrorKey() {
+        return errorKey;
+    }
+
+    public void setErrorKey(String errorKey) {
+        this.errorKey = errorKey;
+    }
+
+    public String getErrorComponentName() {
+        return errorComponentName;
+    }
+
+    public void setErrorComponentName(String errorComponentName) {
+        this.errorComponentName = errorComponentName;
+    }
+
+    public String getErrorComponentType() {
+        return errorComponentType;
+    }
+
+    public void setErrorComponentType(String errorComponentType) {
+        this.errorComponentType = errorComponentType;
+    }
+
+    public java.util.List<DiagnosticItem> getWarnings() {
+        return warnings;
+    }
+
+    public void setWarnings(java.util.List<DiagnosticItem> warnings) {
+        this.warnings = warnings;
     }
 
     @Override

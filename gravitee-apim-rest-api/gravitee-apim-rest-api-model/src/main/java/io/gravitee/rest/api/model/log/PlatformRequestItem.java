@@ -113,4 +113,12 @@ public class PlatformRequestItem extends LogItem {
     public void setApi(String api) {
         this.api = api;
     }
+
+    public java.util.List<DiagnosticItem> getWarnings() {
+        return super.getWarnings();
+    }
+
+    public void setWarnings(java.util.List<DiagnosticItem> warnings) {
+        super.setWarnings(warnings);
+    }
 }
