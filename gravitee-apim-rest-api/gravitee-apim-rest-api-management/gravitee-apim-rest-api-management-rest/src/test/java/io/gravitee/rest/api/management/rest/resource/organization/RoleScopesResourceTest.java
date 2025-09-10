@@ -106,7 +106,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
         "INTEGRATION",
         List.of("DEFINITION", "MEMBER"),
         "CLUSTER",
-        List.of("ANALYTICS", "DEFINITION", "GATEWAY_DEFINITION", "MEMBER")
+        List.of("ANALYTICS", "CONFIGURATION", "DEFINITION", "MEMBER")
     );
 
     @Override
