@@ -78,22 +78,21 @@ public class MongoUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByEmail(String email, String organizationId) {
+    public List<User> findByEmail(String email, String organizationId) {
         logger.debug("Find user by email [{}]", email);
 
         if (email == null) {
-            return Optional.empty();
+            return List.of();
         }
 
-        UserMongo user;
+        List<UserMongo> users;
         if (isEncryptionEnabled) {
-            user = internalUserRepo.findByEmail(email.toLowerCase(), organizationId);
+            users = internalUserRepo.findByEmail(email.toLowerCase(), organizationId);
         } else {
-            user = internalUserRepo.findByEmailIgnoreCase(email, organizationId);
+            users = internalUserRepo.findByEmailIgnoreCase(email, organizationId);
         }
-        User res = mapper.map(user);
 
-        return Optional.ofNullable(res);
+        return users.stream().map(mapper::map).toList();
     }
 
     @Override

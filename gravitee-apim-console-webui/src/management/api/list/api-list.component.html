@@ -15,6 +15,7 @@
     limitations under the License.
 
 -->
+
 <div class="title">
   <h1>APIs</h1>
   <button
@@ -37,12 +38,105 @@
   (filtersChange)="onFiltersChanged($event)"
   [paginationPageSizeOptions]="[25, 50, 100, 200]"
 >
+  <div gio-additional-filters>
+    <mat-form-field class="api-type-filter">
+      <mat-label>API Type</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedApiTypes"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.API_TYPE)"
+        [panelWidth]="'230px'"
+      >
+        <mat-option value="V2">V2</mat-option>
+        <mat-option value="V4_HTTP_PROXY">V4 - HTTP Proxy</mat-option>
+        <mat-option value="V4_KAFKA">V4 - Kafka</mat-option>
+        <mat-option value="V4_MESSAGE">V4 - Message</mat-option>
+        <mat-option value="FEDERATED">Federated API</mat-option>
+        <mat-option value="FEDERATED_AGENT">Federated A2A Agent</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="status-filter">
+      <mat-label>API Status</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedStatuses"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.STATUS)"
+        [panelWidth]="'160px'"
+      >
+        <mat-option value="STARTED">Started</mat-option>
+        <mat-option value="STOPPED">Stopped</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="tags-filter">
+      <mat-label>Sharding Tags</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedTags"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.TAGS)"
+        [panelWidth]="'200px'"
+      >
+        <mat-option *ngFor="let tag of tags" [value]="tag">{{ tag }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="categories-filter">
+      <mat-label>Categories</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedCategories"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.CATEGORIES)"
+        [panelWidth]="'200px'"
+      >
+        <mat-option *ngFor="let category of categoriesNames | keyvalue" [value]="category.key">{{ category.value }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="published-filter">
+      <mat-label>Portal Status</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedPublished"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.PUBLISHED)"
+        [panelWidth]="'180px'"
+      >
+        <mat-option value="PUBLISHED">Published</mat-option>
+        <mat-option value="UNPUBLISHED">Unpublished</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="portal-visibility-filter">
+      <mat-label>Portal Visibility</mat-label>
+      <mat-select
+        class="portal__form__card__form-field"
+        [multiple]="true"
+        [(value)]="checkedPortalVisibilities"
+        (selectionChange)="onAdditionalFiltersChanged(FilterType.PORTAL_VISIBILITY)"
+      >
+        <mat-option value="PUBLIC">Public</mat-option>
+        <mat-option value="PRIVATE">Private</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
   <table mat-table matSort [dataSource]="apisTableDS" id="apisTable" aria-label="Apis table">
     <!-- Picture Column -->
     <ng-container matColumnDef="picture">
       <th mat-header-cell *matHeaderCellDef id="picture"></th>
       <td mat-cell *matCellDef="let element">
-        <gio-avatar [src]="element.picture" [name]="element.name + ' ' + element.version" [size]="32" [roundedBorder]="true"></gio-avatar>
+        <gio-avatar
+          class="apis__avatar"
+          [src]="element.picture"
+          [name]="element.name + ' ' + element.version"
+          [size]="32"
+          [roundedBorder]="true"
+        ></gio-avatar>
       </td>
     </ng-container>
 
@@ -55,8 +149,8 @@
     </ng-container>
 
     <!-- Display Definition Version Column -->
-    <ng-container matColumnDef="definitionVersion">
-      <th mat-header-cell *matHeaderCellDef id="definitionVersion">Definition</th>
+    <ng-container matColumnDef="apiType">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="apiType">API Type</th>
       <td mat-cell *matCellDef="let element">
         <span>{{ element.definitionVersion.label }}</span>
 
@@ -68,25 +162,14 @@
 
     <!-- Display States Column -->
     <ng-container matColumnDef="states">
-      <th mat-header-cell *matHeaderCellDef id="states">Status</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="states">API Status</th>
       <td mat-cell *matCellDef="let element">
         @if (element.state === 'STARTED') {
           <mat-icon matTooltip="Started" class="states__api-started" size="20" svgIcon="gio:play-circle" />
         } @else if (element.state) {
           <mat-icon matTooltip="Stopped" class="states__api-not-started" size="20" svgIcon="gio:stop-circle" />
         }
-        <mat-icon
-          *ngIf="element.isNotSynced$ | async"
-          matTooltip="API out of sync"
-          class="states__api-is-not-synced"
-          size="20"
-          svgIcon="gio:refresh-cw"
-        />
-        @if (element.lifecycleState === 'PUBLISHED') {
-          <mat-icon matTooltip="Published" class="states__api-published" size="20" svgIcon="gio:cloud-published" />
-        } @else if (element.lifecycleState) {
-          <mat-icon matTooltip="Unpublished" class="states__api-not-published" size="20" svgIcon="gio:cloud-unpublished" />
-        }
+
         <mat-icon
           *ngIf="element.origin === 'KUBERNETES'"
           matTooltip="Kubernetes Origin"
@@ -94,6 +177,15 @@
           size="20"
           svgIcon="gio:kubernetes"
         />
+
+        <mat-icon
+          *ngIf="element.isNotSynced$ | async"
+          matTooltip="API out of sync"
+          class="states__api-is-not-synced"
+          size="20"
+          svgIcon="gio:refresh-cw"
+        />
+
         <span
           *ngIf="element.workflowBadge"
           [ngClass]="element.workflowBadge.class"
@@ -110,9 +202,9 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="access">Access</th>
       <td mat-cell *matCellDef="let element">
         @if (element.access?.length > 0) {
-          <a>{{ element.access[0] }}</a>
+          {{ element.access[0] }}
           @if (element.access.length > 1) {
-            <span class="access__badge gio-badge-neutral"> {{ element.access.length - 1 }} more </span>
+            <span class="access__badge gio-badge-neutral">{{ element.access.length - 1 }} more</span>
           }
         }
       </td>
@@ -120,17 +212,22 @@
 
     <!-- Display Tags Column -->
     <ng-container matColumnDef="tags">
-      <th mat-header-cell *matHeaderCellDef id="tags">Tags</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="tags">Sharding Tags</th>
       <td mat-cell *matCellDef="let element">
-        <a>{{ element.tags?.sort()?.join(', ') }}</a>
+        {{ displayFirstTag(element) }}
+        @if (element.tags.length - 1 > 0) {
+          <span class="access__badge gio-badge-neutral" [matTooltip]="element.tags.sort().join(', ')">
+            {{ element.tags.length - 1 }} more
+          </span>
+        }
       </td>
     </ng-container>
 
     <!-- Display Category Column -->
     <ng-container matColumnDef="categories">
-      <th mat-header-cell *matHeaderCellDef id="categories">Categories</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="categories">Categories</th>
       <td mat-cell *matCellDef="let element">
-        <a>{{ element.categories?.sort()?.[0] }}</a>
+        {{ displayFirstCategory(element) }}
         @if (element.categories.length - 1 > 0) {
           <span class="access__badge gio-badge-neutral" [matTooltip]="element.categories.sort().join(', ')">
             {{ element.categories.length - 1 }} more
@@ -151,23 +248,55 @@
 
     <!-- Display Owner Column -->
     <ng-container matColumnDef="owner">
-      <th mat-header-cell *matHeaderCellDef id="owner">Owner</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="owner">Owner</th>
       <td mat-cell *matCellDef="let element">
-        <a [matTooltip]="element.ownerEmail ?? null">{{ element.owner }}</a>
+        {{ element.owner }}
+      </td>
+    </ng-container>
+
+    <!-- Display Portal Status Column -->
+    <ng-container matColumnDef="portalStatus">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="portalStatus">Portal Status</th>
+      <td mat-cell *matCellDef="let element">
+        @if (element.lifecycleState === 'PUBLISHED') {
+          <mat-icon matTooltip="Published" class="states__api-published" size="20" svgIcon="gio:cloud-published" />
+        } @else if (element.lifecycleState) {
+          <mat-icon matTooltip="Unpublished" class="states__api-not-published" size="20" svgIcon="gio:cloud-unpublished" />
+        }
       </td>
     </ng-container>
 
     <!-- Display Visibility Column -->
     <ng-container matColumnDef="visibility">
-      <th mat-header-cell *matHeaderCellDef id="visibility">Visibility</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header id="visibility">Portal Visibility</th>
       <td mat-cell *matCellDef="let element">
-        <mat-icon class="visibility" size="20" [matTooltip]="element.visibility.label | titlecase">{{ element.visibility.icon }} </mat-icon>
+        <mat-icon class="visibility" size="20" [matTooltip]="element.visibility.label | titlecase">{{ element.visibility.icon }}</mat-icon>
       </td>
     </ng-container>
 
     <!-- Actions Column -->
     <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef id="actions"></th>
+      <th mat-header-cell *matHeaderCellDef id="actions">
+        <div class="select-visible-columns-btn">
+          <button mat-button [matMenuTriggerFor]="visibleColumnsMenu"><mat-icon svgIcon="gio:plus"></mat-icon></button>
+        </div>
+        <mat-menu #visibleColumnsMenu="matMenu">
+          <div matMenuContent class="visible-columns-menu">
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.apiType" (click)="$event.stopPropagation()">API Type</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.states" (click)="$event.stopPropagation()">API Status</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.access" (click)="$event.stopPropagation()">Access</mat-checkbox>
+            <mat-checkbox *ngIf="isQualityDisplayed" [(ngModel)]="checkedVisibleColumns.qualityScore" (click)="$event.stopPropagation()"
+              >Quality</mat-checkbox
+            >
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.tags" (click)="$event.stopPropagation()">Sharding Tags</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.categories" (click)="$event.stopPropagation()">Categories</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.owner" (click)="$event.stopPropagation()">Owner</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.portalStatus" (click)="$event.stopPropagation()">Portal Status</mat-checkbox>
+            <mat-checkbox [(ngModel)]="checkedVisibleColumns.visibility" (click)="$event.stopPropagation()">Portal Visibility</mat-checkbox>
+          </div>
+          <button mat-raised-button class="apply-visible-columns" (click)="updateVisibleColumns()">Apply</button>
+        </mat-menu>
+      </th>
       <td mat-cell *matCellDef="let element">
         <div class="actions__edit">
           <button

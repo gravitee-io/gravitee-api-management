@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
@@ -54,6 +56,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "AUDIT",
             "CATEGORY",
             "CLIENT_REGISTRATION_PROVIDER",
+            "CLUSTER",
             "DASHBOARD",
             "DICTIONARY",
             "DOCUMENTATION",
@@ -101,7 +104,9 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
         "APPLICATION",
         List.of("ALERT", "ANALYTICS", "DEFINITION", "LOG", "MEMBER", "METADATA", "NOTIFICATION", "SUBSCRIPTION"),
         "INTEGRATION",
-        List.of("DEFINITION", "MEMBER")
+        List.of("DEFINITION", "MEMBER"),
+        "CLUSTER",
+        List.of("ANALYTICS", "DEFINITION", "GATEWAY_DEFINITION", "MEMBER")
     );
 
     @Override
@@ -113,9 +118,20 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
     public void should_return_role_scopes() {
         var response = envTarget().request().get();
 
-        Map<?, ?> resultRoleScopes = response.readEntity(Map.class);
+        Map<String, List<String>> resultRoleScopes = response.readEntity(Map.class);
 
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        assertEquals(EXPECTED_ROLE_SCOPES, resultRoleScopes);
+        assertAll(
+            () -> assertEquals(HttpStatusCode.OK_200, response.getStatus()),
+            () -> assertThat(resultRoleScopes.size()).isEqualTo(6),
+            () ->
+                assertThat(resultRoleScopes.keySet())
+                    .containsExactlyInAnyOrder("ORGANIZATION", "ENVIRONMENT", "API", "APPLICATION", "INTEGRATION", "CLUSTER"),
+            () -> assertThat(resultRoleScopes.get("ORGANIZATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ORGANIZATION")),
+            () -> assertThat(resultRoleScopes.get("ENVIRONMENT")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ENVIRONMENT")),
+            () -> assertThat(resultRoleScopes.get("API")).isEqualTo(EXPECTED_ROLE_SCOPES.get("API")),
+            () -> assertThat(resultRoleScopes.get("APPLICATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("APPLICATION")),
+            () -> assertThat(resultRoleScopes.get("INTEGRATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("INTEGRATION")),
+            () -> assertThat(resultRoleScopes.get("CLUSTER")).isEqualTo(EXPECTED_ROLE_SCOPES.get("CLUSTER"))
+        );
     }
 }

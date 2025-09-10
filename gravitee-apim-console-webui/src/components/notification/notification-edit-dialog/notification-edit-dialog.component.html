@@ -70,6 +70,8 @@
 
   <mat-dialog-actions class="actions">
     <button mat-flat-button [mat-dialog-close]="" data-testid="cancel-button">Cancel</button>
-    <button mat-raised-button [disabled]="staticForm.invalid" color="primary" type="submit" data-testid="save-button">Save</button>
+    <button mat-raised-button [disabled]="isReadonly || staticForm.invalid" color="primary" type="submit" data-testid="save-button">
+      Save
+    </button>
   </mat-dialog-actions>
 </form>

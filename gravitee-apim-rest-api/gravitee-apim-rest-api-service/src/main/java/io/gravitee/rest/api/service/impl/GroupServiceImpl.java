@@ -33,7 +33,9 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.GroupCriteria;
 import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AccessControl;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -46,6 +48,7 @@ import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.AccessControlReferenceType;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.GroupEventRuleEntity;
 import io.gravitee.rest.api.model.GroupSimpleEntity;
@@ -60,19 +63,21 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InvitationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
-import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -85,6 +90,8 @@ import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.reactivex.rxjava3.functions.Action;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,6 +107,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,6 +178,20 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Autowired
     private PortalNotificationConfigService portalNotificationConfigService;
 
+    @Autowired
+    private EnvironmentService environmentService;
+
+    @Autowired
+    private ApiSearchService apiSearchService;
+
+    @Lazy
+    @Autowired
+    private ApiMetadataService apiMetadataService;
+
+    @Lazy
+    @Autowired
+    private SearchEngineService searchEngineService;
+
     @Override
     public List<GroupEntity> findAll(ExecutionContext executionContext) {
         try {
@@ -223,6 +245,43 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
+    public io.gravitee.common.data.domain.Page<GroupEntity> search(ExecutionContext executionContext, Pageable pageable, String query) {
+        String environmentId = executionContext.getEnvironmentId();
+        GroupCriteria.GroupCriteriaBuilder groupCriteriaBuilder = GroupCriteria.builder().environmentId(environmentId).query(query);
+        if (
+            !permissionService.hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        ) {
+            Optional<RoleEntity> optGroupAdminSystemRole = roleService.findByScopeAndName(
+                RoleScope.GROUP,
+                SystemRole.ADMIN.name(),
+                executionContext.getOrganizationId()
+            );
+            if (optGroupAdminSystemRole.isPresent()) {
+                Set<String> groupIds = membershipService
+                    .getMembershipsByMemberAndReferenceAndRole(
+                        MembershipMemberType.USER,
+                        getAuthenticatedUsername(),
+                        MembershipReferenceType.GROUP,
+                        optGroupAdminSystemRole.get().getId()
+                    )
+                    .stream()
+                    .map(MembershipEntity::getReferenceId)
+                    .collect(Collectors.toSet());
+                groupCriteriaBuilder.idIn(groupIds);
+            }
+        }
+        io.gravitee.common.data.domain.Page<Group> groups = groupRepository.search(groupCriteriaBuilder.build(), convert(pageable));
+        return groups.map(this::map);
+    }
+
+    @Override
     public List<GroupSimpleEntity> findAllByOrganization(String organizationId) {
         try {
             logger.debug("Find all groups for organization {}", organizationId);
@@ -230,7 +289,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.debug("Find all groups for organization {} - DONE", organizationId);
             return groups
                 .stream()
-                .map(this::mapToSimple)
+                .map(group -> mapToSimple(group, organizationId))
                 .sorted(Comparator.comparing(GroupSimpleEntity::getName))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
@@ -341,11 +400,34 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 previousGroup,
                 updatedGroup
             );
+            reindexApisIfPrimaryOwnerGroup(executionContext, grp);
             return findById(executionContext, groupId);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to update a group";
             logger.error(error, ex);
             throw new TechnicalManagementException(error, ex);
+        }
+    }
+
+    private void reindexApisIfPrimaryOwnerGroup(ExecutionContext executionContext, GroupEntity grp) {
+        if (grp == null || !grp.isPrimaryOwner()) return;
+        String primaryOwnerRoleId = roleService
+            .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+            .orElseThrow(() -> new IllegalStateException("Primary Owner role not found"))
+            .getId();
+
+        Set<String> apiIds = membershipService.getReferenceIdsByMemberAndReferenceAndRoleIn(
+            MembershipMemberType.GROUP,
+            grp.getId(),
+            MembershipReferenceType.API,
+            Set.of(primaryOwnerRoleId)
+        );
+        if (apiIds.isEmpty()) return;
+
+        for (String apiId : apiIds) {
+            GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
+            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            searchEngineService.index(executionContext, genericApiEntity, false);
         }
     }
 
@@ -599,12 +681,18 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             //remove all applications or apis
             Date updatedDate = new Date();
-            apiRepository
-                .search(
-                    new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
-                    null,
-                    ApiFieldFilter.allFields()
+
+            Stream
+                .generate(() ->
+                    apiRepository.search(
+                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
+                        null,
+                        new PageableBuilder().pageSize(100).pageNumber(0).build(),
+                        ApiFieldFilter.allFields()
+                    )
                 )
+                .takeWhile(page -> page.getPageElements() > 0)
+                .flatMap(page -> page.getContent().stream())
                 .forEach(api -> {
                     api.removeGroup(groupId);
                     api.setUpdatedAt(updatedDate);
@@ -613,8 +701,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         apiRepository.update(api);
                         triggerUpdateNotification(executionContext, api);
                     } catch (TechnicalException ex) {
-                        logger.error("An error occurs while trying to delete a group", ex);
-                        throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+                        throw new TechnicalManagementException(
+                            String.format("An error occurs while trying to delete the group %s for API %s", groupId, api.getId()),
+                            ex
+                        );
                     }
 
                     //remove from API plans
@@ -630,6 +720,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     //remove idp group mapping using this group
                     removeIDPGroupMapping(groupId, updatedDate);
                 });
+
             Set<String> applicationIds = new HashSet<>();
             applicationRepository
                 .findByGroups(Collections.singletonList(groupId))
@@ -915,19 +1006,20 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         return group;
     }
 
-    private GroupSimpleEntity mapToSimple(Group group) {
+    private GroupSimpleEntity mapToSimple(Group group, String organizationId) {
         if (group == null) {
             return null;
         }
-
+        EnvironmentEntity environment = environmentService.findByOrgAndIdOrHrid(organizationId, group.getEnvironmentId());
         GroupSimpleEntity entity = new GroupSimpleEntity();
         entity.setId(group.getId());
         entity.setName(group.getName());
-
+        entity.setEnvironmentId(group.getEnvironmentId());
+        entity.setEnvironmentName(environment.getName());
         return entity;
     }
 
-    private GroupEntity map(Group group) {
+    GroupEntity map(Group group) {
         return map(null, group);
     }
 

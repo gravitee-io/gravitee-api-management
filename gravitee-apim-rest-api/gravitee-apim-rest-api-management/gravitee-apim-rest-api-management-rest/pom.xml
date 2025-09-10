@@ -23,7 +23,7 @@
 >
 	<modelVersion>4.0.0</modelVersion>
 	<properties>
-		<swagger-maven-plugin-jakarta.version>2.2.30</swagger-maven-plugin-jakarta.version>
+		<swagger-maven-plugin-jakarta.version>2.2.35</swagger-maven-plugin-jakarta.version>
 	</properties>
 
 	<parent>
@@ -108,11 +108,6 @@
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>
 			<artifactId>swagger-jaxrs2-jakarta</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
 		</dependency>
 
 		<!-- Jackson dependencies -->

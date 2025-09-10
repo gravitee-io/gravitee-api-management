@@ -7,66 +7,25 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 :host {
-  @include gio-layout.gio-responsive-margin-container;
+  @include gio-layout.gio-responsive-content-container;
 }
 
-.loader {
-  padding: 24px;
-}
+.header {
+  display: flex;
+  margin-bottom: 24px;
+  justify-content: space-between;
+  align-items: center;
 
-.runtime-logs {
-  &__header {
-    margin-bottom: 24px;
-
-    &__subtitle {
-      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.m2-typography-level($typography, 'body-2');
-    }
+  &__title {
+    margin: auto 0;
+    @include mat.m2-typography-level($typography, 'headline-6');
   }
 }
 
-.tab-body-wrapper {
-  margin-top: 8px;
-
-  .runtime-logs-card {
-    text-align: center;
-
-    mat-icon {
-      border-radius: 30px;
-      background: #009999;
-      color: white;
-      height: 60px;
-      width: 60px;
-      padding: inherit;
-      margin-bottom: 10px;
-    }
-
-    &__body {
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-
-      &__subtitle {
-        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-        @include mat.m2-typography-level($typography, 'body-2');
-        display: flex;
-        justify-content: center;
-        width: 60%;
-        margin-bottom: 10px;
-      }
-    }
-
-    &__actions {
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-
-      &__button {
-        display: flex;
-        justify-content: center;
-      }
-    }
+.banner-warning {
+  margin-bottom: 24px;
+  &__content {
+    display: flex;
+    flex-direction: column;
   }
 }

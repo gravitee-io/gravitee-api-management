@@ -20,10 +20,13 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
+import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
+import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateNativeApiUseCase;
@@ -53,7 +56,9 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.model.Member;
+import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponses;
+import io.gravitee.rest.api.management.v2.rest.model.MigrationReportResponsesIssuesInner;
+import io.gravitee.rest.api.management.v2.rest.model.MigrationStateType;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
@@ -111,6 +116,7 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
@@ -226,6 +232,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     GetExposedEntrypointsUseCase getExposedEntrypointsUseCase;
+
+    @Inject
+    MigrateApiUseCase migrateApiUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -532,6 +541,7 @@ public class ApiResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
         var input = new ExportApiCRDUseCase.Input(
             apiId,
+            IDExportStrategy.GUID,
             AuditInfo
                 .builder()
                 .organizationId(executionContext.getOrganizationId())
@@ -571,10 +581,9 @@ public class ApiResource extends AbstractResource {
         final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
 
         GenericApiEntity duplicate;
-        var definitionVersion = currentEntity.getDefinitionVersion();
 
-        if (definitionVersion == DefinitionVersion.V1) {
-            return Response
+        return switch (currentEntity.getDefinitionVersion()) {
+            case V1 -> Response
                 .status(Response.Status.BAD_REQUEST)
                 .entity(
                     new Error()
@@ -583,10 +592,7 @@ public class ApiResource extends AbstractResource {
                         .technicalCode("api.duplicate.v1")
                 )
                 .build();
-        }
-
-        if (definitionVersion == DefinitionVersion.FEDERATED) {
-            return Response
+            case FEDERATED -> Response
                 .status(Response.Status.BAD_REQUEST)
                 .entity(
                     new Error()
@@ -595,25 +601,34 @@ public class ApiResource extends AbstractResource {
                         .technicalCode("api.duplicate.federated")
                 )
                 .build();
-        }
-
-        if (definitionVersion == DefinitionVersion.V4) {
-            duplicate =
-                duplicateApiService.duplicate(
-                    GraviteeContext.getExecutionContext(),
-                    (ApiEntity) currentEntity,
-                    DuplicateApiMapper.INSTANCE.map(duplicateOptions)
-                );
-        } else {
-            duplicate =
-                apiDuplicatorService.duplicate(
-                    GraviteeContext.getExecutionContext(),
-                    (io.gravitee.rest.api.model.api.ApiEntity) currentEntity,
-                    DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions)
-                );
-        }
-
-        return apiResponse(duplicate);
+            case V4 -> {
+                duplicate =
+                    duplicateApiService.duplicate(
+                        GraviteeContext.getExecutionContext(),
+                        (ApiEntity) currentEntity,
+                        DuplicateApiMapper.INSTANCE.map(duplicateOptions)
+                    );
+                yield apiResponse(duplicate);
+            }
+            case V2 -> {
+                duplicate =
+                    apiDuplicatorService.duplicate(
+                        GraviteeContext.getExecutionContext(),
+                        (io.gravitee.rest.api.model.api.ApiEntity) currentEntity,
+                        DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions)
+                    );
+                yield apiResponse(duplicate);
+            }
+            case FEDERATED_AGENT -> Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new Error()
+                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                        .message("Duplicating FEDERATED Agent is not supported")
+                        .technicalCode("api.duplicate.federated")
+                )
+                .build();
+        };
     }
 
     @POST
@@ -672,6 +687,7 @@ public class ApiResource extends AbstractResource {
         List<RoleEntity> newRoles = new ArrayList<>();
 
         if (apiTransferOwnership.getPoRole() != null) {
+            assertNoPrimaryOwnerReassignment(apiTransferOwnership.getPoRole());
             roleService
                 .findByScopeAndName(RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
                 .ifPresent(newRoles::add);
@@ -896,6 +912,37 @@ public class ApiResource extends AbstractResource {
         return Response.ok().entity(ApiMapper.INSTANCE.map(output.exposedEntrypoints())).build();
     }
 
+    @POST
+    @Path("/_migrate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public MigrationReportResponses migrateApi(@PathParam("apiId") String apiId, @QueryParam("mode") MigrateMode mode) {
+        var upgradeMode = mode != null ? MigrateApiUseCase.Input.UpgradeMode.valueOf(mode.name()) : null;
+        var output = migrateApiUseCase.execute(new MigrateApiUseCase.Input(apiId, upgradeMode, getAuditInfo()));
+        return new MigrationReportResponses()
+            .state(mapState(output.state()))
+            .issues(
+                stream(output.issues())
+                    .map(issue -> new MigrationReportResponsesIssuesInner().message(issue.message()).state(mapState(issue.state())))
+                    .toList()
+            );
+    }
+
+    private static MigrationStateType mapState(MigrationResult.State state) {
+        return switch (state) {
+            case MIGRATED -> MigrationStateType.MIGRATED;
+            case MIGRATABLE -> MigrationStateType.MIGRATABLE;
+            case IMPOSSIBLE -> MigrationStateType.IMPOSSIBLE;
+            case CAN_BE_FORCED -> MigrationStateType.CAN_BE_FORCED;
+        };
+    }
+
+    public enum MigrateMode {
+        DRY_RUN,
+        FORCE,
+    }
+
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
@@ -1105,5 +1152,11 @@ public class ApiResource extends AbstractResource {
             log.debug("Unknown excluded '{}'", ex);
         }
         return Stream.ofNullable(excludable);
+    }
+
+    private void assertNoPrimaryOwnerReassignment(String poRole) {
+        if ("PRIMARY_OWNER".equals(poRole)) {
+            throw new TransferOwnershipNotAllowedException(poRole);
+        }
     }
 }

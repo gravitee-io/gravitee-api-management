@@ -142,11 +142,12 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             case FEDERATED -> {
                 var plans = mapPlan(apiId, DEFINITION_ADAPTER::mapPlanFederated, excluded);
                 var integ = api1.getOriginContext() instanceof OriginContext.Integration ori && ori.integrationName() == null
-                    ? integrationCrudService.findById(ori.integrationId()).orElse(null)
+                    ? integrationCrudService.findApiIntegrationById(ori.integrationId()).orElse(null)
                     : null;
                 var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata, integ);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
+            case FEDERATED_AGENT -> null; // TODO
         };
     }
 
@@ -206,6 +207,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         V4,
         V4_NATIVE,
         FEDERATED,
+        FEDERATED_AGENT,
     }
 
     private ValidatedType apiType(Api api1) {
@@ -221,6 +223,8 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             return ValidatedType.V4_NATIVE;
         } else if (api1.getDefinitionVersion() == DefinitionVersion.FEDERATED && api1.getFederatedApiDefinition() != null) {
             return ValidatedType.FEDERATED;
+        } else if (api1.getDefinitionVersion() == DefinitionVersion.FEDERATED_AGENT && api1.getFederatedAgent() != null) {
+            return ValidatedType.FEDERATED_AGENT;
         } else if (api1.getDefinitionVersion() == DefinitionVersion.V2 && api1.getApiDefinition() != null) {
             return ValidatedType.V2;
         } else {

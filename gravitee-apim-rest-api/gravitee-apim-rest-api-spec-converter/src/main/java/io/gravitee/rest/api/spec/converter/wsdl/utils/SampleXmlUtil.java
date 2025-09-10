@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import javax.xml.namespace.QName;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlbeans.GDate;
 import org.apache.xmlbeans.GDateBuilder;
 import org.apache.xmlbeans.GDuration;
@@ -58,6 +59,7 @@ import org.apache.xmlbeans.soap.SchemaWSDLArrayType;
  * fork of https://raw.githubusercontent.com/apache/xmlbeans/trunk/src/main/java/org/apache/xmlbeans/impl/xsd2inst/SampleXmlUtil.java
  * We want to create sample using existing XmlCursor
  */
+@Slf4j
 public class SampleXmlUtil {
 
     private boolean _soapEnc;
@@ -459,7 +461,10 @@ public class SampleXmlUtil {
                 int len = max.getIntValue();
                 if (result.length() > len) result = result.substring(0, len);
             }
-        } catch (Exception e) {} // intValue can be out of range
+        } catch (Exception e) {
+            // intValue can be out of range, ignore but log at debug for traceability
+            log.debug("Exception in formatToLength for SchemaType: {}", sType, e);
+        }
         return result;
     }
 

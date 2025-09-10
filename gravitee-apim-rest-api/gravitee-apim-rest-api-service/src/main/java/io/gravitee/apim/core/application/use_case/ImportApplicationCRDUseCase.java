@@ -34,6 +34,7 @@ import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
@@ -75,22 +76,27 @@ public class ImportApplicationCRDUseCase {
     public record Input(AuditInfo auditInfo, ApplicationCRDSpec crd) {}
 
     public Output execute(Input input) {
+        var validationResult = validateAndSanitize(input);
+        var warnings = validationResult.warning().orElseGet(List::of);
+        var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
+
+        ApplicationCRDStatus status;
         try {
-            var application = applicationCrudService.findById(input.crd.getId(), input.auditInfo.environmentId());
-            return new Output(this.update(input, application));
+            BaseApplicationEntity application = applicationCrudService.findById(
+                sanitizedInput.crd.getId(),
+                input.auditInfo.environmentId()
+            );
+            status = this.update(sanitizedInput, application);
         } catch (ApplicationNotFoundException e) {
-            return new Output(this.create(input));
+            status = this.create(sanitizedInput);
         }
+
+        status.setErrors(ApplicationCRDStatus.Errors.fromErrorList(warnings));
+        return new Output(status);
     }
 
-    private ApplicationCRDStatus create(Input input) {
+    private ApplicationCRDStatus create(Input sanitizedInput) {
         try {
-            var validationResult = validateAndSanitize(input);
-
-            var warnings = validationResult.warning().orElseGet(List::of);
-
-            var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
-
             var newApplicationEntity = sanitizedInput.crd().toNewApplicationEntity();
             var newApplication = importApplicationCRDDomainService.create(newApplicationEntity, sanitizedInput.auditInfo);
 
@@ -107,23 +113,16 @@ public class ImportApplicationCRDUseCase {
                 .id(newApplication.getId())
                 .organizationId(sanitizedInput.auditInfo.organizationId())
                 .environmentId(sanitizedInput.auditInfo.environmentId())
-                .errors(ApplicationCRDStatus.Errors.fromErrorList(warnings))
                 .build();
-        } catch (AbstractDomainException e) {
+        } catch (AbstractDomainException | AbstractManagementException e) {
             throw e;
         } catch (Exception e) {
             throw new TechnicalManagementException(e);
         }
     }
 
-    private ApplicationCRDStatus update(Input input, BaseApplicationEntity application) {
+    private ApplicationCRDStatus update(Input sanitizedInput, BaseApplicationEntity application) {
         try {
-            var validationResult = validateAndSanitize(input);
-
-            var warnings = validationResult.warning().orElseGet(List::of);
-
-            var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
-
             var updateApplicationEntity = sanitizedInput.crd.toUpdateApplicationEntity();
 
             var updatedApplication = importApplicationCRDDomainService.update(
@@ -143,9 +142,8 @@ public class ImportApplicationCRDUseCase {
             return ApplicationCRDStatus
                 .builder()
                 .id(updatedApplication.getId())
-                .organizationId(input.auditInfo.organizationId())
-                .environmentId(input.auditInfo.environmentId())
-                .errors(ApplicationCRDStatus.Errors.fromErrorList(warnings))
+                .organizationId(sanitizedInput.auditInfo.organizationId())
+                .environmentId(sanitizedInput.auditInfo.environmentId())
                 .build();
         } catch (AbstractDomainException e) {
             throw e;

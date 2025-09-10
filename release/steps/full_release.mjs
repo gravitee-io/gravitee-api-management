@@ -22,6 +22,17 @@ if (isReadyToRelease === 'n') {
   }
 }
 
+const hasRemovedAlpha = await question(
+    chalk.blue(`📝 Ensure you have removed all alpha versions if needed (Helm Chart, pom.xml). Should we continue? (y/n)\n`),
+);
+if (hasRemovedAlpha === 'n') {
+    try {
+        await $`exit 1`;
+    } catch (p) {
+        console.log(chalk.yellow(`🚦 Release process interrupted. Remove alpha versions and try again!`));
+    }
+}
+
 let isLatest = false;
 if (argv.latest) {
   isLatest = true;

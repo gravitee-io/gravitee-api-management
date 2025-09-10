@@ -48,10 +48,10 @@ import { CurrentUserService } from '../../../services-ngx/current-user.service';
   standalone: false,
 })
 export class ApiNotificationComponent implements OnInit, OnDestroy {
-  private apiId = this.activatedRoute.snapshot.params.apiId;
-  private notifications$: BehaviorSubject<NotificationSettings[]> = new BehaviorSubject(null);
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private hooks$ = this.notificationService.getHooks();
+  private readonly apiId = this.activatedRoute.snapshot.params.apiId;
+  private readonly notifications$: BehaviorSubject<NotificationSettings[]> = new BehaviorSubject(null);
+  private readonly unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private readonly hooks$ = this.notificationService.getHooks();
 
   protected loading = true;
   protected canAdd = this.permissionService.hasAnyMatching(['api-notification-c']);
@@ -70,6 +70,7 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
           subscribedEvents: notification.hooks.length ?? 0,
           notifier: this.notifiers.find((n) => n.id === notification.notifier),
           isPortalNotification: notification.config_type === 'PORTAL',
+          isReadonly: notification.origin && notification.origin !== 'MANAGEMENT',
         };
       });
     }),

@@ -29,6 +29,7 @@ import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetail
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
+import io.gravitee.rest.api.security.filter.ContextualLoggingFilter;
 import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
 import io.gravitee.rest.api.security.filter.GraviteeContextAuthorizationFilter;
 import io.gravitee.rest.api.security.filter.GraviteeContextFilter;
@@ -46,8 +47,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,12 +76,11 @@ import org.springframework.web.filter.CorsFilter;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
 public class BasicSecurityConfigurerAdapter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -168,17 +167,17 @@ public class BasicSecurityConfigurerAdapter {
 
         //Warning if the secret is still the default one
         if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("#                      SECURITY WARNING                      #");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
-            LOGGER.warn("You still use the default jwt secret.");
-            LOGGER.warn("This known secret can be used to impersonate anyone.");
-            LOGGER.warn("Please change this value, or ask your administrator to do it !");
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
+            log.warn("");
+            log.warn("##############################################################");
+            log.warn("#                      SECURITY WARNING                      #");
+            log.warn("##############################################################");
+            log.warn("");
+            log.warn("You still use the default jwt secret.");
+            log.warn("This known secret can be used to impersonate anyone.");
+            log.warn("Please change this value, or ask your administrator to do it !");
+            log.warn("");
+            log.warn("##############################################################");
+            log.warn("");
         }
 
         authenticationManager(http);
@@ -198,6 +197,7 @@ public class BasicSecurityConfigurerAdapter {
             new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
             CorsFilter.class
         );
+        http.addFilterAfter(new ContextualLoggingFilter(), GraviteeContextFilter.class);
         http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
         return http.build();
@@ -206,9 +206,9 @@ public class BasicSecurityConfigurerAdapter {
     private void authenticationManager(HttpSecurity http) throws Exception {
         final AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
 
-        LOGGER.info("--------------------------------------------------------------");
-        LOGGER.info("Management API BasicSecurity Config");
-        LOGGER.info("Loading authentication identity providers for Basic authentication");
+        log.info("--------------------------------------------------------------");
+        log.info("Management API BasicSecurity Config");
+        log.info("Loading authentication identity providers for Basic authentication");
 
         List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers = authenticationProviderManager
             .getIdentityProviders()
@@ -217,7 +217,7 @@ public class BasicSecurityConfigurerAdapter {
             .collect(Collectors.toList());
 
         for (io.gravitee.rest.api.security.authentication.AuthenticationProvider provider : providers) {
-            LOGGER.info("Loading authentication provider of type {} at position {}", provider.type(), provider.index());
+            log.info("Loading authentication provider of type {} at position {}", provider.type(), provider.index());
 
             boolean found = false;
             Collection<IdentityProvider> identityProviders = identityProviderManager.getAll();
@@ -245,10 +245,10 @@ public class BasicSecurityConfigurerAdapter {
             }
 
             if (!found) {
-                LOGGER.error("No authentication provider found for type: {}", provider.type());
+                log.error("No authentication provider found for type: {}", provider.type());
             }
         }
-        LOGGER.info("--------------------------------------------------------------");
+        log.info("--------------------------------------------------------------");
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {

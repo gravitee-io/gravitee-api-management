@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.gateway.opentelemetry.TracingContext;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import jakarta.annotation.Nonnull;
 import lombok.AccessLevel;
@@ -36,7 +37,8 @@ public class AnalyticsUtils {
         @Nonnull final io.gravitee.definition.model.Api apiV2,
         final String loggingMaxsize,
         final String loggingExcludedResponseType,
-        final TracingContext tracingContext
+        final TracingContext tracingContext,
+        final LogGuardService logGuardService
     ) {
         io.gravitee.definition.model.Logging loggingV2 = apiV2.getProxy().getLogging();
 
@@ -61,12 +63,12 @@ public class AnalyticsUtils {
                 logging.getContent().setPayload(loggingV2.getContent().isPayloads());
             }
             analytics.setLogging(logging);
-
-            LoggingContext loggingContext = new LoggingContext(analytics.getLogging());
-            loggingContext.setMaxSizeLogMessage(loggingMaxsize);
-            loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
         }
-        return new AnalyticsContext(analytics, loggingMaxsize, loggingExcludedResponseType, tracingContext);
+        LoggingContext loggingContext = new LoggingContext(analytics.getLogging());
+        loggingContext.setMaxSizeLogMessage(loggingMaxsize);
+        loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
+        loggingContext.setLogGuardService(logGuardService);
+        return new AnalyticsContext(analytics, loggingContext, tracingContext);
     }
 
     public static boolean isEnabled(final Analytics analytics) {

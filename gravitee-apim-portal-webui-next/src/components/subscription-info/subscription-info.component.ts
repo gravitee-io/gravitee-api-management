@@ -43,8 +43,8 @@ import { LoaderComponent } from '../loader/loader.component';
   styleUrl: './subscription-info.component.scss',
 })
 export class SubscriptionInfoComponent implements OnInit {
-  @Input()
-  applicationName?: string = '';
+  @Input({ required: true })
+  applicationName: string = '';
 
   @Input()
   planName: string = '';
@@ -69,6 +69,15 @@ export class SubscriptionInfoComponent implements OnInit {
 
   @Input()
   consumerStatus: SubscriptionConsumerStatusEnum = SubscriptionConsumerStatusEnum.STARTED;
+
+  @Input()
+  failureCause?: string = '';
+
+  @Input()
+  createdAt?: string = '';
+
+  @Input()
+  updatedAt?: string = '';
 
   @Output()
   resumeConsumerStatus = new EventEmitter<void>();

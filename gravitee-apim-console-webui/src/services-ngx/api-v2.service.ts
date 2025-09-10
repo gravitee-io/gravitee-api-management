@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, from, mergeMap, Observable, of } from 'rxjs';
 import { distinctUntilChanged, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
@@ -26,18 +26,19 @@ import {
   ApiSortByParam,
   ApisResponse,
   ApiSubscribersResponse,
+  ApiTransferOwnership,
   ApiV4,
   CreateApi,
   DuplicateApiOptions,
-  UpdateApi,
-  ApiTransferOwnership,
-  VerifyApiDeployResponse,
   ListenerType,
   Member,
+  UpdateApi,
+  VerifyApiDeployResponse,
 } from '../entities/management-api-v2';
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 import { ImportSwaggerDescriptor } from '../entities/management-api-v2/api/v4/importSwaggerDescriptor';
+import { MigrateToV4Response } from '../entities/management-api-v2/api/v2/migrateToV4Response';
 
 export interface HostValidatorParams {
   currentHost?: string;
@@ -75,8 +76,8 @@ export class ApiV2Service {
     );
   }
 
-  delete(apiId: string, closePlan = false): Observable<void> {
-    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}${closePlan ? '?closePlan=true' : ''}`);
+  delete(apiId: string, closePlans = false): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}${closePlans ? '?closePlans=true' : ''}`);
   }
 
   start(apiId: string): Observable<void> {
@@ -215,17 +216,40 @@ export class ApiV2Service {
   }
 
   verifyPath(apiId: string, paths: PathToVerify[]): Observable<VerifyApiPathResponse> {
-    return this.http.post<VerifyApiPathResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/paths`, { apiId, paths });
+    return this.http.post<VerifyApiPathResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/paths`, {
+      apiId,
+      paths,
+    });
   }
 
   verifyHosts(apiId: string, listenerType: ListenerType, hosts: string[]): Observable<VerifyApiHostsResponse> {
-    return this.http.post<VerifyApiHostsResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/hosts`, { apiId, listenerType, hosts });
+    return this.http.post<VerifyApiHostsResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/hosts`, {
+      apiId,
+      listenerType,
+      hosts,
+    });
   }
 
   rollback(apiId: string, eventId: string): Observable<void> {
     return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_rollback`, { eventId }).pipe(
       switchMap(() => this.get(apiId)),
       map(() => {}),
+    );
+  }
+
+  migrateToV4(apiId: string, mode?: 'DRY_RUN' | 'FORCE'): Observable<MigrateToV4Response> {
+    let httpParams = new HttpParams();
+
+    if (mode) {
+      httpParams = httpParams.set('mode', mode);
+    }
+
+    return this.http.post<MigrateToV4Response>(
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/_migrate`,
+      {},
+      {
+        params: httpParams,
+      },
     );
   }
 }

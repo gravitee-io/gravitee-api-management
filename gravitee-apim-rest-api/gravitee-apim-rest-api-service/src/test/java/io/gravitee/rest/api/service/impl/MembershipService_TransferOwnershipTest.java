@@ -18,13 +18,18 @@ package io.gravitee.rest.api.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
@@ -34,13 +39,17 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiOwnershipTransferException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collections;
@@ -97,6 +106,24 @@ public class MembershipService_TransferOwnershipTest {
     @Mock
     private ApiRepository apiRepository;
 
+    @Mock
+    private Node node;
+
+    @Mock
+    private CommandRepository commandRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private ApiMetadataService apiMetadataService;
+
+    @Mock
+    private SearchEngineService searchEngineService;
+
+    @Mock
+    private GroupService groupService;
+
     @BeforeEach
     public void setUp() throws TechnicalException {
         membershipService =
@@ -114,10 +141,15 @@ public class MembershipService_TransferOwnershipTest {
                 apiSearchService,
                 apiGroupService,
                 apiRepository,
-                null,
+                groupService,
                 auditService,
                 null,
-                null
+                null,
+                node,
+                objectMapper,
+                commandRepository,
+                apiMetadataService,
+                searchEngineService
             );
         newPrimaryOwnerRole.setId(USER_ROLE_ID);
         newPrimaryOwnerRole.setName(USER_ROLE_NAME);
@@ -133,6 +165,7 @@ public class MembershipService_TransferOwnershipTest {
         Api api = new Api();
         api.setId(API_ID);
         lenient().when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        lenient().when(groupService.findByIds(any())).thenReturn(Set.of());
     }
 
     @Test
@@ -266,5 +299,58 @@ public class MembershipService_TransferOwnershipTest {
         assertThat(createdUserMembership.getRoleId()).isEqualTo(USER_ROLE_ID);
         assertThat(createdUserMembership.getMemberId()).isEqualTo(USER_ID);
         assertThat(createdUserMembership.getReferenceId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    public void shouldReindexApiAfterOwnershipTransfer() throws TechnicalException {
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(API_PRIMARY_OWNER_ROLE_ID);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+        newPrimaryOwnerRole.setId(USER_ROLE_ID);
+        newPrimaryOwnerRole.setName(USER_ROLE_NAME);
+        newPrimaryOwnerRole.setScope(RoleScope.API);
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID))
+            .thenReturn(Optional.of(poRole));
+        when(roleService.findByScopeAndName(RoleScope.API, USER_ROLE_NAME, ORGANIZATION_ID)).thenReturn(Optional.of(newPrimaryOwnerRole));
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API)).thenReturn(poRole);
+        when(roleService.findScopeByMembershipReferenceType(any())).thenReturn(RoleScope.API);
+        when(roleService.findById(API_PRIMARY_OWNER_ROLE_ID)).thenReturn(poRole);
+
+        Membership userPoMembership = new Membership();
+        userPoMembership.setReferenceType(MembershipReferenceType.API);
+        userPoMembership.setRoleId(API_PRIMARY_OWNER_ROLE_ID);
+        userPoMembership.setReferenceId(API_ID);
+        userPoMembership.setMemberId(USER_ID);
+        userPoMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
+
+        when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID))
+            .thenReturn(Set.of(userPoMembership));
+
+        Membership groupPoMembership = new Membership();
+        groupPoMembership.setReferenceType(MembershipReferenceType.GROUP);
+        groupPoMembership.setRoleId(API_PRIMARY_OWNER_ROLE_ID);
+        groupPoMembership.setReferenceId(GROUP_ID);
+        groupPoMembership.setMemberId(GROUP_ID);
+        groupPoMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.GROUP);
+
+        when(membershipRepository.findByReferencesAndRoleId(eq(MembershipReferenceType.GROUP), eq(List.of(GROUP_ID)), any()))
+            .thenReturn(Set.of(groupPoMembership));
+
+        GenericApiEntity mockApi = mock(GenericApiEntity.class);
+        GenericApiEntity mockApiWithMetadata = mock(GenericApiEntity.class);
+
+        when(apiSearchService.findGenericById(EXECUTION_CONTEXT, API_ID)).thenReturn(mockApi);
+        when(apiMetadataService.fetchMetadataForApi(EXECUTION_CONTEXT, mockApi)).thenReturn(mockApiWithMetadata);
+        membershipService.transferApiOwnership(
+            EXECUTION_CONTEXT,
+            API_ID,
+            new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
+            List.of(newPrimaryOwnerRole)
+        );
+
+        verify(apiSearchService).findGenericById(EXECUTION_CONTEXT, API_ID);
+        verify(apiMetadataService).fetchMetadataForApi(EXECUTION_CONTEXT, mockApi);
+        verify(searchEngineService).index(EXECUTION_CONTEXT, mockApiWithMetadata, false);
     }
 }

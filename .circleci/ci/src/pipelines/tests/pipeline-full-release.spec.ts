@@ -27,7 +27,7 @@ describe('Full release tests', () => {
     'should build full release config on $branch with dry run $isDryRun, is latest $dockerTagAsLatest and version $graviteeioVersion',
     ({ baseBranch, branch, isDryRun, dockerTagAsLatest, graviteeioVersion, apimVersionPath, expectedResult }) => {
       const result = generateFullReleaseConfig({
-        action: 'release',
+        action: 'full_release',
         sha1: '784ff35ca',
         changedFiles: [],
         buildNum: '1234',

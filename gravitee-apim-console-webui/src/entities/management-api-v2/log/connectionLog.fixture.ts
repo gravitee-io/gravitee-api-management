@@ -23,16 +23,17 @@ import { fakeBaseApplication } from '../application';
 
 export function fakeConnectionLog(modifier?: Partial<ConnectionLog> | ((base: ConnectionLog) => ConnectionLog)): ConnectionLog {
   const base: ConnectionLog = {
-    requestId: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
     apiId: '117e79a3-6023-4b72-be79-a36023ab72f9',
+    requestId: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
     timestamp: '2020-02-02T20:22:02.000Z',
-    clientIdentifier: '34f97df9-4945-4f2f-bf5a-3b16d9334728',
-    transactionId: 'transaction-id',
     method: 'GET',
     status: 200,
     requestEnded: true,
     plan: fakePlanV4(),
     application: fakeBaseApplication(),
+    gatewayResponseTime: 42,
+    uri: '/api-uri',
+    endpoint: 'https://my-api-example.com',
   };
 
   if (isFunction(modifier)) {

@@ -26,6 +26,7 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -73,6 +74,9 @@ public class ApiCRDService_UpdateTest {
     @Mock
     private PlanService planService;
 
+    @Mock
+    private NotificationCRDDomainService notificationCRDService;
+
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -87,7 +91,7 @@ public class ApiCRDService_UpdateTest {
     private static final String USER_NAME = "user-id";
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         Authentication authentication = mock(Authentication.class);
         UserDetails userDetails = new UserDetails(USER_NAME, "PASSWORD", Collections.emptyList());
 
@@ -122,6 +126,7 @@ public class ApiCRDService_UpdateTest {
         verify(apiService, times(0)).start(eq(ec), eq(API_ID), any());
         verify(parameterService, times(0)).findAsBoolean(any(), any(), any());
         verify(membershipService, never()).transferApiOwnership(any(), any(), any(), any());
+        verify(notificationCRDService, atLeastOnce()).syncApiPortalNotifications(eq(API_ID), eq(USER_NAME), any());
     }
 
     @Test

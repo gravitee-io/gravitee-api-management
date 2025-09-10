@@ -17,6 +17,6 @@
 import { ApiV1 } from './v1';
 import { ApiV2 } from './v2';
 import { ApiV4 } from './v4';
-import { ApiFederated } from './federated';
+import { ApiFederated, ApiFederatedAgent } from './federated';
 
-export type Api = ApiV1 | ApiV2 | ApiV4 | ApiFederated;
+export type Api = ApiV1 | ApiV2 | ApiV4 | ApiFederated | ApiFederatedAgent;

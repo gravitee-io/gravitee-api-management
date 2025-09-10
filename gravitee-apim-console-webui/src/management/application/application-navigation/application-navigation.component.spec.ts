@@ -80,11 +80,10 @@ describe('ApplicationNavigationComponent', () => {
     });
 
     it('should build sub menu items', () => {
-      expect(component.subMenuItems.length).toEqual(7);
+      expect(component.subMenuItems.length).toEqual(6);
       expect(component.subMenuItems.map((item) => item.displayName)).toEqual([
         'Global settings',
         'User and group access',
-        'Metadata',
         'Subscriptions',
         'Analytics',
         'Logs',
@@ -102,7 +101,6 @@ describe('ApplicationNavigationComponent', () => {
             'Members',
             'Groups',
             'Transfer ownership',
-            'Metadata',
             'Subscriptions',
             'Analytics',
             'Logs',

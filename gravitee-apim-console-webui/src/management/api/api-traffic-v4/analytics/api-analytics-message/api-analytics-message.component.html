@@ -21,14 +21,8 @@
     <div class="loader">
       <gio-loader></gio-loader>
     </div>
-  } @else if (!apiAnalyticsVM.isAnalyticsEnabled) {
-    <gio-card-empty-state
-      icon="folder-plus"
-      title="Enable Analytics"
-      subtitle="Your metrics live here. Start monitoring your API by enabling the Analytics in the settings."
-    ></gio-card-empty-state>
   } @else {
-    <api-analytics-filters-bar></api-analytics-filters-bar>
+    <api-analytics-message-filters-bar></api-analytics-message-filters-bar>
     <div class="entrypoints">
       <h2>Entrypoints</h2>
       <div class="entrypoints__rows">

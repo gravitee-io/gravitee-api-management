@@ -44,27 +44,25 @@
           <div class="providers__body">
             <ng-template matStepLabel>Choose Provider</ng-template>
             <gio-form-selection-inline formControlName="provider" class="list">
-              <gio-form-selection-inline-card
-                *ngFor="let provider of integrationProviderService.getActiveProviders()"
-                [value]="provider.value"
-                class="gio-radio-button"
-              >
-                <img
-                  class="gio-radio-button__logo"
-                  [src]="
-                    'assets/logos/' +
-                    provider.value +
-                    (provider.value === chooseProviderForm.controls.provider.getRawValue() ? '_accent' : '') +
-                    '.svg'
-                  "
-                  [alt]="provider.value + ' logo'"
-                />
-                <gio-form-selection-inline-card-content>
-                  <gio-card-content-title>
-                    {{ provider.value | mapProviderName }}
-                  </gio-card-content-title>
-                </gio-form-selection-inline-card-content>
-              </gio-form-selection-inline-card>
+              @for (provider of integrationProviderService.getActiveProviders(); track provider) {
+                <gio-form-selection-inline-card [value]="provider.value" class="gio-radio-button">
+                  <img
+                    class="gio-radio-button__logo"
+                    [src]="
+                      'assets/logos/' +
+                      provider.value +
+                      (provider.value === chooseProviderForm.controls.provider.getRawValue() ? '_accent' : '') +
+                      '.svg'
+                    "
+                    [alt]="provider.value + ' logo'"
+                  />
+                  <gio-form-selection-inline-card-content>
+                    <gio-card-content-title>
+                      {{ provider.value | mapProviderName }}
+                    </gio-card-content-title>
+                  </gio-form-selection-inline-card-content>
+                </gio-form-selection-inline-card>
+              }
             </gio-form-selection-inline>
 
             @if (this.integrationProviderService.getComingSoonProviders()?.length) {
@@ -73,23 +71,20 @@
               </div>
 
               <gio-form-selection-inline class="list">
-                <gio-form-selection-inline-card
-                  *ngFor="let provider of this.integrationProviderService.getComingSoonProviders()"
-                  [value]="provider.value"
-                  class="gio-radio-button"
-                  [disabled]="true"
-                >
-                  <img
-                    class="gio-radio-button__logo"
-                    [src]="'assets/logos/' + provider.value + '_gray.svg'"
-                    alt="provider.value + ' logo'"
-                  />
-                  <gio-form-selection-inline-card-content>
-                    <gio-card-content-title>
-                      {{ provider.value | mapProviderName }}
-                    </gio-card-content-title>
-                  </gio-form-selection-inline-card-content>
-                </gio-form-selection-inline-card>
+                @for (provider of integrationProviderService.getComingSoonProviders(); track provider) {
+                  <gio-form-selection-inline-card [value]="provider.value" class="gio-radio-button" [disabled]="true">
+                    <img
+                      class="gio-radio-button__logo"
+                      [src]="'assets/logos/' + provider.value + '_gray.svg'"
+                      alt="provider.value + ' logo'"
+                    />
+                    <gio-form-selection-inline-card-content>
+                      <gio-card-content-title>
+                        {{ provider.value | mapProviderName }}
+                      </gio-card-content-title>
+                    </gio-form-selection-inline-card-content>
+                  </gio-form-selection-inline-card>
+                }
               </gio-form-selection-inline>
             }
           </div>
@@ -129,13 +124,15 @@
                       data-testid="create-integration-name-input"
                     />
                     <mat-label>Name</mat-label>
-                    <mat-error *ngIf="addInformationForm.get('name').hasError('required')">Integration name is required. </mat-error>
-                    <mat-error *ngIf="addInformationForm.get('name').hasError('maxlength')"
-                      >Integration name can not exceed 50 characters.</mat-error
-                    >
-                    <mat-error *ngIf="addInformationForm.get('name').hasError('minlength')"
-                      >Integration name has to be at least 1 characters long.
-                    </mat-error>
+                    @if (addInformationForm.get('name').hasError('required')) {
+                      <mat-error>Integration name is required.</mat-error>
+                    }
+                    @if (addInformationForm.get('name').hasError('maxlength')) {
+                      <mat-error>Integration name can not exceed 50 characters.</mat-error>
+                    }
+                    @if (addInformationForm.get('name').hasError('minlength')) {
+                      <mat-error>Integration name has to be at least 1 characters long.</mat-error>
+                    }
                   </mat-form-field>
                 </div>
                 <div>
@@ -156,6 +153,45 @@
               </mat-card-content>
             </mat-card>
           </div>
+          @if (addInformationForm.controls.wellKnownUrls.enabled) {
+            <ng-template matStepLabel>Well-known URLs</ng-template>
+            <div class="form__body">
+              <mat-card class="form-card">
+                <mat-card-content>
+                  <div>
+                    <h5>Well-known URLs</h5>
+                    <p class="info">To find your agents.</p>
+                  </div>
+                  @for (url of addInformationForm.controls.wellKnownUrls.controls; track url; let idx = $index) {
+                    <div style="display: flex; align-items: center">
+                      <mat-form-field appearance="outline" class="form-field">
+                        <input
+                          [id]="'url' + idx"
+                          type="text"
+                          matInput
+                          [formControl]="url.controls.url"
+                          required="true"
+                          data-testid="create-integration-well-known-url"
+                        />
+                        <mat-label>Well-known URL</mat-label>
+                        <mat-error *ngIf="url.controls.url.hasError('pattern')"
+                          >Well-known URL should respect URLs pattern (starts with http:// or https://")
+                        </mat-error>
+                      </mat-form-field>
+                      @if (addInformationForm.controls.wellKnownUrls.length > 1) {
+                        <button mat-button type="button" (click)="removeWellKnownUrl(idx)">
+                          <mat-icon svgIcon="gio:trash" />
+                        </button>
+                      }
+                    </div>
+                  }
+                </mat-card-content>
+                <button mat-raised-button data-testid="create-integration-add-url" (click)="addWellKnownUrl()" type="button">
+                  Add another URL
+                </button>
+              </mat-card>
+            </div>
+          }
           <div class="form__actions">
             <button matStepperPrevious mat-raised-button>Back</button>
             <button

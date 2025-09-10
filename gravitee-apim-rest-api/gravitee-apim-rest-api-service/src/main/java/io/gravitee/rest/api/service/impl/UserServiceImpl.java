@@ -416,11 +416,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public Optional<UserEntity> findByEmail(ExecutionContext executionContext, String email) {
+    public List<UserEntity> findByEmail(ExecutionContext executionContext, String email) {
         try {
             LOGGER.debug("Find user by Email: {}", email);
-            Optional<User> optionalUser = userRepository.findByEmail(email, executionContext.getOrganizationId());
-            return optionalUser.map(user -> convert(optionalUser.get(), false));
+            List<User> users = userRepository.findByEmail(email, executionContext.getOrganizationId());
+            return users.stream().map(user -> convert(user, false)).toList();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find user using its email", ex);
             throw new TechnicalManagementException("An error occurs while trying to find user using its email", ex);
@@ -569,8 +569,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             } else {
                 final String username = subject.toString();
                 LOGGER.debug("Create an internal user {}", username);
-                Optional<User> checkUser = userRepository.findById(username);
-                user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
+                user = userRepository.findById(username).orElseThrow(() -> new UserNotFoundException(username));
                 if (StringUtils.isNotBlank(user.getPassword())) {
                     throw new UserAlreadyFinalizedException(executionContext.getOrganizationId());
                 }
@@ -619,6 +618,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             final UserEntity userEntity = convert(user, true);
             searchEngineService.index(executionContext, userEntity, false);
+            notifierService.trigger(executionContext, PortalHook.USER_REGISTERED, Map.of("user", userEntity));
             return userEntity;
         } catch (AbstractManagementException ex) {
             throw ex;
@@ -1285,12 +1285,26 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
         if (results.hasResults()) {
-            List<String> orderedIds = new ArrayList<>(results.getDocuments());
+            Set<UserEntity> fetched = findByIds(executionContext, results.getDocuments());
+            Map<String, UserEntity> byId = fetched.stream().collect(Collectors.toMap(UserEntity::getId, u -> u));
 
-            List<UserEntity> users = new ArrayList<>((findByIds(executionContext, orderedIds)));
+            List<UserEntity> users = new ArrayList<>(results.getDocuments().size());
+            Set<String> seen = new HashSet<>();
 
-            // Sort users based on their position in orderedIds
-            users.sort(Comparator.comparingInt(user -> orderedIds.indexOf(user.getId())));
+            for (String id : results.getDocuments()) {
+                if (seen.add(id)) {
+                    UserEntity u = byId.get(id);
+                    if (u != null) {
+                        users.add(u);
+                    }
+                }
+            }
+
+            users.sort(
+                Comparator
+                    .comparing(UserEntity::getFirstname, Comparator.nullsLast(String::compareToIgnoreCase))
+                    .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String::compareToIgnoreCase))
+            );
 
             populateUserFlags(executionContext.getOrganizationId(), users);
 
@@ -1344,6 +1358,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .getContent()
                 .stream()
                 .map(u -> convert(u, false, userMetadataService.findAllByUserId(u.getId())))
+                .sorted(
+                    Comparator
+                        .comparing(UserEntity::getFirstname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                        .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                )
                 .collect(toList());
 
             populateUserFlags(executionContext.getOrganizationId(), entities);
@@ -1999,31 +2018,32 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             RoleScope.APPLICATION
         );
 
-        // Add groups to user
-        for (GroupEntity groupEntity : userGroups) {
-            for (RoleEntity roleEntity : roleEntities) {
-                String defaultRole = roleEntity.getName();
+        for (GroupEntity group : userGroups) {
+            if (group == null) {
+                continue;
+            }
+            for (RoleScope scope : List.of(RoleScope.API, RoleScope.APPLICATION)) {
+                String roleName = Optional
+                    .ofNullable(group.getRoles())
+                    .map(roles -> roles.get(scope))
+                    .orElseGet(() ->
+                        roleEntities.stream().filter(role -> role.getScope() == scope).map(RoleEntity::getName).findFirst().orElse(null)
+                    );
 
-                // If defined, get the override default role at the group level
-                if (groupEntity.getRoles() != null) {
-                    String groupDefaultRole = groupEntity.getRoles().get(RoleScope.valueOf(roleEntity.getScope().name()));
-                    if (groupDefaultRole != null) {
-                        defaultRole = groupDefaultRole;
-                    }
+                // Skip if no group or default role is found
+                if (roleName == null) {
+                    continue;
                 }
 
                 MembershipService.Membership membership = new MembershipService.Membership(
-                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
+                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group.getId()),
                     new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(roleEntity.getScope(), defaultRole)
+                    new MembershipService.MembershipRole(scope, roleName)
                 );
-
                 membership.setSource(identityProviderId);
-
                 memberships.add(membership);
             }
         }
-
         return memberships;
     }
 

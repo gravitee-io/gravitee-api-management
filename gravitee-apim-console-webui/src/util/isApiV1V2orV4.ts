@@ -16,7 +16,7 @@
 import { get, has } from 'lodash';
 
 import { Api as ApiV1V2FromMAPIV1 } from '../entities/api';
-import { ApiV4, ApiV2 as ApiV2FromMAPIV2, ApiV1 as ApiV1FromMAPIV2, ApiFederated } from '../entities/management-api-v2';
+import { ApiV4, ApiV2 as ApiV2FromMAPIV2, ApiFederated } from '../entities/management-api-v2';
 
 export const isApiV1V2FromMAPIV1 = (api: ApiV1V2FromMAPIV1 | ApiV4 | ApiFederated): api is ApiV1V2FromMAPIV1 => {
   return !isApiV4(api);
@@ -26,6 +26,6 @@ export const isApiV2FromMAPIV2 = (api: ApiV2FromMAPIV2 | ApiV4 | ApiFederated): 
   return !isApiV4(api);
 };
 
-export const isApiV4 = (api: ApiV1V2FromMAPIV1 | ApiV1FromMAPIV2 | ApiV2FromMAPIV2 | ApiV4 | ApiFederated): api is ApiV4 => {
-  return has(api, 'definitionVersion') && get(api as ApiV4, 'definitionVersion') === 'V4';
+export const isApiV4 = (api: unknown): api is ApiV4 => {
+  return has(api, 'definitionVersion') && get(api, 'definitionVersion') === 'V4';
 };

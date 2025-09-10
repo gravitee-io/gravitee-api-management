@@ -44,7 +44,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -83,26 +82,13 @@ public class ResourcesResource {
                 : GraviteeContext.getDefaultOrganization()
         );
 
-        Stream<ResourceListItem> stream = resourceService.findAll().stream().map(this::convert);
+        boolean includeSchema = expand.contains("schema");
+        boolean includeIcon = expand.contains("icon");
 
-        stream =
-            stream.peek(resourceListItem ->
-                resourceListItem.setDeployed(resourceListItem.getDeployed() && license.isFeatureEnabled(resourceListItem.getFeature()))
-            );
-
-        if (expand != null && !expand.isEmpty()) {
-            for (String s : expand) {
-                switch (s) {
-                    case "schema":
-                        stream =
-                            stream.peek(resourceListItem -> resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId()))
-                            );
-                    case "icon":
-                        stream =
-                            stream.peek(resourceListItem -> resourceListItem.setIcon(resourceService.getIcon(resourceListItem.getId())));
-                }
-            }
-        }
+        Stream<ResourceListItem> stream = resourceService
+            .findAll()
+            .stream()
+            .map(resource -> convert(resource, license::isFeatureEnabled, includeSchema, includeIcon));
 
         return stream.sorted(Comparator.comparing(ResourceListItem::getName)).collect(Collectors.toList());
     }
@@ -112,15 +98,27 @@ public class ResourcesResource {
         return resourceContext.getResource(ResourceResource.class);
     }
 
-    private ResourceListItem convert(PlatformPluginEntity resource) {
+    private ResourceListItem convert(
+        PlatformPluginEntity resource,
+        java.util.function.Function<String, Boolean> featureEnabled,
+        boolean includeSchema,
+        boolean includeIcon
+    ) {
         ResourceListItem item = new ResourceListItem();
 
         item.setId(resource.getId());
         item.setName(resource.getName());
         item.setDescription(resource.getDescription());
         item.setVersion(resource.getVersion());
-        item.setDeployed(resource.isDeployed());
+        item.setDeployed(resource.isDeployed() && featureEnabled.apply(resource.getFeature()));
         item.setFeature(resource.getFeature());
+
+        if (includeSchema) {
+            item.setSchema(resourceService.getSchema(item.getId()));
+        }
+        if (includeIcon) {
+            item.setIcon(resourceService.getIcon(item.getId()));
+        }
 
         return item;
     }

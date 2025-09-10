@@ -233,8 +233,7 @@ describe('ApiNavigationComponent', () => {
             'Configuration',
             'Policies',
             'API Traffic',
-            'Runtime Logs',
-            'Settings',
+            'Logs',
             'API Score',
           ].map((name) =>
             expect.objectContaining({

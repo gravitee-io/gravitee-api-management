@@ -96,8 +96,8 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v12-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v12-<< parameters.jobName >>-{{ .Branch }}
     description: Restore Maven cache for a dedicated job
   cmd-prepare-gpg:
     steps:
@@ -122,7 +122,7 @@ commands:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
       - save_cache:
-          key: gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v12-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always
@@ -256,7 +256,7 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
-  job-build-docker-image:
+  job-build-docker-webui-image:
     parameters:
       apim-project:
         type: string
@@ -310,9 +310,78 @@ jobs:
       - aquasec/pull_aqua_scanner_image
       - aquasec/register_artifact:
           artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0
-          debug: true
       - aquasec/scan_docker_image:
           docker_image_to_scan: graviteeio/<< parameters.docker-image-name >>:4.2.0
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
+      - cmd-docker-logout
+  job-build-docker-backend-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context
+      - cmd-docker-login
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+          var-name: AQUA_KEY
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+          var-name: AQUA_SECRET
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
+          var-name: AQUA_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
+          var-name: AQUA_PASSWORD
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
+          var-name: SCANNER_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - aquasec/install_billy
+      - aquasec/pull_aqua_scanner_image
+      - run:
+          name: Build docker image for << parameters.apim-project >>-alpine
+          command: |-
+            docker buildx build --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio/<< parameters.docker-image-name >>:4.2.0
+          scanner_url: https://82fb8f75da.cloud.aquasec.com
+      - run:
+          name: Build docker image for << parameters.apim-project >>-debian
+          command: |-
+            docker buildx build --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-debian -t graviteeio/<< parameters.docker-image-name >>:4.2-debian \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - aquasec/register_artifact:
+          artifact_to_register: graviteeio/<< parameters.docker-image-name >>:4.2.0-debian
+      - aquasec/scan_docker_image:
+          docker_image_to_scan: graviteeio/<< parameters.docker-image-name >>:4.2.0-debian
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-logout
   job-backend-build-and-publish-on-download-website:
@@ -647,7 +716,7 @@ jobs:
       - run:
           name: Trigger SaaS Docker images pipeline
           command: |-
-            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "release-version":"4.2.0", "dry-run":true}}' | jq -r '.id')
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "release-version":"4.2.0", "dry-run":true, "os-distribution":"debian"}}' | jq -r '.id')
             echo "Pipeline triggered with ID: $PIPELINE_ID"
             waitForPipelineCompletion() {
                 while true; do
@@ -682,7 +751,7 @@ workflows:
           name: Build APIM Portal
           requires:
             - Setup
-      - job-build-docker-image:
+      - job-build-docker-webui-image:
           context:
             - cicd-orchestrator
           name: Build APIM Portal docker image for APIM 4.2.0 - Dry Run
@@ -697,7 +766,7 @@ workflows:
           name: Build APIM Console
           requires:
             - Setup
-      - job-build-docker-image:
+      - job-build-docker-webui-image:
           context:
             - cicd-orchestrator
           name: Build APIM Console docker image for APIM 4.2.0 - Dry Run
@@ -712,7 +781,7 @@ workflows:
           name: Backend build and publish on download website
           requires:
             - Setup
-      - job-build-docker-image:
+      - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
           name: Build APIM Management API docker image for APIM 4.2.0 - Dry Run
@@ -721,7 +790,7 @@ workflows:
           apim-project: gravitee-apim-rest-api
           docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
           docker-image-name: apim-management-api
-      - job-build-docker-image:
+      - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
           name: Build APIM Gateway docker image for APIM 4.2.0 - Dry Run
@@ -791,7 +860,7 @@ workflows:
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
-  aquasec: gravitee-io/aquasec@1.0.4
+  aquasec: gravitee-io/aquasec@1.0.5
   aws-cli: circleci/aws-cli@5.1.2
   aws-s3: circleci/aws-s3@4.1.0
   helm: circleci/helm@3.0.0

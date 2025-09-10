@@ -42,11 +42,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { BehaviorSubject, EMPTY, Observable, of, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { RoleName } from './group/membershipState';
-
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
-import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
@@ -119,7 +116,7 @@ export class GroupsComponent implements OnInit {
   filteredData: GroupsResponse[] = [];
   noOfRecords: number = 0;
   isLoading: boolean = false;
-  deleteGroupDisabled = false;
+  protectedGroups = new Set<string>();
   addGroupDisabled = false;
 
   private groups = new BehaviorSubject<Group[]>([]);
@@ -137,28 +134,28 @@ export class GroupsComponent implements OnInit {
   ngOnInit() {
     this.resetFilters();
     this.initializeSettingsForm();
-    this.initializeGroups();
+    this.loadGroups();
   }
 
-  private initializeGroups() {
+  private loadGroups() {
     if (this.isLoading) return;
 
     this.isLoading = true;
 
+    const searchTerm = this.defaultFilters.searchTerm ?? '';
     this.groupService
-      .list()
+      .listPaginated(this.defaultFilters.pagination.index, this.defaultFilters.pagination.size, searchTerm)
       .pipe(
         filter(Boolean),
-        map((groups) =>
-          groups
-            .filter((group) => group.manageable)
-            .map((group) => ({
-              ...group,
-              shouldAddToNewAPIs: this.checkEventRule(group, 'API_CREATE'),
-              shouldAddToNewApplications: this.checkEventRule(group, 'APPLICATION_CREATE'),
-            }))
-            .sort((a, b) => a.name.localeCompare(b.name)),
-        ),
+        map((groupsPage) => {
+          this.noOfRecords = groupsPage.page.total_elements;
+          this.filteredData = groupsPage.data;
+          return groupsPage.data.map((group) => ({
+            ...group,
+            shouldAddToNewAPIs: this.checkEventRule(group, 'API_CREATE'),
+            shouldAddToNewApplications: this.checkEventRule(group, 'APPLICATION_CREATE'),
+          }));
+        }),
         map((groups) => {
           this.groups.next(groups);
           this.filterData(this.defaultFilters);
@@ -234,7 +231,7 @@ export class GroupsComponent implements OnInit {
       .subscribe({
         next: (_) => {
           this.snackBarService.success(`Successfully deleted the group.`);
-          this.initializeGroups();
+          this.loadGroups();
         },
         error: () => this.snackBarService.error(`Error while deleting the group.`),
       });
@@ -262,9 +259,7 @@ export class GroupsComponent implements OnInit {
 
   filterData(filters: GioTableWrapperFilters) {
     this.defaultFilters = { ...this.defaultFilters, ...filters };
-    const filtered = gioTableFilterCollection(this.groups.value, filters);
-    this.filteredData = filtered.filteredCollection;
-    this.noOfRecords = filtered.unpaginatedLength;
+    this.loadGroups();
   }
 
   resetFilters() {
@@ -273,14 +268,10 @@ export class GroupsComponent implements OnInit {
   }
 
   private disableDeleteGroup() {
-    const groups = this.groups.value;
-    const isOnlyGroupWithAPIRolePrimaryOwner = groups.length === 1 && groups[0].roles.API === RoleName.PRIMARY_OWNER;
-    const canDeleteGroup = this.permissionService.hasAnyMatching(['environment-group-d']);
-
-    if (isOnlyGroupWithAPIRolePrimaryOwner) {
-      this.deleteGroupDisabled = true;
-    } else if (!canDeleteGroup) {
-      this.deleteGroupDisabled = true;
+    if (!this.permissionService.hasAnyMatching(['environment-group-d'])) {
+      this.protectedGroups = new Set(this.groups.value.map((group) => group.id));
+    } else {
+      this.protectedGroups = new Set(this.groups.value.filter((group) => group.apiPrimaryOwner).map((group) => group.id));
     }
   }
 

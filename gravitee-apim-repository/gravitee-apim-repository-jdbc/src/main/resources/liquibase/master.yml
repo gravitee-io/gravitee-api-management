@@ -198,6 +198,10 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_4_12/00_increase_length_integration_provider_column.yml
     - include:
+          - file: liquibase/changelogs/v4_4_29/00_add_key_column_dictionaries.yml
+    - include:
+          - file: liquibase/changelogs/v4_4_32/00_change_flow_selectors_condition_length.yml
+    - include:
           - file: liquibase/changelogs/v4_5_0/00_integrations_nullable_agent_status.yml
     - include:
           - file: liquibase/changelogs/v4_5_0/01_add_async_jobs_table.yml
@@ -230,6 +234,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_6_0/07_add_ingested_mark_page_table.yml
     - include:
+        - file: liquibase/changelogs/v4_6_0/08_add_org_id_to_portal_and_generic_notification_configs.yml
+    - include:
         - file: liquibase/changelogs/v4_7_0/00_add_origin_to_shared_policy_groups_table.yml
     - include:
         - file: liquibase/changelogs/v4_7_0/01_add_origin_to_groups_table.yml
@@ -241,3 +247,25 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_8_0/00_add_target_to_entrypoints_table.yml
     - include:
         - file: liquibase/changelogs/v4_8_0/01_add_portal_notifications_groups_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_8_0/02_add_portal_notification_configs_origin_col.yml
+    - include:
+        - file: liquibase/changelogs/v4_8_0/03_add_wellknowns_to_integrations_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_8_0/03_add_hrid_to_shared_policy_group_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_8_0/04_add_hrid_to_apis_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/00_add_hrid_to_applications_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/01_add_hrid_to_plans_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/02_add_hrid_to_pages_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/03_add_clusters_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/04_add_cluster_groups_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/05_add_portal_pages_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/06_add_portal_page_contexts_table.yml

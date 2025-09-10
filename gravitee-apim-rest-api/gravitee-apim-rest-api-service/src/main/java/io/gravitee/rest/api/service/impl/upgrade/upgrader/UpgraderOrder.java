@@ -30,6 +30,7 @@ public class UpgraderOrder {
     public static final int DEFAULT_ROLES_UPGRADER = 120;
     public static final int API_PRIMARY_OWNER_REMOVAL_UPGRADER = 140;
     public static final int DEFAULT_METADATA_UPGRADER = 160;
+    public static final int PORTAL_NOTIFICATION_CONFIG_ORIGIN_UPGRADER = 190;
     public static final int PORTAL_NOTIFICATION_CONFIG_UPGRADER = 200;
     public static final int GENERIC_NOTIFICATION_CONFIG_UPGRADER = 220;
     public static final int ALERTS_ENVIRONMENT_UPGRADER = 500;
@@ -50,4 +51,13 @@ public class UpgraderOrder {
     public static final int INTEGRATION_PRIMARY_OWNER_UPGRADER = 703;
     public static final int INITIALIZE_SHARED_POLICY_GROUP_UPGRADER = 704;
     public static final int PLAN_API_TYPE_UPGRADER = 705;
+    public static final int SHARED_POLICY_GROUP_HRID_UPGRADER = 706;
+    public static final int API_HRID_UPGRADER = 707;
+    public static final int ADD_ORG_ID_NOTIFICATION_CONFIGS_UPGRADER = 708;
+    public static final int APPLICATION_HRID_UPGRADER = 709;
+    public static final int PLAN_HRID_UPGRADER = 709;
+    public static final int PAGE_HRID_UPGRADER = 710;
+    public static final int ENVIRONMENTS_DEFAULT_PORTAL_PAGE_UPGRADER = 711;
+    public static final int CLUSTER_ROLES_UPGRADER = 900;
+    public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;
 }

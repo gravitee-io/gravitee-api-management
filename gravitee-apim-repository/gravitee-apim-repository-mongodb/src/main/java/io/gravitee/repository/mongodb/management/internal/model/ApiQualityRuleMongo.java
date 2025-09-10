@@ -35,7 +35,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
 @ToString
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}apiqualityrules")
-public class ApiQualityRuleMongo extends Auditable {
+public class ApiQualityRuleMongo extends DeprecatedAuditable {
 
     @Id
     private ApiQualityRulePkMongo id;

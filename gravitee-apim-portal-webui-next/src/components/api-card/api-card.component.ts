@@ -17,13 +17,14 @@ import { Component, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltip } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 
 import { PictureComponent } from '../picture/picture.component';
 
 @Component({
   selector: 'app-api-card',
-  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, MatChipsModule],
+  imports: [MatCardModule, MatButtonModule, PictureComponent, RouterModule, MatChipsModule, MatTooltip],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })

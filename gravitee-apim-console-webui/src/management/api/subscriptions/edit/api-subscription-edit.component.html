@@ -57,6 +57,13 @@
             </dd>
           </ng-container>
 
+          <ng-container *ngIf="subscription.failureCause">
+            <dt>Failure Cause</dt>
+            <dd gioClipboardCopyWrapper [contentToCopy]="subscription.failureCause" data-testId="subscription-failure-cause">
+              {{ subscription.failureCause }}
+            </dd>
+          </ng-container>
+
           <dt>Subscribed by</dt>
           <dd gioClipboardCopyWrapper [contentToCopy]="subscription.subscribedBy" data-testId="subscription-subscribed-by">
             {{ subscription.subscribedBy || '-' }}
@@ -81,6 +88,11 @@
           <dt>Created at</dt>
           <dd data-testId="subscription-created-at">
             {{ (subscription.createdAt | date: 'medium') || '-' }}
+          </dd>
+
+          <dt>Updated at</dt>
+          <dd data-testId="subscription-updated-at">
+            {{ (subscription.updatedAt | date: 'medium') || '-' }}
           </dd>
 
           <dt>Processed at</dt>

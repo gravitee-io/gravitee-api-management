@@ -81,10 +81,11 @@
       <runtime-alert-create-notifications formGroupName="notificationsForm"></runtime-alert-create-notifications>
     </mat-tab>
 
-    <!--  toDo: add when page ready  -->
-    <!--    <mat-tab label="History">-->
-    <!--      History visible only in edit mode?-->
-    <!--    </mat-tab>-->
+    @if (isUpdate) {
+      <mat-tab label="History">
+        <runtime-alert-history></runtime-alert-history>
+      </mat-tab>
+    }
   </mat-tab-group>
 </form>
 

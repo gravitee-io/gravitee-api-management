@@ -1,0 +1,166 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<ng-container>
+  <h2 mat-dialog-title class="title">Migrate API to v4</h2>
+
+  @if (migrationResponse$ | async; as response) {
+    <mat-dialog-content>
+      @switch (response.state) {
+        @case ('MIGRATABLE') {
+          @switch (migrationStep) {
+            @case ('INITIAL_CHECK') {
+              <div class="icon-container">
+                <mat-icon class="icon-container--success" svgIcon="gio:check-circled-outline"></mat-icon>
+              </div>
+              <div class="migratable-state">
+                <h3 class="migratable-state__header">Migration ready</h3>
+                <div>Your API is compatible with v4 and can be migrated safely</div>
+              </div>
+            }
+            @case ('CONFIRMATION') {
+              <div class="confirmation-state">
+                <div class="confirmation-state__header">Ready to migrate API to v4</div>
+                <gio-banner-warning class="confirmation-state__warning">
+                  Analytics history will not be preserved
+                  <div gioBannerBody>
+                    After migration completes, the resulting v4 API analytics will no longer include data from before the migration. We plan
+                    to improve upon this in a future release.
+                  </div>
+                </gio-banner-warning>
+                <mat-checkbox (change)="isConfirmed = $event.checked">
+                  <b>I understand that analytics history will be lost</b>
+                </mat-checkbox>
+              </div>
+            }
+          }
+        }
+        @case ('IMPOSSIBLE') {
+          <div class="icon-container">
+            <mat-icon class="icon-container--error" svgIcon="gio:error"></mat-icon>
+          </div>
+          <div class="issue-detected">
+            <h3 class="issue-detected__header">Migration blocked: Incompatible elements detected</h3>
+            <div class="issue-detected__subtitle">Your API cannot be migrated to v4 at this time.</div>
+            <div class="issue-detected__content">
+              We've detected incompatible elements in your v2 API definition that cannot be migrated to v4. To ensure your API works
+              reliably and without data loss, we've blocked the migration process.
+            </div>
+            @let impossibleIssues = impossibleIssues$ | async;
+            @if (impossibleIssues?.length) {
+              <div class="issue-detected__issue_warning">
+                <mat-icon class="issue-detected__issue_warning__error-icon" svgIcon="gio:error"></mat-icon>
+                To proceed, you'll need to remove or replace the following unsupported features before attempting migration:
+              </div>
+              <ul class="issue-detected__issues-list">
+                @for (issue of impossibleIssues || []; track issue.message) {
+                  <li>{{ issue.message }}</li>
+                }
+              </ul>
+            }
+            @let forcibleIssues = forcibleIssues$ | async;
+            @if (forcibleIssues?.length) {
+              <div class="issue-detected__issue_warning">
+                <mat-icon class="issue-detected__issue_warning__alert-icon" svgIcon="gio:alert-circle"></mat-icon>
+                These settings might need attention:
+              </div>
+              <ul class="issue-detected__issues-list">
+                @for (issue of forcibleIssues || []; track issue.message) {
+                  <li>{{ issue.message }}</li>
+                }
+              </ul>
+            }
+            <div class="issue-detected__content">
+              Please remove or update these elements before attempting migration to prevent data loss.
+            </div>
+            <div class="issue-detected__content">
+              If you are an enterprise customer, please export your API definition and provide it as part of a support ticket so that the
+              Gravitee team can help you with this migration.
+            </div>
+          </div>
+        }
+        @case ('CAN_BE_FORCED') {
+          @switch (migrationStep) {
+            @case ('INITIAL_CHECK') {
+              <div class="icon-container">
+                <mat-icon class="icon-container--alert" svgIcon="gio:alert-circle"></mat-icon>
+              </div>
+              <div class="issue-detected">
+                <h3 class="issue-detected__header">Migration allowed - Some settings may not migrate correctly</h3>
+                <div class="issue-detected__content">
+                  While most configuration will be preserved, some settings might be partially incompatible and require manual review after
+                  migration.
+                </div>
+                @if (forcibleIssues$ | async; as forcibleIssues) {
+                  <div class="issue-detected__issue_warning">
+                    <mat-icon class="issue-detected__issue_warning__alert-icon" svgIcon="gio:alert-circle"></mat-icon>
+                    These settings might need attention:
+                  </div>
+                  <ul class="issue-detected__issues-list">
+                    @for (issue of forcibleIssues; track issue.message) {
+                      <li>{{ issue.message }}</li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
+            @case ('CONFIRMATION') {
+              <div class="confirmation-state">
+                <div class="confirmation-state__header">Ready to migrate API to v4</div>
+                <gio-banner-warning class="confirmation-state__warning">
+                  Analytics history will not be preserved
+                  <div gioBannerBody>
+                    After migration completes, the resulting v4 API analytics will no longer include data from before the migration. We plan
+                    to improve upon this in a future release.
+                  </div>
+                </gio-banner-warning>
+                <mat-checkbox (change)="isConfirmed = $event.checked">
+                  <b>I understand that analytics history will be lost</b>
+                </mat-checkbox>
+              </div>
+            }
+          }
+        }
+      }
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="actions">
+      @if (migrationStep === 'INITIAL_CHECK') {
+        <button mat-flat-button [mat-dialog-close]="false">Cancel</button>
+      }
+      @if (migrationStep === 'CONFIRMATION') {
+        <button mat-flat-button (click)="onBack()">Back</button>
+      }
+      @if ((response.state === 'MIGRATABLE' || response.state === 'CAN_BE_FORCED') && migrationStep === 'INITIAL_CHECK') {
+        <button color="primary" mat-raised-button (click)="onContinue()">Continue</button>
+      }
+      @if ((response.state === 'MIGRATABLE' || response.state === 'CAN_BE_FORCED') && migrationStep === 'CONFIRMATION') {
+        <button color="primary" mat-raised-button (click)="onStartMigration(response)" [disabled]="!isConfirmed">Start Migration</button>
+      }
+    </mat-dialog-actions>
+  } @else {
+    <mat-dialog-content>
+      <div class="loader" data-testid="loader-spinner">
+        <gio-loader />
+        <div class="loader__content">Checking API compatibility...</div>
+      </div>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end" class="actions">
+      <button mat-flat-button [mat-dialog-close]="false">Cancel</button>
+    </mat-dialog-actions>
+  }
+</ng-container>

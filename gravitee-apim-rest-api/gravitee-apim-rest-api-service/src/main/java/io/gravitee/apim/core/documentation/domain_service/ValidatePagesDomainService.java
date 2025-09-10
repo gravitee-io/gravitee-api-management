@@ -22,6 +22,7 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,8 +62,12 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
 
         input.pages.forEach((k, v) -> {
             try {
-                Page page = PageModelFactory.fromCRDSpec(v);
+                Page page = PageModelFactory.fromCRDSpec(k, v);
                 page.setReferenceId(input.apiId());
+                if (page.getId() == null) {
+                    page.setId(IdBuilder.builder(input.auditInfo, input.apiId).withExtraId(k).buildId());
+                }
+                page.setHrid(k);
 
                 pageSourceValidator
                     .validateAndSanitize(new ValidatePageSourceDomainService.Input(k, page.getSource()))

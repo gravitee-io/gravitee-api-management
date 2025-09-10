@@ -16,8 +16,7 @@
 package io.gravitee.apim.integration.tests.plan.multiple;
 
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.createTrustedHttpClient;
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.getUrl;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.configureTrustedHttpClient;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
@@ -27,6 +26,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.integration.tests.plan.apikey.PlanApiKeyV4IntegrationTest;
@@ -49,12 +49,14 @@ import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
 import io.gravitee.policy.keyless.KeylessPolicy;
 import io.gravitee.policy.mtls.MtlsPolicy;
 import io.gravitee.policy.mtls.configuration.MtlsPolicyConfiguration;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -146,6 +148,15 @@ public class PlanKeylessApiKeyMutualTLSV4IntegrationTest {
             PlanKeylessApiKeyMutualTLSV4IntegrationTest.configureGateway(config);
         }
 
+        @Override
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
+            configureTrustedHttpClient(options, gatewayConfig.httpPort(), false);
+        }
+
         protected Stream<Arguments> provideSecurityHeaders() {
             return provideApis()
                 .flatMap(arguments -> {
@@ -171,24 +182,14 @@ public class PlanKeylessApiKeyMutualTLSV4IntegrationTest {
             String headerValue,
             HttpClient client
         ) {
-            super.should_access_api_and_ignore_security(
-                apiId,
-                requireWiremock,
-                headerName,
-                headerValue,
-                createTrustedHttpClient(vertx, gatewayPort(), false)
-            );
+            super.should_access_api_and_ignore_security(apiId, requireWiremock, headerName, headerValue, client);
         }
 
         @Override
         @ParameterizedTest
         @MethodSource("provideApis")
         protected void should_return_200_success_without_any_security(String apiId, boolean requireWiremock, HttpClient client) {
-            super.should_return_200_success_without_any_security(
-                apiId,
-                requireWiremock,
-                createTrustedHttpClient(vertx, gatewayPort(), false)
-            );
+            super.should_return_200_success_without_any_security(apiId, requireWiremock, client);
         }
     }
 
@@ -235,6 +236,15 @@ public class PlanKeylessApiKeyMutualTLSV4IntegrationTest {
             PlanKeylessApiKeyMutualTLSV4IntegrationTest.configureGateway(config);
         }
 
+        @Override
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
+            configureTrustedHttpClient(options, gatewayConfig.httpPort(), false);
+        }
+
         protected Stream<Arguments> provideWrongSecurityHeaders() {
             return provideApis()
                 .flatMap(arguments -> {
@@ -254,11 +264,7 @@ public class PlanKeylessApiKeyMutualTLSV4IntegrationTest {
             final boolean requireWiremock,
             final HttpClient client
         ) {
-            super.should_return_200_success_with_api_key_and_subscription_on_the_api(
-                apiId,
-                requireWiremock,
-                createTrustedHttpClient(vertx, gatewayPort(), false)
-            );
+            super.should_return_200_success_with_api_key_and_subscription_on_the_api(apiId, requireWiremock, client);
         }
 
         @ParameterizedTest
@@ -270,12 +276,7 @@ public class PlanKeylessApiKeyMutualTLSV4IntegrationTest {
             final String headerValue,
             final HttpClient client
         ) {
-            super.should_return_401_unauthorized_with_wrong_security(
-                apiId,
-                headerName,
-                headerValue,
-                createTrustedHttpClient(vertx, gatewayPort(), false)
-            );
+            super.should_return_401_unauthorized_with_wrong_security(apiId, headerName, headerValue, client);
         }
 
         @ParameterizedTest
@@ -286,11 +287,7 @@ public class PlanKeylessApiKeyMutualTLSV4IntegrationTest {
             final boolean requireWiremock,
             final HttpClient client
         ) {
-            super.should_return_401_unauthorized_with_valid_api_key_but_no_subscription_on_the_api(
-                path,
-                requireWiremock,
-                createTrustedHttpClient(vertx, gatewayPort(), false)
-            );
+            super.should_return_401_unauthorized_with_valid_api_key_but_no_subscription_on_the_api(path, requireWiremock, client);
         }
 
         @ParameterizedTest
@@ -301,11 +298,7 @@ public class PlanKeylessApiKeyMutualTLSV4IntegrationTest {
             final boolean requireWiremock,
             final HttpClient client
         ) {
-            super.should_return_401_unauthorized_with_expired_api_key_and_subscription_on_the_api(
-                path,
-                requireWiremock,
-                createTrustedHttpClient(vertx, gatewayPort(), false)
-            );
+            super.should_return_401_unauthorized_with_expired_api_key_and_subscription_on_the_api(path, requireWiremock, client);
         }
 
         @ParameterizedTest
@@ -315,11 +308,7 @@ public class PlanKeylessApiKeyMutualTLSV4IntegrationTest {
             final boolean requireWiremock,
             final HttpClient client
         ) {
-            super.should_return_401_unauthorized_with_revoked_api_key_and_subscription_on_the_api(
-                path,
-                requireWiremock,
-                createTrustedHttpClient(vertx, gatewayPort(), false)
-            );
+            super.should_return_401_unauthorized_with_revoked_api_key_and_subscription_on_the_api(path, requireWiremock, client);
         }
     }
 

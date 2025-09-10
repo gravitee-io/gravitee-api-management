@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CdkAccordionModule } from '@angular/cdk/accordion';
-import { Component, DestroyRef, forwardRef, inject } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, forwardRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -26,6 +26,7 @@ import {
   ReactiveFormsModule,
   ValidationErrors,
   Validator,
+  Validators,
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -68,10 +69,10 @@ import { AccordionModule } from '../../../accordion/accordion.module';
     },
   ],
 })
-export class ConsumerConfigurationSslComponent implements ControlValueAccessor, Validator {
+export class ConsumerConfigurationSslComponent implements ControlValueAccessor, Validator, AfterViewInit {
   isDisabled = false;
   sslForm = new FormGroup({
-    hostnameVerifier: new FormControl<boolean>(false),
+    hostnameVerifier: new FormControl<boolean>(false, { validators: [Validators.required], nonNullable: true }),
     trustAll: new FormControl<boolean>(false),
     trustStore: new FormControl<SslTrustStore | null>(null),
     keyStore: new FormControl<SslKeyStore | null>(null),
@@ -79,12 +80,9 @@ export class ConsumerConfigurationSslComponent implements ControlValueAccessor, 
   private destroyRef = inject(DestroyRef);
 
   constructor() {
-    this.sslForm.valueChanges
-      .pipe(
-        tap(values => this._onChange(values as SslOptions)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    this.sslForm.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(values => {
+      this._onChange(values as SslOptions);
+    });
 
     this.sslForm.controls.trustAll.valueChanges
       .pipe(
@@ -96,6 +94,10 @@ export class ConsumerConfigurationSslComponent implements ControlValueAccessor, 
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  ngAfterViewInit() {
+    this.sslForm.patchValue({});
   }
 
   validate(_: AbstractControl): ValidationErrors | null {

@@ -74,7 +74,7 @@ class ValidateFederatedApiDomainServiceTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DefinitionVersion.class, mode = EnumSource.Mode.EXCLUDE, names = { "FEDERATED" })
+    @EnumSource(value = DefinitionVersion.class, mode = EnumSource.Mode.EXCLUDE, names = { "FEDERATED", "FEDERATED_AGENT" })
     void should_throw_when_definition_version_is_incorrect(DefinitionVersion definitionVersion) {
         var api = ApiFixtures.aFederatedApi().toBuilder().definitionVersion(definitionVersion).build();
 

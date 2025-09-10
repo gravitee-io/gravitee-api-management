@@ -126,11 +126,11 @@ public interface PlanAdapter {
     }
 
     default io.gravitee.definition.model.Plan deserializeDefinitionV2(io.gravitee.repository.management.model.Plan source) {
-        if (source.getDefinitionVersion() != null) {
-            return null;
-        }
-
-        return toPlanDefinitionV2(source);
+        return switch (source.getDefinitionVersion()) {
+            case V2 -> toPlanDefinitionV2(source);
+            case null -> toPlanDefinitionV2(source);
+            default -> null;
+        };
     }
 
     default FederatedPlan deserializeDefinitionFederated(io.gravitee.repository.management.model.Plan source) {
@@ -259,7 +259,7 @@ public interface PlanAdapter {
         return switch (source.getDefinitionVersion()) {
             case V4 -> source.getPlanDefinitionV4().getSelectionRule();
             case V1, V2 -> source.getPlanDefinitionV2().getSelectionRule();
-            case FEDERATED -> null;
+            case FEDERATED, FEDERATED_AGENT -> null;
         };
     }
 
@@ -268,7 +268,7 @@ public interface PlanAdapter {
         return switch (source.getDefinitionVersion()) {
             case V4 -> source.getPlanDefinitionV4().getTags();
             case V1, V2 -> source.getPlanDefinitionV2().getTags();
-            case FEDERATED -> null;
+            case FEDERATED, FEDERATED_AGENT -> null;
         };
     }
 

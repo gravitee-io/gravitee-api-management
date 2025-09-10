@@ -155,13 +155,25 @@
             </exclusions>
             <type>zip</type>
         </dependency>
-
         <dependency>
             <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
             <artifactId>gravitee-apim-plugin-entrypoint-tcp-proxy</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-mcp</artifactId>
+            <version>${gravitee-entrypoint-mcp.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Endpoints -->
@@ -906,6 +918,45 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-ai-prompt-guard-rails</artifactId>
+            <version>${gravitee-policy-ai-prompt-guard-rails.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-ai-prompt-token-tracking</artifactId>
+            <version>${gravitee-policy-ai-prompt-token-tracking.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-http-redirect</artifactId>
+            <version>${gravitee-policy-http-redirect.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- Reporters -->
         <dependency>
@@ -1055,6 +1106,19 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-ai-model-text-classification</artifactId>
+            <version>${gravitee-resource-ai-model-text-classification.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- Services -->
         <dependency>
@@ -1113,6 +1177,19 @@
             <groupId>io.gravitee.apim.plugin.apiservice.dynamicproperties</groupId>
             <artifactId>gravitee-apim-plugin-apiservice-dynamicproperties-http</artifactId>
             <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.inference.service</groupId>
+            <artifactId>gravitee-inference-service</artifactId>
+            <version>${gravitee-inference-service.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1293,6 +1370,20 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-agent-to-agent</artifactId>
+                    <version>${gravitee-entrypoint-agent-to-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
 
                 <!-- Endpoints -->
                 <dependency>
@@ -1351,6 +1442,19 @@
                     <groupId>com.graviteesource.connector</groupId>
                     <artifactId>gravitee-endpoint-native-kafka</artifactId>
                     <version>${gravitee-reactor-native-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-agent-to-agent</artifactId>
+                    <version>${gravitee-endpoint-agent-to-agent.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -1633,19 +1737,6 @@
 
                 <!-- Policies -->
                 <dependency>
-                    <groupId>io.gravitee.policy</groupId>
-                    <artifactId>gravitee-policy-http-redirect</artifactId>
-                    <version>${gravitee-policy-http-redirect.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-transform-avro-json</artifactId>
                     <version>${gravitee-policy-transform-avro-json.version}</version>
@@ -1831,6 +1922,19 @@
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-kafka-transform-key</artifactId>
                     <version>${gravitee-policy-kafka-transform-key.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-message-filtering</artifactId>
+                    <version>${gravitee-policy-kafka-message-filtering.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>

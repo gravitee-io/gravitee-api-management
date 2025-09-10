@@ -25,13 +25,11 @@ import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
-import io.gravitee.gateway.reactive.api.context.tcp.TcpExecutionContext;
-import io.gravitee.gateway.reactive.api.invoker.BaseInvoker;
 import io.gravitee.gateway.reactive.api.invoker.TcpInvoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
+import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.TcpEndpointInvoker;
@@ -133,10 +131,8 @@ public class TcpApiReactor extends AbstractApiReactor {
         long startTime = System.currentTimeMillis();
         endpointManager.start();
 
-        analyticsContext = analyticsContext();
-
         tracingContext.start();
-        analyticsContext = analyticsContext();
+        analyticsContext = createAnalyticsContext();
         if (analyticsContext.isEnabled()) {
             if (analyticsContext.isLoggingEnabled()) {
                 invokerHooks.add(new LoggingHook());
@@ -197,8 +193,17 @@ public class TcpApiReactor extends AbstractApiReactor {
             .collect(Collectors.<Acceptor<?>>toList());
     }
 
-    protected AnalyticsContext analyticsContext() {
-        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingMaxSize, loggingExcludedResponseType, tracingContext);
+    protected AnalyticsContext createAnalyticsContext() {
+        LoggingContext loggingContext = Optional
+            .ofNullable(api.getDefinition().getAnalytics())
+            .map(analytics -> {
+                var context = new LoggingContext(analytics.getLogging());
+                context.setMaxSizeLogMessage(loggingMaxSize);
+                context.setExcludedResponseTypes(loggingExcludedResponseType);
+                return context;
+            })
+            .orElse(null);
+        return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingContext, tracingContext);
     }
 
     @Override

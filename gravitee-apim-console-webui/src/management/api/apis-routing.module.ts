@@ -52,7 +52,6 @@ import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.com
 import { ApiEventsComponent } from './audit/events/api-events.component';
 import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-endpoint-group.component';
 import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/create/api-endpoint-group-create.component';
-import { ApiRuntimeLogsSettingsComponent } from './api-traffic-v4/runtime-logs-settings/api-runtime-logs-settings.component';
 import { ApiRuntimeLogsComponent } from './api-traffic-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
 import { ApiCreationGetStartedComponent } from './creation-get-started/api-creation-get-started.component';
@@ -91,6 +90,8 @@ import { ApiHealthCheckDashboardV4Component } from './health-check-dashboard-v4/
 import { DebugModeV2WrapperComponent } from './debug-mode/v2-wrapper/debug-mode-v2-wrapper.component';
 import { DebugModeV4WrapperComponent } from './debug-mode/v4-wrapper/debug-mode-v4-wrapper.component';
 import { McpComponent } from './mcp/mcp.component';
+import { EnableMcpEntrypointComponent } from './mcp/enable-mcp-entrypoint/enable-mcp-entrypoint.component';
+import { ReporterSettingsComponent } from './reporter-settings/reporter-settings.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -411,6 +412,18 @@ const apisRoutes: Routes = [
           },
           docs: {
             page: 'management-api-history',
+          },
+        },
+      },
+      {
+        path: 'reporter-settings',
+        component: ReporterSettingsComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-reporter-settings',
           },
         },
       },
@@ -995,6 +1008,20 @@ const apisRoutes: Routes = [
       },
       {
         path: 'v4/policy-studio',
+        redirectTo: 'v4/policy-studio/0/0',
+        data: {
+          docs: null,
+        },
+      },
+      {
+        path: 'v4/policy-studio/:planIndex',
+        redirectTo: 'v4/policy-studio/:planIndex/0',
+        data: {
+          docs: null,
+        },
+      },
+      {
+        path: 'v4/policy-studio/:planIndex/:flowIndex',
         data: {
           docs: null,
         },
@@ -1034,18 +1061,6 @@ const apisRoutes: Routes = [
         component: ApiRuntimeLogsDetailsComponent,
       },
       {
-        path: 'v4/runtime-logs-settings',
-        data: {
-          permissions: {
-            anyOf: ['api-log-u'],
-          },
-          docs: {
-            page: 'management-api-logs',
-          },
-        },
-        component: ApiRuntimeLogsSettingsComponent,
-      },
-      {
         path: 'v4/entrypoints',
         component: ApiEntrypointsV4GeneralComponent,
         data: {
@@ -1072,6 +1087,16 @@ const apisRoutes: Routes = [
           docs: null,
           permissions: {
             anyOf: ['api-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'v4/mcp/enable',
+        component: EnableMcpEntrypointComponent,
+        data: {
+          docs: null,
+          permissions: {
+            anyOf: ['api-definition-u'],
           },
         },
       },

@@ -21,12 +21,13 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Integration;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface IntegrationRepository extends CrudRepository<Integration, String> {
+public interface IntegrationRepository {
     Page<Integration> findAllByEnvironment(String environmentId, Pageable pageable) throws TechnicalException;
 
     /**
@@ -46,4 +47,9 @@ public interface IntegrationRepository extends CrudRepository<Integration, Strin
      * @throws TechnicalException
      */
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    Integration create(final Integration integration) throws TechnicalException;
+    Integration update(final Integration integration) throws TechnicalException;
+    Optional<Integration> findByIntegrationId(String id) throws TechnicalException;
+    void delete(String id) throws TechnicalException;
 }

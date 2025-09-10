@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.CommandService;
@@ -200,7 +201,8 @@ public class SearchEngineServiceTest {
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api / 1\"").setFilters(filters).build()
         );
-        searchEngineService.delete(GraviteeContext.getExecutionContext(), ApiEntity.builder().id("api-1").build(), true);
+        ApiEntity api = ApiEntity.builder().id("api-1").lifecycleState(ApiLifecycleState.CREATED).visibility(Visibility.PUBLIC).build();
+        searchEngineService.delete(GraviteeContext.getExecutionContext(), api, true);
         SearchResult afterDeletion = searchEngineService.search(
             GraviteeContext.getExecutionContext(),
             QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api / 1\"").setFilters(filters).build()
@@ -662,6 +664,8 @@ public class SearchEngineServiceTest {
         String apiName = index == 2 ? "http://localhost/api-" + index : "My Awesome api / " + index;
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("api-" + index);
+        apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
+        apiEntity.setVisibility(Visibility.PUBLIC);
         apiEntity.setReferenceId(envId);
         apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setName(apiName);

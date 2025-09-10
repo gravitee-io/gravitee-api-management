@@ -114,7 +114,15 @@ describe('Create and modify a flow in Policy Studio', () => {
 
     it('should show newly added header when calling Gateway', () => {
       const headerCheckFunction = (response: Cypress.Response<any>) => {
-        return response.headers[headerKey] === headerValue;
+        const expected = response.headers[headerKey] === headerValue;
+        if (!expected) {
+          cy.log(
+            'Fail to find header: ' +
+              JSON.stringify({ headerExpected: { [headerKey]: headerValue }, responseHeaders: JSON.stringify(response.headers) }),
+          );
+        }
+
+        return expected;
       };
 
       cy.callGateway(apiPath, headerCheckFunction);

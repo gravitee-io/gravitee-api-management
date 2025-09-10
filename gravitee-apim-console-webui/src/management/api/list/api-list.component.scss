@@ -21,26 +21,30 @@
   }
 }
 
+.mat-column-picture,
+.mat-column-states,
 .mat-column-access,
+.mat-column-qualityScore,
 .mat-column-tags,
-.mat-column-owner {
+.mat-column-owner,
+.mat-column-visibility,
+.mat-column-actions {
   padding: 0 8px;
+}
+
+.mat-column-apiType {
+  min-width: 110px;
 }
 
 .mat-column-name {
   cursor: pointer;
   padding: 0 8px;
-  width: 15%;
+  width: auto;
 }
 
-.mat-column-definitionVersion {
-  min-width: 160px;
-}
-
-.mat-column-picture,
-.mat-column-actions {
-  width: 1%;
-  padding: 0 8px;
+.select-visible-columns-btn {
+  display: flex;
+  justify-content: center;
 }
 
 .mat-column-access {
@@ -58,8 +62,6 @@
 }
 
 .mat-column-states {
-  width: 1%;
-  padding: 0 8px;
   white-space: nowrap;
 
   .mat-icon {
@@ -115,13 +117,8 @@
   }
 }
 
-.mat-column-visibility {
-  width: 1%;
-  padding: 0 8px;
-
-  .visibility {
-    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-  }
+.mat-column-visibility .visibility {
+  color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
 }
 
 .actions__edit {
@@ -132,4 +129,53 @@
 .provider {
   display: block;
   color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+}
+
+.apis__avatar {
+  height: 32px;
+  width: 32px;
+}
+
+div[gio-additional-filters] mat-form-field {
+  margin-right: 8px;
+}
+
+.api-type-filter {
+  width: 110px;
+}
+
+.status-filter {
+  width: 128px;
+}
+
+.published-filter {
+  width: 144px;
+}
+
+.tags-filter {
+  width: 150px;
+}
+
+.categories-filter {
+  width: 130px;
+}
+
+.portal-visibility-filter {
+  width: 156px;
+}
+
+.apply-visible-columns {
+  display: block;
+  margin: 0 auto;
+  width: 90%;
+  margin-top: 4px;
+}
+
+.visible-columns-menu {
+  display: flex;
+  flex-direction: column;
+
+  mat-checkbox {
+    margin-right: 32px;
+  }
 }

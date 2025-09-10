@@ -30,6 +30,7 @@ import io.gravitee.apim.gateway.tests.sdk.converters.ApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.LegacyApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.NativeApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.V4ApiDeploymentPreparer;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginManifestLoader;
 import io.gravitee.apim.gateway.tests.sdk.policy.KeylessPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
@@ -61,11 +62,15 @@ import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.node.plugins.service.ServiceManager;
 import io.gravitee.node.reporter.ReporterManager;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
+import io.gravitee.node.vertx.server.VertxServer;
+import io.gravitee.node.vertx.server.http.VertxHttpServer;
+import io.gravitee.node.vertx.server.tcp.VertxTcpServer;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.connector.ConnectorPluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -85,6 +90,8 @@ import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.secrets.api.plugin.SecretManagerConfiguration;
 import io.gravitee.secrets.api.plugin.SecretProviderFactory;
+import io.vertx.rxjava3.core.http.HttpServer;
+import io.vertx.rxjava3.core.net.NetServer;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,10 +117,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.ToIntFunction;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.slf4j.Logger;
@@ -133,6 +145,11 @@ import org.springframework.core.env.Environment;
  * @author GraviteeSource Team
  */
 public class GatewayRunner {
+
+    @SuppressWarnings("java:S2245")
+    private static final Random NOT_SECURED_RANDOM = new Random();
+
+    private static final Map<String, String> cacheDefinition = new ConcurrentHashMap<>();
 
     public static final String DEFAULT_CONFIGURATION_FOLDER = "/gravitee-default";
 
@@ -198,16 +215,14 @@ public class GatewayRunner {
      *  - overrides variables thanks to {@link AbstractGatewayTest#configureGateway(GatewayConfigurationBuilder)}
      *  - registers the reporters, connectors, policies and resources
      *  And then, starts the gateway
-     * @param gatewayPort is the port used to reach the apis deployed on the gateway
-     * @param technicalApiPort is the port used to reach the technical api.
      */
-    public void configureAndStart(int gatewayPort, int technicalApiPort) throws IOException, InterruptedException {
+    public GatewayDynamicConfig.Config configureAndStart() throws IOException, InterruptedException {
         try {
             // gather extra config from the test class
             GatewayConfiguration gatewayConfiguration = gatewayConfigurationBuilder.build();
 
             // prepare Gateway
-            configure(gatewayPort, technicalApiPort, gatewayConfiguration);
+            configure(gatewayConfiguration);
 
             // create Gateway
             gatewayContainer =
@@ -251,20 +266,39 @@ public class GatewayRunner {
 
             // start Gateway
             vertxContainer = startServer(gatewayContainer);
+            ServerManager serverManager = gatewayContainer.applicationContext().getBean(ServerManager.class);
+            var httpPorts = serverManager
+                .servers(VertxHttpServer.class)
+                .stream()
+                .flatMap(srv -> selectPort(srv, HttpServer::actualPort))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            var tcpPorts = serverManager
+                .servers(VertxTcpServer.class)
+                .stream()
+                .flatMap(srv -> selectPort(srv, NetServer::actualPort))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            var gatewayDynamicConfig = new GatewayDynamicConfig.GatewayDynamicConfigImpl(httpPorts, tcpPorts);
             isRunning = true;
 
             testInstance.init();
+            return gatewayDynamicConfig;
         } finally {
             removeTemporaryFolderIfNeeded();
         }
     }
 
-    private void configure(int gatewayPort, int technicalApiPort, GatewayConfiguration gatewayConfiguration) throws IOException {
-        String graviteeHome;
+    private <U> Stream<Map.Entry<String, Integer>> selectPort(VertxServer<U, ?> c, ToIntFunction<U> actualPort) {
+        return c.instances().isEmpty()
+            ? Stream.empty()
+            : Stream.of(Map.entry(c.id(), actualPort.applyAsInt(c.instances().get(NOT_SECURED_RANDOM.nextInt(c.instances().size())))));
+    }
+
+    private void configure(GatewayConfiguration gatewayConfiguration) throws IOException {
         final String homeFolder = testInstance.getClass().getAnnotation(GatewayTest.class).configFolder();
 
         // Try to get graviteeHome from jar. Useful for policies having a maven dependency to this sdk.
-        graviteeHome = loadConfigurationFromJar(homeFolder);
+        String graviteeHome = loadConfigurationFromJar(homeFolder);
 
         // If no graviteeHome, get the resource in the module.
         if (graviteeHome == null) {
@@ -280,14 +314,10 @@ public class GatewayRunner {
 
         registerCustomProtocolHandlers(Handler.class);
 
-        if (v2ExecutionMode == ExecutionMode.V3) {
-            System.setProperty("api.v2.emulateV4Engine.default", "no");
-        } else {
-            System.setProperty("api.v2.emulateV4Engine.default", "yes");
-        }
+        System.setProperty("api.v2.emulateV4Engine.default", v2ExecutionMode == ExecutionMode.V3 ? "no" : "yes");
 
-        System.setProperty("http.port", String.valueOf(gatewayPort));
-        System.setProperty("services.core.http.port", String.valueOf(technicalApiPort));
+        System.setProperty("http.port", "0");
+        System.setProperty("services.core.http.port", "0");
         System.setProperty("services.core.http.enabled", String.valueOf(false));
 
         gatewayConfiguration
@@ -315,8 +345,6 @@ public class GatewayRunner {
      * This temporary folder will be removed when gateway stops or an exception occurs.
      *
      * @param homeFolder is the home folder configured by {@link GatewayTest#configFolder()}. We load from jar only if value is equal to {@link GatewayRunner#DEFAULT_CONFIGURATION_FOLDER}
-     * @return
-     * @throws IOException
      */
     private String loadConfigurationFromJar(String homeFolder) throws IOException {
         if (DEFAULT_CONFIGURATION_FOLDER.equals(homeFolder)) {
@@ -336,7 +364,6 @@ public class GatewayRunner {
 
     /**
      * Stops the gateway and remove temporary configuration folder if needed.
-     * @throws InterruptedException
      */
     public void stop() throws InterruptedException {
         // unset system properties set by user to avoid conflict in tests
@@ -350,7 +377,6 @@ public class GatewayRunner {
      *
      * @param organizationDefinitionPath is the definition file of the organization to deploy
      * @param apisDefPath array of api definition path to deploy
-     * @throws Exception
      */
     public void deployOrganizationForClass(String organizationDefinitionPath, final String[] apisDefPath) throws IOException {
         final ReactableOrganization reactableOrganization = loadOrganizationDefinition(organizationDefinitionPath);
@@ -366,7 +392,6 @@ public class GatewayRunner {
     /**
      * Deploys an Organization, declared at method level, thanks to {@link DeployOrganization}
      * @param organizationDefinitionPath is the definition of the organization to deploy
-     * @throws Exception
      */
     public void deployOrganizationForTest(String organizationDefinitionPath, final String[] apisDefinitionPath) throws IOException {
         final ReactableOrganization reactableOrganization = loadOrganizationDefinition(organizationDefinitionPath);
@@ -469,7 +494,6 @@ public class GatewayRunner {
     /**
      * Deploys an API, declared at class level, thanks to it definition
      * @param apiDefinitionPath is the definition file of the api to deploy
-     * @throws Exception
      */
     public void deployForClass(String apiDefinitionPath, final String organizationId) throws IOException {
         final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
@@ -482,7 +506,6 @@ public class GatewayRunner {
     /**
      * Deploys an API, declared at method level, thanks to it definition
      * @param apiDefinitionPath is the definition of the api to deploy
-     * @throws Exception
      */
     public void deployForTest(String apiDefinitionPath) throws IOException {
         deployForTest(apiDefinitionPath, null);
@@ -492,7 +515,6 @@ public class GatewayRunner {
      * Deploys an API, declared at method level, thanks to it definition
      * @param apiDefinitionPath is the path of the api definition to deploy
      * @param organizationId the target organization, could be <code>null</code>
-     * @throws Exception
      */
     public void deployForTest(String apiDefinitionPath, final String organizationId) throws IOException {
         final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
@@ -505,7 +527,6 @@ public class GatewayRunner {
     /**
      * Deploys an API from a test. Throws if trying to deploy an api deployed at class level
      * @param reactableApi is the api to deploy
-     * @throws Exception
      */
     private void deployFromTest(ReactableApi<?> reactableApi) {
         if (deployedForTestClass.containsKey(reactableApi.getId())) {
@@ -520,7 +541,6 @@ public class GatewayRunner {
 
     /**
      * Undeploys an API from a test. Throws if the api is deployed at class level
-     * @param api
      */
     private void undeployFromTest(String api) {
         if (deployedForTestClass.containsKey(api)) {
@@ -536,7 +556,6 @@ public class GatewayRunner {
     /**
      * Deploys a Shared Policy Group from a test. Throws if trying to deploy a shared policy group deployed at class level
      * @param reactableSharedPolicyGroup is the shared policy group to deploy
-     * @throws Exception
      */
     private void deploySharedPolicyGroupFromTest(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         if (
@@ -909,32 +928,37 @@ public class GatewayRunner {
     }
 
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
-        try {
-            final URL jsonFile = loadURL(resourcePath);
-            String definition = Files.readString(Paths.get(jsonFile.toURI()));
-
-            final AbstractGatewayTest.PlaceholderSymbols placeHolderSymbols = testInstance.configurePlaceHolder();
-
-            final HashMap<String, String> variables = new HashMap<>();
-            testInstance.configurePlaceHolderVariables(variables);
-
-            for (Map.Entry<String, String> entry : variables.entrySet()) {
-                definition =
-                    definition.replaceAll(
-                        Pattern.quote(placeHolderSymbols.prefix() + entry.getKey() + placeHolderSymbols.suffix()),
-                        entry.getValue()
-                    );
+        String definition = cacheDefinition.computeIfAbsent(
+            resourcePath,
+            path -> {
+                try {
+                    final URL jsonFile = loadURL(path);
+                    return Files.readString(Paths.get(jsonFile.toURI()));
+                } catch (IOException | URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
             }
+        );
 
+        final AbstractGatewayTest.PlaceholderSymbols placeHolderSymbols = testInstance.configurePlaceHolder();
+
+        final HashMap<String, String> variables = new HashMap<>();
+        testInstance.configurePlaceHolderVariables(variables);
+
+        for (Map.Entry<String, String> entry : variables.entrySet()) {
             definition =
-                definition
-                    .replace("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
-                    .replace("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
-
-            return graviteeMapper.readValue(definition, toClass);
-        } catch (URISyntaxException e) {
-            throw new IOException("Invalid resourcePath [" + resourcePath + "].", e);
+                definition.replaceAll(
+                    Pattern.quote(placeHolderSymbols.prefix() + entry.getKey() + placeHolderSymbols.suffix()),
+                    entry.getValue()
+                );
         }
+
+        definition =
+            definition
+                .replace("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
+                .replace("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
+
+        return graviteeMapper.readValue(definition, toClass);
     }
 
     private URL loadURL(String resourcePath) {
@@ -948,19 +972,20 @@ public class GatewayRunner {
      * @throws IOException
      */
     private void copyJarResourcesRecursively(Path destination, JarURLConnection jarConnection) throws IOException {
-        JarFile jarFile = jarConnection.getJarFile();
-        for (Iterator<JarEntry> it = jarFile.entries().asIterator(); it.hasNext();) {
-            JarEntry entry = it.next();
-            if (entry.getName().startsWith(jarConnection.getEntryName())) {
-                if (entry.getName().contains("./") || entry.getName().contains("../")) {
-                    throw new SecurityException("JarEntry trying to access FileSystem with relative path: " + entry.getName());
-                }
-                if (!entry.isDirectory()) {
-                    try (InputStream entryInputStream = jarFile.getInputStream(entry)) {
-                        Files.copy(entryInputStream, Paths.get(destination.toString(), entry.getName()));
+        try (JarFile jarFile = jarConnection.getJarFile()) {
+            for (Iterator<JarEntry> it = jarFile.entries().asIterator(); it.hasNext();) {
+                JarEntry entry = it.next();
+                if (entry.getName().startsWith(jarConnection.getEntryName())) {
+                    if (entry.getName().contains("./") || entry.getName().contains("../")) {
+                        throw new SecurityException("JarEntry trying to access FileSystem with relative path: " + entry.getName());
                     }
-                } else {
-                    Files.createDirectories(Paths.get(destination.toString(), entry.getName()));
+                    if (!entry.isDirectory()) {
+                        try (InputStream entryInputStream = jarFile.getInputStream(entry)) {
+                            Files.copy(entryInputStream, Paths.get(destination.toString(), entry.getName()));
+                        }
+                    } else {
+                        Files.createDirectories(Paths.get(destination.toString(), entry.getName()));
+                    }
                 }
             }
         }

@@ -44,22 +44,6 @@ tests:
                         <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n</pattern>
                     </encoder>
                 </appender>
-                <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-                    <file>${gravitee.home}/logs/gravitee.log</file>
-                    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                        <!-- daily rollover -->
-                        <fileNamePattern>${gravitee.home}/logs/gravitee_%d{yyyy-MM-dd}.log</fileNamePattern>
-                        <!-- keep 30 days' worth of history -->
-                        <maxHistory>30</maxHistory>
-                    </rollingPolicy>
-
-                    <encoder>
-                        <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n</pattern>
-                    </encoder>
-                </appender>
-                <appender name="async-file" class="ch.qos.logback.classic.AsyncAppender">
-                    <appender-ref ref="FILE" />
-                </appender>
 
                 <appender name="async-console" class="ch.qos.logback.classic.AsyncAppender">
                     <appender-ref ref="STDOUT" />
@@ -74,11 +58,9 @@ tests:
                 <!-- the level of the root level is set to DEBUG by default.       -->
                 <root level="INFO">
                     <appender-ref ref="async-console" />
-                    <appender-ref ref="async-file" />
                 </root>
             
             </configuration>
-
 
   - it: should apply logback configuration with JSON encoder
     template: gateway/gateway-configmap.yaml
@@ -89,6 +71,8 @@ tests:
       gateway:
         logging:
           debug: true
+          file:
+            enabled: true
           stdout:
             json: true
     asserts:
@@ -172,6 +156,8 @@ tests:
       gateway:
         logging:
           debug: true
+          file:
+            enabled: true
           graviteeLevel: WARN
           additionalLoggers:
             - name: io.gravitee.test.debugpackage

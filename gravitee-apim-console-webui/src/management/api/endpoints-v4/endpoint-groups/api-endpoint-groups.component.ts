@@ -30,6 +30,7 @@ import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-pl
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { disableDlqEntrypoint, getMatchingDlqEntrypoints, getMatchingDlqEntrypointsForGroup } from '../api-endpoint-v4-matching-dlq';
+import { AGENT_TO_AGENT } from '../../../../entities/management-api-v2/api/v4/agentToAgent';
 
 @Component({
   selector: 'api-endpoint-groups',
@@ -48,6 +49,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   public isOEM$: Observable<boolean>;
   public isReadOnly = true;
   public api: ApiV4;
+  public isA2ASelcted: boolean;
 
   private messageLicenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
@@ -75,6 +77,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
       .pipe(
         tap(([apiV4, plugins]: [ApiV4, ConnectorPlugin[]]) => {
           this.api = apiV4;
+          this.isA2ASelcted = this.api.listeners?.some((listener) => listener.entrypoints?.some((ep) => ep.type === AGENT_TO_AGENT.id));
           this.groupsTableData = toEndpoints(apiV4);
 
           this.isReadOnly = this.api.definitionContext?.origin === 'KUBERNETES';

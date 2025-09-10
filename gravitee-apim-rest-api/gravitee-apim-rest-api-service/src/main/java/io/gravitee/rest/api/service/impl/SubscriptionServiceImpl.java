@@ -894,9 +894,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setConsumerPausedAt(null);
             subscription.setConsumerStatus(Subscription.ConsumerStatus.FAILURE);
             subscription.setFailureCause(failureCause);
-
             subscription = subscriptionRepository.update(subscription);
-
+            SubscriptionEntity result = convert(subscription);
             // send notification to subscriber
             EnvironmentEntity environmentEntity = environmentService.findById(subscription.getEnvironmentId());
             ExecutionContext executionContext = new ExecutionContext(environmentEntity.getOrganizationId(), environmentEntity.getId());
@@ -910,11 +909,52 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .api(genericApiModel)
                 .plan(genericPlanEntity)
                 .application(application)
+                .subscription(result)
                 .build();
             notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_FAILED, apiId, params);
             notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_FAILED, application.getId(), params);
 
-            return convert(subscription);
+            return result;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to fail subscription %s", subscriptionId),
+                ex
+            );
+        }
+    }
+
+    @Override
+    public SubscriptionEntity notifyError(String subscriptionId, String failureCause) {
+        try {
+            logger.debug("Failed subscription Notification{}", subscriptionId);
+            Subscription subscription = subscriptionRepository
+                .findById(subscriptionId)
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+            final Date now = new Date();
+            subscription.setUpdatedAt(now);
+            subscription.setConsumerPausedAt(null);
+            subscription.setFailureCause(failureCause);
+            subscription = subscriptionRepository.update(subscription);
+            SubscriptionEntity result = convert(subscription);
+            // send notification to subscriber
+            EnvironmentEntity environmentEntity = environmentService.findById(subscription.getEnvironmentId());
+            ExecutionContext executionContext = new ExecutionContext(environmentEntity.getOrganizationId(), environmentEntity.getId());
+            final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
+            final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+            String apiId = genericPlanEntity.getApiId();
+            final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
+            final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+            final Map<String, Object> params = new NotificationParamsBuilder()
+                .owner(owner)
+                .api(genericApiModel)
+                .plan(genericPlanEntity)
+                .application(application)
+                .subscription(result)
+                .build();
+            notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_FAILED, apiId, params);
+            notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_FAILED, application.getId(), params);
+
+            return result;
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to fail subscription %s", subscriptionId),
@@ -1102,6 +1142,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         final Date now = new Date();
         subscription.setUpdatedAt(now);
         subscription.setConsumerPausedAt(null);
+        subscription.setFailureCause(null);
         subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
 
         subscription = subscriptionRepository.update(subscription);

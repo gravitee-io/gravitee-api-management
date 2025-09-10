@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.9.0_04_add_cluster_groups_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}cluster_groups
+            columns:
+              - column: { name: cluster_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}cluster_groups
+            columnNames: cluster_id, group_id
+            tableName: ${gravitee_prefix}cluster_groups

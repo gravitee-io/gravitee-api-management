@@ -15,18 +15,9 @@ security:
     - CookieAuth: []
 
 servers:
-    - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
+    - url: "/management/v2/organizations/{orgId}"
       description: APIM Management API v2 - Base URL to target specific organizations
       variables:
-          protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                  - https
-                  - http
-          managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
           orgId:
               description: The unique ID of your organization
               default: DEFAULT
@@ -393,11 +384,11 @@ paths:
                   description: The protocol type of the api.
                   required: false
                   schema:
-                    type: string
-                    enum:
-                      - HTTP_PROXY
-                      - HTTP_MESSAGE
-                      - NATIVE_KAFKA
+                      type: string
+                      enum:
+                          - HTTP_PROXY
+                          - HTTP_MESSAGE
+                          - NATIVE_KAFKA
             tags:
                 - Plugins - Policies
             summary: Get a policy schema
@@ -412,77 +403,77 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-  # Plugins - Resources
+    # Plugins - Resources
     /plugins/resources:
-      get:
-        tags:
-          - Plugins - Resources
-        summary: Get available resources by organization
-        description: |
-          Get available resources by organization.
-          
-          User must be authenticated.
-        operationId: getResources
-        responses:
-          "200":
-            description: List of Resources.
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/ResourcePlugin"
-          default:
-            $ref: "#/components/responses/Error"
+        get:
+            tags:
+                - Plugins - Resources
+            summary: Get available resources by organization
+            description: |
+                Get available resources by organization.
+
+                User must be authenticated.
+            operationId: getResources
+            responses:
+                "200":
+                    description: List of Resources.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ResourcePlugin"
+                default:
+                    $ref: "#/components/responses/Error"
     /plugins/resources/{resrouceId}:
-      parameters:
-        - $ref: "#/components/parameters/policyIdParam"
-      get:
-        tags:
-          - Plugins - Resources
-        summary: Get a resource
-        description: |
-          Get a resource.
-          
-          User must be authenticated.
-        operationId: getResource
-        responses:
-          "200":
-            description: Resource
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ResourcePlugin"
-          default:
-            $ref: "#/components/responses/Error"
-    /plugins/resources/{policyId}/schema:
-      parameters:
-        - $ref: "#/components/parameters/policyIdParam"
-      get:
         parameters:
-          - name: display
-            in: query
-            description: Display the schema in a specific format..
-            required: false
-            schema:
-              type: string
-              default: gio-form-json-schema
-              enum:
-                - gv-schema-form
-                - gio-form-json-schema
-        tags:
-          - Plugins - Resources
-        summary: Get a resource schema
-        description: |
-          Get the JSON schema that describes the configuration of a resource.
-          
-          User must be authenticated.
-        operationId: getResourceSchema
-        responses:
-          "200":
-            $ref: "#/components/responses/SchemaFormResponse"
-          default:
-            $ref: "#/components/responses/Error"
+            - $ref: "#/components/parameters/policyIdParam"
+        get:
+            tags:
+                - Plugins - Resources
+            summary: Get a resource
+            description: |
+                Get a resource.
+
+                User must be authenticated.
+            operationId: getResource
+            responses:
+                "200":
+                    description: Resource
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourcePlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/resources/{policyId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/policyIdParam"
+        get:
+            parameters:
+                - name: display
+                  in: query
+                  description: Display the schema in a specific format..
+                  required: false
+                  schema:
+                      type: string
+                      default: gio-form-json-schema
+                      enum:
+                          - gv-schema-form
+                          - gio-form-json-schema
+            tags:
+                - Plugins - Resources
+            summary: Get a resource schema
+            description: |
+                Get the JSON schema that describes the configuration of a resource.
+
+                User must be authenticated.
+            operationId: getResourceSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
 components:
     schemas:
@@ -523,28 +514,28 @@ components:
                 - $ref: "#/components/schemas/PlatformPlugin"
                 - type: object
                   properties:
-                    flowPhaseCompatibility:
-                      type: object
-                      properties:
-                        HTTP_PROXY:
-                          type: array
-                          uniqueItems: true
-                          items:
-                              $ref: "#/components/schemas/FlowPhase"
-                        HTTP_MESSAGE:
-                          type: array
-                          uniqueItems: true
-                          items:
-                              $ref: "#/components/schemas/FlowPhase"
-                        NATIVE_KAFKA:
-                          type: array
-                          uniqueItems: true
-                          items:
-                            $ref: "#/components/schemas/FlowPhase"
+                      flowPhaseCompatibility:
+                          type: object
+                          properties:
+                              HTTP_PROXY:
+                                  type: array
+                                  uniqueItems: true
+                                  items:
+                                      $ref: "#/components/schemas/FlowPhase"
+                              HTTP_MESSAGE:
+                                  type: array
+                                  uniqueItems: true
+                                  items:
+                                      $ref: "#/components/schemas/FlowPhase"
+                              NATIVE_KAFKA:
+                                  type: array
+                                  uniqueItems: true
+                                  items:
+                                      $ref: "#/components/schemas/FlowPhase"
         ResourcePlugin:
-          type: object
-          allOf:
-            - $ref: "#/components/schemas/PlatformPlugin"
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/PlatformPlugin"
         PlatformPlugin:
             type: object
             properties:

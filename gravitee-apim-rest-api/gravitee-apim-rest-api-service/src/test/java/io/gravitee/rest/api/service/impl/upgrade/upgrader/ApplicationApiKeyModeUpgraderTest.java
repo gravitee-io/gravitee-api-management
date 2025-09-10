@@ -17,9 +17,9 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.repository.management.model.ApiKeyMode.*;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
-import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -51,11 +51,11 @@ public class ApplicationApiKeyModeUpgraderTest {
     @Mock
     private SubscriptionRepository subscriptionRepository;
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(planRepository.findAll()).thenThrow(new RuntimeException());
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(planRepository, times(1)).findAll();
         verifyNoMoreInteractions(planRepository);

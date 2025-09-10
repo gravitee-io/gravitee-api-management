@@ -25,6 +25,7 @@ export type ApiCreationPayload = Partial<{
   // Entrypoints
   type?: ApiType;
   selectedNativeType?: 'KAFKA';
+  isA2ASelected?: boolean;
   paths?: PathV4[];
   hosts?: TcpHost[];
   host?: KafkaHost;

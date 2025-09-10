@@ -46,8 +46,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,12 +75,11 @@ import org.springframework.web.filter.CorsFilter;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
 public class BasicSecurityConfigurerAdapter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -162,17 +160,17 @@ public class BasicSecurityConfigurerAdapter {
 
         //Warning if the secret is still the default one
         if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("#                      SECURITY WARNING                      #");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
-            LOGGER.warn("You still use the default jwt secret.");
-            LOGGER.warn("This known secret can be used to impersonate anyone.");
-            LOGGER.warn("Please change this value, or ask your administrator to do it !");
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
+            log.warn("");
+            log.warn("##############################################################");
+            log.warn("#                      SECURITY WARNING                      #");
+            log.warn("##############################################################");
+            log.warn("");
+            log.warn("You still use the default jwt secret.");
+            log.warn("This known secret can be used to impersonate anyone.");
+            log.warn("Please change this value, or ask your administrator to do it !");
+            log.warn("");
+            log.warn("##############################################################");
+            log.warn("");
         }
 
         authenticationManager(http);
@@ -200,9 +198,9 @@ public class BasicSecurityConfigurerAdapter {
     private void authenticationManager(HttpSecurity http) throws Exception {
         final AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
 
-        LOGGER.info("--------------------------------------------------------------");
-        LOGGER.info("Portal API BasicSecurity Config");
-        LOGGER.info("Loading authentication identity providers for Basic authentication");
+        log.info("--------------------------------------------------------------");
+        log.info("Portal API BasicSecurity Config");
+        log.info("Loading authentication identity providers for Basic authentication");
 
         List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers = authenticationProviderManager
             .getIdentityProviders()
@@ -212,7 +210,7 @@ public class BasicSecurityConfigurerAdapter {
 
         for (AuthenticationProvider provider : providers) {
             String providerType = provider.type();
-            LOGGER.info("Loading authentication provider of type {} at position {}", providerType, provider.index());
+            log.info("Loading authentication provider of type {} at position {}", providerType, provider.index());
 
             Collection<IdentityProvider> identityProviders = identityProviderManager.getAll();
             if (identityProviders != null) {
@@ -235,11 +233,11 @@ public class BasicSecurityConfigurerAdapter {
                         auth.apply((SecurityConfigurer) authenticationProvider);
                     }
                 } else {
-                    LOGGER.error("No authentication provider found for type: {}", providerType);
+                    log.error("No authentication provider found for type: {}", providerType);
                 }
             }
         }
-        LOGGER.info("--------------------------------------------------------------");
+        log.info("--------------------------------------------------------------");
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {

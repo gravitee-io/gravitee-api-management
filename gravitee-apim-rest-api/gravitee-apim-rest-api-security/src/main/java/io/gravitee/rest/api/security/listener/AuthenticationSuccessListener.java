@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
@@ -53,9 +54,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class AuthenticationSuccessListener implements ApplicationListener<AuthenticationSuccessEvent> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationSuccessListener.class);
 
     @Autowired
     private UserService userService;
@@ -87,6 +87,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                 SecurityContextHolder.getContext().setAuthentication(event.getAuthentication());
             }
         } catch (UserNotFoundException unfe) {
+            log.debug("User not found for source '{}' and sourceId '{}', creating new user.", details.getSource(), details.getSourceId());
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setSource(details.getSource());
             newUser.setSourceId(details.getSourceId());
@@ -121,6 +122,8 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                     event.getAuthentication().getAuthorities()
                 );
             }
+        } catch (MembershipAlreadyExistsException e) {
+            log.debug("MembershipAlreadyExistsException ignored in AuthenticationSuccessListener: {}", e.getMessage(), e);
         }
 
         userService.connect(GraviteeContext.getExecutionContext(), details.getUsername());
@@ -144,10 +147,10 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                 return sb.toString();
             } else {
                 //null contentType means that pictureData is a String but doesn't starts with HTTP
-                LOGGER.warn("Unable to compute the user picture from URL.");
+                log.warn("Unable to compute the user picture from URL.");
             }
         } catch (IOException e) {
-            LOGGER.warn("Problem while parsing picture", e);
+            log.warn("Problem while parsing picture", e);
         }
 
         return null;
@@ -251,7 +254,15 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                         new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                         new MembershipService.MembershipRole(roleScope, roleName)
                     );
-                } catch (MembershipAlreadyExistsException e) {}
+                } catch (MembershipAlreadyExistsException e) {
+                    log.debug(
+                        "MembershipAlreadyExistsException ignored in addRoles for user '{}' and role '{}': {}",
+                        userId,
+                        roleName,
+                        e.getMessage(),
+                        e
+                    );
+                }
             });
         }
     }

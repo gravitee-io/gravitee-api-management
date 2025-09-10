@@ -23,6 +23,7 @@ import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DE
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_ENVIRONMENT_API_PUBLISHER;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
@@ -54,25 +55,25 @@ public class DefaultSharedPolicyGroupRolesUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    updateDefaultAPIPublisherRoles(
-                        executionContext,
-                        ROLE_ENVIRONMENT_API_PUBLISHER.getName(),
-                        new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-                    );
-                    updateDefaultAPIPublisherRoles(executionContext, DEFAULT_ROLE_ENVIRONMENT_USER.getName(), new char[] { READ.getId() });
-                });
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                organizationRepository
+                    .findAll()
+                    .forEach(organization -> {
+                        ExecutionContext executionContext = new ExecutionContext(organization);
+                        updateDefaultAPIPublisherRoles(
+                            executionContext,
+                            ROLE_ENVIRONMENT_API_PUBLISHER.getName(),
+                            new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
+                        );
+                        updateDefaultAPIPublisherRoles(
+                            executionContext,
+                            DEFAULT_ROLE_ENVIRONMENT_USER.getName(),
+                            new char[] { READ.getId() }
+                        );
+                    });
+                return true;
+            });
     }
 
     private void updateDefaultAPIPublisherRoles(ExecutionContext executionContext, String roleName, char[] permissions) {

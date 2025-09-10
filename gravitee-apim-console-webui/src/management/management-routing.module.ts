@@ -192,6 +192,15 @@ const managementRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'clusters',
+        loadChildren: () => import('./clusters/cluster.module').then((m) => m.ClusterModule),
+        data: {
+          permissions: {
+            anyOf: ['environment-cluster-r'],
+          },
+        },
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],

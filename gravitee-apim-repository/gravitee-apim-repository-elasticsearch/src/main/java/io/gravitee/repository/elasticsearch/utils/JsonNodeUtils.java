@@ -30,6 +30,10 @@ public class JsonNodeUtils {
         return jsonNode != null ? jsonNode.asInt() : defaultValue;
     }
 
+    public static long asLongOr(JsonNode jsonNode, long defaultValue) {
+        return jsonNode != null ? jsonNode.asLong() : defaultValue;
+    }
+
     public static boolean asBooleanOrFalse(JsonNode jsonNode) {
         return jsonNode != null && jsonNode.asBoolean();
     }

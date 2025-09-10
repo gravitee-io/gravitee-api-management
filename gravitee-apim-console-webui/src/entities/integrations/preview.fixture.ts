@@ -41,6 +41,7 @@ export function fakeDiscoveryPreview(attribute?: Partial<IntegrationPreview>): I
         state: IntegrationPreviewApisState.NEW,
       },
     ],
+    isPartiallyDiscovered: false,
   };
 
   return {

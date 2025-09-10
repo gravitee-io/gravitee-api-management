@@ -16,10 +16,15 @@
 package fakes;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
+import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
+import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
+import io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
@@ -53,6 +58,11 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public ResponseStatusOvertime responseStatusOvertime;
     public TopHitsApps topHitsApps;
     public TopFailedApis topFailedApis;
+    public HistogramAnalytics histogramAnalytics;
+    public GroupByAnalytics groupByAnalytics;
+    public StatsAnalytics statsAnalytics;
+    public ApiMetricsDetail apiMetricsDetail;
+    public EventAnalytics eventAnalytics;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -133,5 +143,38 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters) {
         return Optional.ofNullable(topFailedApis);
+    }
+
+    @Override
+    public Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters) {
+        return Optional.ofNullable(histogramAnalytics);
+    }
+
+    @Override
+    public Optional<io.gravitee.apim.core.analytics.model.GroupByAnalytics> searchGroupByAnalytics(
+        ExecutionContext executionContext,
+        AnalyticsQueryService.GroupByQuery groupByQuery
+    ) {
+        return Optional.ofNullable(groupByAnalytics);
+    }
+
+    @Override
+    public Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery) {
+        return Optional.ofNullable(statsAnalytics);
+    }
+
+    @Override
+    public Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query) {
+        return Optional.ofNullable(requestsCount);
+    }
+
+    @Override
+    public Optional<ApiMetricsDetail> findApiMetricsDetail(ExecutionContext executionContext, String apiId, String requestId) {
+        return Optional.ofNullable(apiMetricsDetail);
+    }
+
+    @Override
+    public Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, EventAnalyticsParams params) {
+        return Optional.ofNullable(eventAnalytics);
     }
 }

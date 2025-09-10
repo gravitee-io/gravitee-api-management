@@ -22,14 +22,14 @@ export interface ConnectionLog {
   apiId: string;
   requestId: string;
   timestamp: string;
-  clientIdentifier: string;
-  transactionId: string;
   method: HttpMethod;
   status: number;
-  requestEnded: boolean;
-
   application: BaseApplication;
   plan: BasePlan;
+  requestEnded: boolean;
+  gatewayResponseTime: number;
+  uri: string;
+  endpoint: string;
 }
 
 export interface ConnectionLogDetail {

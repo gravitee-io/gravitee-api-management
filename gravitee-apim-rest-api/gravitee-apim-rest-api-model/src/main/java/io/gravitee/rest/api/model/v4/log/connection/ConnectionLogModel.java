@@ -32,4 +32,5 @@ public class ConnectionLogModel extends BaseConnectionLog {
 
     private BaseApplicationEntity application;
     private GenericPlanEntity plan;
+    private String endpoint;
 }

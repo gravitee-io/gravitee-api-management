@@ -24,10 +24,13 @@ import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.rest.api.service.common.IdBuilder;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,9 +62,14 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
         List<Error> errors = new ArrayList<>();
         Map<String, PlanCRD> sanitizedPlans = new HashMap<>();
 
-        input.plans.forEach((k, v) -> {
+        input.plans.forEach((k, planCRD) -> {
             try {
-                Plan plan = PlanModelFactory.fromCRDSpec(v, input.apiCRDSpec);
+                Plan plan = PlanModelFactory.fromCRDSpec(planCRD, input.apiCRDSpec);
+                if (planCRD.getId() == null) {
+                    planCRD.setId(IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getHrid()).withExtraId(k).buildId());
+                }
+
+                plan.setHrid(k);
 
                 planValidator.validatePlanSecurity(
                     plan,
@@ -76,7 +84,7 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
                     input.apiCRDSpec.getListeners().stream().map(AbstractListener::getType).toList()
                 );
 
-                sanitizedPlans.put(k, v);
+                sanitizedPlans.put(k, planCRD);
             } catch (Exception e) {
                 errors.add(Error.severe("invalid plan [%s]. Error: %s", k, e.getMessage()));
             }

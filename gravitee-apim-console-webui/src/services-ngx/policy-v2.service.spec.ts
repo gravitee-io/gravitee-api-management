@@ -94,7 +94,7 @@ describe('PolicyV2Service', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/policy#1/documentation`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/policy#1/documentation-ext`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(policyDocumentation);
@@ -110,7 +110,7 @@ describe('PolicyV2Service', () => {
       });
 
       const req = httpTestingController.expectOne(
-        `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/policy#1/documentation?apiProtocolType=NATIVE_KAFKA`,
+        `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/policy#1/documentation-ext?apiProtocolType=NATIVE_KAFKA`,
       );
       expect(req.request.method).toEqual('GET');
 

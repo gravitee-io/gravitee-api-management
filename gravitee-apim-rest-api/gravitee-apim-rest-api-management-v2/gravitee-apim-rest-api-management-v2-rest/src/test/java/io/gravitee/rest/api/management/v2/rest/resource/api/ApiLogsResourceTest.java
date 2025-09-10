@@ -181,6 +181,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                     .requestId("req1")
                                     .transactionId("transaction-id")
                                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .gatewayResponseTime(42)
+                                    .uri("/my-api")
+                                    .endpoint("https://my-api-example.com")
                             )
                         )
                         .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))
@@ -312,7 +315,10 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     .status(200)
                     .clientIdentifier("client-identifier")
                     .requestEnded(true)
-                    .transactionId("transaction-id");
+                    .gatewayResponseTime(42)
+                    .uri("/my-api")
+                    .transactionId("transaction-id")
+                    .endpoint("https://my-api-example.com");
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -366,7 +372,10 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     .clientIdentifier("client-identifier")
                     .requestEnded(true)
                     .transactionId("transaction-id")
-                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC));
+                    .gatewayResponseTime(42)
+                    .uri("/my-api")
+                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                    .endpoint("https://my-api-example.com");
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -409,7 +418,10 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     .clientIdentifier("client-identifier")
                     .requestEnded(true)
                     .transactionId("transaction-id")
-                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC));
+                    .gatewayResponseTime(42)
+                    .uri("/my-api")
+                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                    .endpoint("https://my-api-example.com");
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -460,6 +472,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                     .transactionId("transaction-id")
                                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
                                     .requestId("req2")
+                                    .gatewayResponseTime(42)
+                                    .uri("/my-api")
+                                    .endpoint("https://my-api-example.com")
                             )
                         )
                         .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))
@@ -505,6 +520,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                     .transactionId("transaction-id")
                                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
                                     .requestId("req2")
+                                    .gatewayResponseTime(42)
+                                    .uri("/my-api")
+                                    .endpoint("https://my-api-example.com")
                             )
                         )
                         .pagination(new Pagination().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L))
@@ -599,8 +617,8 @@ public class ApiLogsResourceTest extends ApiResourceTest {
 
             assertThat(response)
                 .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .extracting(ApiLogsResponse::getPagination)
+                .asEntity(ApiMessageLogsResponse.class)
+                .extracting(ApiMessageLogsResponse::getPagination)
                 .isEqualTo(new Pagination().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total));
         }
 
@@ -624,8 +642,8 @@ public class ApiLogsResourceTest extends ApiResourceTest {
 
             assertThat(response)
                 .hasStatus(OK_200)
-                .asEntity(ApiLogsResponse.class)
-                .extracting(ApiLogsResponse::getLinks)
+                .asEntity(ApiMessageLogsResponse.class)
+                .extracting(ApiMessageLogsResponse::getLinks)
                 .isEqualTo(
                     new Links()
                         .self(messageLogsTarget.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())

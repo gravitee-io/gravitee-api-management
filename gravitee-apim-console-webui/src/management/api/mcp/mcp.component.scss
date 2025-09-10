@@ -21,8 +21,11 @@
   overflow: visible;
 }
 
-.mcp {
+.cardHeader {
+  margin-bottom: 16px;
+
   &__headerRightBtn {
-    margin-left: auto;
+    margin: auto 0 auto auto;
+    padding: 8px 16px;
   }
 }

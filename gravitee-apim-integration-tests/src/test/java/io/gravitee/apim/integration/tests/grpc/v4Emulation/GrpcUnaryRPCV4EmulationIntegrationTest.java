@@ -22,6 +22,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGrpcGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
@@ -30,7 +31,6 @@ import io.gravitee.gateway.grpc.helloworld.HelloRequest;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.common.GrpcReadStream;
-import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
 import io.vertx.grpcio.server.GrpcIoServer;
 import java.util.concurrent.CountDownLatch;
@@ -57,7 +57,7 @@ public class GrpcUnaryRPCV4EmulationIntegrationTest extends AbstractGrpcGatewayT
     }
 
     @Test
-    void should_request_and_get_response() {
+    void should_request_and_get_response(GatewayDynamicConfig.HttpConfig httpConfig) {
         // create the backend
         GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
         grpcServer.callHandler(
@@ -82,7 +82,7 @@ public class GrpcUnaryRPCV4EmulationIntegrationTest extends AbstractGrpcGatewayT
             .andThen(handler -> {
                 // call the service through the gateway
                 getGrpcClient()
-                    .request(gatewayAddress(), GreeterGrpc.getSayHelloMethod())
+                    .request(gatewayAddress(httpConfig), GreeterGrpc.getSayHelloMethod())
                     .compose(request -> {
                         request.end(HelloRequest.newBuilder().setName("You").build());
                         return request.response().compose(GrpcReadStream::last);

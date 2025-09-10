@@ -34,6 +34,8 @@ import java.util.stream.Stream;
  */
 public class NativeApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRefFinder<NativeApi> {
 
+    public static final String NATIVE_API_V4_DEFINITION_KIND = "native-api-v4";
+
     @Override
     public boolean canHandle(Object definition) {
         return canHandle(definition, NativeApi.class);
@@ -41,7 +43,10 @@ public class NativeApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRe
 
     @Override
     public DefinitionDescriptor toDefinitionDescriptor(NativeApi definition, DefinitionMetadata metadata) {
-        return new DefinitionDescriptor(new Definition("native-api-v4", definition.getId()), Optional.ofNullable(metadata.revision()));
+        return new DefinitionDescriptor(
+            new Definition(NATIVE_API_V4_DEFINITION_KIND, definition.getId()),
+            Optional.ofNullable(metadata.revision())
+        );
     }
 
     @Override

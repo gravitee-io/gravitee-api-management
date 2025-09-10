@@ -2,6 +2,7 @@
 {{- $initContainers := .Values.initContainers -}}
 {{- $serviceAccount := include "apim.serviceAccount" . -}}
 {{- $logbackVolumeName := include "gateway.logbackVolumeName" . -}}
+{{- $dockerImageTag := include "gateway.dockerTag" . -}}
 apiVersion: apps/v1
 kind: {{ .Values.gateway.type }}
 metadata:
@@ -124,7 +125,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ template "gravitee.gateway.fullname" . }}
-          image: "{{ .Values.gateway.image.repository }}:{{ default .Chart.AppVersion .Values.gateway.image.tag }}"
+          image: "{{ .Values.gateway.image.repository }}:{{ $dockerImageTag }}"
           imagePullPolicy: {{ .Values.gateway.image.pullPolicy }}
           securityContext: {{ toYaml .Values.gateway.deployment.securityContext | nindent 12 }}
           ports:
@@ -186,7 +187,7 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             httpGet:
-              path: /_node/health?probes=http-server
+              path: /_node/health?probes=http-server{{ if hasKey .Values.gateway "kafka"}}{{ if .Values.gateway.kafka.enabled }},kafka-server{{ end }}{{ end }}
               scheme: HTTP
               port: 18082
               {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
@@ -204,7 +205,7 @@ spec:
             successThreshold: 1
             failureThreshold: 2
             httpGet:
-              path: /_node/health?probes=http-server
+              path: /_node/health?probes=http-server{{ if hasKey .Values.gateway "kafka"}}{{ if .Values.gateway.kafka.enabled }},kafka-server{{ end }}{{ end }}
               scheme: HTTP
               port: 18082
               {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
@@ -223,7 +224,7 @@ spec:
             successThreshold: 1
             failureThreshold: 29
             httpGet:
-              path: /_node/health?probes=http-server,sync-process
+              path: /_node/health?probes=http-server,sync-process{{ if hasKey .Values.gateway "kafka"}}{{ if .Values.gateway.kafka.enabled }},kafka-server{{ end }}{{ end }}
               scheme: HTTP
               port: 18082
               {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
@@ -267,6 +268,8 @@ spec:
           {{- with .Values.gateway.extraVolumeMounts }}
           {{- tpl . $ | nindent 12 }}
           {{- end }}
+            - name: ai-models
+              mountPath: /opt/graviteeio-gateway/models
         {{- if .Values.gateway.extraContainers }}
         {{- with .Values.gateway.extraContainers }}
         {{- tpl . $ | nindent 8 }}
@@ -318,4 +321,6 @@ spec:
         {{- with .Values.gateway.extraVolumes }}
           {{- tpl . $ | nindent 8 }}
         {{- end }}
+        - name: ai-models
+          emptyDir: {}
 {{- end -}}

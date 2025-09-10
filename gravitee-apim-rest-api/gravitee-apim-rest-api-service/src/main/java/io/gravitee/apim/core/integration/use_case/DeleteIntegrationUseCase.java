@@ -58,11 +58,11 @@ public class DeleteIntegrationUseCase {
                 },
                 () ->
                     integrationCrudService
-                        .findById(input.integrationId)
+                        .findApiIntegrationById(input.integrationId)
                         .ifPresentOrElse(
                             integration -> {
                                 deleteMembershipDomainService.deleteIntegrationMemberships(input.integrationId);
-                                integrationCrudService.delete(integration.getId());
+                                integrationCrudService.delete(integration.id());
                             },
                             () -> {
                                 throw new IntegrationNotFoundException(input.integrationId);

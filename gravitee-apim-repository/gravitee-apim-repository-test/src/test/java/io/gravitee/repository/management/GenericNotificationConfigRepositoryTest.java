@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -24,7 +25,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.junit.Test;
 
 public class GenericNotificationConfigRepositoryTest extends AbstractManagementRepositoryTest {
@@ -45,22 +45,26 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         cfg.setConfig("my new configuration");
         cfg.setUseSystemProxy(true);
         cfg.setHooks(Arrays.asList("A", "B", "C"));
+        cfg.setOrganizationId("org1");
         cfg.setUpdatedAt(new Date(1439022010883L));
         cfg.setCreatedAt(new Date(1439022010883L));
 
         GenericNotificationConfig notificationCreated = genericNotificationConfigRepository.create(cfg);
 
-        assertEquals(cfg.getId(), notificationCreated.getId());
-        assertEquals(cfg.getName(), notificationCreated.getName());
-        assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType());
-        assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId());
-        assertEquals(cfg.getNotifier(), notificationCreated.getNotifier());
-        assertEquals(cfg.getConfig(), notificationCreated.getConfig());
-        assertEquals(cfg.getHooks(), notificationCreated.getHooks());
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt()));
-        assertTrue(cfg.isUseSystemProxy());
+        assertAll(
+            () -> assertEquals(cfg.getId(), notificationCreated.getId()),
+            () -> assertEquals(cfg.getName(), notificationCreated.getName()),
+            () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceType(), notificationCreated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceId(), notificationCreated.getReferenceId()),
+            () -> assertEquals(cfg.getNotifier(), notificationCreated.getNotifier()),
+            () -> assertEquals(cfg.getConfig(), notificationCreated.getConfig()),
+            () -> assertEquals(cfg.getHooks(), notificationCreated.getHooks()),
+            () -> assertEquals(cfg.getOrganizationId(), notificationCreated.getOrganizationId()),
+            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationCreated.getCreatedAt())),
+            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt())),
+            () -> assertTrue(cfg.isUseSystemProxy())
+        );
     }
 
     @Test
@@ -81,19 +85,23 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         cfg.setConfig("updated configuration");
         cfg.setUseSystemProxy(true);
         cfg.setHooks(Arrays.asList("D", "B", "C"));
+        cfg.setOrganizationId("org1");
         cfg.setUpdatedAt(new Date(1479022010883L));
         cfg.setCreatedAt(new Date(1469022010883L));
 
         GenericNotificationConfig notificationUpdated = genericNotificationConfigRepository.update(cfg);
 
-        assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType());
-        assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId());
-        assertEquals(cfg.getNotifier(), notificationUpdated.getNotifier());
-        assertEquals(cfg.getConfig(), notificationUpdated.getConfig());
-        assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks()));
-        assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt()));
-        assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt()));
-        assertTrue(cfg.isUseSystemProxy());
+        assertAll(
+            () -> assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType()),
+            () -> assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId()),
+            () -> assertEquals(cfg.getNotifier(), notificationUpdated.getNotifier()),
+            () -> assertEquals(cfg.getConfig(), notificationUpdated.getConfig()),
+            () -> assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks())),
+            () -> assertEquals(cfg.getOrganizationId(), notificationUpdated.getOrganizationId()),
+            () -> assertTrue(compareDate(cfg.getCreatedAt(), notificationUpdated.getCreatedAt())),
+            () -> assertTrue(compareDate(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt())),
+            () -> assertTrue(cfg.isUseSystemProxy())
+        );
     }
 
     @Test
@@ -142,6 +150,20 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
         List<String> userIds = configs.stream().map(GenericNotificationConfig::getNotifier).toList();
         assertTrue("notifierA", userIds.contains("notifierA"));
         assertTrue("notifierB", userIds.contains("notifierB"));
+    }
+
+    @Test
+    public void shouldFindByHookAndOrganizationId() throws Exception {
+        List<GenericNotificationConfig> configs = genericNotificationConfigRepository.findByHookAndOrganizationId("B", "org1");
+        List<String> userIds = configs.stream().map(GenericNotificationConfig::getId).toList();
+        assertEquals("size", 3, configs.size());
+        assertTrue(userIds.containsAll(List.of("notif-to-delete", "notif-to-update", "notif-to-find-b")));
+    }
+
+    @Test
+    public void shouldNotFindByHookAndOrganizationId() throws Exception {
+        List<GenericNotificationConfig> configs = genericNotificationConfigRepository.findByHookAndOrganizationId("A", "org4");
+        assertTrue(configs.isEmpty());
     }
 
     @Test

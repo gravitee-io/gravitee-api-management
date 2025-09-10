@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.G
 import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.PORTAL_NOTIFICATION_CONFIG_UPGRADER;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -56,27 +57,26 @@ public class GenericNotificationConfigUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            Set<Environment> environments = environmentRepository.findAll();
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(this::applyUpgrade);
+    }
 
-            List<GenericNotificationConfig> genericNotificationConfigs = genericNotificationConfigRepository
-                .findAll()
-                .stream()
-                .filter(genericNotificationConfig ->
-                    genericNotificationConfig.getReferenceType().equals(NotificationReferenceType.PORTAL) &&
-                    genericNotificationConfig.getReferenceId().equals("DEFAULT")
-                )
-                .flatMap(
-                    (Function<GenericNotificationConfig, Stream<GenericNotificationConfig>>) genericNotificationConfig ->
-                        migrateGenericNotificationConfigToEnvironments(environments, genericNotificationConfig)
-                )
-                .toList();
-            log.info("Migrating genericNotificationConfig: {} for environments {}", genericNotificationConfigs.size(), environments);
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
+    private boolean applyUpgrade() throws TechnicalException {
+        Set<Environment> environments = environmentRepository.findAll();
+
+        List<GenericNotificationConfig> genericNotificationConfigs = genericNotificationConfigRepository
+            .findAll()
+            .stream()
+            .filter(genericNotificationConfig ->
+                genericNotificationConfig.getReferenceType().equals(NotificationReferenceType.PORTAL) &&
+                genericNotificationConfig.getReferenceId().equals("DEFAULT")
+            )
+            .flatMap(
+                (Function<GenericNotificationConfig, Stream<GenericNotificationConfig>>) genericNotificationConfig ->
+                    migrateGenericNotificationConfigToEnvironments(environments, genericNotificationConfig)
+            )
+            .toList();
+        log.info("Migrating genericNotificationConfig: {} for environments {}", genericNotificationConfigs.size(), environments);
         return true;
     }
 
@@ -91,15 +91,16 @@ public class GenericNotificationConfigUpgrader implements Upgrader {
                 try {
                     return genericNotificationConfigRepository.create(genericNotificationConfigToCreate);
                 } catch (TechnicalException e) {
-                    log.error("Failed to duplicate portalNotificationConfig {} to {}", genericNotificationConfig, environment, e);
-                    throw new TechnicalManagementException(e);
+                    throw new TechnicalManagementException(
+                        "Failed to duplicate portalNotificationConfig " + genericNotificationConfig + " to " + environment,
+                        e
+                    );
                 }
             });
         try {
             genericNotificationConfigRepository.delete(genericNotificationConfig.getId());
         } catch (TechnicalException e) {
-            log.error("Failed to delete genericNotificationConfig {}", genericNotificationConfig, e);
-            throw new TechnicalManagementException(e);
+            throw new TechnicalManagementException("Failed to delete genericNotificationConfig " + genericNotificationConfig, e);
         }
         return stream;
     }

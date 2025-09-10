@@ -15,17 +15,17 @@
  */
 package io.gravitee.apim.core.integration.service_provider;
 
+import io.gravitee.apim.core.integration.model.DiscoveredApis;
 import io.gravitee.apim.core.integration.model.IngestStarted;
-import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.SubscriptionParameter;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
+import java.util.Map;
 
 public interface IntegrationAgent {
     /**
@@ -58,7 +58,8 @@ public interface IntegrationAgent {
         FederatedApi api,
         SubscriptionParameter subscriptionParameter,
         String subscriptionId,
-        BaseApplicationEntity application
+        BaseApplicationEntity application,
+        Map<String, String> providerMetadata
     );
 
     /**
@@ -71,7 +72,7 @@ public interface IntegrationAgent {
      */
     Completable unsubscribe(String integrationId, FederatedApi api, SubscriptionEntity subscription);
 
-    Flowable<IntegrationApi> discoverApis(String integrationId);
+    Single<DiscoveredApis> discoverApis(String integrationId);
 
     enum Status {
         CONNECTED,

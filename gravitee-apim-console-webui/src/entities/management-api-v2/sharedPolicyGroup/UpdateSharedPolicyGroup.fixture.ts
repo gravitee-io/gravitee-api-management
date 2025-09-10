@@ -24,6 +24,7 @@ export function fakeUpdateSharedPolicyGroup(
   const base: UpdateSharedPolicyGroup = {
     name: 'Shared policy group',
     description: 'Description of the shared policy group',
+    steps: [],
   };
 
   if (isFunction(modifier)) {

@@ -105,6 +105,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       ],
       customFields,
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -134,6 +135,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       id: 'userId',
       source: 'gravitee',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -162,6 +164,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       email: null,
       firstname: null,
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -180,6 +183,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'PENDING',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -210,6 +214,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'PENDING',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -240,6 +245,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'PENDING',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -260,6 +266,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -279,6 +286,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
       roles: [{ id: 'roleOrgUserId', name: 'ROLE_ORG_USER', scope: 'ORGANIZATION' }],
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -310,6 +318,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
       envRoles: { environmentAlphaId: [{ id: 'roleEnvApiId' }], environmentBetaId: [] },
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectUserGroupsGetRequest(user.id);
@@ -344,6 +353,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -398,6 +408,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'PENDING',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -431,6 +442,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -463,6 +475,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -492,6 +505,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -528,6 +542,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -585,6 +600,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -624,7 +640,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     const tokenResponse: Token = fakeUserToken({ name: 'My token', created_at: 1630373735403, last_use_at: 1631017105654 });
-
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user, [tokenResponse]);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -667,6 +683,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expect(reqDelete.request.method).toEqual('DELETE');
     reqDelete.flush(null);
 
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user, []);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -683,6 +700,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
@@ -710,6 +728,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       source: 'gravitee',
       status: 'ACTIVE',
     });
+    expectGroupListByOrganizationRequest();
     expectUserTokensGetRequest(user);
     expectUserGetRequest(user);
     expectEnvironmentListRequest();

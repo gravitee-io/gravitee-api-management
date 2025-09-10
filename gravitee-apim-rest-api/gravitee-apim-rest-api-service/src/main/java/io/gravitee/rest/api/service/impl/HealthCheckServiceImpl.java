@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.AggregationType;
 import io.gravitee.repository.analytics.query.DateRangeBuilder;
@@ -58,7 +57,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -417,39 +415,27 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     private Map<String, String> getEndpointMetadata(GenericApiEntity api, String endpointName) {
-        Map<String, String> metadata = new HashMap<>();
-        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            Optional<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointOpt =
-                ((io.gravitee.rest.api.model.v4.api.ApiEntity) api).getEndpointGroups()
-                    .stream()
-                    .filter(group -> group.getEndpoints() != null)
-                    .flatMap(group -> group.getEndpoints().stream())
-                    .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
-                    .findFirst();
-            if (endpointOpt.isPresent()) {
-                io.gravitee.definition.model.v4.endpointgroup.Endpoint endpoint = endpointOpt.get();
-                metadata.put("target", endpoint.getType());
-            } else {
-                metadata.put("deleted", "true");
-            }
-        } else if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
-            Optional<Endpoint> endpointOpt =
-                ((ApiEntity) api).getProxy()
-                    .getGroups()
-                    .stream()
-                    .filter(group -> group.getEndpoints() != null)
-                    .flatMap(group -> group.getEndpoints().stream())
-                    .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
-                    .findFirst();
-
-            if (endpointOpt.isPresent()) {
-                metadata.put("target", endpointOpt.get().getTarget());
-            } else {
-                metadata.put("deleted", "true");
-            }
-        }
-
-        return metadata;
+        return switch (api.getDefinitionVersion()) {
+            case DefinitionVersion.V4 -> ((io.gravitee.rest.api.model.v4.api.ApiEntity) api).getEndpointGroups()
+                .stream()
+                .filter(group -> group.getEndpoints() != null)
+                .flatMap(group -> group.getEndpoints().stream())
+                .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
+                .findFirst()
+                .map(endpoint -> Map.of("target", endpoint.getType()))
+                .orElse(Map.of("deleted", "true"));
+            case V1, V2 -> ((ApiEntity) api).getProxy()
+                .getGroups()
+                .stream()
+                .filter(group -> group.getEndpoints() != null)
+                .flatMap(group -> group.getEndpoints().stream())
+                .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
+                .findFirst()
+                .map(endpoint -> Map.of("target", endpoint.getType()))
+                .orElse(Map.of("deleted", "true"));
+            case FEDERATED, FEDERATED_AGENT -> Map.of();
+            case null -> Map.of();
+        };
     }
 
     private Map<String, String> getGatewayMetadata(ExecutionContext executionContext, String gateway) {

@@ -24,11 +24,13 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -59,9 +61,30 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     private final ValidatePlanDomainService planValidator;
 
+    private final ValidatePortalNotificationDomainService portalNotificationValidator;
+
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
+        IdBuilder idBuilder = null;
+        if (input.spec.getCrossId() == null) {
+            if (input.spec.getHrid() == null) {
+                errors.add(Error.severe("when no hrid is set in the payload a cross ID should be passed to identify the resource"));
+                return Result.ofErrors(errors);
+            } else {
+                idBuilder = IdBuilder.builder(input.auditInfo, input.spec.getHrid());
+                input.spec.setCrossId(idBuilder.buildCrossId());
+            }
+        }
+
+        if (input.spec.getCrossId() != null && input.spec.getHrid() == null) {
+            input.spec.setHrid(input.spec.getCrossId());
+        }
+
+        if (input.spec.getId() == null && idBuilder != null) {
+            input.spec.setId(idBuilder.buildId());
+        }
+
         var sanitizedBuilder = input.spec().toBuilder();
 
         if (input.spec.isNative()) {
@@ -93,6 +116,17 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
                 )
             )
             .peek(sanitized -> sanitizedBuilder.groups(sanitized.groups()), errors::addAll);
+
+        portalNotificationValidator
+            .validateAndSanitize(
+                new ValidatePortalNotificationDomainService.Input(
+                    input.spec().getConsoleNotificationConfiguration(),
+                    input.spec().getDefinitionVersion(),
+                    sanitizedBuilder.build().getGroups(),
+                    input.auditInfo()
+                )
+            )
+            .peek(sanitized -> sanitizedBuilder.consoleNotificationConfiguration(sanitized.portalNotificationConfig()), errors::addAll);
 
         resourceValidator
             .validateAndSanitize(new ValidateResourceDomainService.Input(input.auditInfo.environmentId(), input.spec().getResources()))

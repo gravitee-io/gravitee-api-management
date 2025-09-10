@@ -43,4 +43,5 @@ public class BaseConnectionLog {
     private long gatewayResponseTime;
     private Long requestContentLength;
     private Long responseContentLength;
+    private String endpoint;
 }

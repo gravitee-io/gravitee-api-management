@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.analytics.query.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -153,5 +154,33 @@ public class AnalyticsServiceImplTest {
 
         assertNotNull(execute);
         verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
+    }
+
+    @Test
+    public void shouldMapOneToQuestionMarkWhenFieldIsNotCustom() throws Exception {
+        GroupByResponse.Bucket bucket = mock(GroupByResponse.Bucket.class);
+        when(bucket.name()).thenReturn("1");
+        when(bucket.value()).thenReturn(100L);
+        GroupByResponse response = mock(GroupByResponse.class);
+        when(response.getField()).thenReturn("api");
+        when(response.values()).thenReturn(List.of(bucket));
+        when(analyticsRepository.query(any(), any())).thenReturn(response);
+        TopHitsAnalytics result = cut.execute(EXECUTION_CONTEXT, new GroupByQuery());
+        assertNotNull(result.getValues());
+        assert result.getValues().containsKey("?");
+    }
+
+    @Test
+    public void shouldKeepOneAsKeyWhenFieldIsCustom() throws Exception {
+        GroupByResponse.Bucket bucket = mock(GroupByResponse.Bucket.class);
+        when(bucket.name()).thenReturn("1");
+        when(bucket.value()).thenReturn(100L);
+        GroupByResponse response = mock(GroupByResponse.class);
+        when(response.getField()).thenReturn("custom.field_name_for_analytics");
+        when(response.values()).thenReturn(List.of(bucket));
+        when(analyticsRepository.query(any(), any())).thenReturn(response);
+        TopHitsAnalytics result = cut.execute(EXECUTION_CONTEXT, new GroupByQuery());
+        assertNotNull(result.getValues());
+        assert result.getValues().containsKey("1");
     }
 }

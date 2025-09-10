@@ -33,7 +33,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
-public class SubscriptionMongo extends Auditable {
+public class SubscriptionMongo extends DeprecatedAuditable {
 
     /**
      * Subscription ID.

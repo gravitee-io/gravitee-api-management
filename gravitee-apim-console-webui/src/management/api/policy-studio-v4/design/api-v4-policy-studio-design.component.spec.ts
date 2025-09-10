@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { importProvidersFrom } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
@@ -22,11 +22,12 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioPolicyStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { GioFormJsonSchemaModule, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioComponent } from '@gravitee/ui-policy-studio-angular';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
@@ -49,19 +50,25 @@ import { expectGetSharedPolicyGroupPolicyPluginRequest } from '../../../../servi
 
 describe('ApiV4PolicyStudioDesignComponent', () => {
   const API_ID = 'api-id';
+  const routeParams$ = new BehaviorSubject<{ planIndex: number; flowIndex: number }>({
+    planIndex: 0,
+    flowIndex: 0,
+  });
+  const activatedRouteStub = {
+    snapshot: { params: { apiId: API_ID } },
+    params: routeParams$.asObservable(),
+  };
 
   let fixture: ComponentFixture<ApiV4PolicyStudioDesignComponent>;
   let component: ApiV4PolicyStudioDesignComponent;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let router: Router;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule, GioLicenseTestingModule],
-      providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        importProvidersFrom(GioFormJsonSchemaModule),
-      ],
+      providers: [{ provide: ActivatedRoute, useValue: activatedRouteStub }, importProvidersFrom(GioFormJsonSchemaModule)],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -79,6 +86,24 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
       false;
 
     httpTestingController = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
+
+    // Spy on router navigateByUrl to trigger route params when called
+    jest.spyOn(router, 'navigateByUrl').mockImplementation((url: any, options?: any) => {
+      if (options?.skipLocationChange) {
+        // Parse the URL to extract planIndex and flowIndex
+        // Expected format: /apis/api-id/v4/policy-studio/{planIndex}/{flowIndex}
+        const urlString = typeof url === 'string' ? url : url.toString();
+        const segments = urlString.split('/');
+        const planIndex = Number(segments[segments.length - 2]) || 0;
+        const flowIndex = Number(segments[segments.length - 1]) || 0;
+
+        // Simulate component re-initialization by triggering route params with actual indexes
+        routeParams$.next({ planIndex, flowIndex });
+      }
+      return Promise.resolve(true);
+    });
+
     fixture.detectChanges();
   });
 
@@ -315,7 +340,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           ],
         },
         {
-          name: 'Common flows',
+          name: 'All plans',
           flows: [
             {
               infos: 'PUBSUBmy-channel',
@@ -341,7 +366,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         ],
       };
 
-      await policyStudioHarness.addFlow('Common flows', flowToAdd);
+      await policyStudioHarness.addFlow('All plans', flowToAdd);
       await policyStudioHarness.save();
 
       const updatedApi: ApiV4 = {
@@ -502,7 +527,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         ],
       };
 
-      await policyStudioHarness.addFlow('Common flows', flowToAdd);
+      await policyStudioHarness.addFlow('All plans', flowToAdd);
       await policyStudioHarness.setFlowExecutionConfig({
         mode: 'BEST_MATCH',
         matchRequired: true,
@@ -681,6 +706,102 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         },
       ]);
     });
+
+    describe('Plan/Flow indexes handling', () => {
+      let location: Location;
+      let goSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        location = TestBed.inject(Location);
+        goSpy = jest.spyOn(location, 'go').mockImplementation(() => {});
+        // Mock base path for URL construction
+        jest.spyOn(location, 'path').mockReturnValue('/apis/api-id/v4/policy-studio/0/0');
+      });
+
+      it('should update URL when user selects a flow', async () => {
+        const flowsMenu = await policyStudioHarness.getFlowsMenu();
+        await policyStudioHarness.selectFlowInMenu(flowsMenu[1].flows[0].name);
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/1/0');
+      });
+
+      it('should select the newly added flow', async () => {
+        const flowToAdd: FlowV4 = {
+          name: 'A new flow',
+          selectors: [
+            {
+              type: 'CHANNEL',
+              channel: 'channel1',
+              pathOperator: 'EQUALS',
+              condition: 'condition',
+            },
+          ],
+        };
+
+        await policyStudioHarness.addFlow(planA.name, flowToAdd);
+        await policyStudioHarness.save();
+        const selectedFlow = await policyStudioHarness.getSelectedFlowInfos();
+        expect(selectedFlow).toEqual({
+          Name: ['A new flow'],
+          Entrypoints: ['Webhook'],
+          Operations: ['PUB', 'SUB'],
+          Channel: ['channel1'],
+          'Channel Operator': ['EQUALS'],
+        });
+        // Fetch fresh Plan before save
+        expectGetPlan(api.id, planA);
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans/${planA.id}`,
+          method: 'PUT',
+        });
+        req.flush(planA);
+        expectNewNgOnInit();
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/1');
+      });
+
+      it('should reset both indexes to 0/0 for out-of-range planIndex', fakeAsync(() => {
+        routeParams$.next({ planIndex: 5, flowIndex: 0 });
+        fixture.detectChanges();
+
+        expectGetApi(api);
+        expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook', supportedModes: ['SUBSCRIBE'] }]);
+        expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka', supportedModes: ['PUBLISH', 'SUBSCRIBE'] }]);
+        expectListApiPlans(API_ID, [planA]);
+        expectGetPolicies();
+        expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
+
+        tick();
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/0');
+      }));
+
+      it('should find first available flow for out-of-range flowIndex', fakeAsync(() => {
+        routeParams$.next({ planIndex: 1, flowIndex: 99 });
+        fixture.detectChanges();
+
+        expectGetApi(api);
+        expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook', supportedModes: ['SUBSCRIBE'] }]);
+        expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka', supportedModes: ['PUBLISH', 'SUBSCRIBE'] }]);
+        expectListApiPlans(API_ID, [planA]);
+        expectGetPolicies();
+        expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
+
+        tick();
+        // With the new logic, it should find the first available flow (plan 0, flow 0 from the setup)
+        expect(goSpy).toHaveBeenCalledWith('/apis/api-id/v4/policy-studio/0/0');
+      }));
+
+      it('should return first plan with flows when available', () => {
+        component.plans = [
+          { id: '1', name: 'Plan 1', flows: [] },
+          { id: '2', name: 'Plan 2', flows: [{ name: 'Flow 1' } as any] },
+          { id: '3', name: 'Plan 3', flows: [{ name: 'Flow 2' } as any] },
+        ];
+        component.commonFlows = [];
+
+        const result = component['findFirstAvailableFlow']();
+
+        expect(result).toEqual({ planIndex: 1, flowIndex: 0 });
+      });
+    });
   });
 
   function expectGetApi(api: Api) {
@@ -738,7 +859,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   }
 
   function expectNewNgOnInit() {
-    // 5 requests are made on init
+    // 6 requests are made on init
     expect(httpTestingController.match(() => true).length).toEqual(6);
     // Not flush it to stop test here
   }

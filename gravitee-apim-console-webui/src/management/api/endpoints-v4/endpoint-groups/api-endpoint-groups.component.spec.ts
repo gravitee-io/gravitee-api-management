@@ -119,6 +119,26 @@ describe('ApiEndpointGroupsComponent', () => {
     ],
   };
 
+  const a2aGroup: EndpointGroupV4 = {
+    name: 'Agent to agent',
+    type: 'agent-to-agent',
+    loadBalancer: { type: 'WEIGHTED_RANDOM' },
+    sharedConfiguration: {
+      shared: 'configuration',
+    },
+    endpoints: [
+      {
+        name: 'Agent to agent',
+        type: 'agent-to-agent',
+        weight: 1,
+        inheritConfiguration: true,
+        configuration: {
+          target: 'https://dummy.restapiexample.com/api/v1/create',
+        },
+      },
+    ],
+  };
+
   let fixture: ComponentFixture<ApiEndpointGroupsComponent>;
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
@@ -208,6 +228,19 @@ describe('ApiEndpointGroupsComponent', () => {
       await initComponent(apiV4);
 
       expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(false);
+    });
+
+    it('should not allow to create another endpoint group for a MESSAGE api if existing endpoint is agent to agent', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        type: 'MESSAGE',
+        endpointGroups: [a2aGroup],
+      });
+
+      await initComponent(apiV4);
+      fixture.componentInstance.isA2ASelcted = true;
+      fixture.detectChanges();
+      expect(await componentHarness.isAddEndpointGroupDisplayed()).toEqual(false);
     });
   });
 

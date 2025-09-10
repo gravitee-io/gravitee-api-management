@@ -24,6 +24,7 @@ export class MapProviderNamePipe implements PipeTransform {
   private names: { [key: string]: string } = {
     'aws-api-gateway': 'AWS API Gateway',
     AWS: 'AWS API Gateway',
+    A2A: 'A2A Protocol',
     solace: 'Solace',
     apigee: 'Apigee',
     'confluent-platform': 'Confluent Platform',
@@ -32,6 +33,7 @@ export class MapProviderNamePipe implements PipeTransform {
     'ibm-api-connect': 'IBM API Connect',
     mulesoft: 'Mulesoft',
     'dell-boomi': 'Boomi',
+    'edge-stack': 'Edge Stack',
   };
 
   transform(value: string): string {

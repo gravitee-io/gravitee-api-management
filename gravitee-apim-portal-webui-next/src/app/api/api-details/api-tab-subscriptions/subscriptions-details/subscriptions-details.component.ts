@@ -59,6 +59,9 @@ interface SubscriptionDetailsData {
   planUsageConfiguration: PlanUsageConfiguration;
   subscriptionStatus: SubscriptionStatusEnum;
   consumerStatus: SubscriptionConsumerStatusEnum;
+  failureCause?: string;
+  createdAt?: string;
+  updatedAt?: string;
   apiKey?: string;
   apiKeyConfigUsername?: string;
   entrypointUrls?: string[];
@@ -157,6 +160,9 @@ export class SubscriptionsDetailsComponent implements OnInit {
           subscriptionStatus: subscription.status,
           consumerStatus: subscription.consumerStatus,
           apiType: api.type,
+          failureCause: subscription.failureCause,
+          createdAt: subscription.created_at,
+          updatedAt: subscription.updated_at,
           entrypointUrls: api?.entrypoints,
         };
 

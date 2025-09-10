@@ -59,6 +59,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -180,6 +182,34 @@ class ApiExportDomainServiceImplTest {
         // Given
         String apiId = UUID.randomUUID().toString();
         var definition = new io.gravitee.definition.model.v4.Api();
+        var configuration =
+            """
+            {
+                "schedule": "*/1 * * * * *",
+                "headers": [],
+                "method": "POST",
+                "systemProxy": true,
+                "transformation": "[
+                    {
+                        "operation": "default",
+                        "spec": {}
+                    }
+                ]",
+                "url": "gravitee-test.com/test"
+            }
+            """;
+
+        definition.setServices(
+            new ApiServices(
+                Service
+                    .builder()
+                    .overrideConfiguration(true)
+                    .configuration(configuration)
+                    .type("http-dynamic-properties")
+                    .enabled(true)
+                    .build()
+            )
+        );
         Api api = Api
             .builder()
             .id(apiId)
@@ -211,6 +241,18 @@ class ApiExportDomainServiceImplTest {
         assertThat(export.pages()).contains(EXPECTED_MARKDOWN_PAGE);
         assertThat(export.members()).hasSize(1);
         assertThat(export.members()).contains(EXPECTED_MEMBER);
+
+        GraviteeDefinition.V4 v4Export = (GraviteeDefinition.V4) export;
+
+        assertThat(v4Export.api().services()).isNotNull();
+        assertThat(v4Export.api().services().getDynamicProperty())
+            .isNotNull()
+            .satisfies(dynamicProperty -> {
+                assertThat(dynamicProperty.isOverrideConfiguration()).isTrue();
+                assertThat(dynamicProperty.isEnabled()).isTrue();
+                assertThat(dynamicProperty.getType()).isEqualTo("http-dynamic-properties");
+                assertThat(dynamicProperty.getConfiguration()).isEqualTo(configuration);
+            });
     }
 
     @Test
@@ -290,8 +332,8 @@ class ApiExportDomainServiceImplTest {
 
         Api api = ApiFixtures.aFederatedApi();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
-        when(integrationCrudService.findById(anyString()))
-            .thenReturn(Optional.of(Integration.builder().id(apiId).provider("provider").build()));
+        when(integrationCrudService.findApiIntegrationById(anyString()))
+            .thenReturn(Optional.of(new Integration.ApiIntegration(apiId, null, null, "provider", null, null, null, null)));
 
         // When
         GraviteeDefinition export = sut.export(
@@ -424,8 +466,8 @@ class ApiExportDomainServiceImplTest {
         Api api = ApiFixtures.aFederatedApi().toBuilder().groups(Set.of("group-1")).build();
 
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
-        when(integrationCrudService.findById(anyString()))
-            .thenReturn(Optional.of(Integration.builder().id(apiId).provider("provider").build()));
+        when(integrationCrudService.findApiIntegrationById(anyString()))
+            .thenReturn(Optional.of(new Integration.ApiIntegration(apiId, null, null, "provider", null, null, null, null)));
 
         // When
         GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.allOf(Excludable.class));

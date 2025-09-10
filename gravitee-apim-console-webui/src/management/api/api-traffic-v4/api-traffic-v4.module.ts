@@ -16,12 +16,10 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 
-import { ApiRuntimeLogsSettingsModule } from './runtime-logs-settings/api-runtime-logs-settings.module';
 import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
 import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
-import { ApiAnalyticsProxyComponent } from './analytics/api-analytics-proxy/api-analytics-proxy.component';
 
 @NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule, ApiRuntimeLogsDetailsModule, ApiAnalyticsProxyComponent],
+  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsDetailsModule],
 })
 export class ApiTrafficV4Module {}

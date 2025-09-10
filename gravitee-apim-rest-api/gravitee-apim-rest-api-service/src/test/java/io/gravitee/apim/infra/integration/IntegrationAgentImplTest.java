@@ -27,6 +27,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationDiscoveryException;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
 import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
+import io.gravitee.apim.core.integration.model.DiscoveredApis;
 import io.gravitee.apim.core.integration.model.IngestStarted;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.model.IntegrationSubscription;
@@ -45,13 +46,7 @@ import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
 import io.gravitee.integration.api.command.subscribe.SubscribeReply;
 import io.gravitee.integration.api.command.unsubscribe.UnsubscribeCommand;
 import io.gravitee.integration.api.command.unsubscribe.UnsubscribeReply;
-import io.gravitee.integration.api.model.Page;
-import io.gravitee.integration.api.model.PageType;
-import io.gravitee.integration.api.model.Plan;
-import io.gravitee.integration.api.model.PlanSecurityType;
-import io.gravitee.integration.api.model.Subscription;
-import io.gravitee.integration.api.model.SubscriptionResult;
-import io.gravitee.integration.api.model.SubscriptionType;
+import io.gravitee.integration.api.model.*;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -237,7 +232,8 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
                     subscriptionParameter,
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS);
@@ -286,7 +282,8 @@ class IntegrationAgentImplTest {
                         .build(),
                     subscriptionParameter,
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS);
@@ -323,7 +320,8 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
@@ -344,13 +342,38 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi().toBuilder().server(Map.of("k1", "v1")).build(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
                 .values();
 
             assertThat(subscribeCommandCaptor.getValue().getPayload().subscription().metadata()).containsEntry("k1", "v1");
+            assertThat(result)
+                .hasSize(1)
+                .containsExactly(
+                    new IntegrationSubscription(INTEGRATION_ID, IntegrationSubscription.Type.API_KEY, "my-api-key", Map.of("key", "value"))
+                );
+        }
+
+        @Test
+        void should_send_providers_metadata() {
+            var result = agent
+                .subscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi().toBuilder().server(Map.of()).build(),
+                    PlanFixtures.subscriptionParameter(),
+                    SUBSCRIPTION_ID,
+                    APPLICATION,
+                    Map.of("provider-metadata-key", "provider-metadata-value")
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .values();
+
+            assertThat(subscribeCommandCaptor.getValue().getPayload().subscription().metadata())
+                .containsExactlyInAnyOrderEntriesOf(Map.of("planId", "provider-id", "provider-metadata-key", "provider-metadata-value"));
             assertThat(result)
                 .hasSize(1)
                 .containsExactly(
@@ -368,7 +391,8 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
@@ -387,7 +411,8 @@ class IntegrationAgentImplTest {
                     ApiDefinitionFixtures.aFederatedApi(),
                     PlanFixtures.subscriptionParameter(),
                     SUBSCRIPTION_ID,
-                    APPLICATION
+                    APPLICATION,
+                    Map.of()
                 )
                 .test()
                 .awaitDone(10, TimeUnit.SECONDS)
@@ -543,33 +568,86 @@ class IntegrationAgentImplTest {
 
             assertThat(result)
                 .containsExactly(
-                    new IntegrationApi(
-                        INTEGRATION_ID,
-                        "asset-uid-1",
-                        "asset-1",
-                        "asset-name-1",
-                        "asset-description-1",
-                        "asset-version-1",
-                        Map.of("url", "https://example.com/1"),
+                    new DiscoveredApis(
                         List.of(
-                            new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY, List.of())
+                            new IntegrationApi(
+                                INTEGRATION_ID,
+                                "asset-uid-1",
+                                "asset-1",
+                                "asset-name-1",
+                                "asset-description-1",
+                                "asset-version-1",
+                                Map.of("url", "https://example.com/1"),
+                                List.of(
+                                    new IntegrationApi.Plan(
+                                        "plan-id-1",
+                                        "Gold 1",
+                                        "Gold description 1",
+                                        IntegrationApi.PlanType.API_KEY,
+                                        List.of()
+                                    )
+                                ),
+                                List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
+                                null
+                            ),
+                            new IntegrationApi(
+                                INTEGRATION_ID,
+                                "asset-uid-2",
+                                "asset-2",
+                                "asset-name-2",
+                                "asset-description-2",
+                                "asset-version-2",
+                                Map.of("url", "https://example.com/2"),
+                                List.of(
+                                    new IntegrationApi.Plan(
+                                        "plan-id-2",
+                                        "Gold 2",
+                                        "Gold description 2",
+                                        IntegrationApi.PlanType.API_KEY,
+                                        List.of()
+                                    )
+                                ),
+                                List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
+                                null
+                            )
                         ),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
-                        null
-                    ),
-                    new IntegrationApi(
-                        INTEGRATION_ID,
-                        "asset-uid-2",
-                        "asset-2",
-                        "asset-name-2",
-                        "asset-description-2",
-                        "asset-version-2",
-                        Map.of("url", "https://example.com/2"),
+                        false
+                    )
+                );
+        }
+
+        @Test
+        void should_discover_apis_that_are_partially_discovered() {
+            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new DiscoverReply("command-id", List.of(buildApi(1)), true)));
+
+            var result = agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).values();
+
+            assertThat(result)
+                .containsExactly(
+                    new DiscoveredApis(
                         List.of(
-                            new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY, List.of())
+                            new IntegrationApi(
+                                INTEGRATION_ID,
+                                "asset-uid-1",
+                                "asset-1",
+                                "asset-name-1",
+                                "asset-description-1",
+                                "asset-version-1",
+                                Map.of("url", "https://example.com/1"),
+                                List.of(
+                                    new IntegrationApi.Plan(
+                                        "plan-id-1",
+                                        "Gold 1",
+                                        "Gold description 1",
+                                        IntegrationApi.PlanType.API_KEY,
+                                        List.of()
+                                    )
+                                ),
+                                List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
+                                null
+                            )
                         ),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
-                        null
+                        true
                     )
                 );
         }
@@ -578,7 +656,9 @@ class IntegrationAgentImplTest {
         void should_return_empty_when_nothing_discovered() {
             when(controller.sendCommand(any(), any())).thenReturn(Single.just(new DiscoverReply("command-id", List.of())));
 
-            agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
+            var result = agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).values();
+
+            assertThat(result).containsExactly(new DiscoveredApis(List.of(), false));
         }
 
         @Test

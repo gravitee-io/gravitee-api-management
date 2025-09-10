@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,7 +32,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @NoArgsConstructor
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}integrations")
-public class IntegrationMongo extends Auditable {
+public class IntegrationMongo extends DeprecatedAuditable {
 
     public enum AgentStatus {
         CONNECTED,
@@ -51,4 +53,8 @@ public class IntegrationMongo extends Auditable {
     private AgentStatus agentStatus;
 
     private Set<String> groups;
+
+    private Collection<A2aWellKnownUrl> wellKnownUrls = new HashSet<>();
+
+    public record A2aWellKnownUrl(String url) {}
 }

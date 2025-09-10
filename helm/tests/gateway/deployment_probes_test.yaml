@@ -31,12 +31,44 @@ tests:
       - notExists:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.httpHeaders
 
+  - it: Check default readinessProbe with kafka enabled
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=http-server,kafka-server
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.httpHeaders[0].value
+          value: Basic YWRtaW46YWRtaW5hZG1pbg==
+      - notExists:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket
+
   - it: Check default livenessProbe
     template: gateway/gateway-deployment.yaml
     asserts:
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.httpGet.path
           value: /_node/health?probes=http-server
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.httpHeaders[0].value
+          value: Basic YWRtaW46YWRtaW5hZG1pbg==
+      - notExists:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket
+
+  - it: Check default livenessProbe with kafka enabled
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /_node/health?probes=http-server,kafka-server
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.httpGet.httpHeaders[0].value
           value: Basic YWRtaW46YWRtaW5hZG1pbg==
@@ -65,6 +97,22 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].startupProbe.httpGet.path
           value: /_node/health?probes=http-server,sync-process
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.httpHeaders[0].value
+          value: Basic YWRtaW46YWRtaW5hZG1pbg==
+      - notExists:
+          path: spec.template.spec.containers[0].startupProbe.tcpSocket
+
+  - it: Check default startupProbe with kafka enabled
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /_node/health?probes=http-server,sync-process,kafka-server
       - equal:
           path: spec.template.spec.containers[0].startupProbe.httpGet.httpHeaders[0].value
           value: Basic YWRtaW46YWRtaW5hZG1pbg==

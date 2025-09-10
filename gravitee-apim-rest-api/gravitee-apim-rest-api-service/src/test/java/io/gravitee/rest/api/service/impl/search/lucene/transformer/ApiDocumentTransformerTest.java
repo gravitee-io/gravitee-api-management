@@ -30,16 +30,25 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.util.BytesRef;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -60,9 +69,7 @@ class ApiDocumentTransformerTest {
     @Test
     void shouldTransform() {
         ApiEntity toTransform = getApiEntity();
-
         Document transformed = cut.transform(toTransform);
-
         assertDocumentMatchesInputApiEntity(toTransform, transformed);
     }
 
@@ -70,14 +77,28 @@ class ApiDocumentTransformerTest {
     void shouldTransformWithoutError_OnMissingReferenceId() {
         ApiEntity api = new ApiEntity();
         api.setId("api-uuid");
+        api.setLifecycleState(ApiLifecycleState.CREATED);
+        api.setVisibility(Visibility.PUBLIC);
         Document doc = cut.transform(api);
         assertThat(doc.get("id")).isEqualTo(api.getId());
+    }
+
+    @Test
+    void shouldTransformWithoutError_WithIdOnly() {
+        // When we delete a document only the id is filled in
+        ApiEntity api = new ApiEntity();
+        api.setId("api-uuid");
+        Document doc = cut.transform(api);
+        assertThat(doc.get("id")).isEqualTo(api.getId());
+        assertThat(doc.get("type")).isEqualTo("api");
     }
 
     @Test
     void shouldTransformWithoutError_V4ApiOnDeleteMode() {
         var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api.setId("api-uuid");
+        api.setLifecycleState(ApiLifecycleState.CREATED);
+        api.setVisibility(Visibility.PUBLIC);
         api.setDefinitionVersion(null);
         api.setName(null);
 
@@ -92,6 +113,8 @@ class ApiDocumentTransformerTest {
         void v4_as_endpoint_group() {
             var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
             api.setId("api-uuid");
+            api.setLifecycleState(ApiLifecycleState.CREATED);
+            api.setVisibility(Visibility.PUBLIC);
             api.setDefinitionVersion(DefinitionVersion.V4);
             api.setName("name");
             api.setEndpointGroups(List.of(new EndpointGroup(new EndpointGroupServices(null, new Service(true, true, "type", "conf")))));
@@ -104,6 +127,8 @@ class ApiDocumentTransformerTest {
         void v4_as_endpoint_() {
             var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
             api.setId("api-uuid");
+            api.setLifecycleState(ApiLifecycleState.CREATED);
+            api.setVisibility(Visibility.PUBLIC);
             api.setDefinitionVersion(DefinitionVersion.V4);
             api.setName("name");
             var endpointGroup = new EndpointGroup(new EndpointGroupServices(null, null));
@@ -120,6 +145,8 @@ class ApiDocumentTransformerTest {
         ApiEntity toTransform = new ApiEntity();
         toTransform.setId("apiId");
         toTransform.setName("name");
+        toTransform.setLifecycleState(ApiLifecycleState.CREATED);
+        toTransform.setVisibility(Visibility.PUBLIC);
         toTransform.setDescription("description");
         toTransform.setReferenceId("xxxxxx");
         toTransform.setReferenceType("env1");
@@ -172,5 +199,27 @@ class ApiDocumentTransformerTest {
         assertThat(toTransform.getMetadata().values()).hasSameSizeAs(transformed.getFields("metadata"));
         assertThat(toTransform.getDefinitionContext().getOrigin()).isEqualTo(transformed.get("origin"));
         assertThat("true").isEqualTo(transformed.get("has_health_check"));
+    }
+
+    @Test
+    public void shouldSortListCorrectlyWithCollatorAndBytesRef() throws Exception {
+        List<String> names = List.of("nano", "Zorro", "äther", "vem", "foo/bar", "Épée", "épona", "öko", "bns-One");
+        List<String> expectedSorted = List.of("äther", "bns-One", "Épée", "épona", "foo/bar", "nano", "öko", "vem", "Zorro");
+        Method toSortedValueMethod = ApiDocumentTransformer.class.getDeclaredMethod("toSortedValue", String.class);
+        toSortedValueMethod.setAccessible(true);
+
+        Field collatorField = ApiDocumentTransformer.class.getDeclaredField("collator");
+        collatorField.setAccessible(true);
+        Collator collator = (Collator) collatorField.get(cut);
+        List<String> sortedByCollator = new ArrayList<>(names);
+        sortedByCollator.sort(collator);
+        Map<String, BytesRef> bytesRefMap = new HashMap<>();
+        for (String name : names) {
+            bytesRefMap.put(name, (BytesRef) toSortedValueMethod.invoke(cut, name));
+        }
+        List<String> sortedByBytesRef = new ArrayList<>(names);
+        sortedByBytesRef.sort(Comparator.comparing(bytesRefMap::get));
+        assertThat(sortedByCollator).isEqualTo(expectedSorted);
+        assertThat(sortedByBytesRef).isEqualTo(expectedSorted);
     }
 }

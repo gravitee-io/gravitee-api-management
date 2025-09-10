@@ -66,7 +66,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -277,6 +277,7 @@ public class UpdateNativeApiUseCaseTest {
                         .build()
                 )
             )
+            .analytics(NativeAnalytics.builder().enabled(false).build())
             .disableMembershipNotifications(true)
             .build();
 
@@ -307,6 +308,7 @@ public class UpdateNativeApiUseCaseTest {
                     .flows(List.of(NativeFlow.builder().id("new").build()))
                     .services(NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build())
                     .properties(List.of(Property.builder().key("encrypt-me").value("new").encrypted(true).dynamic(false).build()))
+                    .analytics(NativeAnalytics.builder().enabled(false).build())
                     .build()
             )
             .build();
@@ -351,6 +353,7 @@ public class UpdateNativeApiUseCaseTest {
                 assertThat(definition.getListeners()).containsExactly(KafkaListener.builder().host("new").build());
                 assertThat(definition.getEndpointGroups()).containsExactly(NativeEndpointGroup.builder().type("new").build());
                 assertThat(definition.getFlows()).containsExactly(NativeFlow.builder().id("new").build());
+                assertThat(definition.getAnalytics().isEnabled()).isEqualTo(false);
                 assertThat(definition.getServices())
                     .isEqualTo(NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build());
                 assertThat(definition.getProperties())

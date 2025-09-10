@@ -24,10 +24,11 @@ export interface MenuItem {
   children?: MenuItem[];
 }
 
-export interface GroupItem {
-  title: string;
-  subtitle?: string;
-  items: MenuItem[];
+interface MenuItemConfig {
+  displayName: string;
+  routerLink: string;
+  icon: string;
+  permissions: string[];
 }
 
 @Injectable({
@@ -36,54 +37,52 @@ export interface GroupItem {
 export class PortalNavigationService {
   constructor(private readonly permissionService: GioPermissionService) {}
 
-  public getCustomizationRoutes(): GroupItem {
-    const items: MenuItem[] = [];
+  private allMenuItems: MenuItemConfig[] = [
+    {
+      displayName: 'Catalog',
+      routerLink: 'catalog',
+      icon: 'gio:report-columns',
+      permissions: ['environment-category-r', 'environment-category-u'],
+    },
+    {
+      displayName: 'Top Bar',
+      routerLink: 'top-bar',
+      icon: 'gio:top-bar',
+      permissions: ['environment-settings-r', 'environment-settings-u'],
+    },
+    {
+      displayName: 'API',
+      routerLink: 'api',
+      icon: 'gio:cloud-settings',
+      permissions: ['environment-settings-r', 'environment-settings-u'],
+    },
+    {
+      displayName: 'Banner',
+      routerLink: 'banner',
+      icon: 'gio:chat-lines',
+      permissions: ['environment-settings-r', 'environment-settings-u'],
+    },
+    {
+      displayName: 'Theme',
+      routerLink: 'theme',
+      icon: 'gio:color-picker',
+      permissions: ['environment-theme-r', 'environment-theme-u'],
+    },
+    {
+      displayName: 'Homepage',
+      routerLink: 'homepage',
+      icon: 'gio:box',
+      permissions: ['environment-documentation-r', 'environment-documentation-u'],
+    },
+  ];
 
-    const customization: MenuItem = {
-      displayName: 'Customization',
-      routerLink: 'customization',
-      icon: 'gio:palette',
-      children: [],
-    };
-    if (this.permissionService.hasAnyMatching(['environment-category-r', 'environment-category-u'])) {
-      customization.children.push({
-        displayName: 'Catalog',
-        routerLink: 'catalog',
-        icon: 'gio:report-columns',
-      });
-    }
-    if (this.permissionService.hasAnyMatching(['environment-settings-r', 'environment-settings-u'])) {
-      customization.children.push({
-        displayName: 'Top Bar',
-        routerLink: 'top-bar',
-        icon: 'gio:top-bar',
-      });
-      customization.children.push({
-        displayName: 'API',
-        routerLink: 'api',
-        icon: 'gio:cloud-settings',
-      });
-      customization.children.push({
-        displayName: 'Banner',
-        routerLink: 'banner',
-        icon: 'gio:chat-lines',
-      });
-    }
-    if (this.permissionService.hasAnyMatching(['environment-theme-r', 'environment-theme-u'])) {
-      customization.children.push({
-        displayName: 'Theme',
-        routerLink: 'theme',
-        icon: 'gio:color-picker',
-      });
-    }
-    if (customization.children.length) {
-      items.push(customization);
-    }
-
-    return {
-      title: 'Customization',
-      subtitle: 'Customize the look, feel, and behavior of the new Developer Portal.',
-      items,
-    };
+  public getMainMenuItems(): MenuItem[] {
+    return this.allMenuItems
+      .filter((item) => this.permissionService.hasAnyMatching(item.permissions))
+      .map(({ displayName, routerLink, icon }) => ({
+        displayName,
+        routerLink,
+        icon,
+      }));
   }
 }

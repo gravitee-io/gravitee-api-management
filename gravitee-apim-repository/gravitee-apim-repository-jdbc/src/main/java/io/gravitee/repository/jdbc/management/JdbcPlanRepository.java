@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -23,14 +24,12 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Plan;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
-import liquibase.database.PreparedStatementFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,6 +74,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             .builder(Plan.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
+            .addColumn("hrid", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
             .addColumn("mode", Types.NVARCHAR, Plan.PlanMode.class)
             .addColumn("name", Types.NVARCHAR, String.class)
@@ -391,6 +391,23 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         } catch (final Exception ex) {
             LOGGER.error("Failed to check if plan exists", ex);
             throw new TechnicalException("Failed to check if plan exists", ex);
+        }
+    }
+
+    @Override
+    public void updateOrder(String planId, int order) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.updateOrder({}, {})", planId, order);
+        try {
+            jdbcTemplate.update(
+                "update " + tableName + " set " + escapeReservedWord("order") + " = ? where id = ?",
+                ps -> {
+                    ps.setInt(1, order);
+                    ps.setString(2, planId);
+                }
+            );
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to update plan order", ex);
+            throw new TechnicalException("Failed to update plan order", ex);
         }
     }
 }

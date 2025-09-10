@@ -207,6 +207,16 @@ public interface MembershipService {
         MembershipMember member,
         List<RoleEntity> newPrimaryOwnerRoles
     );
+
+    void transferOwnership(
+        ExecutionContext executionContext,
+        MembershipReferenceType membershipReferenceType,
+        RoleScope roleScope,
+        String itemId,
+        MembershipMember member,
+        List<RoleEntity> newPrimaryOwnerRoles
+    );
+
     MemberEntity updateRoleToMemberOnReference(
         ExecutionContext executionContext,
         MembershipReference reference,
@@ -254,6 +264,8 @@ public interface MembershipService {
     MemberEntity updateMembershipForIntegration(ExecutionContext executionContext, String integrationId, String memberId, String roleName);
 
     void deleteMemberForIntegration(ExecutionContext executionContext, String integrationId, String memberId);
+
+    void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId);
 
     class MembershipReference {
 

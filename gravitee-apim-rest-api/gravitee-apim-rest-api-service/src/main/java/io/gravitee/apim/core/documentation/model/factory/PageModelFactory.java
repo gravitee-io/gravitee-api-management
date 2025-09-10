@@ -30,10 +30,11 @@ public class PageModelFactory {
 
     private PageModelFactory() {}
 
-    public static Page fromCRDSpec(PageCRD pageCRD) {
+    public static Page fromCRDSpec(String hrid, PageCRD pageCRD) {
         return Page
             .builder()
             .id(pageCRD.getId())
+            .hrid(hrid)
             .name(pageCRD.getName())
             .crossId(pageCRD.getCrossId())
             .parentId(pageCRD.getParentId())
@@ -45,6 +46,7 @@ public class PageModelFactory {
             .homepage(pageCRD.isHomepage())
             .configuration(pageCRD.getConfiguration())
             .excludedAccessControls(pageCRD.isExcludedAccessControls())
+            .useAutoFetch(pageCRD.getUseAutoFetch())
             .accessControls(
                 pageCRD.getAccessControls() == null
                     ? Set.of()
@@ -81,6 +83,7 @@ public class PageModelFactory {
             .homepage(page.isHomepage())
             .configuration(page.getConfiguration())
             .excludedAccessControls(page.isExcludedAccessControls())
+            .useAutoFetch(page.getUseAutoFetch())
             .accessControls(
                 page.getAccessControls() == null
                     ? Set.of()

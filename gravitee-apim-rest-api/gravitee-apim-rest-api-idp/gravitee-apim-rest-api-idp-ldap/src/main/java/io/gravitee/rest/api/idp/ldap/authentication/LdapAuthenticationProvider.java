@@ -16,8 +16,7 @@
 package io.gravitee.rest.api.idp.ldap.authentication;
 
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.SecurityConfigurer;
@@ -29,16 +28,15 @@ import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopul
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class LdapAuthenticationProvider implements AuthenticationProvider<SecurityConfigurer> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LdapAuthenticationProvider.class);
 
     @Autowired
     private Environment environment;
 
     @Override
     public SecurityConfigurer configure() throws Exception {
-        LOGGER.info("Configuring an LDAP Identity Provider");
+        log.info("Configuring an LDAP Identity Provider");
 
         LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder> ldapAuthenticationProviderConfigurer =
             new LdapAuthenticationProviderConfigurer<>();

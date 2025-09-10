@@ -1,0 +1,15 @@
+form {
+  display: flex;
+  flex-flow: column;
+  gap: 16px;
+}
+
+.configure-mcp-entrypoint {
+  &__tools {
+    &__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+}

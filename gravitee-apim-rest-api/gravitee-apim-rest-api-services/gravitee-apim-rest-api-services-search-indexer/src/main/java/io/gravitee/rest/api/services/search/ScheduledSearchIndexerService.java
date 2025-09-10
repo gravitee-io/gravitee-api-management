@@ -34,8 +34,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,12 +46,8 @@ import org.springframework.scheduling.support.CronTrigger;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ScheduledSearchIndexerService extends AbstractService implements Runnable {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(ScheduledSearchIndexerService.class);
 
     @Autowired
     @Qualifier("searchIndexerTaskScheduler")
@@ -87,16 +82,16 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
     protected void doStart() throws Exception {
         if (enabled) {
             super.doStart();
-            logger.info("Search Indexer service has been initialized with cron [{}]", cronTrigger);
+            log.info("Search Indexer service has been initialized with cron [{}]", cronTrigger);
             scheduler.schedule(this, new CronTrigger(cronTrigger));
         } else {
-            logger.warn("Search Indexer service has been disabled");
+            log.warn("Search Indexer service has been disabled");
         }
     }
 
     @Override
     public void run() {
-        logger.debug("Search Indexer #{} started at {}", counter.incrementAndGet(), Instant.now());
+        log.debug("Search Indexer #{} started at {}", counter.incrementAndGet(), Instant.now());
 
         CommandQuery query = new CommandQuery();
         query.setTo(MessageRecipient.MANAGEMENT_APIS.name());
@@ -111,10 +106,10 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
                     processCommands(organization, commands);
                 });
         } catch (TechnicalException e) {
-            logger.error("An error occurred while trying to process organization commands", e);
+            log.error("An error occurred while trying to process organization commands", e);
         }
 
-        logger.debug("Search Indexer #{} ended at {}", counter.get(), Instant.now());
+        log.debug("Search Indexer #{} ended at {}", counter.get(), Instant.now());
     }
 
     private void processCommands(Organization organization, List<CommandEntity> commands) {
@@ -135,7 +130,7 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
             try {
                 searchEngineService.process(executionContext, mapper.readValue(command.getContent(), CommandSearchIndexerEntity.class));
             } catch (IOException e) {
-                logger.error("Search Indexer has received a bad message.", e);
+                log.error("Search Indexer has received a bad message.", e);
             }
         }
     }

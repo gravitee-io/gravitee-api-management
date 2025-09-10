@@ -36,5 +36,5 @@ public interface EventMongoRepositoryCustom {
 
     long deleteAllByApi(String apiId);
 
-    Stream<EventRepository.EventToClean> findGatewayEvents(String environmentId);
+    Stream<EventRepository.EventToClean> findEventsToClean(String environmentId);
 }

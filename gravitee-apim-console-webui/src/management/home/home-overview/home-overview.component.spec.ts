@@ -141,14 +141,6 @@ describe('HomeOverviewComponent', () => {
       expect(await stats.getMaxResponseTime()).toEqual('20,123.13 ms ');
       expect(await stats.getAverageResponseTime()).toEqual('234.76 ms ');
     });
-
-    // TODO in APIM-7863: uncomment test.
-    // it('should show requests that do not match a context path', async () => {
-    //   expectRequests();
-    //   const v2ApiCallsWithNoContextPathHarness = await componentHarness.getV2ApiCallsWithNoContextPathHarness();
-    //   const tableRowsNumber = await v2ApiCallsWithNoContextPathHarness.rowsNumber();
-    //   expect(tableRowsNumber).toEqual(1);
-    // });
   });
 
   function expectRequests() {
@@ -274,16 +266,6 @@ describe('HomeOverviewComponent', () => {
     });
     return req;
   }
-
-  // TODO in APIM-7863.
-  // function expectLogsGetRequest() {
-  //   const url = `${CONSTANTS_TESTING.env.baseURL}/platform/logs?`;
-  //   const req = httpTestingController.expectOne((req) => {
-  //     return req.method === 'GET' && req.url.startsWith(url);
-  //   });
-  //   req.flush(fakePlatformLogsResponse());
-  //   expect(req.request.method).toEqual('GET');
-  // }
 
   // v4
   function expectV4ResponseTimesGetRequest() {

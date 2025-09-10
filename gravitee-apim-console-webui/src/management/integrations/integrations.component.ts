@@ -21,7 +21,7 @@ import { catchError, distinctUntilChanged, mergeMap, switchMap } from 'rxjs/oper
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
-import { AgentStatus, Integration, IntegrationResponse } from './integrations.model';
+import { AgentStatus, ApiIntegration, Integration, IntegrationResponse, isApiIntegration } from './integrations.model';
 
 import { IntegrationsService } from '../../services-ngx/integrations.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
@@ -106,6 +106,10 @@ export class IntegrationsComponent implements OnInit {
 
   public onRequestUpgrade() {
     this.licenseService.openDialog(this.licenseOptions);
+  }
+
+  apiIntegration(integration: unknown): integration is ApiIntegration {
+    return isApiIntegration(integration);
   }
 
   protected readonly AgentStatus = AgentStatus;

@@ -24,22 +24,31 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import io.gravitee.apim.core.membership.model.TransferOwnership;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.utils.UUID;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Command;
+import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.InvalidateRoleCacheCommandEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -51,6 +60,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.UserMembership;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
+import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
@@ -60,6 +70,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.providers.User;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApplicationAlertService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
@@ -77,9 +88,11 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,11 +103,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +160,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private final ParameterService parameterService;
 
     private final IntegrationRepository integrationRepository;
+    private final Node node;
+    private final ObjectMapper objectMapper;
+    private final CommandRepository commandRepository;
+
+    private final ApiMetadataService apiMetadataService;
+    private final SearchEngineService searchEngineService;
 
     public MembershipServiceImpl(
         @Autowired @Lazy IdentityService identityService,
@@ -163,7 +184,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         @Autowired @Lazy GroupService groupService,
         @Autowired AuditService auditService,
         @Autowired ParameterService parameterService,
-        @Autowired @Lazy IntegrationRepository integrationRepository
+        @Autowired @Lazy IntegrationRepository integrationRepository,
+        @Autowired Node node,
+        @Autowired ObjectMapper objectMapper,
+        @Autowired @Lazy CommandRepository commandRepository,
+        @Autowired @Lazy ApiMetadataService apiMetadataService,
+        @Autowired @Lazy SearchEngineService searchEngineService
     ) {
         this.identityService = identityService;
         this.userService = userService;
@@ -182,6 +208,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.auditService = auditService;
         this.parameterService = parameterService;
         this.integrationRepository = integrationRepository;
+        this.node = node;
+        this.objectMapper = objectMapper;
+        this.commandRepository = commandRepository;
+        this.apiMetadataService = apiMetadataService;
+        this.searchEngineService = searchEngineService;
     }
 
     @Override
@@ -365,8 +396,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 createAuditLog(executionContext, MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
             }
 
-            invalidateRoleCache(reference.getType().name(), reference.getId(), member.getMemberType().name(), member.getMemberId());
-
+            this.sendInvalidateRoleCacheCommand(reference, member, executionContext);
             return userMember;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to add member for {} {}", reference.getType(), reference.getId(), ex);
@@ -375,6 +405,49 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 ex
             );
         }
+    }
+
+    private void sendInvalidateRoleCacheCommand(MembershipReference reference, MembershipMember member, ExecutionContext context) {
+        Instant timestamp = Instant.now();
+        Command command = Command
+            .builder()
+            .id(UUID.random().toString())
+            .organizationId(context.getOrganizationId())
+            .from(this.node.id())
+            .to(MessageRecipient.MANAGEMENT_APIS.name())
+            .tags(List.of(CommandTags.GROUP_DEFAULT_ROLES_UPDATE.name()))
+            .createdAt(Date.from(timestamp))
+            .updatedAt(Date.from(timestamp))
+            .build();
+
+        if (context.hasEnvironmentId()) {
+            command.setEnvironmentId(context.getEnvironmentId());
+        }
+        InvalidateRoleCacheCommandEntity eventData = getEventData(reference, member);
+
+        try {
+            String content = this.objectMapper.writeValueAsString(eventData);
+            command.setContent(content);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("Failed to serialize map of properties {}", eventData, e);
+            return;
+        }
+
+        try {
+            commandRepository.create(command);
+        } catch (TechnicalException e) {
+            LOGGER.error("Failed to create command to invalidate cached default roles for {}", eventData, e);
+        }
+    }
+
+    private static @NotNull InvalidateRoleCacheCommandEntity getEventData(MembershipReference reference, MembershipMember member) {
+        return InvalidateRoleCacheCommandEntity
+            .builder()
+            .referenceId(reference.getId())
+            .referenceType(reference.getType().name())
+            .memberType(member.getMemberType().name())
+            .memberId(member.getMemberId())
+            .build();
     }
 
     private void createAuditLog(
@@ -1330,7 +1403,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String primaryOwnerId = primaryOwner.getMemberId();
         if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
             primaryOwnerId =
-                groupService.findByIds(Set.of(primaryOwnerId)).stream().findFirst().map(GroupEntity::getApiPrimaryOwner).orElseThrow();
+                groupService
+                    .findByIds(Set.of(primaryOwnerId))
+                    .stream()
+                    .findFirst()
+                    .map(GroupEntity::getApiPrimaryOwner)
+                    .orElseThrow(() -> new NoSuchElementException("Can't find ApiPrimaryOwner for group " + primaryOwner.getMemberId()));
         }
 
         return primaryOwnerId;
@@ -1395,7 +1473,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
                         .getGroups();
                     case INTEGRATION -> integrationRepository
-                        .findById(referenceId)
+                        .findByIntegrationId(referenceId)
                         .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
                         .getGroups();
                     default -> Set.of();
@@ -1678,6 +1756,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
 
         this.transferOwnership(executionContext, MembershipReferenceType.API, RoleScope.API, apiId, member, newPrimaryOwnerRoles);
+        GenericApiEntity apiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId);
+        GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(GraviteeContext.getExecutionContext(), apiEntity);
+        searchEngineService.index(GraviteeContext.getExecutionContext(), genericApiEntity, false);
     }
 
     @Override
@@ -1697,7 +1778,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             );
     }
 
-    private void transferOwnership(
+    @Override
+    public void transferOwnership(
         ExecutionContext executionContext,
         MembershipReferenceType membershipReferenceType,
         RoleScope roleScope,
@@ -1979,7 +2061,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             .anyMatch(member -> member.getRoles().stream().anyMatch(RoleEntity::isApiPrimaryOwner));
     }
 
-    private void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId) {
+    public void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId) {
         String cachedRoleKey = computeCachedRoleKey(referenceType, referenceId, memberType, memberId);
         cachedRoles.invalidate(cachedRoleKey);
     }

@@ -97,7 +97,7 @@ export class RuntimeAlertCreateService {
   private loadEndpointsNames(apiId: string) {
     return this.apiService.get(apiId).pipe(
       map((api) => {
-        if (api.definitionVersion === 'FEDERATED') {
+        if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
           return [];
         }
         return api.definitionVersion === 'V4' ? this.mapGroups(api.endpointGroups) : this.mapGroups(api.proxy.groups);

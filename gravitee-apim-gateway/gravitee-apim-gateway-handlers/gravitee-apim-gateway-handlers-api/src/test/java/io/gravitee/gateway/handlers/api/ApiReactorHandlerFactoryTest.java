@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -38,6 +39,7 @@ import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPol
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
@@ -92,6 +94,9 @@ public class ApiReactorHandlerFactoryTest {
     private AccessPointManager accessPointManager;
 
     @Mock
+    private DictionaryManager dictionaryManager;
+
+    @Mock
     private EventManager eventManager;
 
     @Mock
@@ -99,6 +104,9 @@ public class ApiReactorHandlerFactoryTest {
 
     @Mock
     private OpenTelemetryFactory openTelemetryFactory;
+
+    @Mock
+    private LogGuardService logGuardService;
 
     @Before
     public void setUp() {
@@ -130,7 +138,9 @@ public class ApiReactorHandlerFactoryTest {
                 new HttpAcceptorFactory(false),
                 openTelemetryConfiguration,
                 openTelemetryFactory,
-                List.of()
+                List.of(),
+                dictionaryManager,
+                logGuardService
             );
     }
 

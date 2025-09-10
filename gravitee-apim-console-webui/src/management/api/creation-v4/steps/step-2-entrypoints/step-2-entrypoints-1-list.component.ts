@@ -18,17 +18,19 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { map, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
+import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4/agentToAgent';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiType, ConnectorPlugin, ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
+import { MCP_ENTRYPOINT_ID } from '../../../../../entities/entrypoint/mcp';
 
 @Component({
   selector: 'step-2-entrypoints-1-list',
@@ -69,10 +71,20 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       selectedEntrypointsIds: this.formBuilder.control(currentSelectedEntrypointIds, [Validators.required]),
     });
 
-    const connectorPlugins$: Observable<ConnectorPlugin[]> =
+    const connectorPlugins$: Observable<ConnectorPlugin[]> = (
       currentStepPayload.type === 'MESSAGE'
         ? this.connectorPluginsV2Service.listAsyncEntrypointPlugins()
-        : this.connectorPluginsV2Service.listSyncEntrypointPlugins();
+        : this.connectorPluginsV2Service.listSyncEntrypointPlugins()
+    ).pipe(
+      map((plugins) => {
+        // For PROXY, we filter out the MCP entrypoint plugin. MCP is manageable after the API creation.
+        plugins = plugins.filter((p) => p.id !== MCP_ENTRYPOINT_ID);
+
+        return currentStepPayload.isA2ASelected
+          ? plugins.filter((p) => p.id === AGENT_TO_AGENT.id)
+          : plugins.filter((p) => p.id !== AGENT_TO_AGENT.id);
+      }),
+    );
 
     connectorPlugins$.pipe(takeUntil(this.unsubscribe$)).subscribe((entrypointPlugins) => {
       this.entrypoints = entrypointPlugins

@@ -22,5 +22,6 @@ package io.gravitee.repository.management;
 public enum CommandTags {
     DATA_TO_INDEX,
     SUBSCRIPTION_FAILURE,
+    SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY,
     EMAIL_TEMPLATE_UPDATE,
 }

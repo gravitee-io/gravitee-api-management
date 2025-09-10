@@ -119,6 +119,9 @@ class SearchApiV4ConnectionLogsUseCaseTest {
                             .clientIdentifier("client-identifier")
                             .transactionId("transaction-id")
                             .status(200)
+                            .uri("/my-api")
+                            .gatewayResponseTime(42)
+                            .endpoint("https://my-api-example.com")
                             .build()
                     )
                 );

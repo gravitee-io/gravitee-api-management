@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
@@ -24,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Api;
@@ -130,11 +130,10 @@ public class ApiV4CategoriesUpgraderTest {
         verify(apiRepository, never()).update(any());
     }
 
-    @Test
+    @Test(expected = UpgraderException.class)
     public void shouldReturnFalseWhenExceptionOccursDuringUpgrade() throws Exception {
         when(categoryRepository.findAll()).thenThrow(new RuntimeException());
-        boolean result = apiV4CategoriesUpgrader.upgrade();
-        assertFalse(result);
+        apiV4CategoriesUpgrader.upgrade();
     }
 
     @Test
@@ -187,5 +186,16 @@ public class ApiV4CategoriesUpgraderTest {
         apiV4CategoriesUpgrader.upgrade();
 
         verify(apiRepository, times(1)).update(argThat(currentApi -> currentApi.getCategories().containsAll(List.of("id1", "id2"))));
+    }
+
+    @Test
+    public void shouldReturnTrueWhenNoCategoriesExist() throws Exception {
+        when(categoryRepository.findAll()).thenReturn(null);
+
+        boolean result = apiV4CategoriesUpgrader.upgrade();
+
+        verify(apiRepository, never()).search(any(), any(), any());
+        verify(apiRepository, never()).update(any());
+        assert (result);
     }
 }

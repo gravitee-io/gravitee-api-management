@@ -21,6 +21,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGrpcGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
@@ -30,7 +31,6 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.client.GrpcClientRequest;
 import io.vertx.grpc.common.GrpcStatus;
-import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
 import io.vertx.grpcio.server.GrpcIoServer;
 import java.util.ArrayList;
@@ -66,7 +66,7 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
     }
 
     @Test
-    void should_request_and_get_response() throws InterruptedException {
+    void should_request_and_get_response(GatewayDynamicConfig.HttpConfig httpConfig) {
         // to manage when to stop the test
         AtomicInteger replyCount = new AtomicInteger();
 
@@ -109,7 +109,7 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
 
                 // call the remote service
                 getGrpcClient()
-                    .request(gatewayAddress(), StreamingGreeterGrpc.getSayHelloStreamingMethod())
+                    .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
                     .onSuccess(request -> {
                         AtomicInteger i = new AtomicInteger();
                         // request each 100ms, with a new message
@@ -131,7 +131,9 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
                     })
                     .onComplete(response -> {
                         // end gracefully
-                        response.result().end();
+                        if (response.result() != null) {
+                            response.result().end();
+                        }
                         vertx.cancelTimer(timerId.get());
                         done.set(true);
                     });

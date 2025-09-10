@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -65,19 +66,19 @@ public class PlansDataFixUpgraderTest {
     @Mock
     private EmailService emailService;
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
         when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
 
-        assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(apiRepository, times(1)).search(any(), any(), any());
         verifyNoMoreInteractions(apiRepository);
     }
 
     @Test
-    public void upgrade_should_not_run_cause_not_enabled() {
+    public void upgrade_should_not_run_cause_not_enabled() throws UpgraderException {
         ReflectionTestUtils.setField(upgrader, "enabled", false);
 
         boolean success = upgrader.upgrade();
@@ -86,7 +87,7 @@ public class PlansDataFixUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_not_run_cause_already_executed_successfull() {
+    public void upgrade_should_not_run_cause_already_executed_successfull() throws UpgraderException {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
 
         boolean success = upgrader.upgrade();

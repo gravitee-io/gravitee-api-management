@@ -15,11 +15,40 @@
  */
 package io.gravitee.repository.noop.log.v4;
 
+import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
-import io.gravitee.repository.log.v4.model.analytics.*;
+import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
+import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
+import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
+import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
+import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
+import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
+import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
+import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
+import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public class NoOpAnalyticsRepository implements AnalyticsRepository {
@@ -74,6 +103,36 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
 
     @Override
     public Optional<TopFailedAggregate> searchTopFailedApis(QueryContext queryContext, TopFailedQueryCriteria criteria) {
+        return Optional.empty();
+    }
+
+    @Override
+    public List<HistogramAggregate> searchHistogram(QueryContext queryContext, HistogramQuery query) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<CountByAggregate> searchRequestsCountByEvent(QueryContext queryContext, RequestsCountByEventQuery requestsCountQuery) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<ApiMetricsDetail> findApiMetricsDetail(QueryContext queryContext, ApiMetricsDetailQuery query) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, EventAnalyticsQuery query) {
         return Optional.empty();
     }
 }

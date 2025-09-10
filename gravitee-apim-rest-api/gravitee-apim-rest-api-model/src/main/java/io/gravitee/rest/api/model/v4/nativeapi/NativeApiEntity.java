@@ -18,21 +18,14 @@ package io.gravitee.rest.api.model.v4.nativeapi;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.failover.Failover;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -40,13 +33,11 @@ import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,6 +70,9 @@ public class NativeApiEntity implements GenericApiEntity {
 
     @Schema(description = "API's crossId. Identifies API across environments.", example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
     private String crossId;
+
+    @Schema(description = "API's hrid. human-readable ID that identifies API across environments.", example = "echo-api")
+    private String hrid;
 
     @Schema(description = "API's name. Duplicate names can exists.", example = "My Api")
     private String name;
@@ -200,4 +194,7 @@ public class NativeApiEntity implements GenericApiEntity {
 
     @JsonIgnore
     private String referenceId;
+
+    @Schema(description = "Analytics settings")
+    private NativeAnalytics analytics;
 }

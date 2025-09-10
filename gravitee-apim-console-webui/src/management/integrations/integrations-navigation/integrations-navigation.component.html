@@ -22,26 +22,33 @@
       <ng-container *ngIf="integrationsService.currentIntegration() | async; let integration">
         <div class="title">
           <div class="title__name">{{ integration.name }}</div>
-          <div class="title__states">
-            <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
-          </div>
+          @if (integration | isApiIntegration) {
+            <div class="title__states">
+              <app-integration-status [agentStatus]="integration.agentStatus" />
+            </div>
+          }
         </div>
 
-        <ng-container *ngFor="let item of allowedItems">
-          <a
-            [routerLink]="item.routerLink"
-            routerLinkActive
-            #rla="routerLinkActive"
-            [routerLinkActiveOptions]="item?.routerLinkActiveOptions ?? { exact: false }"
-          >
-            <gio-submenu-item tabIndex="1" [active]="rla.isActive">
-              <div class="menu-item">
-                <mat-icon class="menu-item__icon" [svgIcon]="'gio:' + item.icon"> </mat-icon>
-                <span class="menu-item__text">{{ item.displayName }}</span>
-              </div>
-            </gio-submenu-item>
-          </a>
-        </ng-container>
+        @for (item of allowedItems; track item) {
+          @if (
+            ((integration | isA2aIntegration) && item.providerType.includes('A2A')) ||
+            ((integration | isApiIntegration) && item.providerType.includes('API'))
+          ) {
+            <a
+              [routerLink]="item.routerLink"
+              routerLinkActive
+              #rla="routerLinkActive"
+              [routerLinkActiveOptions]="item?.routerLinkActiveOptions ?? { exact: false }"
+            >
+              <gio-submenu-item tabIndex="1" [active]="rla.isActive">
+                <div class="menu-item">
+                  <mat-icon class="menu-item__icon" [svgIcon]="'gio:' + item.icon"> </mat-icon>
+                  <span class="menu-item__text">{{ item.displayName }}</span>
+                </div>
+              </gio-submenu-item>
+            </a>
+          }
+        }
       </ng-container>
     </gio-submenu>
   </div>

@@ -84,10 +84,9 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -105,13 +104,12 @@ import org.springframework.util.CollectionUtils;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class PageServiceImpl extends AbstractService implements PageService, ApplicationContextAware {
 
     public static final String SYSTEM_CONTRIBUTOR = "system";
 
     private static final Gson gson = new Gson();
-
-    private static final Logger logger = LoggerFactory.getLogger(PageServiceImpl.class);
 
     private static final String SENSITIVE_DATA_REPLACEMENT = "********";
     private static final String AUTO_FETCHED = "auto_fetched";
@@ -190,6 +188,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private static Page convert(NewPageEntity newPageEntity) {
         Page page = new Page();
         page.setCrossId(newPageEntity.getCrossId());
+        page.setHrid(newPageEntity.getHrid());
         page.setName(newPageEntity.getName());
         final PageType type = newPageEntity.getType();
         if (type != null) {
@@ -254,6 +253,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private static Page merge(UpdatePageEntity updatePageEntity, Page withUpdatePage) {
         Page page = new Page();
         page.setCrossId(updatePageEntity.getCrossId() != null ? updatePageEntity.getCrossId() : withUpdatePage.getCrossId());
+        page.setHrid(withUpdatePage.getHrid());
         page.setName(updatePageEntity.getName() != null ? updatePageEntity.getName() : withUpdatePage.getName());
         page.setContent(updatePageEntity.getContent() != null ? updatePageEntity.getContent() : withUpdatePage.getContent());
         page.setLastContributor(
@@ -329,6 +329,30 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             source.setConfiguration(pageSourceEntity.getConfiguration());
         }
         return source;
+    }
+
+    public static void validateFetchConfig(String jsonConfig) throws InvalidFetchCronExpressionException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root;
+        try {
+            root = mapper.readTree(jsonConfig);
+        } catch (IOException e) {
+            throw new InvalidFetchCronExpressionException("Invalid JSON format when trying to read the JSON config", e);
+        }
+        boolean autoFetch = root.path("autoFetch").asBoolean(false);
+        String fetchCron = root.path("fetchCron").asText(null);
+        log.debug("Parsed config - autoFetch: {}, fetchCron: {}", autoFetch, fetchCron);
+        boolean isInvalid = (fetchCron == null || fetchCron.trim().isEmpty() || "null".equalsIgnoreCase(fetchCron));
+        if (autoFetch && isInvalid) {
+            throw new InvalidFetchCronExpressionException("fetchCron is required when autoFetch is true.");
+        }
+        if (!isInvalid) {
+            try {
+                CronExpression.parse(fetchCron);
+            } catch (IllegalArgumentException e) {
+                throw new InvalidFetchCronExpressionException(fetchCron, e);
+            }
+        }
     }
 
     @SuppressWarnings("squid:S1166")
@@ -445,7 +469,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     }
                 }
             }
-            logger.debug("Impossible to determine page situation for the page " + pageId);
+            log.debug("Impossible to determine page situation for the page " + pageId);
             return null;
         }
     }
@@ -469,12 +493,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public io.gravitee.common.data.domain.Page<PageEntity> findAll(Pageable pageable) {
         Objects.requireNonNull(pageable, "FindAll requires a pageable parameter");
-        logger.debug("Find all pages with pageNumber {} and pageSize {}", pageable.getPageNumber(), pageable.getPageSize());
+        log.debug("Find all pages with pageNumber {} and pageSize {}", pageable.getPageNumber(), pageable.getPageSize());
         try {
             io.gravitee.common.data.domain.Page<Page> pages = this.pageRepository.findAll(convert(pageable));
             List<PageEntity> entities = pages.getContent().stream().map(this::convert).collect(toList());
 
-            logger.debug("{} pages found", pages.getPageElements());
+            log.debug("{} pages found", pages.getPageElements());
             return new io.gravitee.common.data.domain.Page<PageEntity>(
                 entities,
                 pages.getPageNumber(),
@@ -482,7 +506,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 pages.getTotalElements()
             );
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to fetch pages", ex);
+            log.error("An error occurs while trying to fetch pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to fetch pages", ex);
         }
     }
@@ -495,7 +519,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public PageEntity findById(String pageId, String acceptedLocale) {
         try {
-            logger.debug("Find page by ID: {}", pageId);
+            log.debug("Find page by ID: {}", pageId);
 
             Optional<Page> page = pageRepository.findById(pageId);
 
@@ -529,7 +553,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             throw new PageNotFoundException(pageId);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find a page using its ID {}", pageId, ex);
+            log.error("An error occurs while trying to find a page using its ID {}", pageId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find a page using its ID " + pageId, ex);
         }
     }
@@ -542,7 +566,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     new PageEntity.PageRevisionId(revision.get().getPageId(), revision.get().getRevision())
                 );
             } else {
-                logger.info("Revision is missing for the page {}", pageId);
+                log.info("Revision is missing for the page {}", pageId);
             }
         }
     }
@@ -580,7 +604,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             try {
                 descriptor = swaggerService.parse(pageEntity.getContent());
             } catch (SwaggerDescriptorException sde) {
-                logger.error("Parsing error for API id[{}]: {}", genericApiEntity.getId(), sde.getMessage());
+                log.error("Parsing error for API id[{}]: {}", genericApiEntity.getId(), sde.getMessage());
                 throw sde;
             }
 
@@ -605,7 +629,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 pageEntity.setContent(descriptor.toYaml());
             }
         } catch (JsonProcessingException e) {
-            logger.error("Unexpected error", e);
+            log.error("Unexpected error", e);
         }
     }
 
@@ -714,7 +738,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             return pages;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
+            log.error("An error occurs while trying to search pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
@@ -750,7 +774,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
             return null;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
+            log.error("An error occurs while trying to search pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
@@ -806,7 +830,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public PageEntity createPage(final ExecutionContext executionContext, String apiId, NewPageEntity newPageEntity, String newPageId) {
         try {
-            logger.debug("Create page {} for API {}", newPageEntity, apiId);
+            log.debug("Create page {} for API {}", newPageEntity, apiId);
 
             String id = newPageId != null && UUID.fromString(newPageId) != null ? newPageId : UuidString.generateRandom();
 
@@ -887,11 +911,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 checkMarkdownOrSwaggerConsistency(newPageEntity, newPageType);
                 createRevision = true;
             }
-
             if (newPageEntity.getContent() == null && newPageEntity.getSource() != null && newPageType != ROOT) {
                 fetchPage(newPageEntity);
             }
-
+            this.validatePageFetchConfig(newPageEntity);
             Page page = convert(newPageEntity);
 
             page.setId(id);
@@ -945,7 +968,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             return pageEntity;
         } catch (TechnicalException | FetcherException ex) {
-            logger.error("An error occurs while trying to create {}", newPageEntity, ex);
+            log.error("An error occurs while trying to create {}", newPageEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + newPageEntity, ex);
         }
     }
@@ -964,7 +987,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             pageRevisionService.create(page);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to create a revision for {}", page, ex);
+            log.error("An error occurs while trying to create a revision for {}", page, ex);
             throw new TechnicalManagementException("An error occurs while trying create a revision for " + page, ex);
         }
     }
@@ -1083,7 +1106,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         i.setHomepage(false);
                         pageRepository.update(i);
                     } catch (TechnicalException e) {
-                        logger.error("An error occurs while trying update homepage attribute from {}", page, e);
+                        log.error("An error occurs while trying update homepage attribute from {}", page, e);
                     }
                 });
         }
@@ -1097,7 +1120,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public PageEntity update(final ExecutionContext executionContext, String pageId, UpdatePageEntity updatePageEntity, boolean partial) {
         try {
-            logger.debug("Update Page {}", pageId);
+            log.debug("Update Page {}", pageId);
 
             Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
             if (!optPageToUpdate.isPresent()) {
@@ -1222,6 +1245,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (partial) {
                 page = merge(updatePageEntity, pageToUpdate);
             } else {
+                this.validatePageFetchConfig(updatePageEntity);
                 page = convert(updatePageEntity);
             }
 
@@ -1249,6 +1273,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             page.setId(pageId);
+            page.setHrid(pageToUpdate.getHrid());
             page.setUpdatedAt(new Date());
 
             // Copy fields from existing values
@@ -1347,6 +1372,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
+    private void validatePageFetchConfig(FetchablePageEntity pageEntity) {
+        if (pageEntity.getSource() != null && pageEntity.getSource().getConfiguration() != null) {
+            log.debug("Validating fetch config for page");
+            validateFetchConfig(pageEntity.getSource().getConfiguration());
+        }
+    }
+
     private boolean pageHasChanged(UpdatePageEntity updatePageEntity, Page pageToUpdate) {
         return pageHasChanged(convert(updatePageEntity), pageToUpdate);
     }
@@ -1442,7 +1474,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             // Update related page's translations
             changeTranslationPagesPublicationStatusAndVisibility(pageId, published, newVisibility);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
+            log.error("An error occurs while trying to search pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
@@ -1461,7 +1493,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     }
                 });
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
+            log.error("An error occurs while trying to search pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
@@ -1476,13 +1508,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         pageRepository.delete(p.getId());
                         this.deleteRelatedTranslations(p.getId());
                     } catch (TechnicalException ex) {
-                        logger.error("An error occurs while trying to delete Page {}", p.getId(), ex);
+                        log.error("An error occurs while trying to delete Page {}", p.getId(), ex);
                         throw new TechnicalManagementException("An error occurs while trying to delete Page " + p.getId(), ex);
                     }
                 });
             this.deleteRelatedTranslations(pageId);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
+            log.error("An error occurs while trying to search pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
@@ -1495,12 +1527,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     try {
                         pageRepository.delete(p.getId());
                     } catch (TechnicalException ex) {
-                        logger.error("An error occurs while trying to delete Page {}", p.getId(), ex);
+                        log.error("An error occurs while trying to delete Page {}", p.getId(), ex);
                         throw new TechnicalManagementException("An error occurs while trying to delete Page " + p.getId(), ex);
                     }
                 });
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
+            log.error("An error occurs while trying to search pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
@@ -1538,7 +1570,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             } catch (ResourceNotFoundException e) {
                 throw e;
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
                 throw new FetcherException(e.getMessage(), e);
             }
         }
@@ -1575,7 +1607,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             applicationContext.getAutowireCapableBeanFactory().autowireBean(fetcher);
             return fetcher;
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             throw new FetcherException(e.getMessage(), e);
         }
     }
@@ -1592,7 +1624,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
             return sb.toString();
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             throw new FetcherException(e.getMessage(), e);
         }
     }
@@ -1611,7 +1643,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Override
     public long execAutoFetch(ExecutionContext executionContext) {
-        logger.debug("Auto Fetch pages");
+        log.debug("Auto Fetch pages");
         try {
             List<Page> autoFetchPages = pageRepository.search(new PageCriteria.Builder().withAutoFetch().build());
             long nbOfFetchedPages = autoFetchPages
@@ -1622,10 +1654,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 .flatMap(Collection::stream)
                 .count();
 
-            logger.debug("{} pages fetched", nbOfFetchedPages);
+            log.debug("{} pages fetched", nbOfFetchedPages);
             return nbOfFetchedPages;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to fetch pages", ex);
+            log.error("An error occurs while trying to fetch pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to fetch pages", ex);
         }
     }
@@ -1635,7 +1667,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             Fetcher fetcher = getFetcher(pageItem.getSource());
             if (fetcher == null) {
-                logger.error("An error occurs while trying to fetch page source");
+                log.error("An error occurs while trying to fetch page source");
                 throw new TechnicalManagementException("An error occurs while trying to fetch page source");
             }
             FetcherConfiguration configuration = fetcher.getConfiguration();
@@ -1653,9 +1685,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 }
             }
         } catch (FetcherException e) {
-            logger.error("An error occurs while trying to initialize fetcher '{}'", pageItem.getSource().getType(), e);
+            log.error("An error occurs while trying to initialize fetcher '{}'", pageItem.getSource().getType(), e);
         } catch (IllegalArgumentException e) {
-            logger.error("An error occurs while trying to parse the cron expression", e);
+            log.error("An error occurs while trying to parse the cron expression", e);
         }
         return fetchRequired;
     }
@@ -1681,7 +1713,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 return List.of();
             }
         } catch (TechnicalException e) {
-            logger.error("An error occurs while trying to auto fetch page {}", page.getId(), e);
+            log.error("An error occurs while trying to auto fetch page {}", page.getId(), e);
             return Collections.emptyList();
         }
     }
@@ -1709,7 +1741,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     }
                 });
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to fetch pages", ex);
+            log.error("An error occurs while trying to fetch pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to fetch pages", ex);
         }
     }
@@ -1750,7 +1782,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 fetchPageAndDefineType(newPage, fetcher, descriptorPage.getSrc());
 
                 if (newPage.getType() == null) {
-                    logger.warn("Unable to find a source file to import. Please fix the descriptor content.");
+                    log.warn("Unable to find a source file to import. Please fix the descriptor content.");
                 } else {
                     String parentPath = descriptorPage.getDest() == null || descriptorPage.getDest().isEmpty()
                         ? getParentPathFromFilePath(descriptorPage.getSrc())
@@ -1769,7 +1801,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     );
                 }
             } catch (TechnicalException | FetcherException ex) {
-                logger.error("An error occurs while trying to import a gravitee descriptor", ex);
+                log.error("An error occurs while trying to import a gravitee descriptor", ex);
                 throw new TechnicalManagementException("An error occurs while trying to import a gravitee descriptor", ex);
             }
         }
@@ -1811,7 +1843,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     final GraviteeDescriptorEntity descriptorEntity = graviteeDescriptorService.read(getResourceContentAsString(resource));
                     return importDescriptor(executionContext, apiId, pageEntity, fetcher, descriptorEntity);
                 } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
+                    log.error(e.getMessage(), e);
                     throw new FetcherException(e.getMessage(), e);
                 }
             }
@@ -1850,16 +1882,16 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                             )
                         );
                     } catch (TechnicalException ex) {
-                        logger.error("An error occurs while trying to import a directory", ex);
+                        log.error("An error occurs while trying to import a directory", ex);
                         throw new TechnicalManagementException("An error occurs while trying to import a directory", ex);
                     }
                 } else {
-                    logger.warn("Importing a directory containing a file {} in a unknown format. Ignoring this file.", filename);
+                    log.warn("Importing a directory containing a file {} in a unknown format. Ignoring this file.", filename);
                 }
             }
             return createdPages;
         } catch (FetcherException ex) {
-            logger.error("An error occurs while trying to import a directory", ex);
+            log.error("An error occurs while trying to import a directory", ex);
             throw new TechnicalManagementException("An error occurs while trying import a directory", ex);
         }
     }
@@ -1964,7 +1996,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (page.getSource() != null) {
                 Fetcher fetcher = getFetcher(page.getSource());
                 if (fetcher == null) {
-                    logger.error("An error occurs while trying to fetch page source");
+                    log.error("An error occurs while trying to fetch page source");
                     throw new TechnicalManagementException("An error occurs while trying to fetch page source");
                 }
                 final FetcherConfiguration configuration = fetcher.getConfiguration();
@@ -1986,7 +2018,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
                 Fetcher fetcher = getFetcher(searchResult.get(0).getSource());
                 if (fetcher == null) {
-                    logger.error("An error occurs while trying to fetch page source");
+                    log.error("An error occurs while trying to fetch page source");
                     throw new TechnicalManagementException("An error occurs while trying to fetch page source");
                 }
                 final FetcherConfiguration configuration = fetcher.getConfiguration();
@@ -1997,7 +2029,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 return pageRepository.update(page);
             }
         } catch (TechnicalException | FetcherException ex) {
-            logger.error("An error occurs while trying to save the configuration", ex);
+            log.error("An error occurs while trying to save the configuration", ex);
             throw new TechnicalManagementException("An error occurs while trying to save the configuration", ex);
         }
     }
@@ -2041,12 +2073,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private TechnicalManagementException onUpdateFail(String pageId, TechnicalException ex) {
-        logger.error("An error occurs while trying to update page {}", pageId, ex);
+        log.error("An error occurs while trying to update page {}", pageId, ex);
         return new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
     }
 
     private TechnicalManagementException onUpdateFail(String pageId, FetcherException ex) {
-        logger.error("An error occurs while trying to update page {}", pageId, ex);
+        log.error("An error occurs while trying to update page {}", pageId, ex);
         return new TechnicalManagementException("An error occurs while trying to fetch content. " + ex.getMessage(), ex);
     }
 
@@ -2091,7 +2123,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public void delete(ExecutionContext executionContext, String pageId) {
         try {
-            logger.debug("Delete Page : {}", pageId);
+            log.debug("Delete Page : {}", pageId);
             Optional<Page> optPage = pageRepository.findById(pageId);
             if (!optPage.isPresent()) {
                 throw new PageNotFoundException(pageId);
@@ -2163,7 +2195,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             // remove from search engine
             searchEngineService.delete(executionContext, convert(page));
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to delete Page {}", pageId, ex);
+            log.error("An error occurs while trying to delete Page {}", pageId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete Page " + pageId, ex);
         }
     }
@@ -2196,11 +2228,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public int findMaxApiPageOrderByApi(String apiName) {
         try {
-            logger.debug("Find Max Order Page for api name : {}", apiName);
+            log.debug("Find Max Order Page for api name : {}", apiName);
             final Integer maxPageOrder = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(apiName, PageReferenceType.API);
             return maxPageOrder == null ? 0 : maxPageOrder;
         } catch (TechnicalException ex) {
-            logger.error("An error occured when searching max order page for api name [{}]", apiName, ex);
+            log.error("An error occured when searching max order page for api name [{}]", apiName, ex);
             throw new TechnicalManagementException("An error occured when searching max order page for api name " + apiName, ex);
         }
     }
@@ -2208,14 +2240,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public int findMaxPortalPageOrder(String referenceId) {
         try {
-            logger.debug("Find Max Order Portal Page");
+            log.debug("Find Max Order Portal Page");
             final Integer maxPageOrder = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(
                 referenceId,
                 PageReferenceType.ENVIRONMENT
             );
             return maxPageOrder == null ? 0 : maxPageOrder;
         } catch (TechnicalException ex) {
-            logger.error("An error occured when searching max order portal page", ex);
+            log.error("An error occured when searching max order portal page", ex);
             throw new TechnicalManagementException("An error occured when searching max order portal ", ex);
         }
     }
@@ -2223,7 +2255,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public PageEntity fetch(final ExecutionContext executionContext, String pageId, String contributor) {
         try {
-            logger.debug("Fetch page {}", pageId);
+            log.debug("Fetch page {}", pageId);
 
             Page pageToUpdate = pageRepository.findById(pageId).orElseThrow(() -> new PageNotFoundException(pageId));
 
@@ -2248,7 +2280,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             fetchPage(updatePageEntity);
         } catch (ResourceNotFoundException e) {
-            logger.debug("page [{}] was not found in the source, it will be removed in the database too", page.getName());
+            log.debug("page [{}] was not found in the source, it will be removed in the database too", page.getName());
             pageRepository.delete(page.getId());
             return null;
         } catch (FetcherException e) {
@@ -2291,7 +2323,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             FilesFetcher fetcher = (FilesFetcher) _fetcher;
             return importDirectory(executionContext, apiId, pageEntity, fetcher);
         } catch (FetcherException ex) {
-            logger.error("An error occurs while trying to import a directory", ex);
+            log.error("An error occurs while trying to import a directory", ex);
             throw new TechnicalManagementException("An error occurs while trying import a directory", ex);
         }
     }
@@ -2314,6 +2346,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
 
         pageEntity.setId(page.getId());
+        pageEntity.setHrid(page.getHrid());
         pageEntity.setCrossId(page.getCrossId());
         pageEntity.setName(page.getName());
         pageEntity.setHomepage(page.isHomepage());
@@ -2379,7 +2412,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     return this.computeParentPath(optParent.get(), "/" + optParent.get().getName() + path);
                 }
             } catch (TechnicalException ex) {
-                logger.error("An error occurs while trying to find a page using its ID {}", parentId, ex);
+                log.error("An error occurs while trying to find a page using its ID {}", parentId, ex);
             }
         }
         return path;
@@ -2396,7 +2429,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             });
             return searchResult;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to search pages", ex);
+            log.error("An error occurs while trying to search pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
@@ -2437,7 +2470,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             try {
                 Fetcher fetcher = getFetcher(pageSource);
                 if (fetcher == null) {
-                    logger.error("An error occurs while trying to fetch page source");
+                    log.error("An error occurs while trying to fetch page source");
                     throw new TechnicalManagementException("An error occurs while trying to fetch page source");
                 }
                 FetcherConfiguration fetcherConfiguration = fetcher.getConfiguration();
@@ -2446,7 +2479,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 }
                 entity.setConfiguration((new ObjectMapper()).valueToTree(fetcherConfiguration));
             } catch (FetcherException e) {
-                logger.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
         }
         return entity;
@@ -2461,7 +2494,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 try {
                     field.set(fetcherConfiguration, SENSITIVE_DATA_REPLACEMENT);
                 } catch (IllegalAccessException e) {
-                    logger.error("Error while removing fetcher sensitive data", e);
+                    log.error("Error while removing fetcher sensitive data", e);
                 }
                 field.setAccessible(accessible);
             }
@@ -2471,7 +2504,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private void mergeSensitiveData(FetcherConfiguration originalFetcherConfiguration, Page page) throws FetcherException {
         Fetcher fetcher = getFetcher(page.getSource());
         if (fetcher == null) {
-            logger.error("An error occurs while trying to fetch page source");
+            log.error("An error occurs while trying to fetch page source");
             throw new TechnicalManagementException("An error occurs while trying to fetch page source");
         }
         FetcherConfiguration updatedFetcherConfiguration = fetcher.getConfiguration();
@@ -2489,7 +2522,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         field.set(updatedFetcherConfiguration, field.get(originalFetcherConfiguration));
                     }
                 } catch (IllegalAccessException | IllegalArgumentException e) {
-                    logger.error("Error while merging original fetcher sensitive data to new fetcher", e);
+                    log.error("Error while merging original fetcher sensitive data to new fetcher", e);
                 }
                 field.setAccessible(accessible);
             }
@@ -2526,7 +2559,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         pageType = optParent.get().getType();
                     }
                 } catch (TechnicalException e) {
-                    logger.error("An error occurs while trying to fetch parent page");
+                    log.error("An error occurs while trying to fetch parent page");
                 }
             }
 
@@ -2700,7 +2733,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             var count = pageRepository.countByParentIdAndIsPublished(folderId);
             return count > 0;
         } catch (TechnicalException e) {
-            logger.error("An error occurs while trying to count Pages with parentId {}", folderId, e);
+            log.error("An error occurs while trying to count Pages with parentId {}", folderId, e);
             throw new TechnicalManagementException("An error occurred while evaluating if folder has children");
         }
     }
@@ -2724,7 +2757,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             } while (!pages.getContent().isEmpty());
             return false;
         } catch (TechnicalException e) {
-            logger.error("An error occurred while checking if media is used in pages", e);
+            log.error("An error occurred while checking if media is used in pages", e);
             throw new TechnicalManagementException("An error occurred while checking if media is used in pages", e);
         }
     }
@@ -2746,7 +2779,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             JsonNode jsonNode = objectMapper.readTree(pageDefinition);
             return createPage(executionContext, apiId, newPage, (jsonNode.get("id") != null ? jsonNode.get("id").asText() : null));
         } catch (JsonProcessingException e) {
-            logger.error("An error occurs while trying to JSON deserialize the Page {}", pageDefinition, e);
+            log.error("An error occurs while trying to JSON deserialize the Page {}", pageDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the Page definition.");
         }
     }
@@ -2828,7 +2861,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 findSystemFolder(executionContext.getEnvironmentId(), apiId)
                     .ifPresent(sysFolder -> {
                         if (!sysFolder.getId().equals(pageEntityToImport.getId())) {
-                            logger.warn(
+                            log.warn(
                                 "An existing system folder has been found for API [{}] on environment [{}] with another ID, the existing system folder will be updated",
                                 apiId,
                                 executionContext.getEnvironmentId()

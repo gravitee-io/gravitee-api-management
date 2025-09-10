@@ -17,7 +17,7 @@ import { ComponentHarness, parallel } from '@angular/cdk/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiAnalyticsRequestStatsHarness } from '../components/api-analytics-requests-stats/api-analytics-request-stats.component.harness';
-import { ApiAnalyticsFiltersBarHarness } from '../components/api-analytics-filters-bar/api-analytics-filters-bar.component.harness';
+import { ApiAnalyticsMessageFiltersBarHarness } from '../components/api-analytics-message-filters-bar/api-analytics-message-filters-bar.component.harness';
 import { ApiAnalyticsResponseStatusRangesHarness } from '../../../../../shared/components/api-analytics-response-status-ranges/api-analytics-response-status-ranges.component.harness';
 
 export class ApiAnalyticsMessageHarness extends ComponentHarness {
@@ -33,7 +33,7 @@ export class ApiAnalyticsMessageHarness extends ComponentHarness {
 
   protected entrypointsRows = this.locatorForAll(DivHarness.with({ selector: `.entrypoints__rows__row` }));
 
-  getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsFiltersBarHarness);
+  getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsMessageFiltersBarHarness);
 
   async isEmptyPanelDisplayed(): Promise<boolean> {
     return (await this.emptyPanelHarness()) !== null;

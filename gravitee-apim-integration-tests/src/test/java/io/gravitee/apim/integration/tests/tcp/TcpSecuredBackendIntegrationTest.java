@@ -28,33 +28,26 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.utils.ResourceUtils;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.definition.model.v4.ssl.SslOptions;
-import io.gravitee.definition.model.v4.ssl.TrustStore;
-import io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.node.api.certificate.KeyStoreLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.tcp.proxy.TcpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.tcp.proxy.TcpProxyEntrypointConnectorFactory;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.net.JksOptions;
-import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
-import java.util.Base64;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ParameterContext;
 
 public class TcpSecuredBackendIntegrationTest {
 
@@ -75,7 +68,7 @@ public class TcpSecuredBackendIntegrationTest {
                 throw new AssertionError("TCP api should only be v4 api");
             }
             final Api apiDefinition = (Api) reactableApi.getDefinition();
-            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().get(0).getEndpoints().get(0);
+            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().getFirst().getEndpoints().getFirst();
 
             tcpEndpoint.setConfiguration(tcpEndpoint.getConfiguration().replace("\"secured\":false", "\"secured\":true"));
 
@@ -146,7 +139,7 @@ public class TcpSecuredBackendIntegrationTest {
                 throw new AssertionError("TCP api should only be v4 api");
             }
             final Api apiDefinition = (Api) reactableApi.getDefinition();
-            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().get(0).getEndpoints().get(0);
+            final Endpoint tcpEndpoint = apiDefinition.getEndpointGroups().getFirst().getEndpoints().getFirst();
 
             tcpEndpoint.setConfiguration(tcpEndpoint.getConfiguration().replace("\"secured\":false", "\"secured\":true"));
 
@@ -211,15 +204,19 @@ public class TcpSecuredBackendIntegrationTest {
         protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
             super.configureGateway(gatewayConfigurationBuilder);
             // enables the TCP proxy
-            gatewayConfigurationBuilder.configureTcpGateway(tcpPort());
+            gatewayConfigurationBuilder.enableTcpGateway();
             gatewayConfigurationBuilder.set("tcp.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
         }
 
         @Override
-        protected void configureHttpClient(HttpClientOptions options) {
+        protected void configureHttpClient(
+            HttpClientOptions options,
+            GatewayDynamicConfig.Config gatewayConfig,
+            ParameterContext parameterContext
+        ) {
             options
                 .setDefaultHost("localhost")
-                .setDefaultPort(tcpPort())
+                .setDefaultPort(gatewayConfig.tcpPort())
                 .setForceSni(true)
                 .setSsl(true)
                 .setVerifyHost(false)

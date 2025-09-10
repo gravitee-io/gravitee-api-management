@@ -38,17 +38,15 @@ import java.util.Map.Entry;
 import javax.wsdl.*;
 import javax.wsdl.extensions.schema.Schema;
 import javax.xml.namespace.QName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 /**
  * @author GraviteeSource Team
  */
+@Slf4j
 public class WSDLToOpenAPIConverter implements OpenAPIConverter {
-
-    public static final Logger LOGGER = LoggerFactory.getLogger(WSDLToOpenAPIConverter.class);
 
     public static final String SOAP_EXTENSION_ENVELOPE = "x-graviteeio-soap-envelope";
     public static final String SOAP_EXTENSION_ACTION = "x-graviteeio-soap-action";
@@ -86,6 +84,7 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
             reader.setFeature("javax.wsdl.importDocuments", true);
             return reader.readWSDL(null, new InputSource(stream));
         } catch (WSDLException e) {
+            log.error("Unable to read WSDL from input stream.", e);
             throw new WsdlDescriptorException("Unable to read WSDL");
         }
     }

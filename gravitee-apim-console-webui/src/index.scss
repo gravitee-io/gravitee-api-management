@@ -27,6 +27,8 @@
 // Not encapsulated because used when encapsulation is .mat
 @use 'components/contextual/contextual-doc.component';
 @use 'management/submenu';
+@import 'components/identityPicture/identityPicture';
+@import 'components/user-autocomplete/user-autocomplete';
 
 // Try to encapsulate all scss with .bootstrap class
 :where(.bootstrap, .md-dialog-container) {
@@ -49,6 +51,7 @@
   @import 'management/stepper';
   @import 'management/analytics/analytics-dashboard/analytics-dashboard';
   @import 'management/application/components/api-key/api-keys';
+  @import 'management/application/details/logs/application-log';
 
   @import 'user/my-accout/user';
 }

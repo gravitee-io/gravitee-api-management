@@ -1,0 +1,119 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="title">
+  <div>
+    <h1>Clusters</h1>
+  </div>
+  <button
+    *gioPermission="{ anyOf: ['environment-cluster-c'] }"
+    (click)="addCluster()"
+    mat-raised-button
+    color="primary"
+    aria-label="add-cluster"
+  >
+    <mat-icon svgIcon="gio:plus"></mat-icon>Add cluster
+  </button>
+</div>
+
+@if (pageTableVM$ | async; as pageTableVM) {
+  <gio-table-wrapper
+    class="table"
+    [filters]="filters"
+    [length]="pageTableVM.totalItems"
+    [paginationPageSizeOptions]="[25, 50, 100]"
+    (filtersChange)="onFiltersChanged($event)"
+  >
+    <table mat-table matSort [dataSource]="pageTableVM.items" aria-label="Clusters">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="name">Cluster Name</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="cell">
+            <div *gioPermission="{ anyOf: ['cluster-definition-u'] }; else readOnly; roleContext: { role: 'CLUSTER', id: element.id }">
+              <a [routerLink]="[element.id]" class="cell__name">{{ element.name }}</a>
+            </div>
+
+            <ng-template #readOnly
+              ><span class="cell__name">{{ element.name }}</span></ng-template
+            >
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="bootstrapServer">
+        <th mat-header-cell *matHeaderCellDef>Bootstrap Server</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.bootstrapServer }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="security">
+        <th mat-header-cell *matHeaderCellDef>Security</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.security }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="lastUpdated">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="updatedAt">Last updated</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.updatedAt | date: 'medium' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let element">
+          <div class="actions_btn">
+            <button
+              *gioPermission="{ anyOf: ['cluster-definition-u'] }; roleContext: { role: 'CLUSTER', id: element.id }"
+              mat-button
+              aria-label="Button to edit"
+              matTooltip="Edit"
+              [routerLink]="[element.id]"
+            >
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+            </button>
+
+            <button
+              *gioPermission="{ anyOf: ['cluster-definition-d'] }; roleContext: { role: 'CLUSTER', id: element.id }"
+              type="button"
+              mat-button
+              aria-label="Button to remove Cluster"
+              matTooltip="Remove"
+              (click)="remove(element)"
+            >
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+      <!-- Row shown when there is no data -->
+      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+        <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+          <div *ngIf="!pageTableVM.isLoading" class="mat-body">No Clusters</div>
+          <div *ngIf="pageTableVM.isLoading" class="mat-body">Loading...</div>
+        </td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
+}

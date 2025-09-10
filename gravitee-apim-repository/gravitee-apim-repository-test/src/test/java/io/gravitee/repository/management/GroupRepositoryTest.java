@@ -17,9 +17,19 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.GroupCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Group;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -72,7 +82,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(group.isPresent());
         assertEquals("group-application-1", group.get().getId());
         assertEquals("group-application-1 environment-id", group.get().getEnvironmentId());
-        assertEquals("group-application-1 name", group.get().getName());
+        assertEquals("Group application 1", group.get().getName());
         assertTrue(group.get().isLockApiRole());
         assertTrue(group.get().isLockApplicationRole());
         assertTrue(group.get().isSystemInvitation());
@@ -127,7 +137,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(groups);
         assertFalse("not empty", groups.isEmpty());
-        assertEquals(7, groups.size());
+        assertEquals(14, groups.size());
     }
 
     @Test
@@ -136,7 +146,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(groups);
         assertFalse("not empty", groups.isEmpty());
-        assertEquals(1, groups.size());
+        assertEquals(7, groups.size());
     }
 
     @Test
@@ -201,5 +211,187 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         groupRepository.update(null);
         fail("A null group should not be updated");
+    }
+
+    @Test
+    public void search_byAllCriterias() throws TechnicalException {
+        int pageSize = 3;
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(pageSize).build();
+        String environmentId = "DEFAULT";
+        Set<String> idId = Set.of("group-1", "group-2", "group-3", "group-4", "group-5", "group-6", "group-7");
+        String query = "group";
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(environmentId).idIn(idId).query(query).build();
+        Page<Group> groups = groupRepository.search(groupCriteria, pageable);
+        List<String> expectedGroups = groupRepository
+            .findAll()
+            .stream()
+            .filter(group -> group.getEnvironmentId().equals(environmentId))
+            .filter(group -> idId.contains(group.getId()))
+            .filter(group -> group.getName().toLowerCase().contains(query.toLowerCase()))
+            .map(Group::getName)
+            .sorted(String.CASE_INSENSITIVE_ORDER)
+            .toList();
+        assertAll(
+            () -> assertThat(groups.getContent().stream().map(Group::getName).toList()).isEqualTo(expectedGroups.subList(0, pageSize)),
+            () -> assertThat(groups.getPageElements()).isEqualTo(pageSize),
+            () -> assertThat(groups.getPageNumber()).isEqualTo(1),
+            () -> assertThat(groups.getTotalElements()).isEqualTo(expectedGroups.size())
+        );
+    }
+
+    @Test
+    public void search_byEnvironmentId() throws TechnicalException {
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
+        String environmentId = "DEFAULT";
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(environmentId).build();
+        Page<Group> groups = groupRepository.search(groupCriteria, pageable);
+        var expectedGroups = groupRepository
+            .findAll()
+            .stream()
+            .filter(group -> environmentId.equals(group.getEnvironmentId()))
+            .map(Group::getName)
+            .sorted(String.CASE_INSENSITIVE_ORDER)
+            .toList();
+        assertAll(
+            () -> assertThat(groups.getContent().stream().map(Group::getName).toList()).isEqualTo(expectedGroups.subList(0, 3)),
+            () -> assertThat(groups.getPageElements()).isEqualTo(3),
+            () -> assertThat(groups.getPageNumber()).isEqualTo(1),
+            () -> assertThat(groups.getTotalElements()).isEqualTo(expectedGroups.size())
+        );
+    }
+
+    @Test
+    public void search_byIdIn() throws TechnicalException {
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
+        Set<String> idId = Set.of("group-1", "group-2", "group-3", "group-4", "group-5", "group-6");
+        GroupCriteria groupCriteria = GroupCriteria.builder().idIn(idId).build();
+        Page<Group> groups = groupRepository.search(groupCriteria, pageable);
+        var expectedGroups = groupRepository
+            .findAll()
+            .stream()
+            .filter(group -> idId.contains(group.getId()))
+            .map(Group::getName)
+            .sorted(String.CASE_INSENSITIVE_ORDER)
+            .toList();
+        assertAll(
+            () -> assertThat(groups.getContent().stream().map(Group::getName).toList()).isEqualTo(expectedGroups.subList(0, 3)),
+            () -> assertThat(groups.getPageElements()).isEqualTo(3),
+            () -> assertThat(groups.getPageNumber()).isEqualTo(1),
+            () -> assertThat(groups.getTotalElements()).isEqualTo(expectedGroups.size())
+        );
+    }
+
+    @Test
+    public void search_byQuery() {
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
+        String query = "for TEsti";
+        GroupCriteria groupCriteria = GroupCriteria.builder().query(query).build();
+        Page<Group> groups = groupRepository.search(groupCriteria, pageable);
+        assertAll(
+            () -> assertThat(groups.getContent().stream().map(Group::getName).toList()).isEqualTo(List.of("7th g. for testing")),
+            () -> assertThat(groups.getPageElements()).isEqualTo(1),
+            () -> assertThat(groups.getPageNumber()).isEqualTo(1),
+            () -> assertThat(groups.getTotalElements()).isEqualTo(1)
+        );
+    }
+
+    @Test
+    public void search_byEnvironmentIdAndIdIn() throws TechnicalException {
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
+        String environmentId = "DEFAULT";
+        Set<String> idId = Set.of("group-1", "group-2", "group-3", "group-4", "group-5", "group-6", "group-7");
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(environmentId).idIn(idId).build();
+        Page<Group> groups = groupRepository.search(groupCriteria, pageable);
+        List<String> expectedGroups = groupRepository
+            .findAll()
+            .stream()
+            .filter(group -> group.getEnvironmentId().equals(environmentId))
+            .filter(group -> idId.contains(group.getId()))
+            .map(Group::getName)
+            .sorted(String.CASE_INSENSITIVE_ORDER)
+            .toList();
+        assertAll(
+            () -> assertThat(groups.getContent().stream().map(Group::getName).toList()).isEqualTo(expectedGroups.subList(0, 3)),
+            () -> assertThat(groups.getPageElements()).isEqualTo(3),
+            () -> assertThat(groups.getPageNumber()).isEqualTo(1),
+            () -> assertThat(groups.getTotalElements()).isEqualTo(expectedGroups.size())
+        );
+    }
+
+    @Test
+    public void search_byEnvironmentIdAndQuery() throws TechnicalException {
+        int pageSize = 3;
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(pageSize).build();
+        String environmentId = "DEFAULT";
+        String query = "group";
+        GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(environmentId).query(query).build();
+        Page<Group> groups = groupRepository.search(groupCriteria, pageable);
+        List<String> expectedGroups = groupRepository
+            .findAll()
+            .stream()
+            .filter(group -> group.getEnvironmentId().equals(environmentId))
+            .filter(group -> group.getName().toLowerCase().contains(query.toLowerCase()))
+            .map(Group::getName)
+            .sorted(String.CASE_INSENSITIVE_ORDER)
+            .toList();
+        assertAll(
+            () -> assertThat(groups.getContent().stream().map(Group::getName).toList()).isEqualTo(expectedGroups.subList(0, pageSize)),
+            () -> assertThat(groups.getPageElements()).isEqualTo(pageSize),
+            () -> assertThat(groups.getPageNumber()).isEqualTo(1),
+            () -> assertThat(groups.getTotalElements()).isEqualTo(expectedGroups.size())
+        );
+    }
+
+    @Test
+    public void search_byIdInAndQuery() throws TechnicalException {
+        int pageSize = 3;
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(pageSize).build();
+        Set<String> idId = Set.of("group-1", "group-2", "group-3", "group-4", "group-5", "group-6", "group-7");
+        String query = "group";
+        GroupCriteria groupCriteria = GroupCriteria.builder().idIn(idId).query(query).build();
+        Page<Group> groups = groupRepository.search(groupCriteria, pageable);
+        List<String> expectedGroups = groupRepository
+            .findAll()
+            .stream()
+            .filter(group -> idId.contains(group.getId()))
+            .filter(group -> group.getName().toLowerCase().contains(query.toLowerCase()))
+            .map(Group::getName)
+            .sorted(String.CASE_INSENSITIVE_ORDER)
+            .toList();
+        assertAll(
+            () -> assertThat(groups.getContent().stream().map(Group::getName).toList()).isEqualTo(expectedGroups.subList(0, pageSize)),
+            () -> assertThat(groups.getPageElements()).isEqualTo(pageSize),
+            () -> assertThat(groups.getPageNumber()).isEqualTo(1),
+            () -> assertThat(groups.getTotalElements()).isEqualTo(expectedGroups.size())
+        );
+    }
+
+    @Test
+    public void search_criteriaEmpty() throws TechnicalException {
+        int pageSize = 6;
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(pageSize).build();
+        GroupCriteria groupCriteria = GroupCriteria.builder().build();
+        Page<Group> groups = groupRepository.search(groupCriteria, pageable);
+        List<String> expectedGroups = groupRepository.findAll().stream().map(Group::getName).sorted(String.CASE_INSENSITIVE_ORDER).toList();
+        assertAll(
+            () -> assertThat(groups.getContent().stream().map(Group::getName).toList()).isEqualTo(expectedGroups.subList(0, pageSize)),
+            () -> assertThat(groups.getPageElements()).isEqualTo(pageSize),
+            () -> assertThat(groups.getPageNumber()).isEqualTo(1),
+            () -> assertThat(groups.getTotalElements()).isEqualTo(expectedGroups.size())
+        );
+    }
+
+    @Test
+    public void search_criteriaNull() throws TechnicalException {
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
+        GroupCriteria groupCriteria = null;
+        Page<Group> groups = groupRepository.search(groupCriteria, pageable);
+        List<String> expectedGroups = groupRepository.findAll().stream().map(Group::getName).sorted(String.CASE_INSENSITIVE_ORDER).toList();
+        assertAll(
+            () -> assertThat(groups.getContent().stream().map(Group::getName).toList()).isEqualTo(expectedGroups.subList(0, 3)),
+            () -> assertThat(groups.getPageElements()).isEqualTo(3),
+            () -> assertThat(groups.getPageNumber()).isEqualTo(1),
+            () -> assertThat(groups.getTotalElements()).isEqualTo(expectedGroups.size())
+        );
     }
 }

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -84,17 +85,13 @@ public class EventsLatestUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            migrateApiEvents();
-            migrateDictionaryEvents();
-            migrateOrganizationEvents();
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                migrateApiEvents();
+                migrateDictionaryEvents();
+                migrateOrganizationEvents();
+                return true;
+            });
     }
 
     private void migrateApiEvents() throws TechnicalException {

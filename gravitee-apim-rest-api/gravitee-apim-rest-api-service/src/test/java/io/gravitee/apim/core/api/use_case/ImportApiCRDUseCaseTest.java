@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -83,6 +84,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
@@ -121,6 +123,7 @@ import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.metadata.model.Metadata;
+import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
@@ -168,6 +171,8 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.notification.NotificationConfigType;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -259,6 +264,7 @@ class ImportApiCRDUseCaseTest {
     PropertyDomainService propertyDomainService;
     UpdateNativeApiDomainService updateNativeApiDomainService;
     UpdateNativeApiUseCase updateNativeApiUseCase = null;
+    NotificationCRDDomainService notificationCRDService = mock(NotificationCRDDomainService.class);
 
     ImportApiCRDUseCase useCase;
 
@@ -389,7 +395,8 @@ class ImportApiCRDUseCaseTest {
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
             new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
-            new ValidatePlanDomainService(planValidatorDomainService)
+            new ValidatePlanDomainService(planValidatorDomainService),
+            new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService))
         );
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
@@ -484,7 +491,8 @@ class ImportApiCRDUseCaseTest {
                 pageCrudService,
                 createApiDocumentationDomainService,
                 updateApiDocumentationDomainService,
-                crdValidator
+                crdValidator,
+                notificationCRDService
             );
 
         enableApiPrimaryOwnerMode();
@@ -626,6 +634,7 @@ class ImportApiCRDUseCaseTest {
         @Test
         void should_create_and_index_a_new_api() {
             var expected = expectedApi().setPlans(List.of());
+            expected.setHrid(expected.getCrossId());
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of()).build()));
 
@@ -879,6 +888,21 @@ class ImportApiCRDUseCaseTest {
                     tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
                     tuple(folder.getId(), folder.getCrossId(), folder.getName())
                 );
+        }
+
+        @Test
+        void should_create_notification() {
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                .thenAnswer(call -> call.getArgument(0));
+
+            PortalNotificationConfigEntity notification = new PortalNotificationConfigEntity();
+            notification.setReferenceId(API_ID);
+            notification.setHooks(List.of());
+            notification.setGroups(List.of());
+            notification.setConfigType(NotificationConfigType.PORTAL);
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().consoleNotificationConfiguration(notification).build()));
+
+            verify(notificationCRDService, atMostOnce()).syncApiPortalNotifications(API_ID, ACTOR_USER_ID, notification);
         }
 
         @Test
@@ -1675,6 +1699,22 @@ class ImportApiCRDUseCaseTest {
                     tuple(markdown.getId(), markdown.getCrossId(), markdown.getName()),
                     tuple(folder.getId(), folder.getCrossId(), folder.getName())
                 );
+        }
+
+        @Test
+        void should_save_notification() {
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
+                .thenAnswer(call -> call.getArgument(0));
+
+            PortalNotificationConfigEntity notification = new PortalNotificationConfigEntity();
+            notification.setReferenceId(API_ID);
+            notification.setHooks(List.of());
+            notification.setGroups(List.of());
+            notification.setConfigType(NotificationConfigType.PORTAL);
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().consoleNotificationConfiguration(notification).build()));
+
+            verify(notificationCRDService, atMostOnce()).syncApiPortalNotifications(API_ID, ACTOR_USER_ID, notification);
         }
     }
 

@@ -21,6 +21,7 @@ import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
@@ -54,6 +55,7 @@ import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseManager;
@@ -187,7 +189,9 @@ public class ApiHandlerConfiguration {
         HttpAcceptorFactory httpAcceptorFactory,
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
-        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories
+        @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
+        DictionaryManager dictionaryManager,
+        LogGuardService logGuardService
     ) {
         return new ApiReactorHandlerFactory(
             applicationContext,
@@ -206,7 +210,9 @@ public class ApiHandlerConfiguration {
             httpAcceptorFactory,
             openTelemetryConfiguration,
             openTelemetryFactory,
-            instrumenterTracerFactories
+            instrumenterTracerFactories,
+            dictionaryManager,
+            logGuardService
         );
     }
 
@@ -258,7 +264,9 @@ public class ApiHandlerConfiguration {
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
         @Autowired(required = false) List<InstrumenterTracerFactory> instrumenterTracerFactories,
-        GatewayConfiguration gatewayConfiguration
+        GatewayConfiguration gatewayConfiguration,
+        DictionaryManager dictionaryManager,
+        LogGuardService logGuardService
     ) {
         return new DefaultApiReactorFactory(
             applicationContext,
@@ -279,7 +287,9 @@ public class ApiHandlerConfiguration {
             openTelemetryConfiguration,
             openTelemetryFactory,
             instrumenterTracerFactories,
-            gatewayConfiguration
+            gatewayConfiguration,
+            dictionaryManager,
+            logGuardService
         );
     }
 

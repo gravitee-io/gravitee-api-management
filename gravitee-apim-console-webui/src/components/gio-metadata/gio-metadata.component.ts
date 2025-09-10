@@ -87,6 +87,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   displayedColumns: string[];
   permissionPrefix: string;
   referenceType: 'API' | 'Application' | 'Global';
+  headerTitle: string;
   totalResults: number;
   form: FormGroup;
 
@@ -116,6 +117,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.referenceType = this.metadataSaveServices.type;
+    this.headerTitle = this.referenceType === 'Application' ? 'Notification Template' : this.referenceType;
     this.permissionPrefix = this.referenceType === 'Global' ? 'environment' : this.referenceType.toLowerCase();
     this.displayedColumns = ['key', 'name', 'format', 'value', 'actions'];
     this.filterLocally = this.metadataSaveServices.paginate !== true;

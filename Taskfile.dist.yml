@@ -1,0 +1,54 @@
+#
+# Copyright © 2015 The Gravitee team (http://gravitee.io)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+version: '3'
+
+env:
+  DOCKER_REGISTRY: '{{.DOCKER_REGISTRY | default "graviteeio.azurecr.io"}}'
+  DOCKER_TAG: '{{.DOCKER_TAG | default "local"}}'
+
+tasks:
+  build-quick:
+    desc: "Build management-api & gateway quickly without running tests & validations steps"
+    cmds:
+      - mvn clean install -DskipTests -Dskip.validation -Dbundle=dev -T 1C
+
+  integration-test:
+    desc: "Run all tests in gravitee-apim-integration-tests"
+    env:
+      JDK_JAVA_OPTIONS: -XX:+MaxFDLimit
+    cmds:
+      - mvn -U -T2C -am -pl gravitee-apim-integration-tests clean install -Dskip.validation=true -DskipTests -Dbundle=dev -Dmaven.test.skip
+      - ulimit -n 102400
+      - mvn -fae -pl gravitee-apim-integration-tests install -Dbundle=dev
+
+  docker:
+    desc: "Build all 🐳 images"
+    cmds:
+      - task: docker-backend
+      - task: docker-ui
+
+  docker-backend:
+    desc: "Build backend 🐳 images"
+    cmds:
+      - docker build -t ${DOCKER_REGISTRY}/apim-gateway:$DOCKER_TAG -f gravitee-apim-gateway/docker/Dockerfile ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+      - docker build -t ${DOCKER_REGISTRY}/apim-management-api:$DOCKER_TAG -f gravitee-apim-rest-api/docker/Dockerfile ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+
+  docker-ui:
+    desc: "Build UI 🐳 images"
+    cmds:
+      - docker build -t ${DOCKER_REGISTRY}/apim-management-ui:$DOCKER_TAG -f gravitee-apim-console-webui/docker/Dockerfile ./gravitee-apim-console-webui
+      - docker build -t ${DOCKER_REGISTRY}/apim-portal-ui:$DOCKER_TAG -f gravitee-apim-portal-webui/docker/Dockerfile ./gravitee-apim-portal-webui

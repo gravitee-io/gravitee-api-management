@@ -78,6 +78,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
             throw new IllegalStateException(String.format("No application found with id [%s]", application.getId()));
         }
 
+        applicationMongo.setHrid(application.getHrid());
         applicationMongo.setName(application.getName());
         applicationMongo.setEnvironmentId(application.getEnvironmentId());
         applicationMongo.setDescription(application.getDescription());
@@ -190,6 +191,11 @@ public class MongoApplicationRepository implements ApplicationRepository {
             LOGGER.error("Failed to delete applications by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete applications by environmentId");
         }
+    }
+
+    @Override
+    public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+        return internalApplicationRepo.existsMetadataEntryForEnv(key, value, environmentId);
     }
 
     @Override

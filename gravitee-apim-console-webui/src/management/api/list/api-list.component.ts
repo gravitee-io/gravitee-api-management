@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
-import { isEqual } from 'lodash';
+import { castArray, isEqual } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 
+import { TagService } from '../../../services-ngx/tag.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -28,6 +30,7 @@ import { Constants } from '../../../entities/Constants';
 import {
   Api,
   ApiLifecycleState,
+  ApiSearchQuery,
   apiSortByParamFromString,
   ApisResponse,
   ApiState,
@@ -42,6 +45,29 @@ import {
   TcpListener,
 } from '../../../entities/management-api-v2';
 import { CategoryService } from '../../../services-ngx/category.service';
+
+export enum FilterType {
+  API_TYPE,
+  STATUS,
+  TAGS,
+  CATEGORIES,
+  PUBLISHED,
+  PORTAL_VISIBILITY,
+}
+
+const availableDisplayedColumns = [
+  'picture',
+  'name',
+  'apiType',
+  'states',
+  'access',
+  'tags',
+  'categories',
+  'owner',
+  'portalStatus',
+  'visibility',
+  'actions',
+];
 
 export type ApisTableDS = {
   id: string;
@@ -65,6 +91,15 @@ export type ApisTableDS = {
   categories: string[];
 }[];
 
+interface ApiListTableWrapperFilters extends GioTableWrapperFilters {
+  apiTypes?: string[];
+  statuses?: string[];
+  tags?: string[];
+  categories?: string[];
+  published?: string[];
+  portalVisibilities?: string[];
+}
+
 @Component({
   selector: 'api-list',
   templateUrl: './api-list.component.html',
@@ -73,23 +108,43 @@ export type ApisTableDS = {
   standalone: false,
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'definitionVersion', 'states', 'access', 'tags', 'categories', 'owner', 'visibility', 'actions'];
+  FilterType = FilterType;
+  displayedColumns = [...availableDisplayedColumns];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
-  filters: GioTableWrapperFilters = {
+  filters: ApiListTableWrapperFilters = {
     pagination: { index: 1, size: 25 },
     searchTerm: '',
   };
   isQualityDisplayed: boolean;
-  searchLabel = 'Search APIs | name:"My api *" ownerName:admin';
+  searchLabel = 'Search';
   isLoadingData = true;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
+  private filters$ = new BehaviorSubject<ApiListTableWrapperFilters>(this.filters);
   private visibilitiesIcons = {
     PUBLIC: 'public',
     PRIVATE: 'lock',
   };
   public categoriesNames = new Map<string, string>();
+  tags: string[] = [];
+  checkedApiTypes: string[];
+  checkedStatuses: string[];
+  checkedTags: string[];
+  checkedCategories: string[];
+  checkedPublished: string[];
+  checkedPortalVisibilities: string[];
+
+  checkedVisibleColumns = {
+    apiType: true,
+    states: true,
+    access: true,
+    qualityScore: true,
+    tags: true,
+    categories: true,
+    owner: true,
+    portalStatus: true,
+    visibility: true,
+  };
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -97,6 +152,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     @Inject(Constants) private readonly constants: Constants,
     private readonly apiService: ApiService,
     private readonly apiServiceV2: ApiV2Service,
+    private readonly tagService: TagService,
     private readonly titleCasePipe: TitleCasePipe,
     private readonly categoryService: CategoryService,
   ) {}
@@ -107,51 +163,96 @@ export class ApiListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.initFilters();
     this.isQualityDisplayed = this.constants.env.settings.apiQualityMetrics && this.constants.env.settings.apiQualityMetrics.enabled;
     if (this.isQualityDisplayed) {
       this.displayedColumns.splice(5, 0, 'qualityScore');
     }
 
+    if (localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`)) {
+      const storedColumns = JSON.parse(localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`));
+      this.displayedColumns = storedColumns;
+      this.checkedVisibleColumns = {
+        apiType: this.displayedColumns.includes('apiType'),
+        states: this.displayedColumns.includes('states'),
+        access: this.displayedColumns.includes('access'),
+        tags: this.displayedColumns.includes('tags'),
+        qualityScore: this.displayedColumns.includes('qualityScore'),
+        categories: this.displayedColumns.includes('categories'),
+        owner: this.displayedColumns.includes('owner'),
+        portalStatus: this.displayedColumns.includes('portalStatus'),
+        visibility: this.displayedColumns.includes('visibility'),
+      };
+    }
+
+    this.initFilters();
+
+    this.tagService
+      .list()
+      .pipe(
+        map((tags) => (this.tags = tags.map((tag) => tag.id))),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
     this.categoryService
       .list()
-      .pipe(map((cats) => cats.forEach((cat) => this.categoriesNames.set(cat.key, cat.name))))
+      .pipe(
+        map((cats) => cats.forEach((cat) => this.categoriesNames.set(cat.key, cat.name))),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe();
 
     this.filters$
       .pipe(
         debounceTime(100),
         distinctUntilChanged(isEqual),
-        map(({ pagination, searchTerm, status, sort }) => {
+        map((filters: ApiListTableWrapperFilters) => {
           let order: string;
-          if (!searchTerm && !sort?.direction) {
+          if (filters.sort?.direction) {
+            order = toOrder(filters.sort);
+          } else if (!filters.searchTerm && !filters.sort?.direction) {
             order = 'name';
-          } else if (searchTerm && !sort?.direction) {
+          } else if (filters.searchTerm && !filters.sort?.direction) {
             order = undefined;
           } else {
-            order = toOrder(sort);
+            order = toOrder(filters.sort);
           }
-
-          return {
-            pagination,
-            searchTerm,
-            status,
-            order,
-          };
+          return { filters, order };
         }),
-        tap(({ pagination, searchTerm, status, order }) => {
+        tap(({ filters, order }) => {
           // Change url params
           this.router.navigate([], {
             relativeTo: this.activatedRoute,
-            queryParams: { q: searchTerm, page: pagination.index, size: pagination.size, status, order },
+            queryParams: {
+              q: filters.searchTerm,
+              page: filters.pagination.index,
+              size: filters.pagination.size,
+              status,
+              order,
+              apiTypes: filters.apiTypes,
+              statuses: filters.statuses,
+              tags: filters.tags,
+              categories: filters.categories,
+              published: filters.published,
+              portalVisibilities: filters.portalVisibilities,
+            },
             queryParamsHandling: 'merge',
           });
         }),
-        switchMap(({ pagination, searchTerm, order }) =>
-          this.apiServiceV2
-            .search({ query: searchTerm }, apiSortByParamFromString(order), pagination.index, pagination.size)
-            .pipe(catchError(() => of(new PagedResult<Api>()))),
-        ),
+        switchMap(({ filters, order }) => {
+          const body: ApiSearchQuery = {
+            query: filters.searchTerm,
+            apiTypes: this.filters.apiTypes,
+            statuses: this.filters.statuses,
+            tags: this.filters.tags,
+            categories: this.filters.categories,
+            published: this.filters.published,
+            visibilities: this.filters.portalVisibilities,
+          };
+          return this.apiServiceV2
+            .search(body, apiSortByParamFromString(order), filters.pagination.index, filters.pagination.size)
+            .pipe(catchError(() => of(new PagedResult<Api>())));
+        }),
         tap((apisPage) => {
           this.apisTableDS = this.toApisTableDS(apisPage);
           this.apisTableDSUnpaginatedLength = apisPage.pagination.totalCount;
@@ -162,7 +263,43 @@ export class ApiListComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  onFiltersChanged(filters: GioTableWrapperFilters) {
+  onAdditionalFiltersChanged(type: FilterType) {
+    this.filters.pagination = {
+      ...this.filters.pagination,
+      index: 1,
+    };
+    switch (type) {
+      case FilterType.API_TYPE:
+        this.filters = { ...this.filters, apiTypes: this.checkedApiTypes };
+        break;
+      case FilterType.STATUS:
+        this.filters = { ...this.filters, statuses: this.checkedStatuses };
+        break;
+      case FilterType.TAGS:
+        this.filters = { ...this.filters, tags: this.checkedTags };
+        break;
+      case FilterType.CATEGORIES:
+        this.filters = { ...this.filters, categories: this.checkedCategories };
+        break;
+      case FilterType.PUBLISHED:
+        this.filters = { ...this.filters, published: this.checkedPublished };
+        break;
+      case FilterType.PORTAL_VISIBILITY:
+        this.filters = { ...this.filters, portalVisibilities: this.checkedPortalVisibilities };
+        break;
+    }
+    this.filters$.next(this.filters);
+  }
+
+  updateVisibleColumns() {
+    const checkedColumns = Object.entries(this.checkedVisibleColumns)
+      .filter(([_k, v]) => v)
+      .map(([k]) => k);
+    this.displayedColumns = ['picture', 'name', ...checkedColumns, 'actions'];
+    localStorage.setItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`, JSON.stringify(this.displayedColumns));
+  }
+
+  onFiltersChanged(filters: ApiListTableWrapperFilters) {
     this.filters = { ...this.filters, ...filters };
     this.filters$.next(this.filters);
   }
@@ -185,6 +322,31 @@ export class ApiListComponent implements OnInit, OnDestroy {
         size: initialPageSize,
       },
     };
+    const queryParams = this.activatedRoute.snapshot.queryParams;
+    if (queryParams.apiTypes) {
+      this.filters.apiTypes = castArray(queryParams.apiTypes);
+      this.checkedApiTypes = this.filters.apiTypes;
+    }
+    if (queryParams.statuses) {
+      this.filters.statuses = castArray(queryParams.statuses);
+      this.checkedStatuses = this.filters.statuses;
+    }
+    if (queryParams.tags) {
+      this.filters.tags = castArray(queryParams.tags);
+      this.checkedTags = this.filters.tags;
+    }
+    if (queryParams.categories) {
+      this.filters.categories = castArray(queryParams.categories);
+      this.checkedCategories = this.filters.categories;
+    }
+    if (queryParams.published) {
+      this.filters.published = castArray(queryParams.published);
+      this.checkedPublished = this.filters.published;
+    }
+    if (queryParams.portalVisibilities) {
+      this.filters.portalVisibilities = castArray(queryParams.portalVisibilities);
+      this.checkedPortalVisibilities = this.filters.portalVisibilities;
+    }
     this.filters$.next(this.filters);
   }
 
@@ -215,7 +377,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               isNotSynced$: undefined,
               qualityScore$: null,
             };
-          } else if (api.definitionVersion === 'FEDERATED') {
+          } else if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
             return {
               ...tableDS,
               access: [],
@@ -248,7 +410,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
         }
         return { label: `${api.definitionVersion} -${this.getLabelType(api)} ${this.titleCasePipe.transform((api as ApiV4).type)}` };
       case 'FEDERATED':
-        return { label: this.titleCasePipe.transform(api.definitionVersion) };
+        return { label: 'Federated API' };
+      case 'FEDERATED_AGENT':
+        return { label: 'Federated A2A Agent' };
       default:
         return { icon: 'gio:alert-circle', label: 'V1' };
     }
@@ -268,6 +432,20 @@ export class ApiListComponent implements OnInit, OnDestroy {
     }
 
     return '';
+  }
+
+  displayFirstTag(element) {
+    if (this.filters.sort?.active === 'tags' && this.filters.sort?.direction === 'desc') {
+      return element.tags?.sort()?.reverse()[0];
+    }
+    return element.tags?.sort()?.[0];
+  }
+
+  displayFirstCategory(element) {
+    if (this.filters.sort?.active === 'categories' && this.filters.sort?.direction === 'desc') {
+      return element.categories?.sort()?.reverse()[0];
+    }
+    return element.categories?.sort()?.[0];
   }
 
   private getWorkflowBadge(api: Api) {

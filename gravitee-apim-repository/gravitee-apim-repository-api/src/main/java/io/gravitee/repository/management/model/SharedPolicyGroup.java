@@ -54,6 +54,11 @@ public class SharedPolicyGroup {
     public static final String ORIGIN_INTEGRATION = "integration";
 
     /**
+     * The shared policy group human-readable id
+     */
+    private String hrid;
+
+    /**
      * The shared policy group ID
      */
     private String id;
@@ -125,6 +130,7 @@ public class SharedPolicyGroup {
 
     public SharedPolicyGroup(SharedPolicyGroup cloned) {
         this.id = cloned.id;
+        this.hrid = cloned.hrid;
         this.crossId = cloned.crossId;
         this.environmentId = cloned.environmentId;
         this.name = cloned.name;
@@ -149,6 +155,10 @@ public class SharedPolicyGroup {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public boolean isDeployed() {
+        return lifecycleState == SharedPolicyGroupLifecycleState.DEPLOYED;
     }
 
     public enum AuditEvent implements Audit.AuditEvent {

@@ -17,7 +17,7 @@ import { SslKeyStore, SslTrustStore } from '../ssl';
 
 export interface SubscriptionConsumerConfiguration {
   entrypointId: string;
-  channel: string | null;
+  channel: string;
   entrypointConfiguration: WebhookSubscriptionConfiguration;
 }
 

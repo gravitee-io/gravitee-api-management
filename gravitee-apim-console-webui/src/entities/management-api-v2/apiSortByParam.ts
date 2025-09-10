@@ -13,15 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type ApiSortByParam = 'name' | '-name' | 'paths' | '-paths';
+export type ApiSortByParam =
+  | 'name'
+  | '-name'
+  | 'api_type'
+  | '-api_type'
+  | 'status'
+  | '-status'
+  | 'paths'
+  | '-paths'
+  | 'tags_asc'
+  | '-tags_desc'
+  | 'categories_asc'
+  | '-categories_desc'
+  | 'owner'
+  | '-owner'
+  | 'portal_status'
+  | '-portal_status'
+  | 'visibility'
+  | '-visibility';
 
 export function apiSortByParamFromString(sort: string): ApiSortByParam {
   if (!sort) {
     return undefined;
   }
   const desc = sort.startsWith('-');
+  if (sort.endsWith('name')) {
+    return desc ? '-name' : 'name';
+  }
+  if (sort.endsWith('apiType')) {
+    return desc ? '-api_type' : 'api_type';
+  }
+  if (sort.endsWith('states')) {
+    return desc ? '-status' : 'status';
+  }
   if (sort.endsWith('access')) {
     return desc ? '-paths' : 'paths';
+  }
+  if (sort.endsWith('tags')) {
+    return desc ? '-tags_desc' : 'tags_asc';
+  }
+  if (sort.endsWith('categories')) {
+    return desc ? '-categories_desc' : 'categories_asc';
+  }
+  if (sort.endsWith('owner')) {
+    return desc ? '-owner' : 'owner';
+  }
+  if (sort.endsWith('portalStatus')) {
+    return desc ? '-portal_status' : 'portal_status';
+  }
+  if (sort.endsWith('visibility')) {
+    return desc ? '-visibility' : 'visibility';
   }
   return desc ? '-name' : 'name';
 }

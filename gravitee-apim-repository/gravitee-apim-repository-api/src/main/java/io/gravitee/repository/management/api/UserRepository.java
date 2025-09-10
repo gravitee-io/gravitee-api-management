@@ -49,7 +49,7 @@ public interface UserRepository extends CrudRepository<User, String> {
      * @return
      * @throws TechnicalException
      */
-    Optional<User> findByEmail(String email, String organizationId) throws TechnicalException;
+    List<User> findByEmail(String email, String organizationId) throws TechnicalException;
 
     /**
      * Find a list of {@link User} by IDs

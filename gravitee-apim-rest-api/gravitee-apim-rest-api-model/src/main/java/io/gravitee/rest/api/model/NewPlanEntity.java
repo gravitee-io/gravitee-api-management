@@ -35,6 +35,7 @@ public class NewPlanEntity {
      * Plans promoted between environments will share the same crossId.
      */
     private String crossId;
+    private String hrid;
 
     @NotNull
     private String name;
@@ -243,6 +244,14 @@ public class NewPlanEntity {
 
     public void setCrossId(String crossId) {
         this.crossId = crossId;
+    }
+
+    public String getHrid() {
+        return hrid;
+    }
+
+    public void setHrid(String hrid) {
+        this.hrid = hrid;
     }
 
     @Override

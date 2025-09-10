@@ -40,7 +40,7 @@ public interface UserService {
         return findById(executionContext, id, false);
     }
 
-    Optional<UserEntity> findByEmail(ExecutionContext executionContext, String email);
+    List<UserEntity> findByEmail(ExecutionContext executionContext, String email);
 
     UserEntity findByIdWithRoles(ExecutionContext executionContext, String id);
 

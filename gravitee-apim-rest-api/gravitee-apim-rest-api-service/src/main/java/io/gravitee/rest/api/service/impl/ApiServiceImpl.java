@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
+import static io.gravitee.repository.management.model.EventType.*;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
@@ -36,6 +37,7 @@ import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
@@ -120,6 +122,7 @@ import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1661,14 +1664,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             List<Event> events = eventLatestRepository.search(
                 EventCriteria
                     .builder()
-                    .types(
-                        List.of(
-                            io.gravitee.repository.management.model.EventType.PUBLISH_API,
-                            io.gravitee.repository.management.model.EventType.START_API,
-                            io.gravitee.repository.management.model.EventType.STOP_API,
-                            io.gravitee.repository.management.model.EventType.UNPUBLISH_API
-                        )
-                    )
+                    .types(EnumSet.of(PUBLISH_API, START_API, STOP_API, UNPUBLISH_API))
                     .properties(Map.of(Event.EventProperties.API_ID.getValue(), apiId))
                     .build(),
                 Event.EventProperties.API_ID,
@@ -1678,14 +1674,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (!events.isEmpty()) {
                 // According to page size, we know that we have only one element in the list
-                Event lastEvent = events.get(0);
+                Event lastEvent = events.getFirst();
                 boolean sync = false;
-                if (
-                    io.gravitee.repository.management.model.EventType.PUBLISH_API.equals(lastEvent.getType()) ||
-                    io.gravitee.repository.management.model.EventType.STOP_API.equals(lastEvent.getType()) ||
-                    io.gravitee.repository.management.model.EventType.START_API.equals(lastEvent.getType())
-                ) {
+                if (EnumSet.of(PUBLISH_API, STOP_API, START_API).contains(lastEvent.getType())) {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
+                    if (payloadEntity != null && getOrV2(api::getDefinitionVersion) != getOrV2(payloadEntity::getDefinitionVersion)) {
+                        return false;
+                    }
 
                     final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
                     // Remove policy description from sync check
@@ -1722,6 +1717,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return false;
     }
 
+    private DefinitionVersion getOrV2(Supplier<DefinitionVersion> getDefinitionVersion) {
+        return getDefinitionVersion.get() != null ? getDefinitionVersion.get() : DefinitionVersion.V2;
+    }
+
     private void removeIdsFromFlows(ApiEntity api) {
         api.getFlows().forEach(flow -> flow.setId(null));
         api.getPlans().forEach(plan -> plan.getFlows().forEach(flow -> flow.setId(null)));
@@ -1729,13 +1728,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void removeDescriptionFromPolicies(final ApiEntity api) {
         if (api.getPaths() != null) {
-            api
-                .getPaths()
-                .forEach((s, rules) -> {
-                    if (rules != null) {
-                        rules.forEach(rule -> rule.setDescription(""));
-                    }
-                });
+            api.getPaths().values().stream().flatMap(CollectionUtils::stream).forEach(rule -> rule.setDescription(""));
         }
     }
 
@@ -1828,7 +1821,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (EventType.PUBLISH_API.equals(eventType)) {
             EventCriteria criteria = EventCriteria
                 .builder()
-                .types(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API))
+                .types(
+                    Set.of(
+                        io.gravitee.repository.management.model.EventType.PUBLISH_API,
+                        io.gravitee.repository.management.model.EventType.STOP_API,
+                        io.gravitee.repository.management.model.EventType.START_API,
+                        io.gravitee.repository.management.model.EventType.UNPUBLISH_API
+                    )
+                )
                 .property(Event.EventProperties.API_ID.getValue(), apiId)
                 .build();
 
@@ -1885,6 +1885,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.USER.getValue(), userId);
+                properties.put(
+                    Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
+                    event.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
+                );
 
                 // Clear useless field for history
                 lastPublishedAPI.setPicture(null);
@@ -2080,12 +2084,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Search paged APIs by {}", query);
 
-            Collection<String> apiIds = apiSearchService.searchIds(
+            var apiIds = apiSearchService.searchIds(
                 executionContext,
                 query,
                 filters,
                 sortable,
-                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.FEDERATED)
+                EnumSet.of(DefinitionVersion.V4, DefinitionVersion.FEDERATED, DefinitionVersion.FEDERATED_AGENT)
             );
 
             if (apiIds.isEmpty()) {
@@ -2309,18 +2313,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         properties.put(Audit.AuditProperties.USER, userId);
         properties.put(Audit.AuditProperties.API, apiId);
 
-        Workflow.AuditEvent evtType = null;
-        switch (workflowState) {
-            case REQUEST_FOR_CHANGES:
-                evtType = API_REVIEW_REJECTED;
-                break;
-            case REVIEW_OK:
-                evtType = API_REVIEW_ACCEPTED;
-                break;
-            default:
-                evtType = API_REVIEW_ASKED;
-                break;
-        }
+        Workflow.AuditEvent evtType =
+            switch (workflowState) {
+                case REQUEST_FOR_CHANGES -> API_REVIEW_REJECTED;
+                case REVIEW_OK -> API_REVIEW_ACCEPTED;
+                default -> API_REVIEW_ASKED;
+            };
 
         auditService.createApiAuditLog(executionContext, apiId, properties, evtType, new Date(), null, workflow);
         return apiEntity;

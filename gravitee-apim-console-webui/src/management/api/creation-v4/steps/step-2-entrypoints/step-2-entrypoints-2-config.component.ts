@@ -20,7 +20,6 @@ import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { debounceTime, map, takeUntil, tap } from 'rxjs/operators';
 import { omitBy } from 'lodash';
-import { ActivatedRoute } from '@angular/router';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
@@ -67,7 +66,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
     private readonly portalConfigurationService: PortalConfigurationService,
-    private readonly activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
@@ -127,6 +125,10 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         this.selectedEntrypoints = currentStepPayload.selectedEntrypoints;
         this.changeDetectorRef.markForCheck();
       });
+  }
+
+  public get isA2ASelected(): boolean {
+    return this.stepService.payload.isA2ASelected;
   }
 
   private initFormForSyncEntrypoints(currentStepPayload: ApiCreationPayload, paths: PathV4[], tcpHosts: TcpHost[], kafkaHost: KafkaHost) {
@@ -197,7 +199,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       case 'MESSAGE':
         this.stepService.goToNextStep({
           groupNumber: 3,
-          component: Step3Endpoints1ListComponent,
+          component: this.isA2ASelected ? Step3Endpoints2ConfigComponent : Step3Endpoints1ListComponent,
         });
         break;
       case 'PROXY':

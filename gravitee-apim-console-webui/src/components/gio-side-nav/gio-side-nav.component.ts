@@ -157,6 +157,13 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         category: 'Gateways',
       });
     }
+    mainMenuItems.push({
+      icon: 'gio:cluster',
+      routerLink: './clusters',
+      displayName: 'Kafka Clusters',
+      permissions: ['environment-cluster-r'],
+      category: 'Kafka Clusters',
+    });
 
     if (envSettings?.apiScore.enabled) {
       mainMenuItems.push({

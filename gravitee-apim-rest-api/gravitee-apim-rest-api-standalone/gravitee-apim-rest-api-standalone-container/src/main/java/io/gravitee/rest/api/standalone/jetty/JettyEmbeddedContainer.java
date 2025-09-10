@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.standalone.jetty;
 
+import io.gravitee.apim.rest.api.automation.GraviteeAutomationApplication;
+import io.gravitee.apim.rest.api.automation.security.SecurityAutomationConfiguration;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
@@ -63,6 +65,12 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Value("${http.api.management.entrypoint:${http.api.entrypoint:/}management}")
     private String managementEntrypoint;
 
+    @Value("${http.api.automation.enabled:true}")
+    private boolean startAutomationAPI;
+
+    @Value("${http.api.automation.entrypoint:${http.api.entrypoint:/}automation}")
+    private String automationEntrypoint;
+
     @Value("${http.api.portal.enabled:true}")
     private boolean startPortalAPI;
 
@@ -95,6 +103,16 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
                 SecurityPortalConfiguration.class
             );
             contexts.add(portalContextHandler);
+        }
+
+        if (startAutomationAPI) {
+            // REST configuration for Automation API
+            ServletContextHandler automationContextHandler = configureAPI(
+                automationEntrypoint,
+                GraviteeAutomationApplication.class.getName(),
+                SecurityAutomationConfiguration.class
+            );
+            contexts.add(automationContextHandler);
         }
 
         if (startManagementAPI) {

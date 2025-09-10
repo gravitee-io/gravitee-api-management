@@ -1,0 +1,59 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card class="card">
+  <mat-card-header class="card__header">
+    <mat-card-title class="card__title">
+      {{ title() }}
+      @if (tooltip()) {
+        <mat-icon [matTooltip]="tooltip()" matTooltipPosition="after" svgIcon="gio:info" />
+      }
+    </mat-card-title>
+  </mat-card-header>
+  <div class="content">
+    @switch (state()) {
+      @case ('loading') {
+        <div class="loading">
+          <gio-loader />
+        </div>
+      }
+      @case ('error') {
+        <div class="error">
+          <div class="icon">
+            <mat-icon svgIcon="gio:alert-circle"></mat-icon>
+          </div>
+          <div class="mat-h3" data-test-id="error-title">No data to display</div>
+          <div data-test-id="error-message">{{ errorMessage() }}</div>
+        </div>
+      }
+      @case ('success') {
+        <div class="success">
+          <ng-content select="[gioWidgetLayoutChart]"></ng-content>
+        </div>
+      }
+      @default {
+        <div class="empty">
+          <div class="icon">
+            <mat-icon svgIcon="gio:search"></mat-icon>
+          </div>
+          <div class="mat-h3" data-test-id="empty-title">No data to display</div>
+          <div data-test-id="empty-message">Adjust your search criteria and filters for better results.</div>
+        </div>
+      }
+    }
+  </div>
+</mat-card>

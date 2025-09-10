@@ -24,17 +24,30 @@ import static org.assertj.core.api.Assertions.not;
 import static org.assertj.core.api.Assertions.offset;
 import static org.assertj.core.api.Assertions.withPrecision;
 
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
+import io.gravitee.repository.log.v4.model.analytics.Aggregation;
+import io.gravitee.repository.log.v4.model.analytics.AggregationType;
+import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
+import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
+import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -44,6 +57,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +66,7 @@ import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.SoftAssertions;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -79,12 +94,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     class RequestsCount {
 
         @Test
-        void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
+        void should_return_total_requests_count_from_status_ranges_aggregation() {
             var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
-                    assertThat(countAggregate.getTotal()).isEqualTo(10);
+                    assertThat(countAggregate.getTotal()).isEqualTo(11);
                     assertThat(countAggregate.getCountBy())
                         .containsAllEntriesOf(Map.of("http-post", 3L, "http-get", 1L, "websocket", 3L, "sse", 2L, "webhook", 1L));
                 });
@@ -159,7 +174,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result)
                 .hasValueSatisfying(responseStatusAggregate -> {
-                    assertRanges(responseStatusAggregate.getRanges(), 3L, 7L);
+                    assertRanges(responseStatusAggregate.getRanges(), 3L, 8L);
                     var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
                     assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
                     assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
@@ -183,7 +198,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result)
                 .hasValueSatisfying(responseStatusAggregate -> {
-                    assertRanges(responseStatusAggregate.getRanges(), 7L, 10L);
+                    assertRanges(responseStatusAggregate.getRanges(), 7L, 11L);
                     var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
                     assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
                     assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
@@ -631,6 +646,597 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var result = cut.searchTopFailedApis(new QueryContext("org#1", "env#1"), null);
 
             assertThat(result).isNotNull().get().extracting(TopFailedAggregate::failedApis).isEqualTo(Map.of());
+        }
+    }
+
+    @Nested
+    class Histogram {
+
+        @Test
+        void should_return_histogram_aggregates_for_a_given_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var interval = Duration.ofMinutes(30);
+
+            var query = new HistogramQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to, interval),
+                List.of(new Aggregation("status", AggregationType.FIELD)),
+                Optional.empty()
+            );
+
+            var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isNotNull();
+            assertThat(result).hasSize(1);
+
+            var first = result.getFirst();
+            var histogram = (HistogramAggregate.Counts) first;
+            assertThat(histogram.counts()).isNotNull();
+            assertThat(histogram.counts()).hasSize(3);
+
+            assertThat(histogram.counts().keySet()).containsExactlyInAnyOrder("200", "202", "404");
+
+            var bucket200 = histogram.counts().get("200");
+            var bucket202 = histogram.counts().get("202");
+            var bucket404 = histogram.counts().get("404");
+
+            assertThat(bucket200).hasSizeGreaterThan(28);
+            assertThat(bucket200.get(28)).isEqualTo(1L);
+
+            assertThat(bucket202).hasSizeGreaterThan(61);
+            assertThat(bucket202.get(61)).isEqualTo(1L);
+
+            assertThat(bucket404).hasSizeGreaterThan(61);
+            assertThat(bucket404.get(61)).isEqualTo(2L);
+        }
+
+        @Test
+        void should_return_histogram_aggregates_for_avg_gateway_response_time_ms() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var interval = Duration.ofMinutes(30);
+
+            var query = new HistogramQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to, interval),
+                List.of(new Aggregation("gateway-response-time-ms", AggregationType.AVG)),
+                Optional.empty()
+            );
+
+            var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isNotNull();
+            assertThat(result).hasSize(1);
+
+            var first = result.getFirst();
+            var histogram = (HistogramAggregate.Metric) first;
+            assertThat(histogram.values()).isNotNull();
+
+            var avgBucket = histogram.values();
+            assertThat(avgBucket).isNotEmpty();
+            assertThat(avgBucket.stream().filter(v -> v > 0).count()).isEqualTo(2);
+        }
+
+        @Test
+        void should_return_histogram_aggregates_for_a_given_api_with_query_string() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var interval = Duration.ofMinutes(30);
+
+            var query = new HistogramQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to, interval),
+                List.of(new Aggregation("status", AggregationType.FIELD)),
+                Optional.of("status:404")
+            );
+
+            var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isNotNull();
+            assertThat(result).hasSize(1);
+
+            var first = result.getFirst();
+            var histogram = (HistogramAggregate.Counts) first;
+            assertThat(histogram.counts()).isNotNull();
+            assertThat(histogram.counts()).hasSize(1);
+
+            assertThat(histogram.counts().keySet()).containsExactly("404");
+
+            var bucket404 = histogram.counts().get("404");
+            assertThat(bucket404).hasSizeGreaterThan(61);
+            assertThat(bucket404.get(61)).isEqualTo(2L);
+        }
+    }
+
+    @Nested
+    class GroupByAggregate {
+
+        @Test
+        void should_return_group_by_aggregate_for_terms() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                "entrypoint-id",
+                Collections.emptyList(),
+                Optional.empty(),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_range() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                "response-time",
+                List.of(new GroupByQuery.Group(0, 100), new GroupByQuery.Group(100, 200)),
+                Optional.empty(),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_response-time_range");
+                    assertThat(aggregate.field()).isEqualTo("response-time");
+                    assertThat(aggregate.values()).containsKeys("0.0-100.0", "100.0-200.0");
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_terms_with_query_parameter() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var queryString = "status:404 AND http-method:8";
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                "entrypoint-id",
+                Collections.emptyList(),
+                Optional.empty(),
+                new TimeRange(from, to),
+                Optional.of(queryString)
+            );
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsExactlyEntriesOf(Map.of("http-get", 1L));
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_terms_with_order_avg() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                "entrypoint-id",
+                Collections.emptyList(),
+                Optional.of(order),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                    assertThat(aggregate.order()).containsExactly("http-get", "http-post");
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_terms_with_order_value() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var order = new GroupByQuery.Order("_key", true, "VALUE");
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                "entrypoint-id",
+                Collections.emptyList(),
+                Optional.of(order),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
+                    assertThat(aggregate.field()).isEqualTo("entrypoint-id");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                    assertThat(aggregate.order()).containsExactly("http-get", "http-post");
+                });
+        }
+    }
+
+    @Nested
+    class StatsAnalytics {
+
+        @Test
+        void should_return_stats_for_a_given_api_and_field() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new StatsQuery(
+                "gateway-response-time-ms",
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
+
+            Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(stats -> {
+                    assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
+                    assertThat(stats.count()).isEqualTo(8L);
+                    assertThat(stats.sum()).isEqualTo(131864L);
+                    assertThat(stats.avg()).isEqualTo(16483L);
+                    assertThat(stats.min()).isEqualTo(19L);
+                    assertThat(stats.max()).isEqualTo(60000L);
+                });
+        }
+
+        @Test
+        void should_return_empty_if_no_stats_found() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.DAYS);
+            var to = from.plus(Duration.ofDays(1));
+
+            var query = new StatsQuery(
+                "non-existent-field",
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
+
+            Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_stats_for_a_given_api_and_field_with_query_string() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var queryString = "status:404 AND http-method:8";
+
+            var query = new StatsQuery(
+                "gateway-response-time-ms",
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                new TimeRange(from, to),
+                Optional.of(queryString)
+            );
+
+            Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(stats -> {
+                    assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
+                    assertThat(stats.count()).isEqualTo(2L);
+                    assertThat(stats.sum()).isEqualTo(70000L);
+                    assertThat(stats.avg()).isEqualTo(35000L);
+                    assertThat(stats.min()).isEqualTo(30000L);
+                    assertThat(stats.max()).isEqualTo(40000L);
+                    assertThat(stats.rps()).isEqualTo(0L);
+                    assertThat(stats.rpm()).isEqualTo(0L);
+                    assertThat(stats.rph()).isEqualTo(0L);
+                });
+        }
+    }
+
+    @Nested
+    class RequestCountByEvent {
+
+        @Test
+        void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var result = cut.searchRequestsCountByEvent(
+                new QueryContext("org#1", "env#1"),
+                new RequestsCountByEventQuery(
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(from, to),
+                    Optional.empty()
+                )
+            );
+            assertThat(result)
+                .hasValueSatisfying(countAggregate -> {
+                    assertThat(countAggregate.total()).isEqualTo(11);
+                });
+        }
+
+        @Test
+        void should_return_count_for_a_given_api_and_field_with_query_string() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var queryString = "status:404 AND http-method:8";
+
+            var result = cut.searchRequestsCountByEvent(
+                new QueryContext("org#1", "env#1"),
+                new RequestsCountByEventQuery(
+                    new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                    new TimeRange(from, to),
+                    Optional.of(queryString)
+                )
+            );
+            assertThat(result)
+                .hasValueSatisfying(countAggregate -> {
+                    assertThat(countAggregate.total()).isGreaterThan(0);
+                });
+        }
+    }
+
+    @Nested
+    class findApiMetricsDetail {
+
+        private final QueryContext queryContext = new QueryContext("org#1", "env#1");
+
+        @Test
+        void should_return_empty_result_when_api_does_not_exist() {
+            var result = cut.findApiMetricsDetail(
+                queryContext,
+                new ApiMetricsDetailQuery("notExisting", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+            );
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_result_when_request_id_does_not_exist() {
+            var result = cut.findApiMetricsDetail(
+                queryContext,
+                new ApiMetricsDetailQuery("f1608475-dd77-4603-a084-75dd775603e9", "notExisting")
+            );
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_v4_metric_result() {
+            var result = cut.findApiMetricsDetail(
+                queryContext,
+                new ApiMetricsDetailQuery("f1608475-dd77-4603-a084-75dd775603e9", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(apiMetricsDetail ->
+                    assertThat(apiMetricsDetail)
+                        .hasFieldOrPropertyWithValue("apiId", "f1608475-dd77-4603-a084-75dd775603e9")
+                        .hasFieldOrPropertyWithValue("requestId", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                        .hasFieldOrPropertyWithValue("transactionId", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                        .hasFieldOrPropertyWithValue("host", "apim-master-gateway.team-apim.gravitee.dev")
+                        .hasFieldOrPropertyWithValue("applicationId", "1e478236-e6e4-4cf5-8782-36e6e4ccf57d")
+                        .hasFieldOrPropertyWithValue("planId", "733b78f1-1a16-4c16-bb78-f11a16ac1693")
+                        .hasFieldOrPropertyWithValue("gateway", "2c99d50d-d318-42d3-99d5-0dd31862d3d2")
+                        .hasFieldOrPropertyWithValue("uri", "/jgi-message-logs-kafka/")
+                        .hasFieldOrPropertyWithValue("status", 404)
+                        .hasFieldOrPropertyWithValue("requestContentLength", 0L)
+                        .hasFieldOrPropertyWithValue("responseContentLength", 41L)
+                        .hasFieldOrPropertyWithValue("remoteAddress", "127.0.0.1")
+                        .hasFieldOrPropertyWithValue("method", HttpMethod.GET)
+                );
+        }
+    }
+
+    @Nested
+    class EventAnalytics {
+
+        private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
+
+        @Test
+        void should_search_top_value_hits_for_active_connections() {
+            Aggregation agg1 = new Aggregation("downstream-active-connections", AggregationType.VALUE);
+            Aggregation agg2 = new Aggregation("upstream-active-connections", AggregationType.VALUE);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-active-connections_latest");
+                    assertThat(data).containsKey("upstream-active-connections_latest");
+                    assertThat(data.get("downstream-active-connections_latest")).containsKey("downstream-active-connections");
+                    assertThat(data.get("downstream-active-connections_latest").get("downstream-active-connections")).isEqualTo(56L);
+                    assertThat(data.get("upstream-active-connections_latest")).containsKey("upstream-active-connections");
+                    assertThat(data.get("upstream-active-connections_latest").get("upstream-active-connections")).isEqualTo(56L);
+                });
+        }
+
+        @Test
+        void should_search_top_value_hits_for_total_messages_consumed() {
+            Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.VALUE);
+            Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.VALUE);
+            Aggregation agg3 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.VALUE);
+            Aggregation agg4 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.VALUE);
+
+            var result = cut.searchEventAnalytics(
+                new QueryContext("DEFAULT", "DEFAULT"),
+                buildEventAnalyticsQuery(List.of(agg1, agg2, agg3, agg4))
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-subscribe-messages-total_latest");
+                    assertThat(data).containsKey("upstream-subscribe-messages-total_latest");
+                    assertThat(data).containsKey("downstream-subscribe-message-bytes_latest");
+                    assertThat(data).containsKey("upstream-subscribe-message-bytes_latest");
+                    assertThat(data.get("downstream-subscribe-messages-total_latest")).containsKey("downstream-subscribe-messages-total");
+                    assertThat(data.get("downstream-subscribe-messages-total_latest").get("downstream-subscribe-messages-total"))
+                        .isEqualTo(119L);
+                    assertThat(data.get("downstream-subscribe-message-bytes_latest")).containsKey("downstream-subscribe-message-bytes");
+                    assertThat(data.get("downstream-subscribe-message-bytes_latest").get("downstream-subscribe-message-bytes"))
+                        .isEqualTo(104511L);
+                    assertThat(data.get("upstream-subscribe-messages-total_latest")).containsKey("upstream-subscribe-messages-total");
+                    assertThat(data.get("upstream-subscribe-messages-total_latest").get("upstream-subscribe-messages-total"))
+                        .isEqualTo(119L);
+                    assertThat(data.get("upstream-subscribe-message-bytes_latest")).containsKey("upstream-subscribe-message-bytes");
+                    assertThat(data.get("upstream-subscribe-message-bytes_latest").get("upstream-subscribe-message-bytes"))
+                        .isEqualTo(104511L);
+                });
+        }
+
+        @Test
+        void should_search_top_value_hits_for_total_messages_produced() {
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.VALUE);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.VALUE);
+            Aggregation agg3 = new Aggregation("downstream-publish-message-bytes", AggregationType.VALUE);
+            Aggregation agg4 = new Aggregation("upstream-publish-message-bytes", AggregationType.VALUE);
+
+            var result = cut.searchEventAnalytics(
+                new QueryContext("DEFAULT", "DEFAULT"),
+                buildEventAnalyticsQuery(List.of(agg1, agg2, agg3, agg4))
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-publish-messages-total_latest");
+                    assertThat(data).containsKey("upstream-publish-messages-total_latest");
+                    assertThat(data).containsKey("downstream-publish-message-bytes_latest");
+                    assertThat(data).containsKey("upstream-publish-message-bytes_latest");
+                    assertThat(data.get("downstream-publish-messages-total_latest")).containsKey("downstream-publish-messages-total");
+                    assertThat(data.get("downstream-publish-messages-total_latest").get("downstream-publish-messages-total"))
+                        .isEqualTo(119L);
+                    assertThat(data.get("downstream-publish-message-bytes_latest")).containsKey("downstream-publish-message-bytes");
+                    assertThat(data.get("downstream-publish-message-bytes_latest").get("downstream-publish-message-bytes"))
+                        .isEqualTo(104511L);
+                    assertThat(data.get("upstream-publish-messages-total_latest")).containsKey("upstream-publish-messages-total");
+                    assertThat(data.get("upstream-publish-messages-total_latest").get("upstream-publish-messages-total")).isEqualTo(119L);
+                    assertThat(data.get("upstream-publish-message-bytes_latest")).containsKey("upstream-publish-message-bytes");
+                    assertThat(data.get("upstream-publish-message-bytes_latest").get("upstream-publish-message-bytes")).isEqualTo(104511L);
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_messages_produced() {
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-publish-messages-total_delta");
+                    assertThat(data).containsKey("upstream-publish-messages-total_delta");
+                    assertThat(data.get("downstream-publish-messages-total_delta")).containsKey("downstream-publish-messages-total");
+                    assertThat(data.get("downstream-publish-messages-total_delta").get("downstream-publish-messages-total"))
+                        .isEqualTo(108L);
+                    assertThat(data.get("upstream-publish-messages-total_delta")).containsKey("upstream-publish-messages-total");
+                    assertThat(data.get("upstream-publish-messages-total_delta").get("upstream-publish-messages-total")).isEqualTo(108L);
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_messages_consumed() {
+            Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-subscribe-messages-total_delta");
+                    assertThat(data).containsKey("upstream-subscribe-messages-total_delta");
+                    assertThat(data.get("downstream-subscribe-messages-total_delta")).containsKey("downstream-subscribe-messages-total");
+                    assertThat(data.get("downstream-subscribe-messages-total_delta").get("downstream-subscribe-messages-total"))
+                        .isEqualTo(107L);
+                    assertThat(data.get("upstream-subscribe-messages-total_delta")).containsKey("upstream-subscribe-messages-total");
+                    assertThat(data.get("upstream-subscribe-messages-total_delta").get("upstream-subscribe-messages-total"))
+                        .isEqualTo(107L);
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_message_bytes_produced() {
+            Aggregation agg1 = new Aggregation("downstream-publish-message-bytes", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-message-bytes", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-publish-message-bytes_delta");
+                    assertThat(data).containsKey("upstream-publish-message-bytes_delta");
+                    assertThat(data.get("downstream-publish-message-bytes_delta")).containsKey("downstream-publish-message-bytes");
+                    assertThat(data.get("downstream-publish-message-bytes_delta").get("downstream-publish-message-bytes"))
+                        .isEqualTo(99798L);
+                    assertThat(data.get("upstream-publish-message-bytes_delta")).containsKey("upstream-publish-message-bytes");
+                    assertThat(data.get("upstream-publish-message-bytes_delta").get("upstream-publish-message-bytes")).isEqualTo(99798L);
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_message_bytes_consumed() {
+            Aggregation agg1 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(new QueryContext("DEFAULT", "DEFAULT"), buildEventAnalyticsQuery(List.of(agg1, agg2)));
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, Long>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-subscribe-message-bytes_delta");
+                    assertThat(data).containsKey("upstream-subscribe-message-bytes_delta");
+                    assertThat(data.get("downstream-subscribe-message-bytes_delta")).containsKey("downstream-subscribe-message-bytes");
+                    assertThat(data.get("downstream-subscribe-message-bytes_delta").get("downstream-subscribe-message-bytes"))
+                        .isEqualTo(99674L);
+                    assertThat(data.get("upstream-subscribe-message-bytes_delta")).containsKey("upstream-subscribe-message-bytes");
+                    assertThat(data.get("upstream-subscribe-message-bytes_delta").get("upstream-subscribe-message-bytes"))
+                        .isEqualTo(99674L);
+                });
+        }
+
+        private static @NotNull EventAnalyticsQuery buildEventAnalyticsQuery(List<@NotNull Aggregation> aggregations) {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofSeconds(12 * 60 * 60));
+
+            return new EventAnalyticsQuery(NATIVE_API_ID, new TimeRange(from, now), aggregations);
         }
     }
 }

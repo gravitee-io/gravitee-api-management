@@ -57,13 +57,14 @@ public class DiscoveryUseCase {
         Function<IntegrationApi, Output.State> computeState = apiStateComputing(input.auditInfo().environmentId(), integrationId);
 
         return Maybe
-            .fromOptional(integrationCrudService.findById(integrationId))
-            .filter(integration -> integration.getEnvironmentId().equals(input.auditInfo.environmentId()))
+            .fromOptional(integrationCrudService.findApiIntegrationById(integrationId))
+            .filter(integration -> integration.environmentId().equals(input.auditInfo.environmentId()))
             .switchIfEmpty(Single.error(new IntegrationNotFoundException(integrationId)))
-            .flatMapPublisher(integration -> integrationAgent.discoverApis(integration.getId()))
-            .map(discoveredApi -> new Output.PreviewApi(discoveredApi, computeState.apply(discoveredApi)))
-            .toList()
-            .map(Output::new)
+            .flatMap(integration -> integrationAgent.discoverApis(integration.id()))
+            .map(discoveredApis -> {
+                var previewApis = discoveredApis.apis().stream().map(api -> new Output.PreviewApi(api, computeState.apply(api))).toList();
+                return new Output(previewApis, discoveredApis.isPartialDiscovery());
+            })
             .doOnError(throwable -> {
                 if (!(throwable instanceof IntegrationNotFoundException)) {
                     log.error("Error during discovery on integration {}", integrationId, throwable);
@@ -89,7 +90,7 @@ public class DiscoveryUseCase {
 
     public record Input(String integrationId, AuditInfo auditInfo) {}
 
-    public record Output(Collection<PreviewApi> apis) {
+    public record Output(Collection<PreviewApi> apis, boolean isPartialDiscovery) {
         public record PreviewApi(String id, String name, String version, State state) {
             public PreviewApi(IntegrationApi api, State state) {
                 this(api.id(), api.name(), api.version(), state);

@@ -28,6 +28,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.node.api.certificate.KeyStoreLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -87,7 +88,7 @@ public class MutualTLSIntegrationTest {
                 .set("http.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
                 .set("http.ssl.keystore.path", httpKeyStoreLocation.toString())
                 .set("http.ssl.keystore.password", new String(PASSWORD))
-                .configureTcpGateway(this.tcpPort())
+                .enableTcpGateway()
                 .set("tcp.ssl.clientAuth", "required") // force mTLS always
                 .set("tcp.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PKCS12)
                 .set("tcp.ssl.keystore.path", tcpKeyStoreLocation.toString())
@@ -142,9 +143,10 @@ public class MutualTLSIntegrationTest {
 
         @Test
         @DeployApi({ "/apis/v4/http/api.json" })
-        void should_be_able_to_call_with_trust_store_and_renew_certs_using_http() throws Exception {
+        void should_be_able_to_call_with_trust_store_and_renew_certs_using_http(GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
             var httpClient = createTrustedHttpClient(vertx(), httpCert, httpClientKeyStorePath);
-            assertApiCall(httpClient, this.gatewayPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+            assertApiCall(httpClient, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
 
             KeyStoreGenResult newClientKeyPair = createNewPKCS12KeyStore(CLIENT_CN);
 
@@ -153,15 +155,15 @@ public class MutualTLSIntegrationTest {
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var httpClient2 = createTrustedHttpClient(vertx(), httpCert, newClientKeyPair.location());
-                    assertApiCall(httpClient2, this.gatewayPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+                    assertApiCall(httpClient2, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
                 });
         }
 
         @Test
         @DeployApi({ "/apis/v4/tcp/api-multi-domain.json" })
-        void should_be_able_to_call_with_trust_store_and_renew_certs_using_tcp() throws Exception {
+        void should_be_able_to_call_with_trust_store_and_renew_certs_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig) throws Exception {
             var httpClient = createTrustedHttpClient(vertx(), tcpCert, tcpClientKeyStorePath);
-            assertApiCall(httpClient, this.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+            assertApiCall(httpClient, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
 
             KeyStoreGenResult newClientKeyPair = createNewPKCS12KeyStore(CLIENT_CN);
 
@@ -170,10 +172,10 @@ public class MutualTLSIntegrationTest {
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var httpClient2 = createTrustedHttpClient(vertx(), tcpCert, newClientKeyPair.location());
-                    assertApiCall(httpClient2, this.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+                    assertApiCall(httpClient2, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
                 });
 
-            assertHandshakeError(vertx(), tcpCert, GATEWAY_TCP_API_URI, tcpPort(), tcpClientKeyStorePath);
+            assertHandshakeError(vertx(), tcpCert, GATEWAY_TCP_API_URI, tcpConfig.tcpPort(), tcpClientKeyStorePath);
         }
     }
 
@@ -206,9 +208,9 @@ public class MutualTLSIntegrationTest {
 
         @Test
         @DeployApi({ "/apis/v4/tcp/api-multi-domain.json" })
-        void should_be_able_to_call_with_trust_store_and_renew_certs_using_tcp() throws Exception {
+        void should_be_able_to_call_with_trust_store_and_renew_certs_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig) throws Exception {
             var httpClient = createTrustedHttpClient(vertx(), tcpCert, tcpClientKeyPair);
-            assertApiCall(httpClient, this.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+            assertApiCall(httpClient, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
 
             PemGenResult newClientKeyPair = createNewPEMs(CLIENT_CN);
 
@@ -217,17 +219,18 @@ public class MutualTLSIntegrationTest {
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var httpClient2 = createTrustedHttpClient(vertx(), tcpCert, newClientKeyPair.locations().get(CLIENT_CN));
-                    assertApiCall(httpClient2, this.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+                    assertApiCall(httpClient2, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
                 });
 
-            assertHandshakeError(vertx(), tcpCert, GATEWAY_TCP_API_URI, tcpPort(), tcpClientKeyPair);
+            assertHandshakeError(vertx(), tcpCert, GATEWAY_TCP_API_URI, tcpConfig.tcpPort(), tcpClientKeyPair);
         }
 
         @Test
         @DeployApi({ "/apis/v4/http/api.json" })
-        void should_be_able_to_call_with_trust_store_and_renew_certs_using_http() throws Exception {
+        void should_be_able_to_call_with_trust_store_and_renew_certs_using_http(GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
             var httpClient = createTrustedHttpClient(vertx(), httpCert, httpClientKeyPair);
-            assertApiCall(httpClient, this.gatewayPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+            assertApiCall(httpClient, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
 
             PemGenResult newClientKeyPair = createNewPEMs(CLIENT_CN);
 
@@ -236,10 +239,10 @@ public class MutualTLSIntegrationTest {
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var httpClient2 = createTrustedHttpClient(vertx(), httpCert, newClientKeyPair.locations().get(CLIENT_CN));
-                    assertApiCall(httpClient2, this.gatewayPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+                    assertApiCall(httpClient2, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
                 });
 
-            assertHandshakeError(vertx(), httpCert, GATEWAY_HTTP_API_URI, gatewayPort(), httpClientKeyPair);
+            assertHandshakeError(vertx(), httpCert, GATEWAY_HTTP_API_URI, httpConfig.httpPort(), httpClientKeyPair);
         }
     }
 
@@ -276,26 +279,26 @@ public class MutualTLSIntegrationTest {
 
         @Test
         @DeployApi({ "/apis/v4/tcp/api-multi-domain.json" })
-        void should_be_able_to_call_with_trust_store_and_renew_certs_using_tcp() throws Exception {
+        void should_be_able_to_call_with_trust_store_and_renew_certs_using_tcp(GatewayDynamicConfig.TcpConfig tcpConfig) throws Exception {
             Path certNumber2Path = this.tcpServerTrustPemFolder.resolve(certFileName(2));
 
             // test first cert
             var httpClient = createTrustedHttpClient(vertx(), tcpCert, tcpClientKeyPair);
-            assertApiCall(httpClient, this.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+            assertApiCall(httpClient, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
 
             // add a new cert to the folder
             PemGenResult clientKeyPair2 = createNewPEMs(CLIENT_CN);
             Files.copy(clientKeyPair2.certificates().get(CLIENT_CN).certPath(), certNumber2Path);
 
             //#1 still work
-            assertApiCall(httpClient, this.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+            assertApiCall(httpClient, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
 
             // #2 works too
             await()
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var client = createTrustedHttpClient(vertx(), tcpCert, clientKeyPair2.locations().get(CLIENT_CN));
-                    assertApiCall(client, this.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+                    assertApiCall(client, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
                 });
 
             // update #2
@@ -307,46 +310,47 @@ public class MutualTLSIntegrationTest {
             await()
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    assertHandshakeError(vertx(), tcpCert, GATEWAY_TCP_API_URI, tcpPort(), clientKeyPair2);
-                    assertApiCall(httpClient2Prime, this.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+                    assertHandshakeError(vertx(), tcpCert, GATEWAY_TCP_API_URI, tcpConfig.tcpPort(), clientKeyPair2);
+                    assertApiCall(httpClient2Prime, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
                 });
 
             // #1 remove
             Files.delete(tcpServerInitialTrustPemFile);
 
             // #2' should continue to work
-            assertApiCall(httpClient2Prime, this.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
+            assertApiCall(httpClient2Prime, tcpConfig.tcpPort(), BRIGHT_SIDE_FQDN, GATEWAY_TCP_API_URI);
 
             // while #1 not so much anymore
             await()
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    assertHandshakeError(vertx(), tcpCert, GATEWAY_TCP_API_URI, tcpPort(), tcpClientKeyPair);
+                    assertHandshakeError(vertx(), tcpCert, GATEWAY_TCP_API_URI, tcpConfig.tcpPort(), tcpClientKeyPair);
                 });
         }
 
         @Test
         @DeployApi({ "/apis/v4/http/api.json" })
-        void should_be_able_to_call_with_trust_store_and_renew_certs_using_http() throws Exception {
+        void should_be_able_to_call_with_trust_store_and_renew_certs_using_http(GatewayDynamicConfig.HttpConfig httpConfig)
+            throws Exception {
             Path certNumber2Path = this.httpServerTrustPemFolder.resolve(certFileName(2));
 
             // test first cert
             var httpClient = createTrustedHttpClient(vertx(), httpCert, httpClientKeyPair);
-            assertApiCall(httpClient, this.gatewayPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+            assertApiCall(httpClient, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
 
             // add a new cert to the folder
             PemGenResult clientKeyPair2 = createNewPEMs(CLIENT_CN);
             Files.copy(clientKeyPair2.certificates().get(CLIENT_CN).certPath(), certNumber2Path);
 
             //#1 still work
-            assertApiCall(httpClient, this.gatewayPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+            assertApiCall(httpClient, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
 
             // #2 works too
             await()
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     var client = createTrustedHttpClient(vertx(), httpCert, clientKeyPair2.locations().get(CLIENT_CN));
-                    assertApiCall(client, this.gatewayPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+                    assertApiCall(client, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
                 });
 
             // update #2
@@ -358,21 +362,21 @@ public class MutualTLSIntegrationTest {
             await()
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    assertHandshakeError(vertx(), httpCert, GATEWAY_HTTP_API_URI, this.gatewayPort(), clientKeyPair2);
-                    assertApiCall(httpClient2Prime, this.gatewayPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+                    assertHandshakeError(vertx(), httpCert, GATEWAY_HTTP_API_URI, httpConfig.httpPort(), clientKeyPair2);
+                    assertApiCall(httpClient2Prime, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
                 });
 
             // #1 remove
             Files.delete(httpServerInitialTrustPemFile);
 
             // #2' should continue to work
-            assertApiCall(httpClient2Prime, this.gatewayPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+            assertApiCall(httpClient2Prime, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
 
             // while #1 not so much anymore
             await()
                 .atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    assertHandshakeError(vertx(), httpCert, GATEWAY_HTTP_API_URI, gatewayPort(), httpClientKeyPair);
+                    assertHandshakeError(vertx(), httpCert, GATEWAY_HTTP_API_URI, httpConfig.httpPort(), httpClientKeyPair);
                 });
         }
     }

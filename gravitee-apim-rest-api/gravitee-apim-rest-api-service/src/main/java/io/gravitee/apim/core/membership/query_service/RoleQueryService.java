@@ -25,7 +25,9 @@ public interface RoleQueryService {
     Optional<Role> findApiRole(String name, ReferenceContext referenceContext);
     Optional<Role> findApplicationRole(String name, ReferenceContext referenceContext);
     Optional<Role> findIntegrationRole(String name, ReferenceContext referenceContext);
+    Optional<Role> findByScopeAndNameAndOrganizationId(Role.Scope scope, String name, String organizationId);
     Set<Role> findByIds(Set<String> ids);
+    Optional<Role> findByScopeAndName(Role.Scope scope, String name, String organizationId);
 
     default Role getApiRole(String name, ReferenceContext referenceContext) {
         return findApiRole(name, referenceContext).orElseThrow(() -> new RoleNotFoundException(name, referenceContext));

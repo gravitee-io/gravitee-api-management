@@ -22,7 +22,6 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeploySharedPolicyGroups;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayTestParameterResolver;
 import io.gravitee.apim.gateway.tests.sdk.runner.GatewayRunner;
-import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,7 +52,8 @@ import org.slf4j.LoggerFactory;
 public class GatewayTestingExtension
     implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback, ParameterResolver {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(GatewayTestingExtension.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GatewayTestingExtension.class);
+    public static final String GATEWAY_DYNAMIC_CONFIG_KEY = "integration-test-gateway-dynamic-config";
 
     private GatewayRunner gatewayRunner;
     private AbstractGatewayTest gatewayTest;
@@ -62,7 +62,8 @@ public class GatewayTestingExtension
     private final Set<GatewayTestParameterResolver> parameterResolvers = Set.of(
         new HttpClientParameterResolver(),
         new ApiParameterResolver(),
-        new AllApisParameterResolver()
+        new AllApisParameterResolver(),
+        new GatewayDynamicConfigParameterResolver()
     );
 
     /**
@@ -255,7 +256,7 @@ public class GatewayTestingExtension
         }
     }
 
-    private void startGateway(ExtensionContext context) throws SecretProviderException, IOException, InterruptedException {
+    private void startGateway(ExtensionContext context) throws IOException, InterruptedException {
         final Object testInstance = context.getTestInstance().orElseThrow(() -> new IllegalStateException("Cannot find a test instance"));
         if (testInstance instanceof AbstractGatewayTest gtwTest) {
             this.gatewayTest = gtwTest;
@@ -265,7 +266,8 @@ public class GatewayTestingExtension
             gatewayTest.configureGateway(gatewayConfigurationBuilder);
             gatewayRunner = new GatewayRunner(gatewayConfigurationBuilder, gatewayTest);
 
-            gatewayRunner.configureAndStart(gatewayTest.gatewayPort(), gatewayTest.technicalApiPort());
+            var config = gatewayRunner.configureAndStart();
+            context.getStore(ExtensionContext.Namespace.GLOBAL).put(GATEWAY_DYNAMIC_CONFIG_KEY, config);
         } else {
             throw new PreconditionViolationException("Test class must extend AbstractGatewayTest");
         }

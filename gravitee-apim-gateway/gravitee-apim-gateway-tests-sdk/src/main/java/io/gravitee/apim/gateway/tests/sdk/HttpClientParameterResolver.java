@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.gateway.tests.sdk;
 
+import static io.gravitee.apim.gateway.tests.sdk.GatewayTestingExtension.GATEWAY_DYNAMIC_CONFIG_KEY;
+
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayTestParameterResolver;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.junit5.ScopedObject;
@@ -39,12 +42,17 @@ public class HttpClientParameterResolver implements GatewayTestParameterResolver
     @Override
     public Object resolve(ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
         Vertx vertx = getStoredVertx(extensionContext);
+        var gatewayConfig = getStoredGatewayConfig(extensionContext);
 
-        final HttpClientOptions httpClientOptions = new HttpClientOptions()
-            .setDefaultPort(gatewayTest.gatewayPort())
-            .setDefaultHost("localhost");
-        gatewayTest.configureHttpClient(httpClientOptions);
-        return vertx.createHttpClient(httpClientOptions);
+        final HttpClientOptions httpClientOptions = new HttpClientOptions().setDefaultHost("localhost");
+        // configure a default port only if the port is obvious
+        if (gatewayConfig.httpPorts().size() == 1) {
+            httpClientOptions.setDefaultPort(gatewayConfig.httpPort());
+        }
+        gatewayTest.configureHttpClient(httpClientOptions, gatewayConfig, parameterContext);
+        HttpClient httpClient = vertx.createHttpClient(httpClientOptions);
+        gatewayTest.registerATearDownHandler("HTTP client", () -> httpClient.close().onErrorComplete().subscribe());
+        return httpClient;
     }
 
     private Vertx getStoredVertx(ExtensionContext extensionContext) {
@@ -52,5 +60,16 @@ public class HttpClientParameterResolver implements GatewayTestParameterResolver
         ScopedObject scopedObject = store.get(VertxExtension.VERTX_INSTANCE_KEY, ScopedObject.class);
         Objects.requireNonNull(scopedObject, "A Vertx instance must exist, try adding the Vertx parameter as the first method argument");
         return (Vertx) scopedObject.get();
+    }
+
+    private GatewayDynamicConfig.GatewayDynamicConfigImpl getStoredGatewayConfig(ExtensionContext extensionContext) {
+        if (
+            extensionContext
+                .getStore(ExtensionContext.Namespace.GLOBAL)
+                .get(GATEWAY_DYNAMIC_CONFIG_KEY) instanceof GatewayDynamicConfig.GatewayDynamicConfigImpl config
+        ) {
+            return config;
+        }
+        throw new IllegalArgumentException("Gateway seems not deployed");
     }
 }

@@ -15,6 +15,8 @@
  */
 import { Routes } from '@angular/router';
 
+import { GraviteeMarkdownComponent } from '@gravitee/gravitee-markdown';
+
 import { ApiDetailsComponent } from './api/api-details/api-details.component';
 import { ApiTabDetailsComponent } from './api/api-details/api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api/api-details/api-tab-documentation/api-tab-documentation.component';
@@ -235,6 +237,7 @@ export const routes: Routes = [
   { path: 'log-out', component: LogOutComponent, canActivate: [redirectGuard, authGuard] },
   { path: '404', component: NotFoundComponent },
   { path: '503', component: ServiceUnavailableComponent },
+  { path: 'gravitee-md', component: GraviteeMarkdownComponent },
   {
     path: '**',
     component: NotFoundComponent,

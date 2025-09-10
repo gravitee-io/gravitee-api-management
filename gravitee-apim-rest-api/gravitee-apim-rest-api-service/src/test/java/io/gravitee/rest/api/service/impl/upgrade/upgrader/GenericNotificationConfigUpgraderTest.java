@@ -23,6 +23,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
@@ -67,7 +68,7 @@ public class GenericNotificationConfigUpgraderTest {
     }
 
     @Test
-    public void should_upgrade_only_portal_default_notification() throws TechnicalException {
+    public void should_upgrade_only_portal_default_notification() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll())
             .thenReturn(Set.of(Environment.builder().id("env#1").build(), Environment.builder().id("env#2").build()));
 
@@ -100,7 +101,7 @@ public class GenericNotificationConfigUpgraderTest {
     }
 
     @Test
-    public void should_not_create_if_not_find_generic_notification() throws TechnicalException {
+    public void should_not_create_if_not_find_generic_notification() throws TechnicalException, UpgraderException {
         when(environmentRepository.findAll())
             .thenReturn(Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build()));
 

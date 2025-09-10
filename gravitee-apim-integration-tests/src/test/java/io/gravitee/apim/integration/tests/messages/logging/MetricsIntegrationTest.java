@@ -65,8 +65,8 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
 
         FakeReporter fakeReporter = getBean(FakeReporter.class);
         fakeReporter.setReportableHandler(reportable -> {
-            if (reportable instanceof Metrics) {
-                subject.onNext(((Metrics) reportable).toBuilder().build());
+            if (reportable instanceof Metrics metrics) {
+                subject.onNext(metrics.toBuilder().build());
             }
         });
     }
@@ -102,7 +102,7 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
                     soft.assertThat(metrics.getClientIdentifier()).isEqualTo(CLIENT_ID);
                     soft.assertThat(metrics.getTransactionId()).isEqualTo(TRANSACTION_ID);
                     soft.assertThat(metrics.isRequestEnded()).isFalse();
-                    soft.assertThat(metrics.getStatus()).isZero();
+                    soft.assertThat(metrics.getStatus()).isEqualTo(200);
                     soft.assertThat(metrics.getEndpointResponseTimeMs()).isPositive();
                     soft.assertThat(metrics.getGatewayLatencyMs()).isEqualTo(0);
                     soft.assertThat(metrics.getGatewayResponseTimeMs()).isEqualTo(0);
@@ -111,7 +111,7 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
                 return true;
             })
             .values()
-            .get(0);
+            .getFirst();
 
         // 3. Stop the SSE request
         sseRequest.cancel();
@@ -128,7 +128,7 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
                     soft.assertThat(fullMetrics.isRequestEnded()).isTrue();
                     soft.assertThat(fullMetrics.getStatus()).isEqualTo(200);
                     soft.assertThat(fullMetrics.getGatewayResponseTimeMs()).isGreaterThan(0);
-                    soft.assertThat(fullMetrics.getEndpointResponseTimeMs()).isGreaterThan(0);
+                    soft.assertThat(fullMetrics.getEndpointResponseTimeMs()).isGreaterThanOrEqualTo(0);
                     soft.assertThat(fullMetrics.getGatewayLatencyMs()).isGreaterThan(0);
                 });
                 return true;

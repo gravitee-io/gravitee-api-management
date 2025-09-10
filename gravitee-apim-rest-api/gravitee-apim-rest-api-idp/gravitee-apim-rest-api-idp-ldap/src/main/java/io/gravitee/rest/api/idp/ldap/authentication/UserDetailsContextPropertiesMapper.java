@@ -21,8 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
@@ -37,9 +36,8 @@ import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class UserDetailsContextPropertiesMapper implements UserDetailsContextMapper {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsContextPropertiesMapper.class);
 
     private static final String LDAP_ATTRIBUTE_UID = "uid";
     private static final String LDAP_ATTRIBUTE_FIRSTNAME = "givenName";
@@ -74,7 +72,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to load mapped authorities", e);
+            log.error("Failed to load mapped authorities", e);
         }
 
         io.gravitee.rest.api.idp.api.authentication.UserDetails userDetails = new io.gravitee.rest.api.idp.api.authentication.UserDetails(

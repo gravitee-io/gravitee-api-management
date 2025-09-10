@@ -20,17 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGrpcGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
 import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
-import io.vertx.grpc.client.GrpcClientChannel;
-import io.vertx.grpcio.client.GrpcIoClientChannel;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -55,9 +51,10 @@ public class GrpcUnknownServiceV4EmulationIntegrationTest extends AbstractGrpcGa
     }
 
     @Test
-    void should_request_and_not_get_response(VertxTestContext testContext) throws InterruptedException {
+    void should_request_and_not_get_response(VertxTestContext testContext, GatewayDynamicConfig.HttpConfig httpConfig)
+        throws InterruptedException {
         getGrpcClient()
-            .request(gatewayAddress(), StreamingGreeterGrpc.getSayHelloStreamingMethod())
+            .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
             .compose(request -> {
                 // send one request
                 request.end(HelloRequest.newBuilder().setName("You").build());

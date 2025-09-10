@@ -675,6 +675,16 @@ data:
         param: {{ .Values.gateway.apiKey.param }}
     {{- end }}
 
+    # Dictionaries multi tenant
+    {{- if .Values.gateway.dictionaries }}
+    {{- $multitenant := index .Values.gateway.dictionaries "multi-tenant" }}
+    {{- if and $multitenant (not $multitenant.enabled) }}
+    dictionaries:
+      multi-tenant:
+        enabled: false
+    {{- end }}
+    {{- end }}
+
     # Alert Engine communication
     {{- if .Values.alerts.enabled }}
     alerts:

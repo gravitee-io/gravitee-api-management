@@ -29,8 +29,11 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Integration;
@@ -100,6 +103,15 @@ public class MembershipService_IntegrationMembershipTest {
     @Mock
     private IntegrationRepository integrationRepository;
 
+    @Mock
+    private Node node;
+
+    @Mock
+    private CommandRepository commandRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     public void setUp() throws Exception {
         reset(
@@ -131,7 +143,12 @@ public class MembershipService_IntegrationMembershipTest {
                 null,
                 auditService,
                 null,
-                integrationRepository
+                integrationRepository,
+                node,
+                objectMapper,
+                commandRepository,
+                null,
+                null
             );
     }
 
@@ -155,7 +172,7 @@ public class MembershipService_IntegrationMembershipTest {
             newMembership.setMemberId(existingUserId);
             newMembership.setMemberType(MembershipMemberType.USER);
 
-            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
+            when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             when(
                 membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -200,7 +217,7 @@ public class MembershipService_IntegrationMembershipTest {
             )
                 .thenReturn(Set.of(existingMembership));
 
-            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
+            when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             assertThatThrownBy(() ->
                     membershipService.createNewMembershipForIntegration(
@@ -235,7 +252,7 @@ public class MembershipService_IntegrationMembershipTest {
             )
                 .thenReturn(Set.of(newMembership));
 
-            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
+            when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity createdMember = membershipService.createNewMembershipForIntegration(
                 GraviteeContext.getExecutionContext(),
@@ -273,6 +290,8 @@ public class MembershipService_IntegrationMembershipTest {
             updatedMembership.setReferenceId(INTEGRATION_ID);
             updatedMembership.setMemberId(userId);
             updatedMembership.setMemberType(MembershipMemberType.USER);
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+                .thenReturn(Optional.of(new RoleEntity()));
             when(
                 membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                     userId,
@@ -291,7 +310,7 @@ public class MembershipService_IntegrationMembershipTest {
                 .thenReturn(Optional.of(new RoleEntity()));
             when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
                 .thenReturn(Optional.of(new RoleEntity()));
-            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
+            when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity updatedMember = membershipService.updateMembershipForIntegration(
                 GraviteeContext.getExecutionContext(),
@@ -317,7 +336,7 @@ public class MembershipService_IntegrationMembershipTest {
             )
                 .thenReturn(Set.of());
 
-            when(integrationRepository.findById(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
+            when(integrationRepository.findByIntegrationId(INTEGRATION_ID)).thenReturn(Optional.of(new Integration()));
 
             MemberEntity updatedMember = membershipService.updateMembershipForIntegration(
                 GraviteeContext.getExecutionContext(),

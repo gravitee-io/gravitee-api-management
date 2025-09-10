@@ -18,7 +18,6 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -36,7 +35,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @ToString
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}pages")
-public class PageMongo extends Auditable {
+public class PageMongo extends DeprecatedAuditable {
 
     @Id
     private String id;
@@ -46,6 +45,7 @@ public class PageMongo extends Auditable {
      * Pages promoted between environments will share the same crossId.
      */
     private String crossId;
+    private String hrid;
 
     private String referenceId;
     private String referenceType;

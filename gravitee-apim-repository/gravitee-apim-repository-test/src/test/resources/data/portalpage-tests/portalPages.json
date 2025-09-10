@@ -1,0 +1,26 @@
+[
+   {
+      "id":"test-portal-page-id",
+      "environmentId":"test-environment",
+      "name":"Test Portal Page",
+      "content":"This is a test portal page content with some sample text to verify the repository functionality.",
+      "createdAt": 1486771200000,
+      "updatedAt": 1486771200000
+   },
+   {
+      "id":"update-portal-page",
+      "environmentId":"test-environment",
+      "name":"Update Portal Page",
+      "content":"This portal page will be used for testing update operations in the repository tests.",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"delete-portal-page",
+      "environmentId":"test-environment",
+      "name":"Delete Portal Page",
+      "content":"This portal page will be used for testing delete operations in the repository tests.",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]

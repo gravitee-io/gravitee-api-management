@@ -26,6 +26,7 @@ import inmemory.PolicyPluginQueryServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.plugin.core.api.PluginDocumentation;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPluginAllOfFlowPhaseCompatibility;
@@ -43,10 +44,13 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class PoliciesResourceTest extends AbstractResourceTest {
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class PoliciesResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
@@ -62,6 +66,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     private static final String FAKE_POLICY_ID = "my_policy";
 
     @AfterEach
+    @Override
     public void tearDown() {
         super.tearDown();
         reset(policyPluginService);
@@ -69,7 +74,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldReturnSortedPolicies() {
+    void should_return_sorted_policies() {
         policyPluginQueryServiceInMemory.initWith(
             List.of(
                 io.gravitee.apim.core.plugin.model.PolicyPlugin
@@ -147,7 +152,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetPolicySchema() {
+    void should_get_policy_schema() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -165,7 +170,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetPolicySchemaWithDisplay() {
+    void should_get_policy_schema_with_display() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -183,7 +188,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_get_policy_schema_with_api_protocol_type() {
+    void should_get_policy_schema_with_api_protocol_type() {
         PolicyPluginEntity policyPlugin = getPolicyPluginEntity();
         when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
         when(policyPluginService.getSchema(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY, null)).thenReturn("schemaResponse");
@@ -199,7 +204,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotGetPolicySchemaWhenPluginNotFound() {
+    void should_not_get_policy_schema_when_plugin_not_found() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -223,7 +228,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetPolicyDocumentation() {
+    void should_get_policy_documentation() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -232,7 +237,8 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyPlugin.setCategory("my-category");
         policyPlugin.setDescription("my-description");
         when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
-        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, null)).thenReturn("documentationResponse");
+        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, null))
+            .thenReturn(new PluginDocumentation("documentationResponse", PluginDocumentation.Language.ASCIIDOC));
 
         final Response response = rootTarget(FAKE_POLICY_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -241,10 +247,11 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_get_policy_documentation_with_api_protocol_type() {
+    void should_get_policy_documentation_with_api_protocol_type() {
         PolicyPluginEntity policyPlugin = getPolicyPluginEntity();
         when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
-        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY)).thenReturn("documentationResponse");
+        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY))
+            .thenReturn(new PluginDocumentation("documentationResponse", PluginDocumentation.Language.ASCIIDOC));
 
         final Response response = rootTarget(FAKE_POLICY_ID)
             .path("documentation")
@@ -257,7 +264,25 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotGetPolicyDocumentationWhenPluginNotFound() {
+    void should_get_policy_documentation_ext_with_api_protocol_type() {
+        PolicyPluginEntity policyPlugin = getPolicyPluginEntity();
+        when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
+        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY))
+            .thenReturn(new PluginDocumentation("documentationResponse", PluginDocumentation.Language.MARKDOWN));
+
+        final Response response = rootTarget(FAKE_POLICY_ID)
+            .path("documentation-ext")
+            .queryParam("apiProtocolType", ApiProtocolType.HTTP_PROXY)
+            .request()
+            .get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final PluginDocumentation result = response.readEntity(PluginDocumentation.class);
+        assertThat(result.language()).isEqualTo(PluginDocumentation.Language.MARKDOWN);
+        assertThat(result.content()).isEqualTo("documentationResponse");
+    }
+
+    @Test
+    void should_not_get_policy_documentation_when_plugin_not_found() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");
@@ -282,7 +307,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetPolicyById() {
+    void should_get_policy_by_id() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId(FAKE_POLICY_ID);
         policyPlugin.setName("Fake Endpoint");

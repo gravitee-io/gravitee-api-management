@@ -15,24 +15,33 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, switchMap } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { BehaviorSubject, Observable, switchMap, filter } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { AnalyticsRequestsCount } from '../entities/management-api-v2/analytics/analyticsRequestsCount';
 import { AnalyticsAverageConnectionDuration } from '../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
 import { AnalyticsAverageMessagesPerRequest } from '../entities/management-api-v2/analytics/analyticsAverageMessagesPerRequest';
 import { AnalyticsResponseStatusRanges } from '../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
-import { AnalyticsResponseStatusOvertime } from '../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
 import { AnalyticsResponseTimeOverTime } from '../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
 import { TimeRangeParams } from '../shared/utils/timeFrameRanges';
-import { ApiAnalyticsFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-filters-bar/api-analytics-filters-bar.configuration';
+import { ApiAnalyticsMessageFilters } from '../management/api/api-traffic-v4/analytics/components/api-analytics-message-filters-bar/api-analytics-message-filters-bar.configuration';
+import { HistogramAnalyticsResponse } from '../entities/management-api-v2/analytics/analyticsHistogram';
+import { GroupByField, GroupByResponse } from '../entities/management-api-v2/analytics/analyticsGroupBy';
+import { AnalyticsStatsResponse, StatsField } from '../entities/management-api-v2/analytics/analyticsStats';
+import { ApiMetricsDetailResponse } from '../entities/management-api-v2/analytics/apiMetricsDetailResponse';
+
+interface UrlParamsData {
+  field?: GroupByField | StatsField;
+  order?: string;
+  ranges?: string;
+  query?: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiAnalyticsV2Service {
-  public readonly defaultFilters: ApiAnalyticsFilters = { period: '1d', from: null, to: null };
+  public readonly defaultFilters: ApiAnalyticsMessageFilters = { period: '1d', from: null, to: null };
   private timeRangeFilter$: BehaviorSubject<TimeRangeParams> = new BehaviorSubject<TimeRangeParams>(null);
 
   constructor(
@@ -87,16 +96,6 @@ export class ApiAnalyticsV2Service {
     );
   }
 
-  getResponseStatusOvertime(apiId: string): Observable<AnalyticsResponseStatusOvertime> {
-    return this.timeRangeFilter().pipe(
-      filter((data) => !!data),
-      switchMap(({ from, to }) => {
-        const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/response-status-overtime?from=${from}&to=${to}`;
-        return this.http.get<AnalyticsResponseStatusOvertime>(url);
-      }),
-    );
-  }
-
   getResponseTimeOverTime(apiId: string): Observable<AnalyticsResponseTimeOverTime> {
     return this.timeRangeFilter().pipe(
       filter((data) => !!data),
@@ -105,5 +104,48 @@ export class ApiAnalyticsV2Service {
         return this.http.get<AnalyticsResponseTimeOverTime>(url);
       }),
     );
+  }
+
+  getHistogramAnalytics(apiId: string, aggregations: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=HISTOGRAM&from=${from}&to=${to}&interval=${interval}&aggregations=${aggregations}${this.buildUrlParams({ ...urlParamsData })}`;
+    return this.http.get<HistogramAnalyticsResponse>(url);
+  }
+
+  getGroupBy(apiId: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=GROUP_BY&from=${from}&to=${to}&interval=${interval}${this.buildUrlParams({ ...urlParamsData })}`;
+    return this.http.get<GroupByResponse>(url);
+  }
+
+  getStats(apiId: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
+    const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=STATS&from=${from}&to=${to}&interval=${interval}${this.buildUrlParams({ ...urlParamsData })}`;
+    return this.http.get<AnalyticsStatsResponse>(url);
+  }
+
+  getApiMetricsDetail(apiId: string, requestId: string): Observable<ApiMetricsDetailResponse> {
+    return this.http.get<ApiMetricsDetailResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/${requestId}`);
+  }
+
+  buildUrlParams(params: UrlParamsData) {
+    const { order, ranges, field, query } = params;
+
+    let url = '';
+
+    if (field) {
+      url += `&field=${field}`;
+    }
+
+    if (order) {
+      url += `&order=${order}`;
+    }
+
+    if (ranges) {
+      url += `&ranges=${ranges}`;
+    }
+
+    if (query) {
+      url += `&query=${query}`;
+    }
+
+    return url;
   }
 }

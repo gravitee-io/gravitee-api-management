@@ -16,9 +16,8 @@
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { ApiRuntimeLogsListComponent } from './api-runtime-logs-list.component';
-import { ApiRuntimeLogsListModule } from './api-runtime-logs-list.module';
 
-import { fakeConnectionLog } from '../../../../../../entities/management-api-v2/log/connectionLog.fixture';
+import { fakeConnectionLog } from '../../../../../../entities/management-api-v2';
 
 const logs = [
   fakeConnectionLog(),
@@ -34,14 +33,14 @@ export default {
   component: ApiRuntimeLogsListComponent,
   decorators: [
     moduleMetadata({
-      imports: [ApiRuntimeLogsListModule],
+      imports: [ApiRuntimeLogsListComponent],
     }),
   ],
   argTypes: {},
   render: (args) => ({
     template: `
-      <div style="width: 800px">
-        <api-runtime-logs-list [logs]="logs" [pagination]="pagination"></api-runtime-logs-list>
+      <div style="width: 1200px">
+        <api-runtime-logs-list [logs]="logs" [pagination]="pagination" [isMessageApi]="false"></api-runtime-logs-list>
       </div>
     `,
     props: args,

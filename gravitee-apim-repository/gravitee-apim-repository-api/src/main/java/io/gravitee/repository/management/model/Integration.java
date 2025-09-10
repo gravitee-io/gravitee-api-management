@@ -15,12 +15,16 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.repository.management.model.integration.A2aWellKnownUrl;
+import jakarta.annotation.Nullable;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.With;
 
@@ -33,6 +37,8 @@ import lombok.With;
 @Builder(toBuilder = true)
 @Data
 public class Integration {
+
+    public static final String A2A = "A2A";
 
     @With
     private String id;
@@ -53,23 +59,25 @@ public class Integration {
     private Set<String> groups = new HashSet<>();
 
     /**
-     * @deprecated Agent status is not saved in database anymore but calculated. This field can be deleted after 4.5 release
+     * A2A field
      */
-    // To remove in after 4.5 release
-    @Deprecated(since = "4.5.0", forRemoval = true)
-    @Builder.Default
-    private AgentStatus agentStatus = AgentStatus.DISCONNECTED;
-
-    /**
-     * @deprecated Agent status is not saved in database anymore but calculated. This field can be deleted after 4.5 release
-     */
-    @Deprecated(since = "4.5.0", forRemoval = true)
-    public enum AgentStatus {
-        CONNECTED,
-        DISCONNECTED,
-    }
+    private Collection<A2aWellKnownUrl> wellKnownUrls;
 
     public boolean addGroup(String groupId) {
         return groups.add(groupId);
+    }
+
+    public boolean isA2aIntegration() {
+        return A2A.equals(provider);
+    }
+
+    @Nullable
+    public Set<String> getGroups() {
+        return groups;
+    }
+
+    @Nullable
+    public Collection<A2aWellKnownUrl> getWellKnownUrls() {
+        return wellKnownUrls;
     }
 }

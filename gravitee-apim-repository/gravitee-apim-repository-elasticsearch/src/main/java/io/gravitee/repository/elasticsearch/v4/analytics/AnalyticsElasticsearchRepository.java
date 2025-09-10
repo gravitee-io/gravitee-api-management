@@ -17,35 +17,55 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.AggregateValueCountByFieldAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.FindApiMetricsDetailQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.FindApiMetricsDetailResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.GroupByQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.ResponseTimeRangeQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchHistogramQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestResponseTimeAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountByEventQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusOverTimeAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.StatsQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationResponseAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
+import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
+import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
+import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
+import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
+import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
+import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
@@ -189,6 +209,63 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         log.debug("Search top failed apis query: {}", esQuery);
         return this.client.search(indexes, null, esQuery).map(SearchTopFailedApisAdapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public List<HistogramAggregate> searchHistogram(QueryContext queryContext, HistogramQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var adapter = new SearchHistogramQueryAdapter();
+        var esQuery = adapter.adapt(query);
+
+        log.debug("Search histogram query: {}", esQuery);
+        return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var adapter = new GroupByQueryAdapter();
+        var esQuery = adapter.adapt(query);
+
+        log.debug("Search group by query: {}", esQuery);
+        return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var adapter = new StatsQueryAdapter();
+        var esQuery = adapter.adapt(query);
+
+        log.debug("Search stats query: {}", esQuery);
+        return client.search(index, null, esQuery).map(adapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<CountByAggregate> searchRequestsCountByEvent(QueryContext queryContext, RequestsCountByEventQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = SearchRequestsCountByEventQueryAdapter.adapt(query);
+        log.debug("Search Request total counts query: {}", esQuery);
+
+        return client.search(index, null, esQuery).map(SearchRequestsCountByEventQueryAdapter::adaptResponse).blockingGet();
+    }
+
+    @Override
+    public Optional<ApiMetricsDetail> findApiMetricsDetail(QueryContext queryContext, ApiMetricsDetailQuery query) {
+        var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+
+        return this.client.search(indexV4Metrics, null, FindApiMetricsDetailQueryAdapter.adapt(query))
+            .map(FindApiMetricsDetailResponseAdapter::adaptFirst)
+            .blockingGet();
+    }
+
+    @Override
+    public Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, EventAnalyticsQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var esQuery = TopHitsAggregationQueryAdapter.adapt(query);
+        log.debug("Search native stats query: {}", esQuery);
+
+        return client.search(index, null, esQuery).map(TopHitsAggregationResponseAdapter::adapt).blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

@@ -62,6 +62,7 @@ public class JdbcSharedPolicyGroupRepository
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
+            .addColumn("hrid", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("prerequisite_message", Types.NVARCHAR, String.class)
@@ -186,6 +187,27 @@ public class JdbcSharedPolicyGroupRepository
         } catch (Exception ex) {
             LOGGER.error("Failed to find SharedPolicyGroup by environment ID and cross ID:", ex);
             throw new TechnicalException("Failed to find SharedPolicyGroup by environment ID and cross ID", ex);
+        }
+    }
+
+    @Override
+    public Optional<SharedPolicyGroup> findByEnvironmentIdAndHRID(String environmentId, String hrid) throws TechnicalException {
+        LOGGER.debug("Find shared policy group by environment ID [{}] and  HRID [{}]", environmentId, hrid);
+
+        try {
+            final var result = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " WHERE environment_id = ? AND hrid = ?",
+                getOrm().getRowMapper(),
+                environmentId,
+                hrid
+            );
+
+            final var sharedPolicyGroup = result.isEmpty() ? null : result.get(0);
+
+            LOGGER.debug("Find shared policy group by environment ID [{}] and cross ID [{}] - Done", environmentId, hrid);
+            return Optional.ofNullable(sharedPolicyGroup);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find SharedPolicyGroup by environment ID and HRID", ex);
         }
     }
 

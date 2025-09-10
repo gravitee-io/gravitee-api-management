@@ -26,6 +26,7 @@ import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.node.container.NodeFactory;
+import io.gravitee.node.monitoring.healthcheck.NodeHealthCheckService;
 import io.gravitee.node.monitoring.spring.NodeMonitoringConfiguration;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
@@ -121,6 +122,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public LicenseManager licenseManager() {
             return new PermissiveLicenseManager();
+        }
+
+        @Bean
+        public NodeHealthCheckService nodeHealthCheckService() {
+            return Mockito.mock(NodeHealthCheckService.class);
         }
     }
 }

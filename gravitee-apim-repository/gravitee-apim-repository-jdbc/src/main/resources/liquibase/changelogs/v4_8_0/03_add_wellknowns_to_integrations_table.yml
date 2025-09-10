@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 03_add_wellknowns_to_integrations_table.yml
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Add well_known_urls column to integrations table
+        # ################
+        - addColumn:
+            tableName: ${gravitee_prefix}integrations
+            columns:
+              - column:
+                  name: well_known_urls
+                  type: nvarchar(512)
+                  constraints:
+                    nullable: true

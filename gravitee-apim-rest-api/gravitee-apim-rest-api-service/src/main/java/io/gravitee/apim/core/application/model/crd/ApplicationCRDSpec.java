@@ -49,6 +49,7 @@ public class ApplicationCRDSpec extends ApplicationEntity {
     public NewApplicationEntity toNewApplicationEntity() {
         NewApplicationEntity nae = new NewApplicationEntity();
         nae.setId(getId());
+        nae.setHrid(getHrid());
         nae.setName(getName());
         nae.setDescription(getDescription());
         nae.setType(getType());
@@ -77,6 +78,7 @@ public class ApplicationCRDSpec extends ApplicationEntity {
         uae.setGroups(getGroups());
         uae.setSettings(getSettings());
         uae.setDisableMembershipNotifications(isDisableMembershipNotifications());
+        uae.setStatus(getStatus());
 
         return uae;
     }

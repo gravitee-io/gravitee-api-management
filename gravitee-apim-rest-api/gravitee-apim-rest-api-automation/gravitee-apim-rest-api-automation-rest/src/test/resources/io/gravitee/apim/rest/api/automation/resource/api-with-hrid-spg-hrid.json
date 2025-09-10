@@ -1,0 +1,176 @@
+{
+  "name": "api-v4-with-apikey",
+  "hrid": "api-hrid",
+  "description": "API v4 CRD spec with unknown categories",
+  "version": "1.0",
+  "type": "PROXY",
+  "categories": [],
+  "listeners": [
+    {
+      "type": "HTTP",
+      "paths": [
+        {
+          "path": "/test-hrid"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy",
+          "qos": "AUTO"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "Default HTTP proxy group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "Default HTTP proxy",
+          "type": "http-proxy",
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "https://api.gravitee.io/echo"
+          },
+          "secondary": false
+        }
+      ]
+    }
+  ],
+  "flowExecution": {
+    "mode": "DEFAULT",
+    "matchRequired": false
+  },
+  "state": "STARTED",
+  "lifecycleState": "PUBLISHED",
+  "visibility": "PUBLIC",
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "HTTP",
+          "path": "/",
+          "pathOperator": "STARTS_WITH"
+        }
+      ],
+      "request": [
+        {
+          "name": "my-shared-policy-group-policy",
+          "description": "",
+          "enabled": true,
+          "policy": "shared-policy-group-policy",
+          "configuration": {
+            "hrid": "test-spg-hrid"
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "my-shared-policy-group-policy",
+          "description": "",
+          "enabled": true,
+          "policy": "shared-policy-group-policy",
+          "configuration": {
+            "hrid": "test-spg-hrid"
+          }
+        }
+      ],
+      "subscribe": [
+        {
+          "name": "my-shared-policy-group-policy",
+          "description": "",
+          "enabled": true,
+          "policy": "shared-policy-group-policy",
+          "configuration": {
+            "hrid": "test-spg-hrid"
+          }
+        }
+      ],
+      "publish": [
+        {
+          "name": "my-shared-policy-group-policy",
+          "description": "",
+          "enabled": true,
+          "policy": "shared-policy-group-policy",
+          "configuration": {
+            "hrid": "test-spg-hrid"
+          }
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "name": "API Key plan",
+      "hrid": "API_KEY",
+      "description": "API key plan needs a key to authenticate",
+      "type": "API",
+      "status": "PUBLISHED",
+      "validation": "AUTO",
+      "mode": "STANDARD",
+      "security": {
+        "type": "API_KEY"
+      },
+      "flows": [
+        {
+          "name": "flow-1",
+          "enabled": true,
+          "selectors": [
+            {
+              "type": "HTTP",
+              "path": "/",
+              "pathOperator": "STARTS_WITH"
+            }
+          ],
+          "request": [
+            {
+              "name": "my-shared-policy-group-policy",
+              "description": "",
+              "enabled": true,
+              "policy": "shared-policy-group-policy",
+              "configuration": {
+                "hrid": "test-spg-hrid"
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "my-shared-policy-group-policy",
+              "description": "",
+              "enabled": true,
+              "policy": "shared-policy-group-policy",
+              "configuration": {
+                "hrid": "test-spg-hrid"
+              }
+            }
+          ],
+          "subscribe": [
+            {
+              "name": "my-shared-policy-group-policy",
+              "description": "",
+              "enabled": true,
+              "policy": "shared-policy-group-policy",
+              "configuration": {
+                "hrid": "test-spg-hrid"
+              }
+            }
+          ],
+          "publish": [
+            {
+              "name": "my-shared-policy-group-policy",
+              "description": "",
+              "enabled": true,
+              "policy": "shared-policy-group-policy",
+              "configuration": {
+                "hrid": "test-spg-hrid"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

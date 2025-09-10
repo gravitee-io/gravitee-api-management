@@ -234,6 +234,17 @@ Return the appropriate apiVersion for pod autoscaling.
 {{- end -}}
 
 {{/*
+Gateway API Docker images tag.
+*/}}
+{{- define "gateway.dockerTag" -}}
+{{- if .Values.gateway.image.tag -}}
+{{- .Values.gateway.image.tag -}}
+{{- else -}}
+{{- printf "%s-debian" .Chart.AppVersion -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Returns true if an extraVolumes named config is defined
 Usage:
 {{ include "gateway.externalConfig" . }}
@@ -258,6 +269,17 @@ Usage:
 {{- print "config" -}}
 {{- end }}
 {{- end }}
+
+{{/*
+Management API Docker images tag.
+*/}}
+{{- define "api.dockerTag" -}}
+{{- if .Values.api.image.tag -}}
+{{- .Values.api.image.tag -}}
+{{- else -}}
+{{- printf "%s-debian" .Chart.AppVersion -}}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Returns true if an extraVolumes named config is defined

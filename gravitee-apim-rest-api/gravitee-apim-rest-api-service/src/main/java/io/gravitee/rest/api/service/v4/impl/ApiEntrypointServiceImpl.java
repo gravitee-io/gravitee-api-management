@@ -52,6 +52,10 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
     private static final String URI_PATH_SEPARATOR = "/";
+    public static final Set<DefinitionVersion> APIS_WITHOUT_ENTRYPOINT = EnumSet.of(
+        DefinitionVersion.FEDERATED,
+        DefinitionVersion.FEDERATED_AGENT
+    );
 
     private final ParameterService parameterService;
     private final EntrypointService entrypointService;
@@ -71,7 +75,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     public List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
-        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+        if (APIS_WITHOUT_ENTRYPOINT.contains(genericApiEntity.getDefinitionVersion())) {
             return apiEntrypoints;
         }
 
@@ -103,6 +107,9 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                     .stream(entrypoint.getTags())
                     .allMatch(tag -> genericApiEntity.getTags().stream().toList().contains(tag));
                 if (!isEntrypointMatching) {
+                    return;
+                }
+                if (!hasSupportedListeners(genericApiEntity)) {
                     return;
                 }
                 // Check if entrypoint is matching the API target
@@ -255,7 +262,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         return entrypoints;
     }
 
-    private ApiEntrypointEntity createHttpApiEntrypointEntity(
+    ApiEntrypointEntity createHttpApiEntrypointEntity(
         String defaultScheme,
         String host,
         String path,
@@ -267,6 +274,10 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         }
 
         String url = DUPLICATE_SLASH_REMOVER.matcher(host + URI_PATH_SEPARATOR + path).replaceAll(URI_PATH_SEPARATOR);
+        if (url.endsWith(URI_PATH_SEPARATOR)) {
+            url = url.substring(0, url.length() - URI_PATH_SEPARATOR.length());
+        }
+
         return new ApiEntrypointEntity(tags, url, originalHost);
     }
 
@@ -385,5 +396,26 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         }
 
         throw new EntrypointNotFoundException(genericApiEntity.getId());
+    }
+
+    private boolean hasSupportedListeners(GenericApiEntity api) {
+        // V1/V2 are always supported (HTTP)
+        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+            log.debug("API [{}] has supported listener", api.getId());
+            return true;
+        }
+        if (api instanceof io.gravitee.rest.api.model.v4.api.ApiEntity v4Api) {
+            boolean hasCompatibleListener = v4Api
+                .getListeners()
+                .stream()
+                .anyMatch(listener -> listener instanceof TcpListener || listener instanceof HttpListener);
+            if (!hasCompatibleListener) {
+                log.debug("API [{}] has no TCP or HTTP listeners — entrypoint checks will be skipped", api.getId());
+            }
+            return hasCompatibleListener;
+        }
+        // V4 Native APIs (Kafka) don't need HTTP/TCP
+        log.debug("API [{}] is a V4 Native API — skipping HTTP/TCP listener check", api.getId());
+        return true;
     }
 }

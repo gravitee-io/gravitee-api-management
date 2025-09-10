@@ -84,7 +84,8 @@ public class ApiModelFactory {
         if (api.isNative()) {
             api.setApiDefinitionNativeV4(crd.toNativeApiDefinitionBuilder().id(id).build());
         } else {
-            api.setApiDefinitionHttpV4(crd.toApiDefinitionBuilder().id(id).build());
+            io.gravitee.definition.model.v4.Api build = crd.toApiDefinitionBuilder().id(id).build();
+            api.setApiDefinitionHttpV4(build);
         }
 
         return api;
@@ -150,9 +151,9 @@ public class ApiModelFactory {
             .description(integrationApi.description())
             .createdAt(now)
             .updatedAt(now)
-            .environmentId(integration.getEnvironmentId())
+            .environmentId(integration.environmentId())
             .lifecycleState(null)
-            .originContext(new OriginContext.Integration(integration.getId(), integration.getName(), integration.getProvider()))
+            .originContext(new OriginContext.Integration(integration.id(), integration.name(), integration.provider()))
             .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
             .build();
     }
@@ -173,7 +174,7 @@ public class ApiModelFactory {
             .updatedAt(now)
             .environmentId(job.getEnvironmentId())
             .lifecycleState(null)
-            .originContext(new OriginContext.Integration(job.getSourceId(), integration.getName(), integration.getProvider()))
+            .originContext(new OriginContext.Integration(job.getSourceId(), integration.name(), integration.provider()))
             .federatedApiDefinition(integrationApi.toFederatedApiDefinitionBuilder().id(id).build())
             .build();
     }
@@ -198,7 +199,7 @@ public class ApiModelFactory {
      * @return The generated id
      */
     public static String generateFederatedApiId(IntegrationApi integrationApi, Integration integration) {
-        return generateFederatedApiId(integration.getEnvironmentId(), integration.getId(), integrationApi);
+        return generateFederatedApiId(integration.environmentId(), integration.id(), integrationApi);
     }
 
     public static String generateFederatedApiId(String environmentId, String integrationId, IntegrationApi integrationApi) {

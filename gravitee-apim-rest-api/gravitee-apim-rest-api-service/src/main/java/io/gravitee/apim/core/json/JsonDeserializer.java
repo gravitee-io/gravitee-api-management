@@ -17,4 +17,5 @@ package io.gravitee.apim.core.json;
 
 public interface JsonDeserializer {
     <T> T deserialize(String json, Class<T> clazz) throws JsonProcessingException;
+    <T> T deserializeNonStrict(String json, Class<T> clazz) throws JsonProcessingException;
 }

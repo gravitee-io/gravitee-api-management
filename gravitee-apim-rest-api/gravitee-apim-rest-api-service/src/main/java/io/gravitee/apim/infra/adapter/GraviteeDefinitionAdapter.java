@@ -96,6 +96,7 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "responseTemplates", source = "apiEntity.apiDefinitionHttpV4.responseTemplates")
     @Mapping(target = "properties", source = "apiEntity.apiDefinitionHttpV4.properties")
     @Mapping(target = "resources", source = "apiEntity.apiDefinitionHttpV4.resources")
+    @Mapping(target = "services", source = "apiEntity.apiDefinitionHttpV4.services")
     @Mapping(
         target = "failover",
         expression = "java(apiEntity.getApiDefinitionHttpV4() != null ? apiEntity.getApiDefinitionHttpV4().getFailover() : null)"
@@ -159,7 +160,7 @@ public interface GraviteeDefinitionAdapter {
         WorkflowState workflowState,
         Set<String> groups,
         Collection<NewApiMetadata> metadata,
-        Integration integration
+        Integration.ApiIntegration integration
     );
 
     @Mapping(target = "id", source = "apiEntity.id")

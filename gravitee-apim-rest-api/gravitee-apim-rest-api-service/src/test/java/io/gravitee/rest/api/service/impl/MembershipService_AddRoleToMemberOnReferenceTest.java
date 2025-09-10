@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -24,13 +27,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -50,6 +59,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -65,6 +75,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     private static final String GROUP_ID = "group-id-1";
 
     private MembershipService membershipService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -87,6 +98,12 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     @Mock
     private ParameterService parameterService;
 
+    @Mock
+    private Node node;
+
+    @Mock
+    private CommandRepository commandRepository;
+
     @BeforeEach
     public void setUp() throws Exception {
         membershipService =
@@ -107,6 +124,11 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 groupService,
                 auditService,
                 parameterService,
+                null,
+                node,
+                objectMapper,
+                commandRepository,
+                null,
                 null
             );
     }
@@ -142,6 +164,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         )
             .thenReturn(Set.of(newMembership), Collections.emptySet());
         when(membershipRepository.create(any())).thenReturn(newMembership);
+        when(node.id()).thenReturn("60d06d90-500b-4894-906d-90500b48947f");
 
         membershipService.addRoleToMemberOnReference(
             GraviteeContext.getExecutionContext(),
@@ -161,6 +184,20 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         verify(membershipRepository, times(1)).create(any());
         verify(membershipRepository, never()).update(any());
         verify(emailService, times(1)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+
+        var commandCaptor = ArgumentCaptor.forClass(Command.class);
+        verify(commandRepository).create(commandCaptor.capture());
+        var command = commandCaptor.getValue();
+        assertNotNull(command.getId());
+        assertEquals(
+            "{\"referenceType\":\"GROUP\",\"referenceId\":\"group-id-1\",\"memberType\":\"USER\",\"memberId\":\"my name\",\"created_at\":null,\"updated_at\":null}",
+            command.getContent()
+        );
+        assertEquals("DEFAULT", command.getEnvironmentId());
+        assertEquals("DEFAULT", command.getOrganizationId());
+        assertTrue(command.getTags().contains(CommandTags.GROUP_DEFAULT_ROLES_UPDATE.name()));
+        assertEquals("60d06d90-500b-4894-906d-90500b48947f", command.getFrom());
+        assertEquals(MessageRecipient.MANAGEMENT_APIS.name(), command.getTo());
     }
 
     @Test
@@ -270,7 +307,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     }
 
     @Test
-    public void shouldDisallowAddUnknownRoleOnApi() throws Exception {
+    public void shouldDisallowAddUnknownRoleOnApi() {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
@@ -285,7 +322,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     }
 
     @Test
-    public void shouldDisallowAddUnknownRoleOnApplication() throws Exception {
+    public void shouldDisallowAddUnknownRoleOnApplication() {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
@@ -300,7 +337,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     }
 
     @Test
-    public void shouldDisallowAddEnvironmentRoleOnGroup() throws Exception {
+    public void shouldDisallowAddEnvironmentRoleOnGroup() {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.of(role));
@@ -344,7 +381,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     }
 
     @Test
-    public void shouldDisallowAddApplicationPrimaryOwnerRoleOnGroup() throws Exception {
+    public void shouldDisallowAddApplicationPrimaryOwnerRoleOnGroup() {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION);
         when(role.getName()).thenReturn("PRIMARY_OWNER");

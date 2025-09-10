@@ -40,6 +40,12 @@ export class CreateIntegrationHarness extends ComponentHarness {
   private submitButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorFor(
     MatButtonHarness.with({ selector: '[data-testid=create-integration-submit-button]' }),
   );
+  private addWellKnownUrl: AsyncFactoryFn<MatButtonHarness> = this.locatorFor(
+    MatButtonHarness.with({ selector: '[data-testid=create-integration-add-url]' }),
+  );
+  private wellKnownUrlInputLocator: AsyncFactoryFn<MatInputHarness> = this.locatorFor(
+    MatInputHarness.with({ selector: '[data-testid=create-integration-well-known-url]' }),
+  );
 
   public getSubmitStepFirstButton = async (): Promise<MatButtonHarness> => {
     return await this.submitStepFirstButtonLocator();
@@ -60,8 +66,16 @@ export class CreateIntegrationHarness extends ComponentHarness {
     return this.descriptionTextAreaLocator().then((input: MatInputHarness) => input.setValue(description));
   }
 
+  public async setWellKnownUrl(wellKnownUrl: string): Promise<void> {
+    return this.wellKnownUrlInputLocator().then((input: MatInputHarness) => input.setValue(wellKnownUrl));
+  }
+
   public async clickOnSubmit() {
     return this.submitButtonLocator().then(async (button: MatButtonHarness) => button.click());
+  }
+
+  public async clickOnAddNewUrl() {
+    return this.addWellKnownUrl().then(async (button: MatButtonHarness) => button.click());
   }
 
   public async matErrorMessage(): Promise<MatErrorHarness> {

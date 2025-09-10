@@ -15,33 +15,15 @@ security:
     - CookieAuth: []
 
 servers:
-    - url: "{protocol}://{managementAPIHost}/management/v2/environments/{envId}"
+    - url: "/management/v2/environments/{envId}"
       description: APIM Management API v2 - Default base URL
       variables:
-          protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                  - https
-                  - http
-          managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
           envId:
               description: The unique ID of your environment
               default: DEFAULT
-    - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}/environments/{envId}"
+    - url: "/management/v2/organizations/{orgId}/environments/{envId}"
       description: APIM Management API v2 - Base URL to target specific organizations
       variables:
-          protocol:
-              description: The protocol you want to use to communicate with the mAPI
-              default: https
-              enum:
-                  - https
-                  - http
-          managementAPIHost:
-              description: The domain of the server hosting your Management API
-              default: localhost:8083
           orgId:
               description: The unique ID of your organization
               default: DEFAULT
@@ -52,106 +34,112 @@ servers:
 tags:
     - name: SharedPolicyGroups
       description: Everything about shared policy groups
+    - name: Scoring
+      description: Everything about APIs scoring
+    - name: Clusters
+      description: Everything about clusters
+    - name: Newt Ai
+      description: Everything about Newt Ai
 
 paths:
     # Environment Analytics
     /analytics/response-status-ranges:
-      get:
-        parameters:
-          - $ref: "#/components/parameters/from"
-          - $ref: "#/components/parameters/to"
-        tags:
-          - Environment Analytics
-        summary: Get response status counts for v2 and v4 APIs from specified environment
-        description: |-
-          Get v2 and v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
+        get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+            tags:
+                - Environment Analytics
+            summary: Get response status counts for v2 and v4 APIs from specified environment
+            description: |-
+                Get v2 and v4 API analytics response status counts. Response statuses are grouped by endpoint and status code hundreds.
 
-        operationId: getDashboardResponseStatusCodes
-        responses:
-          "200":
-            $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusRangesResponse"
-          default:
-            $ref: "#/components/responses/Error"
+            operationId: getDashboardResponseStatusCodes
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusRangesResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /analytics/top-hits:
-      get:
-        parameters:
-          - $ref: "#/components/parameters/from"
-          - $ref: "#/components/parameters/to"
-        tags:
-          - Environment Analytics
-        summary: Get all v4 APIs with hits count per API sorted by mostly requested
-        description: |-
-          Get v4 API analytics top hits counts. All APIs are sorted starting from the most requested ones.
+        get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+            tags:
+                - Environment Analytics
+            summary: Get all v4 APIs with hits count per API sorted by mostly requested
+            description: |-
+                Get v4 API analytics top hits counts. All APIs are sorted starting from the most requested ones.
 
-        operationId: getDashboardTopHits
-        responses:
-          "200":
-            $ref: "#/components/responses/EnvironmentAnalyticsTopHitsApisResponse"
-          default:
-            $ref: "#/components/responses/Error"
+            operationId: getDashboardTopHits
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsTopHitsApisResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /analytics/request-response-time:
-      get:
-        parameters:
-          - $ref: "#/components/parameters/from"
-          - $ref: "#/components/parameters/to"
-        tags:
-          - Environment Analytics
-        summary: V4 APIs request and response times analytics
-        description: |-
-          Get analytics for v2 & v4 APIs regarding number of requests, requests per second and response max, min and average times for 
-          specified time range. Analytics contains data only for HTTP GET, HTTP POST and HTTP PROXY entrypoints.
+        get:
+            parameters:
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+            tags:
+                - Environment Analytics
+            summary: V4 APIs request and response times analytics
+            description: |-
+                Get analytics for v2 & v4 APIs regarding number of requests, requests per second and response max, min and average times for 
+                specified time range. Analytics contains data only for HTTP GET, HTTP POST and HTTP PROXY entrypoints.
 
-        operationId: getDashboardRequestResponseTime
-        responses:
-          "200":
-            $ref: "#/components/responses/EnvironmentAnalyticsRequestResponseTimeResponse"
-          default:
-            $ref: "#/components/responses/Error"
+            operationId: getDashboardRequestResponseTime
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsRequestResponseTimeResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /analytics/response-time-over-time:
-      parameters:
-        - $ref: "#/components/parameters/from"
-        - $ref: "#/components/parameters/to"
-      get:
-        tags:
-          - Environment Analytics
-        summary: Get Environment Analytics average response time over time
-        description: |-
-          Get Environment Analytics average response time over time
-          
-          User must have the API_ANALYTICS[READ] permission.
-        operationId: getEnvironmentResponseTimeOverTime
-        responses:
-          "200":
-            $ref: "#/components/responses/EnvironmentAnalyticsOverPeriodResponse"
+        parameters:
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
+        get:
+            tags:
+                - Environment Analytics
+            summary: Get Environment Analytics average response time over time
+            description: |-
+                Get Environment Analytics average response time over time
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getEnvironmentResponseTimeOverTime
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsOverPeriodResponse"
     /analytics/response-status-overtime:
-      parameters:
-        - $ref: "#/components/parameters/from"
-        - $ref: "#/components/parameters/to"
-      get:
-        tags:
-          - API Analytics
-        summary: Get Environment Analytics response status counts over time
-        description: |-
-          Get Environment analytics response status counts over time.
-          
-          User must have the API_ANALYTICS[READ] permission.
-        operationId: getEnvironmentResponseStatusOvertime
-        responses:
-          "200":
-            $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusOvertimeResponse"
-          default:
-            $ref: "#/components/responses/Error"
+        parameters:
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
+        get:
+            tags:
+                - API Analytics
+            summary: Get Environment Analytics response status counts over time
+            description: |-
+                Get Environment analytics response status counts over time.
+
+                User must have the API_ANALYTICS[READ] permission.
+            operationId: getEnvironmentResponseStatusOvertime
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentAnalyticsResponseStatusOvertimeResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /analytics/top-apps-by-request-count:
         parameters:
-            -   $ref: "#/components/parameters/from"
-            -   $ref: "#/components/parameters/to"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
             summary: Get Environment Analytics for top applications by the request count
             description: |-
                 Get Environment Analytics for top applications by the request count
-                
+
                 User must have the API_ANALYTICS[READ] permission.
             operationId: getEnvironmentTopAppByRequestCount
             responses:
@@ -161,8 +149,8 @@ paths:
                     $ref: "#/components/responses/Error"
     /analytics/top-failed-apis:
         parameters:
-            -   $ref: "#/components/parameters/from"
-            -   $ref: "#/components/parameters/to"
+            - $ref: "#/components/parameters/from"
+            - $ref: "#/components/parameters/to"
         get:
             tags:
                 - API Analytics
@@ -177,7 +165,7 @@ paths:
                     $ref: "#/components/responses/EnvironmentAnalyticsTopFailedApisResponse"
                 default:
                     $ref: "#/components/responses/Error"
-  # Shared policy group
+    # Shared policy group
     /shared-policy-groups:
         post:
             tags:
@@ -205,8 +193,8 @@ paths:
             summary: Search shared policy groups
             operationId: searchSharedPolicyGroups
             parameters:
-                - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
-                - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
                 - $ref: "#/components/parameters/sharedPolicyGroupSortByParam"
                 - $ref: "#/components/parameters/sharedPolicyGroupSearchParam"
             responses:
@@ -290,8 +278,8 @@ paths:
             operationId: getSharedPolicyGroupHistories
             parameters:
                 - $ref: "#/components/parameters/sharedPolicyGroupId"
-                - $ref: "./openapi-apis.yaml#/components/parameters/pageParam"
-                - $ref: "./openapi-apis.yaml#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
                 - $ref: "#/components/parameters/sharedPolicyGroupHistoriesSortByParam"
             responses:
                 "200":
@@ -447,46 +435,328 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /scoring/functions:
+        post:
+            tags:
+                - Scoring
+                - Functions
+            summary: Create a new scoring function at environment level
+            operationId: createEnvironmentScoringFunction
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ImportScoringFunction"
+                required: true
+            responses:
+                "201":
+                    description: Scoring functions created
+                default:
+                    $ref: "#/components/responses/Error"
+        get:
+            tags:
+                - Scoring
+                - Functions
+            summary: Get all functions at environment level
+            operationId: getEnvironmentScoringFunctions
+            responses:
+                "200":
+                    $ref: "#/components/responses/ScoringFunctionsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /scoring/functions/{scoringFunctionName}:
+        delete:
+            tags:
+                - Scoring
+                - Functions
+            summary: Delete a scoring function
+            operationId: deleteEnvironmentScoringFunction
+            parameters:
+                - $ref: "#/components/parameters/scoringFunctionName"
+            responses:
+                "204":
+                    description: Scoring function deleted
+                default:
+                    $ref: "#/components/responses/Error"
+
+    # Cluster
+    /clusters:
       post:
         tags:
-          - Scoring
-          - Functions
-        summary: Create a new scoring function at environment level
-        operationId: createEnvironmentScoringFunction
+          - Clusters
+        summary: Create a cluster
+        description: |-
+          User must have the ENVIRONMENT_CLUSTER[CREATE] permission.
+        operationId: createCluster
         requestBody:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ImportScoringFunction"
+                $ref: "#/components/schemas/CreateCluster"
           required: true
         responses:
           "201":
-            description: Scoring functions created
+            description: Cluster created
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Cluster"
           default:
             $ref: "#/components/responses/Error"
       get:
         tags:
-          - Scoring
-          - Functions
-        summary: Get all functions at environment level
-        operationId: getEnvironmentScoringFunctions
+          - Clusters
+        summary: Search clusters
+        description: |-
+          User must have the ENVIRONMENT_CLUSTER[READ] permission.
+        operationId: searchClusters
+        parameters:
+          - $ref: "#/components/parameters/pageParam"
+          - $ref: "#/components/parameters/perPageParam"
+          - $ref: "#/components/parameters/clusterSortByParam"
+          - $ref: "#/components/parameters/clusterSearchParam"
         responses:
           "200":
-            $ref: "#/components/responses/ScoringFunctionsResponse"
+            $ref: "#/components/responses/ClustersResponse"
           default:
             $ref: "#/components/responses/Error"
-    /scoring/functions/{scoringFunctionName}:
+    /clusters/{clusterId}:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      get:
+        tags:
+          - Clusters
+        summary: Get a cluster
+        description: |-
+          User must have the CLUSTER_DEFINITION[READ] permission.
+        operationId: getCluster
+        responses:
+          "200":
+            description: Cluster found
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Cluster"
+          default:
+            $ref: "#/components/responses/Error"
+      put:
+        tags:
+          - Clusters
+        summary: Update a cluster
+        description: |-
+          User must have the CLUSTER_DEFINITION[UPDATE] permission.
+        operationId: updateCluster
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateCluster"
+          required: true
+        responses:
+          "200":
+            description: Cluster updated
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Cluster"
+          default:
+            $ref: "#/components/responses/Error"
       delete:
         tags:
-          - Scoring
-          - Functions
-        summary: Delete a scoring function
-        operationId: deleteEnvironmentScoringFunction
+          - Clusters
+        summary: Delete a cluster
+        description: |-
+          User must have the CLUSTER_DEFINITION[DELETE] permission.
+        operationId: deleteCluster
         parameters:
-          - $ref: "#/components/parameters/scoringFunctionName"
+          - $ref: "#/components/parameters/clusterId"
         responses:
           "204":
-            description: Scoring function deleted
+            description: Cluster deleted
+          default:
+            $ref: "#/components/responses/Error"
+    /clusters/{clusterId}/groups:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      put:
+        tags:
+          - Clusters
+        summary: Update a cluster's groups
+        description: |-
+          User must have the CLUSTER_DEFINITION[UPDATE] permission.
+        operationId: updateClusterGroups
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateClusterGroups"
+          required: true
+        responses:
+          "200":
+            description: Cluster groups updated
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ClusterGroups"
+          default:
+            $ref: "#/components/responses/Error"
+    /clusters/{clusterId}/permissions:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      get:
+        tags:
+          - Clusters
+        summary: Get cluster's permissions of current user
+        operationId: getClusterPermissions
+        responses:
+          "200":
+            $ref: "#/components/responses/ClusterPermissionsResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
+    # Cluster members
+    /clusters/{clusterId}/members:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      get:
+        tags:
+          - Clusters
+        summary: Get cluster's members
+        description: |-
+          User must have the CLUSTER_MEMBER[READ] permission.
+        operationId: getClusterMembers
+        responses:
+          "200":
+            $ref: "#/components/responses/MembersResponse"
+          default:
+            $ref: "#/components/responses/Error"
+      post:
+        tags:
+          - Clusters
+        summary: Add a cluster member
+        description: |-
+          User must have the CLUSTER_MEMBER[CREATE] permission.
+        operationId: addClusterMember
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddMember"
+          required: true
+        responses:
+          "201":
+            description: Member successfully added
+          default:
+            $ref: "#/components/responses/Error"
+    /clusters/{clusterId}/members/{memberId}:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+        - $ref: "#/components/parameters/memberId"
+      put:
+        tags:
+          - Clusters
+        summary: Update a cluster's member
+        operationId: updateClusterMember
+        description: |-
+          User must have the CLUSTER_MEMBER[UPDATE] permission.
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateMember"
+          required: true
+        responses:
+          "200":
+            description: Updated member
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Member"
+          default:
+            $ref: "#/components/responses/Error"
+      delete:
+        tags:
+          - Clusters
+        summary: Delete a cluster's member
+        description: |-
+          User must have the CLUSTER_MEMBER[DELETE] permission.
+        operationId: deleteClusterMember
+        responses:
+          "204":
+            description: Member removed
+          default:
+            $ref: "#/components/responses/Error"
+    /clusters/{clusterId}/members/_transfer-ownership:
+      parameters:
+        - $ref: "#/components/parameters/clusterId"
+      post:
+        tags:
+          - Clusters
+        summary: Transfer cluster ownership
+        description: |-
+          Transfer the ownership of the Cluster to a user, a group or an cluster member.
+          
+          Return a 404 HTTP Error if Cluster cannot be found.
+          
+          User must have the CLUSTER_MEMBER[UPDATE] permission.
+        operationId: transferClusterOwnership
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterTransferOwnership"
+          required: true
+        responses:
+          "204":
+            description: Ownership has been transferred successfully
+          default:
+            $ref: "#/components/responses/Error"
+
+    # NewAI
+    /newtai/el/_generate:
+      post:
+        tags:
+          - Newt Ai
+        summary: Generate Expression Language
+        description: |-
+          Generate Expression Language.
+        operationId: generateEl
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateExpressionLanguage"
+          required: true
+        responses:
+          "200":
+            $ref: "#/components/responses/GenerateExpressionLanguageResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
+    # Instances
+    /instances/{instanceId}:
+      get:
+        tags:
+          - Instances
+        summary: Get a Gateway instance details
+        operationId: getInstanceById
+        parameters:
+            - $ref: "#/components/parameters/instanceId"
+        responses:
+          "200":
+            $ref: "#/components/responses/InstanceDetailResponse"
+          default:
+            $ref: "#/components/responses/Error"
+
+    # Portal pages
+    /portal-pages/_homepage:
+      get:
+        tags:
+          - Portal Pages
+        summary: Get portal homepage
+        operationId: getPortalHomepage
+        responses:
+          "200":
+            $ref: "#/components/responses/PortalPageResponse"
           default:
             $ref: "#/components/responses/Error"
 
@@ -494,44 +764,44 @@ components:
     schemas:
         # Analytics
         TopHitApi:
-          type: object
-          properties:
-            id:
-              type: string
-              description: The API ID
-              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-            name:
-              type: string
-              description: The API Name
-              example: Sample API Name
-            count:
-              type: integer
-              format: int64
-              description: The API Hit count
-              example: 675234
-            definitionVersion:
-              type: string
-              description: The API definition version
-              example: v4
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The API ID
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: The API Name
+                    example: Sample API Name
+                count:
+                    type: integer
+                    format: int64
+                    description: The API Hit count
+                    example: 675234
+                definitionVersion:
+                    type: string
+                    description: The API definition version
+                    example: v4
         AnalyticTimeRange:
-          type: object
-          description: A Time range
-          properties:
-            from:
-              type: integer
-              format: int64
-              description: The timestamp starting the time range
-              example: 1621339200000
-            to:
-              type: integer
-              format: int64
-              description: The timestamp ending the time range
-              example: 1621425600000
-            interval:
-              type: integer
-              format: int64
-              description: The interval in milliseconds splitting the data
-              example: 120000
+            type: object
+            description: A Time range
+            properties:
+                from:
+                    type: integer
+                    format: int64
+                    description: The timestamp starting the time range
+                    example: 1621339200000
+                to:
+                    type: integer
+                    format: int64
+                    description: The timestamp ending the time range
+                    example: 1621425600000
+                interval:
+                    type: integer
+                    format: int64
+                    description: The interval in milliseconds splitting the data
+                    example: 120000
         TopApp:
             type: object
             properties:
@@ -574,7 +844,7 @@ components:
                     description: Ratio of failed API calls to the total number of calls
                     example: 0.8
 
-      # Shared policy group
+        # Shared policy group
         CreateSharedPolicyGroup:
             type: object
             description: Create payload for a shared policy group
@@ -599,16 +869,16 @@ components:
                     example: The resource cache "my-cache" is required
                     maxLength: 1024
                 apiType:
-                    $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                    $ref: "#/components/schemas/ApiType"
                 originContext:
-                  $ref: "./openapi-apis.yaml#/components/schemas/BaseOriginContext"
+                    $ref: "#/components/schemas/BaseOriginContext"
                 phase:
-                    $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
+                    $ref: "#/components/schemas/FlowPhase"
                 steps:
                     type: array
                     description: The list of steps (policies) in the shared policy group
                     items:
-                        $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+                        $ref: "#/components/schemas/StepV4"
             required: ["name", "apiType", "phase"]
         UpdateSharedPolicyGroup:
             type: object
@@ -637,7 +907,7 @@ components:
                     type: array
                     description: The list of steps (policies) in the shared policy group
                     items:
-                        $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+                        $ref: "#/components/schemas/StepV4"
         SharedPolicyGroup:
             type: object
             description: A shared policy group
@@ -669,16 +939,16 @@ components:
                     description: The version of the shared policy group
                     example: 1
                 apiType:
-                    $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                    $ref: "#/components/schemas/ApiType"
                 originContext:
-                  $ref: "./openapi-apis.yaml#/components/schemas/BaseOriginContext"
+                    $ref: "#/components/schemas/BaseOriginContext"
                 steps:
                     type: array
                     description: The list of steps (policies) in the shared policy group
                     items:
-                        $ref: "./openapi-apis.yaml#/components/schemas/StepV4"
+                        $ref: "#/components/schemas/StepV4"
                 phase:
-                    $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
+                    $ref: "#/components/schemas/FlowPhase"
                 deployedAt:
                     type: string
                     format: date-time
@@ -722,9 +992,9 @@ components:
                     example: The resource cache "my-cache" is required
                     maxLength: 1024
                 apiType:
-                    $ref: "./openapi-apis.yaml#/components/schemas/ApiType"
+                    $ref: "#/components/schemas/ApiType"
                 phase:
-                    $ref: "./openapi-plugins.yaml#/components/schemas/FlowPhase"
+                    $ref: "#/components/schemas/FlowPhase"
         SharedPolicyGroupLifecycleState:
             type: string
             description: The lifecycle state of a shared policy group
@@ -733,6 +1003,68 @@ components:
                 - DEPLOYED
                 - UNDEPLOYED
                 - PENDING
+
+        # Cluster
+        CreateCluster:
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                configuration:
+                    type: object
+            required: [ "name", "configuration" ]
+        Cluster:
+            type: object
+            properties:
+                id:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
+                name:
+                    type: string
+                description:
+                    type: string
+                configuration:
+                    type: object
+                groups:
+                  type: array
+                  items:
+                    type: string
+        UpdateCluster:
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                configuration:
+                    type: object
+        ClusterGroups:
+            type: array
+            items:
+                type: string
+        UpdateClusterGroups:
+            type: array
+            items:
+                type: string
+        ClusterTransferOwnership:
+          type: object
+          properties:
+            newPrimaryOwnerId:
+              type: string
+              description: The new primary owner ID (user's technical identifier). Can be null if userReference is defined.
+            userReference:
+              type: string
+              description: The new primary owner reference (user's reference provided by an identity provider). Can be null if userId is defined.
+            currentPrimaryOwnerNewRole:
+              type: string
+              description: The name of the role that will be assigned to the current primary owner after the transfer.
 
         # Scoring
         EnvironmentApiScore:
@@ -813,9 +1145,9 @@ components:
                 format:
                     $ref: "#/components/schemas/ScoringAssetFormat"
             required:
-              - name
-              - payload
-              - format
+                - name
+                - payload
+                - format
         UpdateScoringRuleset:
             type: object
             description: The scoring ruleset to update
@@ -865,52 +1197,246 @@ components:
             enum:
                 - ENVIRONMENT
         ScoringAssetFormat:
-          type: string
-          description: The format of scoring asset
-          enum:
-            - GRAVITEE_FEDERATION
-            - GRAVITEE_MESSAGE
-            - GRAVITEE_PROXY
-            - GRAVITEE_NATIVE
-            - GRAVITEE_V2
-            - OPENAPI
-            - ASYNCAPI
+            type: string
+            description: The format of scoring asset
+            enum:
+                - GRAVITEE_FEDERATION
+                - GRAVITEE_MESSAGE
+                - GRAVITEE_PROXY
+                - GRAVITEE_NATIVE
+                - GRAVITEE_V2
+                - OPENAPI
+                - ASYNCAPI
         ImportScoringFunction:
-          type: object
-          description: The scoring scoring function to import
-          properties:
-            name:
-              $ref: "#/components/schemas/ScoringFunctionName"
-            payload:
-              type: string
-              description: The scoring function payload
+            type: object
+            description: The scoring scoring function to import
+            properties:
+                name:
+                    $ref: "#/components/schemas/ScoringFunctionName"
+                payload:
+                    type: string
+                    description: The scoring function payload
         ScoringFunction:
+            type: object
+            description: A scoring ruleset
+            properties:
+                name:
+                    $ref: "#/components/schemas/ScoringFunctionName"
+                payload:
+                    type: string
+                    description: The ruleset payload
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date at which the ruleset was created
+                    example: 2020-01-01T00:00:00Z
+                referenceId:
+                    type: string
+                    description: The reference Id of ruleset
+                referenceType:
+                    $ref: "#/components/schemas/ScoringFunctionReferenceType"
+        ScoringFunctionReferenceType:
+            type: string
+            enum:
+                - ENVIRONMENT
+        ScoringFunctionName:
+            type: string
+            pattern: '^[^/]+\.js$'
+            description: The name of ruleset
+
+        ApiType:
+            type: string
+            description: API's type.
+            example: MESSAGE
+            enum:
+                - MESSAGE
+                - PROXY
+                - NATIVE
+        OriginContext:
+            oneOf:
+                - $ref: "#/components/schemas/ManagementOriginContext"
+                - $ref: "#/components/schemas/KubernetesOriginContext"
+                - $ref: "#/components/schemas/IntegrationOriginContext"
+            discriminator:
+                propertyName: origin
+                mapping:
+                    MANAGEMENT: "#/components/schemas/ManagementOriginContext"
+                    KUBERNETES: "#/components/schemas/KubernetesOriginContext"
+                    INTEGRATION: "#/components/schemas/IntegrationOriginContext"
+        BaseOriginContext:
+            type: object
+            properties:
+                origin:
+                    type: string
+                    description: The origin of the API.
+                    example: MANAGEMENT
+                    enum:
+                        - MANAGEMENT
+                        - KUBERNETES
+                        - INTEGRATION
+            discriminator:
+                propertyName: origin
+                mapping:
+                    MANAGEMENT: "#/components/schemas/ManagementOriginContext"
+                    KUBERNETES: "#/components/schemas/KubernetesOriginContext"
+                    INTEGRATION: "#/components/schemas/IntegrationOriginContext"
+        ManagementOriginContext:
+            type: object
+            title: "ManagementOriginContext"
+            description: Indicates the API has been created by the Management API
+            allOf:
+                - $ref: "#/components/schemas/BaseOriginContext"
+        KubernetesOriginContext:
+            type: object
+            title: "KubernetesOriginContext"
+            description: Indicates the API has been created by the Gravitee Kubernetes Operator
+            allOf:
+                - $ref: "#/components/schemas/BaseOriginContext"
+                - properties:
+                      mode:
+                          type: string
+                          description: |-
+                              The mode of the API.
+                              fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
+                          example: FULLY_MANAGED
+                          enum:
+                              - FULLY_MANAGED
+                      syncFrom:
+                          type: string
+                          description: |-
+                              syncFrom stands for where the Gateway should source the API definition from. 
+                              If the value is KUBERNETES, then the gateway will sync the definition by listening to changes
+                              issued on a kubernetes config map. If the value is MANAGEMENT, then the gateway will sync
+                              the definition using the same datastore as APIM. 
+                              Defining MANAGEMENT as source for sync is useful e.g. when a single operator should operate
+                              on gateways deployed on multiple kubernetes clusters.
+                          example: MANAGEMENT
+                          enum:
+                              - MANAGEMENT
+                              - KUBERNETES
+        IntegrationOriginContext:
+            type: object
+            title: "IntegrationOriginContext"
+            description: Indicates the API has been created through an Integration
+            allOf:
+                - $ref: "#/components/schemas/BaseOriginContext"
+                - properties:
+                      integrationId:
+                          type: string
+                          description: |-
+                              The id of the integration that created the API.
+                          example: b300b445-8bbb-4034-865c-d2113ba5b768
+                      provider:
+                          type: string
+                          description: Provider of this Federated API.
+                          example: solace
+                      integrationName:
+                          type: string
+                          description: Name of integration of this Federated API.
+                          example: My Solace env
+        FlowPhase:
+            type: string
+            description: The execution phase of a policy.
+            example: REQUEST
+            enum:
+                - REQUEST
+                - RESPONSE
+                - INTERACT
+                - CONNECT
+                - PUBLISH
+                - SUBSCRIBE
+        BaseStep:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: The name of the step
+                description:
+                    type: string
+                    description: The description of the step
+                enabled:
+                    type: boolean
+                    description: Is the step enabled or not.
+                    default: true
+                policy:
+                    type: string
+                    description: The policy of the step
+                configuration:
+                    type: object
+                    description: The configuration of the step
+                condition:
+                    type: string
+                    description: The condition of the step
+        StepV4:
+            allOf:
+                - $ref: "#/components/schemas/BaseStep"
+                - properties:
+                      messageCondition:
+                          type: string
+                          description: The message condition of the step
+
+        # Members (Shared by api, cluster, integration, ...)
+        Role:
           type: object
-          description: A scoring ruleset
           properties:
             name:
-              $ref: "#/components/schemas/ScoringFunctionName"
-            payload:
               type: string
-              description: The ruleset payload
-            createdAt:
-              type: string
-              format: date-time
-              description: The date at which the ruleset was created
-              example: 2020-01-01T00:00:00Z
-            referenceId:
-              type: string
-              description: The reference Id of ruleset
-            referenceType:
-              $ref: "#/components/schemas/ScoringFunctionReferenceType"
-        ScoringFunctionReferenceType:
+              description: Role's name.
+              example: OWNER
+            scope:
+              $ref: "#/components/schemas/RoleScope"
+        RoleScope:
           type: string
+          description: Scope of a role.
           enum:
+            - API
+            - APPLICATION
+            - GROUP
             - ENVIRONMENT
-        ScoringFunctionName:
-          type: string
-          pattern: '^[^/]+\.js$'
-          description: The name of ruleset
+            - ORGANIZATION
+            - PLATFORM
+            - INTEGRATION
+            - CLUSTER
+        Member:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Member's uuid.
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            displayName:
+              type: string
+              description: Member's name.
+              example: John Doe
+              minLength: 1
+            roles:
+              type: array
+              items:
+                $ref: "#/components/schemas/Role"
+              description: The list of roles for this Member.
+        AddMember:
+          type: object
+          description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
+          properties:
+            userId:
+              type: string
+              description: Technical identifier for existing user.
+            externalReference:
+              type: string
+              description: User's reference for user provided from an identity provider.
+            roleName:
+              type: string
+              description: The name of the role
+              minLength: 1
+          required: [roleName]
+        UpdateMember:
+          type: object
+          properties:
+            roleName:
+              type: string
+              description: The name of the role
+              minLength: 1
+          required: [roleName]
 
         Error:
             type: object
@@ -987,6 +1513,37 @@ components:
                 next:
                     type: string
                     description: In a paginated response, link to the next page. Maybe null if current is the last page
+        ResponseMetadata:
+          description: Generic object to handle additional information about an entity. Can also be used for pagination data.
+          type: object
+
+        FeedbackRequestId:
+          description: newt AI feedback request id.
+          type: object
+          properties:
+            chatId:
+              type: string
+            userMessageId:
+              type: string
+            agentMessageId:
+              type: string
+        GenerateExpressionLanguage:
+          type: object
+          description: Request an expression language generation
+          required:
+            - message
+            - context
+          properties:
+            message:
+              description: Prompt of generation.
+              type: string
+            context:
+              description: Context to improve the generation.
+              type: object
+              properties:
+                apiId:
+                  type: string
+                  description: The API identifier if relevant.
 
     parameters:
         pageParam:
@@ -1007,24 +1564,34 @@ components:
                 type: integer
                 default: 10
         from:
-          name: from
-          in: query
-          required: false
-          description: |
-            The timestamp in ms from which the logs will be returned.
-          schema:
-            type: integer
-            format: int64
+            name: from
+            in: query
+            required: false
+            description: |
+                The timestamp in ms from which the logs will be returned.
+            schema:
+                type: integer
+                format: int64
         to:
-          name: to
-          in: query
-          required: false
-          description: |
-            The timestamp in ms to which the logs will be returned.
-          schema:
-            type: integer
-            format: int64
+            name: to
+            in: query
+            required: false
+            description: |
+                The timestamp in ms to which the logs will be returned.
+            schema:
+                type: integer
+                format: int64
 
+        # Members (Shared by api, cluster, integration, ...)
+        memberId:
+          name: memberId
+          in: path
+          required: true
+          description: Id of an API member.
+          schema:
+            type: string
+
+        # Shared policy group
         sharedPolicyGroupId:
             name: sharedPolicyGroupId
             in: path
@@ -1090,12 +1657,56 @@ components:
             schema:
                 type: string
         scoringFunctionName:
-          name: scoringFunctionName
+            name: scoringFunctionName
+            in: path
+            description: The name of scoring function
+            required: true
+            schema:
+                $ref: "#/components/schemas/ScoringFunctionName"
+
+        # Cluster
+        clusterId:
+          name: clusterId
           in: path
-          description: The name of scoring function
+          description: The unique ID of the cluster
           required: true
           schema:
-            $ref: "#/components/schemas/ScoringFunctionName"
+            type: string
+        clusterSortByParam:
+          name: sortBy
+          in: query
+          required: false
+          description: |-
+            Possibility to sort Cluster results by field.
+            Can be ascending or descending with minus '-' prefix.
+            By default, it is sorted by name.
+          schema:
+            type: string
+            example: name
+            enum:
+              - name
+              - -name
+              - createdAt
+              - -createdAt
+              - updatedAt
+              - -updatedAt
+        clusterSearchParam:
+            name: q
+            in: query
+            description: |-
+                A search query to filter clusters.
+            schema:
+                type: string
+                example: my cluster
+
+        # Instances
+        instanceId:
+          name: instanceId
+          in: path
+          description: The gateway instance ID
+          required: true
+          schema:
+            type: string
 
     responses:
         SchemaFormResponse:
@@ -1104,6 +1715,34 @@ components:
                 application/json:
                     schema:
                         type: object
+        Error:
+          description: Generic error response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+        # Members (Shared by api, cluster, integration, ...)
+        MembersResponse:
+          description: Page of members
+          content:
+            application/json:
+              schema:
+                title: "MembersResponse"
+                properties:
+                  data:
+                    description: List of members.
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Member"
+                  links:
+                    $ref: "#/components/schemas/Links"
+                  metadata:
+                    $ref: "#/components/schemas/ResponseMetadata"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+        # Shared policy group
         SharedPolicyGroupsResponse:
             description: Page of shared policy groups
             content:
@@ -1117,9 +1756,9 @@ components:
                                 items:
                                     $ref: "#/components/schemas/SharedPolicyGroup"
                             pagination:
-                                $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+                                $ref: "#/components/schemas/Pagination"
                             links:
-                                $ref: "./openapi-apis.yaml#/components/schemas/Links"
+                                $ref: "#/components/schemas/Links"
         SharedPolicyGroupHistoriesResponse:
             description: Page of shared policy group histories
             content:
@@ -1133,125 +1772,150 @@ components:
                                 items:
                                     $ref: "#/components/schemas/SharedPolicyGroup"
                             pagination:
-                                $ref: "./openapi-apis.yaml#/components/schemas/Pagination"
+                                $ref: "#/components/schemas/Pagination"
                             links:
-                                $ref: "./openapi-apis.yaml#/components/schemas/Links"
-        Error:
-            description: Generic error response
+                                $ref: "#/components/schemas/Links"
+
+        # Cluster
+        ClustersResponse:
+            description: Page of clusters
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/Error"
+                        title: "ClustersResponse"
+                        properties:
+                            data:
+                                description: List of Clusters.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Cluster"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        ClusterPermissionsResponse:
+          description: Permissions response
+          content:
+            application/json:
+              schema:
+                title: "PermissionsResponse"
+                properties:
+                  data:
+                    description: Key/Value list of permissions. The key is the permission name and the value is the permission CRUD value.
+                    example: { "DEFINITION": "CRUD", "MEMBER": "R" }
+                    type: object
+                    additionalProperties:
+                      type: string
 
         # Analytics
         EnvironmentAnalyticsResponseStatusRangesResponse:
-          description: Analytics for status codes by entrypoint at environment level
-          content:
-            application/json:
-              schema:
-                title: "EnvironmentAnalyticsResponseStatusRangesResponse"
-                description: Environment level API Analytics for status codes by entrypoint.
-                properties:
-                  ranges:
-                    type: object
-                    description: Global status ranges
-                    additionalProperties:
-                      description: A map of response status range and counts
-                      type: number
-                    example:
-                      100.0-200.0:
-                        value: 5
-                      200.0-300.0:
-                        value: 357
-                      300.0-400.0:
-                        value: 0
-                      400.0-500.0:
-                        value: 0
-                      500.0-600.0:
-                        value: 0
+            description: Analytics for status codes by entrypoint at environment level
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsResponseStatusRangesResponse"
+                        description: Environment level API Analytics for status codes by entrypoint.
+                        properties:
+                            ranges:
+                                type: object
+                                description: Global status ranges
+                                additionalProperties:
+                                    description: A map of response status range and counts
+                                    type: number
+                                example:
+                                    100.0-200.0:
+                                        value: 5
+                                    200.0-300.0:
+                                        value: 357
+                                    300.0-400.0:
+                                        value: 0
+                                    400.0-500.0:
+                                        value: 0
+                                    500.0-600.0:
+                                        value: 0
         EnvironmentAnalyticsTopHitsApisResponse:
-          description: Analytics for v2 and v4 top hits APIs at environment level
-          content:
-            application/json:
-              schema:
-                title: "EnvironmentAnalyticsTopHitsApisResponse"
-                description: Analytics for top hits APIs at environment level
-                properties:
-                  data:
-                    type: array
-                    description: List of top hit results
-                    items:
-                      $ref: "#/components/schemas/TopHitApi"
+            description: Analytics for v2 and v4 top hits APIs at environment level
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsTopHitsApisResponse"
+                        description: Analytics for top hits APIs at environment level
+                        properties:
+                            data:
+                                type: array
+                                description: List of top hit results
+                                items:
+                                    $ref: "#/components/schemas/TopHitApi"
         EnvironmentAnalyticsRequestResponseTimeResponse:
-          description: Analytics for request response times at environment level
-          content:
-            application/json:
-              schema:
-                title: "EnvironmentAnalyticsRequestResponseTimeResponse"
-                description: Analytics for top hits APIs at environment level
-                properties:
-                  requestsPerSecond:
-                    type: number
-                    format: double
-                    description: Number of requests per second
-                    example: 0.7
-                  requestsTotal:
-                    type: number
-                    format: int64
-                    description: Total number of requests
-                    example: 3567
-                  responseMinTime:
-                    type: number
-                    format: double
-                    description: Response minimum time in ms
-                    example: 32.23
-                  responseMaxTime:
-                    type: number
-                    format: double
-                    description: Response maximum time in ms
-                    example: 7240.11
-                  responseAvgTime:
-                    type: number
-                    format: double
-                    description: Response average time in ms
-                    example: 89.2
+            description: Analytics for request response times at environment level
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsRequestResponseTimeResponse"
+                        description: Analytics for top hits APIs at environment level
+                        properties:
+                            requestsPerSecond:
+                                type: number
+                                format: double
+                                description: Number of requests per second
+                                example: 0.7
+                            requestsTotal:
+                                type: number
+                                format: int64
+                                description: Total number of requests
+                                example: 3567
+                            responseMinTime:
+                                type: number
+                                format: double
+                                description: Response minimum time in ms
+                                example: 32.23
+                            responseMaxTime:
+                                type: number
+                                format: double
+                                description: Response maximum time in ms
+                                example: 7240.11
+                            responseAvgTime:
+                                type: number
+                                format: double
+                                description: Response average time in ms
+                                example: 89.2
         EnvironmentAnalyticsOverPeriodResponse:
-          description: Analytics for number over period
-          content:
-            application/json:
-              schema:
-                title: "EnvironmentAnalyticsOverPeriodResponse"
-                description: Environment Analytics integer data point on a period.
-                properties:
-                  timeRange:
-                    $ref: "#/components/schemas/AnalyticTimeRange"
-                  data:
-                    type: array
-                    description: Response time average (in milliseconds) over time
-                    items:
-                      type: integer
-                      format: int64
-                      minimum: 0
-                      exclusiveMinimum: true
+            description: Analytics for number over period
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsOverPeriodResponse"
+                        description: Environment Analytics integer data point on a period.
+                        properties:
+                            timeRange:
+                                $ref: "#/components/schemas/AnalyticTimeRange"
+                            data:
+                                type: array
+                                description: Response time average (in milliseconds) over time
+                                items:
+                                    type: integer
+                                    format: int64
+                                    minimum: 0
+                                    exclusiveMinimum: true
         EnvironmentAnalyticsResponseStatusOvertimeResponse:
-          description: Analytics for status codes over time
-          content:
-            application/json:
-              schema:
-                title: "EnvironmentAnalyticsResponseStatusOvertimeResponse"
-                description: Environment Analytics for status codes over time.
-                properties:
-                  timeRange:
-                    $ref: "#/components/schemas/AnalyticTimeRange"
-                  data:
-                    type: object
-                    description: Status count overt time
-                    additionalProperties:
-                      description: A map of response status and counts
-                      type: array
-                      items:
-                        type: integer
-                        format: int64
+            description: Analytics for status codes over time
+            content:
+                application/json:
+                    schema:
+                        title: "EnvironmentAnalyticsResponseStatusOvertimeResponse"
+                        description: Environment Analytics for status codes over time.
+                        properties:
+                            timeRange:
+                                $ref: "#/components/schemas/AnalyticTimeRange"
+                            data:
+                                type: object
+                                description: Status count overt time
+                                additionalProperties:
+                                    description: A map of response status and counts
+                                    type: array
+                                    items:
+                                        type: integer
+                                        format: int64
         EnvironmentAnalyticsTopAppsByRequestCountResponse:
             description: Analytics for v2 and v4 top applications by the request count
             content:
@@ -1265,7 +1929,6 @@ components:
                                 description: List of top application results
                                 items:
                                     $ref: "#/components/schemas/TopApp"
-
         EnvironmentAnalyticsTopFailedApisResponse:
             description: Analytics for top failed v2 and v4 APIs based on 5xx status calls
             content:
@@ -1279,7 +1942,8 @@ components:
                                 description: List of top failed APIs results
                                 items:
                                     $ref: "#/components/schemas/TopFailedApis"
-      # Scoring
+
+        # Scoring
         EnvironmentApisScoringResponse:
             description: Page of Apis Scoring
             content:
@@ -1309,17 +1973,79 @@ components:
                                 items:
                                     $ref: "#/components/schemas/ScoringRuleset"
         ScoringFunctionsResponse:
-          description: Scoring functions list
+            description: Scoring functions list
+            content:
+                application/json:
+                    schema:
+                        title: "ScoringFunctionsResponse"
+                        properties:
+                            data:
+                                description: List of rulesets.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ScoringFunction"
+
+        # NewAI
+        GenerateExpressionLanguageResponse:
+          description: Response an expression language generation
           content:
             application/json:
               schema:
-                title: "ScoringFunctionsResponse"
+                title: "GenerateExpressionLanguageResponse"
                 properties:
-                  data:
-                    description: List of rulesets.
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/ScoringFunction"
+                  message:
+                    description: Expression language generated.
+                    type: string
+                  feedbackRequestId:
+                    $ref: '#/components/schemas/FeedbackRequestId'
+
+
+        # Instances
+        InstanceDetailResponse:
+          description: The gateway instance details.
+          content:
+            application/json:
+              schema:
+                title: "InstanceDetailResponse"
+                properties:
+                  id:
+                    type: string
+                    description: Gateway's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  hostname:
+                    type: string
+                    description: Gateway's hostname.
+                    example: my-gateway.example.com
+                  ip:
+                    type: string
+                    description: Gateway's ip.
+                    example: 10.0.1.123
+
+        PortalPageResponse:
+          description: List of portal pages for a given context
+          content:
+            application/json:
+              schema:
+                title: "PortalPageResponse"
+                properties:
+                  id:
+                    type: string
+                    description: The unique ID of the portal page
+                  content:
+                    type: string
+                    description: Page contents
+                  type:
+                    type: string
+                    description: Content type
+                    enum:
+                      - gravitee_markdown
+                  context:
+                    type: string
+                    description: The portal context (eg. "homepage", "api_list")
+                    enum: [homepage]
+                  published:
+                    type: boolean
+                    description: Whether the page is published or not
 
     securitySchemes:
         BasicAuth:

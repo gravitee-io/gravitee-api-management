@@ -117,7 +117,8 @@
             ],
             "stylePreprocessorOptions": {
               "includePaths": ["node_modules/"]
-            }
+            },
+            "preserveSymlinks": true
           },
           "configurations": {
             "production": {

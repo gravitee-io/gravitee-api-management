@@ -75,6 +75,9 @@ public class UpdateApiEntity {
     @Schema(description = "API's crossId. Identifies API across environments.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String crossId;
 
+    @Schema(description = "API's hrid. Human-Readable id that identifies API across environments.", example = "echo-api")
+    private String hrid;
+
     @NotBlank
     @NotEmpty(message = "API's name must not be empty")
     @Schema(description = "API's name. Duplicate names can exists.", example = "My Api")

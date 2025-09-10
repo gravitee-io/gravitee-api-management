@@ -14,15 +14,44 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { NoMcpEntrypointHarness } from './no-mcp-entrypoint/no-mcp-entrypoint.harness';
+import { ConfigureMcpEntrypointHarness } from './components/configure-mcp-entrypoint/configure-mcp-entrypoint.harness';
+import { ToolDisplayHarness } from './components/tool-display/tool-display.harness';
 
 export class McpHarness extends ComponentHarness {
   static readonly hostSelector = 'mcp';
 
   protected locateMcpEntryPointNotFound = this.locatorForOptional(NoMcpEntrypointHarness);
+  protected locateConfigureMcpEntrypoint = this.locatorForOptional(ConfigureMcpEntrypointHarness);
+  protected locateSaveBar = this.locatorForOptional(GioSaveBarHarness);
+  protected locateToolDisplays = this.locatorForAll(ToolDisplayHarness);
+  protected locateDisableMcpButton = this.locatorFor(
+    MatSlideToggleHarness.with({
+      name: 'Disable MCP entrypoint',
+    }),
+  );
 
   async getMcpEntryPointNotFound(): Promise<NoMcpEntrypointHarness | null> {
     return this.locateMcpEntryPointNotFound();
+  }
+
+  async getConfigureMcpEntrypoint(): Promise<ConfigureMcpEntrypointHarness> {
+    return this.locateConfigureMcpEntrypoint();
+  }
+
+  async getSaveBar(): Promise<GioSaveBarHarness | null> {
+    return this.locateSaveBar();
+  }
+
+  async getToolDisplays(): Promise<ToolDisplayHarness[]> {
+    return this.locateToolDisplays();
+  }
+
+  async disableMcpEntryPoint(): Promise<void> {
+    const disableMcpButton = await this.locateDisableMcpButton();
+    await disableMcpButton.uncheck();
   }
 }

@@ -15,21 +15,19 @@
 #
 
 # First stage to share environment variable
-FROM graviteeio/java:21 AS base
+FROM graviteeio/java:21-alpine AS base
 ENV GRAVITEEIO_HOME=/opt/graviteeio-gateway
 
+USER root
 RUN apk update  \
     && apk add --no-cache libc6-compat jemalloc \
     && if [ $(apk --print-arch) = "aarch64" ]; then ln -s /lib/libc.musl-aarch64.so.1 /lib/ld-linux-aarch64.so.2; fi
 
 
-RUN addgroup -g 1000 graviteeio \
-    && adduser -D -H -u 1001 graviteeio --ingroup graviteeio
-
 # Second stage to add the folder and change the permissions and ownership
 FROM base AS builder
-ADD ./distribution ${GRAVITEEIO_HOME}/
-RUN chgrp -R graviteeio ${GRAVITEEIO_HOME} && \
+COPY --chown=graviteeio:graviteeio ./distribution ${GRAVITEEIO_HOME}/
+RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
     chmod -R g=u ${GRAVITEEIO_HOME}
 
 # Third stage to build the final docker image. COPY preserves ownership & permissions
@@ -38,8 +36,5 @@ LABEL maintainer="contact@graviteesource.com"
 COPY --from=builder ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
-ENTRYPOINT ["./bin/gravitee"]
-VOLUME ${GRAVITEEIO_HOME}/logs
-HEALTHCHECK --interval=5s --timeout=3s --retries=6 --start-period=30s \
-            CMD curl --user admin:adminadmin --fail http://localhost:18082/_node/health || exit 1
 USER graviteeio
+ENTRYPOINT ["./bin/gravitee"]

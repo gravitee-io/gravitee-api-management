@@ -18,8 +18,8 @@ import { StepV4 } from '../api';
 
 export interface UpdateSharedPolicyGroup {
   crossId?: string;
-  name?: string;
+  name: string;
   description?: string;
   prerequisiteMessage?: string;
-  steps?: StepV4[];
+  steps: StepV4[];
 }

@@ -15,10 +15,16 @@
  */
 package io.gravitee.apim.core.analytics.query_service;
 
+import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
+import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
+import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
+import io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail;
 import io.gravitee.rest.api.model.v4.analytics.AverageConnectionDuration;
 import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestResponseTime;
@@ -34,7 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.checkerframework.checker.units.qual.A;
+import lombok.Getter;
 
 public interface AnalyticsQueryService {
     Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to);
@@ -72,7 +78,80 @@ public interface AnalyticsQueryService {
 
     RequestResponseTime searchRequestResponseTime(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
 
+    @Getter
+    enum SearchTerm {
+        API("api-id");
+
+        private final String field;
+
+        SearchTerm(String field) {
+            this.field = field;
+        }
+    }
+
+    record SearchTermId(SearchTerm searchTerm, String id) {
+        public static SearchTermId forApi(String apiId) {
+            return new SearchTermId(SearchTerm.API, apiId);
+        }
+    }
+
     Optional<TopFailedApis> searchTopFailedApis(ExecutionContext executionContext, AnalyticsQueryParameters parameters);
+
+    Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters);
+
+    Optional<GroupByAnalytics> searchGroupByAnalytics(ExecutionContext executionContext, GroupByQuery groupByQuery);
+
+    Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery);
+
+    Optional<RequestsCount> searchRequestsCountByEvent(ExecutionContext executionContext, CountQuery query);
+
+    Optional<ApiMetricsDetail> findApiMetricsDetail(ExecutionContext executionContext, String apiId, String requestId);
+
+    Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, EventAnalyticsParams params);
+
+    record CountQuery(SearchTermId searchTermId, Instant from, Instant to, Optional<String> query) {}
+
+    record HistogramQuery(
+        SearchTermId searchTermId,
+        Instant from,
+        Instant to,
+        Duration interval,
+        List<Aggregation> aggregations,
+        Optional<String> query
+    ) {}
+
+    record GroupByQuery(
+        SearchTermId searchTermId,
+        Instant from,
+        Instant to,
+        String field,
+        List<Group> groups,
+        Optional<Order> order,
+        Optional<String> query
+    ) {
+        public record Group(long from, long to) {}
+
+        public record Order(String field, boolean order, String type) {
+            public static Order valueOf(String param) {
+                String field = null;
+                boolean order = true;
+                String type = null;
+                if (param != null) {
+                    String[] parts = param.split(":");
+                    order = !parts[0].startsWith("-");
+                    if (parts.length == 2) {
+                        type = order ? parts[0] : parts[0].substring(1);
+                        field = parts[1];
+                    } else {
+                        field = order ? parts[0] : parts[0].substring(1);
+                    }
+                }
+                return new Order(field, order, type);
+            }
+        }
+    }
+
+    record StatsQuery(SearchTermId searchTermId, String field, Instant from, Instant to, Optional<String> query) {}
 
     record ResponseStatusOverTimeQuery(
         List<String> apiIds,
@@ -95,4 +174,6 @@ public interface AnalyticsQueryService {
             this.versions = versions == null || versions.isEmpty() ? List.of(DefinitionVersion.V4) : versions;
         }
     }
+
+    record EventAnalyticsParams(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
 }

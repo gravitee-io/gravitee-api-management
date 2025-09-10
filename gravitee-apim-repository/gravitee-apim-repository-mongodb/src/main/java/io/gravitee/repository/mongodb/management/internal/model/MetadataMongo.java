@@ -34,7 +34,7 @@ import org.springframework.data.mongodb.core.mapping.ExplicitEncrypted;
 @ToString
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}metadata")
-public class MetadataMongo extends Auditable {
+public class MetadataMongo extends DeprecatedAuditable {
 
     @Id
     private MetadataPkMongo id;

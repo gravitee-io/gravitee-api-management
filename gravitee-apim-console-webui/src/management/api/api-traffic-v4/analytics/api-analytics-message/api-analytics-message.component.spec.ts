@@ -86,19 +86,6 @@ describe('ApiAnalyticsMessageComponent', () => {
     });
   });
 
-  describe('GIVEN an API with analytics.enabled=false', () => {
-    beforeEach(async () => {
-      await initComponent();
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: false } }));
-      expectGetEntrypoints();
-    });
-
-    it('should display empty panel', async () => {
-      expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
-      expect(await componentHarness.isEmptyPanelDisplayed()).toBeTruthy();
-    });
-  });
-
   describe('GIVEN an API with analytics.enabled=true', () => {
     beforeEach(async () => {
       await initComponent();

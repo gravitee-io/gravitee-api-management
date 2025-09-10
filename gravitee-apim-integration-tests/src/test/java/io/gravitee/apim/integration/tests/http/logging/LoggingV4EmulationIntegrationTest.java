@@ -22,12 +22,9 @@ import static org.assertj.core.api.Assertions.entry;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingContent;
 import io.gravitee.definition.model.LoggingMode;
@@ -175,7 +172,6 @@ class LoggingV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @Test
     void should_not_log_invalid_condition(HttpClient httpClient, VertxTestContext context) throws Exception {
-        JsonObject mockResponseBody = new JsonObject().put("response", "body");
         wiremock.stubFor(get("/endpoint").willReturn(badRequest()));
 
         AtomicReference<String> requestHostAndPortRef = new AtomicReference<>();
@@ -185,7 +181,7 @@ class LoggingV4EmulationIntegrationTest extends AbstractGatewayTest {
             .doOnNext(log -> {
                 final String transactionAndRequestId = wiremock
                     .getAllServeEvents()
-                    .get(0)
+                    .getFirst()
                     .getRequest()
                     .getHeaders()
                     .getHeader("X-Gravitee-Transaction-Id")

@@ -24,6 +24,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.node.api.upgrader.UpgraderException;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
@@ -144,8 +146,8 @@ public class ApiCategoryOrderUpgraderTest {
         verify(apiCategoryOrderRepository, times(1)).create(eq(catOrder2));
     }
 
-    @Test
-    public void shouldReturnFalseWhenExceptionOccursDuringUpgrade() throws Exception {
+    @Test(expected = UpgraderException.class)
+    public void shouldReturnFalseWhenExceptionOccursDuringUpgrade() throws TechnicalException, UpgraderException {
         Category category1 = new Category();
         category1.setKey("category1");
         category1.setId("id1");
@@ -153,7 +155,6 @@ public class ApiCategoryOrderUpgraderTest {
         when(categoryRepository.findAll()).thenReturn(Set.of(category1));
 
         when(apiRepository.search(any(), any())).thenThrow(new RuntimeException());
-        boolean result = apiCategoryOrderUpgrader.upgrade();
-        assertFalse(result);
+        apiCategoryOrderUpgrader.upgrade();
     }
 }

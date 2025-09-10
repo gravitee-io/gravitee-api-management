@@ -10,9 +10,9 @@ info:
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0
-    version: "4.8.0-SNAPSHOT"
+    version: "4.9.0-SNAPSHOT"
 servers:
-    - url: http://localhost:8083/portal/environments/{envId}
+    - url: /portal/environments/{envId}
       description: The portal API for a given environment
       variables:
           envId:
@@ -4168,27 +4168,9 @@ components:
                     description: Name of the group.
                     type: string
         Mcp:
-          required:
-            - enabled
-          properties:
-            enabled:
-              type: boolean
-              description: Whether or not the API is a MCP server.
-            tools:
-              type: array
-              items:
-                $ref: "#/components/schemas/McpTool"
-        McpTool:
-          properties:
-            name:
-              type: string
-              description: Name of the MCP tool.
-            description:
-              type: string
-              description: Description of the MCP tool.
-            inputSchema:
-              type: object
-              description: Input schema of the MCP tool.
+          description: MCP configuration of the API.
+          type: object
+          additionalProperties: true
         Page:
             required:
                 - id
@@ -4413,6 +4395,9 @@ components:
                     type: string
                 applicationType:
                     description: Type of the application (Web, Mobile, ...).
+                    type: string
+                origin:
+                    description: Application origin. e.g., MANAGEMENT, KUBERNETES, INTEGRATION.
                     type: string
                 hasClientId:
                     description: True if the application has client id.
@@ -4739,6 +4724,10 @@ components:
                     description: Creation date and time of the subscription.
                     type: string
                     format: date-time
+                updated_at:
+                  description: Updated date and time of the subscription.
+                  type: string
+                  format: date-time
                 processed_at:
                     description: Date and time when the subscription request was processed.
                     type: string
@@ -5821,6 +5810,9 @@ components:
                 try_it:
                     type: boolean
                     description: Enable "Try It!" mode in documentation page.
+                disable_syntax_highlight:
+                    type: boolean
+                    description: Disable response body styling for large JSON payloads
                 try_it_anonymous:
                     type: boolean
                     description: Enable "Try It!" mode in documentation page for anonymous users.

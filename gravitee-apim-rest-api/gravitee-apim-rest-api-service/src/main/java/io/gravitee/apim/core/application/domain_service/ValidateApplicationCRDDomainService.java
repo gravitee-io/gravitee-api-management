@@ -23,6 +23,7 @@ import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 
@@ -47,6 +48,17 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
         var errors = new ArrayList<Error>();
         var sanitizedBuilder = input.spec().toBuilder();
 
+        if (input.spec.getId() == null && input.spec.getHrid() == null) {
+            errors.add(Error.severe("when no hrid is set in the payload an ID should be passed to identify the resource"));
+            return Result.ofErrors(errors);
+        }
+
+        if (input.spec.getId() == null) {
+            sanitizedBuilder.id(IdBuilder.builder(input.auditInfo, input.spec.getHrid()).buildId());
+        } else {
+            sanitizedBuilder.hrid(input.spec.getId());
+        }
+
         groupsValidator
             .validateAndSanitize(
                 new ValidateGroupsDomainService.Input(
@@ -67,7 +79,11 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
 
         settingsValidator
             .validateAndSanitize(
-                new ValidateApplicationSettingsDomainService.Input(input.auditInfo, input.spec.getId(), input.spec.getSettings())
+                new ValidateApplicationSettingsDomainService.Input(
+                    input.auditInfo,
+                    sanitizedBuilder.build().getId(),
+                    input.spec.getSettings()
+                )
             )
             .peek(sanitized -> sanitizedBuilder.settings(sanitized.settings()), errors::addAll);
 

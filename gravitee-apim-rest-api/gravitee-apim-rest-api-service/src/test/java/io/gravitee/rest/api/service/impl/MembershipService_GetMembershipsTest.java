@@ -41,8 +41,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class MembershipService_GetMembershipsTest {
 
-    private static final String API_ID = "api-id-1";
-
     private MembershipService membershipService;
 
     @Mock
@@ -61,6 +59,11 @@ public class MembershipService_GetMembershipsTest {
                 null,
                 null,
                 membershipRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
                 null,
                 null,
                 null,

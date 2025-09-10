@@ -20,6 +20,8 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.node.api.upgrader.UpgraderException;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -62,11 +64,11 @@ public class AlertsEnvironmentUpgraderTest {
         upgrader = new AlertsEnvironmentUpgrader(alertTriggerRepository, alertTriggerConverter, apiRepository, applicationRepository);
     }
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws Exception {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws UpgraderException, TechnicalException {
         when(alertTriggerRepository.findAll()).thenThrow(new RuntimeException());
 
-        Assert.assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(alertTriggerRepository, times(1)).findAll();
         verifyNoMoreInteractions(alertTriggerRepository);
@@ -139,13 +141,13 @@ public class AlertsEnvironmentUpgraderTest {
         verifyNoMoreInteractions(alertTriggerRepository);
     }
 
-    @Test
-    public void upgrade_should_failed_because_of_missing_application() throws Exception {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_missing_application() throws UpgraderException, TechnicalException {
         when(alertTriggerRepository.findAll()).thenReturn(Set.of(buildTestAlert("alert-id-2", "alert-name-2", "APPLICATION", "app-id-1")));
 
         when(applicationRepository.findById("app-id-1")).thenReturn(Optional.empty());
 
-        Assert.assertFalse(upgrader.upgrade());
+        upgrader.upgrade();
 
         verify(alertTriggerRepository, times(1)).findAll();
     }

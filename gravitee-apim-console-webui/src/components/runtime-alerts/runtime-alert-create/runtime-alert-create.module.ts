@@ -31,6 +31,7 @@ import { RuntimeAlertCreateTimeframeModule } from './components/runtime-alert-cr
 import { RuntimeAlertCreateConditionsModule } from './components/runtime-alert-create-conditions/runtime-alert-create-conditions.module';
 import { RuntimeAlertCreateFiltersModule } from './components/runtime-alert-create-filters';
 import { RuntimeAlertCreateNotificationsComponent } from './notifications/runtime-alert-create-notifications.component';
+import { RuntimeAlertHistoryComponent } from './history/runtime-alert-history.component';
 
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
@@ -58,6 +59,7 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
     MatOption,
     MatSelect,
     RuntimeAlertCreateNotificationsComponent,
+    RuntimeAlertHistoryComponent,
   ],
 })
 export class RuntimeAlertCreateModule {}

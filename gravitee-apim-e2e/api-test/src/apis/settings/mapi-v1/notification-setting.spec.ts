@@ -33,7 +33,7 @@ describe('Notification settings tests', () => {
 
   describe('Create', () => {
     it('should create a notification setting', async () => {
-      const users = await managementUserResourceAsAdminUser.getAllUsers({ orgId, envId });
+      const users = await managementUserResourceAsAdminUser.getAllUsers({ orgId, envId, size: 200 });
       apiUser = users.data.find((user) => user.displayName === API_USER.username);
 
       const userOrganizationRole = await succeed(
@@ -84,12 +84,12 @@ describe('Notification settings tests', () => {
 
       const notification = JSON.parse(
         await succeed(
-          configurationResourceAsAdmin.createPortalNotificationSetting1Raw({
+          configurationResourceAsAdmin.createGenericNotificationSetting1Raw({
             envId,
             orgId,
             genericNotificationConfigEntity: {
               name: 'test',
-              referenceType: 'PORTAL',
+              referenceType: 'ENVIRONMENT',
               referenceId: 'DEFAULT',
               notifier: 'default-email',
               config_type: 'GENERIC',

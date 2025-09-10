@@ -16,7 +16,7 @@
 import { PolicyDocumentation } from './policyDocumentation';
 
 export function fakePolicyDocumentation(attributes?: PolicyDocumentation): PolicyDocumentation {
-  const base: PolicyDocumentation = `
+  const base: string = `
 = RateLimit policy
 
 
@@ -231,5 +231,5 @@ The error keys sent by these policies are as follows:
 |===
 `;
 
-  return attributes ?? base;
+  return { content: attributes?.content ?? base, language: attributes?.language ?? 'ASCIIDOC' };
 }

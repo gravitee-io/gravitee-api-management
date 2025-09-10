@@ -19,20 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
 import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
 import io.vertx.core.http.HttpServer;
-import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpc.common.GrpcStatus;
-import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
 import io.vertx.grpcio.client.GrpcIoClient;
 import io.vertx.grpcio.server.GrpcIoServer;
 import io.vertx.junit5.Checkpoint;
-import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -49,7 +46,7 @@ public class GrpcServerStreamingV4IntegrationTest extends AbstractGrpcV4GatewayT
     private static final int STREAM_MESSAGE_NUMBER = 3;
 
     @Test
-    void should_request_grpc_server(VertxTestContext testContext) {
+    void should_request_grpc_server(VertxTestContext testContext, GatewayDynamicConfig.HttpConfig httpConfig) {
         // start the backend
         GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
         grpcServer.callHandler(
@@ -82,7 +79,7 @@ public class GrpcServerStreamingV4IntegrationTest extends AbstractGrpcV4GatewayT
             .andThen(handler -> {
                 // dynamic client, and call the Gateway
                 createGrpcClient()
-                    .request(gatewayAddress(), StreamingGreeterGrpc.getSayHelloStreamingMethod())
+                    .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
                     .compose(request -> {
                         // send one request
                         request.end(HelloRequest.newBuilder().setName("You").build());

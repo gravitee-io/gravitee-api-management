@@ -29,6 +29,15 @@ import { GroupsComponent } from './groups.component';
 import { Group } from '../../../entities/group/group';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { fakePagedResult, PagedResult } from '../../../entities/pagedResult';
+
+const emptyPage = fakePagedResult<Group[]>([], {
+  current: 1,
+  size: 0,
+  per_page: 10,
+  total_pages: 1,
+  total_elements: 0,
+});
 
 describe('GroupsComponent', () => {
   let fixture: ComponentFixture<GroupsComponent>;
@@ -73,14 +82,14 @@ describe('GroupsComponent', () => {
 
     it('should be checked when at least one user group is required by applications', async () => {
       expectGetSettings(true);
-      expectGetGroupsList([]);
+      expectGetGroupsList(emptyPage);
       const toggle = await harnessLoader.getHarness(MatSlideToggleHarness);
       expect(await toggle.isChecked()).toEqual(true);
     });
 
     it('should not be checked when groups are not required by applications', async () => {
       expectGetSettings(false);
-      expectGetGroupsList([]);
+      expectGetGroupsList(emptyPage);
       const toggle = await harnessLoader.getHarness(MatSlideToggleHarness);
 
       expect(await toggle.isChecked()).toEqual(false);
@@ -91,7 +100,7 @@ describe('GroupsComponent', () => {
     beforeEach(async () => {
       await init();
       expectGetSettings(false);
-      expectGetGroupsList([]);
+      expectGetGroupsList(emptyPage);
     });
 
     it('should display message when there are no groups', async () => {
@@ -105,10 +114,21 @@ describe('GroupsComponent', () => {
     beforeEach(async () => {
       await init();
       expectGetSettings(false);
-      expectGetGroupsList([
-        { id: '1', name: 'Group 1', manageable: true },
-        { id: '2', name: 'Group 2', manageable: true },
-      ]);
+      expectGetGroupsList(
+        fakePagedResult(
+          [
+            { id: '1', name: 'Group 1', manageable: true },
+            { id: '2', name: 'Group 2', manageable: true },
+          ],
+          {
+            current: 1,
+            per_page: 10,
+            size: 2,
+            total_elements: 2,
+            total_pages: 1,
+          },
+        ),
+      );
     });
 
     it('should display list of available groups sorted by name', async () => {
@@ -125,14 +145,30 @@ describe('GroupsComponent', () => {
     });
 
     it('should not delete when API role is primary owner', async () => {
-      expectGetGroupsList([{ id: '1', name: 'Group 1', manageable: true, roles: { API: 'PRIMARY_OWNER' } }]);
+      expectGetGroupsList(
+        fakePagedResult([{ id: '1', name: 'Group 1', manageable: true, roles: { API: 'PRIMARY_OWNER' }, apiPrimaryOwner: true }], {
+          current: 1,
+          per_page: 10,
+          size: 2,
+          total_elements: 2,
+          total_pages: 1,
+        }),
+      );
       const deleteButton = await getButtonByRowIndexAndTooltip(0, 'Delete group');
 
       expect(await deleteButton.isDisabled()).toEqual(true);
     });
 
     it('should delete group', async () => {
-      expectGetGroupsList([{ id: '1', name: 'Group 1', manageable: true, roles: { API: 'OWNER' } }]);
+      expectGetGroupsList(
+        fakePagedResult([{ id: '1', name: 'Group 1', manageable: true, roles: { API: 'OWNER' } }], {
+          current: 1,
+          per_page: 10,
+          size: 2,
+          total_elements: 2,
+          total_pages: 1,
+        }),
+      );
       const deleteButton = await getButtonByRowIndexAndTooltip(0, 'Delete group');
       expect(await deleteButton.isDisabled()).toEqual(false);
 
@@ -142,12 +178,14 @@ describe('GroupsComponent', () => {
       expect(confirmDialog).toBeTruthy();
       await confirmDialog.confirm();
       expectDeleteGroup('1');
-      expectGetGroupsList([]);
+      expectGetGroupsList(emptyPage);
     });
   });
 
-  function expectGetGroupsList(groups: Group[]) {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups`).flush(groups);
+  function expectGetGroupsList(groupsPage: PagedResult<Group>) {
+    const pageResult = new PagedResult<Group>();
+    pageResult.populate(groupsPage);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/_paged?page=1&size=10&query=`).flush(pageResult);
   }
 
   function expectDeleteGroup(id: string) {

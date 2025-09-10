@@ -88,3 +88,8 @@ export const DATE_TIME_FORMATS = {
   dateA11yLabel: 'Y-M-D',
   monthYearA11yLabel: 'Y MMMM',
 };
+
+export const calculateCustomInterval = (from: number, to: number, nbValuesByBucket = 30) => {
+  const range: number = to - from;
+  return Math.floor(range / nbValuesByBucket);
+};

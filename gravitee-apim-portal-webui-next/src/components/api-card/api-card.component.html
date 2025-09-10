@@ -24,7 +24,9 @@
         <div class="m3-body-medium"><span i18n="@@apiVersion">Version: </span>{{ version }}</div>
       </div>
       @if (isEnabledMcpServer) {
-        <mat-chip i18n="@@apiCardMcpServer">MCP Server</mat-chip>
+        <mat-chip i18n="@@apiCardMcpEnabled" i18n-matTooltip matTooltip="MCP available for this API">
+          <img matChipAvatar alt="" [src]="'assets/images/mcp.svg'" />MCP</mat-chip
+        >
       }
     </div>
     <div class="api-card__description m3-body-medium">

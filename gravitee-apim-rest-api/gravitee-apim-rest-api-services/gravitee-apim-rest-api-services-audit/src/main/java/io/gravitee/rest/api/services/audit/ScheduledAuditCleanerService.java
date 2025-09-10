@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
 import io.gravitee.apim.core.audit.use_case.RemoveOldAuditDataUseCase;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import java.time.Duration;
@@ -38,15 +39,17 @@ public class ScheduledAuditCleanerService extends AbstractService implements Run
     private final OrganizationService organizationService;
     private final EnvironmentService environmentService;
     private final Duration maxAge;
+    private final ClusterManager clusterManager;
 
     public ScheduledAuditCleanerService(
         @Qualifier("auditTaskScheduler") TaskScheduler scheduler,
         @Value("${services.audit.cron:0 1 * * * *}") String cronTrigger,
-        @Value("${services.audit.enabled:true}") boolean enabled,
+        @Value("${services.audit.enabled:false}") boolean enabled,
         @Value("${services.audit.retention.days:365}") int maxAgeInDays,
         RemoveOldAuditDataUseCase removeOldAuditDataUseCase,
         OrganizationService organizationService,
-        EnvironmentService environmentService
+        EnvironmentService environmentService,
+        ClusterManager clusterManager
     ) {
         this.scheduler = scheduler;
         this.cronTrigger = cronTrigger;
@@ -54,7 +57,8 @@ public class ScheduledAuditCleanerService extends AbstractService implements Run
         this.removeOldAuditDataUseCase = removeOldAuditDataUseCase;
         this.organizationService = organizationService;
         this.environmentService = environmentService;
-        maxAge = Duration.ofDays(maxAgeInDays);
+        this.clusterManager = clusterManager;
+        this.maxAge = Duration.ofDays(maxAgeInDays);
     }
 
     @Override
@@ -64,12 +68,14 @@ public class ScheduledAuditCleanerService extends AbstractService implements Run
 
     @Override
     protected void doStart() throws Exception {
-        if (enabled) {
-            super.doStart();
-            log.info("Audit cleaner service has been initialized with cron [{}]", cronTrigger);
-            scheduler.schedule(this, new CronTrigger(cronTrigger));
-        } else {
-            log.warn("Audit cleaner service has been disabled");
+        if (clusterManager.self().primary()) {
+            if (enabled) {
+                super.doStart();
+                log.info("Audit cleaner service has been initialized with cron [{}]", cronTrigger);
+                scheduler.schedule(this, new CronTrigger(cronTrigger));
+            } else {
+                log.warn("Audit cleaner service has been disabled");
+            }
         }
     }
 

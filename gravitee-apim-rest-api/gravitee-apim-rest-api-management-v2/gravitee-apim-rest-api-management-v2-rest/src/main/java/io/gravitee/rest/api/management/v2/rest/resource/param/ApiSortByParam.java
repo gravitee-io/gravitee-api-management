@@ -24,10 +24,26 @@ import java.util.Objects;
 public class ApiSortByParam {
 
     public enum ApiSortByEnum {
-        NAME("name"),
-        _NAME("-name"),
-        PATHS("paths"),
-        _PATHS("-paths");
+        NAME_ASC("name"),
+        NAME_DESC("-name"),
+        PATHS_ASC("paths"),
+        PATHS_DESC("-paths"),
+        API_TYPE_ASC("api_type"),
+        API_TYPE_DESC("-api_type"),
+        STATUS_ASC("status"),
+        STATUS_DESC("-status"),
+        ACCESS_ASC("access"),
+        ACCESS_DESC("-access"),
+        TAGS_ASC("tags_asc"),
+        TAGS_DESC("-tags_desc"),
+        CATEGORIES_ASC("categories_asc"),
+        CATEGORIES_DESC("-categories_desc"),
+        OWNER_ASC("owner"),
+        OWNER_DESC("-owner"),
+        PORTAL_STATUS_ASC("portal_status"),
+        PORTAL_STATUS_DESC("-portal_status"),
+        VISIBILITY_ASC("visibility"),
+        VISIBILITY_DESC("-visibility");
 
         private String value;
 

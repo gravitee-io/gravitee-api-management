@@ -24,7 +24,15 @@ export interface GioChartLineData {
 export interface GioChartLineOptions {
   pointStart: number;
   pointInterval: number;
+  enableMarkers?: boolean;
+  useSharpCorners?: boolean;
 }
+
+export const colors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
+
+export const defineLineColors = (code: string) => {
+  return colors[Math.floor(+code / 100) - 1];
+};
 
 @Component({
   selector: 'gio-chart-line',
@@ -50,11 +58,14 @@ export class GioChartLineComponent implements OnInit {
   };
 
   ngOnInit() {
+    const markersEnabled = this.options?.enableMarkers ?? false;
+
     this.chartOptions = {
       credits: { enabled: false },
       chart: {
-        backgroundColor: 'transparent',
-        type: 'spline',
+        plotBackgroundColor: '#F7F7F8',
+        type: this.options?.useSharpCorners ? 'line' : 'spline',
+        marginTop: 32,
       },
 
       title: {
@@ -78,17 +89,40 @@ export class GioChartLineComponent implements OnInit {
 
       plotOptions: {
         series: {
-          marker: { enabled: false },
+          marker: {
+            enabled: markersEnabled,
+            radius: markersEnabled ? 4 : 0,
+            symbol: 'circle',
+          },
           pointStart: Math.floor(this.options?.pointStart / this.options?.pointInterval) * this.options?.pointInterval,
           pointInterval: this.options?.pointInterval,
         },
-        line: {},
+        line: {
+          marker: {
+            enabled: markersEnabled,
+            radius: markersEnabled ? 4 : 0,
+            symbol: 'circle',
+          },
+        },
+        spline: {
+          marker: {
+            enabled: markersEnabled,
+            radius: markersEnabled ? 4 : 0,
+            symbol: 'circle',
+          },
+        },
       },
 
       series: this.data?.map((item) => ({
         name: item.name,
         data: item.values,
-        type: 'spline',
+        type: this.options?.useSharpCorners ? 'line' : 'spline',
+        color: defineLineColors(item.name),
+        marker: {
+          enabled: markersEnabled,
+          radius: markersEnabled ? 4 : 0,
+          symbol: 'circle',
+        },
       })),
     };
   }

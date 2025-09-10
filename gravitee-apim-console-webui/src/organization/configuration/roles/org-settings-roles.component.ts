@@ -67,15 +67,17 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
       this.roleService.list('API'),
       this.roleService.list('APPLICATION'),
       this.roleService.list('INTEGRATION'),
+      this.roleService.list('CLUSTER'),
     ])
       .pipe(
-        tap(([orgRoles, envRoles, apiRoles, appRoles, integrationRoles]) => {
+        tap(([orgRoles, envRoles, apiRoles, appRoles, integrationRoles, clusterRoles]) => {
           this.rolesByScope = [
             { scope: 'Organization', scopeId: 'ORGANIZATION', roles: this.convertToRoleVMs(orgRoles) },
             { scope: 'Environment', scopeId: 'ENVIRONMENT', roles: this.convertToRoleVMs(envRoles) },
             { scope: 'API', scopeId: 'API', roles: this.convertToRoleVMs(apiRoles) },
             { scope: 'Application', scopeId: 'APPLICATION', roles: this.convertToRoleVMs(appRoles) },
             { scope: 'Integration', scopeId: 'INTEGRATION', roles: this.convertToRoleVMs(integrationRoles) },
+            { scope: 'Cluster', scopeId: 'CLUSTER', roles: this.convertToRoleVMs(clusterRoles) },
           ];
           this.loading = false;
         }),

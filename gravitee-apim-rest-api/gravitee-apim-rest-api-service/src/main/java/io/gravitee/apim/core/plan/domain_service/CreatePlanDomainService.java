@@ -66,8 +66,10 @@ public class CreatePlanDomainService {
     public PlanWithFlows create(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> createV4ApiPlan(plan, flows, api, auditInfo);
-            case FEDERATED -> createFederatedApiPlan(plan, auditInfo);
-            default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
+            case FEDERATED, FEDERATED_AGENT -> createFederatedApiPlan(plan, auditInfo);
+            case V2 -> createV2ApiPlan(plan, flows, api, auditInfo);
+            case V1 -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
+            case null -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
         };
     }
 
@@ -150,6 +152,35 @@ public class CreatePlanDomainService {
         var createdPlan = planCrudService.create(plan);
         createAuditLog(createdPlan, auditInfo);
         return new PlanWithFlows(createdPlan, Collections.emptyList());
+    }
+
+    private PlanWithFlows createV2ApiPlan(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
+        if (api.isDeprecated()) {
+            throw new ApiDeprecatedException(plan.getApiId());
+        }
+
+        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), api.getType());
+        planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getTags(), api.getTags());
+        planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
+
+        // TODO handle flows
+
+        var createdPlan = planCrudService.create(
+            plan
+                .toBuilder()
+                .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
+                .apiId(api.getId())
+                .apiType(api.getType())
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .needRedeployAt(Date.from(TimeProvider.instantNow()))
+                .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
+                .build()
+        );
+
+        createAuditLog(createdPlan, auditInfo);
+
+        return new PlanWithFlows(createdPlan, flows);
     }
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {

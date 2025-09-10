@@ -54,6 +54,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -96,6 +97,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
@@ -162,10 +164,12 @@ import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -295,6 +299,9 @@ public class ApiServiceImplTest {
     @Mock
     private ScoringReportRepository scoringReportRepository;
 
+    @Mock
+    private EventManager eventManager;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -390,13 +397,13 @@ public class ApiServiceImplTest {
                 apiValidationService,
                 planSearchService,
                 apiConverter,
-                synchronizationService
+                synchronizationService,
+                eventManager
             );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
-        when(primaryOwnerService.getPrimaryOwner(any(), any(), any())).thenReturn(new PrimaryOwnerEntity(admin));
 
         updateApiEntity = new UpdateApiEntity();
         updateApiEntity.setId(API_ID);
@@ -435,9 +442,10 @@ public class ApiServiceImplTest {
         Api api = new Api();
         api.setId(API_ID);
         api.setLifecycleState(LifecycleState.STOPPED);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.NATIVE);
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -445,6 +453,11 @@ public class ApiServiceImplTest {
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
+        verify(searchEngineService, times(1))
+            .delete(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(indexableApi -> indexableApi instanceof GenericApiEntity && indexableApi.getId().equals(API_ID))
+            );
     }
 
     @Test(expected = ApiNotDeletableException.class)
@@ -1202,6 +1215,9 @@ public class ApiServiceImplTest {
         prepareUpdateApiEntity(endpointGroupName, endpointName, path);
 
         when(apiRepository.update(any())).thenReturn(updatedApi);
+
+        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), eq(updatedApi.getId())))
+            .thenReturn(MembershipEntity.builder().memberType(MembershipMemberType.USER).build());
 
         api.setName(API_NAME);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);

@@ -52,14 +52,14 @@ export class IntegrationsService {
     private readonly snackBarService: SnackBarService,
   ) {}
 
-  public ingest(integrationId: string, apiIdsToIngest: string[]): Observable<IntegrationIngestionResponse> {
+  public ingest(integrationId: string, apiIdsToIngest: string[] = []): Observable<IntegrationIngestionResponse> {
     this.snackBarService.success('API ingestion is in progress. The process should only take a few minute to complete. Come back shortly!');
 
     return this.httpClient.post<IntegrationIngestionResponse>(`${this.url}/${integrationId}/_ingest`, { apiIds: apiIdsToIngest }).pipe(
       catchError((error) => {
         return of({
           status: AsyncJobStatus.ERROR,
-          message: `Fail to ingest APIs: ${error.message}`,
+          message: `${error.error.message}`,
         });
       }),
     );

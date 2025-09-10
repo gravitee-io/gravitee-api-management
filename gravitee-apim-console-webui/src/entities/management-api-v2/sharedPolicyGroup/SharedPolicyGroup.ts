@@ -27,7 +27,7 @@ export interface SharedPolicyGroup {
   version?: number;
   apiType: ApiType;
   phase: FlowPhase;
-  steps?: StepV4[];
+  steps: StepV4[];
   deployedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;

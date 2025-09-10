@@ -20,17 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.annotations.InjectApi;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
-import io.gravitee.definition.model.v4.Api;
-import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
-import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.tcp.proxy.TcpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
-import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.plugin.entrypoint.tcp.proxy.TcpProxyEntrypointConnectorFactory;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.junit5.VertxTestContext;
@@ -38,6 +34,7 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ParameterContext;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -60,13 +57,23 @@ class TcpGatewayWebsocketIntegrationTest extends AbstractWebsocketGatewayTest {
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
         super.configureGateway(gatewayConfigurationBuilder);
         // enables the TCP proxy
-        gatewayConfigurationBuilder.configureTcpGateway(tcpPort()).set("tcp.ssl.keystore.type", "self-signed");
+        gatewayConfigurationBuilder.enableTcpGateway().set("tcp.ssl.keystore.type", "self-signed");
     }
 
     @Override
-    protected void configureHttpClient(HttpClientOptions options) {
+    protected void configureHttpClient(
+        HttpClientOptions options,
+        GatewayDynamicConfig.Config gatewayConfig,
+        ParameterContext parameterContext
+    ) {
         // we are doing a websocket anyway, so we need an HTTP Client, but we use the TCP port
-        options.setDefaultHost("localhost").setDefaultPort(tcpPort()).setForceSni(true).setSsl(true).setVerifyHost(false).setTrustAll(true);
+        options
+            .setDefaultHost("localhost")
+            .setDefaultPort(gatewayConfig.tcpPort())
+            .setForceSni(true)
+            .setSsl(true)
+            .setVerifyHost(false)
+            .setTrustAll(true);
     }
 
     @Test

@@ -38,4 +38,6 @@ export class ApiNavigationTitleComponent {
   public apiOrigin: string;
   @Input()
   public separator: 'pipe' | 'border' = 'border';
+  @Input()
+  public definitionVersion: Api['definitionVersion'];
 }

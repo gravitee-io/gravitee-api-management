@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -61,11 +62,11 @@ public class ExecutionModeUpgraderTest {
         cut = new ExecutionModeUpgrader(apiRepository, graviteeMapper);
     }
 
-    @Test
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+    @Test(expected = UpgraderException.class)
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
         when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
 
-        assertFalse(cut.upgrade());
+        cut.upgrade();
 
         verify(apiRepository, times(1)).search(any(), any(), any());
         verify(apiRepository, never()).update(any());
@@ -77,13 +78,13 @@ public class ExecutionModeUpgraderTest {
     }
 
     @Test
-    public void should_do_nothing_when_nothing_to_migrate() throws TechnicalException {
+    public void should_do_nothing_when_nothing_to_migrate() throws TechnicalException, UpgraderException {
         cut.upgrade();
         verify(apiRepository, never()).update(any());
     }
 
     @Test
-    public void should_update_v2_api_with_jupiter_execution_mode() throws TechnicalException {
+    public void should_update_v2_api_with_jupiter_execution_mode() throws TechnicalException, UpgraderException {
         ApiCriteria onlyV2ApiCriteria = new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build();
         Api jupiterApi = new Api();
         jupiterApi.setDefinition("{\"execution_mode\" : \"jupiter\"}");

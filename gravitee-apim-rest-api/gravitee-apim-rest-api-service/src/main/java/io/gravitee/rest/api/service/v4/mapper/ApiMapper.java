@@ -24,9 +24,9 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiAdapterDecorator;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.management.model.Api;
@@ -35,9 +35,11 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -103,6 +105,7 @@ public class ApiMapper {
 
         apiEntity.setId(api.getId());
         apiEntity.setCrossId(api.getCrossId());
+        apiEntity.setHrid(api.getHrid());
         apiEntity.setName(api.getName());
         apiEntity.setApiVersion(api.getVersion());
         apiEntity.setUpdatedAt(api.getUpdatedAt());
@@ -168,6 +171,7 @@ public class ApiMapper {
 
         apiEntity.setId(api.getId());
         apiEntity.setCrossId(api.getCrossId());
+        apiEntity.setHrid(api.getHrid());
         apiEntity.setName(api.getName());
         apiEntity.setApiVersion(api.getVersion());
         apiEntity.setUpdatedAt(api.getUpdatedAt());
@@ -186,6 +190,7 @@ public class ApiMapper {
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
                 apiEntity.setFlows(apiDefinition.getFlows());
+                apiEntity.setAnalytics(apiDefinition.getAnalytics());
             } catch (IOException ioe) {
                 log.error("Unexpected error while generating API definition", ioe);
             }
@@ -225,6 +230,10 @@ public class ApiMapper {
     public FederatedApiEntity federatedToEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
         api.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
         return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
+    }
+
+    public ApiEntity toEntity(final ExecutionContext executionContext, final Api api, final boolean readDatabaseFlows) {
+        return toEntity(executionContext, api, (PrimaryOwnerEntity) null, readDatabaseFlows);
     }
 
     public ApiEntity toEntity(
@@ -306,6 +315,34 @@ public class ApiMapper {
         return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
     }
 
+    public FederatedApiAgentEntity federatedAgentToEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
+        try {
+            api.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
+            var agent = objectMapper.readValue(api.getDefinition(), FederatedAgent.class);
+            OriginContext.Integration a2a = new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
+            return ApiAdapter.INSTANCE.toFederatedAgentEntity(api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
+        } catch (JsonProcessingException e) {
+            log.warn("Unable to parse api definition for agent {}", api.getId(), e);
+            return null;
+        }
+    }
+
+    public FederatedApiAgentEntity federatedAgentToEntity(
+        final ExecutionContext executionContext,
+        final Api api,
+        final PrimaryOwnerEntity primaryOwner
+    ) {
+        try {
+            api.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
+            var agent = objectMapper.readValue(api.getDefinition(), FederatedAgent.class);
+            OriginContext.Integration a2a = new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
+            return ApiAdapter.INSTANCE.toFederatedAgentEntity(api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
+        } catch (JsonProcessingException e) {
+            log.warn("Unable to parse api definition for agent {}", api.getId(), e);
+            return null;
+        }
+    }
+
     public Api toRepository(final ExecutionContext executionContext, final NewApiEntity newApiEntity) {
         Api repoApi = new Api();
         String generatedApiId = UuidString.generateRandom();
@@ -361,6 +398,7 @@ public class ApiMapper {
         String apiId = updateApiEntity.getId();
         repoApi.setId(apiId.trim());
         repoApi.setCrossId(updateApiEntity.getCrossId());
+        repoApi.setHrid(updateApiEntity.getHrid());
         repoApi.setEnvironmentId(executionContext.getEnvironmentId());
         repoApi.setType(updateApiEntity.getType());
         repoApi.setUpdatedAt(new Date());
@@ -446,6 +484,7 @@ public class ApiMapper {
         repoApi.setBackground(apiEntity.getBackground());
         repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), apiEntity.getCategories()));
         repoApi.setCrossId(apiEntity.getCrossId());
+        repoApi.setHrid(apiEntity.getHrid());
         repoApi.setCreatedAt(apiEntity.getCreatedAt());
         repoApi.setDefinition(toApiDefinition(apiEntity));
         repoApi.setDefinitionVersion(apiEntity.getDefinitionVersion());

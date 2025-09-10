@@ -35,7 +35,6 @@ import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFact
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.provider.Arguments;
 

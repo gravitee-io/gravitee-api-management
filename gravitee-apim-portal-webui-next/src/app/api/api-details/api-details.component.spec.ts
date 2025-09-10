@@ -53,7 +53,8 @@ describe('ApiDetailsComponent', () => {
       await init(
         fakeApi({
           mcp: {
-            enabled: true,
+            mcpPath: '/mcp',
+            tools: [],
           },
         }),
       );
@@ -62,11 +63,11 @@ describe('ApiDetailsComponent', () => {
     it('should show Tools tab if api has mcp enabled', async () => {
       const tabs = await harnessLoader.getHarness(MatTabNavBarHarness);
       const links = await tabs.getLinks();
-      expect(await links[2].getLabel()).toBe('Tools');
+      expect(await links[2].getLabel()).toBe('MCP Tools');
     });
 
     it('should show MCP Server badge', async () => {
-      const mcpServerChip = await harnessLoader.getHarnessOrNull(MatChipHarness.with({ text: 'MCP Server' }));
+      const mcpServerChip = await harnessLoader.getHarnessOrNull(MatChipHarness.with({ text: /MCP/ }));
       expect(mcpServerChip).toBeTruthy();
     });
   });

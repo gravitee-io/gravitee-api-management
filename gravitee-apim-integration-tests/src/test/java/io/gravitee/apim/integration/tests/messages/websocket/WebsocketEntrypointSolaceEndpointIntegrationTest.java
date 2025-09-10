@@ -25,7 +25,6 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.integration.tests.messages.AbstractSolaceEndpointIntegrationTest;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -35,8 +34,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

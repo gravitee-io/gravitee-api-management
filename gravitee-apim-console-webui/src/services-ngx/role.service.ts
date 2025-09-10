@@ -44,13 +44,13 @@ export class RoleService {
 
   getPermissionsByScope(scope: string): Observable<string[]>;
   getPermissionsByScope(
-    scope: Extract<RoleScope, 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION' | 'INTEGRATION'>,
+    scope: Extract<RoleScope, 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION' | 'INTEGRATION' | 'CLUSTER'>,
   ): Observable<string[]> {
-    const availableScopes = ['API', 'APPLICATION', 'ENVIRONMENT', 'ORGANIZATION', 'INTEGRATION'];
+    const availableScopes = ['API', 'APPLICATION', 'ENVIRONMENT', 'ORGANIZATION', 'INTEGRATION', 'CLUSTER'];
 
     const isAvailableScope = (
       scopeString: string,
-    ): scopeString is 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION' | 'INTEGRATION' => {
+    ): scopeString is 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION' | 'INTEGRATION' | 'CLUSTER' => {
       return availableScopes.includes(scope);
     };
 

@@ -28,12 +28,16 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.IntegrationApiFixtures;
 import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AsyncJobCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
@@ -42,6 +46,7 @@ import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
+import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -54,6 +59,8 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
@@ -66,6 +73,7 @@ import io.gravitee.apim.core.api.domain_service.GroupValidationService;
 import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
@@ -86,10 +94,12 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
@@ -97,6 +107,9 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.search.model.IndexablePage;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -152,6 +165,7 @@ class IngestFederatedApisUseCaseTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
+    private static final String APPLICATION_ID = "my-application";
 
     private static final AsyncJob INGEST_JOB = aPendingFederatedApiIngestionJob()
         .toBuilder()
@@ -180,6 +194,9 @@ class IngestFederatedApisUseCaseTest {
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
+    SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
+    SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService);
+    ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
 
     IndexerInMemory indexer = new IndexerInMemory();
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
@@ -217,6 +234,16 @@ class IngestFederatedApisUseCaseTest {
             roleQueryService,
             userCrudService
         );
+        applicationCrudService.initWith(
+            List.of(
+                ApplicationModelFixtures
+                    .anApplicationEntity()
+                    .toBuilder()
+                    .id(APPLICATION_ID)
+                    .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
+                    .build()
+            )
+        );
         var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
             auditDomainService,
             groupQueryService,
@@ -247,7 +274,7 @@ class IngestFederatedApisUseCaseTest {
             workflowCrudService,
             createCategoryApiDomainService
         );
-
+        var deletePlanDomainService = new DeletePlanDomainService(planCrudService, subscriptionQueryService, auditDomainService);
         var planValidatorService = new PlanValidatorDomainService(
             parametersQueryService,
             policyValidationDomainService,
@@ -310,6 +337,35 @@ class IngestFederatedApisUseCaseTest {
             categoryDomainService,
             apiIndexerDomainService
         );
+        var applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
+            groupQueryService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
+        var closeSubscriptionDomainService = new CloseSubscriptionDomainService(
+            subscriptionCrudService,
+            applicationCrudService,
+            auditDomainService,
+            triggerNotificationDomainService,
+            new RejectSubscriptionDomainService(
+                subscriptionCrudService,
+                auditDomainService,
+                triggerNotificationDomainService,
+                new UserCrudServiceInMemory(),
+                applicationPrimaryOwnerDomainService
+            ),
+            new RevokeApiKeyDomainService(
+                new ApiKeyCrudServiceInMemory(),
+                new ApiKeyQueryServiceInMemory(),
+                subscriptionCrudService,
+                auditDomainService,
+                triggerNotificationDomainService
+            ),
+            apiCrudService,
+            new IntegrationAgentInMemory()
+        );
+        var deleteSubscriptionDomainService = new DeleteSubscriptionDomainService(subscriptionCrudService, auditDomainService);
 
         var homepageDomainService = new HomepageDomainService(pageQueryServiceInMemory, pageCrudService);
 
@@ -329,6 +385,10 @@ class IngestFederatedApisUseCaseTest {
                 pageQueryServiceInMemory,
                 createApiDomainService,
                 updateFederatedApiDomainService,
+                subscriptionQueryService,
+                closeSubscriptionDomainService,
+                deleteSubscriptionDomainService,
+                deletePlanDomainService,
                 createPlanDomainService,
                 updatePlanDomainService,
                 createApiDocumentationDomainService,
@@ -379,7 +439,7 @@ class IngestFederatedApisUseCaseTest {
         );
         userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").email("one_valid@email.com").build()));
 
-        integrationCrudService.create(new Integration().withId(INTEGRATION_ID));
+        integrationCrudService.create(new Integration.ApiIntegration(INTEGRATION_ID, null, null, null, null, null, null, null));
     }
 
     @AfterEach
@@ -1070,6 +1130,59 @@ class IngestFederatedApisUseCaseTest {
                             .updatedAt(UPDATE_TIME.atZone(ZoneId.systemDefault()))
                             .build()
                     )
+            );
+        }
+
+        @Test
+        void should_delete_plans_if_ingest_doesnt_contain() {
+            // Given
+            givenAnIngestJob(INGEST_JOB);
+            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().build());
+            givenExistingApi(
+                ApiFixtures
+                    .aFederatedApi()
+                    .toBuilder()
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "asset-uid")
+                    .name("api-1")
+                    .description("my description")
+                    .version("1.1.1")
+                    .build()
+            );
+            givenExistingPlans(
+                Plan
+                    .builder()
+                    .id("environment-idintegration-idasset-uidplan1")
+                    .name("My Plan 1")
+                    .description("Description 1")
+                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .definitionVersion(DefinitionVersion.FEDERATED)
+                    .federatedPlanDefinition(
+                        FederatedPlan
+                            .builder()
+                            .id("generated-id")
+                            .providerId("plan1")
+                            .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
+                            .status(PlanStatus.PUBLISHED)
+                            .mode(PlanMode.STANDARD)
+                            .build()
+                    )
+                    .validation(Plan.PlanValidationType.MANUAL)
+                    .apiId("environment-idintegration-idasset-uid")
+                    .build()
+            );
+            TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            SoftAssertions.assertSoftly(soft ->
+                soft
+                    .assertThat(planCrudService.storage())
+                    .doesNotContain(Plan.builder().id("environment-idintegration-idasset-uidplan1").build())
             );
         }
 
@@ -1882,8 +1995,8 @@ class IngestFederatedApisUseCaseTest {
         assertThat(result.getCrossId()).isEqualTo("old");
         assertThat(result.getOriginContext()).isEqualTo(new OriginContext.Integration("old"));
         assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
-        assertThat(result.getApiDefinitionHttpV4()).isEqualTo(null);
-        assertThat(result.getApiDefinition()).isEqualTo(null);
+        assertThat(result.getApiDefinitionHttpV4()).isNull();
+        assertThat(result.getApiDefinition()).isNull();
         assertThat(result.getType()).isEqualTo(ApiType.PROXY);
         assertThat(result.getDeployedAt()).isEqualTo(oldDate);
         assertThat(result.getCreatedAt()).isEqualTo(oldDate);
@@ -1891,7 +2004,7 @@ class IngestFederatedApisUseCaseTest {
         assertThat(result.getLifecycleState()).isEqualTo(Api.LifecycleState.STARTED);
         assertThat(result.getPicture()).isEqualTo("old");
         assertThat(result.getGroups()).isEqualTo(Set.of("old"));
-        assertThat(result.isDisableMembershipNotifications()).isEqualTo(true);
+        assertThat(result.isDisableMembershipNotifications()).isTrue();
         assertThat(result.getBackground()).isEqualTo("old");
         assertThat(result.getVisibility()).isEqualTo(Api.Visibility.PUBLIC);
         assertThat(result.getLabels()).isEqualTo(List.of("old"));

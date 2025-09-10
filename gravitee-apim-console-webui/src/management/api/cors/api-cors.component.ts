@@ -76,14 +76,19 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
               api,
               entrypointsSupportingCors.map((entrypoint) => entrypoint.id),
             );
-          } else if (api.definitionVersion !== 'FEDERATED') {
+          } else if (api.definitionVersion !== 'FEDERATED' && api.definitionVersion !== 'FEDERATED_AGENT') {
             this.hasEntrypointsSupportingCors = true;
             cors = api.proxy?.cors ?? {
               enabled: false,
             };
           }
+          const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+          const hasUpdatePermission =
+            api.definitionVersion === 'V4'
+              ? this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u'])
+              : this.permissionService.hasAnyMatching(['api-definition-u']);
 
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          const isReadOnly = !hasUpdatePermission || isKubernetesOrigin;
           const isCorsDisabled = isReadOnly || !cors.enabled;
 
           this.corsForm = new UntypedFormGroup({

@@ -31,7 +31,10 @@ public class ValidateFederatedApiDomainService {
     private final CategoryDomainService categoryDomainService;
 
     public Api validateAndSanitizeForCreation(final Api newApi, PrimaryOwnerEntity primaryOwner) {
-        if (newApi.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+        if (
+            newApi.getDefinitionVersion() != DefinitionVersion.FEDERATED &&
+            newApi.getDefinitionVersion() != DefinitionVersion.FEDERATED_AGENT
+        ) {
             throw new ValidationDomainException("Definition version is unsupported, should be FEDERATED");
         }
         newApi.setGroups(groupValidationService.validateAndSanitize(Set.of(), newApi.getEnvironmentId(), primaryOwner, true));

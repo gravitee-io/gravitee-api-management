@@ -22,7 +22,7 @@ const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com
 const awsCliVersion = '2.22.35';
 
 const cache = {
-  prefix: 'gravitee-api-management-v11',
+  prefix: 'gravitee-api-management-v12',
 };
 
 const components = {
@@ -93,7 +93,7 @@ const yarn = {
 };
 
 const orbs = {
-  aquasec: '1.0.4',
+  aquasec: '1.0.5',
   artifactory: '1.0.1',
   awsCli: '5.1.2',
   awsS3: '4.1.0',
@@ -157,6 +157,7 @@ const docker = {
   version: 'default',
 };
 
+export type Variant = 'alpine' | 'debian';
 export const config = {
   aqua,
   artifactoryUrl,

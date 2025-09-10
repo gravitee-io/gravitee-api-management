@@ -84,6 +84,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         return JdbcObjectMapper
             .builder(Application.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("hrid", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
@@ -101,7 +102,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     }
 
     private static final String PROJECTION_WITHOUT_PICTURES =
-        "a.id, a.environment_id, a.name, a.description, a.type, a.created_at, a.updated_at, a.status, a.disable_membership_notifications, a.api_key_mode, a.origin";
+        "a.id, a.hrid, a.environment_id, a.name, a.description, a.type, a.created_at, a.updated_at, a.status, a.disable_membership_notifications, a.api_key_mode, a.origin";
 
     private static final JdbcHelper.ChildAdder<Application> CHILD_ADDER = (Application parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();
@@ -611,6 +612,20 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             LOGGER.error("Failed to delete application by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete application by environment", ex);
         }
+    }
+
+    @Override
+    public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+        String sql =
+            "SELECT CASE WHEN EXISTS (SELECT 1 FROM " +
+            APPLICATION_METADATA +
+            " am JOIN " +
+            tableName +
+            " a ON a.id = am.application_id " +
+            "WHERE am.k=? AND am.v=? AND a.environment_id=? AND a.status=?) " +
+            "THEN 1 ELSE 0 " +
+            "END AS metadata_entry_exists";
+        return jdbcTemplate.queryForObject(sql, Boolean.class, key, value, environmentId, ApplicationStatus.ACTIVE.name());
     }
 
     private String toSortDirection(Sortable sortable) {

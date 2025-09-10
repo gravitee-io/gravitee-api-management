@@ -39,6 +39,7 @@ public class ImportSharedPolicyGroupCRDCRDUseCase {
     private final UpdateSharedPolicyGroupUseCase updateSharedPolicyGroupUseCase;
     private final DeploySharedPolicyGroupUseCase deploySharedPolicyGroupUseCase;
     private final ValidateSharedPolicyGroupCRDDomainService validateSharedPolicyGroupCRDDomainService;
+    private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
 
     public Output execute(Input input) {
         var validationResult = validateSharedPolicyGroupCRDDomainService.validateAndSanitize(
@@ -62,14 +63,11 @@ public class ImportSharedPolicyGroupCRDCRDUseCase {
         );
 
         if (sharedPolicyGroup.isPresent()) {
-            input.crd.setSharedPolicyGroupId(sharedPolicyGroup.get().getId());
             return updateSharedPolicyGroup(input);
         } else {
             return createSharedPolicyGroup(input);
         }
     }
-
-    private final SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
 
     public record Output(SharedPolicyGroupCRDStatus status) {}
 

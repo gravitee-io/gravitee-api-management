@@ -25,7 +25,6 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryDomainService;
 import io.gravitee.apim.core.category.model.ApiCategoryOrder;
 import io.gravitee.apim.core.category.query_service.ApiCategoryOrderQueryService;
-import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;

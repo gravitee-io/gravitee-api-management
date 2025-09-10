@@ -19,12 +19,14 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
-import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -61,6 +63,16 @@ public class ApiCrudServiceImpl implements ApiCrudService {
         } catch (TechnicalException ex) {
             throw new TechnicalDomainException(String.format("An error occurs while trying to find an api by id: %s", id), ex);
         }
+    }
+
+    @Override
+    public List<Api> findByIds(List<String> apiIds) {
+        logger.debug("Find all Api by ids : {}", apiIds);
+        return apiRepository
+            .search(new ApiCriteria.Builder().ids(apiIds).build(), ApiFieldFilter.defaultFields())
+            .stream()
+            .map(ApiAdapter.INSTANCE::toCoreModel)
+            .collect(Collectors.toList());
     }
 
     @Override

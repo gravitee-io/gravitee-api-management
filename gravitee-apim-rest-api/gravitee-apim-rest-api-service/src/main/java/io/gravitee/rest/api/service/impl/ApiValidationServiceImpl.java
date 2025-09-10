@@ -25,6 +25,7 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.ApiCRDEntityAdapter;
 import io.gravitee.definition.model.VirtualHost;
@@ -60,6 +61,9 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
 
     @Inject
     private ValidatePagesDomainService pagesValidator;
+
+    @Inject
+    private ValidatePortalNotificationDomainService portalNotificationValidator;
 
     @Override
     public ApiValidationResult<ApiCRDEntity> validateAndSanitizeApiDefinitionCRD(ExecutionContext executionContext, ApiCRDEntity api) {
@@ -110,6 +114,17 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
                 )
             )
             .peek(sanitized -> api.setGroups(sanitized.groups()), errors::addAll);
+
+        portalNotificationValidator
+            .validateAndSanitize(
+                new ValidatePortalNotificationDomainService.Input(
+                    api.getConsoleNotificationConfiguration(),
+                    api.getGraviteeDefinitionVersion(),
+                    api.getGroups(),
+                    auditInfo
+                )
+            )
+            .peek(sanitized -> api.setConsoleNotificationConfiguration(sanitized.portalNotificationConfig()), errors::addAll);
 
         pagesValidator
             .validateAndSanitize(

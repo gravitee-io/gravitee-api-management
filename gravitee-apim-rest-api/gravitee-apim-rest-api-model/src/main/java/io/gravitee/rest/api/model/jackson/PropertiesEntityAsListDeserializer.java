@@ -23,15 +23,13 @@ import io.gravitee.rest.api.model.PropertyEntity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author GraviteeSource Team
  */
+@Slf4j
 public class PropertiesEntityAsListDeserializer extends StdScalarDeserializer<List<PropertyEntity>> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesEntityAsListDeserializer.class);
 
     public PropertiesEntityAsListDeserializer() {
         super(List.class);
@@ -51,7 +49,7 @@ public class PropertiesEntityAsListDeserializer extends StdScalarDeserializer<Li
                         PropertyEntity property = jsonNode.traverse(jp.getCodec()).readValueAs(PropertyEntity.class);
                         properties.add(property);
                     } catch (IOException e) {
-                        LOGGER.error("Error while deserializing API's properties list", e);
+                        log.error("Error while deserializing API's properties list", e);
                     }
                 });
         } else if (node.isObject()) {

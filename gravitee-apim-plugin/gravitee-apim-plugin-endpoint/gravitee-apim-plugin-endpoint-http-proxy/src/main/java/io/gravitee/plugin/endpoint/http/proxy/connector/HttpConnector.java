@@ -195,8 +195,12 @@ public class HttpConnector implements ProxyConnector {
             requestHeaders.remove(header.toString());
         }
 
-        if (currentRequestHost != null && !Objects.equals(originalHost, currentRequestHost)) {
+        if (
+            currentRequestHost != null &&
+            (sharedConfiguration.getHttpOptions().isPropagateClientHost() || !Objects.equals(originalHost, currentRequestHost))
+        ) {
             // 'Host' header must be removed unless it has been set during the request flow (non-null and different from original request's host).
+            // If PropagateClientHost is enabled, we set the 'Host' header to the current request's host.
             requestHeaders.set(HOST, currentRequestHost);
         } else {
             requestHeaders.remove(HOST);

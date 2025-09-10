@@ -21,12 +21,16 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
+import io.gravitee.apim.core.group.use_case.SearchGroupsUseCase;
 import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.management.v2.rest.mapper.GroupCRDMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.GroupMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.management.v2.rest.model.GroupCRDSpec;
+import io.gravitee.rest.api.management.v2.rest.model.GroupSearchParams;
 import io.gravitee.rest.api.management.v2.rest.model.GroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
@@ -74,6 +78,9 @@ public class GroupsResource extends AbstractResource {
 
     private static final GroupMapper MAPPER = GroupMapper.INSTANCE;
 
+    @Inject
+    private SearchGroupsUseCase searchGroupsUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { RolePermissionAction.READ }) })
@@ -86,6 +93,24 @@ public class GroupsResource extends AbstractResource {
             .data(MAPPER.map(groupsSubset))
             .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
             .links(computePaginationLinks(groups.size(), paginationParam));
+    }
+
+    @POST
+    @Path("/_search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { RolePermissionAction.READ }) })
+    public GroupsResponse searchGroups(@BeanParam PaginationParam paginationParam, @Valid GroupSearchParams searchParams) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        Page<Group> pagedGroups = searchGroupsUseCase.execute(executionContext, searchParams.getIds(), paginationParam.toPageable());
+
+        io.gravitee.rest.api.management.v2.rest.model.Links links = computePaginationLinks(pagedGroups.getTotalElements(), paginationParam);
+
+        return new GroupsResponse()
+            .data(MAPPER.mapFromCoreList(pagedGroups.getContent()))
+            .pagination(PaginationInfo.computePaginationInfo(pagedGroups.getPageElements(), paginationParam.getPerPage(), paginationParam))
+            .links(links);
     }
 
     @GET

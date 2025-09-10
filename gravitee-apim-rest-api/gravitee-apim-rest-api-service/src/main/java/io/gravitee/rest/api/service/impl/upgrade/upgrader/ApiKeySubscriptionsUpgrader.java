@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
@@ -50,19 +51,17 @@ public class ApiKeySubscriptionsUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            apiKeyRepository.findAll().forEach(this::updateApiKeySubscriptions);
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                for (ApiKey apiKey : apiKeyRepository.findAll()) {
+                    updateApiKeySubscriptions(apiKey);
+                }
+                return true;
+            });
     }
 
     @SuppressWarnings("removal")
-    private void updateApiKeySubscriptions(ApiKey apiKey) {
+    private void updateApiKeySubscriptions(ApiKey apiKey) throws TechnicalException {
         try {
             LOGGER.debug("Updating subscriptions for API Key [{}]", apiKey);
             List<String> allSubscriptions = apiKey.getSubscriptions() != null ? apiKey.getSubscriptions() : new ArrayList<>();
@@ -72,7 +71,7 @@ public class ApiKeySubscriptionsUpgrader implements Upgrader {
             apiKey.setSubscriptions(allSubscriptions);
             apiKeyRepository.update(apiKey);
         } catch (TechnicalException e) {
-            LOGGER.error("Failed to update subscriptions for API Key [{}]", apiKey, e);
+            throw new TechnicalException("Failed to update subscriptions for API Key [" + apiKey + "]", e);
         }
     }
 }

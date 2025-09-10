@@ -19,7 +19,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fakes.FakePolicyValidationDomainService;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
@@ -33,6 +32,9 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PortalPageContextCrudServiceInMemory;
+import inmemory.PortalPageCrudServiceInMemory;
+import inmemory.PortalPageQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -56,6 +58,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
+import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
@@ -63,6 +66,18 @@ import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
+import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.GetClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.UpdateClusterGroupsUseCase;
+import io.gravitee.apim.core.cluster.use_case.UpdateClusterUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.AddClusterMemberUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.DeleteClusterMemberUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
@@ -77,6 +92,8 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
+import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -87,6 +104,9 @@ import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
@@ -118,6 +138,7 @@ import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainService
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDSpecDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
+import io.gravitee.apim.infra.query_service.gateway.InstanceQueryServiceLegacyWrapper;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.util.DataEncryptor;
@@ -132,6 +153,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -506,13 +528,14 @@ public class ResourceContextConfiguration {
         PolicyValidationDomainService policyValidationDomainService,
         PageCrudService pageCrudService
     ) {
+        ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
             new ValidateApiCRDDomainService(
                 new ValidateCategoryIdsDomainService(categoryQueryService),
                 verifyApiPathDomainService,
                 new VerifyApiHostsDomainService(apiQueryService),
                 new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-                new ValidateGroupsDomainService(groupQueryService),
+                groupsValidator,
                 validateResourceDomainService,
                 new ValidatePagesDomainService(
                     validatePageSourceDomainService,
@@ -521,7 +544,8 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePlanDomainService(
                     new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService)
-                )
+                ),
+                new ValidatePortalNotificationDomainService(groupsValidator)
             )
         );
     }
@@ -740,5 +764,95 @@ public class ResourceContextConfiguration {
         ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainServiceInMemory
     ) {
         return new GetExposedEntrypointsUseCase(apiCrudServiceInMemory, apiExposedEntrypointDomainServiceInMemory);
+    }
+
+    @Bean
+    public CreateClusterUseCase createClusterUseCase() {
+        return mock(CreateClusterUseCase.class);
+    }
+
+    @Bean
+    public GetClusterUseCase getClusterUseCase() {
+        return mock(GetClusterUseCase.class);
+    }
+
+    @Bean
+    public UpdateClusterUseCase updateClusterUseCase() {
+        return mock(UpdateClusterUseCase.class);
+    }
+
+    @Bean
+    public DeleteClusterUseCase deleteClusterUseCase() {
+        return mock(DeleteClusterUseCase.class);
+    }
+
+    @Bean
+    public SearchClusterUseCase searchClusterUseCase() {
+        return mock(SearchClusterUseCase.class);
+    }
+
+    @Bean
+    public TransferClusterOwnershipUseCase transferClusterOwnershipUseCase() {
+        return mock(TransferClusterOwnershipUseCase.class);
+    }
+
+    @Bean
+    public NewtAIProvider newtAIProvider() {
+        return mock(NewtAIProvider.class);
+    }
+
+    @Bean
+    public ApimProductInfo apimProductInfo() {
+        return mock(ApimProductInfo.class);
+    }
+
+    @Bean
+    public GetClusterMembersUseCase getClusterMembersUseCase() {
+        return mock(GetClusterMembersUseCase.class);
+    }
+
+    @Bean
+    public GetClusterPermissionsUseCase getClusterPermissionsUseCase() {
+        return mock(GetClusterPermissionsUseCase.class);
+    }
+
+    @Bean
+    public AddClusterMemberUseCase addClusterMemberUseCase() {
+        return mock(AddClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public UpdateClusterMemberUseCase updateClusterMemberUseCase() {
+        return mock(UpdateClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public DeleteClusterMemberUseCase deleteClusterMemberUseCase() {
+        return mock(DeleteClusterMemberUseCase.class);
+    }
+
+    @Bean
+    public InstanceQueryServiceLegacyWrapper instanceQueryServiceLegacyWrapper() {
+        return new InstanceQueryServiceLegacyWrapper(mock(InstanceService.class));
+    }
+
+    @Bean
+    public UpdateClusterGroupsUseCase updateClusterGroupsUseCase() {
+        return mock(UpdateClusterGroupsUseCase.class);
+    }
+
+    @Bean
+    public PortalPageCrudService portalPageCrudService() {
+        return new PortalPageCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalPageContextCrudService portalPageContextCrudService() {
+        return new PortalPageContextCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalPageQueryService portalPageQueryService() {
+        return new PortalPageQueryServiceInMemory();
     }
 }

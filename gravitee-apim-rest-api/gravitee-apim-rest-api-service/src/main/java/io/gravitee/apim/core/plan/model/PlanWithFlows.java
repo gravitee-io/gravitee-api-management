@@ -16,8 +16,6 @@
 package io.gravitee.apim.core.plan.model;
 
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,6 +37,7 @@ public class PlanWithFlows extends Plan {
             plan.getId(),
             plan.getDefinitionVersion(),
             plan.getCrossId(),
+            plan.getHrid(),
             plan.getName(),
             plan.getDescription(),
             plan.getCreatedAt(),

@@ -3,7 +3,7 @@ resourcePackages:
 cacheTTL: 0
 openAPI:
   servers:
-    - url: http://localhost:8083/management
+    - url: /management
   info:
     version: '${project.version}'
     title: Gravitee.io - Management API

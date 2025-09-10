@@ -3,6 +3,7 @@
       "id":"dic-1",
       "environmentId": "DEFAULT",
       "name":"My dic 1",
+      "key": "dic-1",
       "description": "Description for my dic 1",
       "type": "DYNAMIC",
       "createdAt": 1000000000000,
@@ -18,6 +19,7 @@
       "id":"dic-2",
       "environmentId": "DEFAULT",
       "name":"My dic 2",
+      "key": "dic-2",
       "description": "Description for my dic 2",
       "type": "DYNAMIC",
       "provider": {
@@ -36,6 +38,7 @@
       "id":"dic-3",
       "environmentId": "DEFAULT",
       "name":"My dic 3",
+      "key": "dic-3",
       "description": "Description for my dic 3",
       "type": "MANUAL",
       "provider": {
@@ -54,6 +57,7 @@
       "id":"dic-4",
       "environmentId": "OTHER_ENV",
       "name":"My dic 4",
+      "key": "dic-4",
       "description": "Description for my dic 3",
       "type": "DYNAMIC",
       "provider": {
@@ -72,6 +76,7 @@
      "id":"dic-5",
      "environmentId": "ToBeDeleted",
      "name":"My dic 5",
+     "key": "dic-5",
      "description": "Description for my dic 5",
      "type": "DYNAMIC",
      "provider": {
@@ -90,6 +95,7 @@
      "id":"dic-6",
      "environmentId": "ToBeDeleted",
      "name":"My dic 6",
+     "key": "dic-6",
      "description": "Description for my dic 6",
      "type": "DYNAMIC",
      "provider": {
@@ -103,5 +109,24 @@
      "createdAt": 1000000000000,
      "updatedAt": 1111111111111,
      "deployedAt": 1111111111111
-   }
+   },
+  {
+    "id":"dic-7",
+    "environmentId": "OTHER_ENV",
+    "name":"My dic 1",
+    "key": "dic-1",
+    "description": "Description for my dic 1",
+    "type": "DYNAMIC",
+    "provider": {
+      "type": "HTTP",
+      "configuration": "{}"
+    },
+    "trigger": {
+      "rate": 10,
+      "unit": "MINUTES"
+    },
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111,
+    "deployedAt": 1111111111111
+  }
 ]

@@ -14,28 +14,21 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { ActivatedRoute } from '@angular/router';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApiAnalyticsProxyComponent } from './api-analytics-proxy.component';
 import { ApiAnalyticsProxyHarness } from './api-analytics-proxy.component.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
-import { fakeAnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
-import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
-import { AnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration';
-import { fakeAnalyticsAverageConnectionDuration } from '../../../../../entities/management-api-v2/analytics/analyticsAverageConnectionDuration.fixture';
-import { AnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges';
-import { fakeAnalyticsResponseStatusRanges } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusRanges.fixture';
-import { AnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime';
-import { AnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime';
-import { fakeAnalyticsResponseStatusOvertime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseStatusOvertime.fixture';
-import { fakeAnalyticsResponseTimeOverTime } from '../../../../../entities/management-api-v2/analytics/analyticsResponseTimeOverTime.fixture';
+import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
+import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
+import { fakeAnalyticsStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
+import { fakePagedResult, fakePlanV4, PlanV4 } from '../../../../../entities/management-api-v2';
 
 describe('ApiAnalyticsProxyComponent', () => {
   const API_ID = 'api-id';
@@ -55,10 +48,10 @@ describe('ApiAnalyticsProxyComponent', () => {
               params: { apiId: API_ID },
               queryParams: queryParams,
             },
+            queryParams: of(queryParams),
+            params: of({ apiId: API_ID }),
           },
         },
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting(),
       ],
     });
 
@@ -73,245 +66,251 @@ describe('ApiAnalyticsProxyComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should display loading', async () => {
-    await initComponent();
-    expect(await componentHarness.isLoaderDisplayed()).toBeTruthy();
+  describe('GIVEN an API with analytics enabled', () => {
+    beforeEach(async () => {
+      await initComponent();
+      // Handle all initial requests
+      handleAllRequests();
+    });
 
-    httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
-      method: 'GET',
+    it('should display analytics widgets in empty state', async () => {
+      expect(await componentHarness.isEmptyPanelDisplayed()).toBeFalsy();
+    });
+
+    it('should refresh when filters are applied', async () => {
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      await filtersBar.clickRefresh();
+      handleAllRequests();
     });
   });
 
-  describe('GIVEN an API with analytics.enabled=false', () => {
-    beforeEach(async () => {
+  describe('Query parameters', () => {
+    const plan1 = fakePlanV4({ id: '1', name: 'plan 1' });
+    const plan2 = fakePlanV4({ id: '2', name: 'plan 2' });
+
+    it('should use default time range when no query params provided', async () => {
       await initComponent();
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: false } }));
-    });
-
-    it('should display empty panel', async () => {
-      expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
-      expect(await componentHarness.isEmptyPanelDisplayed()).toBeTruthy();
-    });
-  });
-
-  describe('GIVEN an API with analytics.enabled=true', () => {
-    beforeEach(async () => {
-      await initComponent();
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
-      expectApiGetResponseStatusOvertime();
-      expectApiGetResponseTimeOverTime();
-    });
-
-    it('should display HTTP Proxy Entrypoint - Request Stats', async () => {
-      expect(await componentHarness.isLoaderDisplayed()).toBeFalsy();
-      const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
-
-      // Expect loading
-      expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '',
-          isLoading: true,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '',
-          isLoading: true,
-        },
-      ]);
-
-      // Expect incremental loading
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '0',
-          isLoading: false,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '',
-          isLoading: true,
-        },
-      ]);
-
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
-      expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '0',
-          isLoading: false,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '42.123ms',
-          isLoading: false,
-        },
-      ]);
-
-      // Expect others analytics
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
-    });
-
-    it('should display Response Status', async () => {
-      const responseStatusRanges = await componentHarness.getResponseStatusRangesHarness('Response Status');
-
-      // Expect loading
-      expect(await responseStatusRanges.hasResponseStatusWithValues()).toBeFalsy();
-
-      // Expect data
-      expectApiAnalyticsResponseStatusRangesGetRequest(
-        fakeAnalyticsResponseStatusRanges({
-          ranges: {
-            '300.0-400.0': 0,
-            '100.0-200.0': 1,
-            '200.0-300.0': 60,
-            '400.0-500.0': 0,
-            '500.0-600.0': 1,
-          },
-          rangesByEntrypoint: {
-            'http-proxy': {
-              '300.0-400.0': 0,
-              '100.0-200.0': 1,
-              '200.0-300.0': 60,
-              '400.0-500.0': 0,
-              '500.0-600.0': 1,
-            },
-          },
-        }),
-      );
-
-      expect(await responseStatusRanges.hasResponseStatusWithValues()).toBeTruthy();
-
-      // Expect others analytics
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
-    });
-
-    it('should refresh', async () => {
-      const requestStats = await componentHarness.getRequestStatsHarness('Request Stats');
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration({ average: 42.1234556 }));
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
-
-      expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '0',
-          isLoading: false,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '42.123ms',
-          isLoading: false,
-        },
-      ]);
+      handleAllRequests();
 
       const filtersBar = await componentHarness.getFiltersBarHarness();
+      const selectedValue = await filtersBar.getSelectedPeriod();
 
-      await filtersBar.refresh();
-
-      expect(await requestStats.getValues()).toEqual([
-        {
-          label: 'Total Requests',
-          value: '',
-          isLoading: true,
-        },
-        {
-          label: 'Average Connection Duration',
-          value: '',
-          isLoading: true,
-        },
-      ]);
-
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
-      expectApiGetResponseStatusOvertime();
-      expectApiGetResponseTimeOverTime();
+      expect(selectedValue).toEqual('Last day');
     });
-  });
 
-  describe('Query parameters for enabled analytics', () => {
-    [
-      { input: {}, expected: 'Last day' },
-      { input: { period: '1M' }, expected: 'Last month' },
-      { input: { period: 'incorrect' }, expected: 'Last day' },
-      { input: { otherParameter: 'otherParameter' }, expected: 'Last day' },
-    ].forEach((testParams) => {
-      it(`should display "${testParams.expected}" time range if query parameter is ${JSON.stringify(testParams.input)}`, async () => {
-        await initComponent(testParams.input);
-        expectAllAnalyticsCall();
+    it('should use custom time range from query params', async () => {
+      await initComponent({ period: '1M' });
+      handleAllRequests();
 
-        const filtersBar = await componentHarness.getFiltersBarHarness();
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      const selectedValue = await filtersBar.getSelectedPeriod();
 
-        const matSelect = await filtersBar.getMatSelect();
-        const selectedValue = await matSelect.getValueText();
+      expect(selectedValue).toEqual('Last month');
+    });
 
-        expect(selectedValue).toEqual(testParams.expected);
+    it('should use and select plans from query params', async () => {
+      await initComponent({ plans: '1' });
+
+      expectPlanList([plan1, plan2]);
+      handleAllRequests();
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      const selectedValues = await filtersBar.getSelectedPlans();
+
+      expect(selectedValues).toEqual(['1']);
+    });
+
+    it('should update the URL query params when a plan is selected', async () => {
+      await initComponent();
+
+      expectPlanList([plan1, plan2]);
+      handleAllRequests();
+
+      const router = TestBed.inject(Router);
+      const routerSpy = jest.spyOn(router, 'navigate');
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      await filtersBar.selectPlan('plan 2');
+
+      expect(routerSpy).toHaveBeenCalledWith([], {
+        queryParams: {
+          period: '1d',
+          plans: '2',
+        },
+        queryParamsHandling: 'replace',
       });
     });
 
-    function expectAllAnalyticsCall() {
-      expectApiGetRequest(fakeApiV4({ id: API_ID, analytics: { enabled: true } }));
-      expectApiGetResponseStatusOvertime();
-      expectApiGetResponseTimeOverTime();
-      expectApiAnalyticsRequestsCountGetRequest(fakeAnalyticsRequestsCount());
-      expectApiAnalyticsAverageConnectionDurationGetRequest(fakeAnalyticsAverageConnectionDuration());
-      expectApiAnalyticsResponseStatusRangesGetRequest(fakeAnalyticsResponseStatusRanges());
-    }
+    it('should select http statuses from query params', async () => {
+      await initComponent({ httpStatuses: '200' });
+
+      handleAllRequests();
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      const selectedValues = await filtersBar.getSelectedHttpStatuses();
+
+      expect(selectedValues).toEqual(['200']);
+    });
+
+    it('should update the URL query params when a httpStatus is selected', async () => {
+      await initComponent();
+
+      handleAllRequests();
+
+      const router = TestBed.inject(Router);
+      const routerSpy = jest.spyOn(router, 'navigate');
+
+      const filtersBar = await componentHarness.getFiltersBarHarness();
+      await filtersBar.selectHttpStatus('404');
+
+      expect(routerSpy).toHaveBeenCalledWith([], {
+        queryParams: {
+          period: '1d',
+          httpStatuses: '404',
+        },
+        queryParamsHandling: 'replace',
+      });
+    });
   });
 
-  function expectApiGetRequest(api: ApiV4) {
-    const res = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
-      method: 'GET',
+  describe('Backend API calls based on query parameters', () => {
+    it('should make backend calls with default time range when no query params provided', async () => {
+      await initComponent();
+
+      // Verify that backend calls are made with default time range (1d)
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      expect(requests.length).toBeGreaterThan(0);
+
+      // Check that all requests include the default time range parameters
+      requests.forEach((req) => {
+        expect(req.request.url).toContain('type=');
+        expect(req.request.url).toContain('from=');
+        expect(req.request.url).toContain('to=');
+        expect(req.request.url).toContain('interval=');
+      });
+
+      handleAllRequests();
     });
 
-    res.flush(api);
+    it('should make backend calls with custom period from query params', async () => {
+      await initComponent({ period: 'custom', from: '1', to: '2' });
 
+      // Verify that backend calls are made with 7d time range
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      expect(requests.length).toBeGreaterThan(0);
+
+      // Check that requests include the correct time range
+      requests
+        .filter((request) => !request.cancelled)
+        .forEach((req) => {
+          expect(req.request.url).toContain('from=1');
+          expect(req.request.url).toContain('to=2');
+          expect(req.request.url).toContain('interval=0');
+        });
+
+      handleAllRequests();
+    });
+
+    it('should make different backend calls for different analytics types', async () => {
+      await initComponent({ period: '1d' });
+
+      // Get all analytics requests
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+
+      // Should have requests for different analytics types
+      const statsRequests = requests.filter((req) => req.request.url.includes('type=STATS'));
+      const groupByRequests = requests.filter((req) => req.request.url.includes('type=GROUP_BY'));
+      const histogramRequests = requests.filter((req) => req.request.url.includes('type=HISTOGRAM'));
+
+      expect(statsRequests.length).toBeGreaterThan(0);
+      expect(groupByRequests.length).toBeGreaterThan(0);
+      expect(histogramRequests.length).toBeGreaterThan(0);
+
+      // Verify each type has the correct parameters
+      statsRequests.forEach((req) => {
+        expect(req.request.url).toContain('type=STATS');
+        expect(req.request.url).toContain('from=');
+        expect(req.request.url).toContain('to=');
+        expect(req.request.url).toContain('interval=2880000');
+      });
+
+      groupByRequests.forEach((req) => {
+        expect(req.request.url).toContain('type=GROUP_BY');
+        expect(req.request.url).toContain('from=');
+        expect(req.request.url).toContain('to=');
+        expect(req.request.url).toContain('interval=2880000');
+        expect(req.request.url).toContain('field=');
+      });
+
+      histogramRequests.forEach((req) => {
+        expect(req.request.url).toContain('type=HISTOGRAM');
+        expect(req.request.url).toContain('from=');
+        expect(req.request.url).toContain('to=');
+        expect(req.request.url).toContain('interval=2880000');
+        expect(req.request.url).toContain('aggregations=');
+      });
+
+      handleAllRequests();
+    });
+
+    it('should include API ID in all backend calls', async () => {
+      await initComponent({ period: '1d' });
+
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      expect(requests.length).toBeGreaterThan(0);
+
+      // Verify all requests include the API ID
+      requests.forEach((req) => {
+        expect(req.request.url).toContain(`/apis/${API_ID}/analytics`);
+      });
+
+      handleAllRequests();
+    });
+
+    it('should handle multiple concurrent requests with same parameters', async () => {
+      await initComponent({ period: '1d' });
+
+      // Should make multiple requests for different widgets
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      expect(requests.length).toBeGreaterThan(5); // Multiple widgets
+
+      // All requests should have the same time range parameters
+      requests.forEach((req) => {
+        // Extract time parameters from URL
+        const fromMatch = req.request.url.match(/from=(\d+)/);
+        const toMatch = req.request.url.match(/to=(\d+)/);
+        const intervalMatch = req.request.url.match(/interval=(\d+)/);
+
+        expect(fromMatch).toBeTruthy();
+        expect(toMatch).toBeTruthy();
+        expect(intervalMatch).toBeTruthy();
+      });
+
+      handleAllRequests();
+    });
+  });
+
+  function handleAllRequests() {
+    // Handle all pending requests
+    const requests = httpTestingController.match(() => true);
+    requests.forEach((request) => {
+      if (request.request.url.includes('type=HISTOGRAM')) {
+        request.flush(fakeAnalyticsHistogram());
+      } else if (request.request.url.includes('type=GROUP_BY')) {
+        request.flush(fakeGroupByResponse());
+      } else if (request.request.url.includes('type=STATS')) {
+        request.flush(fakeAnalyticsStatsResponse());
+      }
+    });
+  }
+
+  function expectPlanList(plans: PlanV4[] = []) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&statuses=PUBLISHED,DEPRECATED,CLOSED`,
+        method: 'GET',
+      })
+      .flush(fakePagedResult(plans));
     fixture.detectChanges();
-  }
-
-  function expectApiAnalyticsRequestsCountGetRequest(analyticsRequestsCount: AnalyticsRequestsCount) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/requests-count`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(analyticsRequestsCount);
-  }
-
-  function expectApiAnalyticsAverageConnectionDurationGetRequest(analyticsAverageConnectionDuration: AnalyticsAverageConnectionDuration) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/average-connection-duration`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(analyticsAverageConnectionDuration);
-  }
-
-  function expectApiAnalyticsResponseStatusRangesGetRequest(analyticsResponseStatusRanges: AnalyticsResponseStatusRanges) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-ranges`;
-
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(analyticsResponseStatusRanges);
-  }
-
-  function expectApiGetResponseStatusOvertime(res: AnalyticsResponseStatusOvertime = fakeAnalyticsResponseStatusOvertime()) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-status-overtime`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(res);
-  }
-
-  function expectApiGetResponseTimeOverTime(res: AnalyticsResponseTimeOverTime = fakeAnalyticsResponseTimeOverTime()) {
-    const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/analytics/response-time-over-time`;
-    const req = httpTestingController.expectOne((req) => {
-      return req.method === 'GET' && req.url.startsWith(url);
-    });
-    req.flush(res);
   }
 });

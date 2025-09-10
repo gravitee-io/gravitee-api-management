@@ -76,6 +76,17 @@ public class MembershipQueryServiceInMemory implements MembershipQueryService, I
     }
 
     @Override
+    public List<String> findClustersIdsThatUserBelongsTo(String userId) {
+        return storage
+            .stream()
+            .filter(membership -> membership.getMemberType() == Membership.Type.USER)
+            .filter(membership -> membership.getReferenceType() == Membership.ReferenceType.CLUSTER)
+            .filter(membership -> membership.getMemberId().equals(userId))
+            .map(Membership::getReferenceId)
+            .toList();
+    }
+
+    @Override
     public void initWith(List<Membership> items) {
         storage.addAll(items);
     }

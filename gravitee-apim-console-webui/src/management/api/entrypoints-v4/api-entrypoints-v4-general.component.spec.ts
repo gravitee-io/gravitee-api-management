@@ -51,6 +51,7 @@ const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
   { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events', deployed: false },
   { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook', deployed: false },
   { id: 'native-kafka', supportedApiType: 'NATIVE', supportedListenerType: 'KAFKA', name: 'Client', deployed: false },
+  { id: 'agent-to-agent', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Agent to agent', deployed: false },
 ];
 
 describe('ApiProxyV4EntrypointsComponent', () => {
@@ -85,7 +86,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     }
   };
 
-  const init = async (permissions: string[] = ['api-definition-u', 'api-definition-r']) => {
+  const init = async (permissions: string[] = ['api-definition-u', 'api-definition-r', 'api-gateway_definition-u']) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [
@@ -161,6 +162,31 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(addEntrypointButton.length).toEqual(0);
       const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
       expect(await harness.hasEntrypointsTable()).toEqual(false);
+    });
+  });
+
+  describe('When API has Agent PROXY architecture type', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      type: 'MESSAGE',
+      listeners: [{ type: 'HTTP', entrypoints: [{ type: 'agent-to-agent' }], paths: [{ path: '/path' }] }],
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API);
+    });
+
+    afterEach(() => {
+      expectApiPathVerify();
+    });
+
+    it('should not show the add entrypoint button', async () => {
+      const contextPath = await loader.getAllHarnesses(GioFormListenersContextPathHarness);
+      expect(contextPath.length).toEqual(1);
+      const virtualHost = await loader.getAllHarnesses(GioFormListenersVirtualHostHarness);
+      expect(virtualHost.length).toEqual(0);
+      const addEntrypointButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(addEntrypointButton.length).toEqual(0);
     });
   });
 
@@ -436,7 +462,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API, undefined, ['api-definition-u'], false);
+      await createComponent(RESTRICTED_DOMAINS, API, undefined, ['api-definition-u', 'api-gateway_definition-u'], false);
     });
 
     afterEach(() => {

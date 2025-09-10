@@ -51,6 +51,7 @@ import { EditMemberDialogComponent } from './edit-member-dialog/edit-member-dial
 import { AddMembersDialogComponent } from './add-members-dialog/add-members-dialog.component';
 import { InviteMemberDialogComponent } from './invite-member-dialog/invite-member-dialog.component';
 import { RoleName } from './membershipState';
+import { TooManyUsersDialogComponent } from './too-many-users-dialog/too-many-users-dialog.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
@@ -98,6 +99,10 @@ interface InviteMemberDialogResult {
 interface DeleteMemberDialogResult {
   primaryOwnerMembership: GroupMembership;
   shouldDelete: boolean;
+}
+
+export interface TooManyUsersDialogData {
+  email: string;
 }
 
 @Component({
@@ -583,12 +588,17 @@ export class GroupComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        filter((dialogResult: InviteMemberDialogResult) => !!dialogResult.invitation),
+        filter((dialogResult: InviteMemberDialogResult) => !!dialogResult && !!dialogResult.invitation),
         switchMap((dialogResult) =>
           this.groupService.inviteMember(this.groupId, dialogResult.invitation).pipe(
-            tap(() => {
-              this.snackBarService.success('Successfully invited user to the group.');
-              this.initializeInvitations();
+            tap((response) => {
+              if (response.status === 200) {
+                this.snackBarService.success('Successfully invited user to the group.');
+                this.initializeInvitations();
+                this.initializeGroupMembers();
+              } else if (response.status === 202) {
+                this.openTooManyUsersDialog(dialogResult.invitation.email);
+              }
             }),
             catchError(() => {
               this.snackBarService.error('Error while inviting member to the group.');
@@ -606,9 +616,9 @@ export class GroupComponent implements OnInit {
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         data: {
           title: 'Delete Invitation',
-          content: `Are you sure you want to delete an invitation sent to ${email}?`,
-          confirmButton: 'Delete',
-          cancelButton: 'No',
+          content: `You are trying to delete an invitation sent to ${email}. Do you want to continue?`,
+          confirmButton: 'Continue',
+          cancelButton: 'Cancel',
         },
         role: 'alertdialog',
         id: 'deleteInvitationDialog',
@@ -641,9 +651,9 @@ export class GroupComponent implements OnInit {
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         data: {
           title: 'Add group to existing APIs',
-          content: `Are you sure you want to add the group to all existing APIs?`,
-          confirmButton: 'Add',
-          cancelButton: 'No',
+          content: `You are trying to add the group to all the existing APIs. Do you want to continue?`,
+          confirmButton: 'Continue',
+          cancelButton: 'Cancel',
         },
         role: 'alertdialog',
         id: 'confirmDialog',
@@ -673,9 +683,9 @@ export class GroupComponent implements OnInit {
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         data: {
           title: 'Add group to existing applications',
-          content: `Are you sure you want to add the group to all existing applications?`,
-          confirmButton: 'Add',
-          cancelButton: 'No',
+          content: `You are trying to add the group to all the existing applications. Do you want to continue?`,
+          confirmButton: 'Continue',
+          cancelButton: 'Cancel',
         },
         role: 'alertdialog',
         id: 'confirmDialog',
@@ -751,5 +761,24 @@ export class GroupComponent implements OnInit {
 
   private shouldAllowAddMembers() {
     this.canAddMembers = (this.canUpdateGroup() || this.canInviteMember()) && !this.maxInvitationsLimitReached;
+  }
+
+  private openTooManyUsersDialog(email: string) {
+    this.matDialog
+      .open<TooManyUsersDialogComponent, TooManyUsersDialogData, boolean>(TooManyUsersDialogComponent, {
+        data: {
+          email: email,
+        },
+        role: 'alertdialog',
+        id: 'tooManyUsersDialog',
+        hasBackdrop: true,
+        autoFocus: true,
+        width: GIO_DIALOG_WIDTH.SMALL,
+      })
+      .afterClosed()
+      .pipe(filter(Boolean), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.openAddMembersDialog();
+      });
   }
 }

@@ -32,8 +32,9 @@ import org.slf4j.LoggerFactory;
  */
 @Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
 public interface SubscriptionMapper {
-    Logger log = LoggerFactory.getLogger(SubscriptionMapper.class);
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
+
+    Logger log = LoggerFactory.getLogger(SubscriptionMapper.class);
 
     @Mapping(target = "keys", ignore = true)
     @Mapping(target = "endAt", source = "endingAt")

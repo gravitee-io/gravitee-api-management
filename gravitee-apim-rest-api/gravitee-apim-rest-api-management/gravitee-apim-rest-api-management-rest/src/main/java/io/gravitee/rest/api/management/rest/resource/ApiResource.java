@@ -696,7 +696,7 @@ public class ApiResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_NOTIFICATION, acls = RolePermissionAction.READ) })
     public List<NotifierEntity> getApiNotifiers() {
-        return notifierService.list(NotificationReferenceType.API, api);
+        return notifierService.list();
     }
 
     @POST
@@ -736,6 +736,7 @@ public class ApiResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         canReadApi(executionContext, api);
         final ApiEntity apiEntity = apiService.findById(executionContext, api);
+
         return qualityMetricsService.getMetrics(executionContext, apiEntity);
     }
 

@@ -47,12 +47,12 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
     it('should have correct table header', function () {
       cy.getByDataTestId('api_list_table_header')
         .should('contain.text', 'Name')
-        .and('contain.text', 'Definition')
+        .and('contain.text', 'API Type')
         .and('contain.text', 'Status')
         .and('contain.text', 'Access')
-        .and('contain.text', 'Tags')
+        .and('contain.text', 'Sharding Tags')
         .and('contain.text', 'Owner')
-        .and('contain.text', 'Visibility');
+        .and('contain.text', 'Portal Status');
     });
   });
 

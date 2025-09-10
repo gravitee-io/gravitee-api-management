@@ -1,4 +1,5 @@
 {
+  "id": "application-id",
   "name": "with-invalid-redirect-uri",
   "description": "SPA with invalid redirect uri",
   "domain": "test-domain",

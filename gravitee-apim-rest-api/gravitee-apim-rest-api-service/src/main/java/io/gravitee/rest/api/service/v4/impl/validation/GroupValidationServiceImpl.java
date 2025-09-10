@@ -58,9 +58,14 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
         final ExecutionContext executionContext,
         final String apiId,
         final Set<String> groups,
+        final Set<String> existingGroups,
         final PrimaryOwnerEntity primaryOwnerEntity,
         final boolean addDefaultGroups
     ) {
+        if (existingGroups != null && groups == null) {
+            return existingGroups;
+        }
+
         Set<String> sanitizedGroups = new HashSet<>();
         if (groups != null && !groups.isEmpty()) {
             try {

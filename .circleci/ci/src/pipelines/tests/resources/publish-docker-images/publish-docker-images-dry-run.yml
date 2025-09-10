@@ -35,9 +35,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v11-<< parameters.jobName >>-master
+            - gravitee-api-management-v12-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v12-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v12-<< parameters.jobName >>-master
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:
@@ -50,7 +50,7 @@ commands:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
       - save_cache:
-          key: gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v12-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always
@@ -153,7 +153,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2/repository/io/gravitee/apim
-          key: gravitee-api-management-v11-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: gravitee-api-management-v12-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build
@@ -228,7 +228,7 @@ jobs:
           root: .
           paths:
             - gravitee-apim-portal-webui/dist
-  job-build-docker-image:
+  job-build-docker-webui-image:
     parameters:
       apim-project:
         type: string
@@ -258,6 +258,66 @@ jobs:
           command: |-
             docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - cmd-docker-logout
+  job-build-docker-backend-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context
+      - cmd-docker-login
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+          var-name: AQUA_KEY
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+          var-name: AQUA_SECRET
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
+          var-name: AQUA_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
+          var-name: AQUA_PASSWORD
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
+          var-name: SCANNER_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - aquasec/install_billy
+      - aquasec/pull_aqua_scanner_image
+      - run:
+          name: Build docker image for << parameters.apim-project >>-alpine
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - run:
+          name: Build docker image for << parameters.apim-project >>-debian
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest-debian \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project >>
       - cmd-docker-logout
@@ -320,7 +380,7 @@ workflows:
           requires:
             - Setup
           name: Build backend
-      - job-build-docker-image:
+      - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
           name: Build APIM Management API docker image
@@ -329,7 +389,7 @@ workflows:
           apim-project: gravitee-apim-rest-api
           docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
           docker-image-name: apim-management-api
-      - job-build-docker-image:
+      - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
           name: Build APIM Gateway docker image
@@ -344,7 +404,7 @@ workflows:
           requires:
             - Setup
           name: Build APIM Console
-      - job-build-docker-image:
+      - job-build-docker-webui-image:
           context:
             - cicd-orchestrator
           name: Build APIM Console docker image
@@ -359,7 +419,7 @@ workflows:
           requires:
             - Setup
           name: Build APIM Portal
-      - job-build-docker-image:
+      - job-build-docker-webui-image:
           context:
             - cicd-orchestrator
           name: Build APIM Portal docker image
@@ -380,4 +440,5 @@ workflows:
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
+  aquasec: gravitee-io/aquasec@1.0.5
   gh: circleci/github-cli@1.0.5

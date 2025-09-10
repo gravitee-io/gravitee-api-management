@@ -25,7 +25,7 @@
   @if (isLoading) {
     <!-- Loading panel -->
     <div class="loadingTemplate" data-testid="loader-spinner">
-      <gio-loader></gio-loader>
+      <gio-loader />
     </div>
   } @else {
     <!-- Integration card -->
@@ -34,7 +34,9 @@
         <div class="card-header">
           <div class="card-header__title">
             <h3>{{ integration.name }}</h3>
-            <p *ngIf="integration.description.length" class="description">{{ integration.description }}</p>
+            @if (integration.description.length) {
+              <p class="description">{{ integration.description }}</p>
+            }
           </div>
         </div>
       </mat-card-header>
@@ -44,34 +46,38 @@
       <div class="card-content">
         <mat-card>
           <div class="details-card">
-            <div class="details-card__item border-right">
+            <div class="details-card__item" [class.border-right]="integration | isApiIntegration">
               <h5 class="title body-strong">Provider</h5>
               <div class="name">
                 <img class="logo" [src]="'assets/logos/' + integration.provider + '.svg'" alt="Integration provider logo" />
                 <span class="body-strong" data-testid="integration-provider">{{ integration.provider | mapProviderName }}</span>
               </div>
             </div>
-            <div class="details-card__item border-right">
-              <h5 class="title body-strong">Agent Connection</h5>
-              <div class="status">
-                <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
+            @if (integration | isApiIntegration) {
+              <div class="details-card__item border-right">
+                <h5 class="title body-strong">Agent Connection</h5>
+                <div class="status">
+                  <app-integration-status [agentStatus]="integration.agentStatus"></app-integration-status>
+                </div>
               </div>
-            </div>
-            <div class="details-card__item">
-              <h5 class="title body-strong">Integration ID</h5>
-              <div class="status">
-                <span class="gio-badge-neutral id-badge">
-                  <div gioClipboardCopyWrapper [alwaysVisible]="true" [contentToCopy]="integration?.id" data-testid="integration-id">
-                    {{ integration.id }}
-                  </div>
-                </span>
+              <div class="details-card__item">
+                <h5 class="title body-strong">Integration ID</h5>
+                <div class="status">
+                  <span class="gio-badge-neutral id-badge">
+                    <div gioClipboardCopyWrapper [alwaysVisible]="true" [contentToCopy]="integration?.id" data-testid="integration-id">
+                      {{ integration.id }}
+                    </div>
+                  </span>
+                </div>
               </div>
-            </div>
+            }
           </div>
         </mat-card>
-        <gio-banner-error *ngIf="integration.agentStatus === AgentStatus.DISCONNECTED">
-          {{ integrationsService.bannerMessages.agentDisconnected }}
-        </gio-banner-error>
+        @if ((integration | isApiIntegration) && integration.agentStatus === AgentStatus.DISCONNECTED) {
+          <gio-banner-error>
+            {{ integrationsService.bannerMessages.agentDisconnected }}
+          </gio-banner-error>
+        }
       </div>
     </mat-card>
 
@@ -80,26 +86,45 @@
       <mat-card-header>
         <div [class]="federatedAPIs.length ? 'card-header' : 'card-header no-federated-apis'">
           <div class="card-header__title">
-            <h3>APIs</h3>
+            @if (integration | isApiIntegration) {
+              <h3>APIs</h3>
+            } @else if (integration | isA2aIntegration) {
+              <h3>Agents</h3>
+              <p class="description">Agents related to this integration</p>
+            }
           </div>
           <div class="card-header__actions">
-            <button
-              mat-raised-button
-              color="primary"
-              [disabled]="integration.agentStatus !== AgentStatus.CONNECTED || isIngesting"
-              data-testid="discover-button"
-              routerLink="discover"
-              *gioPermission="{ anyOf: ['environment-integration-c'] }"
-            >
-              Discover
-            </button>
+            @if (integration | isApiIntegration) {
+              <button
+                mat-raised-button
+                color="primary"
+                [disabled]="integration.agentStatus !== AgentStatus.CONNECTED || isIngesting"
+                data-testid="discover-button"
+                routerLink="discover"
+                *gioPermission="{ anyOf: ['environment-integration-c'] }"
+              >
+                Discover
+              </button>
+            } @else if (integration | isA2aIntegration) {
+              <button
+                mat-raised-button
+                color="primary"
+                data-testid="discover-button"
+                (click)="a2aDiscover()"
+                *gioPermission="{ anyOf: ['environment-integration-c'] }"
+              >
+                Discover
+              </button>
+            }
           </div>
         </div>
       </mat-card-header>
 
-      <gio-banner-warning *ngIf="isIngesting && nbTotalInstances > 0" class="pending-job-banner">
-        APIs are currently being ingested and will appear below once completed. This may take some time depending on volume.
-      </gio-banner-warning>
+      @if ((integration | isApiIntegration) && isIngesting && nbTotalInstances > 0) {
+        <gio-banner-warning class="pending-job-banner">
+          APIs are currently being ingested and will appear below once completed. This may take some time depending on volume.
+        </gio-banner-warning>
+      }
 
       @if (federatedAPIs.length) {
         <div class="card-table">
@@ -147,19 +172,27 @@
             <div class="no-integrations">
               <div class="no-integrations__img">
                 <div class="background-circle">
-                  <mat-icon *ngIf="isIngesting" svgIcon="gio:down-circle" color="primary"></mat-icon>
-                  <mat-icon *ngIf="!isIngesting" svgIcon="gio:search" color="primary"></mat-icon>
+                  @if (isIngesting) {
+                    <mat-icon svgIcon="gio:down-circle" color="primary" />
+                  } @else {
+                    <mat-icon svgIcon="gio:search" color="primary" />
+                  }
                 </div>
               </div>
               <div class="no-integrations__message">
-                <h2 class="header">{{ isIngesting ? 'APIs are being ingested' : 'No APIs created' }}</h2>
-                <p class="description">
-                  {{
-                    isIngesting
-                      ? 'APIs will appear below once completed. This may take some time depending on volume.'
-                      : 'Create Federated APIs in Gravitee based on APIs or event streams from the external provider.'
-                  }}
-                </p>
+                @if (integration | isApiIntegration) {
+                  <h2 class="header">{{ isIngesting ? 'APIs are being ingested' : 'No APIs created' }}</h2>
+                  <p class="description">
+                    {{
+                      isIngesting
+                        ? 'APIs will appear below once completed. This may take some time depending on volume.'
+                        : 'Create Federated APIs in Gravitee based on APIs or event streams from the external provider.'
+                    }}
+                  </p>
+                } @else if (integration | isA2aIntegration) {
+                  <h2 class="header">Find your agents</h2>
+                  <p class="description">Your agents will live here. Start creating by clicking on "Discover".</p>
+                }
               </div>
             </div>
           </mat-card>

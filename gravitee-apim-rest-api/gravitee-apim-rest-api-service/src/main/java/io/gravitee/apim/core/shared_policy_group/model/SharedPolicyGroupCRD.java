@@ -33,6 +33,12 @@ import lombok.Data;
 public class SharedPolicyGroupCRD {
 
     /**
+     * The shared policy group hrid uniquely identifies a shared policy group across environments.
+     * Apis promoted between environments will share the same hrid.
+     */
+    private String hrid;
+
+    /**
      * The shared policy group crossId uniquely identifies a shared policy group across environments.
      * Apis promoted between environments will share the same crossId. Gateways will use this crossId to identify the shared policy group
      */
@@ -74,6 +80,7 @@ public class SharedPolicyGroupCRD {
     public SharedPolicyGroup toSharedPolicyGroup() {
         return SharedPolicyGroup
             .builder()
+            .hrid(hrid)
             .crossId(crossId)
             .id(sharedPolicyGroupId)
             .name(name)
@@ -89,6 +96,8 @@ public class SharedPolicyGroupCRD {
     public CreateSharedPolicyGroup toCreateSharedPolicyGroup() {
         return CreateSharedPolicyGroup
             .builder()
+            .id(sharedPolicyGroupId)
+            .hrid(hrid)
             .crossId(crossId)
             .name(name)
             .description(description)
@@ -103,6 +112,7 @@ public class SharedPolicyGroupCRD {
     public SharedPolicyGroupCRD fromCreateSharedPolicyGroup(CreateSharedPolicyGroup createSharedPolicyGroup) {
         return SharedPolicyGroupCRD
             .builder()
+            .hrid(createSharedPolicyGroup.getHrid())
             .crossId(createSharedPolicyGroup.getCrossId())
             .name(createSharedPolicyGroup.getName())
             .description(createSharedPolicyGroup.getDescription())
@@ -117,6 +127,7 @@ public class SharedPolicyGroupCRD {
     public UpdateSharedPolicyGroup toUpdateSharedPolicyGroup() {
         return UpdateSharedPolicyGroup
             .builder()
+            .hrid(hrid)
             .crossId(crossId)
             .name(name)
             .description(description)
@@ -128,6 +139,7 @@ public class SharedPolicyGroupCRD {
     public SharedPolicyGroupCRD fromUpdateSharedPolicyGroup(UpdateSharedPolicyGroup updateSharedPolicyGroup) {
         return SharedPolicyGroupCRD
             .builder()
+            .hrid(updateSharedPolicyGroup.getHrid())
             .crossId(updateSharedPolicyGroup.getCrossId())
             .name(updateSharedPolicyGroup.getName())
             .description(updateSharedPolicyGroup.getDescription())

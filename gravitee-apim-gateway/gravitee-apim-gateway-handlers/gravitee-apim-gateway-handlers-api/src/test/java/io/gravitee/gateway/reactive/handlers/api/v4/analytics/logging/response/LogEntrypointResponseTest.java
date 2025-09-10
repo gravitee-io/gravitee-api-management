@@ -99,6 +99,7 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
@@ -141,6 +142,7 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxPayloadSize);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
@@ -152,5 +154,21 @@ class LogEntrypointResponseTest {
 
         assertNull(logResponse.getHeaders());
         assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
+    }
+
+    @Test
+    void shouldLogBodyNotCapturedWhenBodyIsNotLoggable() {
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+        when(loggingContext.isBodyLoggable()).thenReturn(false);
+        when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
+
+        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture();
+        verify(response, times(0)).chunks(any(Flowable.class));
+
+        assertNull(logResponse.getHeaders());
+        assertThat(logResponse.getBody()).isEqualTo("BODY NOT CAPTURED");
     }
 }

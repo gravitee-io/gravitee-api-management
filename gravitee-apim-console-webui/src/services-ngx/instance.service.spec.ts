@@ -93,6 +93,23 @@ describe('InstanceService', () => {
     });
   });
 
+  describe('getByGatewayId', () => {
+    it('should call the API', (done) => {
+      const instanceId = '5bc17c57-b350-460d-817c-57b350060db3';
+      const fakeInstanceObject = fakeInstance();
+
+      instanceService.getByGatewayId(instanceId).subscribe((instance) => {
+        expect(instance).toMatchObject(fakeInstanceObject);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/instances/${instanceId}`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(fakeInstanceObject);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

@@ -18,9 +18,11 @@ package io.gravitee.repository.jdbc.management;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 
+import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.api.search.PortalNotificationCriteria;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
 import java.sql.PreparedStatement;
@@ -31,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -66,6 +69,8 @@ public class JdbcPortalNotificationConfigRepository
                 " , reference_id = ?" +
                 " , created_at = ? " +
                 " , updated_at = ? " +
+                " , origin = ? " +
+                " , organization_id = ? " +
                 " where " +
                 escapeReservedWord("user") +
                 " = ? " +
@@ -77,6 +82,8 @@ public class JdbcPortalNotificationConfigRepository
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("origin", Types.NVARCHAR, Origin.class)
+            .addColumn("organization_id", Types.NVARCHAR, String.class)
             .build();
     }
 
@@ -100,41 +107,84 @@ public class JdbcPortalNotificationConfigRepository
     }
 
     @Override
+    public List<PortalNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) throws TechnicalException {
+        LOGGER.debug("JdbcPortalNotificationConfigRepository.findByHookAndOrganizationId({}, {})", hook, orgId);
+        return findByCriteria(PortalNotificationCriteria.builder().hook(hook).organizationId(orgId).build());
+    }
+
+    @Override
     public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
         throws TechnicalException {
         LOGGER.debug("JdbcPortalNotificationConfigRepository.findByReferenceAndHook({}, {}, {})", hook, referenceType, referenceId);
-        try {
-            StringBuilder q = new StringBuilder(
-                "select pnc." +
-                escapeReservedWord("user") +
-                ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at " +
-                " from " +
-                this.tableName +
-                " pnc" +
-                " left join " +
-                PORTAL_NOTIFICATION_CONFIG_HOOKS +
-                " pnch" +
-                " on pnc.reference_type = pnch.reference_type" +
-                " and pnc.reference_id = pnch.reference_id" +
-                " and pnc." +
-                escapeReservedWord("user") +
-                " = pnch." +
-                escapeReservedWord("user") +
-                " where pnc.reference_type = ?" +
-                " and pnc.reference_id = ?" +
-                " and pnch.hook = ?"
-            );
-            final List<PortalNotificationConfig> items = jdbcTemplate.query(
-                q.toString(),
-                (PreparedStatement ps) -> {
-                    ps.setString(1, referenceType.name());
-                    ps.setString(2, referenceId);
-                    ps.setString(3, hook);
-                },
-                getOrm().getRowMapper()
-            );
+        return findByCriteria(
+            PortalNotificationCriteria.builder().hook(hook).referenceType(referenceType).referenceId(referenceId).build()
+        );
+    }
 
-            return items;
+    String generateQuery(PortalNotificationCriteria criteria) {
+        StringBuilder query = new StringBuilder(
+            "select pnc." +
+            escapeReservedWord("user") +
+            ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at, pnc.origin" +
+            " from " +
+            this.tableName +
+            " pnc" +
+            " left join " +
+            PORTAL_NOTIFICATION_CONFIG_HOOKS +
+            " pnch" +
+            " on pnc.reference_type = pnch.reference_type" +
+            " and pnc.reference_id = pnch.reference_id" +
+            " and pnc." +
+            escapeReservedWord("user") +
+            " = pnch." +
+            escapeReservedWord("user")
+        );
+
+        if (criteria != null) {
+            query.append(" where 1=1");
+            if (criteria.getReferenceType() != null) {
+                query.append(" and pnc.reference_type = ?");
+            }
+            if (criteria.getReferenceId() != null) {
+                query.append(" and pnc.reference_id = ?");
+            }
+            if (criteria.getHook() != null) {
+                query.append(" and pnch.hook = ?");
+            }
+            if (criteria.getOrganizationId() != null) {
+                query.append(" and pnc.organization_id = ?");
+            }
+        }
+
+        return query.toString();
+    }
+
+    private PreparedStatementSetter generatePreparedStatementSetter(PortalNotificationCriteria criteria) {
+        if (criteria != null) {
+            return (PreparedStatement ps) -> {
+                int lastIndex = 1;
+                if (criteria.getReferenceType() != null) {
+                    ps.setString(lastIndex++, criteria.getReferenceType().name());
+                }
+                if (criteria.getReferenceId() != null) {
+                    ps.setString(lastIndex++, criteria.getReferenceId());
+                }
+                if (criteria.getHook() != null) {
+                    ps.setString(lastIndex++, criteria.getHook());
+                }
+                if (criteria.getOrganizationId() != null) {
+                    ps.setString(lastIndex++, criteria.getOrganizationId());
+                }
+            };
+        }
+        return null;
+    }
+
+    List<PortalNotificationConfig> findByCriteria(PortalNotificationCriteria criteria) throws TechnicalException {
+        try {
+            String query = generateQuery(criteria);
+            PreparedStatementSetter pss = generatePreparedStatementSetter(criteria);
+            return jdbcTemplate.query(query, pss, getOrm().getRowMapper());
         } catch (final Exception ex) {
             final String message = "Failed to find notifications by reference and hook";
             LOGGER.error(message, ex);
@@ -191,7 +241,7 @@ public class JdbcPortalNotificationConfigRepository
             final List<PortalNotificationConfig> items = jdbcTemplate.query(
                 "select " +
                 escapeReservedWord("user") +
-                ", reference_type, reference_id, created_at, updated_at " +
+                ", reference_type, reference_id, created_at, updated_at, origin, organization_id " +
                 " from " +
                 this.tableName +
                 " where " +

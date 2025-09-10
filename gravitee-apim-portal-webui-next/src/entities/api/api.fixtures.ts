@@ -49,9 +49,7 @@ export function fakeApi(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Api 
     created_at: new Date(1630437434407),
     updated_at: new Date(1642675655553),
     categories: ['my-category'],
-    mcp: {
-      enabled: false,
-    },
+    mcp: undefined,
     _links: {
       picture:
         'https://master-apim-api.cloud.gravitee.io/management/organizations/DEFAULT/environments/DEFAULT/apis/aee23b1e-34b1-4551-a23b-1e34b165516a/picture?hash=1642675655553',

@@ -23,6 +23,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Promise;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.rxjava3.core.http.HttpClient;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
@@ -30,7 +31,7 @@ public class WebsocketAcceptTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
     @DeployApi({ "/apis/v4/http/api.json" })
-    public void websocket_accepted_request(VertxTestContext testContext) throws Throwable {
+    public void websocket_accepted_request(VertxTestContext testContext, HttpClient httpClient) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();

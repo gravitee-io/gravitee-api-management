@@ -72,8 +72,24 @@
                 "banner": {
                     "title": "Propagate client Accept-Encoding header (no decompression if any)",
                     "text": "If the client request header includes a value for Accept-Encoding, the gateway will propagate it to the backend. The gateway will NEVER attempt to decompress the body content if the backend response is compressed (gzip, deflate). Therefore, transformation policies cannot be applied if the content body is compressed. If logging is enabled for the API, the compressed content body will be logged as is without any transformation applied. DO NOT activate this option if you plan to interact with body responses."
+                },
+              "disableIf": {
+                "$eq": {
+                  "value.http.useCompression": true
                 }
+              }
             }
+        },
+        "propagateClientHost": {
+          "title": "Propagate client Host header",
+          "type": "boolean",
+          "default": false,
+          "gioConfig": {
+            "banner": {
+              "title": "Propagate client Host header",
+              "text": "<ul><li>If not activated (default), the Gateway uses the endpoint target host if the host header value of the original request is unchanged after policy execution else use changed value.</li><li>If activated, the host header propagated by the gateway to the backend is the value specified by the client request, possibly changed by the policies execution.</li></ul> <i>If the host header is null, the Gateway uses the endpoint target host.</i>"
+            }
+          }
         },
         "idleTimeout": {
             "type": "integer",
@@ -145,6 +161,9 @@
                         "propagateClientAcceptEncoding": {
                             "$ref": "#/definitions/propagateClientAcceptEncoding"
                         },
+                        "propagateClientHost": {
+                            "$ref": "#/definitions/propagateClientHost"
+                        },
                         "idleTimeout": {
                             "$ref": "#/definitions/idleTimeout"
                         },
@@ -188,6 +207,9 @@
                         "propagateClientAcceptEncoding": {
                             "$ref": "#/definitions/propagateClientAcceptEncoding"
                         },
+                        "propagateClientHost": {
+                          "$ref": "#/definitions/propagateClientHost"
+                        },
                         "idleTimeout": {
                             "$ref": "#/definitions/idleTimeout"
                         },
@@ -226,6 +248,7 @@
                 "required": ["name", "value"]
             },
             "gioConfig": {
+                "el": true,
                 "uiType": "gio-headers-array"
             }
         },
@@ -276,7 +299,10 @@
                         "host": {
                             "type": "string",
                             "title": "Proxy host",
-                            "description": "Proxy host to connect to. Supports EL."
+                            "description": "Proxy host to connect to. Supports EL.",
+          "gioConfig": {
+            "el": true
+          }
                         },
                         "port": {
                             "type": "integer",
@@ -286,13 +312,19 @@
                         "username": {
                             "type": "string",
                             "title": "Proxy username",
-                            "description": "Optional proxy username. (Supports EL and secrets)"
+                            "description": "Optional proxy username. (Supports EL and secrets)",
+          "gioConfig": {
+            "el": true
+          }
                         },
                         "password": {
                             "type": "string",
                             "title": "Proxy password",
                             "description": "Optional proxy password. (Supports EL and secrets)",
-                            "format": "password"
+                            "format": "password",
+          "gioConfig": {
+            "el": true
+          }
                         }
                     },
                     "required": ["host", "port"],
@@ -327,61 +359,94 @@
         "sslTrustStorePath": {
             "type": "string",
             "title": "Path to truststore",
-            "description": "Path to the truststore file"
+            "description": "Path to the truststore file",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslTrustStoreContent": {
             "type": "string",
             "title": "Content",
             "description": "Binary content as Base64",
-            "format": "text"
+            "format": "text",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStorePassword": {
             "type": "string",
             "title": "Password",
             "description": "Password to use to open the key store",
-            "format": "password"
+            "format": "password",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStoreAlias": {
             "type": "string",
             "title": "Alias for the key",
-            "description": "Alias of the key to use in case the key store contains more than one key"
+            "description": "Alias of the key to use in case the key store contains more than one key",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStoreKeyPassword": {
             "type": "string",
             "title": "Key Password",
             "description": "Password to use to access the key when protected by password",
-            "format": "password"
+            "format": "password",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStorePath": {
             "type": "string",
             "title": "Path to key store",
-            "description": "Path to the key store file"
+            "description": "Path to the key store file",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStoreContent": {
             "type": "string",
             "title": "Content",
             "description": "Binary content as Base64",
-            "format": "text"
+            "format": "text",
+            "gioConfig": {
+                "el": true
+            }
         },
         "sslKeyStoreCertPath": {
             "type": "string",
             "title": "Path to cert file",
-            "description": "Path to cert file (.PEM)"
+            "description": "Path to cert file (.PEM)",
+            "gioConfig": {
+                "el": true
+            }
         },
         "sslKeyStoreCertContent": {
             "type": "string",
             "title": "Certificate",
-            "format": "text"
+            "format": "text",
+            "gioConfig": {
+              "el": true
+            }
         },
         "sslKeyStoreKeyPath": {
             "type": "string",
             "title": "Path to private key file",
-            "description": "Path to private key file (.PEM)"
+            "description": "Path to private key file (.PEM)",
+          "gioConfig": {
+            "el": true
+          }
         },
         "sslKeyStoreKeyContent": {
             "type": "string",
             "title": "Private key",
-            "format": "text"
+            "format": "text",
+          "gioConfig": {
+            "el": true
+          }
         },
         "ssl": {
             "type": "object",

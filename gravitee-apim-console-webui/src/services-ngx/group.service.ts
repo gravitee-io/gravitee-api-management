@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PagedResult } from 'src/entities/pagedResult';
+
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { isEmpty } from 'lodash';
@@ -37,11 +39,17 @@ export class GroupService {
     return this.http.get<Group[]>(`${this.constants.env.baseURL}/configuration/groups`);
   }
 
+  listPaginated(page: number = 1, size: number = 20, query: string = ''): Observable<PagedResult<Group>> {
+    return this.http.get<PagedResult<Group>>(
+      `${this.constants.env.baseURL}/configuration/groups/_paged?page=${page}&size=${size}&query=${query}`,
+    );
+  }
+
   listByOrganization(): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.constants.org.baseURL}/groups`);
   }
 
-  addOrUpdateMemberships(groupId: string, groupMemberships: GroupMembership[]): Observable<void> {
+  addOrUpdateMemberships(groupId: string, groupMemberships: GroupMembership[], environmentId?: string): Observable<void> {
     // Remove Membership with empty roles
     const filterEmptyMembershipRoles = (groupMembership: GroupMembership[]) => groupMembership.filter((m) => !isEmpty(m.roles));
 
@@ -49,8 +57,8 @@ export class GroupService {
     if (isEmpty(groupMembershipToSend)) {
       return of(void 0);
     }
-
-    return this.http.post<void>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members`, groupMembershipToSend);
+    const environmentUrl = environmentId ? `${this.constants.org.baseURL}/environments/${environmentId}` : this.constants.env.baseURL;
+    return this.http.post<void>(`${environmentUrl}/configuration/groups/${groupId}/members`, groupMembershipToSend);
   }
 
   delete(id: string) {
@@ -77,12 +85,15 @@ export class GroupService {
     return this.http.get<Member[]>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members`);
   }
 
-  inviteMember(groupId: string, invitation: Invitation) {
-    return this.http.post<Invitation>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/invitations`, invitation);
+  inviteMember(groupId: string, invitation: Invitation): Observable<any> {
+    return this.http.post<Invitation>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/invitations`, invitation, {
+      observe: 'response',
+    });
   }
 
-  deleteMember(groupId: string, memberId: string): Observable<void> {
-    return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members/${memberId}`);
+  deleteMember(groupId: string, memberId: string, environmentId?: string): Observable<void> {
+    const environmentUrl = environmentId ? `${this.constants.org.baseURL}/environments/${environmentId}` : this.constants.env.baseURL;
+    return this.http.delete<void>(`${environmentUrl}/configuration/groups/${groupId}/members/${memberId}`);
   }
 
   getInvitations(groupId: string): Observable<Invitation[]> {

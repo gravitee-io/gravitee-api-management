@@ -17,7 +17,6 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.definition.model.Origin;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -39,10 +38,12 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @ToString
 @EqualsAndHashCode(of = { "id" }, callSuper = false)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}applications")
-public class ApplicationMongo extends Auditable {
+public class ApplicationMongo extends DeprecatedAuditable {
 
     @Id
     private String id;
+
+    private String hrid;
 
     @Field("name")
     private String name;

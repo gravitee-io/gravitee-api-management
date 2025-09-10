@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -48,7 +50,10 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
+import io.gravitee.rest.api.service.event.ApiEvent;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
@@ -146,6 +151,9 @@ public class ApiStateServiceImplTest {
 
     private ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
+    @Mock
+    private EventManager eventManager;
+
     private Api api;
     private Api updatedApi;
     private ApiStateService apiStateService;
@@ -193,7 +201,8 @@ public class ApiStateServiceImplTest {
                 apiValidationService,
                 planSearchService,
                 apiConverter,
-                synchronizationService
+                synchronizationService,
+                eventManager
             );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -288,6 +297,7 @@ public class ApiStateServiceImplTest {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
 
         verify(eventService)
             .createApiEvent(
@@ -372,6 +382,7 @@ public class ApiStateServiceImplTest {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
 
         verify(eventService)
             .createApiEvent(
@@ -413,6 +424,7 @@ public class ApiStateServiceImplTest {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
 
         verify(eventService)
             .createApiEvent(
@@ -426,5 +438,112 @@ public class ApiStateServiceImplTest {
 
         verify(apiNotificationService, times(1))
             .triggerStopNotification(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)));
+    }
+
+    @Test
+    public void shouldStartV4DynamicProperties() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        updatedApi.setLifecycleState(LifecycleState.STARTED);
+        boolean result = apiStateService.startV4DynamicProperties(API_ID);
+        assertThat(result).isTrue();
+
+        verify(apiRepository, times(1)).findById(API_ID);
+        verify(eventManager, times(1)).publishEvent(ApiEvent.START_DYNAMIC_PROPERTY_V4, api);
+    }
+
+    @Test(expected = ApiNotFoundException.class)
+    public void shouldThrowApiNotFoundException() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+
+        apiStateService.startV4DynamicProperties(API_ID);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldThrowTechnicalManagementExceptionOnTechnicalException() throws Exception {
+        when(apiRepository.findById(API_ID)).thenThrow(new TechnicalException("db error"));
+
+        apiStateService.startV4DynamicProperties(API_ID);
+    }
+
+    @Test
+    public void shouldStopV4DynamicPropertiesSuccessfully() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        boolean result = apiStateService.stopV4DynamicProperties(API_ID);
+
+        assertThat(result).isTrue();
+        verify(apiRepository, times(1)).findById(API_ID);
+        verify(eventManager, times(1)).publishEvent(ApiEvent.STOP_DYNAMIC_PROPERTY_V4, api);
+    }
+
+    @Test(expected = ApiNotFoundException.class)
+    public void shouldThrowApiNotFoundExceptionWhenApiDoesNotExist() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+
+        apiStateService.stopV4DynamicProperties(API_ID);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldThrowTechnicalManagementExceptionOnRepositoryFailure() throws Exception {
+        when(apiRepository.findById(API_ID)).thenThrow(new TechnicalException("db failure"));
+
+        apiStateService.stopV4DynamicProperties(API_ID);
+    }
+
+    @Test
+    public void should_start_v2_dynamic_properties_successfully() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        boolean result = apiStateService.startV2DynamicProperties(API_ID);
+
+        assertThat(result).isTrue();
+        verify(apiRepository, times(1)).findById(API_ID);
+        verify(eventManager, times(1)).publishEvent(ApiEvent.START_DYNAMIC_PROPERTY_V2, api);
+    }
+
+    @Test(expected = ApiNotFoundException.class)
+    public void should_throw_ApiNotFoundException_when_api_not_found() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+
+        apiStateService.startV2DynamicProperties(API_ID);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void should_throw_TechnicalManagementException_on_repository_failure() throws Exception {
+        when(apiRepository.findById(API_ID)).thenThrow(new TechnicalException("db error"));
+
+        apiStateService.startV2DynamicProperties(API_ID);
+    }
+
+    @Test
+    public void should_stop_v2_dynamic_properties_successfully() throws Exception {
+        // Arrange
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        // Act
+        boolean result = apiStateService.stopV2DynamicProperties(API_ID);
+
+        // Assert
+        assertThat(result).isTrue();
+        verify(apiRepository, times(1)).findById(API_ID);
+        verify(eventManager, times(1)).publishEvent(ApiEvent.STOP_DYNAMIC_PROPERTY_V2, api);
+    }
+
+    @Test(expected = ApiNotFoundException.class)
+    public void should_throw_ApiNotFoundException_when_api_not_found_v2() throws Exception {
+        // Arrange
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+
+        // Act
+        apiStateService.stopV2DynamicProperties(API_ID);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void should_throw_TechnicalManagementException_on_repository_failure_v2() throws Exception {
+        // Arrange
+        when(apiRepository.findById(API_ID)).thenThrow(new TechnicalException("db error"));
+
+        // Act
+        apiStateService.stopV2DynamicProperties(API_ID);
     }
 }

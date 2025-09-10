@@ -27,6 +27,8 @@ import lombok.Data;
 @Data
 public class SharedPolicyGroupCRD {
 
+    private String hrid;
+
     @NotNull
     @NotEmpty
     private String crossId;

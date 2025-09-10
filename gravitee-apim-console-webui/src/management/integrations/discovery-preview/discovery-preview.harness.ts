@@ -17,6 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
 export class DiscoveryPreviewHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-discovery-preview';
@@ -28,6 +29,8 @@ export class DiscoveryPreviewHarness extends ComponentHarness {
   private newItemsToggleLocator = this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid=new-items-toggle]' }));
 
   private updateItemsToggleLocator = this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid=update-items-toggle]' }));
+
+  private partialDiscoveryWarning = this.locatorForOptional(SpanHarness.with({ selector: '[data-testid=partial-discovery-warning]' }));
 
   public getNewItemsToggle = () => {
     return this.newItemsToggleLocator();
@@ -51,5 +54,9 @@ export class DiscoveryPreviewHarness extends ComponentHarness {
     return this.getTable()
       .then((table: MatTableHarness) => table.getRows())
       .then((rows: MatRowHarness[]) => rows.length);
+  };
+
+  public getPartialDiscoveryWarning = () => {
+    return this.partialDiscoveryWarning();
   };
 }

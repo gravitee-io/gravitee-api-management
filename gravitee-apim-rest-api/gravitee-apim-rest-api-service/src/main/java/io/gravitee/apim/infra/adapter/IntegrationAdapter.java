@@ -31,10 +31,21 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface IntegrationAdapter {
     IntegrationAdapter INSTANCE = Mappers.getMapper(IntegrationAdapter.class);
+    SpecificApiAdapter SPECIFIC_API_INTEGRATION_ADAPTER = Mappers.getMapper(SpecificApiAdapter.class);
+    SpecificA2aAdapter SPECIFIC_A2A_INTEGRATION_ADAPTER = Mappers.getMapper(SpecificA2aAdapter.class);
 
-    Integration toEntity(io.gravitee.repository.management.model.Integration integration);
+    default Integration toEntity(io.gravitee.repository.management.model.Integration integration) {
+        return integration.isA2aIntegration()
+            ? SPECIFIC_A2A_INTEGRATION_ADAPTER.toEntity(integration)
+            : SPECIFIC_API_INTEGRATION_ADAPTER.toEntity(integration);
+    }
 
-    io.gravitee.repository.management.model.Integration toRepository(Integration integration);
+    default io.gravitee.repository.management.model.Integration toRepository(Integration integration) {
+        return switch (integration) {
+            case Integration.ApiIntegration api -> SPECIFIC_API_INTEGRATION_ADAPTER.toRepository(api);
+            case Integration.A2aIntegration a2a -> SPECIFIC_A2A_INTEGRATION_ADAPTER.toRepository(a2a);
+        };
+    }
 
     IntegrationApi map(io.gravitee.integration.api.model.Api source, String integrationId);
 
@@ -42,9 +53,37 @@ public interface IntegrationAdapter {
     IntegrationApi.Plan map(io.gravitee.integration.api.model.Plan source);
 
     @ValueMapping(source = "API_KEY", target = "API_KEY")
-    @ValueMapping(source = "JWT", target = MappingConstants.NULL)
+    @ValueMapping(source = "JWT", target = "JWT")
     @ValueMapping(source = "OAUTH2", target = "OAUTH2")
     IntegrationApi.PlanType map(PlanSecurityType source);
 
     IntegrationApi.Page map(io.gravitee.integration.api.model.Page source);
+
+    @SuppressWarnings("unchecked") //the type is safe, but it’s mandatory due to type erasure
+    default <T extends Integration> SpecificAdapter<T> specific(T integration) {
+        return (SpecificAdapter<T>) switch (integration) {
+            case Integration.ApiIntegration ignored -> SPECIFIC_API_INTEGRATION_ADAPTER;
+            case Integration.A2aIntegration ignored -> SPECIFIC_A2A_INTEGRATION_ADAPTER;
+        };
+    }
+
+    interface SpecificAdapter<T extends Integration> {
+        T toEntity(io.gravitee.repository.management.model.Integration integration);
+        io.gravitee.repository.management.model.Integration toRepository(T integration);
+    }
+
+    @Mapper
+    interface SpecificApiAdapter extends SpecificAdapter<Integration.ApiIntegration> {
+        Integration.ApiIntegration toEntity(io.gravitee.repository.management.model.Integration integration);
+
+        io.gravitee.repository.management.model.Integration toRepository(Integration.ApiIntegration integration);
+    }
+
+    @Mapper
+    interface SpecificA2aAdapter extends SpecificAdapter<Integration.A2aIntegration> {
+        Integration.A2aIntegration toEntity(io.gravitee.repository.management.model.Integration integration);
+
+        @Mapping(target = "provider", constant = "A2A")
+        io.gravitee.repository.management.model.Integration toRepository(Integration.A2aIntegration integration);
+    }
 }

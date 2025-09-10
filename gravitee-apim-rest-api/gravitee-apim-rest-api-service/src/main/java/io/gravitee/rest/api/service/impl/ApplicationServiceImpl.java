@@ -323,19 +323,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return searchIds(executionContext, applicationQuery, sortable);
     }
 
-    @Override
-    public List<ApplicationListItem> findByUserAndPermission(
-        ExecutionContext executionContext,
-        String username,
-        Sortable sortable,
-        RolePermission rolePermission,
-        RolePermissionAction... acl
-    ) {
-        LOGGER.debug("Find applications for user and permission {}, {}, {}", username, rolePermission, acl);
-        ApplicationQuery applicationQuery = buildApplicationQueryForUserAndPermission(executionContext, rolePermission, acl, username);
-        return search(executionContext, applicationQuery, sortable, null).getContent();
-    }
-
     @NotNull
     private ApplicationQuery buildApplicationQueryForUserAndPermission(
         ExecutionContext executionContext,
@@ -365,20 +352,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByUser(
-        final ExecutionContext executionContext,
-        String username,
-        Sortable sortable,
-        Pageable pageable
-    ) {
+    public Set<ApplicationListItem> findByUser(final ExecutionContext executionContext, String username, Sortable sortable) {
         LOGGER.debug("Find applications for user {}", username);
-
-        ApplicationQuery applicationQuery = new ApplicationQuery();
-        applicationQuery.setUser(username);
-        applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
-
-        Page<ApplicationListItem> applications = search(executionContext, applicationQuery, sortable, pageable);
-
+        ApplicationQuery applicationQuery = ApplicationQuery.builder().user(username).status(ApplicationStatus.ACTIVE.name()).build();
+        Page<ApplicationListItem> applications = search(executionContext, applicationQuery, sortable, null);
         return new LinkedHashSet<>(applications.getContent());
     }
 
@@ -449,9 +426,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         // Create application metadata
         Map<String, String> metadata = new HashMap<>();
-        final Set<Application> activeApplicationsForCurrentEnvironment = getActiveApplicationsForCurrentEnvironment(
-            executionContext.getEnvironmentId()
-        );
 
         // Create a simple "internal" application
         if (newApplicationEntity.getSettings().getApp() != null) {
@@ -465,9 +439,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             // If clientId is set, check for uniqueness
             String clientId = newApplicationEntity.getSettings().getApp().getClientId();
-
             if (clientId != null && !clientId.trim().isEmpty()) {
-                checkClientIdIsUniqueForEnv(activeApplicationsForCurrentEnvironment, clientId);
+                checkClientIdIsUniqueForEnv(clientId, executionContext.getEnvironmentId());
             }
         } else {
             // Check that client registration is enabled
@@ -494,7 +467,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
         }
 
-        validateAndEncodeClientCertificate(newApplicationEntity.getSettings(), activeApplicationsForCurrentEnvironment);
+        validateAndEncodeClientCertificate(newApplicationEntity.getSettings(), executionContext.getEnvironmentId());
 
         if (newApplicationEntity.getGroups() != null && !newApplicationEntity.getGroups().isEmpty()) {
             //throw a NotFoundException if the group doesn't exist
@@ -540,10 +513,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return activeApplicationsForCurrentEnvironment;
     }
 
-    private void validateAndEncodeClientCertificate(
-        ApplicationSettings applicationSettings,
-        Set<Application> activeApplicationsForCurrentEnvironment
-    ) {
+    private void validateAndEncodeClientCertificate(ApplicationSettings applicationSettings, String environmentId) {
         if (applicationSettings.getTls() != null && !StringUtils.isBlank(applicationSettings.getTls().getClientCertificate())) {
             // validate certificate
             final Certificate[] certificates;
@@ -575,16 +545,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     Base64.getEncoder().encodeToString(applicationSettings.getTls().getClientCertificate().trim().getBytes())
                 );
 
-            // validate certificate is unique
-            final boolean appExistForCertificate = activeApplicationsForCurrentEnvironment
-                .stream()
-                .anyMatch(application ->
-                    applicationSettings
-                        .getTls()
-                        .getClientCertificate()
-                        .equals(application.getMetadata().get(Application.METADATA_CLIENT_CERTIFICATE))
-                );
-            if (appExistForCertificate) {
+            if (
+                applicationRepository.existsMetadataEntryForEnv(
+                    METADATA_CLIENT_CERTIFICATE,
+                    applicationSettings.getTls().getClientCertificate(),
+                    environmentId
+                )
+            ) {
                 throw new ApplicationCertificateAlreadyUsedException();
             }
         }
@@ -804,6 +771,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             Application application = applicationConverter.toApplication(updateApplicationEntity);
             application.setId(applicationId);
+            application.setHrid(applicationToUpdate.getHrid());
             application.setEnvironmentId(applicationToUpdate.getEnvironmentId());
             application.setStatus(ApplicationStatus.ACTIVE);
             application.setType(applicationToUpdate.getType());
@@ -1064,7 +1032,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             if (application.getMetadata() != null && application.getMetadata().containsKey(METADATA_CLIENT_ID)) {
-                checkClientIdIsUniqueForEnv(application.getEnvironmentId(), application.getMetadata().get(METADATA_CLIENT_ID));
+                checkClientIdIsUniqueForEnv(application.getMetadata().get(METADATA_CLIENT_ID), application.getEnvironmentId());
             }
 
             application.setStatus(ApplicationStatus.ACTIVE);
@@ -1361,6 +1329,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         ApplicationEntity applicationEntity = new ApplicationEntity();
 
         applicationEntity.setId(application.getId());
+        applicationEntity.setHrid(application.getHrid());
         applicationEntity.setEnvironmentId(application.getEnvironmentId());
         applicationEntity.setName(application.getName());
         applicationEntity.setDescription(application.getDescription());
@@ -1611,23 +1580,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return appIds;
     }
 
-    private void checkClientIdIsUniqueForEnv(String environmentId, String clientId) {
-        try {
-            final Set<Application> activeApplications = applicationRepository.findAllByEnvironment(environmentId, ApplicationStatus.ACTIVE);
-            checkClientIdIsUniqueForEnv(activeApplications, clientId);
-        } catch (TechnicalException ex) {
-            throw new TechnicalManagementException(
-                "An error occurs while trying to fetch applications for environment [" + environmentId + "]",
-                ex
-            );
-        }
-    }
-
-    private void checkClientIdIsUniqueForEnv(Set<Application> applications, String clientId) {
-        final boolean alreadyExistingApp;
-        alreadyExistingApp =
-            applications.stream().anyMatch(app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get(METADATA_CLIENT_ID)));
-        if (alreadyExistingApp) {
+    private void checkClientIdIsUniqueForEnv(String clientId, String environmentId) {
+        if (applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, clientId, environmentId)) {
             throw new ClientIdAlreadyExistsException(clientId);
         }
     }

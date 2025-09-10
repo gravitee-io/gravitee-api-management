@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
 
-import { CreateIntegrationPayload, Integration } from '../integrations.model';
+import { A2A_PROVIDER, CreateIntegrationPayload, Integration } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { IntegrationProviderService } from '../integration-provider.service';
@@ -31,7 +31,7 @@ import { IntegrationProviderService } from '../integration-provider.service';
   styleUrls: ['./create-integration.component.scss'],
   standalone: false,
 })
-export class CreateIntegrationComponent {
+export class CreateIntegrationComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   public isLoading: boolean = false;
   public chooseProviderForm = this.formBuilder.group({
@@ -40,6 +40,7 @@ export class CreateIntegrationComponent {
   public addInformationForm = this.formBuilder.group({
     name: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(1)]],
     description: ['', Validators.maxLength(250)],
+    wellKnownUrls: new FormArray<FormGroup<{ url: FormControl<string> }>>([]),
   });
 
   constructor(
@@ -51,11 +52,28 @@ export class CreateIntegrationComponent {
     protected readonly integrationProviderService: IntegrationProviderService,
   ) {}
 
+  ngOnInit(): void {
+    this.chooseProviderForm.valueChanges.subscribe((e) => {
+      const wellKnownUrls = this.addInformationForm.get('wellKnownUrls');
+      if (e.provider === A2A_PROVIDER) {
+        wellKnownUrls.addValidators([Validators.required]);
+        wellKnownUrls.enable();
+      } else {
+        wellKnownUrls.removeValidators([Validators.required]);
+        wellKnownUrls.disable();
+      }
+    });
+  }
+
   public onSubmit(): void {
     const payload: CreateIntegrationPayload = {
       name: this.addInformationForm.controls.name.getRawValue(),
       description: this.addInformationForm.controls.description.getRawValue(),
       provider: this.chooseProviderForm.controls.provider.getRawValue(),
+      wellKnownUrls:
+        A2A_PROVIDER === this.chooseProviderForm.getRawValue().provider
+          ? this.addInformationForm.controls.wellKnownUrls.getRawValue()
+          : undefined,
     };
 
     this.isLoading = true;
@@ -74,5 +92,23 @@ export class CreateIntegrationComponent {
           return EMPTY;
         },
       });
+  }
+
+  public addWellKnownUrl(): void {
+    const wellKnownUrls = this.addInformationForm.get('wellKnownUrls') as FormArray<FormGroup<{ url: FormControl<string> }>>;
+    if (wellKnownUrls.enabled) {
+      wellKnownUrls.push(
+        this.formBuilder.group({
+          url: ['', [Validators.required, Validators.pattern(/(http|https)?:\/\/(\S+)/)]],
+        }),
+      );
+    }
+  }
+
+  public removeWellKnownUrl(idx: number): void {
+    const wellKnownUrls = this.addInformationForm.get('wellKnownUrls') as FormArray<FormGroup<{ url: FormControl<string> }>>;
+    if (wellKnownUrls?.enabled) {
+      wellKnownUrls.removeAt(idx);
+    }
   }
 }

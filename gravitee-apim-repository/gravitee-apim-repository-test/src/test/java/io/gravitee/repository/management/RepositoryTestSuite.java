@@ -45,6 +45,7 @@ import org.junit.runners.Suite;
         EntrypointRepositoryTest.class,
         EnvironmentRepositoryTest.class,
         EventRepositoryTest.class,
+        EventRepository_CleanEventsTest.class,
         FlowRepositoryTest.class,
         FlowV4RepositoryTest.class,
         GenericNotificationConfigRepositoryTest.class,
@@ -81,6 +82,7 @@ import org.junit.runners.Suite;
         TokenRepositoryTest.class,
         UserRepositoryTest.class,
         WorkflowRepositoryTest.class,
+        ClusterRepositoryTest.class,
     }
 )
 public class RepositoryTestSuite {}

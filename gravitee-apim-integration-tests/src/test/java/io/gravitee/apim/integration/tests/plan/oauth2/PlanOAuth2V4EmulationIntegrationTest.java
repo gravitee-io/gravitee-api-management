@@ -28,23 +28,19 @@ import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_OAUTH2_ID;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.createSubscription;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.getApiPath;
-import static io.gravitee.apim.integration.tests.plan.oauth2.MockOAuth2Resource.RESOURCE_ID;
 import static io.vertx.core.http.HttpMethod.GET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.resource.ResourceBuilder;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
@@ -53,7 +49,6 @@ import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.policy.oauth2.Oauth2Policy;
 import io.gravitee.policy.oauth2.configuration.OAuth2PolicyConfiguration;
 import io.vertx.rxjava3.core.http.HttpClient;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -117,7 +112,8 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
     protected void should_return_200_success_with_valid_oauth2_token_and_subscription_on_the_api(
         final String apiId,
         final boolean requireWiremock,
-        final HttpClient client
+        final HttpClient client,
+        GatewayDynamicConfig.HttpConfig httpConfig
     ) throws Exception {
         whenSearchingSubscription(apiId, OAUTH2_CLIENT_ID, PLAN_OAUTH2_ID)
             .thenReturn(Optional.of(createSubscription(apiId, PLAN_OAUTH2_ID, false)));
@@ -155,7 +151,8 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
         final String apiId,
         final String headerName,
         final String headerValue,
-        final HttpClient client
+        final HttpClient client,
+        GatewayDynamicConfig.HttpConfig httpConfig
     ) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
 
@@ -187,7 +184,8 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
     protected void should_return_401_unauthorized_with_valid_oauth2_token_but_no_subscription_on_the_api(
         final String apiId,
         final boolean requireWiremock,
-        final HttpClient client
+        final HttpClient client,
+        GatewayDynamicConfig.HttpConfig httpConfig
     ) throws Exception {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("data")));

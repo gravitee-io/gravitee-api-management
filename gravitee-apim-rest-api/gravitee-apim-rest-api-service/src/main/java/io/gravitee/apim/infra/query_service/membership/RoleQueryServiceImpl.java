@@ -24,13 +24,16 @@ import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.service.common.ReferenceContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class RoleQueryServiceImpl implements RoleQueryService {
 
@@ -53,6 +56,25 @@ public class RoleQueryServiceImpl implements RoleQueryService {
                 .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find api role", e);
+        }
+    }
+
+    @Override
+    public Optional<Role> findByScopeAndName(Role.Scope scope, String name, String organizationId) {
+        try {
+            log.debug("Find Roles by scope and name");
+
+            return roleRepository
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                    RoleScope.valueOf(scope.name()),
+                    name,
+                    organizationId,
+                    RoleReferenceType.ORGANIZATION
+                )
+                .map(RoleAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find roles by scope", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find roles by scope", ex);
         }
     }
 
@@ -85,6 +107,22 @@ public class RoleQueryServiceImpl implements RoleQueryService {
                 .map(RoleAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find integration role", e);
+        }
+    }
+
+    @Override
+    public Optional<Role> findByScopeAndNameAndOrganizationId(Role.Scope scope, String name, String organizationId) {
+        try {
+            return roleRepository
+                .findByScopeAndNameAndReferenceIdAndReferenceType(
+                    RoleScope.valueOf(scope.name()),
+                    name,
+                    organizationId,
+                    RoleReferenceType.ORGANIZATION
+                )
+                .map(RoleAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find " + scope.name() + " role", e);
         }
     }
 

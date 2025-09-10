@@ -1,0 +1,26 @@
+{
+  "hrid": "spg-foo",
+  "name": "SPG Foo",
+  "description": "A simple shared policy group",
+  "apiType": "PROXY",
+  "phase": "REQUEST",
+  "steps": [
+    {
+      "name": "rate-limit",
+      "description": "Shared rate limiting policy",
+      "enabled": true,
+      "policy": "rate-limit",
+      "configuration": {
+        "async": false,
+        "addHeaders": true,
+        "rate": {
+          "useKeyOnly": false,
+          "periodTime": 1,
+          "limit": 10,
+          "periodTimeUnit": "MINUTES",
+          "key": ""
+        }
+      }
+    }
+  ]
+}

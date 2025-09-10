@@ -246,6 +246,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             Plan newPlan = new Plan();
             //copy immutable values
             newPlan.setId(oldPlan.getId());
+            newPlan.setHrid(oldPlan.getHrid());
             newPlan.setSecurity(oldPlan.getSecurity());
             newPlan.setType(oldPlan.getType());
             newPlan.setStatus(oldPlan.getStatus());
@@ -621,8 +622,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             .forEachOrdered(plan -> {
                 try {
                     if (plan.getOrder() > planRemoved.getOrder()) {
-                        plan.setOrder(plan.getOrder() - 1);
-                        planRepository.update(plan);
+                        planRepository.updateOrder(plan.getId(), plan.getOrder() - 1);
                     }
                 } catch (final TechnicalException ex) {
                     logger.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);

@@ -39,7 +39,7 @@ class AnalyticsContextTest {
 
     @Test
     void should_not_be_enabled_if_analytics_is_null() {
-        AnalyticsContext analyticsContext = new AnalyticsContext(null, "100MB", null, TracingContext.noop());
+        AnalyticsContext analyticsContext = new AnalyticsContext(null, null, TracingContext.noop());
         assertThat(analyticsContext.isEnabled()).isFalse();
     }
 
@@ -47,7 +47,7 @@ class AnalyticsContextTest {
     void should_be_enabled_if_analytics_is_enabled() {
         Analytics analytics = new Analytics();
         analytics.setEnabled(true);
-        AnalyticsContext analyticsContext = new AnalyticsContext(analytics, "100MB", null, TracingContext.noop());
+        AnalyticsContext analyticsContext = new AnalyticsContext(analytics, null, TracingContext.noop());
         assertThat(analyticsContext.isEnabled()).isTrue();
     }
 }

@@ -29,6 +29,8 @@ import { IntegrationStatusComponent } from '../components/integration-status/int
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { MapProviderNamePipe } from '../pipes/map-provider-name.pipe';
+import { IsApiIntegration } from '../pipes/is-api-integration.pipe';
+import { IsA2aIntegration } from '../pipes/is-a2a-integration.pipe';
 
 @NgModule({
   declarations: [IntegrationOverviewComponent],
@@ -51,6 +53,8 @@ import { MapProviderNamePipe } from '../pipes/map-provider-name.pipe';
 
     IntegrationStatusComponent,
     MapProviderNamePipe,
+    IsApiIntegration,
+    IsA2aIntegration,
   ],
 })
 export class IntegrationOverviewModule {}

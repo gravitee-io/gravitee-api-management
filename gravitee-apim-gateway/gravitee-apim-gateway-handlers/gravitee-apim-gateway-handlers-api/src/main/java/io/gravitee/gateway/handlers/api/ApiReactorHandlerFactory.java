@@ -39,6 +39,7 @@ import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.ProxyEndpointResolver;
 import io.gravitee.gateway.core.invoker.InvokerFactory;
+import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
@@ -77,6 +78,7 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.DefaultV3ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
@@ -138,7 +140,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     private final OpenTelemetryConfiguration openTelemetryConfiguration;
     private final OpenTelemetryFactory openTelemetryFactory;
     private final List<InstrumenterTracerFactory> instrumenterTracerFactories;
+    private final DictionaryManager dictionaryManager;
     private ApplicationContext applicationContext;
+    private final LogGuardService logGuardService;
 
     public ApiReactorHandlerFactory(
         ApplicationContext applicationContext,
@@ -157,7 +161,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         HttpAcceptorFactory httpAcceptorFactory,
         OpenTelemetryConfiguration openTelemetryConfiguration,
         OpenTelemetryFactory openTelemetryFactory,
-        List<InstrumenterTracerFactory> instrumenterTracerFactories
+        List<InstrumenterTracerFactory> instrumenterTracerFactories,
+        DictionaryManager dictionaryManager,
+        LogGuardService logGuardService
     ) {
         this.applicationContext = applicationContext;
         this.configuration = configuration;
@@ -176,7 +182,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         this.openTelemetryConfiguration = openTelemetryConfiguration;
         this.openTelemetryFactory = openTelemetryFactory;
         this.instrumenterTracerFactories = instrumenterTracerFactories;
+        this.dictionaryManager = dictionaryManager;
         this.contentTemplateVariableProvider = new ContentTemplateVariableProvider();
+        this.logGuardService = logGuardService;
     }
 
     @Override
@@ -370,7 +378,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
             accessPointManager,
             eventManager,
             httpAcceptorFactory,
-            createTracingContext(api, "API_V2_EMULATED")
+            createTracingContext(api, "API_V2_EMULATED"),
+            logGuardService
         );
     }
 
@@ -416,6 +425,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                 .flatMap(factory -> factory.getTemplateVariableProviders().stream())
                 .toList()
         );
+        templateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(api.getEnvironmentId()));
         return templateVariableProviders;
     }
 

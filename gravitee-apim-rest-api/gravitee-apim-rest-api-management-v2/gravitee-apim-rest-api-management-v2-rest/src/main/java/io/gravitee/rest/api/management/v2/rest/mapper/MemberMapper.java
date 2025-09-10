@@ -16,8 +16,10 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.rest.api.management.v2.rest.model.AddMember;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.model.MemberEntity;
+import java.util.List;
 import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -28,9 +30,14 @@ public interface MemberMapper {
 
     Member map(MemberEntity memberEntity);
     MemberEntity map(Member member);
+    Member map(io.gravitee.apim.core.member.model.Member member);
 
     Set<Member> map(Set<MemberEntity> memberEntityCollection);
 
+    List<Member> map(List<MemberEntity> members);
+
     ApiMember toApiMember(Member member);
     Set<ApiMember> toApiMembers(Set<Member> members);
+
+    io.gravitee.apim.core.membership.model.AddMember map(AddMember addMember);
 }

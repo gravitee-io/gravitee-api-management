@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { catchError, switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, of, Subject } from 'rxjs';
 import { UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
 
+import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4/agentToAgent';
 import { ApiType, ConnectorVM, mapAndFilterBySupportedQos, Qos } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
@@ -56,6 +57,7 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
     private readonly licenseService: GioLicenseService,
     private readonly iconService: IconService,
     private readonly matDialog: MatDialog,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -66,6 +68,8 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((endpointPlugins) => {
         this.endpoints = mapAndFilterBySupportedQos(endpointPlugins, this.requiredQos, this.iconService);
+        this.endpoints = this.endpoints.filter((endpoint) => endpoint.id !== AGENT_TO_AGENT.id);
+        this.cdr.detectChanges();
       });
   }
 

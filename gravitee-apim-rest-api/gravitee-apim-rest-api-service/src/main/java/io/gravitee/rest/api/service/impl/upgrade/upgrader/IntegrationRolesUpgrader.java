@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.RO
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_INTEGRATION_USER;
 
 import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -43,21 +44,17 @@ public class IntegrationRolesUpgrader implements Upgrader {
     }
 
     @Override
-    public boolean upgrade() {
-        try {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    initializeIntegrationRoles(executionContext);
-                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-                });
-        } catch (Exception e) {
-            log.error("Error applying upgrader", e);
-            return false;
-        }
-
-        return true;
+    public boolean upgrade() throws UpgraderException {
+        return this.wrapException(() -> {
+                organizationRepository
+                    .findAll()
+                    .forEach(organization -> {
+                        ExecutionContext executionContext = new ExecutionContext(organization);
+                        initializeIntegrationRoles(executionContext);
+                        roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+                    });
+                return true;
+            });
     }
 
     private void initializeIntegrationRoles(ExecutionContext executionContext) {

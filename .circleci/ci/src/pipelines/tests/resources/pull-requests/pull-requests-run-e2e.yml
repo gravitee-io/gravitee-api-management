@@ -45,9 +45,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v11-<< parameters.jobName >>-master
+            - gravitee-api-management-v12-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v12-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v12-<< parameters.jobName >>-master
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:
@@ -60,7 +60,7 @@ commands:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
       - save_cache:
-          key: gravitee-api-management-v11-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v12-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always
@@ -117,6 +117,18 @@ commands:
           command: docker logout graviteeio.azurecr.io
     description: Logout from Azure Container Registry
 jobs:
+  job-danger-js:
+    docker:
+      - image: cimg/node:20.11.1
+    resource_class: small
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: DANGER_GITHUB_API_TOKEN
+      - run:
+          name: Run Danger JS
+          command: cd .circleci/danger && yarn run danger
   job-test-apim-charts:
     parameters:
       helmClientVersion:
@@ -173,18 +185,6 @@ jobs:
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-validate
-  job-danger-js:
-    docker:
-      - image: cimg/node:20.11.1
-    resource_class: small
-    steps:
-      - checkout
-      - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: DANGER_GITHUB_API_TOKEN
-      - run:
-          name: Run Danger JS
-          command: cd .circleci/danger && yarn run danger
   job-build:
     docker:
       - image: cimg/openjdk:21.0.5
@@ -206,7 +206,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2/repository/io/gravitee/apim
-          key: gravitee-api-management-v11-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: gravitee-api-management-v12-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build
@@ -228,7 +228,7 @@ jobs:
           jobName: job-test-definition
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v12-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run definition tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -T 2C
@@ -269,7 +269,7 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-sonarcloud-analysis-<< parameters.cache_type >>
+            - gravitee-api-management-v12-sonarcloud-analysis-<< parameters.cache_type >>
       - keeper/env-export:
           secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
           var-name: SONAR_TOKEN
@@ -281,7 +281,7 @@ jobs:
       - save_cache:
           paths:
             - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v11-sonarcloud-analysis-<< parameters.cache_type >>
+          key: gravitee-api-management-v12-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
   job-test-gateway:
     docker:
@@ -295,7 +295,7 @@ jobs:
           jobName: job-test-gateway
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v12-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run gateway tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -T 2C
@@ -326,7 +326,7 @@ jobs:
           jobName: job-test-rest-api
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v12-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run Rest API tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -T 2C
@@ -358,7 +358,7 @@ jobs:
           jobName: job-test-integration
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v12-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run tests
           command: |-
@@ -406,7 +406,7 @@ jobs:
           jobName: job-test-plugin
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v12-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run plugin tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -T 2C
@@ -438,7 +438,7 @@ jobs:
           jobName: job-test-repository
       - restore_cache:
           keys:
-            - gravitee-api-management-v11-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v12-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run repository tests
           command: mvn --fail-fast -s .gravitee.settings.xml verify --no-transfer-progress -Drepository-modules -Dskip.validation=true -T 2C
@@ -545,6 +545,7 @@ jobs:
           root: .
           paths:
             - gravitee-apim-console-webui/storybook-static
+            - gravitee-apim-console-webui/dist-lib
   job-console-webui-chromatic-deployment:
     docker:
       - image: cimg/node:20.11.1
@@ -597,7 +598,7 @@ jobs:
 
             gh pr edit --body "$CLEAN_BODY$PR_BODY_STORYBOOK_SECTION"
       - cmd-notify-on-failure
-  job-build-docker-image:
+  job-build-docker-webui-image:
     parameters:
       apim-project:
         type: string
@@ -676,6 +677,66 @@ jobs:
       - run:
           name: Check workflow jobs
           command: echo "Congratulations! If you can read this, everything is OK"
+  job-build-docker-backend-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context
+      - cmd-docker-login
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
+          var-name: AQUA_KEY
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/Secret
+          var-name: AQUA_SECRET
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/login
+          var-name: AQUA_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://LYg-wdlM5UDzSqFFH6Kyig/field/password
+          var-name: AQUA_PASSWORD
+      - keeper/env-export:
+          secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/ScannerToken
+          var-name: SCANNER_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - aquasec/install_billy
+      - aquasec/pull_aqua_scanner_image
+      - run:
+          name: Build docker image for << parameters.apim-project >>-alpine
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-run-e2e-latest \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - run:
+          name: Build docker image for << parameters.apim-project >>-debian
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-run-e2e-latest-debian \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project >>
+      - cmd-docker-logout
   job-e2e-generate-sdk:
     docker:
       - image: cimg/openjdk:21.0.5-node
@@ -840,7 +901,6 @@ workflows:
       - aquasec/fs_scan:
           context:
             - cicd-orchestrator
-          debug: true
           pre-steps:
             - keeper/env-export:
                 secret-url: keeper://QeHHkvALPob4pgs1hMd9Gw/custom_field/API Key
@@ -851,6 +911,10 @@ workflows:
             - keeper/env-export:
                 secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
                 var-name: GITHUB_TOKEN
+      - job-danger-js:
+          name: Run Danger JS
+          context:
+            - cicd-orchestrator
       - job-test-apim-charts:
           name: Helm Chart - Lint & Test
           context:
@@ -865,12 +929,6 @@ workflows:
             - cicd-orchestrator
           requires:
             - Setup
-      - job-danger-js:
-          name: Run Danger JS
-          context:
-            - cicd-orchestrator
-          requires:
-            - Validate backend
       - job-build:
           name: Build backend
           context:
@@ -963,7 +1021,7 @@ workflows:
           name: Build APIM Console
           context:
             - cicd-orchestrator
-      - job-build-docker-image:
+      - job-build-docker-webui-image:
           context:
             - cicd-orchestrator
           name: Build APIM Console docker image
@@ -1005,7 +1063,7 @@ workflows:
           name: Build APIM Portal
           context:
             - cicd-orchestrator
-      - job-build-docker-image:
+      - job-build-docker-webui-image:
           context:
             - cicd-orchestrator
           name: Build APIM Portal docker image
@@ -1037,6 +1095,7 @@ workflows:
             - Test definition
             - Test gateway
             - Test rest-api
+            - Integration tests
             - Test plugins
             - Test repository
             - Lint & test APIM Console
@@ -1046,7 +1105,7 @@ workflows:
             - Lint & test APIM Portal Next
             - Build APIM Portal
             - Build APIM Portal docker image
-      - job-build-docker-image:
+      - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
           name: Build APIM Management API docker image
@@ -1055,7 +1114,7 @@ workflows:
           apim-project: gravitee-apim-rest-api
           docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
           docker-image-name: apim-management-api
-      - job-build-docker-image:
+      - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
           name: Build APIM Gateway docker image
@@ -1111,7 +1170,7 @@ workflows:
             - Build APIM Portal docker image
 orbs:
   keeper: gravitee-io/keeper@0.7.0
-  aquasec: gravitee-io/aquasec@1.0.4
+  aquasec: gravitee-io/aquasec@1.0.5
   helm: circleci/helm@3.0.0
   slack: circleci/slack@4.12.5
   gh: circleci/github-cli@1.0.5

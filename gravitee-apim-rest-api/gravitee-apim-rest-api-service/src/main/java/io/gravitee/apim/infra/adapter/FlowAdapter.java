@@ -30,7 +30,6 @@ import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -65,6 +64,10 @@ public interface FlowAdapter {
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     Flow toRepository(io.gravitee.definition.model.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
+    Flow toRepositoryUpdate(@MappingTarget Flow repository, io.gravitee.definition.model.flow.Flow source, int order);
 
     io.gravitee.definition.model.v4.flow.Flow toFlowV4(Flow source);
     List<io.gravitee.definition.model.v4.flow.Flow> toFlowV4(List<Flow> source);

@@ -17,8 +17,8 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 
 import io.gravitee.common.utils.SizeUtils;
 import io.gravitee.definition.model.ConditionSupplier;
-import io.gravitee.definition.model.MessageConditionSupplier;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
+import io.gravitee.gateway.report.guard.LogGuardService;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +38,7 @@ public class LoggingContext implements ConditionSupplier {
     private int maxSizeLogMessage = -1;
     private String excludedResponseTypes;
     private Pattern excludedContentTypesPattern;
+    private LogGuardService logGuardService;
 
     @Override
     public String getCondition() {
@@ -133,5 +134,19 @@ public class LoggingContext implements ConditionSupplier {
         }
 
         return contentType == null || !excludedContentTypesPattern.matcher(contentType).find();
+    }
+
+    /**
+     * Determines if body can be logged by asking the logGuardService
+     * if the guard is activated (if logGuardService not available, always
+     * return true)
+     * @return true if the body can be logged
+     */
+    public boolean isBodyLoggable() {
+        return logGuardService == null || !logGuardService.isLogGuardActive();
+    }
+
+    public void setLogGuardService(LogGuardService logGuardService) {
+        this.logGuardService = logGuardService;
     }
 }

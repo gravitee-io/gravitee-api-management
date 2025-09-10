@@ -21,7 +21,6 @@ import static io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -31,13 +30,12 @@ import static org.mockito.Mockito.when;
 
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
-import inmemory.MembershipQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
@@ -45,8 +43,8 @@ import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
-import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionContext;
@@ -56,6 +54,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.api.ApiCRDEntity;
 import io.gravitee.rest.api.model.api.ApiValidationResult;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -111,6 +110,9 @@ public class ApiValidationServiceImplTest {
     );
 
     private GroupQueryService groupQueryService = mock(GroupQueryService.class);
+
+    @Mock
+    private ValidatePortalNotificationDomainService validatePortalNotificationDomainService;
 
     @Spy
     private ValidateGroupsDomainService validateGroupsDomainService = new ValidateGroupsDomainService(groupQueryService);
@@ -184,6 +186,18 @@ public class ApiValidationServiceImplTest {
         userDetails.setSourceId(ACTOR_USER_NAME);
         when(authentication.getPrincipal()).thenReturn(userDetails);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+
+        when(validatePortalNotificationDomainService.validateAndSanitize(any()))
+            .thenReturn(
+                Validator.Result.ofValue(
+                    new ValidatePortalNotificationDomainService.Input(
+                        new PortalNotificationConfigEntity(),
+                        "2.0.0",
+                        Set.of(),
+                        new AuditInfo("mock", "mock", null)
+                    )
+                )
+            );
     }
 
     @Test

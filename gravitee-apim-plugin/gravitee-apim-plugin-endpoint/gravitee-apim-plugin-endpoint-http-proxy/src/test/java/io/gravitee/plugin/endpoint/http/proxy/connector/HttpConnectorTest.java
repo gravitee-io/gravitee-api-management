@@ -65,6 +65,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -75,6 +77,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpConnectorTest {
 
     protected static final String REQUEST_BODY = "Post body content";
@@ -163,7 +166,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecuteGetRequest() throws InterruptedException {
+    void should_execute_get_request() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
 
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
@@ -177,7 +180,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecuteGetRequestWithMergedQueryParameters() throws InterruptedException {
+    void should_execute_get_request_with_merged_query_parameters() throws InterruptedException {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("foo", "otherBar");
         parameters.add("other", "otherValue");
@@ -206,7 +209,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecuteGetRequestWhenEndpointAttributeOverridenWithAbsoluteUrl() throws InterruptedException {
+    void should_execute_get_request_when_endpoint_attribute_overriden_with_absolute_url() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port());
 
@@ -221,7 +224,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecuteGetRequestWhenEndpointAttributeOverridenWithAbsoluteUrlAndQueryParameters() throws InterruptedException {
+    void should_execute_get_request_when_endpoint_attribute_overriden_with_absolute_url_and_query_parameters() throws InterruptedException {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("foo", "otherBar");
         parameters.add("other", "otherValue");
@@ -248,7 +251,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecuteGetRequestWhenAttributeOverridenWithAbsoluteUrlAndPath() throws InterruptedException {
+    void should_execute_get_request_when_attribute_overriden_with_absolute_url_and_path() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn("http://127.0.0.1:" + wiremock.port() + "/team/subPath");
 
@@ -263,7 +266,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecuteGetRequestWhenAttributeOverridenWithAbsoluteUrlAndPathAndQueryParameters() throws InterruptedException {
+    void should_execute_get_request_when_attribute_overriden_with_absolute_url_and_path_and_query_parameters() throws InterruptedException {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("foo", "otherBar");
         parameters.add("other", "otherValue");
@@ -290,7 +293,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecuteGetRequestWhenAttributeOverridenWithRelativeUrlAndPathAndQueryParameters() throws InterruptedException {
+    void should_execute_get_request_when_attribute_overriden_with_relative_url_and_path_and_query_parameters() throws InterruptedException {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("foo", "otherBar");
         parameters.add("other", "otherValue");
@@ -317,7 +320,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecutePostRequest() throws InterruptedException {
+    void should_execute_post_request() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.POST);
         when(request.headers()).thenReturn(HttpHeaders.create().add(TRANSFER_ENCODING, "chunked"));
         when(request.chunks())
@@ -339,7 +342,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecutePostRequestChunked() throws InterruptedException {
+    void should_execute_post_request_chunked() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.POST);
         when(request.headers()).thenReturn(HttpHeaders.create().add(TRANSFER_ENCODING, "chunked"));
         when(request.chunks()).thenReturn(Flowable.just(Buffer.buffer(REQUEST_BODY)));
@@ -359,7 +362,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldPropagateRequestHeadersAndRemoveHopHeaders() throws InterruptedException {
+    void should_propagate_request_headers_and_remove_hop_headers() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
 
         requestHeaders.add("X-Custom", List.of("value1", "value2"));
@@ -383,7 +386,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldAddOrReplaceRequestHeadersWithConfiguration() throws InterruptedException {
+    void should_add_or_replace_request_headers_with_configuration() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         sharedConfiguration.setHeaders(List.of(new HttpHeader("X-To-Be-Overriden", "Override"), new HttpHeader("X-To-Be-Added", "Added")));
 
@@ -409,7 +412,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldOverrideHostWithRequestHostHeader() throws InterruptedException {
+    void should_override_host_with_request_host_header() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.originalHost()).thenReturn("localhost:8082");
 
@@ -435,7 +438,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldNotOverrideRequestHostHeaderWhenSameAsRequestOriginalHost() throws InterruptedException {
+    void should_not_override_request_host_header_when_same_as_request_original_host() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.originalHost()).thenReturn("api.gravitee.io");
         when(request.host()).thenReturn("api.gravitee.io");
@@ -460,7 +463,67 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldPropagateRequestVertxHttpHeaderWithoutTemporaryCopy() throws InterruptedException {
+    void should_override_host_header_with_PropagateClientHost_option_and_originalHost_equal_to_host() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.originalHost()).thenReturn("api.gravitee.io");
+        when(request.host()).thenReturn("api.gravitee.io");
+
+        sharedConfiguration.getHttpOptions().setPropagateClientHost(true);
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
+            .withHeader(HOST, new EqualToPattern("api.gravitee.io"));
+
+        wiremock.verify(1, requestPatternBuilder);
+    }
+
+    @Test
+    void should_override_host_header_with_PropagateClientHost_option_and_host_different_from_originalHost() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.originalHost()).thenReturn("api.gravitee.io");
+        when(request.host()).thenReturn("new.host.com");
+
+        sharedConfiguration.getHttpOptions().setPropagateClientHost(true);
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
+            .withHeader(HOST, new EqualToPattern("new.host.com"));
+
+        wiremock.verify(1, requestPatternBuilder);
+    }
+
+    @Test
+    void should_not_override_host_header_with_PropagateClientHost_option_and_null_host() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.originalHost()).thenReturn("api.gravitee.io");
+        when(request.host()).thenReturn(null);
+
+        sharedConfiguration.getHttpOptions().setPropagateClientHost(true);
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        RequestPatternBuilder requestPatternBuilder = getRequestedFor(urlPathEqualTo("/team"))
+            .withHeader(HOST, new EqualToPattern("localhost:" + wiremock.port()));
+
+        wiremock.verify(1, requestPatternBuilder);
+    }
+
+    @Test
+    void should_propagate_request_vertx_http_header_without_temporary_copy() throws InterruptedException {
         requestHeaders = new VertxHttpHeaders(new HeadersMultiMap());
         when(request.headers()).thenReturn(requestHeaders);
         when(request.method()).thenReturn(HttpMethod.GET);
@@ -486,7 +549,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldPropagateResponseHeaders() throws InterruptedException {
+    void should_propagate_response_headers() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
 
         wiremock.stubFor(
@@ -507,7 +570,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldPropagateResponseHeadersWhenVertxResponseHeader() throws InterruptedException {
+    void should_propagate_response_headers_when_vertx_response_header() throws InterruptedException {
         responseHeaders = new VertxHttpHeaders(new HeadersMultiMap());
 
         when(response.headers()).thenReturn(responseHeaders);
@@ -531,7 +594,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWithNullTarget() {
+    void should_throw_illegal_argument_exception_with_null_target() {
         configuration.setTarget(null);
 
         assertThrows(
@@ -541,7 +604,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecuteRequestWithQueryParameters() throws InterruptedException {
+    void should_execute_request_with_query_parameters() throws InterruptedException {
         final LinkedMultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("foo1", "bar1");
         parameters.add("foo2", "bar2");
@@ -564,7 +627,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldExecuteRequestWithQueryParametersMergedWithTargetQueryParams() throws InterruptedException {
+    void should_executeRequestWithQueryParametersMergedWithTargetQueryParams() throws InterruptedException {
         var parameters = new LinkedMultiValueMap<String, String>();
         parameters.add("foo1", "bar1");
         parameters.add("foo2", "bar2");
@@ -594,7 +657,7 @@ class HttpConnectorTest {
     }
 
     @Test
-    void shouldErrorWhenExceptionIsThrown() {
+    void should_error_when_exception_is_thrown() {
         configuration.setTarget("http://localhost:" + wiremock.port() + "/team");
 
         cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());

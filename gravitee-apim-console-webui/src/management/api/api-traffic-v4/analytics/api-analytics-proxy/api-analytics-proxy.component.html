@@ -15,26 +15,35 @@
     limitations under the License.
 
 -->
+<api-analytics-proxy-filter-bar
+  [activeFilters]="activeFilters()"
+  [plans]="apiPlans$ | async"
+  (filtersChange)="onFiltersChange($event)"
+  (refresh)="onRefreshFilters()"
+/>
 
-@if (apiAnalyticsVM$ | async; as apiAnalyticsVM) {
-  @if (apiAnalyticsVM.isLoading) {
-    <div class="loader">
-      <gio-loader></gio-loader>
-    </div>
-  } @else if (!apiAnalyticsVM.isAnalyticsEnabled) {
-    <gio-card-empty-state
-      icon="folder-plus"
-      title="Enable Analytics"
-      subtitle="Your metrics live here. Start monitoring your API by enabling the Analytics in the settings."
-    ></gio-card-empty-state>
-  } @else {
-    <api-analytics-filters-bar></api-analytics-filters-bar>
-    <h2>Entrypoint</h2>
-    <div class="gridContent">
-      <app-api-analytics-request-stats title="Request Stats" [requestsStats]="apiAnalyticsVM.requestStats" />
-      <api-analytics-response-status-ranges title="Response Status" [responseStatusRanges]="apiAnalyticsVM.responseStatusRanges" />
-      <api-analytics-response-status-overtime class="full-bleed" />
-      <api-analytics-response-time-over-time class="full-bleed" />
-    </div>
-  }
-}
+<div class="widgets">
+  <div class="top-row">
+    @for (widgetConfig$ of topRowTransformed$; track $index) {
+      @if (widgetConfig$ | async; as widgetConfig) {
+        <api-analytics-widget [config]="widgetConfig" />
+      }
+    }
+  </div>
+
+  <div class="left-column">
+    @for (widgetConfig$ of leftColumnTransformed$; track $index) {
+      @if (widgetConfig$ | async; as widgetConfig) {
+        <api-analytics-widget [config]="widgetConfig" />
+      }
+    }
+  </div>
+
+  <div class="right-column">
+    @for (widgetConfig$ of rightColumnTransformed$; track $index) {
+      @if (widgetConfig$ | async; as widgetConfig) {
+        <api-analytics-widget [config]="widgetConfig" />
+      }
+    }
+  </div>
+</div>

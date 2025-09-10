@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import static fixtures.core.model.ApiCRDFixtures.API_CROSS_ID;
 import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -28,9 +29,13 @@ import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainSer
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.model.notification.NotificationConfigType;
+import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +69,8 @@ class ValidateApiCRDDomainServiceTest {
 
     ValidatePlanDomainService planValidator = mock(ValidatePlanDomainService.class);
 
+    ValidatePortalNotificationDomainService portalNotificationValidator = mock(ValidatePortalNotificationDomainService.class);
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -72,19 +79,97 @@ class ValidateApiCRDDomainServiceTest {
         groupsValidator,
         resourceValidator,
         pagesValidator,
-        planValidator
+        planValidator,
+        portalNotificationValidator
     );
+
+    PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
 
     @BeforeEach
     void setUp() {
         reset(categoryIdsValidator);
         when(pathValidator.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        consoleNotificationConfiguration.setConfigType(NotificationConfigType.PORTAL);
+    }
+
+    @Test
+    void should_return_input_with_cross_id_error() {
+        var spec = ApiCRDFixtures.newBaseSpec().crossId(null).hrid(null).build();
+        var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).build(), spec);
+
+        cut
+            .validateAndSanitize(input)
+            .peek(
+                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(spec.toBuilder().build()),
+                errors -> {
+                    Assertions.assertThat(errors).isNotEmpty();
+                    Assertions
+                        .assertThat(errors.getFirst().getMessage())
+                        .isEqualTo("when no hrid is set in the payload a cross ID should be passed to identify the resource");
+                }
+            );
+    }
+
+    @Test
+    void should_return_input_with_id_cross_id_generated_from_hrid() {
+        String hrid = "test-hrid";
+        var spec = ApiCRDFixtures
+            .newBaseSpec()
+            .id(null)
+            .crossId(null)
+            .hrid(hrid)
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+        var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).organizationId(ORG_ID).build(), spec);
+
+        when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(
+            membersValidator.validateAndSanitize(
+                new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, any())
+            )
+        )
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, API_CREATE, true)))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(
+            portalNotificationValidator.validateAndSanitize(
+                new ValidatePortalNotificationDomainService.Input(consoleNotificationConfiguration, any(), null, AUDIT_INFO)
+            )
+        )
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        var idBuilder = IdBuilder.builder(input.auditInfo(), input.spec().getHrid());
+        var expected = spec.toBuilder().id(idBuilder.buildId()).hrid(hrid).crossId(idBuilder.buildCrossId()).build();
+
+        cut
+            .validateAndSanitize(input)
+            .peek(
+                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(expected),
+                errors -> Assertions.assertThat(errors).isEmpty()
+            );
     }
 
     @Test
     void should_return_input_with_categories_and_no_warnings() {
-        var spec = ApiCRDFixtures.BASE_SPEC.categories(Set.of("key-1", "id-2")).build();
-        var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).build(), spec);
+        var spec = ApiCRDFixtures
+            .newBaseSpec()
+            .categories(Set.of("key-1", "id-2"))
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+        var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).organizationId(ORG_ID).build(), spec);
 
         when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories())))
             .thenReturn(Validator.Result.ofValue(new ValidateCategoryIdsDomainService.Input(ENV_ID, Set.of("id-1", "id-2"))));
@@ -108,19 +193,27 @@ class ValidateApiCRDDomainServiceTest {
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        var expected = spec.toBuilder().categories(Set.of("id-1", "id-2")).build();
+        when(
+            portalNotificationValidator.validateAndSanitize(
+                new ValidatePortalNotificationDomainService.Input(consoleNotificationConfiguration, any(), null, AUDIT_INFO)
+            )
+        )
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         cut
             .validateAndSanitize(input)
             .peek(
-                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(expected),
+                sanitized -> {
+                    var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(API_CROSS_ID).categories(Set.of("id-1", "id-2")).build();
+                    Assertions.assertThat(sanitized.spec()).isEqualTo(expected);
+                },
                 errors -> Assertions.assertThat(errors).isEmpty()
             );
     }
 
     @Test
     void should_return_input_with_the_host_no_errors() {
-        var spec = ApiCRDFixtures.BASE_NATIVE_SPEC.build();
+        var spec = ApiCRDFixtures.newBaseNaticeSpec().build();
         var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).build(), spec);
 
         when(apiHostValidator.checkApiHosts(any(), any(), any(), any())).thenReturn(true);
@@ -147,7 +240,14 @@ class ValidateApiCRDDomainServiceTest {
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
             .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        var expected = spec.toBuilder().build();
+        when(
+            portalNotificationValidator.validateAndSanitize(
+                new ValidatePortalNotificationDomainService.Input(consoleNotificationConfiguration, any(), null, AUDIT_INFO)
+            )
+        )
+            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(spec.getCrossId()).build();
 
         cut
             .validateAndSanitize(input)

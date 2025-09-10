@@ -21,8 +21,11 @@ import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import {
   BuildBackendJob,
+  BuildDockerBackendImageJob,
+  BuildDockerWebUiImageJob,
   ChromaticConsoleJob,
   CommunityBuildBackendJob,
+  ConsoleWebuiBuildJob,
   DangerJsJob,
   DeployOnAzureJob,
   E2ECypressJob,
@@ -30,6 +33,7 @@ import {
   E2ELintBuildJob,
   E2ETestJob,
   PerfLintBuildJob,
+  PortalWebuiBuildJob,
   PublishJob,
   ReleaseHelmJob,
   SetupJob,
@@ -42,12 +46,9 @@ import {
   TestPluginJob,
   TestRepositoryJob,
   TestRestApiJob,
-  ValidateJob,
-  ConsoleWebuiBuildJob,
-  PortalWebuiBuildJob,
-  WebuiLintTestJob,
   TriggerSaasDockerImagesJob,
-  BuildDockerImageJob,
+  ValidateJob,
+  WebuiLintTestJob,
 } from '../jobs';
 import { orbs } from '../orbs';
 
@@ -83,10 +84,12 @@ export class PullRequestsWorkflow {
   ): workflow.WorkflowJob[] {
     dynamicConfig.importOrb(orbs.keeper).importOrb(orbs.aquasec);
 
+    const dangerJSJob = DangerJsJob.create(dynamicConfig);
+    dynamicConfig.addJob(dangerJSJob);
+
     const jobs: workflow.WorkflowJob[] = [
       new workflow.WorkflowJob(orbs.aquasec.jobs.fs_scan, {
         context: config.jobContext,
-        debug: true,
         preSteps: [
           new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
             'secret-url': config.secrets.aquaKey,
@@ -102,13 +105,22 @@ export class PullRequestsWorkflow {
           }),
         ],
       }),
+      new workflow.WorkflowJob(dangerJSJob, {
+        name: 'Run Danger JS',
+        context: config.jobContext,
+      }),
     ];
     const requires: string[] = [];
 
     if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
       const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(apimChartsTestJob);
-      jobs.push(new workflow.WorkflowJob(apimChartsTestJob, { name: 'Helm Chart - Lint & Test', context: config.jobContext }));
+      jobs.push(
+        new workflow.WorkflowJob(apimChartsTestJob, {
+          name: 'Helm Chart - Lint & Test',
+          context: config.jobContext,
+        }),
+      );
 
       requires.push('Helm Chart - Lint & Test');
     }
@@ -120,9 +132,6 @@ export class PullRequestsWorkflow {
       const validateBackendJob = ValidateJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(validateBackendJob);
 
-      const dangerJSJob = DangerJsJob.create(dynamicConfig);
-      dynamicConfig.addJob(dangerJSJob);
-
       const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(buildBackendJob);
 
@@ -132,11 +141,6 @@ export class PullRequestsWorkflow {
           name: 'Validate backend',
           context: config.jobContext,
           requires: ['Setup'],
-        }),
-        new workflow.WorkflowJob(dangerJSJob, {
-          name: 'Run Danger JS',
-          context: config.jobContext,
-          requires: ['Validate backend'],
         }),
         new workflow.WorkflowJob(buildBackendJob, {
           name: 'Build backend',
@@ -218,6 +222,8 @@ export class PullRequestsWorkflow {
       }
 
       if (!filterJobs || shouldTestIntegrationTests(environment.changedFiles)) {
+        // Force validation workflow in case only integration tests have change
+        // addValidationJob = true;
         const testIntegrationJob = TestIntegrationJob.create(dynamicConfig, environment);
         dynamicConfig.addJob(testIntegrationJob);
 
@@ -228,6 +234,7 @@ export class PullRequestsWorkflow {
             requires: ['Build backend'],
           }),
         );
+        requires.push('Integration tests');
       }
 
       if (!filterJobs || shouldTestPlugin(environment.changedFiles)) {
@@ -310,11 +317,11 @@ export class PullRequestsWorkflow {
       requires.push('Lint & test APIM Console', 'Build APIM Console');
 
       if (shouldBuildDockerImages) {
-        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
-        dynamicConfig.addJob(buildDockerImageJob);
+        const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
+        dynamicConfig.addJob(buildDockerWebUiImageJob);
 
         jobs.push(
-          new workflow.WorkflowJob(buildDockerImageJob, {
+          new workflow.WorkflowJob(buildDockerWebUiImageJob, {
             context: config.jobContext,
             name: `Build APIM Console docker image`,
             requires: ['Build APIM Console'],
@@ -376,11 +383,11 @@ export class PullRequestsWorkflow {
       requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal');
 
       if (shouldBuildDockerImages) {
-        const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
-        dynamicConfig.addJob(buildDockerImageJob);
+        const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, false);
+        dynamicConfig.addJob(buildDockerWebUiImageJob);
 
         jobs.push(
-          new workflow.WorkflowJob(buildDockerImageJob, {
+          new workflow.WorkflowJob(buildDockerWebUiImageJob, {
             context: config.jobContext,
             name: `Build APIM Portal docker image`,
             requires: ['Build APIM Portal'],
@@ -410,6 +417,12 @@ export class PullRequestsWorkflow {
       );
     }
 
+    // Force validation workflow in case only distribution pom.xml has changed
+    if (environment.changedFiles.some((file) => file.includes('gravitee-apim-distribution'))) {
+      addValidationJob = true;
+      requires.push('Build backend');
+    }
+
     // compute check-workflow job
     if (addValidationJob && requires.length > 0) {
       const checkWorkflowJob = new Job('job-validate-workflow-status', BaseExecutor.create('small'), [
@@ -426,8 +439,8 @@ export class PullRequestsWorkflow {
   }
 
   private static getE2EJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const buildDockerImageJob = BuildDockerImageJob.create(dynamicConfig, environment, false);
-    dynamicConfig.addJob(buildDockerImageJob);
+    const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(buildDockerBackendImageJob);
 
     const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eGenerateSdkJob);
@@ -445,7 +458,7 @@ export class PullRequestsWorkflow {
     dynamicConfig.addJob(perfLintBuildJob);
 
     return [
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Management API docker image`,
         requires: ['Build backend'],
@@ -453,7 +466,7 @@ export class PullRequestsWorkflow {
         'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
         'docker-image-name': config.components.managementApi.image,
       }),
-      new workflow.WorkflowJob(buildDockerImageJob, {
+      new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Gateway docker image`,
         requires: ['Build backend'],
@@ -526,7 +539,10 @@ export class PullRequestsWorkflow {
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
 
     return [
-      new workflow.WorkflowJob(communityBuildJob, { name: 'Check build as Community user', context: config.jobContext }),
+      new workflow.WorkflowJob(communityBuildJob, {
+        name: 'Check build as Community user',
+        context: config.jobContext,
+      }),
       // Trigger SaaS Docker images creation
       new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
         context: [...config.jobContext, 'keeper-orb-publishing'],
