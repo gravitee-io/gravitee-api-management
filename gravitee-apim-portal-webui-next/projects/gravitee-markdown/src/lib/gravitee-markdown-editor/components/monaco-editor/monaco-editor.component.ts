@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, effect, ElementRef, input, NgZone, OnDestroy, output, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, effect, ElementRef, input, NgZone, OnDestroy, output, signal } from '@angular/core';
 import { isEqual, uniqueId } from 'lodash';
 import * as Monaco from 'monaco-editor';
 import { editor } from 'monaco-editor';
@@ -36,6 +36,9 @@ export class MonacoEditorComponent implements OnDestroy {
   public standaloneCodeEditor?: editor.IStandaloneCodeEditor;
 
   private readonly isEditorSetup = signal<boolean>(false);
+  private readonly isUpdatingFromParent = signal<boolean>(false);
+  private readonly lastEmittedValue = signal<string>('');
+  private readonly shouldUpdateTextModel = computed(() => !this.isUpdatingFromParent() && this.value() !== this.lastEmittedValue());
   private textModel?: editor.ITextModel;
   private toDisposes: Monaco.IDisposable[] = [];
 
@@ -62,10 +65,17 @@ export class MonacoEditorComponent implements OnDestroy {
       const newValue = this.value();
       if (this.standaloneCodeEditor && this.textModel) {
         const currentValue = this.textModel.getValue();
-        if (currentValue !== newValue) {
+        if (currentValue !== newValue && this.shouldUpdateTextModel()) {
+          this.isUpdatingFromParent.set(true);
           this.textModel.setValue(newValue);
+
+          this.autoFormatValue();
+
+          // Reset the flag in a callback to allow Monaco to process the change
+          setTimeout(() => {
+            this.isUpdatingFromParent.set(false);
+          }, 0);
         }
-        this.autoFormatValue();
       }
     });
 
@@ -127,6 +137,7 @@ export class MonacoEditorComponent implements OnDestroy {
       this.ngZone.run(() => {
         if (!isEqual(this.value(), textModelValue)) {
           setTimeout(() => {
+            this.lastEmittedValue.set(textModelValue);
             this.valueChange.emit(textModelValue);
           }, 0);
         }
