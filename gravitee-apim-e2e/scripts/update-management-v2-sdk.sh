@@ -15,6 +15,7 @@
 
 rm -rf lib/management-v2-webclient-sdk
 mkdir -p .tmp
+sed s/'uniqueItems: true'/'uniqueItems: false'/g ../gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/resources/openapi/openapi-environments.yaml > .tmp/openapi-environments.yaml
 sed s/'uniqueItems: true'/'uniqueItems: false'/g ../gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/resources/openapi/openapi-apis.yaml > .tmp/openapi-apis.yaml
 
 yarn dlx @openapitools/openapi-generator-cli@2.13.1 generate \
