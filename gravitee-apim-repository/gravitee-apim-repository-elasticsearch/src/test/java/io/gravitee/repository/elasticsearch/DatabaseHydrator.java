@@ -94,12 +94,7 @@ public class DatabaseHydrator {
 
                 if (Type.EVENT_METRICS.getType().equals(type)) {
                     data.putIfAbsent("index", indexTemplate(type, this.timeProvider.getTodayWithDot()));
-                    Instant now = Instant.now();
-                    data.putIfAbsent("now", now.toEpochMilli());
-
-                    for (int i = 1; i <= 30; i++) {
-                        data.putIfAbsent("nowMinus" + i, now.minusSeconds(60L * i).toEpochMilli());
-                    }
+                    this.timeProvider.setTimestamps(data);
                 } else {
                     data =
                         Map.ofEntries(

@@ -31,6 +31,7 @@ public class Aggregation {
         MAX,
         VALUE,
         DELTA,
+        TREND,
     }
 
     private String field;

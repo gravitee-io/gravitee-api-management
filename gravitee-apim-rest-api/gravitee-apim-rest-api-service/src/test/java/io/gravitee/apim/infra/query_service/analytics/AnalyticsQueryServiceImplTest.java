@@ -650,22 +650,26 @@ class AnalyticsQueryServiceImplTest {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
                 Map.of(
                     "downstream-active-connections_latest",
-                    Map.of("downstream-active-connections", 2L),
+                    Map.of("downstream-active-connections", List.of(2L)),
                     "upstream-active-connections_latest",
-                    Map.of("upstream-active-connections", 2L)
+                    Map.of("upstream-active-connections", List.of(2L))
                 )
             );
+            List<Aggregation> aggregations = List.of(
+                new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE),
+                new Aggregation("upstream-active-connections", Aggregation.AggregationType.VALUE)
+            );
+            AnalyticsQueryService.HistogramQuery params = buildHistogramQuery(aggregations);
             when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
-            AnalyticsQueryService.EventAnalyticsParams params = getEventAnalyticsParams();
 
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
 
             assertThat(stats)
                 .hasValueSatisfying(analytics -> {
                     assertThat(analytics.values().containsKey("downstream-active-connections_latest")).isTrue();
-                    assertThat(analytics.values().get("downstream-active-connections_latest")).containsValue(2L);
+                    assertThat(analytics.values().get("downstream-active-connections_latest")).containsValue(List.of(2L));
                     assertThat(analytics.values().containsKey("upstream-active-connections_latest")).isTrue();
-                    assertThat(analytics.values().get("upstream-active-connections_latest")).containsValue(2L);
+                    assertThat(analytics.values().get("upstream-active-connections_latest")).containsValue(List.of(2L));
                 });
         }
 
@@ -674,34 +678,67 @@ class AnalyticsQueryServiceImplTest {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
                 Map.of(
                     "downstream-publish-messages-total_delta",
-                    Map.of("downstream-publish-messages-total", 82L),
+                    Map.of("downstream-publish-messages-total", List.of(82L)),
                     "upstream-publish-messages-total_delta",
-                    Map.of("upstream-publish-messages-total", 82L)
+                    Map.of("upstream-publish-messages-total", List.of(82L))
                 )
             );
+            List<Aggregation> aggregations = List.of(
+                new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.DELTA),
+                new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.DELTA)
+            );
+            AnalyticsQueryService.HistogramQuery query = buildHistogramQuery(aggregations);
             when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
-            AnalyticsQueryService.EventAnalyticsParams params = getEventAnalyticsParams();
 
-            Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
+            Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
 
             assertThat(stats)
                 .hasValueSatisfying(analytics -> {
                     assertThat(analytics.values().containsKey("downstream-publish-messages-total_delta")).isTrue();
-                    assertThat(analytics.values().get("downstream-publish-messages-total_delta")).containsValue(82L);
+                    assertThat(analytics.values().get("downstream-publish-messages-total_delta")).containsValue(List.of(82L));
                     assertThat(analytics.values().containsKey("upstream-publish-messages-total_delta")).isTrue();
-                    assertThat(analytics.values().get("upstream-publish-messages-total_delta")).containsValue(82L);
+                    assertThat(analytics.values().get("upstream-publish-messages-total_delta")).containsValue(List.of(82L));
                 });
         }
 
-        private AnalyticsQueryService.@NotNull EventAnalyticsParams getEventAnalyticsParams() {
-            Aggregation agg1 = new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE);
-            Aggregation agg2 = new Aggregation("upstream-active-connections", Aggregation.AggregationType.VALUE);
-            return new AnalyticsQueryService.EventAnalyticsParams(
-                API_ID,
+        @Test
+        void should_search_top_trends_for_a_given_native_api() {
+            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
+                Map.of(
+                    "downstream-publish-messages-total_delta",
+                    Map.of("downstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L)),
+                    "upstream-publish-messages-total_delta",
+                    Map.of("upstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L))
+                )
+            );
+            List<Aggregation> aggregations = List.of(
+                new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.TREND),
+                new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.TREND)
+            );
+            AnalyticsQueryService.HistogramQuery query = buildHistogramQuery(aggregations);
+            when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
+
+            Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
+
+            assertThat(stats)
+                .hasValueSatisfying(analytics -> {
+                    assertThat(analytics.values().containsKey("downstream-publish-messages-total_delta")).isTrue();
+                    assertThat(analytics.values().get("downstream-publish-messages-total_delta"))
+                        .containsValue(List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L));
+                    assertThat(analytics.values().containsKey("upstream-publish-messages-total_delta")).isTrue();
+                    assertThat(analytics.values().get("upstream-publish-messages-total_delta"))
+                        .containsValue(List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L));
+                });
+        }
+
+        private static @NotNull AnalyticsQueryService.HistogramQuery buildHistogramQuery(List<Aggregation> aggregations) {
+            return new AnalyticsQueryService.HistogramQuery(
+                new AnalyticsQueryService.SearchTermId(AnalyticsQueryService.SearchTerm.API, API_ID),
                 Instant.ofEpochMilli(FROM),
                 Instant.ofEpochMilli(TO),
-                Duration.ofMinutes(1),
-                List.of(agg2, agg1)
+                Duration.ofMillis(2 * 60 * 1000),
+                aggregations,
+                null
             );
         }
     }

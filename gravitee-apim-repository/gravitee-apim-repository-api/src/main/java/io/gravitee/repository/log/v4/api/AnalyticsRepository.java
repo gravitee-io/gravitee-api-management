@@ -16,7 +16,6 @@
 package io.gravitee.repository.log.v4.api;
 
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
-import io.gravitee.repository.analytics.query.events.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
@@ -82,5 +81,5 @@ public interface AnalyticsRepository {
 
     Optional<ApiMetricsDetail> findApiMetricsDetail(QueryContext queryContext, ApiMetricsDetailQuery query);
 
-    Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, EventAnalyticsQuery query);
+    Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, HistogramQuery query);
 }

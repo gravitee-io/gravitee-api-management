@@ -21,11 +21,15 @@ public enum AggregationType {
     MIN,
     MAX,
     /**
-     * Returns the latest value for a given metric at the point in time.
+     * Returns a single value as the latest value for a given metric at the point in time.
      */
     VALUE,
     /**
-     * Returns the difference between end and start values for a given metric over a time period.
+     * Returns a single value as the difference between end and start values for a given metric in a given time range.
      */
     DELTA,
+    /**
+     * Returns multiple buckets to hold the delta aggregations in a given time range considering one bucket per interval specified in milliseconds.
+     */
+    TREND,
 }
