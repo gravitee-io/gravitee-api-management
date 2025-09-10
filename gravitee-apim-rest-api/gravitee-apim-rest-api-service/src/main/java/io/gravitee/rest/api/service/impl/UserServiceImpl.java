@@ -152,6 +152,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1288,18 +1289,18 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
         if (results.hasResults()) {
-            Set<UserEntity> fetched = findByIds(executionContext, results.getDocuments());
+            List<String> uniqueDocumentIds = new ArrayList<>(new LinkedHashSet<>(results.getDocuments()));
+
+            Set<UserEntity> fetched = findByIds(executionContext, uniqueDocumentIds);
             Map<String, UserEntity> byId = fetched.stream().collect(Collectors.toMap(UserEntity::getId, u -> u));
 
-            List<UserEntity> users = new ArrayList<>(results.getDocuments().size());
+            List<UserEntity> users = new ArrayList<>(uniqueDocumentIds.size());
             Set<String> seen = new HashSet<>();
 
-            for (String id : results.getDocuments()) {
-                if (seen.add(id)) {
-                    UserEntity u = byId.get(id);
-                    if (u != null) {
-                        users.add(u);
-                    }
+            for (String id : uniqueDocumentIds) {
+                UserEntity u = byId.get(id);
+                if (u != null) {
+                    users.add(u);
                 }
             }
 
