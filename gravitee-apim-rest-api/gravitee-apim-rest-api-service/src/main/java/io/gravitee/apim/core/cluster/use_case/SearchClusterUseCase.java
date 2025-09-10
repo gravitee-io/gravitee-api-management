@@ -20,11 +20,14 @@ import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterSearchCriteria;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +38,7 @@ public class SearchClusterUseCase {
 
     private final ClusterQueryService clusterQueryService;
     private final MembershipQueryService membershipQueryService;
+    private final PermissionDomainService permissionDomainService;
 
     @Builder
     public record Input(String environmentId, String query, Pageable pageable, String sortBy, boolean isAdmin, String userId) {}
@@ -57,8 +61,27 @@ public class SearchClusterUseCase {
         var pageable = Optional.ofNullable(input.pageable).orElse(new PageableImpl(1, 10));
 
         return new SearchClusterUseCase.Output(
-            clusterQueryService.search(criteriaBuilder.build(), pageable, generateSortable(input.sortBy))
+            clusterQueryService
+                .search(criteriaBuilder.build(), pageable, generateSortable(input.sortBy))
+                .map(cluster -> {
+                    setClusterConfigurationIfPermitted(input, cluster);
+                    return cluster;
+                })
         );
+    }
+
+    private void setClusterConfigurationIfPermitted(Input input, Cluster cluster) {
+        if (
+            !permissionDomainService.hasPermission(
+                cluster.getOrganizationId(),
+                input.userId(),
+                RolePermission.CLUSTER_CONFIGURATION,
+                cluster.getId(),
+                RolePermissionAction.READ
+            )
+        ) {
+            cluster.setConfiguration(null);
+        }
     }
 
     private Optional<Sortable> generateSortable(String sortBy) {

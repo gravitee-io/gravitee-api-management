@@ -155,7 +155,7 @@ describe('ClustersListPageComponent', () => {
     expectListClusterRequest(httpTestingController, fakePagedResult([fakeCluster()]), '?page=1&perPage=25&q=Production');
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Cluster Name', 'kafka.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Cluster Name', 'kafka.example.com:9092', 'Hidden', 'Jan 1, 2023, 12:00:00 AM', ''],
     ]);
   });
 

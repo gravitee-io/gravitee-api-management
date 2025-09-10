@@ -38,7 +38,7 @@ describe('ClusterConfigurationComponent', () => {
   let permissions: string[];
 
   beforeEach(async () => {
-    permissions = ['cluster-definition-u'];
+    permissions = ['cluster-configuration-u'];
 
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ClusterConfigurationComponent],

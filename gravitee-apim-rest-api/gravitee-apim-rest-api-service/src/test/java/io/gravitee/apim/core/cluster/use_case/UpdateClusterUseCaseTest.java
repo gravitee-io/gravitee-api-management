@@ -16,6 +16,10 @@
 package io.gravitee.apim.core.cluster.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterCrudServiceInMemory;
@@ -27,7 +31,10 @@ import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
@@ -39,12 +46,13 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     private UpdateClusterUseCase updateClusterUseCase;
     private final ClusterCrudService clusterCrudService = new ClusterCrudServiceInMemory();
     private final ValidateClusterService validateClusterService = new ValidateClusterService();
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private Cluster existingCluster;
 
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        updateClusterUseCase = new UpdateClusterUseCase(clusterCrudService, validateClusterService, auditService);
+        updateClusterUseCase = new UpdateClusterUseCase(clusterCrudService, validateClusterService, auditService, permissionDomainService);
 
         existingCluster =
             Cluster
@@ -58,6 +66,18 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
                 .configuration(Map.of("bootstrapServers", "localhost:9092"))
                 .build();
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
+
+        lenient()
+            .when(
+                permissionDomainService.hasPermission(
+                    ORG_ID,
+                    USER_ID,
+                    RolePermission.CLUSTER_CONFIGURATION,
+                    GENERATED_UUID,
+                    RolePermissionAction.UPDATE
+                )
+            )
+            .thenReturn(true);
     }
 
     @Test
@@ -135,5 +155,27 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .build()
             );
+    }
+
+    @Test
+    void should_not_update_configuration_without_CLUSTER_CONFIGURATION_UPDATE_permission() {
+        // Given
+        when(
+            permissionDomainService.hasPermission(
+                ORG_ID,
+                USER_ID,
+                RolePermission.CLUSTER_CONFIGURATION,
+                GENERATED_UUID,
+                RolePermissionAction.UPDATE
+            )
+        )
+            .thenReturn(false);
+        var toUpdate = UpdateCluster.builder().configuration(Map.of("bootstrapServers", "noooop:9093")).build();
+
+        // When
+        var updatedCluster = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        // Then
+        assertThat(updatedCluster.cluster().getConfiguration()).isEqualTo(existingCluster.getConfiguration());
     }
 }
