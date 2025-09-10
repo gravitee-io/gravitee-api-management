@@ -516,6 +516,12 @@ data:
     # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
     # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
     reporters:
+      {{- if ((.Values.gateway).reporters).warnings }}
+      {{- if hasKey .Values.gateway.reporters.warnings "enabled" }}
+      warnings:
+        enabled: {{ .Values.gateway.reporters.warnings.enabled }}
+      {{- end }}
+      {{- end }}
       # Elasticsearch reporter
       elasticsearch:
         {{- if ((.Values.gateway).reporters).elasticsearch }}

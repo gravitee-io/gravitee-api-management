@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLogDiagnostic;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchLogsParam;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
 import java.util.List;
@@ -42,4 +44,6 @@ public interface ApiLogsMapper {
 
     @Mapping(source = "timestamp", target = "timestamp", qualifiedByName = "mapTimestamp")
     ApiLogResponse map(ConnectionLogDetail connectionLogDetail);
+
+    ApiLogDiagnostic map(ConnectionDiagnosticModel connectionDiagnosticModel);
 }

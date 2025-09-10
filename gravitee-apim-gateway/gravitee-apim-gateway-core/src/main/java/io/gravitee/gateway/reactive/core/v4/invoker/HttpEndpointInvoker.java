@@ -22,6 +22,7 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.URIUtils;
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.reactive.api.connector.endpoint.HttpEndpointConnector;
@@ -73,7 +74,18 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
         final HttpEndpointConnector endpointConnector = resolveConnector(ctx);
 
         if (endpointConnector == null) {
-            return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503).key(NO_ENDPOINT_FOUND_KEY));
+            final String endpointTarget = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
+
+            final StringBuilder errorMessage = new StringBuilder("Endpoint resolution failed - check endpoint configuration");
+            if (endpointTarget != null) {
+                errorMessage.append(" for target: ").append(endpointTarget);
+            }
+
+            return ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503)
+                    .key(NO_ENDPOINT_FOUND_KEY)
+                    .cause(new IllegalArgumentException(errorMessage.toString()))
+            );
         }
 
         if (endpointConnector instanceof EndpointConnector legacyEndpointConnector) {
