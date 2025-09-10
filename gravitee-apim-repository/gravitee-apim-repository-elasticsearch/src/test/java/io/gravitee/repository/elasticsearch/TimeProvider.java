@@ -19,6 +19,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.stream.IntStream;
 import lombok.Getter;
 
 @Getter
@@ -54,5 +56,11 @@ public class TimeProvider {
 
         todayWithDot = DATE_FORMATTER_WITH_DOT.format(now);
         yesterdayWithDot = DATE_FORMATTER_WITH_DOT.format(yesterday);
+    }
+
+    public void setTimestamps(Map<String, Object> data) {
+        data.put("now", now.toEpochMilli());
+        IntStream.rangeClosed(1, 10).forEach(i -> data.putIfAbsent("nowMinus" + i, now.minusSeconds(i * 60L).toEpochMilli()));
+        IntStream.rangeClosed(1, 10).forEach(i -> data.putIfAbsent("nowPlus" + i, now.plusSeconds(i * 60L).toEpochMilli()));
     }
 }

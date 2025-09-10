@@ -18,7 +18,6 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
-import io.gravitee.repository.analytics.query.events.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
@@ -260,12 +259,13 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
-    public Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, EventAnalyticsQuery query) {
+    public Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, HistogramQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
         var esQuery = TopHitsAggregationQueryAdapter.adapt(query);
+
         log.debug("Search native stats query: {}", esQuery);
 
-        return client.search(index, null, esQuery).map(TopHitsAggregationResponseAdapter::adapt).blockingGet();
+        return client.search(index, null, esQuery).map(response -> TopHitsAggregationResponseAdapter.adapt(response, query)).blockingGet();
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {

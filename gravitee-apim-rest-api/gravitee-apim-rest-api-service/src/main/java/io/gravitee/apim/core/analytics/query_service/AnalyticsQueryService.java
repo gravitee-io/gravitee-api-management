@@ -107,7 +107,7 @@ public interface AnalyticsQueryService {
 
     Optional<ApiMetricsDetail> findApiMetricsDetail(ExecutionContext executionContext, String apiId, String requestId);
 
-    Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, EventAnalyticsParams params);
+    Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, HistogramQuery query);
 
     record CountQuery(SearchTermId searchTermId, Instant from, Instant to, Optional<String> query) {}
 
@@ -174,6 +174,4 @@ public interface AnalyticsQueryService {
             this.versions = versions == null || versions.isEmpty() ? List.of(DefinitionVersion.V4) : versions;
         }
     }
-
-    record EventAnalyticsParams(String apiId, Instant from, Instant to, Duration interval, List<Aggregation> aggregations) {}
 }

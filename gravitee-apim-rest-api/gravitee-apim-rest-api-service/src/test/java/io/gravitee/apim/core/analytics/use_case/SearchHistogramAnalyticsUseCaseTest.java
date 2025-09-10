@@ -138,9 +138,9 @@ class SearchHistogramAnalyticsUseCaseTest {
     void shouldReturnTopValueHitsForANativeAPI() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        Map<String, Map<String, Long>> analytics = new HashMap<>();
-        analytics.put("downstream-active-connections_latest", Map.of("downstream-active-connections", 1L));
-        analytics.put("upstream-active-connections_latest", Map.of("upstream-active-connections", 1L));
+        Map<String, Map<String, List<Long>>> analytics = new HashMap<>();
+        analytics.put("downstream-active-connections_latest", Map.of("downstream-active-connections", List.of(1L)));
+        analytics.put("upstream-active-connections_latest", Map.of("upstream-active-connections", List.of(1L)));
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
         long to = INSTANT_NOW.toEpochMilli();
@@ -166,9 +166,9 @@ class SearchHistogramAnalyticsUseCaseTest {
     void shouldReturnTopDeltaHitsForANativeAPI() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        Map<String, Map<String, Long>> analytics = new HashMap<>();
-        analytics.put("downstream-message-bytes_delta", Map.of("downstream-message-bytes", 1432142112L));
-        analytics.put("upstream-message-bytes_delta", Map.of("upstream-message-bytes", 12321213L));
+        Map<String, Map<String, List<Long>>> analytics = new HashMap<>();
+        analytics.put("downstream-subscribe-message-bytes_delta", Map.of("downstream-subscribe-message-bytes", List.of(1432142112L)));
+        analytics.put("upstream-subscribe-message-bytes_delta", Map.of("upstream-subscribe-message-bytes", List.of(12321213L)));
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
         long to = INSTANT_NOW.toEpochMilli();
@@ -181,13 +181,41 @@ class SearchHistogramAnalyticsUseCaseTest {
         assertFalse(buckets.isEmpty());
         assertEquals(2, buckets.size());
         HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
-        assertEquals("downstream-message-bytes", bucket0.getField());
-        assertEquals("downstream-message-bytes_delta", bucket0.getName());
+        assertEquals("downstream-subscribe-message-bytes", bucket0.getField());
+        assertEquals("downstream-subscribe-message-bytes_delta", bucket0.getName());
         assertEquals(1432142112L, bucket0.getValues().getFirst());
         HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
-        assertEquals("upstream-message-bytes", bucket1.getField());
-        assertEquals("upstream-message-bytes_delta", bucket1.getName());
+        assertEquals("upstream-subscribe-message-bytes", bucket1.getField());
+        assertEquals("upstream-subscribe-message-bytes_delta", bucket1.getName());
         assertEquals(12321213L, bucket1.getValues().getFirst());
+    }
+
+    @Test
+    void shouldReturnTopTrendsForANativeAPI() {
+        apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
+        GraviteeContext.setCurrentEnvironment("environment-id");
+        Map<String, Map<String, List<Long>>> analytics = new HashMap<>();
+        analytics.put("downstream-subscribe-message-bytes_delta", Map.of("downstream-subscribe-message-bytes", List.of(100L, 193L, 121L)));
+        analytics.put("upstream-subscribe-message-bytes_delta", Map.of("upstream-subscribe-message-bytes", List.of(100L, 193L, 121L)));
+        analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
+        var input = new SearchHistogramAnalyticsUseCase.Input(MY_API, from, to, interval, List.of(), Optional.empty());
+
+        var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        List<HistogramAnalytics.Bucket> buckets = result.values();
+        assertFalse(buckets.isEmpty());
+        assertEquals(2, buckets.size());
+        HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
+        assertEquals("downstream-subscribe-message-bytes", bucket0.getField());
+        assertEquals("downstream-subscribe-message-bytes_delta", bucket0.getName());
+        assertEquals(List.of(100L, 193L, 121L), bucket0.getValues());
+        HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
+        assertEquals("upstream-subscribe-message-bytes", bucket1.getField());
+        assertEquals("upstream-subscribe-message-bytes_delta", bucket1.getName());
+        assertEquals(List.of(100L, 193L, 121L), bucket1.getValues());
     }
 
     @Test
