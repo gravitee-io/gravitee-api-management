@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TIMESTAMP;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
@@ -22,6 +24,9 @@ import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 public class TimeRangeAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final String GTE = "gte";
+    public static final String LTE = "lte";
+    public static final String RANGE = "range";
 
     /**
      * Use {@code gte} and {@code lte} for ranges; {@code from}, {@code to}, {@code include_lower}, and {@code include_upper} are deprecated.
@@ -34,18 +39,18 @@ public class TimeRangeAdapter {
         tsRange.put("to", timeRange.to().toEpochMilli());
         tsRange.put("include_lower", true);
         tsRange.put("include_upper", true);
-        rangeNode.set("@timestamp", tsRange);
-        return MAPPER.createObjectNode().set("range", rangeNode);
+        rangeNode.set(TIMESTAMP, tsRange);
+        return MAPPER.createObjectNode().set(RANGE, rangeNode);
     }
 
     public static ObjectNode createRangeFilterNode(TimeRange range) {
         ObjectNode rangeNode = MAPPER.createObjectNode();
         ObjectNode tsRange = MAPPER.createObjectNode();
-        tsRange.put("gte", range.from().toEpochMilli());
-        tsRange.put("lte", range.to().toEpochMilli());
-        rangeNode.set("@timestamp", tsRange);
+        tsRange.put(GTE, range.from().toEpochMilli());
+        tsRange.put(LTE, range.to().toEpochMilli());
+        rangeNode.set(TIMESTAMP, tsRange);
 
-        return MAPPER.createObjectNode().set("range", rangeNode);
+        return MAPPER.createObjectNode().set(RANGE, rangeNode);
     }
 
     public static ObjectNode createTimestampAggregationNode(io.gravitee.repository.log.v4.model.analytics.HistogramQuery query) {
@@ -54,7 +59,7 @@ public class TimeRangeAdapter {
             .interval()
             .orElseThrow(() -> new IllegalArgumentException("Interval is required for Timestamp aggregation"))
             .toMillis();
-        ObjectMapper MAPPER = new ObjectMapper();
+
         ObjectNode byDate = MAPPER.createObjectNode();
         ObjectNode dateHistogram = MAPPER.createObjectNode();
         dateHistogram.put("field", "@timestamp");
@@ -65,6 +70,7 @@ public class TimeRangeAdapter {
         extendedBounds.put("max", query.timeRange().to().toEpochMilli());
         dateHistogram.set("extended_bounds", extendedBounds);
         byDate.set("date_histogram", dateHistogram);
+
         return byDate;
     }
 }
