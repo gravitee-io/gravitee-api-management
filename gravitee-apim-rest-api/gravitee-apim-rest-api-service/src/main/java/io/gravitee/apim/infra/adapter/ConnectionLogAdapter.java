@@ -15,10 +15,12 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -40,4 +42,6 @@ public interface ConnectionLogAdapter {
 
     ConnectionLogQuery.Filter.ResponseTimeRange convert(Range range);
     List<ConnectionLogQuery.Filter.ResponseTimeRange> convert(List<Range> range);
+
+    ConnectionDiagnosticModel convert(ConnectionDiagnostic connectionDiagnostic);
 }

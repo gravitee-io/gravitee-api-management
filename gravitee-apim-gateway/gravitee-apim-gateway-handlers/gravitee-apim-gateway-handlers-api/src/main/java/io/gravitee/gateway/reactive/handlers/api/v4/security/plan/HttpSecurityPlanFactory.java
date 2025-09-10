@@ -19,6 +19,7 @@ import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.http.HttpSecurityPolicy;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.HttpSecurityPlan;
+import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlanContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.policy.SecurityPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import jakarta.annotation.Nonnull;
@@ -49,7 +50,7 @@ public class HttpSecurityPlanFactory {
         final HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(apiId, plan, policyManager, executionPhase);
 
         if (policy != null) {
-            return new HttpSecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+            return new HttpSecurityPlan(SecurityPlanContext.builder().fromV4(plan).build(), policy);
         }
 
         log.warn(

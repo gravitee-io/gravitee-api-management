@@ -16,6 +16,8 @@
 package io.gravitee.gateway.reactive.reactor.processor.reporter;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.connector.Connector;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
@@ -25,8 +27,10 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.v4.log.Log;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +64,9 @@ public class ReporterProcessor implements Processor {
                     setEntrypointId(ctx, metrics);
 
                     executeReportActions(metrics);
+
+                    // Translate error key and error message to Diagnostic failure if needed
+                    translateErrorToDiagnosticFailure(metrics);
 
                     ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
                     if (reactableApi != null) {
@@ -122,6 +129,29 @@ public class ReporterProcessor implements Processor {
     private void executeReportActions(Response response) {
         if (response != null && response.getOnReportActions() != null) {
             response.getOnReportActions().forEach(action -> action.accept(response));
+        }
+    }
+
+    /**
+     * Translates error key and error message to Diagnostic failure if failure is null and error information exists.
+     *
+     * @param metrics the metrics object to process
+     */
+    private void translateErrorToDiagnosticFailure(Metrics metrics) {
+        if (metrics != null && metrics.getFailure() == null) {
+            String errorKey = metrics.getErrorKey();
+            String errorMessage = metrics.getErrorMessage();
+
+            if (errorMessage != null && !errorMessage.isBlank()) {
+                Diagnostic failure = new Diagnostic(
+                    errorKey != null ? errorKey : "internal_error",
+                    errorMessage,
+                    "Unknown component",
+                    "Unknown component"
+                );
+
+                metrics.setFailure(failure);
+            }
         }
     }
 }

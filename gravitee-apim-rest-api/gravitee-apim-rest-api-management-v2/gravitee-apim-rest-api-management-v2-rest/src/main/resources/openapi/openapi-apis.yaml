@@ -6625,6 +6625,46 @@ components:
                   type: string
                   description: The endpoint URL.
                   example: "https://my-api-example.com"
+                message:
+                  type: string
+                  description: The error message.
+                  example: "The timeout period of 1000ms has been exceeded"
+                errorKey:
+                  type: string
+                  description: The error key.
+                  example: "TIMEOUT_ERROR"
+                errorComponentName:
+                  type: string
+                  description: The name of the component that generated the error.
+                  example: "security"
+                errorComponentType:
+                  type: string
+                  description: The type of the component that generated the error.
+                  example: "ENDPOINT"
+                warnings:
+                  type: array
+                  description: The warning diagnotics
+                  items:
+                    $ref: "#/components/schemas/ApiLogDiagnostic"
+
+        ApiLogDiagnostic:
+          type: object
+          properties:
+            componentType:
+              type: string
+              description: The type of the component from where the diagnostic has been emitted
+              example: POLICY
+            componentId:
+              type: string
+              description: The id of the component from where the diagnostic has been emitted
+              example: transform-header
+            key:
+              type: string
+              description: The diagnostic key.
+              example: TRANSFORM_HEADERS_FAILURE
+            message:
+              type: string
+              description: The diagnostic message.
         ApiMessageLog:
             type: object
             properties:
