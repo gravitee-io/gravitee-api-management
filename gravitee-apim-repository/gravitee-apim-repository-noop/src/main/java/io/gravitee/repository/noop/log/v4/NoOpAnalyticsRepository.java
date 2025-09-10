@@ -16,7 +16,6 @@
 package io.gravitee.repository.noop.log.v4;
 
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
-import io.gravitee.repository.analytics.query.events.EventAnalyticsQuery;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
@@ -132,7 +131,7 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
-    public Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, EventAnalyticsQuery query) {
+    public Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, HistogramQuery query) {
         return Optional.empty();
     }
 }
