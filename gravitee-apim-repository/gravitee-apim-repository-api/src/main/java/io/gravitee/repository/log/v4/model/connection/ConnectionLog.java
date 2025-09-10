@@ -16,6 +16,7 @@
 package io.gravitee.repository.log.v4.model.connection;
 
 import io.gravitee.common.http.HttpMethod;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -40,4 +41,9 @@ public class ConnectionLog {
     private long requestContentLength;
     private long responseContentLength;
     private String endpoint;
+    private String message;
+    private String errorKey;
+    private String errorComponentName;
+    private String errorComponentType;
+    private List<ConnectionDiagnostic> warnings;
 }

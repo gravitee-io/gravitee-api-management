@@ -18,6 +18,8 @@ package io.gravitee.gateway.reactive.core.condition;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.el.spel.function.xml.DocumentBuilderFactoryUtils;
+import io.gravitee.gateway.reactive.api.ComponentType;
+import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
@@ -47,7 +49,21 @@ public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> impl
             .eval(condition, Boolean.class)
             .filter(Boolean::booleanValue)
             .map(aBoolean -> elt)
-            .onErrorComplete(ExpressionEvaluationException.class::isInstance)
-            .doOnError(throwable -> log.warn("Error parsing condition {}", condition, throwable));
+            .onErrorComplete(throwable -> {
+                if (throwable instanceof ExpressionEvaluationException elException) {
+                    // Report the EL exception as a warning.
+                    log.warn("Error parsing condition {}", condition, throwable);
+                    ctx.warnWith(
+                        new ExecutionWarn("EXPRESSION_EVALUATION_ERROR")
+                            .message("Unable to execute EL condition " + condition)
+                            .cause(elException)
+                    );
+                    // And let the execution continues.
+                    //                    return true;
+                }
+
+                // Don't complete, propagate to interrupt the execution.
+                return false;
+            });
     }
 }
