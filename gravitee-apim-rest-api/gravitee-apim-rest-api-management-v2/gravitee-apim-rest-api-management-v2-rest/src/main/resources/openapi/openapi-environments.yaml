@@ -756,7 +756,7 @@ paths:
         operationId: getPortalHomepage
         responses:
           "200":
-            $ref: "#/components/responses/GetPortalHomepageResponse"
+            $ref: "#/components/responses/PortalPageResponse"
           default:
             $ref: "#/components/responses/Error"
 
@@ -2021,12 +2021,12 @@ components:
                     description: Gateway's ip.
                     example: 10.0.1.123
 
-        GetPortalHomepageResponse:
+        PortalPageResponse:
           description: List of portal pages for a given context
           content:
             application/json:
               schema:
-                title: "GetPortalHomepageResponse"
+                title: "PortalPageResponse"
                 properties:
                   id:
                     type: string
