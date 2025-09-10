@@ -16,29 +16,10 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import javax.annotation.Nonnull;
-import lombok.Getter;
 
-public class PortalPage {
-
-    @Nonnull
-    @Getter
-    private final PageId id;
-
-    @Nonnull
-    @Getter
-    private final GraviteeMarkdown pageContent;
-
-    PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
-        this.id = id;
-        this.pageContent = pageContent;
-    }
-
+public record PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
     public static PortalPage create(GraviteeMarkdown pageContent) {
         return new PortalPage(PageId.random(), pageContent);
-    }
-
-    public static PortalPage of(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
-        return new PortalPage(id, pageContent);
     }
 
     @Override
@@ -47,12 +28,5 @@ public class PortalPage {
         if (o == null || getClass() != o.getClass()) return false;
         PortalPage that = (PortalPage) o;
         return id.equals(that.id) && pageContent.equals(that.pageContent);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + pageContent.hashCode();
-        return result;
     }
 }

@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
@@ -96,11 +95,11 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
     }
 
     private void setupHomepage() {
-        PortalPage page = PortalPage.of(PageId.random(), new GraviteeMarkdown("Welcome!"));
+        PortalPage page = PortalPage.create(new GraviteeMarkdown("Welcome!"));
         PortalPageView view = new PortalPageView(PortalViewContext.HOMEPAGE, true);
         PortalPageWithViewDetails details = new PortalPageWithViewDetails(page, view);
         portalPageContextCrudService.initWith(
-            List.of(new PortalPageContext("x", page.getId().toString(), PortalPageContextType.HOMEPAGE, ENVIRONMENT, true))
+            List.of(new PortalPageContext("x", page.id().toString(), PortalPageContextType.HOMEPAGE, ENVIRONMENT, true))
         );
         portalPageQueryService.initWith(List.of(details));
     }
