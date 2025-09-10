@@ -15,11 +15,17 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, Signal, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { catchError } from 'rxjs/operators';
+import { EMPTY, Observable } from 'rxjs';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+import { PortalPagesService } from '../../services-ngx/portal-pages.service';
+import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import { PortalPageWithDetails } from '../../entities/portal/portal-page-with-details';
 
 @Component({
   selector: 'homepage',
@@ -28,16 +34,38 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
   styleUrl: './homepage.component.scss',
 })
 export class HomepageComponent {
-  contentControl = new FormControl('');
+  contentControl = new FormControl({
+    value: '',
+    disabled: true,
+  });
 
-  private readonly originalValue = 'Homepage content';
-  private readonly content = signal<string>(this.originalValue);
-  private readonly canUpdate = signal(inject(GioPermissionService).hasAnyMatching(['environment-documentation-u']));
+  private readonly snackbarService = inject(SnackBarService);
+  private readonly portalPagesService = inject(PortalPagesService);
+  private readonly gioPermissionService = inject(GioPermissionService);
+
+  private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
+  private readonly portalHomepage: Signal<PortalPageWithDetails> = toSignal(this.getPortalHomepage(), {
+    initialValue: { content: '' } as PortalPageWithDetails,
+  });
 
   constructor() {
     effect(() => {
-      this.contentControl.setValue(this.content());
-      !this.canUpdate() && this.contentControl.disable();
+      this.contentControl.setValue(this.portalHomepage().content);
     });
+
+    effect(() => {
+      if (this.canUpdate()) {
+        this.contentControl.enable();
+      }
+    });
+  }
+
+  private getPortalHomepage(): Observable<PortalPageWithDetails> {
+    return this.portalPagesService.getHomepage().pipe(
+      catchError(() => {
+        this.snackbarService.error('An error occurred while loading the homepage');
+        return EMPTY;
+      }),
+    );
   }
 }

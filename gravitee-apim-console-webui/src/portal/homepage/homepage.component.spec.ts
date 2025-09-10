@@ -19,17 +19,20 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { HomepageComponent } from './homepage.component';
 
-import { GioTestingModule } from '../../shared/testing';
+import { GioTestingModule, CONSTANTS_TESTING } from '../../shared/testing';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+import { fakePortalPageWithDetails } from '../../entities/portal/portal-page-with-details.fixture';
 
 describe('HomepageComponent', () => {
   let fixture: ComponentFixture<HomepageComponent>;
   let harnessLoader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
 
-  const init = async (canUpdate: boolean) => {
+  const init = async (canUpdate: boolean, portalPage = fakePortalPageWithDetails()) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, HomepageComponent],
       providers: [
@@ -45,15 +48,31 @@ describe('HomepageComponent', () => {
     ConfigureTestingGraviteeMarkdownEditor();
 
     fixture = TestBed.createComponent(HomepageComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
+
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/_homepage`,
+      })
+      .flush(portalPage);
   };
 
-  it('should load default homepage content', async () => {
-    await init(true);
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('should load homepage content from API', async () => {
+    const fakePortalPage = fakePortalPageWithDetails({
+      content: '# Welcome to Gravitee -- This is the homepage content from API.',
+    });
+
+    await init(true, fakePortalPage);
 
     const editorHarness = await harnessLoader.getHarness(GraviteeMarkdownEditorHarness);
-    expect(await editorHarness.getEditorValue()).toEqual('Homepage content');
+    expect(await editorHarness.getEditorValue()).toEqual(fakePortalPage.content);
   });
 
   it('should disable editor when user has no update permission', async () => {
