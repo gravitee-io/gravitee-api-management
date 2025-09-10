@@ -1295,7 +1295,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             Map<String, UserEntity> byId = fetched.stream().collect(Collectors.toMap(UserEntity::getId, u -> u));
 
             List<UserEntity> users = new ArrayList<>(uniqueDocumentIds.size());
-            Set<String> seen = new HashSet<>();
 
             for (String id : uniqueDocumentIds) {
                 UserEntity u = byId.get(id);
