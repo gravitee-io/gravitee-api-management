@@ -25,7 +25,11 @@ import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 
@@ -36,6 +40,7 @@ public class UpdateClusterUseCase {
     private final ClusterCrudService clusterCrudService;
     private final ValidateClusterService validateClusterService;
     private final AuditDomainService auditService;
+    private final PermissionDomainService permissionDomainService;
 
     public record Input(String clusterId, UpdateCluster updateCluster, AuditInfo auditInfo) {}
 
@@ -43,6 +48,18 @@ public class UpdateClusterUseCase {
 
     public Output execute(Input input) {
         Cluster clusterToUpdate = clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.auditInfo.environmentId());
+
+        if (
+            !permissionDomainService.hasPermission(
+                input.auditInfo.organizationId(),
+                input.auditInfo.actor().userId(),
+                RolePermission.CLUSTER_CONFIGURATION,
+                input.clusterId,
+                RolePermissionAction.UPDATE
+            )
+        ) {
+            input.updateCluster().setConfiguration(null);
+        }
 
         clusterToUpdate.update(input.updateCluster());
 

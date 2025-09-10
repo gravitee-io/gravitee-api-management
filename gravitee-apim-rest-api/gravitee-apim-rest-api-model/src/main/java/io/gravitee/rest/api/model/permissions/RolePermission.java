@@ -109,8 +109,10 @@ public enum RolePermission {
     INTEGRATION_DEFINITION(RoleScope.INTEGRATION, IntegrationPermission.DEFINITION),
     INTEGRATION_MEMBER(RoleScope.INTEGRATION, IntegrationPermission.MEMBER),
 
-    CLUSTER_MEMBER(RoleScope.CLUSTER, ClusterPermission.MEMBER),
-    CLUSTER_DEFINITION(RoleScope.CLUSTER, ClusterPermission.DEFINITION);
+    CLUSTER_ANALYTICS(RoleScope.CLUSTER, ClusterPermission.ANALYTICS),
+    CLUSTER_CONFIGURATION(RoleScope.CLUSTER, ClusterPermission.CONFIGURATION),
+    CLUSTER_DEFINITION(RoleScope.CLUSTER, ClusterPermission.DEFINITION),
+    CLUSTER_MEMBER(RoleScope.CLUSTER, ClusterPermission.MEMBER);
 
     final RoleScope scope;
     final Permission permission;

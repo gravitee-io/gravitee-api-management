@@ -86,7 +86,7 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
               displayName: 'General',
               routerLink: '',
               permissions: ['cluster-definition-r'],
-              tabs: [
+              tabs: this.filterMenuByPermission([
                 {
                   displayName: 'General',
                   routerLink: 'general',
@@ -95,14 +95,14 @@ export class ClusterNavigationComponent implements OnInit, OnDestroy {
                 {
                   displayName: 'Configuration',
                   routerLink: 'configuration',
-                  permissions: ['cluster-definition-r'],
+                  permissions: ['cluster-configuration-r'],
                 },
                 {
                   displayName: 'User Permissions',
                   routerLink: 'user-permissions',
-                  permissions: ['cluster-definition-r'],
+                  permissions: ['cluster-member-r'],
                 },
-              ],
+              ]),
             },
           ]);
 

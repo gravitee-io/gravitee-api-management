@@ -68,7 +68,7 @@ export class ClusterConfigurationComponent implements OnInit {
 
   public ngOnInit() {
     this.isLoadingData = true;
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['cluster-definition-u']);
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['cluster-configuration-u']);
     this.clusterService
       .get(this.activatedRoute.snapshot.params.clusterId)
       .pipe(
