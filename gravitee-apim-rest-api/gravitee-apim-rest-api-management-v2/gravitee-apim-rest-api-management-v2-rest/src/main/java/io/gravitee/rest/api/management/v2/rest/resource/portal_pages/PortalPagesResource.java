@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.portal_pages;
 
 import io.gravitee.apim.core.portal_page.use_case.GetHomepageUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalPagesMapper;
-import io.gravitee.rest.api.management.v2.rest.model.GetPortalHomepageResponse;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -41,7 +41,7 @@ public class PortalPagesResource extends AbstractResource {
     @Produces("application/json")
     @Path("/_homepage")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
-    public GetPortalHomepageResponse getPortalHomepage() {
+    public PortalPageResponse getPortalHomepage() {
         var input = new GetHomepageUseCase.Input(envId);
         var homepage = getHomepageUseCase.execute(input);
 

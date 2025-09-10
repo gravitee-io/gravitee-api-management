@@ -28,7 +28,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
-import io.gravitee.rest.api.management.v2.rest.model.GetPortalHomepageResponse;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -78,11 +78,11 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             Response response = target.path("/_homepage").request().get();
             assertThat(response)
                 .hasStatus(OK_200)
-                .asEntity(GetPortalHomepageResponse.class)
+                .asEntity(PortalPageResponse.class)
                 .satisfies(r -> {
                     assertThat(r.getContent()).isEqualTo("Welcome!");
-                    assertThat(r.getContext()).isEqualTo(GetPortalHomepageResponse.ContextEnum.HOMEPAGE);
-                    assertThat(r.getType()).isEqualTo(GetPortalHomepageResponse.TypeEnum.GRAVITEE_MARKDOWN);
+                    assertThat(r.getContext()).isEqualTo(PortalPageResponse.ContextEnum.HOMEPAGE);
+                    assertThat(r.getType()).isEqualTo(PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
                 });
         }
 
