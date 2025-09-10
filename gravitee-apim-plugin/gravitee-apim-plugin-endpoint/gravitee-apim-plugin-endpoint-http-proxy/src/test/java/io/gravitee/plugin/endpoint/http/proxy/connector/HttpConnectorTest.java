@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.HOST;
@@ -28,9 +29,15 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.TRANSFER_ENCODING;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -39,34 +46,45 @@ import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.netty.channel.ConnectTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.circuitbreaker.TimeoutException;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.core.impl.NoStackTraceTimeoutException;
 import io.vertx.rxjava3.core.Vertx;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -82,9 +100,11 @@ class HttpConnectorTest {
     protected static final String REQUEST_BODY_CHUNK2 = "body chunk ";
     protected static final String REQUEST_BODY_CHUNK3 = "content";
 
-    protected static final int REQUEST_BODY_LENGTH = REQUEST_BODY.getBytes().length;
     protected static final String BACKEND_RESPONSE_BODY = "response from backend";
     public static final int TIMEOUT_SECONDS = 60;
+    private static final String UNREACHABLE_ENDPOINT_URL = "http://10.20.30.40:1234/timeout";
+    private static final String REFUSED_CONNECTION_URL = "http://localhost:6555/refused";
+    private static final String ERROR_ENDPOINT = "/error";
     private static WireMockServer wiremock;
     private static Vertx vertx;
 
@@ -105,6 +125,9 @@ class HttpConnectorTest {
 
     @Mock
     private Metrics metrics;
+
+    @Mock
+    private Tracer tracer;
 
     private HttpHeaders requestHeaders;
     private HttpHeaders responseHeaders;
@@ -601,6 +624,106 @@ class HttpConnectorTest {
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
         obs.assertError(NullPointerException.class);
+    }
+
+    @Test
+    void shouldHandleTimeoutExceptions() throws InterruptedException {
+        lenient().when(request.method()).thenReturn(HttpMethod.GET);
+        // Configure an unreachable endpoint to cause timeout
+        configuration.setTarget(UNREACHABLE_ENDPOINT_URL);
+        sharedConfiguration.getHttpOptions().setConnectTimeout(100);
+        sharedConfiguration.getHttpOptions().setReadTimeout(100);
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        obs.awaitDone(5, TimeUnit.SECONDS);
+        obs.assertError(this::isTimeout);
+        ArgumentCaptor<ExecutionFailure> exFailureCaptor = ArgumentCaptor.forClass(ExecutionFailure.class);
+        verify(ctx).setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE), exFailureCaptor.capture());
+        ExecutionFailure capturedFailure = exFailureCaptor.getValue();
+        assertEquals(HttpStatusCode.GATEWAY_TIMEOUT_504, capturedFailure.statusCode());
+    }
+
+    @Test
+    void shouldHandleNonTimeoutException() throws InterruptedException {
+        //  Configure an endpoint that will cause connection refused (not timeout)
+        configuration.setTarget(REFUSED_CONNECTION_URL);
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        obs.awaitDone(5, TimeUnit.SECONDS);
+        obs.assertError(throwable -> !isTimeout(throwable));
+        // Verify ExecutionFailure was NOT set in context for non-timeout exceptions
+        verify(ctx, never())
+            .setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE), any(ExecutionFailure.class));
+    }
+
+    @Test
+    void shouldHandleServerError() throws InterruptedException {
+        lenient().when(request.method()).thenReturn(HttpMethod.GET);
+        // Configure endpoint that returns server error
+        configuration.setTarget("http://localhost:" + wiremock.port() + ERROR_ENDPOINT);
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
+
+        wiremock.stubFor(get(ERROR_ENDPOINT).willReturn(serverError()));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+        verify(tracer, never()).endOnError(any(Span.class), any(Throwable.class));
+        verify(ctx, never())
+            .setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE), any(ExecutionFailure.class));
+        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/error")));
+    }
+
+    @Test
+    void isTimeoutShouldReturnTrueForAllTimeoutExceptions() {
+        assertTrue(invokeIsTimeout(TimeoutException.INSTANCE));
+        assertTrue(invokeIsTimeout(new NoStackTraceTimeoutException("timeout")));
+        assertTrue(invokeIsTimeout(ReadTimeoutException.INSTANCE));
+        assertTrue(invokeIsTimeout(new ConnectTimeoutException("connect timeout ex")));
+        Exception nested = new RuntimeException("outer ex", TimeoutException.INSTANCE);
+        assertTrue(invokeIsTimeout(nested));
+
+        Exception deeplyNested = new IllegalStateException(
+            "level1-ex",
+            new RuntimeException("level2-ex", new ConnectTimeoutException("connect timeout ex"))
+        );
+        assertTrue(invokeIsTimeout(deeplyNested));
+    }
+
+    @Test
+    void isTimeoutShouldReturnFalseForNonTimeoutCases() {
+        assertFalse(invokeIsTimeout(new IllegalArgumentException("non timeout")));
+        assertFalse(invokeIsTimeout(null));
+        Exception nested = new RuntimeException("outer", new IllegalArgumentException("non timeout"));
+        assertFalse(invokeIsTimeout(nested));
+    }
+
+    private boolean isTimeout(Throwable ex) {
+        Throwable cause = ex;
+        while (cause != null) {
+            if (
+                cause instanceof NoStackTraceTimeoutException ||
+                cause instanceof ReadTimeoutException ||
+                cause instanceof ConnectTimeoutException
+            ) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
+    private boolean invokeIsTimeout(Throwable ex) {
+        try {
+            Method method = HttpConnector.class.getDeclaredMethod("isTimeout", Throwable.class);
+            method.setAccessible(true);
+            return (Boolean) method.invoke(cut, ex);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to call isTimeout method", e);
+        }
     }
 
     private void assertNoTimeout(TestObserver<Void> obs) throws InterruptedException {

@@ -31,11 +31,14 @@ import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR_SEQUENCE;
 
 import io.gravitee.common.http.HttpHeader;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
@@ -48,13 +51,18 @@ import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
+import io.netty.channel.ConnectTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.vertx.circuitbreaker.TimeoutException;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.core.impl.NoStackTraceTimeoutException;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.net.URL;
 import java.util.ArrayList;
@@ -161,10 +169,34 @@ public class HttpConnector implements ProxyConnector {
                     ctx.getTracer().endWithResponse(httpRequestSpan, observableHttpClientResponse);
                 })
                 .doOnError(throwable -> ctx.getTracer().endOnError(httpRequestSpan, throwable))
+                .onErrorResumeNext(throwable -> {
+                    if (isTimeout(throwable)) {
+                        ExecutionFailure failure = new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504);
+                        // Store failure in context so renderer can use it
+                        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, failure);
+                    }
+                    return Single.error(throwable);
+                })
                 .ignoreElement();
         } catch (Exception e) {
             return Completable.error(e);
         }
+    }
+
+    private boolean isTimeout(Throwable ex) {
+        Throwable cause = ex;
+        while (cause != null) {
+            if (
+                cause instanceof TimeoutException ||
+                cause instanceof NoStackTraceTimeoutException ||
+                cause instanceof ReadTimeoutException ||
+                cause instanceof ConnectTimeoutException
+            ) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 
     protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {
