@@ -15,41 +15,19 @@
  */
 package io.gravitee.rest.api.model.log;
 
-import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
-public abstract class LogItem {
+@Data
+@Builder
+public class DiagnosticItem {
 
-    private String id;
-
-    private long timestamp;
-
+    private String componentType;
+    private String componentName;
+    private String key;
     private String message;
-    private String errorKey;
-    private String errorComponentName;
-    private String errorComponentType;
-
-    private List<DiagnosticItem> warnings;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        LogItem request = (LogItem) o;
-
-        return id.equals(request.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
 }

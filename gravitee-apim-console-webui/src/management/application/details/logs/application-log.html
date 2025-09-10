@@ -196,3 +196,61 @@
     </div>
   </div>
 </div>
+
+<!-- Failure Section -->
+<div ng-if="$ctrl.log.errorKey != null" class="diagnostic-section diagnostic-section--failure">
+  <div class="diagnostic-section__header">
+    <div class="diagnostic-section__icon">❌</div>
+    <div class="diagnostic-section__title">Failure</div>
+  </div>
+  <div class="diagnostic-section__content">
+    <div class="diagnostic-item" ng-if="$ctrl.log.errorKey">
+      <div class="diagnostic-item__label">Key</div>
+      <div class="diagnostic-item__value">{{$ctrl.log.errorKey}}</div>
+    </div>
+    <div class="diagnostic-item" ng-if="$ctrl.log.errorComponentType">
+      <div class="diagnostic-item__label">Component</div>
+      <div class="diagnostic-item__value">{{$ctrl.log.errorComponentType}}</div>
+    </div>
+    <div class="diagnostic-item" ng-if="$ctrl.log.errorComponentName">
+      <div class="diagnostic-item__label">Name</div>
+      <div class="diagnostic-item__value">{{$ctrl.log.errorComponentName}}</div>
+    </div>
+    <div class="diagnostic-item diagnostic-item--message" ng-if="$ctrl.log.message">
+      <div class="diagnostic-item__label">message</div>
+      <div class="diagnostic-item__value">
+        <div class="diagnostic-item__message-text">{{$ctrl.log.message}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Warnings Section -->
+<div ng-if="$ctrl.log.warnings != null && $ctrl.log.warnings.length > 0" class="diagnostic-section diagnostic-section--warning">
+  <div class="diagnostic-section__header">
+    <div class="diagnostic-section__icon">⚠️</div>
+    <div class="diagnostic-section__title">Warnings</div>
+  </div>
+  <div class="diagnostic-section__content">
+    <div ng-repeat="warning in $ctrl.log.warnings" class="diagnostic-warning">
+      <div class="diagnostic-item" ng-if="warning.key">
+        <div class="diagnostic-item__label">Key</div>
+        <div class="diagnostic-item__value">{{warning.key}}</div>
+      </div>
+      <div class="diagnostic-item" ng-if="warning.componentType">
+        <div class="diagnostic-item__label">Component</div>
+        <div class="diagnostic-item__value">{{warning.componentType}}</div>
+      </div>
+      <div class="diagnostic-item" ng-if="warning.componentName">
+        <div class="diagnostic-item__label">Name</div>
+        <div class="diagnostic-item__value">{{warning.componentName}}</div>
+      </div>
+      <div class="diagnostic-item diagnostic-item--message" ng-if="warning.message">
+        <div class="diagnostic-item__label">message</div>
+        <div class="diagnostic-item__value">
+          <div class="diagnostic-item__message-text">{{warning.message}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

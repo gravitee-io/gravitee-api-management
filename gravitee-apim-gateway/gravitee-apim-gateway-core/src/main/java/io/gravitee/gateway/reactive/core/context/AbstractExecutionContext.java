@@ -15,11 +15,15 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_NAME;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE;
+
 import io.gravitee.common.util.ListUtils;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.TlsSession;
@@ -28,14 +32,18 @@ import io.gravitee.gateway.reactive.api.el.EvaluableMessage;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.core.context.diagnostic.DiagnosticReportHelper;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse>
@@ -79,8 +87,34 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     public Completable interruptWith(ExecutionFailure executionFailure) {
         return Completable.defer(() -> {
             internalAttributes.put(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+            metrics.setFailure(
+                DiagnosticReportHelper.fromExecutionFailure(
+                    getInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE),
+                    getInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME),
+                    metrics.getErrorKey(),
+                    metrics.getErrorMessage(),
+                    executionFailure
+                )
+            );
             return Completable.error(new InterruptionFailureException(executionFailure));
         });
+    }
+
+    @Override
+    public void warnWith(ExecutionWarn warn) {
+        List<ExecutionWarn> warnings = getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
+        if (warnings == null) {
+            warnings = new LinkedList<>();
+            setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN, warnings);
+        }
+        warnings.add(warn);
+        metrics.addWarning(
+            DiagnosticReportHelper.fromExecutionWarn(
+                getInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE),
+                getInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME),
+                warn
+            )
+        );
     }
 
     @Override

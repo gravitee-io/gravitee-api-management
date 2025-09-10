@@ -13,6 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export interface DiagnosticItem {
+  componentType: string;
+  componentName: string;
+  key: string;
+  message: string;
+}
+
 export interface ApplicationLog {
   id?: string;
   timestamp?: number;
@@ -33,4 +40,9 @@ export interface ApplicationLog {
   user?: string;
   securityType?: string;
   securityToken?: string;
+  message?: string;
+  errorKey?: string;
+  errorComponentName?: string;
+  errorComponentType?: string;
+  warnings?: DiagnosticItem[];
 }

@@ -29,6 +29,7 @@ import io.gravitee.repository.analytics.query.SortBuilder;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
+import io.gravitee.repository.log.model.LogDiagnostic;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InstanceEntity;
@@ -39,6 +40,7 @@ import io.gravitee.rest.api.model.log.ApiRequest;
 import io.gravitee.rest.api.model.log.ApiRequestItem;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
+import io.gravitee.rest.api.model.log.DiagnosticItem;
 import io.gravitee.rest.api.model.log.PlatformRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.log.extended.Request;
@@ -65,6 +67,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -674,6 +677,11 @@ public class LogsServiceImpl implements LogsService {
         req.setTimestamp(log.getTimestamp());
         req.setEndpoint(log.getEndpoint() != null);
         req.setUser(log.getUser());
+        req.setMessage(log.getMessage());
+        req.setErrorKey(log.getErrorKey());
+        req.setErrorComponentName(log.getErrorComponentName());
+        req.setErrorComponentType(log.getErrorComponentType());
+        req.setWarnings(toDiagnosticItems(log.getWarnings()));
         return req;
     }
 
@@ -690,6 +698,11 @@ public class LogsServiceImpl implements LogsService {
         req.setTimestamp(log.getTimestamp());
         req.setEndpoint(log.getEndpoint() != null);
         req.setUser(log.getUser());
+        req.setMessage(log.getMessage());
+        req.setErrorKey(log.getErrorKey());
+        req.setErrorComponentName(log.getErrorComponentName());
+        req.setErrorComponentType(log.getErrorComponentType());
+        req.setWarnings(toDiagnosticItems(log.getWarnings()));
         return req;
     }
 
@@ -705,6 +718,11 @@ public class LogsServiceImpl implements LogsService {
         req.setStatus(log.getStatus());
         req.setTimestamp(log.getTimestamp());
         req.setUser(log.getUser());
+        req.setMessage(log.getMessage());
+        req.setErrorKey(log.getErrorKey());
+        req.setErrorComponentName(log.getErrorComponentName());
+        req.setErrorComponentType(log.getErrorComponentType());
+        req.setWarnings(toDiagnosticItems(log.getWarnings()));
         return req;
     }
 
@@ -758,6 +776,12 @@ public class LogsServiceImpl implements LogsService {
 
         req.setMetadata(metadata);
         req.setUser(log.getUser());
+
+        req.setMessage(log.getMessage());
+        req.setErrorKey(log.getErrorKey());
+        req.setErrorComponentName(log.getErrorComponentName());
+        req.setErrorComponentType(log.getErrorComponentType());
+        req.setWarnings(toDiagnosticItems(log.getWarnings()));
 
         return req;
     }
@@ -828,6 +852,34 @@ public class LogsServiceImpl implements LogsService {
         req.setMetadata(metadata);
         req.setUser(log.getUser());
 
+        req.setMessage(log.getMessage());
+        req.setErrorKey(log.getErrorKey());
+        req.setErrorComponentName(log.getErrorComponentName());
+        req.setErrorComponentType(log.getErrorComponentType());
+        req.setWarnings(toDiagnosticItems(log.getWarnings()));
+
         return req;
+    }
+
+    private DiagnosticItem toDiagnosticItem(LogDiagnostic logDiagnostic) {
+        if (logDiagnostic == null) {
+            return null;
+        }
+
+        return DiagnosticItem
+            .builder()
+            .componentType(logDiagnostic.getComponentType())
+            .componentName(logDiagnostic.getComponentName())
+            .key(logDiagnostic.getKey())
+            .message(logDiagnostic.getMessage())
+            .build();
+    }
+
+    private List<DiagnosticItem> toDiagnosticItems(List<LogDiagnostic> warnings) {
+        if (warnings == null) {
+            return null;
+        }
+
+        return warnings.stream().map(this::toDiagnosticItem).toList();
     }
 }
