@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
@@ -126,24 +127,24 @@ class ClusterResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
-            /*when(
-                    permissionService.hasPermission(
-                            GraviteeContext.getExecutionContext(),
-                            RolePermission.CLUSTER_DEFINITION,
-                            CLUSTER_ID,
-                            RolePermissionAction.READ
-                    )
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.CLUSTER_DEFINITION,
+                    CLUSTER_ID,
+                    RolePermissionAction.READ
+                )
             )
-                    .thenReturn(false);
+                .thenReturn(false);
 
             final Response response = rootTarget().request().get();
 
             MAPIAssertions
-                    .assertThat(response)
-                    .hasStatus(FORBIDDEN_403)
-                    .asError()
-                    .hasHttpStatus(FORBIDDEN_403)
-                    .hasMessage("You do not have sufficient rights to access this resource");*/
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 
@@ -261,7 +262,7 @@ class ClusterResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(
-                RolePermission.CLUSTER_DEFINITION,
+                RolePermission.CLUSTER_MEMBER,
                 CLUSTER_ID,
                 RolePermissionAction.UPDATE,
                 () -> rootTarget().path("groups").request().put(json(Map.of("groups", Set.of("G1", "G2"))))

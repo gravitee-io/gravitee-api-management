@@ -141,7 +141,7 @@ public class ClusterResource extends AbstractResource {
     @Path("groups")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.CLUSTER_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.CLUSTER_MEMBER, acls = { RolePermissionAction.UPDATE }) })
     public Response updateClusterGroups(@Valid @NotNull final List<@NotNull String> groups) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
