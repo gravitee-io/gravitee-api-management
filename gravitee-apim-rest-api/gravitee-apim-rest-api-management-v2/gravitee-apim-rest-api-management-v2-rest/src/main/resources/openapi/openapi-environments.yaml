@@ -752,13 +752,11 @@ paths:
       get:
         tags:
           - Portal Pages
-        summary: Get portal pages by context
-        operationId: getPortalPagesByContext
-        parameters:
-            - $ref: "#/components/parameters/context"
+        summary: Get portal homepage
+        operationId: getPortalHomepage
         responses:
           "200":
-            $ref: "#/components/responses/PortalPageResponse"
+            $ref: "#/components/responses/GetPortalHomepageResponse"
           default:
             $ref: "#/components/responses/Error"
 
@@ -1546,10 +1544,6 @@ components:
                 apiId:
                   type: string
                   description: The API identifier if relevant.
-        PortalPageWithViewDetails:
-          type: object
-
-
 
     parameters:
         pageParam:
@@ -1713,16 +1707,6 @@ components:
           required: true
           schema:
             type: string
-
-        # Portal pages
-        context:
-          name: context
-          in: path
-          description: The portal context (eg. "homepage", "api_list")
-          required: true
-          schema:
-              type: string
-              enum: [homepage]
 
     responses:
         SchemaFormResponse:
@@ -2037,12 +2021,12 @@ components:
                     description: Gateway's ip.
                     example: 10.0.1.123
 
-        PortalPageResponse:
+        GetPortalHomepageResponse:
           description: List of portal pages for a given context
           content:
             application/json:
               schema:
-                title: "PortalPageResponse"
+                title: "GetPortalHomepageResponse"
                 properties:
                   id:
                     type: string

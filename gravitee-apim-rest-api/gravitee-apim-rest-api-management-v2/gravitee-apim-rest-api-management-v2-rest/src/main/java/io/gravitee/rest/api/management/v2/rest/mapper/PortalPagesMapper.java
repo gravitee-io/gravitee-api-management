@@ -19,7 +19,7 @@ import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.core.portal_page.use_case.GetHomepageUseCase;
-import io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse;
+import io.gravitee.rest.api.management.v2.rest.model.GetPortalHomepageResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -28,12 +28,12 @@ import org.mapstruct.factory.Mappers;
 public interface PortalPagesMapper {
     PortalPagesMapper INSTANCE = Mappers.getMapper(PortalPagesMapper.class);
 
-    default PortalPageResponse map(GetHomepageUseCase.Output homepage) {
+    default GetPortalHomepageResponse map(GetHomepageUseCase.Output homepage) {
         return map(homepage.page());
     }
 
-    default io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse.ContextEnum map(PortalViewContext portalViewContext) {
-        return io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse.ContextEnum.valueOf(portalViewContext.toString());
+    default io.gravitee.rest.api.management.v2.rest.model.GetPortalHomepageResponse.ContextEnum map(PortalViewContext portalViewContext) {
+        return io.gravitee.rest.api.management.v2.rest.model.GetPortalHomepageResponse.ContextEnum.valueOf(portalViewContext.toString());
     }
 
     default String map(PageId pageId) {
@@ -45,5 +45,5 @@ public interface PortalPagesMapper {
     @Mapping(target = "type", constant = "GRAVITEE_MARKDOWN")
     @Mapping(target = "context", source = "viewDetails.context")
     @Mapping(target = "published", source = "viewDetails.published")
-    io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse map(PortalPageWithViewDetails page);
+    io.gravitee.rest.api.management.v2.rest.model.GetPortalHomepageResponse map(PortalPageWithViewDetails page);
 }
