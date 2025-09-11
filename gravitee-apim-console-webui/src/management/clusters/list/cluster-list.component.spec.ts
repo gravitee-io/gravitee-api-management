@@ -56,7 +56,7 @@ describe('ClustersListPageComponent', () => {
           useValue: [
             {
               roleScope: 'CLUSTER',
-              permissions: ['cluster-definition-r', 'cluster-definition-u', 'cluster-definition-d'],
+              permissions: ['cluster-definition-r', 'cluster-definition-u', 'cluster-definition-d', 'cluster-configuration-r'],
               id: 'cluster-id',
             },
             {
@@ -123,7 +123,7 @@ describe('ClustersListPageComponent', () => {
     expect(await table.getCellTextByIndex()).toStrictEqual([
       ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', 'Jan 1, 2023, 12:00:00 AM', ''],
       ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
-      ['Testing Cluster (ReadOnly)', 'kafka-test.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Testing Cluster (ReadOnly)', '••••••••', '••••••••', 'Jan 1, 2023, 12:00:00 AM', ''],
     ]);
   });
 
@@ -146,7 +146,7 @@ describe('ClustersListPageComponent', () => {
     expect(await table.getCellTextByIndex()).toStrictEqual([
       ['Production Cluster', 'kafka-prod.example.com:9092', 'SSL', 'Jan 1, 2023, 12:00:00 AM', ''],
       ['Development Cluster', 'kafka-dev.example.com:9092', 'SASL_PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
-      ['Testing Cluster (ReadOnly)', 'kafka-test.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Testing Cluster (ReadOnly)', '••••••••', '••••••••', 'Jan 1, 2023, 12:00:00 AM', ''],
     ]);
 
     await getTableWrapper.setSearchValue('Production');
@@ -155,7 +155,7 @@ describe('ClustersListPageComponent', () => {
     expectListClusterRequest(httpTestingController, fakePagedResult([fakeCluster()]), '?page=1&perPage=25&q=Production');
 
     expect(await table.getCellTextByIndex()).toStrictEqual([
-      ['Cluster Name', 'kafka.example.com:9092', 'Hidden', 'Jan 1, 2023, 12:00:00 AM', ''],
+      ['Cluster Name', 'kafka.example.com:9092', 'PLAINTEXT', 'Jan 1, 2023, 12:00:00 AM', ''],
     ]);
   });
 

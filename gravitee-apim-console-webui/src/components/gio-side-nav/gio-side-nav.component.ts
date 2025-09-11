@@ -124,6 +124,12 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     };
     const alertEngineIconRight$ = this.getMenuItemIconRight$(alertEngineLicenseOptions);
 
+    const clusterLicenseOptions: LicenseOptions = {
+      feature: ApimFeature.APIM_CLUSTER,
+      context: UTMTags.CONTEXT_ENVIRONMENT,
+    };
+    const clusterIconRight$ = this.getMenuItemIconRight$(clusterLicenseOptions);
+
     const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', routerLink: './home', displayName: 'Dashboard', category: 'home' },
       {
@@ -162,6 +168,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       routerLink: './clusters',
       displayName: 'Kafka Clusters',
       permissions: ['environment-cluster-r'],
+      licenseOptions: clusterLicenseOptions,
+      iconRight$: clusterIconRight$,
       category: 'Kafka Clusters',
     });
 
