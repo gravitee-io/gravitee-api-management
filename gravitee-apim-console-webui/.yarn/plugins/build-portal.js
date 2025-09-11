@@ -7,7 +7,7 @@ module.exports = {
         validateProject(project, report) {
           console.error('🚀  Launching script to build gravitee-markdown library for console-webui...');
           try {
-            execSync('scripts/build-gravitee-markdown.sh', { stdio: 'inherit' });
+            execSync('node scripts/build-gravitee-markdown.js', { stdio: 'inherit' });
           } catch (err) {
             console.error('❌  Error during build-gravitee-markdown.sh', err);
           }

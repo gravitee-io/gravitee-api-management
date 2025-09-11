@@ -134,7 +134,7 @@
     "ng": "ng",
     "build": "NODE_OPTIONS=--max_old_space_size=7168 ng build --stats-json",
     "build:prod": "NODE_OPTIONS=--max_old_space_size=7168 ng build --configuration=production",
-    "build:gravitee-markdown": "scripts/build-gravitee-markdown.sh",
+    "build:gravitee-markdown": "node scripts/build-gravitee-markdown.js",
     "lint": "yarn lint:eslint && yarn prettier",
     "lint:eslint": "eslint --ext .json,.ts ./src",
     "lint:eslint:fix": "eslint --ext .json,.ts ./src --fix",
