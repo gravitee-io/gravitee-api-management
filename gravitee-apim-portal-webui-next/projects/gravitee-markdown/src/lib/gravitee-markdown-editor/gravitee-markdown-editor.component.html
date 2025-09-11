@@ -16,15 +16,12 @@
 
 -->
 <div class="container">
-  <div class="section">
-    <div class="section__inner-border">
-      <gmd-monaco-editor [value]="value" [readOnly]="isDisabled" (valueChange)="onValueChange($event)" (touched)="onTouched()" />
-    </div>
-  </div>
-  <hr />
-  <div class="section">
-    <div class="section__inner-border section__inner-border--padding">
-      <gmd-viewer [content]="value" />
-    </div>
-  </div>
+  <gmd-monaco-editor
+    class="container__inner-border"
+    [value]="value"
+    [readOnly]="isDisabled"
+    (valueChange)="onValueChange($event)"
+    (touched)="onTouched()" />
+  <hr class="hr" />
+  <gmd-viewer class="container__inner-border container__inner-border--viewer" [content]="value" />
 </div>

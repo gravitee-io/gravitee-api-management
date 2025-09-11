@@ -48,12 +48,10 @@ export const WithoutContent: StoryObj<GraviteeMarkdownViewerComponent> = {
 export const WithSampleContent: StoryObj<GraviteeMarkdownViewerComponent> = {
   render: () => ({
     template: `
-      <div style="height: 650px">
+      <div style="height: 650px; display: flex; flex-flow: column;">
         <h3>Markdown Editor with Sample Content</h3>
-        <div style="height: 100%;background-color: #fff;">
-          <div style="min-height: 100%;padding: 16px;border: 1px solid #b2aaa9;border-radius: 4px;">
-            <gmd-viewer [content]="content"></gmd-viewer>
-          </div>
+        <div style="background-color: #fff; overflow: scroll">
+          <gmd-viewer [content]="content"></gmd-viewer>
         </div>
       </div>
     `,

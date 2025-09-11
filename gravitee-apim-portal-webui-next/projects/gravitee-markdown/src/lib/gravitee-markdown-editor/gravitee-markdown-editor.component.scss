@@ -21,32 +21,25 @@ $token-mapping: overrides.tokens();
 .container {
   display: flex;
   height: 100%;
+  padding: 16px;
   background-color: #fff;
 
-  .section {
-    display: flex;
-    width: calc(50% - 0.5px);
-    box-sizing: border-box;
-    padding: 16px;
+  &__inner-border {
+    width: calc(50% - 6.5px);
+    padding: 4px 0;
+    border: 1px solid token-utils.slot(container-outline-color, $token-mapping);
+    border-radius: 4px;
 
-    &__inner-border {
-      overflow: auto;
-      flex: 1;
-      border: 1px solid token-utils.slot(container-outline-color, $token-mapping);
-      border-radius: 4px;
-    }
-
-    &__inner-border--padding {
-      padding: 16px;
+    &--viewer {
+      overflow: scroll;
+      padding: 12px 16px;
     }
   }
 
-  hr {
+  .hr {
     width: 1px;
-    flex: 0 0 auto;
-    align-self: stretch;
     border: none;
-    margin: 16px 0;
+    margin: 0 12px;
     background-color: token-utils.slot(container-outline-color, $token-mapping);
   }
 }

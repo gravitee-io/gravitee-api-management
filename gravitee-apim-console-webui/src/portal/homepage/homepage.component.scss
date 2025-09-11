@@ -13,14 +13,12 @@
   }
 }
 
-.editor-container {
+gmd-editor {
   @include gmd.editor-overrides(
     (
       container-outline-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20'),
     )
   );
-
-  & {
-    flex: 1;
-  }
+  height: 100%;
+  overflow: hidden;
 }
