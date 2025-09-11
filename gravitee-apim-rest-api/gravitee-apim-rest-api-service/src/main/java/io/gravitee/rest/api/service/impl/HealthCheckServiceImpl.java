@@ -431,7 +431,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 .flatMap(group -> group.getEndpoints().stream())
                 .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
                 .findFirst()
-                .map(endpoint -> Map.of("target", endpoint.getType()))
+                .map(endpoint -> Map.of("target", endpoint.getTarget()))
                 .orElse(Map.of("deleted", "true"));
             case FEDERATED, FEDERATED_AGENT -> Map.of();
             case null -> Map.of();
