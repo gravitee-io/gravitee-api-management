@@ -124,7 +124,7 @@ You cannot edit this content when the form control is disabled.`,
 export const WithFormControl: StoryObj<GraviteeMarkdownEditorComponent> = {
   render: () => ({
     template: `
-      <div>
+      <div style="height: 650px">
         <h3>Markdown Editor with Validation</h3>
         <form [formGroup]="form">
           <gmd-editor formControlName="content"></gmd-editor>
