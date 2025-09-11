@@ -15,7 +15,7 @@
  */
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { MatTooltip } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
@@ -24,7 +24,7 @@ import { PictureComponent } from '../picture/picture.component';
 
 @Component({
   selector: 'app-application-card',
-  imports: [MatButton, MatCard, MatCardActions, MatCardContent, PictureComponent, RouterLink, MatTooltip],
+  imports: [MatButton, MatCardModule, PictureComponent, RouterLink, MatTooltip],
   templateUrl: './application-card.component.html',
   styleUrl: './application-card.component.scss',
 })
