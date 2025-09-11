@@ -126,7 +126,17 @@
           </mat-expansion-panel>
           <mat-expansion-panel class="portal-theme__left__form__content__panel">
             <mat-expansion-panel-header>
-              <mat-panel-title>CSS Editor</mat-panel-title>
+              <mat-panel-title class="portal-theme__left__form__content__panel__editor-title">
+                Advanced CSS
+                <a
+                  (click)="$event.stopPropagation()"
+                  aria-label="view available tokens in documentation"
+                  mat-button
+                  href="https://documentation.gravitee.io/apim/developer-portal/new-developer-portal/layout-and-theme#available-css-tokens"
+                  target="_blank"
+                  >View available tokens</a
+                >
+              </mat-panel-title>
             </mat-expansion-panel-header>
             <div class="portal-theme__left__form__content__panel__editor">
               This will override the configuration made in the Basic Theme tab.
