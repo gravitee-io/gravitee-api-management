@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import java.util.Collections;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,8 +53,13 @@ public class SearchClusterUseCase {
 
         if (!input.isAdmin) {
             var clustersIdsUserCanRead = membershipQueryService.findClustersIdsThatUserBelongsTo(input.userId);
+            if (clustersIdsUserCanRead.isEmpty()) {
+                // The user is not a member of any cluster, so he can't read any cluster
+                return new SearchClusterUseCase.Output(new Page<>(Collections.emptyList(), 1, 0, 0));
+            }
             criteriaBuilder.ids(clustersIdsUserCanRead);
         }
+
         if (input.query != null && !input.query.isBlank()) {
             criteriaBuilder.query(input.query);
         }
