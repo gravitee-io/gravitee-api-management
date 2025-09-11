@@ -73,11 +73,11 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         default:
           $ref: "#/components/responses/Error"
-  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}:
+  /organizations/{orgId}/environments/{envId}/apis/{hrid}:
     parameters:
       - $ref: "#/components/parameters/orgIdParam"
       - $ref: "#/components/parameters/envIdParam"
-      - $ref: "#/components/parameters/apiHridParam"
+      - $ref: "#/components/parameters/hridParam"
     get:
       operationId: getApi
       tags:
@@ -87,7 +87,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiHridParam"
+        - $ref: "#/components/parameters/hridParam"
       responses:
         "200":
           description: API successfully retrieved
@@ -112,7 +112,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
-        - $ref: "#/components/parameters/apiHridParam"
+        - $ref: "#/components/parameters/hridParam"
       responses:
         "204":
           description: API successfully deleted
