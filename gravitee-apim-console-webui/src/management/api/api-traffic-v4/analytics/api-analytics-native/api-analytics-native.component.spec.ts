@@ -28,6 +28,9 @@ import { ApiAnalyticsNativeComponent } from './api-analytics-native.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakePagedResult, fakePlanV4, PlanV4 } from '../../../../../entities/management-api-v2';
+import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
+import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
+import { fakeAnalyticsStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
 
 describe('ApiAnalyticsNativeComponent', () => {
   const API_ID = 'api-id';
@@ -70,6 +73,7 @@ describe('ApiAnalyticsNativeComponent', () => {
     beforeEach(async () => {
       await initComponent();
       expectPlanList();
+      flushAllRequests();
     });
 
     it('should display analytics widgets in empty state', async () => {
@@ -94,6 +98,7 @@ describe('ApiAnalyticsNativeComponent', () => {
       const selectedValue = await filtersBar.getSelectedPeriod();
 
       expect(selectedValue).toEqual('Last day');
+      flushAllRequests();
     });
 
     it('should use custom time range from query params', async () => {
@@ -104,6 +109,7 @@ describe('ApiAnalyticsNativeComponent', () => {
       const selectedValue = await filtersBar.getSelectedPeriod();
 
       expect(selectedValue).toEqual('Last month');
+      flushAllRequests();
     });
 
     it('should use and select plans from query params', async () => {
@@ -115,6 +121,7 @@ describe('ApiAnalyticsNativeComponent', () => {
       const selectedValues = await filtersBar.getSelectedPlans();
 
       expect(selectedValues).toEqual(['1']);
+      flushAllRequests();
     });
 
     it('should update the URL query params when a plan is selected', async () => {
@@ -135,8 +142,118 @@ describe('ApiAnalyticsNativeComponent', () => {
         },
         queryParamsHandling: 'replace',
       });
+      flushAllRequests();
     });
   });
+
+  describe('Backend API calls based on query parameters', () => {
+    it('should make backend calls with default time range when no query params provided', async () => {
+      await initComponent();
+
+      // Verify that backend calls are made with default time range (1d)
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      expect(requests.length).toBeGreaterThan(0);
+
+      // Check that all requests include the default time range parameters
+      requests.forEach((req) => {
+        expect(req.request.url).toContain('type=');
+        expect(req.request.url).toContain('from=');
+        expect(req.request.url).toContain('to=');
+        expect(req.request.url).toContain('interval=');
+      });
+
+      flushAllRequests();
+    });
+
+    it('should make backend calls with custom period from query params', async () => {
+      await initComponent({ period: 'custom', from: '1', to: '2' });
+
+      // Verify that backend calls are made with 7d time range
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      expect(requests.length).toBeGreaterThan(0);
+
+      // Check that requests include the correct time range
+      requests
+        .filter((request) => !request.cancelled)
+        .forEach((req) => {
+          expect(req.request.url).toContain('from=1');
+          expect(req.request.url).toContain('to=2');
+          expect(req.request.url).toContain('interval=0');
+        });
+
+      flushAllRequests();
+    });
+
+    it('should make backend call for histogram analytics type', async () => {
+      await initComponent({ period: '1d' });
+
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+
+      const histogramRequests = requests.filter((req) => req.request.url.includes('type=HISTOGRAM'));
+
+      expect(histogramRequests.length).toBeGreaterThan(0);
+
+      histogramRequests.forEach((req) => {
+        expect(req.request.url).toContain('type=HISTOGRAM');
+        expect(req.request.url).toContain('from=');
+        expect(req.request.url).toContain('to=');
+        expect(req.request.url).toContain('interval=2880000');
+        expect(req.request.url).toContain('aggregations=');
+      });
+
+      flushAllRequests();
+    });
+
+    it('should include API ID in all backend calls', async () => {
+      await initComponent({ period: '1d' });
+
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      expect(requests.length).toBeGreaterThan(0);
+
+      // Verify all requests include the API ID
+      requests.forEach((req) => {
+        expect(req.request.url).toContain(`/apis/${API_ID}/analytics`);
+      });
+
+      flushAllRequests();
+    });
+
+    it('should handle multiple concurrent requests with same parameters', async () => {
+      await initComponent({ period: '1d' });
+
+      // Should make multiple requests for different widgets
+      const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
+      expect(requests.length).toBeGreaterThan(5); // Multiple widgets
+
+      // All requests should have the same time range parameters
+      requests.forEach((req) => {
+        // Extract time parameters from URL
+        const fromMatch = req.request.url.match(/from=(\d+)/);
+        const toMatch = req.request.url.match(/to=(\d+)/);
+        const intervalMatch = req.request.url.match(/interval=(\d+)/);
+
+        expect(fromMatch).toBeTruthy();
+        expect(toMatch).toBeTruthy();
+        expect(intervalMatch).toBeTruthy();
+      });
+
+      flushAllRequests();
+    });
+  });
+
+  function flushAllRequests() {
+    // Handle all pending requests
+    const requests = httpTestingController.match(() => true);
+    requests.forEach((request) => {
+      if (request.request.url.includes('type=HISTOGRAM')) {
+        request.flush(fakeAnalyticsHistogram());
+      } else if (request.request.url.includes('type=GROUP_BY')) {
+        request.flush(fakeGroupByResponse());
+      } else if (request.request.url.includes('type=STATS')) {
+        request.flush(fakeAnalyticsStatsResponse());
+      }
+    });
+  }
 
   function expectPlanList(plans: PlanV4[] = []) {
     httpTestingController
