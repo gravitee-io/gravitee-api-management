@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -265,6 +266,22 @@ public class HealthCheckServiceImplTest {
         verify(instanceService, times(1)).findById(any(ExecutionContext.class), anyString());
     }
 
+    @Test
+    public void should_getAvailability_metadata_for_V2() throws Exception {
+        FieldBucket fieldBucketEndpoint = new FieldBucket("endpoint");
+        fieldBucketEndpoint.setValues(Collections.emptyList());
+
+        AvailabilityResponse availabilityResponse = new AvailabilityResponse();
+        availabilityResponse.setEndpointAvailabilities(List.of(fieldBucketEndpoint));
+
+        when(healthCheckRepository.query(any(QueryContext.class), any())).thenReturn(availabilityResponse);
+        when(apiSearchService.findGenericById(EXECUTION_CONTEXT, "apiId")).thenReturn(newApiEntityV2());
+
+        ApiMetrics apiMetrics = cut.getAvailability(EXECUTION_CONTEXT, "apiId", AvailabilityQuery.Field.ENDPOINT.name());
+
+        assertEquals(Map.of("target", "http://localhost"), apiMetrics.getMetadata().get("endpoint"));
+    }
+
     @NonNull
     private static ApiEntity newApiEntity() {
         ApiEntity api = new ApiEntity();
@@ -295,5 +312,21 @@ public class HealthCheckServiceImplTest {
         log.setSteps(steps);
         log.setApi("test_api");
         return log;
+    }
+
+    private static io.gravitee.rest.api.model.api.ApiEntity newApiEntityV2() {
+        io.gravitee.rest.api.model.api.ApiEntity api = new io.gravitee.rest.api.model.api.ApiEntity();
+        api.setId("apiId");
+        api.setGraviteeDefinitionVersion("2.0.0");
+        io.gravitee.definition.model.Endpoint endpoint = new io.gravitee.definition.model.Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setTarget("http://localhost");
+        io.gravitee.definition.model.EndpointGroup group = new io.gravitee.definition.model.EndpointGroup();
+        group.setEndpoints(Set.of(endpoint));
+        io.gravitee.definition.model.Proxy proxy = new io.gravitee.definition.model.Proxy();
+        proxy.setGroups(Set.of(group));
+        api.setProxy(proxy);
+
+        return api;
     }
 }
