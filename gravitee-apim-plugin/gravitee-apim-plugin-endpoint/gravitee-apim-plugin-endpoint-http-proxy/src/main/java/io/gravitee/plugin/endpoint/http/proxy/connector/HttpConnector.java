@@ -48,19 +48,14 @@ import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
-import io.gravitee.plugin.endpoint.http.proxy.connector.exception.ConnectorTimeoutException;
-import io.netty.channel.ConnectTimeoutException;
-import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.circuitbreaker.TimeoutException;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
-import io.vertx.core.impl.NoStackTraceTimeoutException;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.net.URL;
 import java.util.ArrayList;
@@ -167,32 +162,11 @@ public class HttpConnector implements ProxyConnector {
                     ctx.getTracer().endWithResponse(httpRequestSpan, observableHttpClientResponse);
                 })
                 .doOnError(throwable -> ctx.getTracer().endOnError(httpRequestSpan, throwable))
-                .onErrorResumeNext(throwable -> {
-                    if (isTimeout(throwable)) {
-                        return Single.error(new ConnectorTimeoutException("Request to the endpoint timed out.", throwable));
-                    }
-                    return Single.error(throwable);
-                })
+                .onErrorResumeNext(Single::error)
                 .ignoreElement();
         } catch (Exception e) {
             return Completable.error(e);
         }
-    }
-
-    private boolean isTimeout(Throwable ex) {
-        Throwable cause = ex;
-        while (cause != null) {
-            if (
-                cause instanceof TimeoutException ||
-                cause instanceof NoStackTraceTimeoutException ||
-                cause instanceof ReadTimeoutException ||
-                cause instanceof ConnectTimeoutException
-            ) {
-                return true;
-            }
-            cause = cause.getCause();
-        }
-        return false;
     }
 
     protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {

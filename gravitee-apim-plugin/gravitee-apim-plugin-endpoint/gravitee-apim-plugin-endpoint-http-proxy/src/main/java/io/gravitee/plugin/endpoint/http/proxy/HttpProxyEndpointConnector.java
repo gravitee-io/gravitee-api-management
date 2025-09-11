@@ -31,8 +31,11 @@ import io.gravitee.plugin.endpoint.http.proxy.connector.GrpcConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.WebSocketConnector;
-import io.gravitee.plugin.endpoint.http.proxy.connector.exception.ConnectorTimeoutException;
+import io.netty.channel.ConnectTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.rxjava3.core.Completable;
+import io.vertx.circuitbreaker.TimeoutException;
+import io.vertx.core.impl.NoStackTraceTimeoutException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -128,12 +131,17 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     }
 
     private Completable handleException(Throwable throwable, HttpExecutionContext ctx) {
-        if (throwable instanceof ConnectorTimeoutException) {
-            ExecutionFailure failure = new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504)
-                .message(throwable.getMessage())
-                .key("ENDPOINT_TIMEOUT");
-            return ctx.interruptWith(failure);
+        if (
+            throwable instanceof TimeoutException ||
+            throwable instanceof NoStackTraceTimeoutException ||
+            throwable instanceof ReadTimeoutException ||
+            throwable instanceof ConnectTimeoutException
+        ) {
+            log.warn("Endpoint timeout for request: {}", ctx.request().path(), throwable);
+            return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504));
         }
+
+        log.error("connector error ", throwable);
         return Completable.error(throwable);
     }
 }
