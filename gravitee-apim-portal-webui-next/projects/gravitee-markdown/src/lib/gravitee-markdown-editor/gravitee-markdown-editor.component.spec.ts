@@ -20,6 +20,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { ConfigureTestingGraviteeMarkdownEditor, GraviteeMarkdownEditorHarness, GraviteeMarkdownEditorModule } from './public-api';
+import { GraviteeMarkdownViewerHarness } from '../gravitee-markdown-viewer/public-api';
 
 @Component({
   selector: 'gmd-test-component',
@@ -33,7 +34,8 @@ class TestComponent {
 describe('GraviteeMarkdownEditorComponent', () => {
   let component: TestComponent;
   let fixture: ComponentFixture<TestComponent>;
-  let harness: GraviteeMarkdownEditorHarness;
+  let editorHarness: GraviteeMarkdownEditorHarness;
+  let viewerHarness: GraviteeMarkdownViewerHarness;
   let loader: HarnessLoader;
 
   beforeEach(async () => {
@@ -47,7 +49,8 @@ describe('GraviteeMarkdownEditorComponent', () => {
     fixture = TestBed.createComponent(TestComponent);
     component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
-    harness = await loader.getHarness(GraviteeMarkdownEditorHarness);
+    editorHarness = await loader.getHarness(GraviteeMarkdownEditorHarness);
+    viewerHarness = await loader.getHarness(GraviteeMarkdownViewerHarness);
 
     fixture.detectChanges();
   });
@@ -58,31 +61,39 @@ describe('GraviteeMarkdownEditorComponent', () => {
     });
 
     it('should pass initial values to Monaco editor', async () => {
-      expect(await harness.getEditorValue()).toBe('');
-      expect(await harness.isEditorReadOnly()).toBe(false);
+      expect(await editorHarness.getEditorValue()).toBe('');
+      expect(await editorHarness.isEditorReadOnly()).toBe(false);
     });
   });
 
   describe('Value Flow from Form Control to Monaco Editor', () => {
     it('should pass value from writeValue to Monaco editor', async () => {
       const testValue = 'cats rule';
-      await harness.setEditorValue(testValue);
+      await editorHarness.setEditorValue(testValue);
 
-      expect(await harness.getEditorValue()).toBe(testValue);
+      expect(await editorHarness.getEditorValue()).toBe(testValue);
+    });
+
+    it('should pass value from editor to viewer', async () => {
+      const testValue = '# Hello, World!';
+      await editorHarness.setEditorValue(testValue);
+
+      expect(await editorHarness.getEditorValue()).toBe(testValue);
+      expect(await viewerHarness.getRenderedHtml()).toContain('<h1 id="hello-world">Hello, World!</h1>');
     });
   });
 
   describe('Disabled State Flow from Form Control to Monaco Editor', () => {
     it('should pass disabled state to Monaco editor as readOnly', async () => {
       component.editorControl.disable();
-      expect(await harness.isEditorReadOnly()).toBe(true);
+      expect(await editorHarness.isEditorReadOnly()).toBe(true);
     });
   });
 
   describe('Value Flow from Monaco Editor to Form Control', () => {
     it('should emit value changes from Monaco editor', async () => {
       const newValue = 'Updated content';
-      await harness.setEditorValue(newValue);
+      await editorHarness.setEditorValue(newValue);
 
       expect(component.editorControl.value).toBe(newValue);
     });
