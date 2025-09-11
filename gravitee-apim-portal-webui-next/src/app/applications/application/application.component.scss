@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-@use 'sass:map';
-@use '../../../scss/theme' as theme;
-
 :host {
   display: flex;
   flex-flow: column;
@@ -28,10 +24,6 @@
     display: flex;
     align-items: center;
     gap: 16px;
-
-    &__avatar {
-      display: #{theme.$application-avatar-display};
-    }
 
     &__content {
       display: flex;

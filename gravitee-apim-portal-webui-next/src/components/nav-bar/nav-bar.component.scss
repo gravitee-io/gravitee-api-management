@@ -33,6 +33,7 @@
   padding: 8px 16px;
   border-bottom: 1px solid app-theme.$nav-bar-border-color;
   background: app-theme.$nav-bar-background-color;
+  box-shadow: app-theme.$nav-bar-elevation;
   gap: 16px;
 }
 
@@ -47,8 +48,7 @@
       outlined-outline-color: transparent,
       outlined-label-text-color: app-theme.$nav-bar-link-color,
       filled-label-text-color: app-theme.$nav-bar-link-active-color,
-      //
-      filled-container-color: color-mix(in srgb, app-theme.$primary-main-color, transparent 90%),
+      filled-container-color: app-theme.$nav-bar-link-active-background-color,
       outlined-hover-state-layer-opacity: 7%,
       filled-horizontal-padding: app-theme.$nav-bar-link-padding,
       outlined-horizontal-padding: app-theme.$nav-bar-link-padding,
