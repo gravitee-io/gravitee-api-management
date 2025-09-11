@@ -51,6 +51,10 @@ export class MonacoEditorComponent implements OnDestroy {
     scrollBeyondLastLine: false,
     theme: 'vs',
     renderLineHighlight: 'none',
+    scrollbar: {
+      verticalScrollbarSize: 5,
+      horizontalScrollbarSize: 5,
+    },
   };
 
   constructor(
