@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect } from '@angular/core';
+import { Component, effect, input } from '@angular/core';
 import { HookParserEntry } from 'ngx-dynamic-hooks';
+
+import { GraviteeMarkdownViewerService } from './gravitee-markdown-viewer.service';
 
 @Component({
   selector: 'gmd-viewer',
   templateUrl: './gravitee-markdown-viewer.component.html',
-  styleUrl: './gravitee-markdown-viewer.component.scss',
   // eslint-disable-next-line @angular-eslint/prefer-standalone
   standalone: false,
 })
 export class GraviteeMarkdownViewerComponent {
+  content = input<string>('');
   renderedContent!: string;
   parsers: HookParserEntry[] = [];
 
-  constructor() {
+  constructor(private readonly markdownService: GraviteeMarkdownViewerService) {
     effect(() => {
-      const renderedContent = 'TODO: PARSE CONTENT WITH DEDICATED SERVICE IN NEXT COMMIT';
       const parser = new DOMParser();
-      const document = parser.parseFromString(renderedContent, 'text/html');
+      const parsedContent = this.markdownService.render(this.content());
+      const document = parser.parseFromString(parsedContent, 'text/html');
       this.renderedContent = document.body.outerHTML;
     });
   }

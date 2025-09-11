@@ -19,3 +19,9 @@ export * from './gravitee-markdown-viewer.module';
 
 // Components
 export * from './gravitee-markdown-viewer.component';
+
+// Services
+export * from './gravitee-markdown-viewer.service';
+
+// Testing
+export * from './gravitee-markdown-viewer.harness';
