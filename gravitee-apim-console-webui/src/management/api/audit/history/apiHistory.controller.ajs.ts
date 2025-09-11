@@ -495,7 +495,6 @@ class ApiHistoryControllerAjs {
     delete payload.labels;
     delete payload.entrypoints;
     delete payload.lifecycle_state;
-    delete payload.path_mappings;
     delete payload.workflow_state;
     delete payload.crossId;
     delete payload.definition_context;
@@ -518,6 +517,10 @@ class ApiHistoryControllerAjs {
     }
     if (payload.groups && isEmpty(payload.groups)) {
       delete payload.groups;
+    }
+
+    if (payload.path_mappings && isEmpty(payload.path_mappings)) {
+      delete payload.path_mappings;
     }
 
     payload.plans = (payload.plans ?? [])
@@ -562,7 +565,7 @@ class ApiHistoryControllerAjs {
       resources: eventPayloadDefinition.resources,
       path_mappings: eventPayloadDefinition.path_mappings,
       response_templates: eventPayloadDefinition.response_templates,
-      groups: this.listGroups(_event.groups),
+      groups: this.listGroups(eventPayloadDefinition.groups || _event.groups),
     };
     if (reorganizedEvent.flow_mode != null) {
       reorganizedEvent.flow_mode = reorganizedEvent.flow_mode.toLowerCase();
