@@ -83,6 +83,19 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void sould_search_not_admin_no_membership_no_pageable_no_sort_by() {
+        // When
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "unknown-member"));
+        // Then
+        assertAll(
+            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(0),
+            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(0),
+            () -> assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEmpty()
+        );
+    }
+
+    @Test
     void should_search_admin_with_pageable_no_sort_by() {
         Pageable pageable = new PageableImpl(2, 5);
         // When
