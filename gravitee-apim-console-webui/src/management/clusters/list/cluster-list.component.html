@@ -58,14 +58,32 @@
       <ng-container matColumnDef="bootstrapServer">
         <th mat-header-cell *matHeaderCellDef>Bootstrap Server</th>
         <td mat-cell *matCellDef="let element">
-          <span [innerHTML]="element.bootstrapServer"></span>
+          <ng-container
+            *gioPermission="
+              { anyOf: ['cluster-configuration-r'] };
+              roleContext: { role: 'CLUSTER', id: element.id };
+              else: bootstrapServerHidden
+            "
+          >
+            {{ element.bootstrapServer }}
+          </ng-container>
+          <ng-template #bootstrapServerHidden>
+            <span matTooltip="Permission required to view configuration details">••••••••</span>
+          </ng-template>
         </td>
       </ng-container>
 
       <ng-container matColumnDef="security">
         <th mat-header-cell *matHeaderCellDef>Security</th>
         <td mat-cell *matCellDef="let element">
-          <span [innerHTML]="element.security"></span>
+          <ng-container
+            *gioPermission="{ anyOf: ['cluster-configuration-r'] }; roleContext: { role: 'CLUSTER', id: element.id }; else: securityHidden"
+          >
+            {{ element.security }}
+          </ng-container>
+          <ng-template #securityHidden>
+            <span matTooltip="Permission required to view configuration details">••••••••</span>
+          </ng-template>
         </td>
       </ng-container>
 
