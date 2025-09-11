@@ -47,6 +47,7 @@ export class MonacoEditorComponent implements OnDestroy {
     automaticLayout: true,
     scrollBeyondLastLine: false,
     theme: 'vs',
+    renderLineHighlight: 'none',
   };
 
   constructor(
