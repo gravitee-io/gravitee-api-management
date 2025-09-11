@@ -12601,6 +12601,7 @@ __metadata:
     marked-highlight: "npm:2.2.1"
     monaco-editor: "npm:0.50.0"
     ng-packagr: "npm:19.2.0"
+    ngx-dynamic-hooks: "npm:3.1.2"
     ngx-infinite-scroll: "npm:19.0.0"
     prettier: "npm:3.5.3"
     prettier-eslint: "npm:16.4.2"
@@ -16008,6 +16009,20 @@ __metadata:
   bin:
     ng-packagr: cli/main.js
   checksum: 10c0/69fec8f09c5d4da4889332f0f7a1816f290a13cdf2c91cdabcbf6366a764da580fbfcd33280e38179c59f251d1196572918acece20fd2c57548b5bab125a90e7
+  languageName: node
+  linkType: hard
+
+"ngx-dynamic-hooks@npm:3.1.2":
+  version: 3.1.2
+  resolution: "ngx-dynamic-hooks@npm:3.1.2"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/common": ">=17"
+    "@angular/core": ">=17"
+    "@angular/platform-browser": ">=17"
+    rxjs: ">=7"
+  checksum: 10c0/99d1b3b07f12aabd31fe1a5b3f763232451f41d35fea9b08ab79649e4e5ec6b4e10a12d9f287baf1807bf755f8a585a61a124eb080e1eb7228b64d9f96d73dc4
   languageName: node
   linkType: hard
 

@@ -4,5 +4,6 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
+  "allowedNonPeerDependencies": ["ngx-dynamic-hooks"],
   "assets": ["index.scss", "src/public-api.scss", "src/scss/**/*.scss", "src/lib/**/!(*.component).scss"]
 }
