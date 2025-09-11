@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, switchMap, takeUntil, tap, finalize } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -88,9 +88,14 @@ export class TasksComponent implements OnInit, OnDestroy {
             })
             .sort((task1, task2) => task2.createdAt - task1.createdAt);
         }),
+        finalize(() => {
+          this.loading = false;
+        }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => (this.loading = false));
+      .subscribe({
+        error: (e) => this.snackBarService.error(e.error?.message ?? 'Failed to load tasks'),
+      });
   }
 
   ngOnDestroy(): void {
