@@ -357,6 +357,33 @@ export class ApiAnalyticsWidgetService {
     histogramResponse: HistogramAnalyticsResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
+    if (widgetConfig.type === 'stats') {
+      if (!histogramResponse.values || histogramResponse.values.length === 0) {
+        return this.createEmptyConfig(widgetConfig);
+      }
+
+      const firstValue = histogramResponse.values[0];
+
+      if (!firstValue.buckets || firstValue.buckets.length === 0 || !firstValue.buckets[0].data) {
+        return this.createEmptyConfig(widgetConfig);
+      }
+
+      // Get the latest value from the data array (usually the last element)
+      const dataArray = firstValue.buckets[0].data;
+      const stats = dataArray.length > 0 ? dataArray[dataArray.length - 1] : 0;
+
+      return {
+        title: widgetConfig.title,
+        tooltip: widgetConfig.tooltip,
+        state: 'success',
+        widgetType: 'stats' as const,
+        widgetData: {
+          stats: stats,
+          statsUnit: '',
+        },
+      };
+    }
+
     if (widgetConfig.type === 'line') {
       const hasMultipleAggregations = widgetConfig.aggregations && widgetConfig.aggregations.length > 1;
 

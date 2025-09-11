@@ -28,8 +28,13 @@ import {
   ApiAnalyticsNativeFilterBarComponent,
   ApiAnalyticsNativeFilters,
 } from '../components/api-analytics-native-filter-bar/api-analytics-native-filter-bar.component';
-import { ApiAnalyticsWidgetComponent, ApiAnalyticsWidgetConfig } from '../components/api-analytics-widget/api-analytics-widget.component';
+import {
+  ApiAnalyticsWidgetComponent,
+  ApiAnalyticsWidgetConfig,
+  ApiAnalyticsWidgetType,
+} from '../components/api-analytics-widget/api-analytics-widget.component';
 import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../api-analytics-widget.service';
+import { ApiAnalyticsDashboardWidgetConfig } from '../api-analytics-proxy/api-analytics-proxy.component';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 import { GioWidgetLayoutState } from '../../../../../shared/components/gio-widget-layout/gio-widget-layout.component';
@@ -70,6 +75,87 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
 
   public activeFilters: Signal<ApiAnalyticsNativeFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
 
+  private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
+    {
+      type: 'stats' as ApiAnalyticsWidgetType,
+      apiId: this.apiId,
+      title: 'Downstream Active Connections',
+      tooltip: 'Number of active downstream connections',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: 'VALUE' as any,
+          field: 'downstream-active-connections' as any,
+        },
+      ],
+    },
+    {
+      type: 'stats' as ApiAnalyticsWidgetType,
+      apiId: this.apiId,
+      title: 'Upstream Active Connections',
+      tooltip: 'Number of active upstream connections',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: 'VALUE' as any,
+          field: 'upstream-active-connections' as any,
+        },
+      ],
+    },
+    {
+      type: 'stats' as ApiAnalyticsWidgetType,
+      apiId: this.apiId,
+      title: 'Messages Produced from Clients',
+      tooltip: 'Messages published from clients to the gateway',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: 'DELTA' as any,
+          field: 'downstream-publish-messages-total' as any,
+        },
+      ],
+    },
+    {
+      type: 'stats' as ApiAnalyticsWidgetType,
+      apiId: this.apiId,
+      title: 'Messages Produced to Broker',
+      tooltip: 'Messages published from the gateway to the broker',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: 'DELTA' as any,
+          field: 'upstream-publish-messages-total' as any,
+        },
+      ],
+    },
+    {
+      type: 'stats' as ApiAnalyticsWidgetType,
+      apiId: this.apiId,
+      title: 'Messages Consumed from Broker',
+      tooltip: 'Messages subscribed/consumed from the broker by the gateway',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: 'DELTA' as any,
+          field: 'upstream-subscribe-messages-total' as any,
+        },
+      ],
+    },
+    {
+      type: 'stats' as ApiAnalyticsWidgetType,
+      apiId: this.apiId,
+      title: 'Messages Consumed by Clients',
+      tooltip: 'Messages delivered from the gateway to clients (client subscriptions)',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: 'DELTA' as any,
+          field: 'downstream-subscribe-messages-total' as any,
+        },
+      ],
+    },
+  ];
+
   apiPlans$ = this.planService
     .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
     .pipe(
@@ -88,16 +174,11 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Initialize widgets with mock data
-    this.topRowTransformed$ = [
-      of(this.createMockStatsWidget('Downstream Active Connections', 856, '')),
-      of(this.createMockStatsWidget('Upstream Active Connections', 391, '')),
-      of(this.createMockStatsWidget('Messages Produced from Clients', 1234567, '')),
-      of(this.createMockStatsWidget('Messages Produced to Broker', 2345678, '')),
-      of(this.createMockStatsWidget('Messages Consumed from Broker', 987654, '')),
-      of(this.createMockStatsWidget('Messages Consumed to Clients', 876543, '')),
-    ];
+    this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
+      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
+    });
 
+    // Initialize other widgets with mock data (to be replaced later)
     this.leftColumnTransformed$ = [
       of(this.createMockLineWidget('Message Production Rate', 'Message production rate over time')),
       of(this.createMockLineWidget('Data Production Rate', 'Data production rate over time')),
