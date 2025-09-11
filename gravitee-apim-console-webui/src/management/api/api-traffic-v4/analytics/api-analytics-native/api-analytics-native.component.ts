@@ -28,11 +28,7 @@ import {
   ApiAnalyticsNativeFilterBarComponent,
   ApiAnalyticsNativeFilters,
 } from '../components/api-analytics-native-filter-bar/api-analytics-native-filter-bar.component';
-import {
-  ApiAnalyticsWidgetComponent,
-  ApiAnalyticsWidgetConfig,
-  ApiAnalyticsWidgetType,
-} from '../components/api-analytics-widget/api-analytics-widget.component';
+import { ApiAnalyticsWidgetComponent, ApiAnalyticsWidgetConfig } from '../components/api-analytics-widget/api-analytics-widget.component';
 import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../api-analytics-widget.service';
 import { ApiAnalyticsDashboardWidgetConfig } from '../api-analytics-proxy/api-analytics-proxy.component';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
@@ -40,6 +36,7 @@ import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.servic
 import { GioWidgetLayoutState } from '../../../../../shared/components/gio-widget-layout/gio-widget-layout.component';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { GioChartBarData, GioChartBarOptions } from '../../../../../shared/components/gio-chart-bar/gio-chart-bar.component';
+import { AggregationTypes, AggregationFields } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
 
 interface QueryParamsBase {
   from?: string;
@@ -77,80 +74,80 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
 
   private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
-      type: 'stats' as ApiAnalyticsWidgetType,
+      type: 'stats',
       apiId: this.apiId,
       title: 'Downstream Active Connections',
       tooltip: 'Number of active downstream connections',
       analyticsType: 'HISTOGRAM',
       aggregations: [
         {
-          type: 'VALUE' as any,
-          field: 'downstream-active-connections' as any,
+          type: AggregationTypes.VALUE,
+          field: AggregationFields.DOWNSTREAM_ACTIVE_CONNECTIONS,
         },
       ],
     },
     {
-      type: 'stats' as ApiAnalyticsWidgetType,
+      type: 'stats',
       apiId: this.apiId,
       title: 'Upstream Active Connections',
       tooltip: 'Number of active upstream connections',
       analyticsType: 'HISTOGRAM',
       aggregations: [
         {
-          type: 'VALUE' as any,
-          field: 'upstream-active-connections' as any,
+          type: AggregationTypes.VALUE,
+          field: AggregationFields.UPSTREAM_ACTIVE_CONNECTIONS,
         },
       ],
     },
     {
-      type: 'stats' as ApiAnalyticsWidgetType,
+      type: 'stats',
       apiId: this.apiId,
       title: 'Messages Produced from Clients',
       tooltip: 'Messages published from clients to the gateway',
       analyticsType: 'HISTOGRAM',
       aggregations: [
         {
-          type: 'DELTA' as any,
-          field: 'downstream-publish-messages-total' as any,
+          type: AggregationTypes.DELTA,
+          field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
         },
       ],
     },
     {
-      type: 'stats' as ApiAnalyticsWidgetType,
+      type: 'stats',
       apiId: this.apiId,
       title: 'Messages Produced to Broker',
       tooltip: 'Messages published from the gateway to the broker',
       analyticsType: 'HISTOGRAM',
       aggregations: [
         {
-          type: 'DELTA' as any,
-          field: 'upstream-publish-messages-total' as any,
+          type: AggregationTypes.DELTA,
+          field: AggregationFields.UPSTREAM_PUBLISH_MESSAGES_TOTAL,
         },
       ],
     },
     {
-      type: 'stats' as ApiAnalyticsWidgetType,
+      type: 'stats',
       apiId: this.apiId,
       title: 'Messages Consumed from Broker',
       tooltip: 'Messages subscribed/consumed from the broker by the gateway',
       analyticsType: 'HISTOGRAM',
       aggregations: [
         {
-          type: 'DELTA' as any,
-          field: 'upstream-subscribe-messages-total' as any,
+          type: AggregationTypes.DELTA,
+          field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
         },
       ],
     },
     {
-      type: 'stats' as ApiAnalyticsWidgetType,
+      type: 'stats',
       apiId: this.apiId,
       title: 'Messages Consumed by Clients',
       tooltip: 'Messages delivered from the gateway to clients (client subscriptions)',
       analyticsType: 'HISTOGRAM',
       aggregations: [
         {
-          type: 'DELTA' as any,
-          field: 'downstream-subscribe-messages-total' as any,
+          type: AggregationTypes.DELTA,
+          field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
         },
       ],
     },

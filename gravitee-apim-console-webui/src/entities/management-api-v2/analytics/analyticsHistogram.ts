@@ -19,6 +19,8 @@ export enum AggregationTypes {
   MIN = 'MIN',
   AVG = 'AVG',
   FIELD = 'FIELD',
+  VALUE = 'VALUE',
+  DELTA = 'DELTA',
 }
 
 export enum AggregationFields {
@@ -26,6 +28,12 @@ export enum AggregationFields {
   STATUS = 'status',
   GATEWAY_RESPONSE_TIME_MS = 'gateway-response-time-ms',
   ENDPOINT_RESPONSE_TIME_MS = 'endpoint-response-time-ms',
+  DOWNSTREAM_ACTIVE_CONNECTIONS = 'downstream-active-connections',
+  UPSTREAM_ACTIVE_CONNECTIONS = 'upstream-active-connections',
+  DOWNSTREAM_PUBLISH_MESSAGES_TOTAL = 'downstream-publish-messages-total',
+  UPSTREAM_PUBLISH_MESSAGES_TOTAL = 'upstream-publish-messages-total',
+  UPSTREAM_SUBSCRIBE_MESSAGES_TOTAL = 'upstream-subscribe-messages-total',
+  DOWNSTREAM_SUBSCRIBE_MESSAGES_TOTAL = 'downstream-subscribe-messages-total',
 }
 
 export interface AnalyticsHistogramAggregation {
