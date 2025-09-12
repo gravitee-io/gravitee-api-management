@@ -74,80 +74,59 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
 
   private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
-      type: 'stats',
+      type: 'multi-stats',
       apiId: this.apiId,
-      title: 'Downstream Active Connections',
-      tooltip: 'Number of active downstream connections',
+      title: 'Active Connections',
+      tooltip: 'Number of active connections from clients and to broker',
       analyticsType: 'HISTOGRAM',
       aggregations: [
         {
           type: AggregationTypes.VALUE,
           field: AggregationFields.DOWNSTREAM_ACTIVE_CONNECTIONS,
+          label: 'From Clients',
         },
-      ],
-    },
-    {
-      type: 'stats',
-      apiId: this.apiId,
-      title: 'Upstream Active Connections',
-      tooltip: 'Number of active upstream connections',
-      analyticsType: 'HISTOGRAM',
-      aggregations: [
         {
           type: AggregationTypes.VALUE,
           field: AggregationFields.UPSTREAM_ACTIVE_CONNECTIONS,
+          label: 'To Broker',
         },
       ],
     },
     {
-      type: 'stats',
+      type: 'multi-stats',
       apiId: this.apiId,
-      title: 'Messages Produced from Clients',
-      tooltip: 'Messages published from clients to the gateway',
+      title: 'Messages Produced',
+      tooltip: 'Messages published from clients to gateway and from gateway to broker',
       analyticsType: 'HISTOGRAM',
       aggregations: [
         {
           type: AggregationTypes.DELTA,
           field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
+          label: 'From Clients',
         },
-      ],
-    },
-    {
-      type: 'stats',
-      apiId: this.apiId,
-      title: 'Messages Produced to Broker',
-      tooltip: 'Messages published from the gateway to the broker',
-      analyticsType: 'HISTOGRAM',
-      aggregations: [
         {
           type: AggregationTypes.DELTA,
           field: AggregationFields.UPSTREAM_PUBLISH_MESSAGES_TOTAL,
+          label: 'To Broker',
         },
       ],
     },
     {
-      type: 'stats',
+      type: 'multi-stats',
       apiId: this.apiId,
-      title: 'Messages Consumed from Broker',
-      tooltip: 'Messages subscribed/consumed from the broker by the gateway',
+      title: 'Messages Consumed',
+      tooltip: 'Messages consumed from broker by gateway and delivered to clients',
       analyticsType: 'HISTOGRAM',
       aggregations: [
         {
           type: AggregationTypes.DELTA,
           field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
+          label: 'From Broker',
         },
-      ],
-    },
-    {
-      type: 'stats',
-      apiId: this.apiId,
-      title: 'Messages Consumed by Clients',
-      tooltip: 'Messages delivered from the gateway to clients (client subscriptions)',
-      analyticsType: 'HISTOGRAM',
-      aggregations: [
         {
           type: AggregationTypes.DELTA,
           field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
+          label: 'To Clients',
         },
       ],
     },

@@ -24,6 +24,7 @@ import { ApiAnalyticsWidgetHarness } from './api-analytics-widget.harness';
 
 import { GioTestingModule } from '../../../../../../shared/testing';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
+import { MultiStatsWidgetData } from '../../../../../../shared/components/analytics-multi-stats/analytics-multi-stats.component';
 
 @Component({
   selector: 'test-host',
@@ -988,6 +989,211 @@ describe('ApiAnalyticsWidgetComponent', () => {
       expect(await harness.getTitleText()).toBe('Test Stats Widget');
       const statsHarness = await harness.getStatsComponentHarness();
       expect(await statsHarness.getDisplayedValue()).toBe('-');
+    });
+  });
+
+  describe('Multi-Stats Widget', () => {
+    beforeEach(async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Multi-Stats Widget',
+        state: 'loading',
+        widgetType: 'multi-stats',
+        widgetData: { items: [] },
+      });
+      fixture.detectChanges();
+      harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+      harness = await harnessLoader.getHarness(ApiAnalyticsWidgetHarness);
+    });
+
+    it('should show loading state', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Multi-Stats Widget',
+        state: 'loading',
+        widgetType: 'multi-stats',
+        widgetData: { items: [] },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(true);
+      expect(await harness.getTitleText()).toBe('Test Multi-Stats Widget');
+    });
+
+    it('should display multiple stats with labels', async () => {
+      const multiStatsData: MultiStatsWidgetData = {
+        items: [
+          { label: 'Downstream', value: 1247, unit: '' },
+          { label: 'Upstream', value: 892, unit: '' },
+        ],
+      };
+
+      fixture.componentRef.setInput('config', {
+        title: 'Active Connections',
+        state: 'success',
+        widgetType: 'multi-stats',
+        widgetData: multiStatsData,
+      });
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(false);
+      expect(await harness.getTitleText()).toBe('Active Connections');
+
+      const multiStatsHarness = await harness.getMultiStatsComponentHarness();
+      expect(await multiStatsHarness.getStatsItemCount()).toBe(2);
+
+      const displayedValues = await multiStatsHarness.getAllStatsValues();
+      expect(displayedValues).toEqual(['1,247', '892']);
+
+      const displayedLabels = await multiStatsHarness.getAllStatsLabels();
+      expect(displayedLabels).toEqual(['Downstream', 'Upstream']);
+    });
+
+    it('should display stats with units', async () => {
+      const multiStatsData: MultiStatsWidgetData = {
+        items: [
+          { label: 'From Clients', value: 1500, unit: ' msgs' },
+          { label: 'To Broker', value: 1450, unit: ' msgs' },
+        ],
+      };
+
+      fixture.componentRef.setInput('config', {
+        title: 'Messages Produced',
+        state: 'success',
+        widgetType: 'multi-stats',
+        widgetData: multiStatsData,
+      });
+      fixture.detectChanges();
+
+      const multiStatsHarness = await harness.getMultiStatsComponentHarness();
+      const displayedValues = await multiStatsHarness.getAllStatsValues();
+      expect(displayedValues).toEqual(['1,500 msgs', '1,450 msgs']);
+    });
+
+    it('should handle zero values', async () => {
+      const multiStatsData: MultiStatsWidgetData = {
+        items: [
+          { label: 'Downstream', value: 0, unit: '' },
+          { label: 'Upstream', value: 0, unit: '' },
+        ],
+      };
+
+      fixture.componentRef.setInput('config', {
+        title: 'Active Connections',
+        state: 'success',
+        widgetType: 'multi-stats',
+        widgetData: multiStatsData,
+      });
+      fixture.detectChanges();
+
+      const multiStatsHarness = await harness.getMultiStatsComponentHarness();
+      const displayedValues = await multiStatsHarness.getAllStatsValues();
+      expect(displayedValues).toEqual(['0', '0']);
+    });
+
+    it('should handle large numbers with formatting', async () => {
+      const multiStatsData: MultiStatsWidgetData = {
+        items: [
+          { label: 'Downstream', value: 1234567, unit: '' },
+          { label: 'Upstream', value: 987654, unit: '' },
+        ],
+      };
+
+      fixture.componentRef.setInput('config', {
+        title: 'Active Connections',
+        state: 'success',
+        widgetType: 'multi-stats',
+        widgetData: multiStatsData,
+      });
+      fixture.detectChanges();
+
+      const multiStatsHarness = await harness.getMultiStatsComponentHarness();
+      const displayedValues = await multiStatsHarness.getAllStatsValues();
+      expect(displayedValues).toEqual(['1,234,567', '987,654']);
+    });
+
+    it('should handle null values', async () => {
+      const multiStatsData: MultiStatsWidgetData = {
+        items: [
+          { label: 'Downstream', value: null as any, unit: '' },
+          { label: 'Upstream', value: 892, unit: '' },
+        ],
+      };
+
+      fixture.componentRef.setInput('config', {
+        title: 'Active Connections',
+        state: 'success',
+        widgetType: 'multi-stats',
+        widgetData: multiStatsData,
+      });
+      fixture.detectChanges();
+
+      const multiStatsHarness = await harness.getMultiStatsComponentHarness();
+      const displayedValues = await multiStatsHarness.getAllStatsValues();
+      expect(displayedValues).toEqual(['-', '892']);
+    });
+
+    it('should handle empty items array', async () => {
+      const multiStatsData: MultiStatsWidgetData = {
+        items: [],
+      };
+
+      fixture.componentRef.setInput('config', {
+        title: 'Active Connections',
+        state: 'success',
+        widgetType: 'multi-stats',
+        widgetData: multiStatsData,
+      });
+      fixture.detectChanges();
+
+      const multiStatsHarness = await harness.getMultiStatsComponentHarness();
+      expect(await multiStatsHarness.getStatsItemCount()).toBe(0);
+    });
+
+    it('should show error state with errors', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Multi-Stats Widget',
+        state: 'error',
+        errors: ['Test error message'],
+        widgetType: 'multi-stats',
+        widgetData: { items: [] },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.hasError()).toBe(true);
+      expect(await harness.getErrorText()).toBe('Test error message');
+      expect(await harness.getTitleText()).toBe('Test Multi-Stats Widget');
+    });
+
+    it('should show tooltip when provided', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Multi-Stats Widget',
+        state: 'success',
+        tooltip: 'Test tooltip for multi-stats',
+        widgetType: 'multi-stats',
+        widgetData: { items: [{ label: 'Test', value: 100, unit: '' }] },
+      });
+      fixture.detectChanges();
+
+      expect(await harness.hasTooltipIcon()).toBe(true);
+      expect(await harness.getTitleText()).toBe('Test Multi-Stats Widget');
+    });
+
+    it('should handle single item', async () => {
+      const multiStatsData: MultiStatsWidgetData = {
+        items: [{ label: 'Single Item', value: 42, unit: ' units' }],
+      };
+
+      fixture.componentRef.setInput('config', {
+        title: 'Single Multi-Stats Widget',
+        state: 'success',
+        widgetType: 'multi-stats',
+        widgetData: multiStatsData,
+      });
+      fixture.detectChanges();
+
+      const multiStatsHarness = await harness.getMultiStatsComponentHarness();
+      expect(await multiStatsHarness.getStatsItemCount()).toBe(1);
+      expect(await multiStatsHarness.getStatsValueAt(0)).toBe('42 units');
+      expect(await multiStatsHarness.getStatsLabelAt(0)).toBe('Single Item');
     });
   });
 });
