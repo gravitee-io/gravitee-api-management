@@ -55,4 +55,24 @@ describe('PortalPagesService', () => {
       req.flush(fakePortalPage);
     });
   });
+
+  describe('updatePortalPage', () => {
+    it('should call the API', (done) => {
+      const fakePortalPage = fakePortalPageWithDetails({ content: 'test' });
+      const toUpdate = { content: 'test' };
+
+      portalPagesService.updatePortalPage(fakePortalPage.id, toUpdate).subscribe((response) => {
+        expect(response).toStrictEqual(fakePortalPage);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${fakePortalPage.id}`,
+      });
+
+      expect(req.request.body).toEqual(toUpdate);
+      req.flush(fakePortalPage);
+    });
+  });
 });

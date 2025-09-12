@@ -20,6 +20,8 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError } from 'rxjs/operators';
 import { EMPTY, Observable } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -29,7 +31,7 @@ import { PortalPageWithDetails } from '../../entities/portal/portal-page-with-de
 
 @Component({
   selector: 'homepage',
-  imports: [PortalHeaderComponent, ReactiveFormsModule, GraviteeMarkdownEditorModule],
+  imports: [PortalHeaderComponent, ReactiveFormsModule, GraviteeMarkdownEditorModule, MatButtonModule, MatTooltipModule],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.scss',
 })
@@ -58,6 +60,20 @@ export class HomepageComponent {
         this.contentControl.enable();
       }
     });
+  }
+
+  updatePortalPage(): void {
+    this.portalPagesService
+      .updatePortalPage(this.portalHomepage().id, {
+        content: this.contentControl.value,
+      })
+      .pipe(
+        catchError(() => {
+          this.snackbarService.error('An error occurred while updating the homepage');
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   private getPortalHomepage(): Observable<PortalPageWithDetails> {

@@ -16,14 +16,19 @@
 
 -->
 <div class="portal-header">
-  <div>
-    <div class="mat-h2">{{ title }}</div>
-    @if (subtitle) {
-      <div class="portal-header__subtitle mat-body-2">{{ subtitle }}</div>
+  <div class="portal-header__content">
+    <div>
+      <div class="mat-h2">{{ title() }}</div>
+      @if (subtitle()) {
+        <div class="portal-header__subtitle mat-body-2">{{ subtitle() }}</div>
+      }
+    </div>
+    @if (showActions()) {
+      <ng-content select="[additionalActions]" />
     }
   </div>
 
-  @if (showTechPreviewMessage) {
+  @if (showTechPreviewMessage()) {
     <gio-banner-info>
       {{ techPreviewMessage }}
     </gio-banner-info>
