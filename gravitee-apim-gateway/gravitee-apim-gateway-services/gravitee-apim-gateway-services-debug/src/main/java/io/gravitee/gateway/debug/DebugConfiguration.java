@@ -318,7 +318,8 @@ public class DebugConfiguration {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
-        Vertx vertx
+        Vertx vertx,
+        @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
     ) {
         return new DebugHttpRequestDispatcher(
             gatewayConfiguration,
@@ -331,7 +332,8 @@ public class DebugConfiguration {
             notFoundProcessorChainFactory,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
-            vertx
+            vertx,
+            warningsEnabled
         );
     }
 

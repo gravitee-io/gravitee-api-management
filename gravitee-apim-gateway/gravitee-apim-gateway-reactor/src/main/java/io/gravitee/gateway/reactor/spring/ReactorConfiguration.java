@@ -163,7 +163,8 @@ public class ReactorConfiguration {
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
         Vertx vertx,
-        TracingContext tracingContext
+        TracingContext tracingContext,
+        @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
     ) {
         return new DefaultHttpRequestDispatcher(
             gatewayConfiguration,
@@ -177,7 +178,8 @@ public class ReactorConfiguration {
             tracingContext,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
-            vertx
+            vertx,
+            warningsEnabled
         );
     }
 
@@ -185,9 +187,10 @@ public class ReactorConfiguration {
     public TcpSocketDispatcher tcpSocketDispatcher(
         TcpAcceptorResolver tcpAcceptorResolver,
         ComponentProvider globalComponentProvider,
-        IdGenerator idGenerator
+        IdGenerator idGenerator,
+        @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
     ) {
-        return new DefaultTcpSocketDispatcher(tcpAcceptorResolver, globalComponentProvider, idGenerator);
+        return new DefaultTcpSocketDispatcher(tcpAcceptorResolver, globalComponentProvider, idGenerator, warningsEnabled);
     }
 
     @Bean
