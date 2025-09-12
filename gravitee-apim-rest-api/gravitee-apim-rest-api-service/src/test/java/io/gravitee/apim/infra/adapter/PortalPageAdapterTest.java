@@ -31,12 +31,24 @@ class PortalPageAdapterTest {
         repoPage.setContent("markdown content");
         var corePage = PortalPageAdapter.INSTANCE.toEntity(repoPage);
         assertThat(corePage).isNotNull();
-        assertThat(corePage.id().toString()).isEqualTo("123e4567-e89b-12d3-a456-426614174000");
-        assertThat(corePage.pageContent().content()).isEqualTo("markdown content");
+        assertThat(corePage.getId().toString()).isEqualTo("123e4567-e89b-12d3-a456-426614174000");
+        assertThat(corePage.getPageContent().content()).isEqualTo("markdown content");
     }
 
     @Test
     void should_return_null_when_repository_page_is_null() {
         assertThat(PortalPageAdapter.INSTANCE.toEntity(null)).isNull();
+    }
+
+    @Test
+    void should_convert_core_page_to_repository_page() {
+        var corePage = new io.gravitee.apim.core.portal_page.model.PortalPage(
+            io.gravitee.apim.core.portal_page.model.PageId.of("123e4567-e89b-12d3-a456-426614174000"),
+            new io.gravitee.apim.core.portal_page.model.GraviteeMarkdown("markdown content")
+        );
+        var repoPage = PortalPageAdapter.INSTANCE.toRepository(corePage);
+        assertThat(repoPage).isNotNull();
+        assertThat(repoPage.getId()).isEqualTo("123e4567-e89b-12d3-a456-426614174000");
+        assertThat(repoPage.getContent()).isEqualTo("markdown content");
     }
 }

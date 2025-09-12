@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -35,4 +34,6 @@ public interface PortalPageContextRepository extends CrudRepository<PortalPageCo
      */
     List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId)
         throws TechnicalException;
+
+    PortalPageContext findByPageId(String string);
 }
