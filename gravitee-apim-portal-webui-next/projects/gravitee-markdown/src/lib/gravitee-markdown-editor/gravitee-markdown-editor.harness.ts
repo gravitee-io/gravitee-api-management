@@ -49,7 +49,10 @@ export class GraviteeMarkdownEditorHarness extends ComponentHarness {
   public async setEditorValue(value: string): Promise<void> {
     const input = await this.getMockMonacoEditorInput();
     await input.clear();
-    await input.sendKeys(value);
+
+    if (value && value.length > 0 && value.trim().length > 0) {
+      await input.sendKeys(value);
+    }
   }
 
   public async getEditorValue(): Promise<string> {

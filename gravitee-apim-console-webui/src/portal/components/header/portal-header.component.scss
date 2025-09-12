@@ -11,4 +11,9 @@
   &__subtitle {
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
   }
+
+  &__content {
+    display: flex;
+    justify-content: space-between;
+  }
 }
