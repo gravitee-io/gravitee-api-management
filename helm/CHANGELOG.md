@@ -8,6 +8,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Allow customization on federation ingress. BREAKING CHANGE: now the federation ingress will not inherit anymore some management-api ingress definition (annotation, hosts, and tls)
 - Make embedded MongoDB and Elastic database deployable on OpenShift cluster. BREAKING CHANGE: as we upgrade to newer release of mongo and elastic dependencies
+- Add ability to activate newtai
 - BREAKING CHANGE: Disable `logging.file.enabled` by default for OpenShift compatibility
 
 ### 4.8.0
