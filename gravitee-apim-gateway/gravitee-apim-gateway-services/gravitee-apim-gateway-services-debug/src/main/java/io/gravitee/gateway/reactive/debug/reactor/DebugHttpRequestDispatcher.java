@@ -54,7 +54,8 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
-        Vertx vertx
+        Vertx vertx,
+        boolean warningsEnabled
     ) {
         super(
             gatewayConfiguration,
@@ -68,7 +69,8 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
             TracingContext.noop(),
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
-            vertx
+            vertx,
+            warningsEnabled
         );
     }
 
