@@ -573,6 +573,9 @@ data:
         config-path: "${gravitee.home}/config/hazelcast-cache.xml"
     {{- end }}
     {{- end }}
+    newtai:
+      elgen:
+        enabled: {{ .Values.api.newtai.elgen.enabled | default "false" }}
 
     {{- if .Values.api.federation.enabled }}
   hazelcast-cluster.xml: |-
