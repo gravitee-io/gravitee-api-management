@@ -51,6 +51,7 @@ import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.exception.MessageProcessingException;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
@@ -60,12 +61,19 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpHeaders;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -490,6 +498,65 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             postRequestedFor(urlPathEqualTo(callbackPath))
                 .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-oauth2-server-second"))
         );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_ignore_when_connection_is_drained(@InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api)
+        throws JsonProcessingException {
+        try {
+            final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
+
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+
+            // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+            configureWebhookConcurrency(api, 1);
+            configureMockEndpoint(api, 10, Integer.MAX_VALUE);
+            deploy(api);
+            final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+            final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+
+            wiremock.resetAll();
+            wiremock.stubFor(post(callbackPath).willReturn(ok()));
+
+            final AtomicBoolean first = new AtomicBoolean(true);
+
+            webhookActions
+                .dispatchSubscription(subscription)
+                .mergeWith(
+                    Completable.fromRunnable(() -> {
+                        // Triggers the first message.
+                        testScheduler.advanceTimeBy(10, MILLISECONDS);
+                        testScheduler.triggerActions();
+                    })
+                )
+                .takeUntil(
+                    webhookActions.waitForRequestsOnCallback(
+                        3,
+                        callbackPath,
+                        () -> {
+                            // When a message is received by the webhook, request a drain (should have no effect)
+                            connectionDrainManager.requestDrain();
+
+                            if (first.compareAndSet(true, false)) {
+                                // Triggers 2 more messages after the first one.
+                                testScheduler.advanceTimeBy(20, MILLISECONDS);
+                                testScheduler.triggerActions();
+                            }
+                        }
+                    )
+                )
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertComplete();
+
+            // Should receive 3 messages, despite the connection drain which should be ignored by the webhook entrypoint.
+            webhookActions.verifyMessages(3, callbackPath, "message");
+        } finally {
+            RxJavaPlugins.reset();
+        }
     }
 
     @Test

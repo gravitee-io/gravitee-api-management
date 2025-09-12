@@ -28,17 +28,21 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -73,6 +77,7 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     @DeployApi("/apis/v4/messages/sse/sse-entrypoint-mock-endpoint.json")
     void should_get_messages_with_default_configuration(HttpClient httpClient) {
         startSseStream(httpClient)
+            .test()
             // expect 3 chunks: retry, two messages
             .awaitCount(3)
             .assertValueAt(
@@ -99,9 +104,25 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     }
 
     @Test
+    @DeployApi("/apis/v4/messages/sse/sse-entrypoint-mock-endpoint.json")
+    void should_emit_stop_message_when_connection_is_drained(HttpClient httpClient) {
+        final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
+
+        startSseStream(httpClient)
+            .doAfterNext(item -> connectionDrainManager.requestDrain())
+            .lastElement()
+            .test()
+            // Expect the flow to finish because of the connection drain.
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValue(buffer -> buffer.toString().contains("event: goaway"));
+    }
+
+    @Test
     @DeployApi("/apis/v4/messages/sse/sse-entrypoint-with-comments-mock-endpoint.json")
     void should_get_messages_with_default_comments(HttpClient httpClient) {
         startSseStream(httpClient)
+            .test()
             // expect 3 chunks: retry, two messages
             .awaitCount(3)
             .assertValueAt(
@@ -131,6 +152,7 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     @DeployApi("/apis/v4/messages/sse/sse-entrypoint-mock-endpoint-heartbeat.json")
     void should_get_message_and_heart_beat(HttpClient httpClient) {
         startSseStream(httpClient)
+            .test()
             // expect 3 chunks: retry,  1 heartbeat, 1 message,
             .awaitCount(3)
             .assertValueAt(
@@ -157,7 +179,7 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     }
 
     @NotNull
-    private static TestSubscriber<Buffer> startSseStream(HttpClient httpClient) {
+    private static Flowable<Buffer> startSseStream(HttpClient httpClient) {
         return httpClient
             .rxRequest(HttpMethod.GET, "/test")
             .flatMap(request -> {
@@ -167,7 +189,6 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
             .flatMapPublisher(response -> {
                 assertThat(response.statusCode()).isEqualTo(200);
                 return response.toFlowable();
-            })
-            .test();
+            });
     }
 }
