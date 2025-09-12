@@ -17,6 +17,7 @@ import { Component, effect, input } from '@angular/core';
 import { HookParserEntry } from 'ngx-dynamic-hooks';
 
 import { GraviteeMarkdownViewerService } from './gravitee-markdown-viewer.service';
+import { prefixStripperParser } from '../components/prefix-stripper.parser';
 
 @Component({
   selector: 'gmd-viewer',
@@ -27,7 +28,7 @@ import { GraviteeMarkdownViewerService } from './gravitee-markdown-viewer.servic
 export class GraviteeMarkdownViewerComponent {
   content = input<string>('');
   renderedContent!: string;
-  parsers: HookParserEntry[] = [];
+  parsers: HookParserEntry[] = prefixStripperParser;
 
   constructor(private readonly markdownService: GraviteeMarkdownViewerService) {
     effect(() => {
