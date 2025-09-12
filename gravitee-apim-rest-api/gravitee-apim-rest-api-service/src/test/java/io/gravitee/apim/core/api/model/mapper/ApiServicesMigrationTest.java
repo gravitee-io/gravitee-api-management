@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
@@ -161,7 +162,7 @@ class ApiServicesMigrationTest {
         assertThrows(NullPointerException.class, () -> get(result));
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
-            .containsExactly("Health check for endpoint : testEndpoint cannot have more than one assertion");
+            .containsExactly(MigrationWarnings.HEALTHCHECK_ASSERTION.formatted("endpoint : testEndpoint"));
         assertThat(result.issues()).map(MigrationResult.Issue::state).containsExactly(MigrationResult.State.IMPOSSIBLE);
     }
 

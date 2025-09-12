@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -135,44 +136,41 @@ public class FlowMigration {
             .concat(preSteps, postSteps)
             .reduce(MigrationResult.value(new MigratedSteps()), (a, b) -> a.foldLeft(b, MigratedSteps::merge));
         return reduce.map(e ->
-            Flow
-                .builder()
-                .id(v2Flow.getId())
-                .selectors(
-                    Stream
-                        .concat(
-                            nullIfEmpty(v2Flow.getCondition()) == null
-                                ? Stream.empty()
-                                : Stream.of(ConditionSelector.builder().condition(v2Flow.getCondition()).build()),
-                            Stream.of(
-                                HttpSelector
-                                    .builder()
-                                    .methods(v2Flow.getMethods())
-                                    .pathOperator(v2Flow.getOperator())
-                                    .path(v2Flow.getPath())
-                                    .build()
+            e != null
+                ? Flow
+                    .builder()
+                    .id(v2Flow.getId())
+                    .selectors(
+                        Stream
+                            .concat(
+                                nullIfEmpty(v2Flow.getCondition()) == null
+                                    ? Stream.empty()
+                                    : Stream.of(ConditionSelector.builder().condition(v2Flow.getCondition()).build()),
+                                Stream.of(
+                                    HttpSelector
+                                        .builder()
+                                        .methods(v2Flow.getMethods())
+                                        .pathOperator(v2Flow.getOperator())
+                                        .path(v2Flow.getPath())
+                                        .build()
+                                )
                             )
-                        )
-                        .toList()
-                )
-                .request(e.pre())
-                .response(e.post())
-                .name(v2Flow.getName())
-                .enabled(v2Flow.isEnabled())
-                .build()
+                            .toList()
+                    )
+                    .request(e.pre())
+                    .response(e.post())
+                    .name(v2Flow.getName())
+                    .enabled(v2Flow.isEnabled())
+                    .build()
+                : null
         );
     }
 
     private MigrationResult<Step> migrateV4(io.gravitee.definition.model.flow.Step v2Step) {
         if (INCOMPATIBLES_POLICIES.contains(v2Step.getPolicy())) {
-            return MigrationResult.issue("Policy %s is not compatible with V4 APIs".formatted(v2Step.getPolicy()), IMPOSSIBLE);
+            return MigrationResult.issue(MigrationWarnings.POLICY_NOT_COMPATIBLE.formatted(v2Step.getPolicy()), IMPOSSIBLE);
         } else if (!GRAVITEE_POLICIES.contains(v2Step.getPolicy())) {
-            return MigrationResult.issue(
-                "Policy %s is not a Gravitee policy. Please ensure it is compatible with V4 API before migrating to V4".formatted(
-                        v2Step.getPolicy()
-                    ),
-                CAN_BE_FORCED
-            );
+            return MigrationResult.issue(MigrationWarnings.NON_GRAVITEE_POLICY.formatted(v2Step.getPolicy()), CAN_BE_FORCED);
         }
         var config = !"groovy".equals(v2Step.getPolicy())
             ? MigrationResult.value(v2Step.getConfiguration())
@@ -236,15 +234,12 @@ public class FlowMigration {
                 .toList();
             return switch (size(upds)) {
                 case 1 -> MigrationResult.value(upds.getFirst().apply(jsonNode).remove(v2CfgScripts).toString());
-                case 0 -> MigrationResult.issue("Impossible to find script in groovy policy configuration", IMPOSSIBLE);
-                default -> MigrationResult.issue(
-                    "Multiple groovy scripts found in groovy policy configuration (non 'content' scripts are ignored if a 'content' script is present)",
-                    IMPOSSIBLE
-                );
+                case 0 -> MigrationResult.issue(MigrationWarnings.GROOVY_MISSING_SCRIPTS, IMPOSSIBLE);
+                default -> MigrationResult.issue(MigrationWarnings.GROOVY_MULTIPLE_SCRIPTS, IMPOSSIBLE);
             };
         } catch (JsonProcessingException e) {
             log.error("Unable to parse groovy configuration", e);
-            return MigrationResult.issue("Impossible to parse groovy policy configuration: " + e.getMessage(), IMPOSSIBLE);
+            return MigrationResult.issue(MigrationWarnings.GROOVY_PARSE_ERROR, IMPOSSIBLE);
         }
     }
 
