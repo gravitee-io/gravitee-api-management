@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { filter, map, switchMap, takeUntil, tap, finalize } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -62,6 +62,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     private readonly promotionService: PromotionService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    private readonly cdr: ChangeDetectorRef,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
@@ -90,6 +91,7 @@ export class TasksComponent implements OnInit, OnDestroy {
         }),
         finalize(() => {
           this.loading = false;
+          this.cdr.detectChanges();
         }),
         takeUntil(this.unsubscribe$),
       )
