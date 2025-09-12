@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, InputSignal, input } from '@angular/core';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
@@ -25,14 +25,9 @@ import { IntegrationsService } from '../../../services-ngx/integrations.service'
   styleUrl: './portal-header.component.scss',
 })
 export class PortalHeaderComponent {
-  @Input()
-  title!: string;
-
-  @Input()
-  subtitle?: string;
-
-  @Input()
-  showTechPreviewMessage: boolean = true;
-
+  title: InputSignal<string> = input.required();
+  subtitle: InputSignal<string> = input();
+  showTechPreviewMessage: InputSignal<boolean> = input(true);
+  showActions: InputSignal<boolean> = input(false);
   techPreviewMessage = inject(IntegrationsService).bannerMessages.techPreview;
 }
