@@ -27,12 +27,14 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.integration.tests.fake.LatencyPolicy;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -41,12 +43,15 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
+import io.vertx.rxjava3.core.http.HttpHeaders;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +60,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ParameterContext;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -86,6 +92,18 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
         super.configureGateway(gatewayConfigurationBuilder);
         gatewayConfigurationBuilder.set("http.requestTimeout", "300");
+    }
+
+    @Override
+    protected void configureHttpClient(
+        HttpClientOptions options,
+        GatewayDynamicConfig.Config gatewayConfig,
+        ParameterContext parameterContext
+    ) {
+        super.configureHttpClient(options, gatewayConfig, parameterContext);
+
+        // Force pool to 1 connection. This allows to ease the connection drain test.
+        options.setMaxPoolSize(1);
     }
 
     @Test
@@ -217,6 +235,27 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
                 return true;
             })
             .assertComplete();
+    }
+
+    @Test
+    @DeployApi("/apis/v4/messages/http-get/http-get-entrypoint-mock-endpoint.json")
+    void should_return_connection_close_header_when_connection_is_drained(HttpClient client) {
+        final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
+
+        client
+            .rxRequest(HttpMethod.GET, "/test")
+            .concatMap(HttpClientRequest::rxSend)
+            .concatMap(response -> response.end().andThen(Single.just(response.headers())))
+            // Request connection drain after first request. The second request should be asked to close connection.
+            .doOnSuccess(headers -> connectionDrainManager.requestDrain())
+            .repeat(2)
+            // Keep the last response only.
+            .lastElement()
+            .test()
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertComplete()
+            // Last response should contain a Connection: close header.
+            .assertValue(headers -> headers.get(HttpHeaders.CONNECTION).equals("close"));
     }
 
     @NonNull

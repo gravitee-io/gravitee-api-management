@@ -280,7 +280,7 @@
         <gravitee-entrypoint-http-get.version>2.1.0</gravitee-entrypoint-http-get.version>
         <gravitee-entrypoint-http-post.version>2.1.0</gravitee-entrypoint-http-post.version>
         <gravitee-entrypoint-sse.version>5.0.1</gravitee-entrypoint-sse.version>
-        <gravitee-entrypoint-webhook.version>4.1.0</gravitee-entrypoint-webhook.version>
+        <gravitee-entrypoint-webhook.version>5.0.0-alpha.1</gravitee-entrypoint-webhook.version>
         <gravitee-entrypoint-websocket.version>2.0.0</gravitee-entrypoint-websocket.version>
         <gravitee-entrypoint-agent-to-agent.version>1.0.1</gravitee-entrypoint-agent-to-agent.version>
         <gravitee-entrypoint-mcp.version>1.0.3</gravitee-entrypoint-mcp.version>
@@ -293,8 +293,8 @@
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>4.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-storage-azure-blob.version>1.0.0</gravitee-resource-storage-azure-blob.version>
-        <gravitee-reactor-message.version>8.0.0-alpha.1</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>4.0.0-alpha.10</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-message.version>8.0.0-alpha.2</gravitee-reactor-message.version>
+        <gravitee-reactor-native-kafka.version>4.0.0-alpha.11</gravitee-reactor-native-kafka.version>
         <gravitee-apim-repository-bridge.version>7.0.0</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
         <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>

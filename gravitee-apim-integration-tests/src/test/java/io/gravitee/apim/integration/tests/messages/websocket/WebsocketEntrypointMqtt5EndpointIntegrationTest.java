@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.integration.tests.messages.websocket;
 
+import static com.graviteesource.entrypoint.websocket.WebSocketCloseStatus.TRY_AGAIN_LATER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.websocket.WebSocketEntrypointConnectorFactory;
@@ -25,13 +26,16 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.integration.tests.fake.MessageFlowReadyPolicy;
 import io.gravitee.apim.integration.tests.messages.AbstractMqtt5EndpointIntegrationTest;
+import io.gravitee.common.utils.RxHelper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.reactive.api.qos.Qos;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.functions.Predicate;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.UpgradeRejectedException;
@@ -44,9 +48,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -58,6 +65,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegrationTest {
@@ -93,6 +101,39 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
         if (expectExactRange) {
             verifyMessagesAreBetweenRange(0, messageCount, obs);
         }
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json" })
+    void should_close_with_try_again_later_code_when_connection_is_drained(HttpClient httpClient) {
+        final ConnectionDrainManager connectionDrainManager = applicationContext.getBean(ConnectionDrainManager.class);
+        final int messageCountBeforeDrain = 10;
+        final List<Completable> readyObs = new ArrayList<>();
+
+        final Single<WebSocket> ws = createWSRequest("/test-qos-auto", UUID.random().toString(), httpClient, readyObs);
+        final AtomicInteger counter = new AtomicInteger(0);
+        final AtomicReference<Short> websocketStatus = new AtomicReference<>();
+
+        ws
+            .flatMapCompletable(webSocket ->
+                Completable.ambArray(
+                    publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-auto", MqttQos.AT_LEAST_ONCE),
+                    extractMessages(webSocket)
+                        .doOnNext(buffer -> {
+                            if (counter.incrementAndGet() > messageCountBeforeDrain) {
+                                connectionDrainManager.requestDrain();
+                            }
+                        })
+                        .ignoreElements()
+                        .doOnComplete(() -> websocketStatus.set(webSocket.closeStatusCode()))
+                )
+            )
+            .test()
+            // Expect the flow to finish because of the connection drain.
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertComplete();
+
+        assertThat(websocketStatus.get()).isEqualTo((short) TRY_AGAIN_LATER.code());
     }
 
     @ParameterizedTest
