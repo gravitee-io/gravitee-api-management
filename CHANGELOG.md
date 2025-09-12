@@ -1,3 +1,10 @@
+# [6.2.0-alpha.12](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.11...6.2.0-alpha.12) (2025-09-12)
+
+
+### Features
+
+* handle failure and warnings metrics in v2 and v4 ([86ec671](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/86ec671682e726a966dd26f2a0ca36cc8b60fe3f))
+
 # [6.2.0-alpha.11](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.10...6.2.0-alpha.11) (2025-09-09)
 
 
