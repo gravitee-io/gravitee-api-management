@@ -158,4 +158,28 @@ describe('ApiHistoryControllerAjs', () => {
       });
     });
   });
+
+  describe('reorganizeEvent', () => {
+    it('should extract groups from definition and convert them to names', () => {
+      controller.groups = [
+        { id: 'c70ebce0-e738-4201-8ebc-e0e73822017b', name: 'Free' },
+        { id: 'another-group-id', name: 'Premium' },
+      ];
+      const mockEvent = {
+        definition:
+          '{"name":"test-api","version":"1","groups":["c70ebce0-e738-4201-8ebc-e0e73822017b"],"path_mappings":["/api/v1","/api/v2"]}',
+        description: 'Test API Description',
+      };
+
+      const result = controller['reorganizeEvent'](mockEvent);
+
+      expect(result.groups).toEqual(['Free']);
+
+      // Verify other properties are preserved
+      expect(result.name).toBe('test-api');
+      expect(result.version).toBe('1');
+      expect(result.description).toBe('Test API Description');
+      expect(result.path_mappings).toEqual(['/api/v1', '/api/v2']);
+    });
+  });
 });
