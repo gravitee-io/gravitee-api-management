@@ -1,0 +1,33 @@
+suite: Test Gateway warnings configuration
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: should include warnings configuration when enabled
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        reporters:
+          warnings:
+            enabled: true
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+             reporters:
+               warnings:
+                 enabled: true
+
+  - it: should include warnings configuration when disabled
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        reporters:
+          warnings:
+            enabled: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            reporters:
+              warnings:
+                enabled: false
