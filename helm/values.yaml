@@ -1506,6 +1506,8 @@ gateway:
   #     request:
   #       header: X-Gravitee-Request-Id
 #  reporters:
+#    warnings:
+#      enabled: true
 #    elasticsearch:
 #      enabled: true
 #    tcp:

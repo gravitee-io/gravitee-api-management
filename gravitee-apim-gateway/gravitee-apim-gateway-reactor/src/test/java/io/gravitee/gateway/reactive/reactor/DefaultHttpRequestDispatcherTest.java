@@ -213,7 +213,8 @@ class DefaultHttpRequestDispatcherTest {
                 tracingContext,
                 requestTimeoutConfiguration,
                 requestClientAuthConfiguration,
-                vertx
+                vertx,
+                true
             );
         //TODO: to check: is this needed ?
         // cut.setApplicationContext(mock(ApplicationContext.class));
