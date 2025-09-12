@@ -15,11 +15,13 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { Component, effect, inject, Signal, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, Signal, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError } from 'rxjs/operators';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, startWith, tap } from 'rxjs/operators';
 import { EMPTY, Observable } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -29,7 +31,7 @@ import { PortalPageWithDetails } from '../../entities/portal/portal-page-with-de
 
 @Component({
   selector: 'homepage',
-  imports: [PortalHeaderComponent, ReactiveFormsModule, GraviteeMarkdownEditorModule],
+  imports: [PortalHeaderComponent, ReactiveFormsModule, GraviteeMarkdownEditorModule, MatButtonModule, MatTooltipModule],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.scss',
 })
@@ -38,15 +40,23 @@ export class HomepageComponent {
     value: '',
     disabled: true,
   });
+  isSaveDisabled = computed(() => {
+    const currentContent = this.contentValue();
+    const savedContent = this.portalHomepage().content;
+    const isEmpty = !currentContent?.trim();
+    return !this.canUpdate() || isEmpty || currentContent === savedContent;
+  });
 
   private readonly snackbarService = inject(SnackBarService);
   private readonly portalPagesService = inject(PortalPagesService);
   private readonly gioPermissionService = inject(GioPermissionService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
   private readonly portalHomepage: Signal<PortalPageWithDetails> = toSignal(this.getPortalHomepage(), {
     initialValue: { content: '' } as PortalPageWithDetails,
   });
+  private contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
   constructor() {
     effect(() => {
@@ -58,6 +68,22 @@ export class HomepageComponent {
         this.contentControl.enable();
       }
     });
+  }
+
+  updatePortalPage(): void {
+    this.portalPagesService
+      .patchPortalPage(this.portalHomepage().id, {
+        content: this.contentControl.value,
+      })
+      .pipe(
+        tap((_) => this.snackbarService.success(`The page has been updated successfully`)),
+        catchError(() => {
+          this.snackbarService.error('An error occurred while updating the homepage');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   private getPortalHomepage(): Observable<PortalPageWithDetails> {

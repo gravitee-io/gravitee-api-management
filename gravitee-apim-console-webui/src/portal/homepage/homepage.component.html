@@ -15,5 +15,15 @@
     limitations under the License.
 
 -->
-<portal-header title="Homepage" subtitle="Edit your Developer Portal Homepage with Gravitee Markdown" />
+<portal-header subtitle="Edit your Developer Portal Homepage with Gravitee Markdown" [title]="'Homepage'" [showActions]="true">
+  <div
+    additionalActions
+    matTooltip="You don’t have the permissions to update this page. Please contact your administrator."
+    [matTooltipDisabled]="!contentControl.disabled"
+  >
+    <button mat-flat-button color="primary" aria-label="Update portal page" (click)="updatePortalPage()" [disabled]="isSaveDisabled()">
+      Save
+    </button>
+  </div>
+</portal-header>
 <gmd-editor [formControl]="contentControl" />
