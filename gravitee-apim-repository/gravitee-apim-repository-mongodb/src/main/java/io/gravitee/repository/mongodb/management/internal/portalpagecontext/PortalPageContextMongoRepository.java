@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.portalpagecontext;
 
 import io.gravitee.repository.management.model.PortalPageContextType;
 import io.gravitee.repository.mongodb.management.internal.model.PortalPageContextMongo;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -32,4 +33,7 @@ public interface PortalPageContextMongoRepository extends MongoRepository<Portal
      */
     @Query("{ 'contextType': ?0, 'environmentId': ?1 }")
     Set<PortalPageContextMongo> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId);
+
+    @Query("{ 'pageId': ?0 }")
+    Optional<PortalPageContextMongo> findByPageId(String pageId);
 }

@@ -35,6 +35,7 @@ public interface PortalPageAdapter {
         return new io.gravitee.apim.core.portal_page.model.PortalPage(mapId(portalPage.getId()), mapContent(portalPage.getContent()));
     }
 
+    @Mapping(target = "content", source = "pageContent.content")
     io.gravitee.repository.management.model.PortalPage toRepository(io.gravitee.apim.core.portal_page.model.PortalPage portalPage);
 
     default io.gravitee.apim.core.portal_page.model.PageId mapId(String value) {

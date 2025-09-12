@@ -59,12 +59,12 @@ class PortalPageCrudServiceImplTest {
                     io.gravitee.repository.management.model.PortalPage
                         .builder()
                         .id(pageId1.toString())
-                        .content(page1.pageContent().content())
+                        .content(page1.getPageContent().content())
                         .build(),
                     io.gravitee.repository.management.model.PortalPage
                         .builder()
                         .id(pageId2.toString())
-                        .content(page2.pageContent().content())
+                        .content(page2.getPageContent().content())
                         .build()
                 )
             );

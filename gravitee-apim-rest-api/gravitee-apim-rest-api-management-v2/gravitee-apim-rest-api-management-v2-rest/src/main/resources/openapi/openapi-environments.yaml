@@ -753,7 +753,24 @@ paths:
         tags:
           - Portal Pages
         summary: Get portal homepage
+        description: This endpoint is under active development and might change or be removed in future releases without prior notice.
         operationId: getPortalHomepage
+        responses:
+          "200":
+            $ref: "#/components/responses/PortalPageResponse"
+          default:
+            $ref: "#/components/responses/Error"
+      put:
+        tags:
+          - Portal Pages
+        summary: Update portal page
+        operationId: updatePortalPage
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdatePortalPage"
+          required: true
         responses:
           "200":
             $ref: "#/components/responses/PortalPageResponse"
@@ -1544,6 +1561,13 @@ components:
                 apiId:
                   type: string
                   description: The API identifier if relevant.
+        UpdatePortalPage:
+          type: object
+          description: Update portal page payload
+          properties:
+            content:
+              type: string
+              description: The content of the page in Gravitee Markdown format
 
     parameters:
         pageParam:
@@ -2022,7 +2046,7 @@ components:
                     example: 10.0.1.123
 
         PortalPageResponse:
-          description: List of portal pages for a given context
+          description: A portal page
           content:
             application/json:
               schema:

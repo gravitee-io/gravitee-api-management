@@ -29,6 +29,7 @@ import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPage;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -39,9 +40,12 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalPagesResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "my-env";
@@ -94,14 +98,17 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         }
     }
 
-    private void setupHomepage() {
+    private PortalPageWithViewDetails setupHomepage() {
         PortalPage page = PortalPage.create(new GraviteeMarkdown("Welcome!"));
         PortalPageView view = new PortalPageView(PortalViewContext.HOMEPAGE, true);
         PortalPageWithViewDetails details = new PortalPageWithViewDetails(page, view);
         portalPageContextCrudService.initWith(
-            List.of(new PortalPageContext("x", page.id().toString(), PortalPageContextType.HOMEPAGE, ENVIRONMENT, true))
+            List.of(new PortalPageContext("x", page.getId().toString(), PortalPageContextType.HOMEPAGE, ENVIRONMENT, true))
         );
         portalPageQueryService.initWith(List.of(details));
+        portalPageCrudService.initWith(List.of(page));
+
+        return details;
     }
 
     private void setupPermission(boolean hasPermission) {
@@ -114,5 +121,51 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             )
         )
             .thenReturn(hasPermission);
+    }
+
+    private void setupPermissionForUpdate(boolean hasPermission) {
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_DOCUMENTATION),
+                any(),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(hasPermission);
+    }
+
+    @Nested
+    class UpdatePortalPageTest {
+
+        @Test
+        void should_update_homepage_portal_page() {
+            setupPermissionForUpdate(true);
+            String updatedContent = "Updated homepage!";
+            UpdatePortalPage updatePortalPage = new UpdatePortalPage();
+            updatePortalPage.setContent(updatedContent);
+            var existingHomepage = setupHomepage();
+            Response response = target
+                .path("/" + existingHomepage.page().getId())
+                .request()
+                .put(jakarta.ws.rs.client.Entity.json(updatePortalPage));
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PortalPageResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getContent()).isEqualTo(updatedContent);
+                    assertThat(r.getContext()).isEqualTo(PortalPageResponse.ContextEnum.HOMEPAGE);
+                    assertThat(r.getType()).isEqualTo(PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
+                });
+        }
+
+        @Test
+        void should_return_403_for_unauthorized_user() {
+            setupPermissionForUpdate(false);
+            UpdatePortalPage updatePortalPage = new UpdatePortalPage();
+            updatePortalPage.setContent("Updated homepage!");
+            Response response = target.path("/_homepage").request().put(jakarta.ws.rs.client.Entity.json(updatePortalPage));
+            assertThat(response).hasStatus(403);
+        }
     }
 }
