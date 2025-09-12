@@ -1,0 +1,24 @@
+.analytics-multi-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-left: 16px;
+  padding-bottom: 16px;
+
+  &__item {
+    text-align: left;
+  }
+
+  &__value {
+    margin-top: 16px;
+    font-size: 34px;
+    font-weight: 600;
+  }
+
+  &__label {
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+  }
+}
