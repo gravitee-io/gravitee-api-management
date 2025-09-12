@@ -29,6 +29,7 @@ import { GioChartLineData, GioChartLineOptions } from '../../../../shared/compon
 import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
 import { EsFilter, toQuery } from '../../../../shared/utils/esQuery';
+import { MultiStatsWidgetData } from '../../../../shared/components/analytics-multi-stats/analytics-multi-stats.component';
 
 // Interface expected from component that transforms query params to UrlParamsData
 export interface ApiAnalyticsWidgetUrlParamsData {
@@ -357,30 +358,42 @@ export class ApiAnalyticsWidgetService {
     histogramResponse: HistogramAnalyticsResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
-    if (widgetConfig.type === 'stats') {
+    if (widgetConfig.type === 'multi-stats') {
       if (!histogramResponse.values || histogramResponse.values.length === 0) {
         return this.createEmptyConfig(widgetConfig);
       }
 
-      const firstValue = histogramResponse.values[0];
+      // Transform multiple aggregations into multi-stats format
+      const items = histogramResponse.values
+        .map((value, index) => {
+          const aggregation = widgetConfig.aggregations![index];
+          const bucket = value.buckets?.[0];
+          if (!bucket || !bucket.data || bucket.data.length === 0) {
+            return null;
+          }
+          const stat = bucket.data[bucket.data.length - 1]; // Get the latest value
+          return {
+            label: aggregation.label || aggregation.field,
+            value: stat,
+            unit: '',
+          };
+        })
+        .filter((item) => item !== null);
 
-      if (!firstValue.buckets || firstValue.buckets.length === 0 || !firstValue.buckets[0].data) {
+      if (items.length === 0) {
         return this.createEmptyConfig(widgetConfig);
       }
 
-      // Get the latest value from the data array (usually the last element)
-      const dataArray = firstValue.buckets[0].data;
-      const stats = dataArray.length > 0 ? dataArray[dataArray.length - 1] : 0;
+      const multiStatsData: MultiStatsWidgetData = {
+        items: items,
+      };
 
       return {
         title: widgetConfig.title,
         tooltip: widgetConfig.tooltip,
         state: 'success',
-        widgetType: 'stats' as const,
-        widgetData: {
-          stats: stats,
-          statsUnit: '',
-        },
+        widgetType: 'multi-stats' as const,
+        widgetData: multiStatsData,
       };
     }
 
@@ -451,6 +464,14 @@ export class ApiAnalyticsWidgetService {
         ...baseConfig,
         widgetType: 'stats' as const,
         widgetData: null,
+      };
+    }
+
+    if (widgetConfig.type === 'multi-stats') {
+      return {
+        ...baseConfig,
+        widgetType: 'multi-stats' as const,
+        widgetData: { items: [] },
       };
     }
 

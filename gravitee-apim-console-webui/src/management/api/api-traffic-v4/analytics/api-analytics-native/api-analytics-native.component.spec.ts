@@ -223,7 +223,7 @@ describe('ApiAnalyticsNativeComponent', () => {
 
       // Should make multiple requests for different widgets
       const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
-      expect(requests.length).toBeGreaterThan(5); // Multiple widgets
+      expect(requests.length).toBe(3); // Multiple widgets
 
       // All requests should have the same time range parameters
       requests.forEach((req) => {

@@ -24,6 +24,11 @@
             <analytics-stats [input]="statsData()" />
           </div>
         }
+        @case ('multi-stats') {
+          <div>
+            <analytics-multi-stats [input]="multiStatsData()" />
+          </div>
+        }
         @case ('pie') {
           <div>
             <gio-chart-pie [input]="pieData()" [showLegend]="true" [labelFormatter]="pieChartLabelFormatter" height="auto" />
