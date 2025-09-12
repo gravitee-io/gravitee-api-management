@@ -290,7 +290,7 @@ mongodb:
   replicaSetName: rs0
   podAffinityPreset: soft
   image:
-    repository: bitnami/mongodb
+    repository: bitnamilegacy/mongodb
     tag: 6.0.13
   auth:
     enabled: false
@@ -359,8 +359,8 @@ elasticsearch:
   name: "elasticsearch"
   fullnameOverride: "graviteeio-apim-elasticsearch"
   image:
-    repository: "bitnami/elasticsearch"
-    tag: "8.8.2"
+    repository: "bitnamilegacy/elasticsearch"
+    tag: "8.17.4"
   master:
     replicaCount: 2
     persistence:
