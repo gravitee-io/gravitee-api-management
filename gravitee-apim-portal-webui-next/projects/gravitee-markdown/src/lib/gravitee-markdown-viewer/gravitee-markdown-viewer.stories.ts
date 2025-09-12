@@ -18,7 +18,7 @@ import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { GraviteeMarkdownViewerComponent, GraviteeMarkdownViewerModule } from './public-api';
 
 export default {
-  title: 'Components/Gravitee Markdown Viewer',
+  title: 'Gravitee Markdown/Gravitee Markdown Viewer',
   component: GraviteeMarkdownViewerComponent,
   decorators: [
     moduleMetadata({
