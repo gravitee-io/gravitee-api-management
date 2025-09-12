@@ -40,7 +40,7 @@ public class PortalPagesResource extends AbstractResource {
     @GET
     @Produces("application/json")
     @Path("/_homepage")
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
     public PortalPageResponse getPortalHomepage() {
         var input = new GetHomepageUseCase.Input(envId);
         var homepage = getHomepageUseCase.execute(input);
