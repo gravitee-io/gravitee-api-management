@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Component, Inject, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
+import { filter, switchMap, takeUntil, tap, finalize } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -63,6 +63,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     private readonly promotionService: PromotionService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    private readonly cdr: ChangeDetectorRef,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
@@ -71,7 +72,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     this.taskService
       .getTasks()
       .pipe(
-        map((result) => {
+        tap((result) => {
           this.tasks = result;
           this.data = result.data
             .map((task) => {
@@ -89,9 +90,15 @@ export class TasksComponent implements OnInit, OnDestroy {
             })
             .sort((task1, task2) => task2.createdAt - task1.createdAt);
         }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => (this.loading = false));
+      .subscribe({
+        error: (e) => this.snackBarService.error(e.error?.message ?? 'Failed to load tasks'),
+      });
   }
 
   ngOnDestroy(): void {
