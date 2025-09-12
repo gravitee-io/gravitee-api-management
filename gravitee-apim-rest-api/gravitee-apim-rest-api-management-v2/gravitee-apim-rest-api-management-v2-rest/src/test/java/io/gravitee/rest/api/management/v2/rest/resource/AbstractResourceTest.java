@@ -33,6 +33,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PortalPageContextCrudServiceInMemory;
+import inmemory.PortalPageCrudServiceInMemory;
 import inmemory.PortalPageQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -237,6 +238,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected PortalPageQueryServiceInMemory portalPageQueryService;
+
+    @Autowired
+    protected PortalPageCrudServiceInMemory portalPageCrudService;
 
     @BeforeEach
     public void setUp() {
