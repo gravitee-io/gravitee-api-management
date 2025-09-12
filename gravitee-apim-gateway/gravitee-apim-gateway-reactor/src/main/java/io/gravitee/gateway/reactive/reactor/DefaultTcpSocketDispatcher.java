@@ -42,6 +42,7 @@ public class DefaultTcpSocketDispatcher implements TcpSocketDispatcher {
     private final TcpAcceptorResolver tcpAcceptorResolver;
     private final ComponentProvider componentProvider;
     private final IdGenerator idGenerator;
+    private final boolean warningsEnabled;
 
     @Override
     public Completable dispatch(NetSocket proxySocket, String serverId) {
@@ -61,6 +62,7 @@ public class DefaultTcpSocketDispatcher implements TcpSocketDispatcher {
                 // create context and req/res
                 VertxTcpRequest tcpRequest = new VertxTcpRequest(proxySocket, idGenerator);
                 var ctx = new DefaultExecutionContext(tcpRequest, new VertxTcpResponse(tcpRequest));
+                ctx.setWarningsEnabled(warningsEnabled);
                 ctx.componentProvider(componentProvider);
                 ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, tcpReactor.api());
                 ctx.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.TCP);
