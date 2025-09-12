@@ -55,31 +55,53 @@ describe('GraviteeMarkdownViewerComponent', () => {
     expect(await harness.getRenderedHtml()).toBe('');
   });
 
-  it('should render markdown content', async () => {
-    component.content = '# Hello, World!';
-    fixture.detectChanges();
+  describe('Markdown rendering', () => {
+    it('should render markdown content', async () => {
+      component.content = '# Hello, World!';
+      fixture.detectChanges();
 
-    expect(await harness.getRenderedHtml()).toContain('<h1 id="hello-world">Hello, World!</h1>');
+      expect(await harness.getRenderedHtml()).toContain('<h1 id="hello-world">Hello, World!</h1>');
+    });
+
+    it('should render images', async () => {
+      component.content = '![Gravitee Logo](https://example.com/gravitee-logo.png)';
+      fixture.detectChanges();
+
+      expect(await harness.getRenderedHtml()).toContain('<p><img src="https://example.com/gravitee-logo.png" alt="Gravitee Logo"></p>');
+    });
+
+    it('should render links', async () => {
+      component.content = '[Links](https://gravitee.io)';
+      fixture.detectChanges();
+
+      expect(await harness.getRenderedHtml()).toContain('<p><a href="https://gravitee.io">Links</a></p>');
+    });
+
+    it('should render anchor', async () => {
+      component.content = '[anchor](#anchor)';
+      fixture.detectChanges();
+
+      expect(await harness.getRenderedHtml()).toContain('<p><a class="anchor" href="#anchor">anchor</a></p>');
+    });
   });
 
-  it('should render images', async () => {
-    component.content = '![Gravitee Logo](https://example.com/gravitee-logo.png)';
-    fixture.detectChanges();
+  describe('Custom components rendering', () => {
+    it('should render grid', async () => {
+      component.content = '<grid columns="2">Grid content</grid>';
+      fixture.detectChanges();
 
-    expect(await harness.getRenderedHtml()).toContain('<p><img src="https://example.com/gravitee-logo.png" alt="Gravitee Logo"></p>');
-  });
+      const renderedHtml = await harness.getRenderedHtml();
+      expect(renderedHtml).toContain('grid');
+      expect(renderedHtml).toContain('Grid content');
+    });
 
-  it('should render links', async () => {
-    component.content = '[Links](https://gravitee.io)';
-    fixture.detectChanges();
+    it('should render cell', async () => {
+      component.content = '<cell>Cell content</cell>';
+      fixture.detectChanges();
 
-    expect(await harness.getRenderedHtml()).toContain('<p><a href="https://gravitee.io">Links</a></p>');
-  });
-
-  it('should render anchor', async () => {
-    component.content = '[anchor](#anchor)';
-    fixture.detectChanges();
-
-    expect(await harness.getRenderedHtml()).toContain('<p><a class="anchor" href="#anchor">anchor</a></p>');
+      const renderedHtml = await harness.getRenderedHtml();
+      expect(renderedHtml).toContain('cell');
+      expect(renderedHtml).toContain('Cell content');
+    });
   });
 });

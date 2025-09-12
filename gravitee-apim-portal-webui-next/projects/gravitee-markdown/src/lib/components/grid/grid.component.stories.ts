@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
+import { importProvidersFrom } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { CellComponent } from './cell/cell.component';
 import { GridComponent } from './grid.component';
+import { GraviteeMarkdownEditorModule } from '../../gravitee-markdown-editor/gravitee-markdown-editor.module';
+import { GraviteeMarkdownViewerModule } from '../../gravitee-markdown-viewer/gravitee-markdown-viewer.module';
 
 export default {
   title: 'Gravitee Markdown/Components/Grid',
   component: GridComponent,
   decorators: [
     moduleMetadata({
-      imports: [GridComponent, CellComponent],
+      imports: [GridComponent, CellComponent, GraviteeMarkdownEditorModule, GraviteeMarkdownViewerModule, FormsModule],
+    }),
+    applicationConfig({
+      providers: [importProvidersFrom(GraviteeMarkdownEditorModule.forRoot({ theme: 'vs', baseUrl: '.' }))],
     }),
   ],
   parameters: {
@@ -347,6 +354,53 @@ export const WithPlainHTML: StoryObj<GridComponent> = {
             This grid uses plain HTML elements (article, section, div) without gmd-cell components,
             showing that the grid container works with any content through content projection.
           </p>
+        </div>
+      </div>
+    `,
+  }),
+};
+
+export const WithMarkdownEditor: StoryObj<GridComponent> = {
+  args: {
+    columns: 3,
+  },
+  render: args => ({
+    props: {
+      ...args,
+      markdownContent: `<grid columns="3">
+    <cell>
+        <h3>Column 1</h3>
+        <p>First cell content</p>
+    </cell>
+    <cell>
+        <h3>Column 2</h3>
+        <p>Second cell content</p>
+    </cell>
+    <cell>
+        <h3>Column 3</h3>
+        <p>Third cell content</p>
+    </cell>
+</grid>`,
+    },
+    template: `
+      <style>
+        .editor-container {
+          /*display: flex;*/
+          /*gap: 20px;*/
+          height: 500px;
+        }
+      </style>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <h2>Grid Component with Markdown Editor</h2>
+        <p>Edit the markdown content below to see the grid component rendered in real-time:</p>
+
+        <div class="editor-container">
+            <gmd-editor [(ngModel)]="markdownContent" />
+        </div>
+
+        <div style="margin-top: 16px; padding: 12px; background: #e3f2fd; border-radius: 4px; font-size: 14px;">
+          <strong>Note:</strong> This demonstrates how the grid component can be used within markdown content.
+          The editor shows the raw markdown, while the viewer renders the actual grid component.
         </div>
       </div>
     `,
