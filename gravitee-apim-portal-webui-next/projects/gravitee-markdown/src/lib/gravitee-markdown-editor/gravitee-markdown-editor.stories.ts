@@ -21,7 +21,7 @@ import { GraviteeMarkdownEditorComponent } from './gravitee-markdown-editor.comp
 import { GraviteeMarkdownEditorModule } from './gravitee-markdown-editor.module';
 
 export default {
-  title: 'Components/Gravitee Markdown Editor',
+  title: 'Gravitee Markdown/Gravitee Markdown Editor',
   component: GraviteeMarkdownEditorComponent,
   decorators: [
     moduleMetadata({
