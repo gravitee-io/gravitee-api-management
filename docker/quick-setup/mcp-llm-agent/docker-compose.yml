@@ -1,0 +1,206 @@
+networks:
+    frontend:
+        name: frontend
+    backend:
+        name: backend
+
+volumes:
+    data-elasticsearch:
+    data-mongo:
+
+services:
+    ### MONGODB
+    mongodb:
+        image: mongo:${MONGODB_VERSION:-7.0}
+        container_name: gio_apim_mongodb
+        restart: always
+        ports:
+            - "27017:27017"
+        volumes:
+            - data-mongo:/data/db
+        healthcheck:
+            test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        networks:
+            - backend
+
+    ### ELASTICSEARCH
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.18.3}
+        container_name: gio_apim_elasticsearch
+        restart: always
+        ports:
+            - 9200:9200
+            - 9300:9300
+        volumes:
+            - data-elasticsearch:/usr/share/elasticsearch/data
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=0.0.0.0
+            - xpack.security.enabled=false
+            - cluster.name=elasticsearch
+            - bootstrap.memory_lock=true
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile: 65536
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
+            interval: 5s
+            timeout: 5s
+            retries: 20
+        networks:
+            - backend
+  
+    ### APIM
+    apim-gateway:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION_GATEWAY:-latest}
+        container_name: gio_apim_gateway
+        restart: always
+        ports:
+            - "8082:8082" # HTTP / TCP
+        depends_on:
+            mongodb:
+                condition: service_healthy
+            elasticsearch:
+                condition: service_healthy
+        healthcheck:
+            test: >
+                sh -c '
+                response=$(curl -s -u admin:adminadmin http://localhost:18082/_node/health);
+                status=$(echo "$response" | grep "\"healthy\": true");
+                if [ -z "$status" ]; then echo "false"; else echo "true"; fi
+                ' > /dev/null
+            interval: 2s
+            timeout: 2s
+            retries: 10
+        volumes:
+            - ./license/license.key:/opt/graviteeio-gateway/license/license.key # License key
+        environment:
+            ### LICENSE
+            - gravitee_license=/opt/graviteeio-gateway/license/license.key
+            ### MANAGEMENT DB - MONGO DB
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=20000&socketTimeoutMS=20000
+            ### RATE LIMIT DB - MONGO DB
+            - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=20000&socketTimeoutMS=20000
+            ### REPORTER - ES
+            - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+        networks:
+            - backend
+            - frontend
+    apim-management-api:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_api
+        restart: always
+        ports:
+            - "8083:8083"
+        depends_on:
+            mongodb:
+                condition: service_healthy
+            elasticsearch:
+                condition: service_healthy
+        healthcheck:
+            test: >
+                sh -c '
+                response=$(curl -s -u admin:adminadmin http://localhost:18083/_node/health);
+                status=$(echo "$response" | grep "\"healthy\": true");
+                if [ -z "$status" ]; then echo "false"; else echo "true"; fi
+                ' > /dev/null
+            interval: 2s
+            timeout: 2s
+            retries: 10
+        volumes:
+            - ./license/license.key:/opt/graviteeio-management-api/license/license.key
+        environment:
+            ### LICENSE
+            - gravitee_license=/opt/graviteeio-management-api/license/license.key
+            ### GW URL
+            - gravitee_portal_entrypoint=http://localhost:8082
+            ### MANAGEMENT DB - MONGO DB
+            - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=20000&socketTimeoutMS=20000
+            ### ANALYTICS DB - ELASTICSEARCH
+            - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+            ### INSTALLATION
+            - gravitee_installation_type=standalone
+            - gravitee_installation_standalone_api_url=http://localhost:8083
+            - gravitee_installation_standalone_console_url=http://localhost:8084
+            - gravitee_installation_standalone_portal_url=http://localhost:8085
+        networks:
+            - backend
+            - frontend
+
+    apim-management-ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_management_ui
+        restart: always
+        ports:
+            - "8084:8080"
+        depends_on:
+            - apim-management-api
+        environment:
+            - MGMT_API_URL=http://localhost:8083/management/organizations/DEFAULT/environments/DEFAULT/
+        networks:
+            - frontend
+
+    apim-portal-ui:
+        image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
+        container_name: gio_apim_portal_ui
+        restart: always
+        ports:
+            - "8085:8080"
+        depends_on:
+            - apim-management-api
+        environment:
+            - PORTAL_API_URL=http://localhost:8083/portal/environments/DEFAULT
+            - FRAME_PROTECTION_ENABLED=false
+            - ALLOWED_FRAME_ANCESTOR_URLS="http://localhost:8084"
+        networks:
+            - frontend
+
+### MCP INSPECTOR
+    mcp-inspector:
+        image: dobl1/mcp-inspector:0.14.0
+        container_name: mcp-inspector
+        ports:
+            - "6274:6274"
+            - "6277:6277"
+        restart: unless-stopped
+        networks:
+            - backend
+            - frontend
+
+### EXAMPLE AI AGENT - CURRENCY CONVERSION
+    a2a-agents-hub:
+        build:
+            context: ./hub
+            dockerfile: Dockerfile
+        image: a2a-agents-hub:local
+        container_name: gio_apim_a2a_agents_hub
+        ports:
+          - "10000:10000"
+        environment:
+            STREAMING: "true"
+            GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+        networks:
+            - backend
+            - frontend
+
+### DEMO AGENT UI
+    a2a-agents-ui:
+        build:
+            context: .           
+            dockerfile: ui/Dockerfile
+        image: a2a-agents-ui:local
+        container_name: gio_apim_a2a_agents_ui
+        ports:
+            - "12000:12000"
+        environment:
+            GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+        networks:
+            - backend
+            - frontend
