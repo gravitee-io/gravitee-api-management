@@ -15,9 +15,22 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import java.util.Objects;
 import javax.annotation.Nonnull;
 
-public record PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
+public final class PortalPage {
+
+    @Nonnull
+    private final PageId id;
+
+    @Nonnull
+    private GraviteeMarkdown pageContent;
+
+    public PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
+        this.id = id;
+        this.pageContent = pageContent;
+    }
+
     public static PortalPage create(GraviteeMarkdown pageContent) {
         return new PortalPage(PageId.random(), pageContent);
     }
@@ -28,5 +41,29 @@ public record PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageConte
         if (o == null || getClass() != o.getClass()) return false;
         PortalPage that = (PortalPage) o;
         return id.equals(that.id) && pageContent.equals(that.pageContent);
+    }
+
+    @Nonnull
+    public PageId getId() {
+        return id;
+    }
+
+    @Nonnull
+    public GraviteeMarkdown getPageContent() {
+        return pageContent;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, pageContent);
+    }
+
+    @Override
+    public String toString() {
+        return "PortalPage[" + "id=" + id + ", " + "pageContent=" + pageContent + ']';
+    }
+
+    public void setContent(GraviteeMarkdown pageContent) {
+        this.pageContent = pageContent;
     }
 }

@@ -15,8 +15,8 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
-import static org.junit.platform.commons.function.Try.success;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.PortalPageContext;
@@ -24,10 +24,13 @@ import io.gravitee.repository.management.model.PortalPageContextType;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 
 /**
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalPageContextRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
@@ -48,13 +51,12 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         // When
         PortalPageContext created = portalPageContextRepository.create(portalPageContext);
 
-        // Then
-        assertNotNull("Created PortalPageContext should not be null", created);
-        assertEquals("PortalPageContext id should match", portalPageContext.getId(), created.getId());
-        assertEquals("PortalPageContext pageId should match", portalPageContext.getPageId(), created.getPageId());
-        assertEquals("PortalPageContext environmentId should match", portalPageContext.getEnvironmentId(), created.getEnvironmentId());
-        assertEquals("PortalPageContext contextType should match", portalPageContext.getContextType(), created.getContextType());
-        assertEquals("PortalPageContext published should match", portalPageContext.isPublished(), created.isPublished());
+        assertThat(created).isNotNull();
+        assertThat(created.getId()).isEqualTo(portalPageContext.getId());
+        assertThat(created.getPageId()).isEqualTo(portalPageContext.getPageId());
+        assertThat(created.getEnvironmentId()).isEqualTo(portalPageContext.getEnvironmentId());
+        assertThat(created.getContextType()).isEqualTo(portalPageContext.getContextType());
+        assertThat(created.isPublished()).isEqualTo(portalPageContext.isPublished());
     }
 
     @Test
@@ -69,24 +71,11 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         );
 
         // Then
-        assertNotNull("Found contexts should not be null", foundContexts);
-        assertEquals("Should find exactly 2 contexts for HOMEPAGE", 2, foundContexts.size());
-
-        // Verify all contexts have the correct context type
-        assertTrue(
-            "All contexts should have HOMEPAGE context",
-            foundContexts.stream().allMatch(c -> c.getContextType() == PortalPageContextType.HOMEPAGE)
-        );
-
-        // Verify specific contexts exist
-        assertTrue(
-            "Should contain test portal page context",
-            foundContexts.stream().anyMatch(c -> c.getPageId().equals("test-portal-page-id"))
-        );
-        assertTrue(
-            "Should contain update portal page context",
-            foundContexts.stream().anyMatch(c -> c.getPageId().equals("update-portal-page"))
-        );
+        assertThat(foundContexts).isNotNull();
+        assertThat(foundContexts).hasSize(2);
+        assertThat(foundContexts).allMatch(c -> c.getContextType() == PortalPageContextType.HOMEPAGE);
+        assertThat(foundContexts).anyMatch(c -> c.getPageId().equals("test-portal-page-id"));
+        assertThat(foundContexts).anyMatch(c -> c.getPageId().equals("update-portal-page"));
     }
 
     @Test
@@ -99,23 +88,15 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         nonExisting.setContextType(PortalPageContextType.HOMEPAGE);
         nonExisting.setPublished(true);
 
-        try {
-            // When
-            portalPageContextRepository.update(nonExisting);
-            fail("Updating a non-existing PortalPageContext should throw an exception");
-        } catch (IllegalStateException | TechnicalException ise) {
-            // Then
-            success("Test passed with one of expected exceptions thrown");
-        } catch (Exception e) {
-            fail("Unexpected exception type thrown: " + e.getClass().getName());
-        }
+        Throwable thrown = catchThrowable(() -> portalPageContextRepository.update(nonExisting));
+        assertThat(thrown).isInstanceOfAny(IllegalStateException.class, TechnicalException.class);
     }
 
     @Test
     public void should_not_be_able_to_create_portal_page_with_same_page_id_and_context_and_environment_id() throws Exception {
         // Given
         PortalPageContext existing = portalPageContextRepository.findById("test-portal-page-context-id").orElse(null);
-        assertNotNull("Existing PortalPageContext should be found", existing);
+        assertThat(existing).isNotNull();
 
         PortalPageContext duplicate = PortalPageContext
             .builder()
@@ -126,26 +107,23 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
             .published(true)
             .build();
 
-        // When & Then
-        try {
-            portalPageContextRepository.create(duplicate);
-            fail("Creating a PortalPageContext with same pageId, context and environmentId should fail due to unique constraint violation");
-        } catch (Exception e) {
-            // Verify it's a constraint violation exception
-            String errorMessage = e.getMessage().toLowerCase();
-            assertTrue(
-                "Exception should indicate constraint violation",
-                errorMessage.contains("constraint") ||
-                errorMessage.contains("duplicate") ||
-                errorMessage.contains("unique") ||
-                errorMessage.contains("duplicate key") ||
-                errorMessage.contains("already exists") ||
-                errorMessage.contains("failed to create")
-            );
+        Throwable thrown = catchThrowable(() -> portalPageContextRepository.create(duplicate));
+        assertThat(thrown).isNotNull();
+        String errorMessage = thrown.getMessage().toLowerCase();
+        assertThat(errorMessage).containsAnyOf("constraint", "duplicate", "unique", "duplicate key", "already exists", "failed to create");
 
-            // Verify the duplicate was not actually created
-            Optional<PortalPageContext> createdDuplicate = portalPageContextRepository.findById("new-id-for-duplicate");
-            assertTrue("Duplicate should not be created", createdDuplicate.isEmpty());
-        }
+        Optional<PortalPageContext> createdDuplicate = portalPageContextRepository.findById("new-id-for-duplicate");
+        assertThat(createdDuplicate).isEmpty();
+    }
+
+    @Test
+    public void should_find_by_page_id() throws Exception {
+        String pageId = "test-portal-page-id";
+
+        PortalPageContext foundContext = portalPageContextRepository.findByPageId(pageId);
+
+        assertThat(foundContext).isNotNull();
+        assertThat(foundContext.getPageId()).isEqualTo(pageId);
+        assertThat(foundContext.getId()).isEqualTo("test-portal-page-context-id");
     }
 }

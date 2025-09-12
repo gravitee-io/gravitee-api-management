@@ -63,6 +63,14 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
     }
 
     @Override
+    public PortalPageContext findByPageId(String string) {
+        log.debug("Find PortalPageContext by pageId [{}]", string);
+        Optional<PortalPageContext> portalPageContext = internalRepo.findByPageId(string).map(this::map);
+        log.debug("Find PortalPageContext by pageId [{}] - Done", string);
+        return portalPageContext.orElse(null);
+    }
+
+    @Override
     public PortalPageContext create(PortalPageContext portalPageContext) throws TechnicalException {
         log.debug("Create PortalPageContext [{}]", portalPageContext.getPageId());
         PortalPageContextMongo portalPageContextMongo = map(portalPageContext);

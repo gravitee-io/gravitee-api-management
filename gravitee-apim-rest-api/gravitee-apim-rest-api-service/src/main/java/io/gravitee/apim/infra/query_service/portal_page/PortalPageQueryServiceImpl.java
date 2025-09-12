@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.query_service.portal_page;
 
+import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
@@ -67,6 +68,17 @@ public class PortalPageQueryServiceImpl implements PortalPageQueryService {
                 "An error occurred while trying to find portal pages viewDetails by environment ID and viewDetails",
                 e
             );
+        }
+    }
+
+    @Override
+    public PortalPageWithViewDetails findById(PageId pageId) {
+        try {
+            var page = pageRepository.findById(pageId.toString()).orElse(null);
+            var context = contextRepository.findByPageId(pageId.toString());
+            return new PortalPageWithViewDetails(pageAdapter.map(page), pageAdapter.map(context));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException();
         }
     }
 }
