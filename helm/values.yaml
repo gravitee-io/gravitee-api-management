@@ -873,6 +873,9 @@ api:
   #      algorithm: HS256
   #      verificationKey: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm # verificationKey or the JWKS URL
   #      issuer: MY_ISSUER
+  newtai:
+    elgen:
+      enabled: false
 
   federation:
     enabled: false
