@@ -20,12 +20,15 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { HomepageComponent } from './homepage.component';
 
 import { GioTestingModule, CONSTANTS_TESTING } from '../../shared/testing';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { fakePortalPageWithDetails } from '../../entities/portal/portal-page-with-details.fixture';
+import { PatchPortalPage } from '../../entities/portal/patch-portal-page';
+import { PortalPageWithDetails } from '../../entities/portal/portal-page-with-details';
 
 describe('HomepageComponent', () => {
   let fixture: ComponentFixture<HomepageComponent>;
@@ -80,6 +83,28 @@ describe('HomepageComponent', () => {
 
     const editorHarness = await harnessLoader.getHarness(GraviteeMarkdownEditorHarness);
     expect(await editorHarness.isEditorReadOnly()).toBe(true);
+
+    const saveButton = await getSaveButton();
+    expect(await saveButton.isDisabled()).toBeTruthy();
+  });
+
+  it('should disable editor when content has not changed or is empty', async () => {
+    await init(true, fakePortalPageWithDetails({ content: '# Hello world' }));
+
+    const editorHarness = await harnessLoader.getHarness(GraviteeMarkdownEditorHarness);
+    await editorHarness.setEditorValue('Updated page content');
+
+    const saveButton = await getSaveButton();
+    expect(await saveButton.isDisabled()).toBeFalsy();
+
+    await editorHarness.setEditorValue('# Hello world');
+    expect(await saveButton.isDisabled()).toBeTruthy();
+
+    await editorHarness.setEditorValue('');
+    expect(await saveButton.isDisabled()).toBeTruthy();
+
+    await editorHarness.setEditorValue('     ');
+    expect(await saveButton.isDisabled()).toBeTruthy();
   });
 
   it('should enable editor when user has update permission', async () => {
@@ -87,5 +112,36 @@ describe('HomepageComponent', () => {
 
     const editorHarness = await harnessLoader.getHarness(GraviteeMarkdownEditorHarness);
     expect(await editorHarness.isEditorReadOnly()).toBe(false);
+
+    await editorHarness.setEditorValue('Updated page content');
+    const saveButton = await getSaveButton();
+    expect(await saveButton.isDisabled()).toBeFalsy();
   });
+
+  it('should update home page content', async () => {
+    const page = fakePortalPageWithDetails();
+    const updatedContent = 'Updated page content';
+    await init(true, page);
+
+    const editorHarness = await harnessLoader.getHarness(GraviteeMarkdownEditorHarness);
+    await editorHarness.setEditorValue(updatedContent);
+
+    const saveButton = await getSaveButton();
+    await saveButton.click();
+
+    expectPortalPageUpdate({ content: updatedContent }, { ...page, content: updatedContent });
+  });
+
+  async function getSaveButton() {
+    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Update portal page"]' }));
+  }
+
+  function expectPortalPageUpdate(expected: PatchPortalPage, response: PortalPageWithDetails) {
+    const req = httpTestingController.expectOne({
+      method: 'PATCH',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${response.id}`,
+    });
+    expect(req.request.body).toStrictEqual(expected);
+    req.flush(response);
+  }
 });

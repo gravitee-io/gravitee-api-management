@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { PortalPageWithDetails } from '../entities/portal/portal-page-with-details';
+import { PatchPortalPage } from '../entities/portal/patch-portal-page';
 
 @Injectable({
   providedIn: 'root',
@@ -34,5 +35,9 @@ export class PortalPagesService {
    */
   getHomepage(): Observable<PortalPageWithDetails> {
     return this.http.get<PortalPageWithDetails>(`${this.constants.env.v2BaseURL}/portal-pages/_homepage`);
+  }
+
+  patchPortalPage(portalPageId: string, patchedPage: PatchPortalPage): Observable<PortalPageWithDetails> {
+    return this.http.patch<PortalPageWithDetails>(`${this.constants.env.v2BaseURL}/portal-pages/${portalPageId}`, patchedPage);
   }
 }
