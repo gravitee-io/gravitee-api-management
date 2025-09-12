@@ -49,6 +49,7 @@ import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -161,6 +162,7 @@ public class HttpConnector implements ProxyConnector {
                     ctx.getTracer().endWithResponse(httpRequestSpan, observableHttpClientResponse);
                 })
                 .doOnError(throwable -> ctx.getTracer().endOnError(httpRequestSpan, throwable))
+                .onErrorResumeNext(Single::error)
                 .ignoreElement();
         } catch (Exception e) {
             return Completable.error(e);
