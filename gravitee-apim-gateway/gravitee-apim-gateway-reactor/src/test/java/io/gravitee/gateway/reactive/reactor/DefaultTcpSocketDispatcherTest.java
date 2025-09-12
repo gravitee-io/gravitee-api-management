@@ -66,7 +66,7 @@ class DefaultTcpSocketDispatcherTest {
         DefaultTcpAcceptor acceptor = new DefaultTcpAcceptor(reactorHandler, "foo", null);
         when(handlerRegistry.getAcceptors(TcpAcceptor.class)).thenReturn(List.of(acceptor));
         DefaultTcpAcceptorResolver resolver = new DefaultTcpAcceptorResolver(handlerRegistry);
-        cut = new DefaultTcpSocketDispatcher(resolver, new CustomComponentProvider(), new UUID());
+        cut = new DefaultTcpSocketDispatcher(resolver, new CustomComponentProvider(), new UUID(), true);
     }
 
     @Test

@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.Setter;
 
 public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse>
     extends AbstractBaseExecutionContext
@@ -53,6 +54,9 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     protected RQ request;
     protected RS response;
     protected Metrics metrics;
+
+    @Setter
+    protected boolean warningsEnabled = true;
 
     private EvaluableRequest evaluableRequest;
     private EvaluableResponse evaluableResponse;
@@ -102,6 +106,11 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
 
     @Override
     public void warnWith(ExecutionWarn warn) {
+        // Check if warning reporting is enabled before processing the warning
+        if (!warningsEnabled) {
+            return;
+        }
+
         List<ExecutionWarn> warnings = getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN);
         if (warnings == null) {
             warnings = new LinkedList<>();
