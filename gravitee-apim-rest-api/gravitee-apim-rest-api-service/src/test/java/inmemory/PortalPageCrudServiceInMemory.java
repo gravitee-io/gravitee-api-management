@@ -18,17 +18,19 @@ package inmemory;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InMemoryAlternative<PortalPage> {
 
-    private final List<PortalPage> storage = new ArrayList<>();
+    private final Map<PageId, PortalPage> storage = new HashMap<>();
 
     @Override
     public void initWith(List<PortalPage> items) {
         storage.clear();
-        storage.addAll(items);
+        items.forEach(item -> storage.put(item.getId(), item));
     }
 
     @Override
@@ -38,11 +40,23 @@ public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InM
 
     @Override
     public List<PortalPage> storage() {
-        return storage;
+        return storage.values().stream().toList();
     }
 
     @Override
     public List<PortalPage> findByIds(List<PageId> pageIds) {
-        return storage.stream().filter(p -> pageIds.contains(p.id())).toList();
+        return storage.entrySet().stream().filter(entry -> pageIds.contains(entry.getKey())).map(Map.Entry::getValue).toList();
+    }
+
+    @Override
+    public PortalPage update(PortalPage page) {
+        storage.remove(page.getId());
+        storage.put(page.getId(), page);
+        return page;
+    }
+
+    @Override
+    public Optional<PortalPage> findById(PageId pageId) {
+        return Optional.ofNullable(storage.get(pageId));
     }
 }

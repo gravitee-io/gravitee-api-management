@@ -65,7 +65,7 @@ class PortalPageQueryServiceImplTest {
         assertThat(result).hasSize(1);
         var page = result.getFirst().page();
         assertThat(page).isNotNull();
-        assertThat(page.pageContent().content()).isEqualTo("content");
+        assertThat(page.getPageContent().content()).isEqualTo("content");
         var context = result.getFirst().viewDetails();
         assertThat(context.context()).isEqualTo(PortalViewContext.HOMEPAGE);
         assertThat(context.published()).isTrue();
