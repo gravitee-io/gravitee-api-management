@@ -21,6 +21,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.size;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
@@ -67,7 +68,7 @@ public final class ApiServicesMigration {
                 v2EndpointDiscoveryService
             );
             case null -> null;
-            default -> MigrationResult.issue("Unsupported Service", IMPOSSIBLE);
+            default -> MigrationResult.issue(MigrationWarnings.SERVICE_NOT_SUPPORTED.formatted(v2Service.getName()), IMPOSSIBLE);
         };
     }
 
@@ -96,10 +97,7 @@ public final class ApiServicesMigration {
                 HealthCheckStep step = steps.getFirst();
                 if (size(step.getResponse().getAssertions()) > 1) {
                     log.error("Health check for {} cannot have more than one assertion", endpointReferenceForMessage);
-                    migrationResult.addIssue(
-                        "Health check for %s cannot have more than one assertion".formatted(endpointReferenceForMessage),
-                        IMPOSSIBLE
-                    );
+                    migrationResult.addIssue(MigrationWarnings.HEALTHCHECK_ASSERTION.formatted(endpointReferenceForMessage), IMPOSSIBLE);
                 }
                 try {
                     config.set(
@@ -119,13 +117,13 @@ public final class ApiServicesMigration {
                     config.set("overrideEndpointPath", jsonMapper.valueToTree(step.getRequest().isFromRoot()));
                 } catch (Exception e) {
                     log.error("Unable to map configuration for Health check ", e);
-                    return migrationResult.addIssue("Unable to map configuration for Health check", IMPOSSIBLE);
+                    return migrationResult.addIssue(MigrationWarnings.HEALTHCHECK_GENERAL_PARSE_ERROR, IMPOSSIBLE);
                 }
             }
             default -> {
                 log.error("Health check for {} cannot have more than one step ", endpointReferenceForMessage);
                 migrationResult.addIssue(
-                    "Health check for %s cannot have more than one step".formatted(endpointReferenceForMessage),
+                    MigrationWarnings.HEALTHCHECK_STEPS.formatted(endpointReferenceForMessage.formatted()),
                     IMPOSSIBLE
                 );
             }
@@ -172,9 +170,10 @@ public final class ApiServicesMigration {
                 v2dynamicPropertyService.getProvider() != null &&
                 !v2dynamicPropertyService.getProvider().equals(DynamicPropertyProvider.HTTP)
             ) {
-                String errorMessage = "Unable to migrate Dynamic properties configuration as provider is different from HTTP";
-                log.error(errorMessage);
-                return migrationResult.addIssue(new MigrationResult.Issue(errorMessage, MigrationResult.State.IMPOSSIBLE));
+                log.error(MigrationWarnings.DYNAMIC_PROPERTY_HTTP_ONLY);
+                return migrationResult.addIssue(
+                    new MigrationResult.Issue(MigrationWarnings.DYNAMIC_PROPERTY_HTTP_ONLY, MigrationResult.State.IMPOSSIBLE)
+                );
             }
             if (
                 v2dynamicPropertyService.getConfiguration() instanceof HttpDynamicPropertyProviderConfiguration httpDPProviderConfiguration
@@ -193,9 +192,10 @@ public final class ApiServicesMigration {
                 configNode.put("url", httpDPProviderConfiguration.getUrl());
             }
         } catch (Exception e) {
-            String errorMessage = "Unable to map configuration for Dynamic Property Service";
-            log.error(errorMessage, e);
-            return migrationResult.addIssue(new MigrationResult.Issue(errorMessage, MigrationResult.State.IMPOSSIBLE));
+            log.error(MigrationWarnings.DYNAMIC_PROPERTY_PARSE_ERROR, e);
+            return migrationResult.addIssue(
+                new MigrationResult.Issue(MigrationWarnings.DYNAMIC_PROPERTY_PARSE_ERROR, MigrationResult.State.IMPOSSIBLE)
+            );
         }
         return migrationResult.map(service -> {
             service.setConfiguration(configNode.toString());
@@ -210,9 +210,7 @@ public final class ApiServicesMigration {
 
         if (!ALLOWED_DISCOVERY_PLUGIN_IDS.contains(discoveryService.getProvider())) {
             return MigrationResult.issue(
-                "Service discovery provider '%s' is not supported for migration. Only consul-service-discovery is supported.".formatted(
-                        discoveryService.getProvider()
-                    ),
+                MigrationWarnings.SERVICE_DISCOVERY_NOT_SUPPORTED.formatted(discoveryService.getProvider()),
                 IMPOSSIBLE
             );
         }
@@ -224,11 +222,6 @@ public final class ApiServicesMigration {
             .enabled(discoveryService.isEnabled())
             .build();
 
-        return MigrationResult
-            .value(service)
-            .addIssue(
-                "Service discovery configuration can be migrated, but the configuration page will not be available in the new version.",
-                MigrationResult.State.CAN_BE_FORCED
-            );
+        return MigrationResult.value(service).addIssue(MigrationWarnings.SERVICE_DISCOVERY_LIMITATION, MigrationResult.State.CAN_BE_FORCED);
     }
 }

@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Flow;
@@ -122,7 +123,7 @@ class FlowMigrationTest {
         assertThrows(NullPointerException.class, () -> get(result));
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
-            .containsExactly("Policy cloud-events is not compatible with V4 APIs");
+            .containsExactly(MigrationWarnings.POLICY_NOT_COMPATIBLE.formatted("cloud-events"));
         assertThat(result.issues()).map(MigrationResult.Issue::state).containsExactly(MigrationResult.State.IMPOSSIBLE);
     }
 
@@ -138,9 +139,7 @@ class FlowMigrationTest {
         assertThat(get(result)).isNotNull();
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
-            .containsExactly(
-                "Policy unknown-policy is not a Gravitee policy. Please ensure it is compatible with V4 API before migrating to V4"
-            );
+            .containsExactly(MigrationWarnings.NON_GRAVITEE_POLICY.formatted("unknown-policy"));
         assertThat(result.issues()).map(MigrationResult.Issue::state).containsExactly(MigrationResult.State.CAN_BE_FORCED);
     }
 
@@ -268,7 +267,7 @@ class FlowMigrationTest {
 
             // Then
             assertThat(result.issues()).hasSize(1);
-            assertThat(result.issues().iterator().next().message()).startsWith("Impossible to parse groovy policy configuration");
+            assertThat(result.issues().iterator().next().message()).startsWith(MigrationWarnings.GROOVY_PARSE_ERROR);
             assertThat(result.issues().iterator().next().state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         }
 
@@ -293,10 +292,7 @@ class FlowMigrationTest {
 
             // Then
             assertThat(result.issues()).hasSize(1);
-            assertThat(result.issues().iterator().next().message())
-                .startsWith(
-                    "Multiple groovy scripts found in groovy policy configuration (non 'content' scripts are ignored if a 'content' script is present)"
-                );
+            assertThat(result.issues().iterator().next().message()).startsWith(MigrationWarnings.GROOVY_MULTIPLE_SCRIPTS);
             assertThat(result.issues().iterator().next().state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         }
 
