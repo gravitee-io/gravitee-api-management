@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+export interface DiagnosticItem {
+  componentType: string;
+  componentName: string;
+  key: string;
+  message: string;
+}
+
 export interface PlatformLogsQueryParams {
   from: number;
   to: number;
@@ -36,6 +43,11 @@ export interface PlatformLog {
   plan: string;
   application: string;
   endpoint: boolean;
+  message?: string;
+  errorKey?: string;
+  errorComponentName?: string;
+  errorComponentType?: string;
+  warnings?: DiagnosticItem[];
 }
 
 export interface PlatformLogsResponse {

@@ -19,6 +19,7 @@ import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_AP
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_APPLICATION;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_PLAN;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_SUBSCRIPTION_ID;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_DIAGNOSTIC;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
@@ -29,6 +30,7 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
+import io.gravitee.gateway.reactive.handlers.api.security.SecurityChainDiagnostic;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -55,13 +57,11 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
     protected static final Maybe<Boolean> TRUE = Maybe.just(true);
     protected static final Maybe<Boolean> FALSE = Maybe.just(false);
     protected final T policy;
-    private final String planId;
-    private final String selectionRule;
+    private final SecurityPlanContext planContext;
 
-    public AbstractSecurityPlan(@Nonnull final String planId, @Nonnull final T policy, final String selectionRule) {
-        this.planId = planId;
+    public AbstractSecurityPlan(@Nonnull final SecurityPlanContext planContext, @Nonnull final T policy) {
+        this.planContext = planContext;
         this.policy = policy;
-        this.selectionRule = getSelectionRule(selectionRule);
     }
 
     public String id() {
@@ -75,15 +75,22 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
      * @return <code>true</code> if this security plan can be executed for the request, <code>false</code> otherwise.
      */
     public Single<Boolean> canExecute(C ctx) {
+        SecurityChainDiagnostic securityChainDiagnostic = ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC);
         return extractSecurityToken(ctx)
             .flatMap(securityToken -> {
                 ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN, securityToken);
                 if (!securityToken.isInvalid()) {
                     return isApplicableWithValidSubscription(ctx, securityToken);
                 }
-                return Maybe.empty();
+                securityChainDiagnostic.markPlanHasInvalidToken(this.planContext.planName());
+                return Maybe.just(false);
             })
-            .defaultIfEmpty(false);
+            .switchIfEmpty(
+                Single.defer(() -> {
+                    securityChainDiagnostic.markPlanHasNoToken(this.planContext.planName());
+                    return Single.just(false);
+                })
+            );
     }
 
     /**
@@ -93,7 +100,7 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
      * @return a {@link Completable} that completes when the security policy has been successfully executed or returns an error otherwise.
      */
     public Completable execute(final C ctx, final ExecutionPhase executionPhase) {
-        return executeSecurityPolicy(ctx, executionPhase).doOnSubscribe(disposable -> ctx.setAttribute(ATTR_PLAN, planId));
+        return executeSecurityPolicy(ctx, executionPhase).doOnSubscribe(disposable -> ctx.setAttribute(ATTR_PLAN, planContext.planId()));
     }
 
     public int order() {
@@ -107,6 +114,8 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
     protected abstract String getSelectionRule(String selectionRule);
 
     private Maybe<Boolean> isApplicableWithValidSubscription(BaseExecutionContext ctx, SecurityToken securityToken) {
+        SecurityChainDiagnostic securityChainDiagnostic = ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC);
+        String selectionRule = getSelectionRule(planContext.selectionRule());
         if (selectionRule == null || selectionRule.isEmpty()) {
             return Maybe.just(validateSubscription(ctx, securityToken));
         }
@@ -118,6 +127,8 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
                 if (Boolean.TRUE.equals(matches)) {
                     return validateSubscription(ctx, securityToken);
                 }
+
+                securityChainDiagnostic.markPlanHasNoMachingRule(planContext.planName());
                 // Remove any security  token as the selection rule don't match
                 ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
                 return false;
@@ -125,6 +136,7 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
     }
 
     private boolean validateSubscription(BaseExecutionContext ctx, SecurityToken securityToken) {
+        SecurityChainDiagnostic securityChainDiagnostic = ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC);
         Boolean validateSubscriptionEnabled = ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION);
 
         // Skip validating the subscription
@@ -140,17 +152,20 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
             SubscriptionService subscriptionService = ctx.getComponent(SubscriptionService.class);
             String api = ctx.getAttribute(ATTR_API);
 
-            Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(api, securityToken, planId);
+            Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(api, securityToken, planContext.planId());
 
             if (subscriptionOpt.isPresent()) {
                 Subscription subscription = subscriptionOpt.get();
 
-                if (planId.equals(subscription.getPlan()) && subscription.isTimeValid(ctx.timestamp())) {
+                if (planContext.planId().equals(subscription.getPlan()) && subscription.isTimeValid(ctx.timestamp())) {
                     ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
                     ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
                     ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
                     return true;
                 }
+                securityChainDiagnostic.markPlanHasExpiredSubscription(planContext.planName());
+            } else {
+                securityChainDiagnostic.markPlanHasNoSubscription(planContext.planName());
             }
             return false;
         } catch (Exception t) {

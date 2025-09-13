@@ -1,3 +1,7 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 .api-analytics-logs-log {
   tr.log-error {
     background-color: #f9f2f4;
@@ -147,5 +151,174 @@
     opacity: 1;
     max-height: none;
     transition: all 350ms ease-in-out;
+  }
+}
+
+.failure {
+  border: 1px solid #dc2626;
+
+  &__title {
+    color: #dc2626;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+
+    &__action {
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+      justify-content: space-between;
+      height: 48px;
+    }
+  }
+}
+
+// Diagnostic Section Styles - Clean and Modern
+.diagnostic-section {
+  margin: 12px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+
+  &--failure {
+    border-left: 4px solid #dc2626;
+    background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+  }
+
+  &--warning {
+    border-left: 4px solid #3b82f6;
+    background: linear-gradient(135deg, #eff6ff 0%, #f8faff 100%);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  &__icon {
+    font-size: 16px;
+    margin-right: 8px;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  &--failure &__title {
+    color: #dc2626;
+  }
+
+  &--warning &__title {
+    color: #3b82f6;
+  }
+
+  &__content {
+    padding: 12px;
+    background: white;
+  }
+}
+.diagnostic-item {
+  display: flex;
+  margin-bottom: 8px;
+  align-items: flex-start;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  /* CHANGED: make message row-based instead of stacked */
+  &--message {
+    flex-direction: row; /* was: column */
+    align-items: flex-start; /* was: stretch */
+  }
+
+  &__label {
+    font-weight: 600;
+    color: #374151;
+    width: 80px;
+    margin-right: 12px; /* ensure space between label and value */
+    font-size: 12px;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    text-align: left;
+  }
+
+  /* CHANGED: remove vertical spacing that forced stack look */
+  &--message &__label {
+    margin-bottom: 0; /* was: 6px */
+    margin-right: 12px; /* was: 0 */
+    text-align: left;
+    text-transform: none;
+  }
+
+  &__value {
+    color: #111827;
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-word;
+    flex: 1; /* take remaining width */
+    min-width: 0;
+  }
+
+  &__message-text {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    min-height: auto;
+    max-height: none;
+    overflow-y: visible;
+    text-align: left;
+    color: #555;
+    border-left: 3px solid #e0e0e0;
+    padding-left: 8px;
+    margin-top: 4px;
+  }
+}
+
+.diagnostic-warning {
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 3px solid #3b82f6;
+  border: 1px solid #e5e7eb;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .diagnostic-item {
+    margin-bottom: 6px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Log Indicators for List Views
+.log-indicator {
+  margin-left: 8px;
+  font-size: 14px;
+
+  &--failure {
+    color: #dc2626;
+  }
+
+  &--warning {
+    color: #3b82f6;
   }
 }

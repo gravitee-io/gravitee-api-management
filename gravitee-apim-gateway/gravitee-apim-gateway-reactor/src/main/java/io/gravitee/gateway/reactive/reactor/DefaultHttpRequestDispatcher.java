@@ -96,6 +96,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     private final Vertx vertx;
     private final ComponentProvider globalComponentProvider;
     private final TracingHook tracingHook;
+    private final boolean warningsEnabled;
 
     public DefaultHttpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
@@ -109,7 +110,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         TracingContext gatewayTracingContext,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
-        Vertx vertx
+        Vertx vertx,
+        boolean warningsEnabled
     ) {
         this.gatewayConfiguration = gatewayConfiguration;
         this.httpAcceptorResolver = httpAcceptorResolver;
@@ -124,6 +126,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         this.requestClientAuthConfiguration = requestClientAuthConfiguration;
         this.vertx = vertx;
         this.tracingHook = new TracingHook("Processor chain");
+        this.warningsEnabled = warningsEnabled;
     }
 
     /**
@@ -260,7 +263,9 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     }
 
     protected DefaultExecutionContext createExecutionContext(VertxHttpServerRequest request) {
-        return new DefaultExecutionContext(request, request.response());
+        DefaultExecutionContext context = new DefaultExecutionContext(request, request.response());
+        context.setWarningsEnabled(warningsEnabled);
+        return context;
     }
 
     private Completable handleNotFound(final MutableExecutionContext ctx, final List<ProcessorHook> notFoundProcessorHook) {

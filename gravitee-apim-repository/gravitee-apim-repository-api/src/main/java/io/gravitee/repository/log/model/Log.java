@@ -17,11 +17,16 @@ package io.gravitee.repository.log.model;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.management.model.Audit;
+import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public class Log {
 
     public enum AuditEvent implements Audit.AuditEvent {
@@ -52,198 +57,9 @@ public class Log {
     private String securityType;
     private String securityToken;
     private String errorKey;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-
-    public HttpMethod getMethod() {
-        return method;
-    }
-
-    public void setMethod(HttpMethod method) {
-        this.method = method;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public long getResponseTime() {
-        return responseTime;
-    }
-
-    public void setResponseTime(long responseTime) {
-        this.responseTime = responseTime;
-    }
-
-    public long getApiResponseTime() {
-        return apiResponseTime;
-    }
-
-    public void setApiResponseTime(long apiResponseTime) {
-        this.apiResponseTime = apiResponseTime;
-    }
-
-    public long getRequestContentLength() {
-        return requestContentLength;
-    }
-
-    public void setRequestContentLength(long requestContentLength) {
-        this.requestContentLength = requestContentLength;
-    }
-
-    public long getResponseContentLength() {
-        return responseContentLength;
-    }
-
-    public void setResponseContentLength(long responseContentLength) {
-        this.responseContentLength = responseContentLength;
-    }
-
-    public String getPlan() {
-        return plan;
-    }
-
-    public void setPlan(String plan) {
-        this.plan = plan;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public String getApplication() {
-        return application;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
-
-    public String getLocalAddress() {
-        return localAddress;
-    }
-
-    public void setLocalAddress(String localAddress) {
-        this.localAddress = localAddress;
-    }
-
-    public String getRemoteAddress() {
-        return remoteAddress;
-    }
-
-    public void setRemoteAddress(String remoteAddress) {
-        this.remoteAddress = remoteAddress;
-    }
-
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public String getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(String tenant) {
-        this.tenant = tenant;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getGateway() {
-        return gateway;
-    }
-
-    public void setGateway(String gateway) {
-        this.gateway = gateway;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getSecurityType() {
-        return securityType;
-    }
-
-    public void setSecurityType(String securityType) {
-        this.securityType = securityType;
-    }
-
-    public String getSecurityToken() {
-        return securityToken;
-    }
-
-    public void setSecurityToken(String securityToken) {
-        this.securityToken = securityToken;
-    }
-
-    public String getErrorKey() {
-        return errorKey;
-    }
-
-    public void setErrorKey(String errorKey) {
-        this.errorKey = errorKey;
-    }
+    private String errorComponentName;
+    private String errorComponentType;
+    private List<LogDiagnostic> warnings;
 
     @Override
     public boolean equals(Object o) {
