@@ -17,7 +17,9 @@ package inmemory;
 
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
 import io.gravitee.apim.core.portal_page.model.PageId;
+import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.apim.infra.adapter.PortalPageAdapter;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import java.util.List;
@@ -35,6 +37,16 @@ public class PortalPageContextCrudServiceInMemory implements PortalPageContextCr
             .map(PortalPageContext::getPageId)
             .map(PageId::of)
             .toList();
+    }
+
+    @Override
+    public PortalPageView findByPageId(PageId pageId) {
+        return storage
+            .stream()
+            .filter(ppc -> ppc.getPageId().equals(pageId.toString()))
+            .map(PortalPageAdapter.INSTANCE::map)
+            .findFirst()
+            .orElse(null);
     }
 
     @Override

@@ -15,12 +15,15 @@
  */
 package io.gravitee.apim.infra.crud_service.portal_page;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.infra.adapter.PortalPageAdapter;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageRepository;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -42,5 +45,25 @@ public class PortalPageCrudServiceImpl implements PortalPageCrudService {
             .stream()
             .map(portalPageAdapter::toEntity)
             .toList();
+    }
+
+    @Override
+    public PortalPage update(PortalPage page) {
+        try {
+            var repoPage = portalPageAdapter.toRepository(page);
+            var updated = portalPageRepository.update(repoPage);
+            return portalPageAdapter.toEntity(updated);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Optional<PortalPage> findById(PageId pageId) {
+        try {
+            return portalPageRepository.findById(pageId.toString()).map(portalPageAdapter::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(e.getMessage(), e);
+        }
     }
 }

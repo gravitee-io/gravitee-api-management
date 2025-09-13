@@ -87,8 +87,26 @@ public class JdbcPortalPageContextRepository
             );
             return portalPageContexts;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find PortalPageContexts by contextType and environmentId", contextType, environmentId, ex);
+            LOGGER.error("Failed to find PortalPageContexts by contextType [{}] and environmentId [{}]", contextType, environmentId, ex);
             return List.of();
+        }
+    }
+
+    @Override
+    public PortalPageContext findByPageId(String string) {
+        LOGGER.debug("JdbcPortalPageContextRepository.findByPageId({})", string);
+
+        try {
+            final PortalPageContext portalPageContext = jdbcTemplate.queryForObject(
+                "select id, page_id, context_type, environment_id, published from " + this.tableName + " where page_id = ?",
+                getOrm().getRowMapper(),
+                string
+            );
+            LOGGER.debug("JdbcPortalPageContextRepository.findByPageId({}) - Done", string);
+            return portalPageContext;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find PortalPageContext by pageId [{}]", string, ex);
+            return null;
         }
     }
 

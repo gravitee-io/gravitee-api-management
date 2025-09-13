@@ -18,7 +18,9 @@ package io.gravitee.apim.infra.crud_service.portal_page;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
 import io.gravitee.apim.core.portal_page.model.PageId;
+import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.apim.infra.adapter.PortalPageAdapter;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Component;
 public class PortalPageContextCrudServiceImpl implements PortalPageContextCrudService {
 
     private final PortalPageContextRepository portalPageContextRepository;
+    private final PortalPageAdapter pageAdapter = PortalPageAdapter.INSTANCE;
 
     public PortalPageContextCrudServiceImpl(@Lazy PortalPageContextRepository portalPageContextRepository) {
         this.portalPageContextRepository = portalPageContextRepository;
@@ -48,5 +51,10 @@ public class PortalPageContextCrudServiceImpl implements PortalPageContextCrudSe
         } catch (io.gravitee.repository.exceptions.TechnicalException e) {
             throw new TechnicalDomainException("Something went wrong while trying to find portal page contexts", e);
         }
+    }
+
+    @Override
+    public PortalPageView findByPageId(PageId pageId) {
+        return pageAdapter.map(portalPageContextRepository.findByPageId(pageId.toString()));
     }
 }

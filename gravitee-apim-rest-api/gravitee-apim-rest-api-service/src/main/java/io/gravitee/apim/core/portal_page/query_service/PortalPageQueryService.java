@@ -15,10 +15,13 @@
  */
 package io.gravitee.apim.core.portal_page.query_service;
 
+import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.List;
 
 public interface PortalPageQueryService {
     List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context);
+
+    PortalPageWithViewDetails findById(PageId pageId);
 }

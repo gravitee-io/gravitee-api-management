@@ -16,15 +16,19 @@
 package io.gravitee.rest.api.management.v2.rest.resource.portal_pages;
 
 import io.gravitee.apim.core.portal_page.use_case.GetHomepageUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalPagesMapper;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPage;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -33,6 +37,9 @@ public class PortalPagesResource extends AbstractResource {
 
     @Inject
     private GetHomepageUseCase getHomepageUseCase;
+
+    @Inject
+    private UpdatePortalPageUseCase updatePortalPageUseCase;
 
     @PathParam("envId")
     private String envId;
@@ -46,5 +53,17 @@ public class PortalPagesResource extends AbstractResource {
         var homepage = getHomepageUseCase.execute(input);
 
         return PortalPagesMapper.INSTANCE.map(homepage);
+    }
+
+    @PUT
+    @Produces("application/json")
+    @Consumes("application/json")
+    @Path("/{pageId}")
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public PortalPageResponse updatePortalPage(@PathParam("pageId") String pageId, UpdatePortalPage updatePortalPage) {
+        var input = new UpdatePortalPageUseCase.Input(envId, pageId, updatePortalPage.getContent());
+        var updatedHomepage = updatePortalPageUseCase.execute(input);
+
+        return PortalPagesMapper.INSTANCE.map(updatedHomepage.portalPage());
     }
 }

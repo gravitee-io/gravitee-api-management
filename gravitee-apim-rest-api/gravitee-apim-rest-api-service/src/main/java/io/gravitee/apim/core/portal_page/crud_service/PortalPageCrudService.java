@@ -18,7 +18,11 @@ package io.gravitee.apim.core.portal_page.crud_service;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import java.util.List;
+import java.util.Optional;
 
 public interface PortalPageCrudService {
     List<PortalPage> findByIds(List<PageId> pageIds);
+    PortalPage update(PortalPage page);
+
+    Optional<PortalPage> findById(PageId pageId);
 }

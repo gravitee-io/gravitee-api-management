@@ -15,6 +15,7 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
@@ -43,5 +44,10 @@ public class PortalPageQueryServiceInMemory implements PortalPageQueryService, I
     @Override
     public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
         return storage.stream().filter(pageWithViewDetails -> pageWithViewDetails.viewDetails().context().equals(context)).toList();
+    }
+
+    @Override
+    public PortalPageWithViewDetails findById(PageId pageId) {
+        return storage.stream().filter(p -> p.page().getId().equals(pageId)).findFirst().orElse(null);
     }
 }
