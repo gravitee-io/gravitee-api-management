@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.27_increase_entrypoints_value_length
+      author: GraviteeSource Team
+      changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}entrypoints
+            columnName: value
+            newDataType: nvarchar(255)

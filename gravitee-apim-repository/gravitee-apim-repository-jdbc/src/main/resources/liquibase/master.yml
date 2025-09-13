@@ -217,3 +217,5 @@ databaseChangeLog:
           - file: liquibase/changelogs/v4_5_0/06_add_scoring_table.yml
     - include:
           - file: liquibase/changelogs/v4_5_0/07_add_scoring_ruleset_table.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_27/00_increase_entrypoints_value_length.yml
