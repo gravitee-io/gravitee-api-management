@@ -326,6 +326,62 @@ class UpdatePlanDomainServiceTest {
     @Nested
     class V4Plan {
 
+        @Test
+        void should_allow_when_only_plan_and_tags_overlap() {
+            var api = aProxyApiV4().toBuilder().id(API_ID).build();
+            var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().apiId(API_ID).build();
+            // existing only this plan
+            givenExistingPlan(plan);
+            // api has tags {tag1, tag2}, plan has {tag2, tag3} -> overlap on tag2
+            api.getApiDefinitionHttpV4().setTags(Set.of("tag1", "tag2"));
+            plan.setPlanTags(Set.of("tag2", "tag3"));
+
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), null, api, AUDIT_INFO));
+            Assertions.assertThat(throwable).isNull();
+        }
+
+        @Test
+        void should_fail_when_only_plan_and_no_overlap_with_api_tags() {
+            var api = aProxyApiV4().toBuilder().id(API_ID).build();
+            var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().apiId(API_ID).build();
+            givenExistingPlan(plan);
+            api.getApiDefinitionHttpV4().setTags(Set.of("a", "b"));
+            plan.setPlanTags(Set.of("c", "d"));
+
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), null, api, AUDIT_INFO));
+            Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        }
+
+        @Test
+        void should_allow_when_both_empty_tags_for_only_plan() {
+            var api = aProxyApiV4().toBuilder().id(API_ID).build();
+            var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().apiId(API_ID).build();
+            givenExistingPlan(plan);
+            api.getApiDefinitionHttpV4().setTags(Set.of());
+            plan.setPlanTags(Set.of());
+
+            var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), null, api, AUDIT_INFO));
+            Assertions.assertThat(throwable).isNull();
+        }
+
+        @Test
+        void should_fail_when_only_plan_and_one_side_empty_tags() {
+            var api = aProxyApiV4().toBuilder().id(API_ID).build();
+            var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().apiId(API_ID).build();
+            givenExistingPlan(plan);
+            api.getApiDefinitionHttpV4().setTags(Set.of("x"));
+            plan.setPlanTags(Set.of());
+
+            var throwable1 = Assertions.catchThrowable(() -> service.update(plan, List.of(), null, api, AUDIT_INFO));
+            Assertions.assertThat(throwable1).isInstanceOf(ValidationDomainException.class);
+
+            // inverse
+            api.getApiDefinitionHttpV4().setTags(Set.of());
+            plan.setPlanTags(Set.of("x"));
+            var throwable2 = Assertions.catchThrowable(() -> service.update(plan, List.of(), null, api, AUDIT_INFO));
+            Assertions.assertThat(throwable2).isInstanceOf(ValidationDomainException.class);
+        }
+
         @ParameterizedTest
         @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
         void should_update_existing_plans(Api api, Plan plan, List<Flow> flows) {
@@ -341,13 +397,7 @@ class UpdatePlanDomainServiceTest {
                 .commentRequired(true)
                 .commentMessage("updated comment")
                 .planDefinitionHttpV4(
-                    plan
-                        .getPlanDefinitionHttpV4()
-                        .toBuilder()
-                        .status(PlanStatus.PUBLISHED)
-                        .tags(Set.of("tag1"))
-                        .selectionRule("updated rule")
-                        .build()
+                    plan.getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.PUBLISHED).selectionRule("updated rule").build()
                 )
                 .excludedGroups(List.of("updated group"))
                 .characteristics(List.of("updated characteristic"))
