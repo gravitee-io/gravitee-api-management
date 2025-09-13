@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@use '../../scss/theme' as theme;
+
 :host {
   display: flex;
   flex-flow: column;
@@ -43,6 +46,10 @@
     align-items: flex-start;
     gap: 16px;
 
+    &__avatar {
+      display: #{theme.$application-avatar-display};
+    }
+
     &__content {
       display: flex;
       flex-flow: column;
@@ -66,7 +73,6 @@
     overflow: hidden;
     max-height: 98px;
     -webkit-box-orient: vertical;
-    color: var(--mdc-outlined-text-field-label-text-color);
     -webkit-line-clamp: 3;
     line-clamp: 3;
     text-overflow: ellipsis;

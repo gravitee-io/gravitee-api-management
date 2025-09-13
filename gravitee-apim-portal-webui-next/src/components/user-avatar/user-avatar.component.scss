@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/theme/theme' as *;
-@use '../../scss/theme' as app-theme;
+@use 'sass:map';
+@use '../../scss/theme';
 @use '@angular/material' as mat;
 
 .user-avatar {
   @include mat.button-overrides(
     (
-      outlined-outline-color: app-theme.$nav-bar-border-color,
-      outlined-label-text-transform: uppercase,
+      outlined-container-height: #{theme.$user-avatar-height},
+      outlined-container-shape: #{theme.$user-avatar-container-shape},
+      outlined-label-text-transform: #{theme.$user-avatar-text-transform},
+      outlined-outline-color: #{theme.$user-avatar-border-color},
+      outlined-label-text-color: #{theme.$user-avatar-text-color},
       outlined-horizontal-padding: 8px,
     )
   );
