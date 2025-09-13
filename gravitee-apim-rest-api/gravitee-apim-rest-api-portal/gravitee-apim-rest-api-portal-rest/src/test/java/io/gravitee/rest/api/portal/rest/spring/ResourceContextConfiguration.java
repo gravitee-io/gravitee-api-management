@@ -118,6 +118,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
@@ -954,5 +955,10 @@ public class ResourceContextConfiguration {
     @Bean
     public PortalPageQueryService portalPageQueryService() {
         return new PortalPageQueryServiceInMemory();
+    }
+
+    @Bean
+    public PortalPageRepository portalPageRepository() {
+        return mock(PortalPageRepository.class);
     }
 }
