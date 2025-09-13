@@ -248,8 +248,10 @@
                 "required": ["name", "value"]
             },
             "gioConfig": {
-                "el": true,
-                "uiType": "gio-headers-array"
+                "uiType": "gio-headers-array",
+                "uiTypeProps": {
+                  "elColumns": "value"
+                }
             }
         },
         "proxy": {
