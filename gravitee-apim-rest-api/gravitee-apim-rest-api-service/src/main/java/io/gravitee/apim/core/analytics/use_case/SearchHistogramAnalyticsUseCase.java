@@ -112,19 +112,19 @@ public class SearchHistogramAnalyticsUseCase {
     private Output executeV4NativeAPICase(ExecutionContext executionContext, Input input) {
         Instant from = Instant.ofEpochMilli(input.from());
         Instant to = Instant.ofEpochMilli(input.to());
-        Duration interval = Duration.ofMillis(input.interval());
-        AnalyticsQueryService.EventAnalyticsParams eventAnalyticsParams = new AnalyticsQueryService.EventAnalyticsParams(
-            input.api(),
+        var histogramQuery = new AnalyticsQueryService.HistogramQuery(
+            AnalyticsQueryService.SearchTermId.forApi(input.api),
             from,
             to,
-            interval,
-            input.aggregations()
+            Duration.ofMillis(input.interval()),
+            input.aggregations(),
+            input.query()
         );
 
-        Optional<EventAnalytics> eventAnalytics = analyticsQueryService.searchEventAnalytics(executionContext, eventAnalyticsParams);
+        Optional<EventAnalytics> eventAnalytics = analyticsQueryService.searchEventAnalytics(executionContext, histogramQuery);
         // Dump analytics data into metric buckets.
         List<HistogramAnalytics.Bucket> buckets = new ArrayList<>();
-        Timestamp timestamp = new Timestamp(from, to, interval);
+        Timestamp timestamp = new Timestamp(from, to, Duration.ofMillis(input.interval()));
         eventAnalytics.ifPresent(
             (
                 analytics ->
@@ -133,7 +133,7 @@ public class SearchHistogramAnalyticsUseCase {
                         .forEach((aggName, values) -> {
                             if (!values.isEmpty()) {
                                 String field = values.keySet().iterator().next();
-                                List<Long> valueList = new ArrayList<>(values.values());
+                                List<Long> valueList = values.get(field);
                                 buckets.add(new HistogramAnalytics.MetricBucket(aggName, field, valueList));
                             }
                         })

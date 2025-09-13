@@ -27,7 +27,6 @@ import io.gravitee.apim.infra.adapter.ApiMetricsDetailAdapter;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
-import io.gravitee.repository.analytics.query.events.EventAnalyticsQuery;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
@@ -408,9 +407,10 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, EventAnalyticsParams params) {
+    public Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, HistogramQuery query) {
         List<Aggregation> aggregations = new ArrayList<>();
-        params
+
+        query
             .aggregations()
             .forEach(aggregation ->
                 Arrays
@@ -420,13 +420,18 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .ifPresent(type -> aggregations.add(new Aggregation(aggregation.getField(), type)))
             );
 
-        EventAnalyticsQuery query = new EventAnalyticsQuery(
-            params.apiId(),
-            new TimeRange(params.from(), params.to(), Optional.of(params.interval())),
-            aggregations
-        );
+        io.gravitee.repository.log.v4.model.analytics.HistogramQuery histogramQuery =
+            new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
+                toModelSearchTermId(query.searchTermId()),
+                new TimeRange(query.from(), query.to(), query.interval()),
+                aggregations,
+                query.query()
+            );
 
-        Optional<EventAnalyticsAggregate> aggregate = analyticsRepository.searchEventAnalytics(executionContext.getQueryContext(), query);
+        Optional<EventAnalyticsAggregate> aggregate = analyticsRepository.searchEventAnalytics(
+            executionContext.getQueryContext(),
+            histogramQuery
+        );
 
         return aggregate.map(analyticsAggregate -> new EventAnalytics(analyticsAggregate.values()));
     }
