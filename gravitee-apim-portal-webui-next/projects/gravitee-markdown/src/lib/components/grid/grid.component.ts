@@ -13,7 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: block;
-  min-height: 200px;
+import { CommonModule } from '@angular/common';
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'gmd-grid',
+  imports: [CommonModule],
+  templateUrl: './grid.component.html',
+  styleUrl: './grid.component.scss',
+})
+export class GridComponent {
+  private _columns = 1;
+
+  get columns(): number {
+    return this._columns;
+  }
+  @Input() set columns(value: number) {
+    this._columns = Math.max(1, Math.min(6, value));
+  }
 }

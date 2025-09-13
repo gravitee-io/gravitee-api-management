@@ -13,7 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: block;
-  min-height: 200px;
-}
+import { ComponentSuggestion } from './grid/grid.suggestions';
+
+export { ComponentSuggestion } from './grid/grid.suggestions';
+
+// Export all component suggestions
+export { gridSuggestions } from './grid/grid.suggestions';
+export { cellSuggestions } from './grid/cell/cell.suggestions';
+
+// Import suggestions for combination
+import { gridSuggestions } from './grid/grid.suggestions';
+import { cellSuggestions } from './grid/cell/cell.suggestions';
+
+// Combined suggestions array
+export const allComponentSuggestions: ComponentSuggestion[] = [
+  ...gridSuggestions,
+  ...cellSuggestions,
+];

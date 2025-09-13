@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: block;
-  min-height: 200px;
+import { ComponentHarness } from '@angular/cdk/testing';
+
+export class CellComponentHarness extends ComponentHarness {
+  static hostSelector = 'gmd-cell';
+
+  async getContent(): Promise<string> {
+    return this.host().then(host => host.text());
+  }
 }

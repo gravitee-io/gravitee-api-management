@@ -13,7 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: block;
-  min-height: 200px;
-}
+import { HookParserEntry } from 'ngx-dynamic-hooks';
+
+import { CellComponent } from './grid/cell/cell.component';
+import { GridComponent } from './grid/grid.component';
+
+export const prefixStripperParser: HookParserEntry[] = [
+  {
+    component: GridComponent,
+    selector: 'grid',
+  },
+  {
+    component: CellComponent,
+    selector: 'cell',
+  },
+];

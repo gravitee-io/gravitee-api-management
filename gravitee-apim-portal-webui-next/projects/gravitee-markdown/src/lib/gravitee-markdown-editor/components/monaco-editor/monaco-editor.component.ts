@@ -19,6 +19,7 @@ import * as Monaco from 'monaco-editor';
 import { editor } from 'monaco-editor';
 
 import { MonacoEditorService } from '../../services/monaco-editor.service';
+import { MonacoSuggestionsService } from '../../services/monaco-suggestions.service';
 
 @Component({
   selector: 'gmd-monaco-editor',
@@ -60,6 +61,7 @@ export class MonacoEditorComponent implements OnDestroy {
   constructor(
     private readonly hostElement: ElementRef,
     private readonly monacoEditorService: MonacoEditorService,
+    private readonly monacoSuggestionsService: MonacoSuggestionsService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly ngZone: NgZone,
   ) {
@@ -89,6 +91,7 @@ export class MonacoEditorComponent implements OnDestroy {
       const monaco = this.monacoEditorService.monaco();
       if (monaco && !this.isEditorSetup()) {
         this.setupEditor(monaco);
+        this.monacoSuggestionsService.registerSuggestions(monaco);
         this.isEditorSetup.set(true);
         this.changeDetectorRef.detectChanges();
       }
@@ -107,6 +110,7 @@ export class MonacoEditorComponent implements OnDestroy {
 
   public ngOnDestroy() {
     this.toDisposes.forEach(d => d.dispose());
+    this.monacoSuggestionsService.dispose();
 
     if (this.standaloneCodeEditor) {
       this.standaloneCodeEditor.dispose();

@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: block;
-  min-height: 200px;
-}
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'gmd-cell',
+  imports: [],
+  templateUrl: './cell.component.html',
+})
+export class CellComponent {}
