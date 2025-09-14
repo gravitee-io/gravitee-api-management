@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { utc } from 'moment/moment';
+import moment from 'moment/moment';
 
 export interface TimeRangeParams {
   id: string;
@@ -31,11 +31,11 @@ export const timeInMilliseconds = {
 };
 
 export const timeFrameRangesParams = (id: string, nbValuesByBucket = 30): TimeRangeParams => {
-  const nowUtc = utc().valueOf();
+  const nowLocal = moment().valueOf();
   return {
     id,
-    from: nowUtc - timeInMilliseconds[id],
-    to: nowUtc,
+    from: nowLocal - timeInMilliseconds[id],
+    to: nowLocal,
     interval: timeInMilliseconds[id] / nbValuesByBucket,
   };
 };
