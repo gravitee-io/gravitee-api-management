@@ -52,6 +52,7 @@ export class GioChartLineComponent implements OnInit {
   ngOnInit() {
     this.chartOptions = {
       credits: { enabled: false },
+      time: { useUTC: false },
       chart: {
         backgroundColor: 'transparent',
         type: 'spline',
