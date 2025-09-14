@@ -62,6 +62,7 @@ export class GioChartLineComponent implements OnInit {
 
     this.chartOptions = {
       credits: { enabled: false },
+      time: { useUTC: false },
       chart: {
         plotBackgroundColor: '#F7F7F8',
         type: this.options?.useSharpCorners ? 'line' : 'spline',
