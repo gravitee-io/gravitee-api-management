@@ -28,6 +28,7 @@ import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.mapper.V2toV4MigrationOperator;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -101,7 +102,7 @@ public class MigrateApiUseCase {
             // Fatal issue, we don’t try to do anything in this case
             return new Output(
                 input.apiId(),
-                List.of(new MigrationResult.Issue("Cannot migrate an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE))
+                List.of(new MigrationResult.Issue(MigrationWarnings.API_NOT_V2_DEFINITION, MigrationResult.State.IMPOSSIBLE))
             );
         }
         MigrationResult<?> precondition = chekPreconditions(input, api);
@@ -136,10 +137,10 @@ public class MigrateApiUseCase {
     private MigrationResult<?> chekPreconditions(Input input, Api api) {
         MigrationResult<?> precondition = MigrationResult.value(1);
         if (!apiStateService.isSynchronized(api, input.auditInfo())) {
-            precondition = precondition.addIssue("Cannot migrate an API which is out of sync", CAN_BE_FORCED);
+            precondition = precondition.addIssue(MigrationWarnings.API_OUT_OF_SYNC, CAN_BE_FORCED);
         }
         if (api.getApiDefinition().getExecutionMode() == ExecutionMode.V3) {
-            precondition = precondition.addIssue("Cannot migrate an API not using V4 emulation", IMPOSSIBLE);
+            precondition = precondition.addIssue(MigrationWarnings.V4_EMULATION_ENGINE_REQUIRED, IMPOSSIBLE);
         }
         return precondition;
     }
@@ -211,28 +212,13 @@ public class MigrateApiUseCase {
         for (Page page : pageEntities) {
             if (page.getType() == Page.Type.TRANSLATION) {
                 String pageName = pagesById.get(page.getParentId()).getName();
-                issues.add(
-                    new MigrationResult.Issue(
-                        "Cannot migrate an API having document: %s, with translations".formatted(pageName),
-                        IMPOSSIBLE
-                    )
-                );
+                issues.add(new MigrationResult.Issue(MigrationWarnings.DOC_WITH_TRANSLATIONS.formatted(pageName), IMPOSSIBLE));
             }
             if (isNotEmpty(page.getAccessControls())) {
-                issues.add(
-                    new MigrationResult.Issue(
-                        "Cannot migrate an API having document: %s, with Access Control".formatted(page.getName()),
-                        IMPOSSIBLE
-                    )
-                );
+                issues.add(new MigrationResult.Issue(MigrationWarnings.DOC_WITH_ACCESS_CONTROL.formatted(page.getName()), IMPOSSIBLE));
             }
             if (isNotEmpty(page.getAttachedMedia())) {
-                issues.add(
-                    new MigrationResult.Issue(
-                        "Cannot migrate an API having document: %s, with Attached Resources".formatted(page.getName()),
-                        IMPOSSIBLE
-                    )
-                );
+                issues.add(new MigrationResult.Issue(MigrationWarnings.DOC_WITH_ATTACHED_RESOURCES.formatted(page.getName()), IMPOSSIBLE));
             }
         }
         return issues;

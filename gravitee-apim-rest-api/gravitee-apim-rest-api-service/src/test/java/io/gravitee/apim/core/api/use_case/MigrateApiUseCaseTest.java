@@ -49,6 +49,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -257,9 +258,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
-            .containsExactly(
-                new MigrationResult.Issue("Cannot migrate an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE)
-            );
+            .containsExactly(new MigrationResult.Issue(MigrationWarnings.API_NOT_V2_DEFINITION, MigrationResult.State.IMPOSSIBLE));
     }
 
     @Test
@@ -278,7 +277,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
-            .containsExactly(new MigrationResult.Issue("Cannot migrate an API which is out of sync", MigrationResult.State.CAN_BE_FORCED));
+            .containsExactly(new MigrationResult.Issue(MigrationWarnings.API_OUT_OF_SYNC, MigrationResult.State.CAN_BE_FORCED));
     }
 
     @Test
@@ -295,7 +294,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
-            .containsExactly(new MigrationResult.Issue("Cannot migrate an API not using V4 emulation", MigrationResult.State.IMPOSSIBLE));
+            .containsExactly(new MigrationResult.Issue(MigrationWarnings.V4_EMULATION_ENGINE_REQUIRED, MigrationResult.State.IMPOSSIBLE));
     }
 
     @ParameterizedTest
@@ -354,10 +353,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
             .containsExactly(
-                new MigrationResult.Issue(
-                    "Cannot migrate an API having document: document1, with translations",
-                    MigrationResult.State.IMPOSSIBLE
-                )
+                new MigrationResult.Issue(MigrationWarnings.DOC_WITH_TRANSLATIONS.formatted("document1"), MigrationResult.State.IMPOSSIBLE)
             );
     }
 
@@ -391,7 +387,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.issues())
             .containsExactly(
                 new MigrationResult.Issue(
-                    "Cannot migrate an API having document: document1, with Access Control",
+                    MigrationWarnings.DOC_WITH_ACCESS_CONTROL.formatted("document1"),
                     MigrationResult.State.IMPOSSIBLE
                 )
             );
@@ -429,7 +425,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.issues())
             .containsExactly(
                 new MigrationResult.Issue(
-                    "Cannot migrate an API having document: document1, with Attached Resources",
+                    MigrationWarnings.DOC_WITH_ATTACHED_RESOURCES.formatted("document1"),
                     MigrationResult.State.IMPOSSIBLE
                 )
             );
@@ -640,7 +636,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
-            .containsExactly("Policy cloud-events is not compatible with V4 APIs");
+            .containsExactly(MigrationWarnings.POLICY_NOT_COMPATIBLE.formatted("cloud-events"));
     }
 
     @Test
@@ -664,9 +660,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
-            .containsExactly(
-                "Policy unknown-policy is not a Gravitee policy. Please ensure it is compatible with V4 API before migrating to V4"
-            );
+            .containsExactly(MigrationWarnings.NON_GRAVITEE_POLICY.formatted("unknown-policy"));
     }
 
     @Test
@@ -1433,11 +1427,7 @@ class MigrateApiUseCaseTest {
 
         // Then
         assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
-        assertThat(result.issues())
-            .map(MigrationResult.Issue::message)
-            .containsExactly(
-                "Service discovery configuration can be migrated, but the configuration page will not be available in the new version."
-            );
+        assertThat(result.issues()).map(MigrationResult.Issue::message).containsExactly(MigrationWarnings.SERVICE_DISCOVERY_LIMITATION);
     }
 
     @Test
@@ -1527,7 +1517,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.issues())
             .anySatisfy(issue ->
                 assertThat(issue.message())
-                    .contains("Service discovery provider 'kubernetes-service-discovery' is not supported for migration")
+                    .contains(MigrationWarnings.SERVICE_DISCOVERY_NOT_SUPPORTED.formatted("kubernetes-service-discovery"))
             );
     }
 
@@ -1761,7 +1751,7 @@ class MigrateApiUseCaseTest {
                     .singleElement()
                     .satisfies(issue ->
                         assertSoftly(softly -> {
-                            softly.assertThat(issue.message()).startsWith("Impossible to parse groovy policy configuration");
+                            softly.assertThat(issue.message()).startsWith(MigrationWarnings.GROOVY_PARSE_ERROR);
                             softly.assertThat(issue.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
                         })
                     );
@@ -1792,11 +1782,7 @@ class MigrateApiUseCaseTest {
                     .singleElement()
                     .satisfies(issue ->
                         assertSoftly(softly -> {
-                            softly
-                                .assertThat(issue.message())
-                                .startsWith(
-                                    "Multiple groovy scripts found in groovy policy configuration (non 'content' scripts are ignored if a 'content' script is present)"
-                                );
+                            softly.assertThat(issue.message()).startsWith(MigrationWarnings.GROOVY_MULTIPLE_SCRIPTS);
                             softly.assertThat(issue.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
                         })
                     );
