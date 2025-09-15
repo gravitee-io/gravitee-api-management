@@ -1,176 +1,176 @@
 {
-  "name": "api-v4-with-apikey",
-  "hrid": "api-hrid",
-  "description": "API v4 CRD spec with unknown categories",
-  "version": "1.0",
-  "type": "PROXY",
-  "categories": [],
-  "listeners": [
-    {
-      "type": "HTTP",
-      "paths": [
+    "name": "api-v4-with-apikey",
+    "hrid": "api-hrid",
+    "description": "API v4 CRD spec with unknown categories",
+    "version": "1.0",
+    "type": "PROXY",
+    "categories": [],
+    "listeners": [
         {
-          "path": "/test-hrid"
+            "type": "HTTP",
+            "paths": [
+                {
+                    "path": "/test-hrid"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy",
+                    "qos": "AUTO"
+                }
+            ]
         }
-      ],
-      "entrypoints": [
+    ],
+    "endpointGroups": [
         {
-          "type": "http-proxy",
-          "qos": "AUTO"
+            "name": "Default HTTP proxy group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "Default HTTP proxy",
+                    "type": "http-proxy",
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "https://api.gravitee.io/echo"
+                    },
+                    "secondary": false
+                }
+            ]
         }
-      ]
-    }
-  ],
-  "endpointGroups": [
-    {
-      "name": "Default HTTP proxy group",
-      "type": "http-proxy",
-      "endpoints": [
+    ],
+    "flowExecution": {
+        "mode": "DEFAULT",
+        "matchRequired": false
+    },
+    "state": "STARTED",
+    "lifecycleState": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "flows": [
         {
-          "name": "Default HTTP proxy",
-          "type": "http-proxy",
-          "inheritConfiguration": false,
-          "configuration": {
-            "target": "https://api.gravitee.io/echo"
-          },
-          "secondary": false
+            "name": "flow-1",
+            "enabled": true,
+            "selectors": [
+                {
+                    "type": "HTTP",
+                    "path": "/",
+                    "pathOperator": "STARTS_WITH"
+                }
+            ],
+            "request": [
+                {
+                    "name": "my-shared-policy-group-policy",
+                    "description": "",
+                    "enabled": true,
+                    "policy": "shared-policy-group-policy",
+                    "configuration": {
+                        "hrid": "test-spg-hrid"
+                    }
+                }
+            ],
+            "response": [
+                {
+                    "name": "my-shared-policy-group-policy",
+                    "description": "",
+                    "enabled": true,
+                    "policy": "shared-policy-group-policy",
+                    "configuration": {
+                        "hrid": "test-spg-hrid"
+                    }
+                }
+            ],
+            "subscribe": [
+                {
+                    "name": "my-shared-policy-group-policy",
+                    "description": "",
+                    "enabled": true,
+                    "policy": "shared-policy-group-policy",
+                    "configuration": {
+                        "hrid": "test-spg-hrid"
+                    }
+                }
+            ],
+            "publish": [
+                {
+                    "name": "my-shared-policy-group-policy",
+                    "description": "",
+                    "enabled": true,
+                    "policy": "shared-policy-group-policy",
+                    "configuration": {
+                        "hrid": "test-spg-hrid"
+                    }
+                }
+            ]
         }
-      ]
-    }
-  ],
-  "flowExecution": {
-    "mode": "DEFAULT",
-    "matchRequired": false
-  },
-  "state": "STARTED",
-  "lifecycleState": "PUBLISHED",
-  "visibility": "PUBLIC",
-  "flows": [
-    {
-      "name": "flow-1",
-      "enabled": true,
-      "selectors": [
+    ],
+    "plans": [
         {
-          "type": "HTTP",
-          "path": "/",
-          "pathOperator": "STARTS_WITH"
+            "name": "Keyless plan",
+            "hrid": "KEY_LESS",
+            "description": "No authentication",
+            "type": "API",
+            "status": "PUBLISHED",
+            "validation": "AUTO",
+            "mode": "STANDARD",
+            "security": {
+                "type": "KEY_LESS"
+            },
+            "flows": [
+                {
+                    "name": "flow-1",
+                    "enabled": true,
+                    "selectors": [
+                        {
+                            "type": "HTTP",
+                            "path": "/",
+                            "pathOperator": "STARTS_WITH"
+                        }
+                    ],
+                    "request": [
+                        {
+                            "name": "my-shared-policy-group-policy",
+                            "description": "",
+                            "enabled": true,
+                            "policy": "shared-policy-group-policy",
+                            "configuration": {
+                                "hrid": "test-spg-hrid"
+                            }
+                        }
+                    ],
+                    "response": [
+                        {
+                            "name": "my-shared-policy-group-policy",
+                            "description": "",
+                            "enabled": true,
+                            "policy": "shared-policy-group-policy",
+                            "configuration": {
+                                "hrid": "test-spg-hrid"
+                            }
+                        }
+                    ],
+                    "subscribe": [
+                        {
+                            "name": "my-shared-policy-group-policy",
+                            "description": "",
+                            "enabled": true,
+                            "policy": "shared-policy-group-policy",
+                            "configuration": {
+                                "hrid": "test-spg-hrid"
+                            }
+                        }
+                    ],
+                    "publish": [
+                        {
+                            "name": "my-shared-policy-group-policy",
+                            "description": "",
+                            "enabled": true,
+                            "policy": "shared-policy-group-policy",
+                            "configuration": {
+                                "hrid": "test-spg-hrid"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
-      ],
-      "request": [
-        {
-          "name": "my-shared-policy-group-policy",
-          "description": "",
-          "enabled": true,
-          "policy": "shared-policy-group-policy",
-          "configuration": {
-            "hrid": "test-spg-hrid"
-          }
-        }
-      ],
-      "response": [
-        {
-          "name": "my-shared-policy-group-policy",
-          "description": "",
-          "enabled": true,
-          "policy": "shared-policy-group-policy",
-          "configuration": {
-            "hrid": "test-spg-hrid"
-          }
-        }
-      ],
-      "subscribe": [
-        {
-          "name": "my-shared-policy-group-policy",
-          "description": "",
-          "enabled": true,
-          "policy": "shared-policy-group-policy",
-          "configuration": {
-            "hrid": "test-spg-hrid"
-          }
-        }
-      ],
-      "publish": [
-        {
-          "name": "my-shared-policy-group-policy",
-          "description": "",
-          "enabled": true,
-          "policy": "shared-policy-group-policy",
-          "configuration": {
-            "hrid": "test-spg-hrid"
-          }
-        }
-      ]
-    }
-  ],
-  "plans": [
-    {
-      "name": "API Key plan",
-      "hrid": "API_KEY",
-      "description": "API key plan needs a key to authenticate",
-      "type": "API",
-      "status": "PUBLISHED",
-      "validation": "AUTO",
-      "mode": "STANDARD",
-      "security": {
-        "type": "API_KEY"
-      },
-      "flows": [
-        {
-          "name": "flow-1",
-          "enabled": true,
-          "selectors": [
-            {
-              "type": "HTTP",
-              "path": "/",
-              "pathOperator": "STARTS_WITH"
-            }
-          ],
-          "request": [
-            {
-              "name": "my-shared-policy-group-policy",
-              "description": "",
-              "enabled": true,
-              "policy": "shared-policy-group-policy",
-              "configuration": {
-                "hrid": "test-spg-hrid"
-              }
-            }
-          ],
-          "response": [
-            {
-              "name": "my-shared-policy-group-policy",
-              "description": "",
-              "enabled": true,
-              "policy": "shared-policy-group-policy",
-              "configuration": {
-                "hrid": "test-spg-hrid"
-              }
-            }
-          ],
-          "subscribe": [
-            {
-              "name": "my-shared-policy-group-policy",
-              "description": "",
-              "enabled": true,
-              "policy": "shared-policy-group-policy",
-              "configuration": {
-                "hrid": "test-spg-hrid"
-              }
-            }
-          ],
-          "publish": [
-            {
-              "name": "my-shared-policy-group-policy",
-              "description": "",
-              "enabled": true,
-              "policy": "shared-policy-group-policy",
-              "configuration": {
-                "hrid": "test-spg-hrid"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
+    ]
 }
