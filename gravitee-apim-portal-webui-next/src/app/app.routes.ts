@@ -51,8 +51,10 @@ import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { categoriesResolver } from '../resolvers/categories.resolver';
+import { homepageResolver } from '../resolvers/homepage.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 import { ApiTabToolsComponent } from './api/api-details/api-tab-tools/api-tab-tools.component';
+import { HomepageComponent } from './homepage/homepage.component';
 
 const apiRoutes: Routes = [
   {
@@ -125,7 +127,12 @@ const apiRoutes: Routes = [
 ];
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'catalog', pathMatch: 'full' },
+  {
+    path: '',
+    canActivate: [redirectGuard],
+    resolve: { homepage: homepageResolver },
+    component: HomepageComponent,
+  },
   {
     path: 'catalog',
     canActivateChild: [redirectGuard],
