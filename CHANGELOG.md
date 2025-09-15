@@ -1,3 +1,10 @@
+# [6.2.0-alpha.13](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.12...6.2.0-alpha.13) (2025-09-15)
+
+
+### Features
+
+* bump gravitee-reporter-common version ([13dc3aa](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/13dc3aac0ea8a67dc2ced6f3682eb4520ef94302))
+
 # [6.2.0-alpha.12](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0-alpha.11...6.2.0-alpha.12) (2025-09-12)
 
 
