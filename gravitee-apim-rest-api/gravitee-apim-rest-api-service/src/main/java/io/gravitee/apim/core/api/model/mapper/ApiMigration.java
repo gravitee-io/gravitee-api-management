@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.services.Services;
@@ -92,7 +93,7 @@ class ApiMigration {
 
     private MigrationResult<io.gravitee.definition.model.v4.Api> apiDefinitionHttpV4(io.gravitee.definition.model.Api apiDefinitionV2) {
         if (apiDefinitionV2 == null) {
-            return MigrationResult.issue("apiDefinitionV2 must not be null", MigrationResult.State.IMPOSSIBLE);
+            return MigrationResult.issue(MigrationWarnings.V2_API_NOT_NULL, MigrationResult.State.IMPOSSIBLE);
         }
         List<Listener> listeners = List.of(
             HttpListener
@@ -114,7 +115,6 @@ class ApiMigration {
             .map(source -> mapEndpointGroup(source, apiDefinitionV2.getServices()))
             .collect(MigrationResult.collectList());
         Failover failover = mapFailOver(apiDefinitionV2.getProxy());
-
         MigrationResult<ApiServices> apiServicesMigrationResult = mapApiServices(apiDefinitionV2.getServices());
         return endpointGroups.flatMap(endpointGroupsList ->
             apiServicesMigrationResult.map(apiServices -> {
@@ -146,7 +146,6 @@ class ApiMigration {
         if (services == null || services.isEmpty() || services.getDynamicPropertyService() == null) {
             return MigrationResult.value(ApiServices.builder().build());
         }
-
         MigrationResult<Service> dynamicPropertyServiceMigrationResult = apiServicesMigration.convert(
             services.getDynamicPropertyService(),
             null,
@@ -184,7 +183,10 @@ class ApiMigration {
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint group {}", source.getName(), e);
             endpointGroupMigrationResult.addIssue(
-                new MigrationResult.Issue("Unable to map configuration for endpoint group", MigrationResult.State.IMPOSSIBLE)
+                new MigrationResult.Issue(
+                    MigrationWarnings.ENDPOINT_GROUP_PARSE_ERROR.formatted(source.getName()),
+                    MigrationResult.State.IMPOSSIBLE
+                )
             );
         }
 
@@ -276,7 +278,10 @@ class ApiMigration {
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint {}", name, e);
             return migrationResult.addIssue(
-                new MigrationResult.Issue("Unable to map healthcheck for endpoint: " + name, MigrationResult.State.IMPOSSIBLE)
+                new MigrationResult.Issue(
+                    MigrationWarnings.HEALTHCHECK_ENDPOINT_PARSE_ERROR.formatted(name),
+                    MigrationResult.State.IMPOSSIBLE
+                )
             );
         }
         return migrationResult;
@@ -368,7 +373,7 @@ class ApiMigration {
             return MigrationResult.value(jsonMapper.writeValueAsString(root));
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint", e);
-            return MigrationResult.issue("Unable to map configuration for endpoint", MigrationResult.State.IMPOSSIBLE);
+            return MigrationResult.issue(MigrationWarnings.ENDPOINT_PARSE_ERROR, MigrationResult.State.IMPOSSIBLE);
         }
     }
 
@@ -406,7 +411,7 @@ class ApiMigration {
             return MigrationResult.value(jsonMapper.writeValueAsString(target1));
         } catch (JsonProcessingException e) {
             log.error("Unable to map configuration for endpoint {}", lb.getName(), e);
-            return MigrationResult.issue("Unable to map configuration for endpoint: " + lb.getName(), MigrationResult.State.IMPOSSIBLE);
+            return MigrationResult.issue(MigrationWarnings.ENDPOINT_PARSE_ERROR, MigrationResult.State.IMPOSSIBLE);
         }
     }
 
