@@ -624,7 +624,8 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_create_and_index_a_new_api() {
-            var expected = expectedApi().setPlans(List.of());
+            var expected = expectedApiV4Proxy();
+            expected.getApiDefinitionHttpV4().setPlans(List.of());
             expected.setHrid(expected.getCrossId());
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of()).build()));
@@ -887,7 +888,7 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_start_the_api() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
 
             useCase.execute(
                 new ImportApiCRDUseCase.Input(
@@ -917,7 +918,7 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_not_start_the_api_with_no_plan() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
 
             useCase.execute(
                 new ImportApiCRDUseCase.Input(
@@ -951,7 +952,7 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_not_stop_the_api_on_creation() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
 
             useCase.execute(
                 new ImportApiCRDUseCase.Input(
@@ -989,7 +990,7 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_not_stop_the_api_with_no_plan() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
 
             useCase.execute(
                 new ImportApiCRDUseCase.Input(
@@ -1025,7 +1026,7 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_not_deploy_the_api() {
-            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+            when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
 
             useCase.execute(
                 new ImportApiCRDUseCase.Input(
@@ -1734,7 +1735,7 @@ class ImportApiCRDUseCaseTest {
     void should_not_deploy_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1773,7 +1774,7 @@ class ImportApiCRDUseCaseTest {
     void should_deploy_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1818,7 +1819,7 @@ class ImportApiCRDUseCaseTest {
     void should_stop_the_api() {
         givenExistingApi();
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -1861,7 +1862,7 @@ class ImportApiCRDUseCaseTest {
     void should_start_the_api() {
         apiQueryService.initWith(List.of(Update.API_PROXY_V4.toBuilder().lifecycleState(Api.LifecycleState.STOPPED).build()));
 
-        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApi());
+        when(updateApiDomainService.update(eq(API_ID), any(ApiCRDSpec.class), eq(AUDIT_INFO))).thenReturn(expectedApiV4Proxy());
 
         useCase.execute(
             new ImportApiCRDUseCase.Input(
@@ -2087,7 +2088,7 @@ class ImportApiCRDUseCaseTest {
             .groups(Set.of(GROUP_ID_1, "non-existing-group", GROUP_NAME));
     }
 
-    private Api expectedApi() {
+    private Api expectedApiV4Proxy() {
         return aProxyApiV4()
             .toBuilder()
             .originContext(

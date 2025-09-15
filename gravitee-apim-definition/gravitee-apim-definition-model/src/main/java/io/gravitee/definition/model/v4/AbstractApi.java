@@ -22,8 +22,11 @@ import static io.gravitee.definition.model.v4.AbstractApi.PROXY_LABEL;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -68,7 +71,7 @@ import lombok.experimental.SuperBuilder;
         @JsonSubTypes.Type(value = NativeApi.class, name = NATIVE_LABEL),
     }
 )
-public abstract class AbstractApi implements Serializable {
+public abstract class AbstractApi implements Serializable, ApiDefinition {
 
     public static final String PROXY_LABEL = "proxy";
     public static final String MESSAGE_LABEL = "message";
@@ -102,4 +105,6 @@ public abstract class AbstractApi implements Serializable {
     protected List<Resource> resources;
 
     public abstract List<Plugin> getPlugins();
+
+    public abstract List<? extends AbstractListener<? extends AbstractEntrypoint>> getListeners();
 }
