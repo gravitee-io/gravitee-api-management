@@ -16,11 +16,13 @@
 package io.gravitee.definition.model.federation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.DefinitionVersion;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,7 +32,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class FederatedApi implements Serializable {
+public class FederatedApi implements Serializable, ApiDefinition {
 
     @JsonProperty(required = true)
     @NotBlank
@@ -56,4 +58,14 @@ public class FederatedApi implements Serializable {
     @JsonProperty(required = true)
     @NotBlank
     private Map<String, String> server;
+
+    @Override
+    public Set<String> getTags() {
+        return Set.of();
+    }
+
+    @Override
+    public void setTags(Set<String> tags) {
+        // nothing to do
+    }
 }

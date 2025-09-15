@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.resource.Resource;
 import jakarta.validation.constraints.NotEmpty;
@@ -118,5 +120,10 @@ public class NativeApi extends AbstractApi {
         )
             .flatMap(List::stream)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<NativeListener> getListeners() {
+        return listeners != null ? listeners : List.of();
     }
 }

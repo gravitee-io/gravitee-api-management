@@ -44,7 +44,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-public class Api implements Serializable {
+public class Api implements Serializable, ApiDefinition {
 
     @JsonProperty("id")
     private String id;

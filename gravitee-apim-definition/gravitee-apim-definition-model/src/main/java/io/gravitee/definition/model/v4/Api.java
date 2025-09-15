@@ -24,9 +24,13 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import jakarta.annotation.Nullable;
@@ -34,6 +38,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -150,6 +155,11 @@ public class Api extends AbstractApi {
             .collect(Collectors.toList());
     }
 
+    @Override
+    public List<Listener> getListeners() {
+        return listeners != null ? listeners : List.of();
+    }
+
     public boolean failoverEnabled() {
         return failover != null && failover.isEnabled();
     }
@@ -157,5 +167,12 @@ public class Api extends AbstractApi {
     @JsonIgnore
     public boolean isTcpProxy() {
         return ApiType.PROXY.equals(getType()) && listeners.stream().anyMatch(TcpListener.class::isInstance);
+    }
+
+    public boolean updateDynamicProperties(Function<List<Property>, UpdateDynamicPropertiesResult> updateOperator) {
+        var updated = updateOperator.apply(getProperties());
+        setProperties(updated.orderedProperties());
+
+        return updated.needToUpdate();
     }
 }

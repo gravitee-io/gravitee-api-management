@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import fixtures.definition.ApiDefinitionFixtures;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
@@ -32,8 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
-
-    private static final String UNKNOWN_API = "unknown";
 
     @Autowired
     GetApiDefinitionUseCase getApiDefinitionUseCase;
@@ -45,32 +42,26 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_v4_deployments() {
-        when(getApiDefinitionUseCase.execute(any())).thenReturn(
-            new GetApiDefinitionUseCase.Output(DefinitionVersion.V4, ApiDefinitionFixtures.anApiV4(), null, null)
-        );
+        when(getApiDefinitionUseCase.execute(any())).thenReturn(new GetApiDefinitionUseCase.Output(ApiDefinitionFixtures.anApiV4()));
 
         final Response response = rootTarget(API + "/deployments/current").request().get();
-        assertEquals(OK_200, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(OK_200);
     }
 
     @Test
     public void should_get_native_api_v4_deployments() {
-        when(getApiDefinitionUseCase.execute(any())).thenReturn(
-            new GetApiDefinitionUseCase.Output(DefinitionVersion.V4, null, ApiDefinitionFixtures.aNativeApiV4(), null)
-        );
+        when(getApiDefinitionUseCase.execute(any())).thenReturn(new GetApiDefinitionUseCase.Output(ApiDefinitionFixtures.aNativeApiV4()));
 
         final Response response = rootTarget(API + "/deployments/current").request().get();
-        assertEquals(OK_200, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(OK_200);
     }
 
     @Test
     public void should_get_api_v2_deployments() {
-        when(getApiDefinitionUseCase.execute(any())).thenReturn(
-            new GetApiDefinitionUseCase.Output(DefinitionVersion.V2, null, null, ApiDefinitionFixtures.anApiV2())
-        );
+        when(getApiDefinitionUseCase.execute(any())).thenReturn(new GetApiDefinitionUseCase.Output(ApiDefinitionFixtures.anApiV2()));
 
         final Response response = rootTarget(API + "/deployments/current").request().get();
-        assertEquals(OK_200, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(OK_200);
     }
 
     @Test
@@ -79,6 +70,6 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
             permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any())
         ).thenReturn(false);
         final Response response = rootTarget(API + "/deployments/current").request().get();
-        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
     }
 }

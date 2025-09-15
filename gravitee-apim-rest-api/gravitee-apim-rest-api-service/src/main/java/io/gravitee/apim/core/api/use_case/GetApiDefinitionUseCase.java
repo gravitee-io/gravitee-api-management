@@ -21,10 +21,9 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
-import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -37,46 +36,60 @@ public class GetApiDefinitionUseCase {
 
     public record Input(String apiId) {}
 
-    public record Output(
-        DefinitionVersion definitionVersion,
-        io.gravitee.definition.model.v4.Api apiDefinitionHttpV4,
-        io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefinitionNativeV4,
-        io.gravitee.definition.model.Api apiDefinition
-    ) {}
+    public record Output(ApiDefinition apiDefinition) {}
 
     public Output execute(Input input) {
         Api api = apiCrudService.get(input.apiId);
 
-        switch (api.getDefinitionVersion()) {
-            case V1, V2 -> api.getApiDefinition().setFlows(flowCrudService.getApiV2Flows(api.getId()));
-            case V4 -> {
-                if (api.getType() == ApiType.NATIVE) {
-                    api.getApiDefinitionNativeV4().setFlows(flowCrudService.getNativeApiFlows(api.getId()));
-                } else {
-                    api.getApiDefinitionHttpV4().setFlows(flowCrudService.getApiV4Flows(api.getId()));
-                }
-            }
-        }
+        var apiDefinition = switch (api.getDefinitionVersion()) {
+            case V1, V2 -> enrichApiDefinitionV2(api);
+            case V4 -> api.getType() == ApiType.NATIVE ? enrichApiDefinitionNative(api) : enrichApiDefinitionV4(api);
+            default -> null;
+        };
 
-        List<Plan> plans = planQueryService
+        return new Output(apiDefinition);
+    }
+
+    private ApiDefinition enrichApiDefinitionV4(Api api) {
+        var apiDefinitionHttpV4 = api.getApiDefinitionHttpV4();
+        apiDefinitionHttpV4.setFlows(flowCrudService.getApiV4Flows(api.getId()));
+        var plans = planQueryService
             .findAllByApiId(api.getId())
             .stream()
             .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED || plan.getPlanStatus() == PlanStatus.DEPRECATED)
-            .peek(plan -> {
-                switch (plan.getDefinitionVersion()) {
-                    case V1, V2 -> plan.getPlanDefinitionV2().setFlows(flowCrudService.getPlanV2Flows(plan.getId()));
-                    case V4 -> {
-                        if (api.getType() == ApiType.NATIVE) {
-                            plan.getPlanDefinitionNativeV4().setFlows(flowCrudService.getNativePlanFlows(plan.getId()));
-                        } else {
-                            plan.getPlanDefinitionHttpV4().setFlows(flowCrudService.getPlanV4Flows(plan.getId()));
-                        }
-                    }
-                }
-            })
+            .map(Plan::getPlanDefinitionHttpV4)
+            .peek(planDefinition -> planDefinition.setFlows(flowCrudService.getPlanV4Flows(planDefinition.getId())))
             .toList();
-        api.setPlans(plans);
+        apiDefinitionHttpV4.setPlans(plans);
+        return apiDefinitionHttpV4;
+    }
 
-        return new Output(api.getDefinitionVersion(), api.getApiDefinitionHttpV4(), api.getApiDefinitionNativeV4(), api.getApiDefinition());
+    private ApiDefinition enrichApiDefinitionNative(Api api) {
+        var apiDefinitionNativeV4 = api.getApiDefinitionNativeV4();
+        apiDefinitionNativeV4.setFlows(flowCrudService.getNativeApiFlows(api.getId()));
+        var plans = planQueryService
+            .findAllByApiId(api.getId())
+            .stream()
+            .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED || plan.getPlanStatus() == PlanStatus.DEPRECATED)
+            .map(Plan::getPlanDefinitionNativeV4)
+            .peek(planDefinition -> planDefinition.setFlows(flowCrudService.getNativePlanFlows(planDefinition.getId())))
+            .toList();
+        apiDefinitionNativeV4.setPlans(plans);
+        return apiDefinitionNativeV4;
+    }
+
+    private ApiDefinition enrichApiDefinitionV2(Api api) {
+        var apiDefinition = api.getApiDefinition();
+        apiDefinition.setFlows(flowCrudService.getApiV2Flows(api.getId()));
+
+        var plans = planQueryService
+            .findAllByApiId(api.getId())
+            .stream()
+            .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED || plan.getPlanStatus() == PlanStatus.DEPRECATED)
+            .map(Plan::getPlanDefinitionV2)
+            .peek(planDefinition -> planDefinition.setFlows(flowCrudService.getPlanV2Flows(planDefinition.getId())))
+            .toList();
+        apiDefinition.setPlans(plans);
+        return apiDefinition;
     }
 }

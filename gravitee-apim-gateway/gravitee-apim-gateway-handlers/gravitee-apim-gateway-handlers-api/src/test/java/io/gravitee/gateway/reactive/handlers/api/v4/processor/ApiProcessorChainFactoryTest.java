@@ -138,7 +138,11 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(0);
+        processors
+            .map(e -> e)
+            .test()
+            .assertComplete()
+            .assertValueCount(0);
     }
 
     @Test

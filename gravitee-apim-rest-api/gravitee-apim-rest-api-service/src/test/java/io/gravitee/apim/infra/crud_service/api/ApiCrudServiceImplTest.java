@@ -287,7 +287,7 @@ public class ApiCrudServiceImplTest {
                         .definitionVersion(DefinitionVersion.FEDERATED)
                         .definition(
                             """
-                            {"id":"my-api","providerId":"provider-id","name":"My Api","apiVersion":"1.0.0","definitionVersion":"FEDERATED"}"""
+                            {"id":"my-api","providerId":"provider-id","name":"My Api","apiVersion":"1.0.0","definitionVersion":"FEDERATED","tags":[]}"""
                         )
                         .build()
                 );
