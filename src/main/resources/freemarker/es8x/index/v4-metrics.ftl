@@ -104,11 +104,31 @@
   <#if metrics.getSecurityToken()??>
   ,"security-token":"${metrics.getSecurityToken()}"
   </#if>
-  <#if metrics.getErrorMessage()??>
-  ,"error-message":"${metrics.getErrorMessage()?j_string}"
+  <#if metrics.getFailure()??>
+  <#if metrics.getFailure().getKey()??>
+  ,"error-key":"${metrics.getFailure().getKey()}"
   </#if>
-  <#if metrics.getErrorKey()??>
-  ,"error-key":"${metrics.getErrorKey()}"
+  <#if metrics.getFailure().getMessage()??>
+  ,"error-message":"${metrics.getFailure().getMessage()?j_string}"
+  </#if>
+  <#if metrics.getFailure().getComponentType()??>
+  ,"error-component-type":"${metrics.getFailure().getComponentType()}"
+  </#if>
+  <#if metrics.getFailure().getComponentName()??>
+  ,"error-component-name":"${metrics.getFailure().getComponentName()}"
+  </#if>
+  </#if>
+  <#if metrics.getWarnings()?? && metrics.getWarnings()?has_content>
+  ,"warnings": [
+  <#list metrics.getWarnings() as warning>
+    {
+      "key":"${warning.getKey()}",
+      "message":"${warning.getMessage()}",
+      "component-type":"${warning.getComponentType()}",
+      "component-name":"${warning.getComponentName()}"
+    }<#sep>,
+  </#list>
+  ]
   </#if>
   <#if metrics.getCustomMetrics()??>
   ,"custom": {
