@@ -18,6 +18,8 @@ import { isEqual, uniqueId } from 'lodash';
 import * as Monaco from 'monaco-editor';
 import { editor } from 'monaco-editor';
 
+import { componentSuggestionMap } from '../../../components/suggestions.index';
+import { ComponentSuggestion } from '../../../models/componentSuggestion';
 import { MonacoEditorService } from '../../services/monaco-editor.service';
 
 @Component({
@@ -89,6 +91,8 @@ export class MonacoEditorComponent implements OnDestroy {
       const monaco = this.monacoEditorService.monaco();
       if (monaco && !this.isEditorSetup()) {
         this.setupEditor(monaco);
+        this.registerCompletionItems(monaco);
+        this.registerHoverDocumentation(monaco);
         this.isEditorSetup.set(true);
         this.changeDetectorRef.detectChanges();
       }
@@ -167,5 +171,131 @@ export class MonacoEditorComponent implements OnDestroy {
           this.changeDetectorRef.detectChanges();
         });
     }, 80);
+  }
+
+  private registerCompletionItems(monaco: typeof Monaco): void {
+    const completionProvider = monaco.languages.registerCompletionItemProvider('markdown', {
+      provideCompletionItems: (model: Monaco.editor.ITextModel, position: Monaco.Position) => {
+        const word = model.getWordUntilPosition(position);
+        const range = {
+          startLineNumber: position.lineNumber,
+          endLineNumber: position.lineNumber,
+          startColumn: word.startColumn,
+          endColumn: word.endColumn,
+        };
+
+        // Get the current line text to determine context
+        const currentLine = model.getLineContent(position.lineNumber);
+        const textBeforeCursor = currentLine.substring(0, position.column - 1);
+
+        // Check if user is typing within a component tag
+        const { componentSuggestions, itemKind } = this.getComponentSuggestionsAndItemKind(monaco, textBeforeCursor);
+
+        return {
+          suggestions: componentSuggestions.map(componentSuggestion => ({
+            label: componentSuggestion.label,
+            kind: itemKind,
+            detail: componentSuggestion.detail,
+            insertText: componentSuggestion.insertText,
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range,
+          })),
+        };
+      },
+    });
+
+    this.toDisposes.push(completionProvider);
+  }
+
+  private registerHoverDocumentation(monaco: typeof Monaco): void {
+    const hoverProvider = monaco.languages.registerHoverProvider('markdown', {
+      provideHover: (model: Monaco.editor.ITextModel, position: Monaco.Position) => {
+        const word = model.getWordAtPosition(position);
+        if (!word) {
+          return null;
+        }
+
+        const wordText = word.word;
+        const lineText = model.getLineContent(position.lineNumber);
+
+        const hoverInfo = this.getHoverInfo(wordText, lineText);
+
+        if (hoverInfo) {
+          return {
+            range: new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn),
+            contents: [{ value: `**${hoverInfo.label}**` }, { value: hoverInfo.description }],
+          };
+        }
+
+        return null;
+      },
+    });
+
+    this.toDisposes.push(hoverProvider);
+  }
+
+  private getComponentSuggestionsAndItemKind(
+    monaco: typeof Monaco,
+    textBeforeCursor: string,
+  ): { componentSuggestions: ComponentSuggestion[]; itemKind: Monaco.languages.CompletionItemKind } {
+    const componentTag = this.getComponentTag(textBeforeCursor);
+    if (componentTag) {
+      return {
+        componentSuggestions: componentSuggestionMap[componentTag]?.attributeSuggestions || [],
+        itemKind: monaco.languages.CompletionItemKind.Property,
+      };
+    }
+
+    return {
+      componentSuggestions: Object.values(componentSuggestionMap).flatMap(config => config.suggestions),
+      itemKind: monaco.languages.CompletionItemKind.Snippet,
+    };
+  }
+
+  private getHoverInfo(wordText: string, lineText: string): { label: string; description: string } | null {
+    // Check if hovering over a component tag (grid, cell, etc.)
+    const config = componentSuggestionMap[wordText];
+    if (config) {
+      return config.hoverDocumentation;
+    }
+
+    // Check if hovering over an attribute name with a value
+    if (lineText.includes(`${wordText}=`)) {
+      // Get component tag for the attribute context
+      const componentTag = this.getComponentTag(lineText);
+      if (componentTag) {
+        return componentSuggestionMap[componentTag].attributeHoverDocumentation[wordText];
+      }
+    }
+
+    return null;
+  }
+
+  private getComponentTag(text: string): string | null {
+    // Look for the most recent opening tag that contains the current position
+    const openingTagRegex = /<(\w+)(?:\s[^>]*)?/g;
+    const match = openingTagRegex.exec(text);
+
+    if (!match) {
+      return null;
+    }
+
+    const tagName = match[1];
+
+    // Check if this tag is in our component suggestion map
+    const tagNameStartIndex = match.index! + tagName.length;
+    if (componentSuggestionMap[tagName] && this.checkIfInsideTag(text, tagName, tagNameStartIndex)) {
+      return tagName;
+    }
+
+    return null;
+  }
+
+  private checkIfInsideTag(textBeforeCursor: string, tagName: string, tagNameStartIndex: number): boolean {
+    const afterOpeningTag = textBeforeCursor.substring(tagNameStartIndex);
+    const closingTagRegex = new RegExp(`</${tagName}>`);
+
+    // If we do not find a closing tag after the opening tag, we are inside the tag
+    return !closingTagRegex.test(afterOpeningTag);
   }
 }
