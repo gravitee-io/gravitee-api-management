@@ -159,6 +159,17 @@ export class MonacoEditorComponent implements OnDestroy {
       });
     });
 
+    monaco.editor.defineTheme('gmdTheme', {
+      base: 'vs',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editorHoverWidget.background': '#FFFFFF',
+        'editorHoverWidget.border': '#626271',
+      },
+    });
+    monaco.editor.setTheme('gmdTheme');
+
     this.toDisposes = [onDidChangeContent, onDidBlurEditorWidget].filter(d => !!d) as Monaco.IDisposable[];
   }
 
