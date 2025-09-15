@@ -1,3 +1,10 @@
+# [1.7.0-alpha.9](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.8...1.7.0-alpha.9) (2025-09-15)
+
+
+### Features
+
+* add failure and warnings metrics to v2 and v4 ([#72](https://github.com/gravitee-io/gravitee-reporter-common/issues/72)) ([a5e2764](https://github.com/gravitee-io/gravitee-reporter-common/commit/a5e2764d9c3b513b5c0688956495597d322bd6eb))
+
 # [1.7.0-alpha.8](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.7...1.7.0-alpha.8) (2025-09-05)
 
 
