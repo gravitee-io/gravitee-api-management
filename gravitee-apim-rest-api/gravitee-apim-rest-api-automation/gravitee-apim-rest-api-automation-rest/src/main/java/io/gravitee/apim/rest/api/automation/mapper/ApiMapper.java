@@ -37,7 +37,6 @@ import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -121,6 +120,18 @@ public interface ApiMapper {
 
     PlanV4 map(PlanCRD planCRD);
     PageV4 map(PageCRD pageCRD);
+
+    default io.gravitee.apim.rest.api.automation.model.PlanSecurityType map(
+        io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType type
+    ) {
+        if (type == null) {
+            return null;
+        }
+        if (type == io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY) {
+            return null;
+        }
+        return io.gravitee.apim.rest.api.automation.model.PlanSecurityType.valueOf(type.name());
+    }
 
     default List<io.gravitee.rest.api.management.v2.rest.model.Selector> mapApiV4SpecSelectors(FlowV4 flowV4) {
         if (flowV4 == null || flowV4.getSelectors() == null) {
@@ -215,7 +226,7 @@ public interface ApiMapper {
                 planV4.setHrid(entry.getKey());
                 return planV4;
             })
-            .collect(Collectors.toList());
+            .toList();
     }
 
     default Map<String, PageCRD> mapApiV4SpecPages(ApiV4Spec apiV4Spec) {
@@ -240,7 +251,7 @@ public interface ApiMapper {
                 pageV4.setHrid(entry.getKey());
                 return pageV4;
             })
-            .collect(Collectors.toList());
+            .toList();
     }
 
     default List<Listener> mapApiCRDSpecListeners(ApiCRDSpec apiCRDSpec) {
