@@ -753,23 +753,24 @@ paths:
         tags:
           - Portal Pages
         summary: Get portal homepage
-        description: This endpoint is under active development and might change or be removed in future releases without prior notice.
+        description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission. This endpoint is under active development and might change or be removed in future releases without prior notice.
         operationId: getPortalHomepage
         responses:
           "200":
             $ref: "#/components/responses/PortalPageResponse"
           default:
             $ref: "#/components/responses/Error"
-      put:
+      patch:
         tags:
           - Portal Pages
-        summary: Update portal page
-        operationId: updatePortalPage
+        summary: Patch portal page
+        description: User must have the ENVIRONMENT_DOCUMENTATION[write] permission.
+        operationId: patchPortalPage
         requestBody:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UpdatePortalPage"
+                $ref: "#/components/schemas/PatchPortalPage"
           required: true
         responses:
           "200":
@@ -1561,7 +1562,7 @@ components:
                 apiId:
                   type: string
                   description: The API identifier if relevant.
-        UpdatePortalPage:
+        PatchPortalPage:
           type: object
           description: Update portal page payload
           properties:

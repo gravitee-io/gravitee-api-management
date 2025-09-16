@@ -28,8 +28,8 @@ import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
+import io.gravitee.rest.api.management.v2.rest.model.PatchPortalPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse;
-import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPage;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -136,19 +136,19 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
     }
 
     @Nested
-    class UpdatePortalPageTest {
+    class PatchPortalPageTest {
 
         @Test
         void should_update_homepage_portal_page() {
             setupPermissionForUpdate(true);
             String updatedContent = "Updated homepage!";
-            UpdatePortalPage updatePortalPage = new UpdatePortalPage();
-            updatePortalPage.setContent(updatedContent);
+            var patchPortalPage = new PatchPortalPage();
+            patchPortalPage.setContent(updatedContent);
             var existingHomepage = setupHomepage();
             Response response = target
                 .path("/" + existingHomepage.page().getId())
                 .request()
-                .put(jakarta.ws.rs.client.Entity.json(updatePortalPage));
+                .method("PATCH", jakarta.ws.rs.client.Entity.json(patchPortalPage));
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(PortalPageResponse.class)
@@ -162,9 +162,9 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_for_unauthorized_user() {
             setupPermissionForUpdate(false);
-            UpdatePortalPage updatePortalPage = new UpdatePortalPage();
-            updatePortalPage.setContent("Updated homepage!");
-            Response response = target.path("/_homepage").request().put(jakarta.ws.rs.client.Entity.json(updatePortalPage));
+            var patchPortalPage = new PatchPortalPage();
+            patchPortalPage.setContent("Updated homepage!");
+            Response response = target.path("/_homepage").request().method("PATCH", jakarta.ws.rs.client.Entity.json(patchPortalPage));
             assertThat(response).hasStatus(403);
         }
     }

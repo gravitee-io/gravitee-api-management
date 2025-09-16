@@ -18,8 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.portal_pages;
 import io.gravitee.apim.core.portal_page.use_case.GetHomepageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalPagesMapper;
+import io.gravitee.rest.api.management.v2.rest.model.PatchPortalPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse;
-import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPage;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -28,7 +28,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -55,13 +55,13 @@ public class PortalPagesResource extends AbstractResource {
         return PortalPagesMapper.INSTANCE.map(homepage);
     }
 
-    @PUT
+    @PATCH
     @Produces("application/json")
     @Consumes("application/json")
     @Path("/{pageId}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
-    public PortalPageResponse updatePortalPage(@PathParam("pageId") String pageId, UpdatePortalPage updatePortalPage) {
-        var input = new UpdatePortalPageUseCase.Input(envId, pageId, updatePortalPage.getContent());
+    public PortalPageResponse patchPortalPage(@PathParam("pageId") String pageId, PatchPortalPage patchPortalPage) {
+        var input = new UpdatePortalPageUseCase.Input(envId, pageId, patchPortalPage.getContent());
         var updatedHomepage = updatePortalPageUseCase.execute(input);
 
         return PortalPagesMapper.INSTANCE.map(updatedHomepage.portalPage());
