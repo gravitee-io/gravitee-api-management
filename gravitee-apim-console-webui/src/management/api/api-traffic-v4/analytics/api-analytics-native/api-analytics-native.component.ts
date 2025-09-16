@@ -19,7 +19,7 @@ import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, shareReplay } from 'rxjs/operators';
 
@@ -33,9 +33,6 @@ import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../a
 import { ApiAnalyticsDashboardWidgetConfig } from '../api-analytics-proxy/api-analytics-proxy.component';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
-import { GioWidgetLayoutState } from '../../../../../shared/components/gio-widget-layout/gio-widget-layout.component';
-import { GioChartLineData, GioChartLineOptions } from '../../../../../shared/components/gio-chart-line/gio-chart-line.component';
-import { GioChartBarData, GioChartBarOptions } from '../../../../../shared/components/gio-chart-bar/gio-chart-bar.component';
 import { AggregationTypes, AggregationFields } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
 
 interface QueryParamsBase {
@@ -132,6 +129,120 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     },
   ];
 
+  private leftColumnWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
+    {
+      type: 'line',
+      apiId: this.apiId,
+      title: 'Message Production Rate',
+      tooltip: 'Messages published from clients to gateway and from gateway to broker over time',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
+          label: 'From Clients',
+        },
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.UPSTREAM_PUBLISH_MESSAGES_TOTAL,
+          label: 'To Broker',
+        },
+      ],
+    },
+    {
+      type: 'line',
+      apiId: this.apiId,
+      title: 'Data Production Rate',
+      tooltip: 'Data volume published from clients to gateway and from gateway to broker over time',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.DOWNSTREAM_PUBLISH_MESSAGE_BYTES,
+          label: 'From Clients',
+        },
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.UPSTREAM_PUBLISH_MESSAGE_BYTES,
+          label: 'To Broker',
+        },
+      ],
+    },
+  ];
+
+  private rightColumnWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
+    {
+      type: 'line',
+      apiId: this.apiId,
+      title: 'Message Consumption Rate',
+      tooltip: 'Messages consumed from broker by gateway and delivered to clients over time',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
+          label: 'From Broker',
+        },
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGES_TOTAL,
+          label: 'To Clients',
+        },
+      ],
+    },
+    {
+      type: 'line',
+      apiId: this.apiId,
+      title: 'Data Consumption Rate',
+      tooltip: 'Data volume consumed from broker by gateway and delivered to clients over time',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.UPSTREAM_SUBSCRIBE_MESSAGE_BYTES,
+          label: 'From Broker',
+        },
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.DOWNSTREAM_SUBSCRIBE_MESSAGE_BYTES,
+          label: 'To Clients',
+        },
+      ],
+    },
+  ];
+
+  private bottomRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
+    {
+      type: 'bar',
+      apiId: this.apiId,
+      title: 'Authentication Success vs. Failure',
+      tooltip: 'Total authentication successes and failures over time (combined downstream + upstream)',
+      analyticsType: 'HISTOGRAM',
+      aggregations: [
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.DOWNSTREAM_AUTHENTICATION_SUCCESSES_TOTAL,
+          label: 'Downstream Success',
+        },
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.DOWNSTREAM_AUTHENTICATION_FAILURES_TOTAL,
+          label: 'Downstream Failure',
+        },
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.UPSTREAM_AUTHENTICATION_SUCCESSES_TOTAL,
+          label: 'Upstream Success',
+        },
+        {
+          type: AggregationTypes.TREND,
+          field: AggregationFields.UPSTREAM_AUTHENTICATION_FAILURES_TOTAL,
+          label: 'Upstream Failure',
+        },
+      ],
+    },
+  ];
+
   apiPlans$ = this.planService
     .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
     .pipe(
@@ -154,20 +265,17 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
 
-    // Initialize other widgets with mock data (to be replaced later)
-    this.leftColumnTransformed$ = [
-      of(this.createMockLineWidget('Message Production Rate', 'Message production rate over time')),
-      of(this.createMockLineWidget('Data Production Rate', 'Data production rate over time')),
-    ];
+    this.leftColumnTransformed$ = this.leftColumnWidgets.map((widgetConfig) => {
+      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
+    });
 
-    this.rightColumnTransformed$ = [
-      of(this.createMockLineWidget('Message Consumption Rate', 'Message consumption rate over time')),
-      of(this.createMockLineWidget('Data Consumption Rate', 'Data consumption rate over time')),
-    ];
+    this.rightColumnTransformed$ = this.rightColumnWidgets.map((widgetConfig) => {
+      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
+    });
 
-    this.bottomRowTransformed$ = [
-      of(this.createMockStackedBarWidget('Authentication Success vs. Failure', 'Authentication success and failure rates over time')),
-    ];
+    this.bottomRowTransformed$ = this.bottomRowWidgets.map((widgetConfig) => {
+      return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
+    });
   }
 
   onFiltersChange(filters: ApiAnalyticsNativeFilters): void {
@@ -271,120 +379,5 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {
     const range: number = to - from;
     return Math.floor(range / nbValuesByBucket);
-  }
-
-  // TODO: Remove these mock methods when real API is available
-  private createMockStatsWidget(title: string, value: number, unit: string): ApiAnalyticsWidgetConfig {
-    return {
-      title,
-      tooltip: `Mock ${title.toLowerCase()} data`,
-      state: 'success' as GioWidgetLayoutState,
-      widgetType: 'stats',
-      widgetData: { stats: value, statsUnit: unit },
-    };
-  }
-
-  private createMockLineWidget(title: string, tooltip: string): ApiAnalyticsWidgetConfig {
-    // Different datasets for each series to make them visually distinct (15 data points each)
-    const fromClientData = [45, 52, 38, 67, 44, 59, 72, 48, 63, 41, 56, 39, 74, 51, 42];
-
-    const toBrokerData = [62, 48, 71, 34, 56, 43, 68, 52, 39, 65, 47, 73, 41, 58, 44];
-
-    const lineData: GioChartLineData[] = [
-      {
-        name: 'From Client',
-        values: fromClientData,
-      },
-      {
-        name: 'To Broker',
-        values: toBrokerData,
-      },
-    ];
-
-    const lineOptions: GioChartLineOptions = {
-      pointStart: Date.now() - 14 * 24 * 60 * 60 * 1000, // 14 days ago
-      pointInterval: 24 * 60 * 60 * 1000, // 1 day in milliseconds
-      enableMarkers: true,
-      useSharpCorners: true,
-    };
-
-    return {
-      title,
-      tooltip,
-      state: 'success' as GioWidgetLayoutState,
-      widgetType: 'line',
-      widgetData: { data: lineData, options: lineOptions },
-    };
-  }
-
-  private createMockStackedBarWidget(title: string, tooltip: string): ApiAnalyticsWidgetConfig {
-    // Generate hourly data for the last 24 hours
-    const generateHourlyData = () => {
-      // Hardcoded success data for 24 hours (1000-3000 range)
-      const successData = [
-        1245, 1567, 2134, 1876, 2456, 1834, 2678, 2123, 1945, 2345, 1687, 2789, 2567, 1923, 2145, 1756, 2434, 1865, 2678, 1543, 2234, 1876,
-        2456, 1834,
-      ];
-
-      // Hardcoded failure data (1-5% of success values)
-      const failureData = [37, 47, 64, 56, 74, 55, 80, 64, 58, 70, 51, 84, 77, 58, 64, 53, 73, 56, 80, 46, 67, 56, 74, 55];
-
-      const categories = [];
-
-      for (let i = 0; i < 24; i++) {
-        // Create hourly categories (12:00, 13:00, etc.)
-        const hour = new Date(Date.now() - (23 - i) * 60 * 60 * 1000).getHours();
-        categories.push(`${hour.toString().padStart(2, '0')}:00`);
-      }
-
-      return { successData, failureData, categories };
-    };
-
-    const { successData, failureData, categories } = generateHourlyData();
-
-    const barData: GioChartBarData[] = [
-      {
-        name: 'Success',
-        values: successData,
-        color: '#00D4AA',
-      },
-      {
-        name: 'Failure',
-        values: failureData,
-        color: '#FF6B6B',
-      },
-    ];
-
-    const barOptions: GioChartBarOptions = {
-      categories: categories,
-      stacked: true,
-      reverseStack: true, // Put failure on top
-      customTooltip: {
-        formatter: function () {
-          const x = this.x; // x-axis value
-          const pointIndex = this.point.index;
-          const success = successData[pointIndex];
-          const failure = failureData[pointIndex];
-          const failureRate = ((failure / (success + failure)) * 100).toFixed(2);
-
-          return `
-            <div style="text-align: left;">
-              <strong>Time:</strong> ${x}<br/>
-              <strong style="color: #00D4AA;">Success:</strong> <span style="color: #00D4AA;">${success.toLocaleString()}</span><br/>
-              <strong style="color: #FF6B6B;">Failure:</strong> <span style="color: #FF6B6B;">${failure.toLocaleString()}</span><br/>
-              <strong>Failure Rate:</strong> ${failureRate}%
-            </div>
-          `;
-        },
-      },
-    };
-
-    return {
-      title,
-      tooltip,
-      state: 'success' as GioWidgetLayoutState,
-      widgetType: 'bar',
-      widgetData: { data: barData, options: barOptions },
-    };
   }
 }
