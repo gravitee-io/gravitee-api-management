@@ -15,13 +15,22 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
+<<<<<<< HEAD
 import io.gravitee.gateway.reactive.api.connector.endpoint.sync.EndpointSyncConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.Request;
+=======
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.connector.endpoint.sync.HttpEndpointSyncConnector;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+>>>>>>> 903bfd9d16 (fix: Request Time out in V4)
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -30,8 +39,16 @@ import io.gravitee.plugin.endpoint.http.proxy.connector.GrpcConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.WebSocketConnector;
+import io.netty.channel.ConnectTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.rxjava3.core.Completable;
+<<<<<<< HEAD
 import io.reactivex.rxjava3.core.CompletableSource;
+=======
+import io.vertx.circuitbreaker.TimeoutException;
+import io.vertx.core.impl.NoStackTraceTimeoutException;
+import java.io.IOException;
+>>>>>>> 903bfd9d16 (fix: Request Time out in V4)
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,7 +63,8 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
 
     private static final String ENDPOINT_ID = "http-proxy";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
-
+    static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
+    static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
     protected final HttpProxyEndpointConnectorConfiguration configuration;
     protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
     private final HttpClientFactory httpClientFactory;
@@ -82,12 +100,31 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
     @Override
     public Completable connect(ExecutionContext ctx) {
         return Completable.defer(() -> {
+<<<<<<< HEAD
             Request request = ctx.request();
             return getConnector(request).connect(ctx);
         });
     }
 
     private ProxyConnector getConnector(Request request) {
+=======
+            HttpRequest request = ctx.request();
+            return getConnector(request).connect(ctx).onErrorResumeNext(throwable -> handleException(throwable, ctx));
+        });
+    }
+
+    @Override
+    protected void doStop() {
+        if (httpClientFactory != null) {
+            httpClientFactory.close();
+        }
+        if (grpcHttpClientFactory != null) {
+            grpcHttpClientFactory.close();
+        }
+    }
+
+    private ProxyConnector getConnector(HttpRequest request) {
+>>>>>>> 903bfd9d16 (fix: Request Time out in V4)
         if (request.isWebSocket()) {
             return this.connectors.computeIfAbsent(
                     "ws",
@@ -116,13 +153,21 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
         }
     }
 
-    @Override
-    protected void doStop() {
-        if (httpClientFactory != null) {
-            httpClientFactory.close();
-        }
-        if (grpcHttpClientFactory != null) {
-            grpcHttpClientFactory.close();
-        }
+    private Completable handleException(Throwable throwable, HttpExecutionContext ctx) {
+        return switch (throwable) {
+            case InterruptionFailureException e -> Completable.error(e);
+            case TimeoutException e -> ctx.interruptWith(new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT));
+            case NoStackTraceTimeoutException e -> ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT)
+            );
+            case ReadTimeoutException e -> ctx.interruptWith(new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT));
+            case ConnectTimeoutException e -> ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT)
+            );
+            case IOException e -> ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR)
+            );
+            default -> Completable.error(throwable);
+        };
     }
 }
