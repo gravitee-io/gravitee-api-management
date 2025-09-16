@@ -191,7 +191,7 @@ describe('ApiAnalyticsNativeComponent', () => {
 
       const histogramRequests = requests.filter((req) => req.request.url.includes('type=HISTOGRAM'));
 
-      expect(histogramRequests.length).toBeGreaterThan(0);
+      expect(histogramRequests.length).toBe(8);
 
       histogramRequests.forEach((req) => {
         expect(req.request.url).toContain('type=HISTOGRAM');
@@ -200,6 +200,15 @@ describe('ApiAnalyticsNativeComponent', () => {
         expect(req.request.url).toContain('interval=2880000');
         expect(req.request.url).toContain('aggregations=');
       });
+
+      const trendRequests = requests.filter((req) => req.request.url.includes('TREND:'));
+      expect(trendRequests.length).toBe(5);
+
+      const valueRequests = requests.filter((req) => req.request.url.includes('VALUE:'));
+      expect(valueRequests.length).toBe(1);
+
+      const deltaRequests = requests.filter((req) => req.request.url.includes('DELTA:'));
+      expect(deltaRequests.length).toBe(2);
 
       flushAllRequests();
     });
@@ -223,7 +232,7 @@ describe('ApiAnalyticsNativeComponent', () => {
 
       // Should make multiple requests for different widgets
       const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
-      expect(requests.length).toBe(3); // Multiple widgets
+      expect(requests.length).toBe(8);
 
       // All requests should have the same time range parameters
       requests.forEach((req) => {
