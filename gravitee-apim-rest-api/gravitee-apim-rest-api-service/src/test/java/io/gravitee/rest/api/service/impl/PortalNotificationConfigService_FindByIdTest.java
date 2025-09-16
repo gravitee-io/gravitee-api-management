@@ -25,10 +25,18 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.assertj.core.util.Sets;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,11 +52,17 @@ public class PortalNotificationConfigService_FindByIdTest {
     @Mock
     private PortalNotificationConfigRepository portalNotificationConfigRepository;
 
+    @Mock
+    GroupService groupService;
+
+    @Mock
+    MembershipService membershipService;
+
     private PortalNotificationConfigServiceImpl underTest;
 
     @Before
     public void setup() {
-        underTest = new PortalNotificationConfigServiceImpl(portalNotificationConfigRepository, null);
+        underTest = new PortalNotificationConfigServiceImpl(portalNotificationConfigRepository, membershipService, groupService);
     }
 
     @Test
@@ -67,6 +81,43 @@ public class PortalNotificationConfigService_FindByIdTest {
         assertEquals("referenceType", cfg.getReferenceType().name(), entity.getReferenceType());
         assertEquals("user", cfg.getUser(), entity.getUser());
         assertEquals("hooks", cfg.getHooks(), entity.getHooks());
+        verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.API, "123");
+    }
+
+    @Test
+    public void shouldAddGroupHooks() throws TechnicalException {
+        var cfg = PortalNotificationConfig.builder()
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("123")
+            .user("user")
+            .groups(Set.of())
+            .build();
+
+        var poCfg = PortalNotificationConfig.builder()
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("123")
+            .user("api-po-id")
+            .hooks(List.of("A", "B", "C"))
+            .groups(Set.of("group-id"))
+            .build();
+
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(of(cfg));
+
+        when(groupService.findByUser("user")).thenReturn(Set.of(GroupEntity.builder().id("group-id").build()));
+
+        when(membershipService.getPrimaryOwnerUserId(anyString(), eq(MembershipReferenceType.API), eq("123"))).thenReturn("api-po-id");
+
+        when(portalNotificationConfigRepository.findById("api-po-id", NotificationReferenceType.API, "123")).thenReturn(of(poCfg));
+
+        var entity = underTest.findById("user", NotificationReferenceType.API, "123");
+
+        assertNotNull(entity);
+        assertEquals("referenceId", cfg.getReferenceId(), entity.getReferenceId());
+        assertEquals("referenceType", cfg.getReferenceType().name(), entity.getReferenceType());
+        assertEquals("user", cfg.getUser(), entity.getUser());
+        assertEquals("hooks", cfg.getHooks(), entity.getHooks());
+        assertNotNull("groupHooks", entity.getGroupHooks());
+        assertEquals("groupHooks", Set.of("A", "B", "C"), entity.getGroupHooks());
         verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.API, "123");
     }
 
