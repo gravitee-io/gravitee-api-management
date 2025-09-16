@@ -3,6 +3,17 @@ templates:
   - "portal/portal-deployment.yaml"
   - "portal/portal-configmap.yaml"
 tests:
+  - it: Should set template labels
+    template: portal/portal-deployment.yaml
+    chart:
+      version: test
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.metadata.labels['helm.sh/chart']
+          value: apim-test
+
   - it: Should generate a PORTAL_BASE_HREF environment variable
     template: portal/portal-deployment.yaml
     asserts:
