@@ -46,7 +46,7 @@
           <mat-label>Groups</mat-label>
           <mat-select multiple [formControl]="staticForm.controls.groups">
             @for (group of groupData; track group) {
-              <mat-option [value]="group.id" [disabled]="primaryOwner == group.id">{{ group.name }}</mat-option>
+              <mat-option [value]="group.id" [disabled]="isReadonly || primaryOwner == group.id">{{ group.name }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
