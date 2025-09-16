@@ -31,6 +31,8 @@ import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.StreamSupport;
 
 public class SearchConnectionLogResponseAdapter {
 
@@ -74,6 +76,7 @@ public class SearchConnectionLogResponseAdapter {
                 .entrypointId(null)
                 .gatewayResponseTime(asIntOr(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v2Request()), 0))
                 .message(asTextOrNull(json.get(ConnectionLogField.MESSAGE.v2Request())))
+                .warnings(buildWarnings(json.get("warnings")))
                 .build();
         }
         return connectionLog
@@ -89,6 +92,31 @@ public class SearchConnectionLogResponseAdapter {
             .gatewayResponseTime(asIntOr(json.get(ConnectionLogField.GATEWAY_RESPONSE_TIME.v4Metrics()), 0))
             .endpoint(asTextOrNull(json.get(ConnectionLogField.ENDPOINT.v4Metrics())))
             .message(asTextOrNull(json.get(ConnectionLogField.MESSAGE.v4Metrics())))
+            .warnings(buildWarnings(json.get("warnings")))
+            .build();
+    }
+
+    private static List<ConnectionDiagnostic> buildWarnings(JsonNode json) {
+        if (json == null || json.isNull() || !json.isArray()) {
+            return null;
+        }
+        return StreamSupport
+            .stream(json.spliterator(), false)
+            .map(SearchConnectionLogResponseAdapter::buildDiagnostic)
+            .filter(Objects::nonNull)
+            .toList();
+    }
+
+    private static ConnectionDiagnostic buildDiagnostic(JsonNode json) {
+        if (json == null || json.isNull()) {
+            return null;
+        }
+        return ConnectionDiagnostic
+            .builder()
+            .componentType(asTextOrNull(json.get("component-type")))
+            .componentName(asTextOrNull(json.get("component-name")))
+            .key(asTextOrNull(json.get("key")))
+            .message(asTextOrNull(json.get("message")))
             .build();
     }
 }

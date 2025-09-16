@@ -82,6 +82,11 @@ public class FindApiMetricsDetailUseCase {
             .endpointResponseTime(apiMetricsDetail.getEndpointResponseTime())
             .method(apiMetricsDetail.getMethod())
             .endpoint(apiMetricsDetail.getEndpoint())
+            .message(apiMetricsDetail.getMessage())
+            .errorKey(apiMetricsDetail.getErrorKey())
+            .errorComponentName(apiMetricsDetail.getErrorComponentName())
+            .errorComponentType(apiMetricsDetail.getErrorComponentType())
+            .warnings(apiMetricsDetail.getWarnings())
             .build();
 
         return new Output(result);

@@ -17,7 +17,9 @@ package io.gravitee.apim.core.analytics.model;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -43,4 +45,9 @@ public class ApiMetricsDetail {
     long endpointResponseTime;
     HttpMethod method;
     String endpoint;
+    String message;
+    String errorKey;
+    String errorComponentName;
+    String errorComponentType;
+    List<ConnectionDiagnosticModel> warnings;
 }

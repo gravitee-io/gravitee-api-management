@@ -49,6 +49,5 @@ public class BaseConnectionLog {
     private String errorKey;
     private String errorComponentName;
     private String errorComponentType;
-    private ConnectionDiagnosticModel failure;
     private List<ConnectionDiagnosticModel> warnings;
 }

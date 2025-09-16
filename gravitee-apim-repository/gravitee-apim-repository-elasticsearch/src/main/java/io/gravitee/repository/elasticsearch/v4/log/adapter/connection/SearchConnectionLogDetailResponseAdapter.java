@@ -25,10 +25,12 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.elasticsearch.utils.JsonNodeUtils;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -71,6 +73,11 @@ public class SearchConnectionLogDetailResponseAdapter {
                 .endpointRequest(buildRequest(json.get("endpoint-request")))
                 .entrypointResponse(buildResponse(json.get("entrypoint-response")))
                 .endpointResponse(buildResponse(json.get("endpoint-response")))
+                .message(asTextOrNull(json.get("message")))
+                .errorKey(asTextOrNull(json.get("error-key")))
+                .errorComponentName(asTextOrNull(json.get("error-component-name")))
+                .errorComponentType(asTextOrNull(json.get("error-component-type")))
+                .warnings(buildWarnings(json.get("warnings")))
                 .build();
         }
         return connectionLogDetail
@@ -121,5 +128,29 @@ public class SearchConnectionLogDetailResponseAdapter {
                     entry -> StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
                 )
             );
+    }
+
+    private static ConnectionDiagnostic buildFailure(JsonNode json) {
+        if (json == null || json.isNull()) {
+            return null;
+        }
+        return ConnectionDiagnostic
+            .builder()
+            .componentType(asTextOrNull(json.get("component-type")))
+            .componentName(asTextOrNull(json.get("component-name")))
+            .key(asTextOrNull(json.get("key")))
+            .message(asTextOrNull(json.get("message")))
+            .build();
+    }
+
+    private static List<ConnectionDiagnostic> buildWarnings(JsonNode json) {
+        if (json == null || json.isNull() || !json.isArray()) {
+            return null;
+        }
+        return StreamSupport
+            .stream(json.spliterator(), false)
+            .map(SearchConnectionLogDetailResponseAdapter::buildFailure)
+            .filter(Objects::nonNull)
+            .toList();
     }
 }
