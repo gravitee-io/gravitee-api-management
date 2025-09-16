@@ -557,6 +557,9 @@ data:
     auth:
       external: {{- toYaml .Values.api.auth.external | nindent 8 -}}
     {{- end }}
+    newtai:
+      elgen:
+        enabled: {{ .Values.api.newtai.elgen.enabled }}
     # Cloud connector
     {{- if .Values.cloud.enabled }}
     cloud:
@@ -572,11 +575,6 @@ data:
       hazelcast:
         config-path: "${gravitee.home}/config/hazelcast-cache.xml"
     {{- end }}
-    {{- end }}
-    {{- if .Values.api.newtai.elgen.enabled }}
-    newtai:
-      elgen:
-        enabled: true
     {{- end }}
 
     {{- if .Values.api.federation.enabled }}
