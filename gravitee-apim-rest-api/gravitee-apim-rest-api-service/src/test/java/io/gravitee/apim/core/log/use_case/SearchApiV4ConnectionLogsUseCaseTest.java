@@ -122,6 +122,7 @@ class SearchApiV4ConnectionLogsUseCaseTest {
                             .uri("/my-api")
                             .gatewayResponseTime(42)
                             .endpoint("https://my-api-example.com")
+                            .warnings(List.of())
                             .build()
                     )
                 );

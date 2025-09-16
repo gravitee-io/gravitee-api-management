@@ -23,7 +23,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
+import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 public class FindApiMetricsDetailResponseAdapter {
 
@@ -59,6 +63,35 @@ public class FindApiMetricsDetailResponseAdapter {
             .endpointResponseTime(asLongOr(json.get("endpoint-response-time-ms"), 0))
             .method(HttpMethod.get(asIntOr(json.get("http-method"), 0)))
             .endpoint(asTextOrNull(json.get("endpoint")))
+            .message(asTextOrNull(json.get("error-message")))
+            .errorKey(asTextOrNull(json.get("error-key")))
+            .errorComponentName(asTextOrNull(json.get("error-component-name")))
+            .errorComponentType(asTextOrNull(json.get("error-component-type")))
+            .warnings(buildWarnings(json.get("warnings")))
+            .build();
+    }
+
+    private static List<ConnectionDiagnostic> buildWarnings(JsonNode json) {
+        if (json == null || !json.isArray()) {
+            return List.of();
+        }
+        return StreamSupport
+            .stream(json.spliterator(), false)
+            .map(FindApiMetricsDetailResponseAdapter::buildDiagnostic)
+            .filter(Objects::nonNull)
+            .toList();
+    }
+
+    private static ConnectionDiagnostic buildDiagnostic(JsonNode json) {
+        if (json == null) {
+            return null;
+        }
+        return ConnectionDiagnostic
+            .builder()
+            .componentType(asTextOrNull(json.get("component-type")))
+            .componentName(asTextOrNull(json.get("component-name")))
+            .key(asTextOrNull(json.get("key")))
+            .message(asTextOrNull(json.get("message")))
             .build();
     }
 }

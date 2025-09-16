@@ -38,6 +38,11 @@ public class ConnectionLogDetail {
     private Request endpointRequest;
     private Response entrypointResponse;
     private Response endpointResponse;
+    private String message;
+    private String errorKey;
+    private String errorComponentName;
+    private String errorComponentType;
+    private List<ConnectionDiagnosticModel> warnings;
 
     @Data
     @NoArgsConstructor

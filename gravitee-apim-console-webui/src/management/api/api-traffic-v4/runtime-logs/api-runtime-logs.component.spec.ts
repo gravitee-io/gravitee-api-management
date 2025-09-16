@@ -151,6 +151,7 @@ describe('ApiRuntimeLogsComponent', () => {
             responseTime: 'Response time',
             status: 'Status',
             timestamp: 'Timestamp',
+            diagnostics: 'Diagnostics',
           },
         ],
         rowCells: [['No data to displayMore data may be available. Try widening your timeframe or adjusting your filters.']],
@@ -204,9 +205,10 @@ describe('ApiRuntimeLogsComponent', () => {
               responseTime: 'Response time',
               status: 'Status',
               timestamp: 'Timestamp',
+              diagnostics: 'Diagnostics',
             },
           ],
-          rowCells: [['02/02/2020 20:22:02.000', 'GET', '200', '/api-uri', 'My first application', 'Default plan', '42ms', '', '']],
+          rowCells: [['02/02/2020 20:22:02.000', 'GET', '200', '/api-uri', 'My first application', 'Default plan', '42ms', '', '', '']],
         });
       });
     });

@@ -27,6 +27,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors
 @AllArgsConstructor
+@Builder
 public class ConnectionDiagnosticModel {
 
     private String componentType;
