@@ -22,6 +22,7 @@ export interface NotificationSettings {
   referenceId: string;
   notifier?: string;
   hooks?: string[];
+  groupHooks?: string[];
   useSystemProxy?: boolean;
   config_type: string;
   config?: string;

@@ -98,7 +98,7 @@ export class NotificationEditDialogComponent {
         : {}),
       groups: new FormControl({
         value: this.withPrimaryOwner(this.notification),
-        disabled: this.isReadonly,
+        disabled: false,
       }),
       hooks: toFormGroup(this.categories, this.notification, this.isReadonly),
     });
@@ -136,8 +136,8 @@ const addHookToGroup = (notification: NotificationSettings, readonly: boolean) =
   group.addControl(
     hook.id,
     new FormControl({
-      value: notification.hooks.includes(hook.id),
-      disabled: readonly,
+      value: notification.hooks.includes(hook.id) || notification.groupHooks?.includes(hook.id),
+      disabled: readonly || notification.groupHooks?.includes(hook.id),
     }),
   );
   return group;
