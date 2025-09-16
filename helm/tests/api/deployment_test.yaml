@@ -23,6 +23,9 @@ tests:
           value:
             - name: portal.entrypoint
               value: https://apim.example.com/
+      - equal:
+          path: spec.template.metadata.labels['helm.sh/chart']
+          value: apim-1.0.0-chart
 
   - it: Check deployment with revisionHistoryLimit
     template: api/api-deployment.yaml
