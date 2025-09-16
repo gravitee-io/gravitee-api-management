@@ -16,6 +16,7 @@
 import { BasePlan } from '../plan';
 import { BaseApplication } from '../application';
 import { HttpMethod } from '../api';
+import { ConnectionLogDiagnostic } from '../log';
 
 export interface BaseInstance {
   id: string;
@@ -42,4 +43,9 @@ export interface ApiMetricsDetailResponse {
   endpointResponseTime: number;
   method: HttpMethod;
   endpoint: string;
+  message?: string;
+  errorKey?: string;
+  errorComponentName?: string;
+  errorComponentType?: string;
+  warnings?: ConnectionLogDiagnostic[];
 }
