@@ -17,6 +17,7 @@
 -->
 @let metricValue = metric();
 <div class="mat-h3">Overview</div>
+
 <mat-card class="card">
   <mat-card-content>
     <div class="card__container">
@@ -97,5 +98,72 @@
         <dd class="gio-caption-2">{{ instance()?.ip }}</dd>
       </dl>
     </mat-expansion-panel>
+
+    @if (
+      metricValue?.errorKey ||
+      metricValue?.errorComponentName ||
+      metricValue?.errorComponentType ||
+      metricValue?.message ||
+      (metricValue?.warnings && metricValue?.warnings.length > 0)
+    ) {
+      <mat-expansion-panel class="mat-elevation-z0 more-details">
+        <mat-expansion-panel-header>
+          <mat-panel-title> Diagnostics </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="card__container">
+          @if (metricValue?.errorKey || metricValue?.errorComponentName || metricValue?.errorComponentType || metricValue?.message) {
+            <div class="card__section">
+              <span class="mat-body-strong">Error</span>
+              <dl class="card__section__kv">
+                @if (metricValue?.errorKey) {
+                  <dt class="mat-caption">Key</dt>
+                  <dd class="gio-caption-2">{{ metricValue.errorKey }}</dd>
+                }
+                @if (metricValue?.errorComponentType) {
+                  <dt class="mat-caption">Component Type</dt>
+                  <dd class="gio-caption-2">{{ metricValue.errorComponentType }}</dd>
+                }
+                @if (metricValue?.errorComponentName) {
+                  <dt class="mat-caption">Component Name</dt>
+                  <dd class="gio-caption-2">{{ metricValue.errorComponentName }}</dd>
+                }
+                @if (metricValue?.message) {
+                  <dt class="mat-caption">Message</dt>
+                  <dd class="gio-caption-2">{{ metricValue.message }}</dd>
+                }
+              </dl>
+            </div>
+          }
+
+          @if (metricValue?.warnings && metricValue?.warnings.length > 0) {
+            <div style="width: 100%">
+              @for (warning of metricValue.warnings; track $index) {
+                <div class="card__section" style="width: 100%">
+                  <span class="mat-body-strong">Warning {{ $index + 1 }}</span>
+                  <dl class="card__section__kv">
+                    @if (warning.key) {
+                      <dt class="mat-caption">Key</dt>
+                      <dd class="gio-caption-2">{{ warning.key }}</dd>
+                    }
+                    @if (warning.componentType) {
+                      <dt class="mat-caption">Component Type</dt>
+                      <dd class="gio-caption-2">{{ warning.componentType }}</dd>
+                    }
+                    @if (warning.componentName) {
+                      <dt class="mat-caption">Component Name</dt>
+                      <dd class="gio-caption-2">{{ warning.componentName }}</dd>
+                    }
+                    @if (warning.message) {
+                      <dt class="mat-caption">Message</dt>
+                      <dd class="gio-caption-2">{{ warning.message }}</dd>
+                    }
+                  </dl>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </mat-expansion-panel>
+    }
   </mat-card-content>
 </mat-card>

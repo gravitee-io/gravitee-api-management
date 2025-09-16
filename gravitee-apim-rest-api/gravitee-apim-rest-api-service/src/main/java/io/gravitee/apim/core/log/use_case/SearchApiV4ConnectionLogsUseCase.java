@@ -90,11 +90,11 @@ public class SearchApiV4ConnectionLogsUseCase {
             .gatewayResponseTime(connectionLog.getGatewayResponseTime())
             .uri(connectionLog.getUri())
             .endpoint(connectionLog.getEndpoint())
-            .message(connectionLog.getMessage())
-            .errorKey(connectionLog.getErrorKey())
-            .errorComponentName(connectionLog.getErrorComponentName())
             .errorComponentType(connectionLog.getErrorComponentType())
-            .warnings(connectionLog.getWarnings())
+            .errorComponentName(connectionLog.getErrorComponentName())
+            .errorKey(connectionLog.getErrorKey())
+            .message(connectionLog.getMessage())
+            .warnings(connectionLog.getWarnings() != null ? connectionLog.getWarnings() : List.of())
             .build();
     }
 

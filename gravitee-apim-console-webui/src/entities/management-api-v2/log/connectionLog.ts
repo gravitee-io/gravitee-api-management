@@ -34,6 +34,7 @@ export interface ConnectionLog {
   errorKey?: string;
   errorComponentName?: string;
   errorComponentType?: string;
+  warnings?: ConnectionLogDiagnostic[];
 }
 
 export interface ConnectionLogDiagnostic {
@@ -52,6 +53,11 @@ export interface ConnectionLogDetail {
   endpointRequest: ConnectionLogDetailRequest;
   entrypointResponse: ConnectionLogDetailResponse;
   endpointResponse: ConnectionLogDetailResponse;
+  message?: string;
+  errorKey?: string;
+  errorComponentName?: string;
+  errorComponentType?: string;
+  warnings?: ConnectionLogDiagnostic[];
 }
 
 export interface ConnectionLogDetailRequest {
