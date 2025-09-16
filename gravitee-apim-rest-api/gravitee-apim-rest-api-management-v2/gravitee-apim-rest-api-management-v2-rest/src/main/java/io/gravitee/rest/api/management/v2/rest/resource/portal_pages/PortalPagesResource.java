@@ -47,7 +47,7 @@ public class PortalPagesResource extends AbstractResource {
     @GET
     @Produces("application/json")
     @Path("/_homepage")
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
     public PortalPageResponse getPortalHomepage() {
         var input = new GetHomepageUseCase.Input(envId);
         var homepage = getHomepageUseCase.execute(input);
@@ -59,7 +59,7 @@ public class PortalPagesResource extends AbstractResource {
     @Produces("application/json")
     @Consumes("application/json")
     @Path("/{pageId}")
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
     public PortalPageResponse updatePortalPage(@PathParam("pageId") String pageId, UpdatePortalPage updatePortalPage) {
         var input = new UpdatePortalPageUseCase.Input(envId, pageId, updatePortalPage.getContent());
         var updatedHomepage = updatePortalPageUseCase.execute(input);

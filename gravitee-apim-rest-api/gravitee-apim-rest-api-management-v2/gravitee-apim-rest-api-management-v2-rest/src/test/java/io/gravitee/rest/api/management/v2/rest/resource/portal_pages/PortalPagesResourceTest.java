@@ -115,7 +115,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
+                eq(RolePermission.ENVIRONMENT_DOCUMENTATION),
                 any(),
                 eq(RolePermissionAction.READ)
             )
@@ -127,7 +127,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_DOCUMENTATION),
+                eq(RolePermission.ENVIRONMENT_DOCUMENTATION),
                 any(),
                 eq(RolePermissionAction.UPDATE)
             )
