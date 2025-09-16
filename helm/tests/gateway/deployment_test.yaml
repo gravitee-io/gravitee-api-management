@@ -24,6 +24,9 @@ tests:
       - isEmpty:
           # It should not contain init containers by default
           path: spec.template.spec.initContainers
+      - equal:
+          path: spec.template.metadata.labels['helm.sh/chart']
+          value: apim-1.0.0-chart
 
   - it: Check deploy specific APIM version
     template: gateway/gateway-deployment.yaml
