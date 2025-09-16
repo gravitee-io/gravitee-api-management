@@ -26,6 +26,7 @@ import { HistogramAnalyticsResponse } from '../../../../entities/management-api-
 import { GioWidgetLayoutState } from '../../../../shared/components/gio-widget-layout/gio-widget-layout.component';
 import { GioChartPieInput } from '../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
 import { GioChartLineData, GioChartLineOptions } from '../../../../shared/components/gio-chart-line/gio-chart-line.component';
+import { GioChartBarData, GioChartBarOptions } from '../../../../shared/components/gio-chart-bar/gio-chart-bar.component';
 import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 import { AnalyticsStatsResponse } from '../../../../entities/management-api-v2/analytics/analyticsStats';
 import { EsFilter, toQuery } from '../../../../shared/utils/esQuery';
@@ -41,6 +42,8 @@ export interface ApiAnalyticsWidgetUrlParamsData {
 
 // Colors for charts
 const defaultColors = ['#2B72FB', '#64BDC6', '#EECA34', '#FA4B42', '#FE6A35'];
+const successColor = '#00D4AA';
+const failureColor = '#FF6B6B';
 
 @Injectable({
   providedIn: 'root',
@@ -437,7 +440,97 @@ export class ApiAnalyticsWidgetService {
       };
     }
 
-    // Default fallback for unsupported widget types
+    if (widgetConfig.type === 'bar') {
+      const hasMultipleAggregations = widgetConfig.aggregations && widgetConfig.aggregations.length > 1;
+
+      const isAuthenticationChart = widgetConfig.aggregations?.some(
+        (agg) => agg.field.includes('authentication-successes') || agg.field.includes('authentication-failures'),
+      );
+
+      let barData: GioChartBarData[];
+
+      if (isAuthenticationChart && widgetConfig.aggregations?.length === 4) {
+        const downstreamFailure = histogramResponse.values[0]?.buckets[0]?.data || [];
+        const upstreamFailure = histogramResponse.values[1]?.buckets[0]?.data || [];
+        const upstreamSuccess = histogramResponse.values[2]?.buckets[0]?.data || [];
+        const downstreamSuccess = histogramResponse.values[3]?.buckets[0]?.data || [];
+
+        // Sum downstream + upstream for success and failure for each time point
+        const totalSuccess = downstreamSuccess.map((value, index) => value + (upstreamSuccess[index] || 0));
+        const totalFailure = downstreamFailure.map((value, index) => value + (upstreamFailure[index] || 0));
+
+        barData = [
+          {
+            name: 'Success',
+            values: totalSuccess,
+            color: successColor,
+          },
+          {
+            name: 'Failure',
+            values: totalFailure,
+            color: failureColor,
+          },
+        ];
+      } else {
+        barData = histogramResponse.values
+          .map((value, index) => {
+            if (hasMultipleAggregations) {
+              // For multiple aggregations, use the aggregation label as the name
+              const aggregation = widgetConfig.aggregations![index];
+              return {
+                name: aggregation.label || aggregation.field,
+                values: value.buckets[0]?.data || [],
+                color: defaultColors[index % defaultColors.length],
+              };
+            } else {
+              // For single aggregation, use the bucket names as the series names
+              return value.buckets.map((bucket, bucketIndex) => ({
+                name: value.metadata?.[bucket.name]?.name || bucket.name,
+                values: bucket.data || [],
+                color: defaultColors[bucketIndex % defaultColors.length],
+              }));
+            }
+          })
+          .flat();
+      }
+
+      // Create categories based on time intervals
+      const totalDataPoints = barData[0]?.values.length || 0;
+      const categories: string[] = [];
+      for (let i = 0; i < totalDataPoints; i++) {
+        const timestamp = histogramResponse.timestamp.from + i * histogramResponse.timestamp.interval;
+        const date = new Date(timestamp);
+
+        // Format based on interval length to show appropriate granularity
+        const intervalHours = histogramResponse.timestamp.interval / (1000 * 60 * 60);
+        if (intervalHours >= 24) {
+          categories.push(date.toLocaleDateString());
+        } else if (intervalHours >= 1) {
+          categories.push(date.toLocaleDateString() + ' ' + date.getHours().toString().padStart(2, '0') + ':00');
+        } else {
+          categories.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        }
+      }
+
+      const options: GioChartBarOptions = {
+        categories: categories,
+        stacked: true,
+        reverseStack: true,
+      };
+
+      if (barData.length === 0 || barData.every((series) => series.values.every((value) => value === 0))) {
+        return this.createEmptyConfig(widgetConfig);
+      }
+
+      return {
+        title: widgetConfig.title,
+        tooltip: widgetConfig.tooltip,
+        state: 'success',
+        widgetType: 'bar' as const,
+        widgetData: { data: barData, options },
+      };
+    }
+
     return this.createErrorConfig(widgetConfig, 'Unsupported widget type for HISTOGRAM analytics');
   }
 
@@ -488,6 +581,14 @@ export class ApiAnalyticsWidgetService {
         ...baseConfig,
         widgetType: 'line' as const,
         widgetData: { data: [], options: { pointStart: 0, pointInterval: 0 } },
+      };
+    }
+
+    if (widgetConfig.type === 'bar') {
+      return {
+        ...baseConfig,
+        widgetType: 'bar' as const,
+        widgetData: { data: [], options: { categories: [], stacked: true } },
       };
     }
 
