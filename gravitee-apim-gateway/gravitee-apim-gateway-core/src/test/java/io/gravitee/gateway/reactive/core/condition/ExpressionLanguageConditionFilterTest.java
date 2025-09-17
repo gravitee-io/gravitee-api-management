@@ -90,7 +90,7 @@ class ExpressionLanguageConditionFilterTest {
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         when(templateEngine.eval(EXPRESSION, Boolean.class)).thenReturn(Maybe.error(new ExpressionEvaluationException(EXPRESSION)));
 
-        cut.filter(ctx, conditionSupplier).test().assertFailure(ExpressionEvaluationException.class);
+        cut.filter(ctx, conditionSupplier).test().assertResult();
     }
 
     @Test

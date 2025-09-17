@@ -58,8 +58,9 @@ public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> impl
                             .message("Unable to execute EL condition " + condition)
                             .cause(elException)
                     );
+
                     // And let the execution continues.
-                    //                    return true;
+                    return true;
                 }
 
                 // Don't complete, propagate to interrupt the execution.
