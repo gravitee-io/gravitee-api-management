@@ -57,7 +57,7 @@
         <gravitee-common.version>4.7.0</gravitee-common.version>
         <gravitee-connector-api.version>1.1.5</gravitee-connector-api.version>
         <gravitee-exchange.version>1.9.0</gravitee-exchange.version>
-        <gravitee-expression-language.version>4.1.1</gravitee-expression-language.version>
+        <gravitee-expression-language.version>4.1.2</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>4.0.0-alpha.4</gravitee-gateway-api.version>
         <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
