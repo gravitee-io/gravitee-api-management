@@ -93,6 +93,8 @@ public class TopHitsAggregationQueryAdapter {
         ArrayNode filters = MAPPER.createArrayNode();
         // Apply mandatory filters like, api-id, time-range
         applyDefaultFilters(query, filters);
+        // Apply optional filters like, application, topic, gateway, etc.
+        applyOptionalFilters(query, filters);
         // Finalise query
         finaliseQuery(filters, root);
 
@@ -171,6 +173,14 @@ public class TopHitsAggregationQueryAdapter {
     private static void applyDefaultFilters(HistogramQuery query, ArrayNode filters) {
         applyTermFilter("api-id", query.searchTermId().id(), filters);
         applyTimeRangeFilter(query.timeRange(), filters);
+    }
+
+    private static void applyOptionalFilters(HistogramQuery query, ArrayNode filters) {
+        if (query.terms() == null) {
+            return;
+        }
+
+        query.terms().forEach(term -> applyTermFilter(term.key(), term.value(), filters));
     }
 
     private static void applyTermFilter(String field, String value, ArrayNode filters) {

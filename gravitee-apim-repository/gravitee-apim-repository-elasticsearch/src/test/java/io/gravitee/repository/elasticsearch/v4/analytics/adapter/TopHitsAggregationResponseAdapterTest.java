@@ -256,6 +256,7 @@ class TopHitsAggregationResponseAdapterTest {
             new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
             new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), Duration.ofMillis(60000)),
             aggregations,
+            null,
             null
         );
     }

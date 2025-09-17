@@ -63,7 +63,8 @@ class SearchHistogramQueryAdapterTest {
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(FROM, TO, INTERVAL),
                 List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
-                Optional.empty()
+                Optional.empty(),
+                null
             );
 
             String result = cut.adapt(query);
@@ -84,7 +85,8 @@ class SearchHistogramQueryAdapterTest {
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(FROM, TO, INTERVAL),
                 List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
-                Optional.empty()
+                Optional.empty(),
+                null
             );
 
             String result = cut.adapt(query);
@@ -105,7 +107,8 @@ class SearchHistogramQueryAdapterTest {
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(FROM, TO, INTERVAL),
                 List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
-                Optional.of("status:200 AND method:GET")
+                Optional.of("status:200 AND method:GET"),
+                null
             );
 
             String result = cut.adapt(query);
@@ -176,7 +179,8 @@ class SearchHistogramQueryAdapterTest {
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(FROM, TO, INTERVAL),
                     List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("status", AggregationType.FIELD)),
-                    Optional.empty()
+                    Optional.empty(),
+                    null
                 )
             );
 
@@ -233,7 +237,8 @@ class SearchHistogramQueryAdapterTest {
                     new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                     new TimeRange(FROM, TO, INTERVAL),
                     List.of(new io.gravitee.repository.log.v4.model.analytics.Aggregation("gateway-response-time-ms", AggregationType.AVG)),
-                    Optional.empty()
+                    Optional.empty(),
+                    null
                 )
             );
 
