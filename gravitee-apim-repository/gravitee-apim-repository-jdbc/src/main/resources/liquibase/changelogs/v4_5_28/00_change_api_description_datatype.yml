@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.28_00_change_api_description_datatype
+      author: GraviteeSource Team
+      changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}apis
+            columnName: description
+            newDataType: clob
