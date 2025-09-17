@@ -22,6 +22,7 @@ import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsAnalytics;
+import io.gravitee.apim.core.analytics.model.Term;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.analytics.TopHitsApps;
 import io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail;
@@ -117,7 +118,8 @@ public interface AnalyticsQueryService {
         Instant to,
         Duration interval,
         List<Aggregation> aggregations,
-        Optional<String> query
+        Optional<String> query,
+        List<Term> terms
     ) {}
 
     record GroupByQuery(

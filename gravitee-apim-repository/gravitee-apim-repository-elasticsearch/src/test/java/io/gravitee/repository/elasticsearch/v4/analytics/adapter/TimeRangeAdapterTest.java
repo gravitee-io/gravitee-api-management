@@ -56,7 +56,8 @@ class TimeRangeAdapterTest {
             new SearchTermId(SearchTermId.SearchTerm.API, "api-1"),
             new TimeRange(from, to, interval),
             java.util.List.of(),
-            Optional.empty()
+            Optional.empty(),
+            null
         );
         ObjectNode node = TimeRangeAdapter.createTimestampAggregationNode(query);
         assertNotNull(node);
@@ -78,7 +79,8 @@ class TimeRangeAdapterTest {
             new SearchTermId(SearchTermId.SearchTerm.API, "api-1"),
             new TimeRange(from, to),
             java.util.List.of(),
-            Optional.empty()
+            Optional.empty(),
+            null
         );
         assertThrows(IllegalArgumentException.class, () -> TimeRangeAdapter.createTimestampAggregationNode(query));
     }

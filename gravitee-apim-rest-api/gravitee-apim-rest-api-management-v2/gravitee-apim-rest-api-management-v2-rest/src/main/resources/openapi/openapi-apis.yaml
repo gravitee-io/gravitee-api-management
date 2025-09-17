@@ -2151,6 +2151,14 @@ paths:
             description: Custom search query
             schema:
               type: string
+          - name: terms
+            description: Optional filters like plan-id, application-id applied in the dashboard, e.g. "plan-id:xyz,application-id:abc"
+            in: query
+            explode: false
+            schema:
+              type: array
+              items:
+                type: string
         responses:
           "200":
             $ref: "#/components/responses/ApiAnalyticsResponse"
