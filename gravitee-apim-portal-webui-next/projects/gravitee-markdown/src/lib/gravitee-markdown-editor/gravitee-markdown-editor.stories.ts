@@ -19,13 +19,14 @@ import { applicationConfig, Args, Meta, moduleMetadata, StoryObj } from '@storyb
 
 import { GraviteeMarkdownEditorComponent } from './gravitee-markdown-editor.component';
 import { GraviteeMarkdownEditorModule } from './gravitee-markdown-editor.module';
+import { ButtonComponent } from '../components/button/button.component';
 
 export default {
   title: 'Gravitee Markdown/Gravitee Markdown Editor',
   component: GraviteeMarkdownEditorComponent,
   decorators: [
     moduleMetadata({
-      imports: [GraviteeMarkdownEditorModule, ReactiveFormsModule],
+      imports: [GraviteeMarkdownEditorModule, ReactiveFormsModule, ButtonComponent],
     }),
     applicationConfig({
       providers: [importProvidersFrom(GraviteeMarkdownEditorModule.forRoot({ theme: 'vs', baseUrl: '.' }))],
@@ -204,6 +205,55 @@ This editor allows you to test different border colors dynamically.
       description: {
         story:
           'This story allows you to dynamically change the border color using a color picker control. The border color is controlled by the CSS custom property `--gmd-editor-container-outline-color`.',
+      },
+    },
+  },
+};
+
+export const WithButtonComponents: StoryObj<GraviteeMarkdownEditorComponent> = {
+  render: () => ({
+    template: `
+      <div style="height: 650px">
+        <h3>Markdown Editor with Button Components</h3>
+        <div style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center;">
+          <gmd-button appearance="filled">Save</gmd-button>
+          <gmd-button appearance="outlined">Preview</gmd-button>
+          <gmd-button appearance="text">Cancel</gmd-button>
+        </div>
+        <gmd-editor [formControl]="contentControl"></gmd-editor>
+        <div style="margin-top: 10px;">
+          <p>Current value length: {{ contentControl.value?.length || 0 }} characters</p>
+        </div>
+      </div>
+    `,
+    props: {
+      contentControl: new FormControl(`# Markdown Editor with Buttons
+
+This editor demonstrates the integration of **button components** with the markdown editor.
+
+## Button Types
+
+The editor includes three types of buttons:
+
+- **Filled Button** - Primary action (Save)
+- **Outlined Button** - Secondary action (Preview)  
+- **Text Button** - Tertiary action (Cancel)
+
+## Features
+
+- *Italic text* and **bold text**
+- \`Inline code\`
+- [Links](https://gravitee.io)
+- Lists and more markdown features
+
+> All buttons use the token-based theming system for consistent styling.`),
+    },
+  }),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This story demonstrates the integration of button components with the markdown editor, showing all three button appearance types (filled, outlined, text) with token-based theming.',
       },
     },
   },

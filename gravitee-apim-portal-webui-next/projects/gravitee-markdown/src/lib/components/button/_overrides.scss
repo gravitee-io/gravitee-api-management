@@ -1,0 +1,127 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/token-utils' as token-utils;
+
+@function tokens() {
+  @return (
+    // Filled appearance tokens
+    filled-text-transform: (
+      value: uppercase,
+      css-var: --gmd-button-filled-text-transform,
+    ),
+    filled-text-color: (
+      value: #ffffff,
+      css-var: --gmd-button-filled-text-color,
+    ),
+    filled-container-color: (
+      value: #275CF6,
+      css-var: --gmd-button-filled-container-color,
+    ),
+    filled-container-shape: (
+      value: 4px,
+      css-var: --gmd-button-filled-container-shape,
+    ),
+    filled-horizontal-padding: (
+      value: 16px,
+      css-var: --gmd-button-filled-horizontal-padding,
+    ),
+    filled-hover-container-color: (
+      value: #0E42DB,
+      css-var: --gmd-button-filled-hover-container-color,
+    ),
+    filled-active-container-color: (
+      value: #275CF6,
+      css-var: --gmd-button-filled-active-container-color,
+    ),
+    filled-focus-outline-color: (
+      value: #1976d2,
+      css-var: --gmd-button-filled-focus-outline-color,
+    ),
+    filled-active-outline-color: (
+      value: #64B5F6,
+      css-var: --gmd-button-filled-active-outline-color,
+    ),
+
+    // Outlined appearance tokens
+    outlined-text-transform: (
+      value: uppercase,
+      css-var: --gmd-button-outlined-text-transform,
+    ),
+    outlined-text-color: (
+      value: #1976d2,
+      css-var: --gmd-button-outlined-text-color,
+    ),
+    outlined-outline-width: (
+      value: 1px,
+      css-var: --gmd-button-outlined-outline-width,
+    ),
+    outlined-outline-color: (
+      value: #CDD7E1,
+      css-var: --gmd-button-outlined-outline-color,
+    ),
+    outlined-container-shape: (
+      value: 4px,
+      css-var: --gmd-button-outlined-container-shape,
+    ),
+    outlined-horizontal-padding: (
+      value: 16px,
+      css-var: --gmd-button-outlined-horizontal-padding,
+    ),
+    outlined-hover-container-color: (
+      value: #F4F7FD,
+      css-var: --gmd-button-outlined-hover-container-color,
+    ),
+    outlined-active-container-color: (
+      value: rgba(25, 118, 210, 0.502),
+      css-var: --gmd-button-outlined-active-container-color,
+    ),
+    outlined-focus-outline-color: (
+      value: #1976d2,
+      css-var: --gmd-button-outlined-focus-outline-color,
+    ),
+
+    // Text appearance tokens
+    text-text-transform: (
+      value: uppercase,
+      css-var: --gmd-button-text-text-transform,
+    ),
+    text-text-color: (
+      value: #1976d2,
+      css-var: --gmd-button-text-text-color,
+    ),
+    text-container-shape: (
+      value: 4px,
+      css-var: --gmd-button-text-container-shape,
+    ),
+    text-hover-container-color: (
+      value: #F4F7FD,
+      css-var: --gmd-button-text-hover-container-color,
+    ),
+    text-active-container-color: (
+      value: rgba(25, 118, 210, 0.502),
+      css-var: --gmd-button-text-active-container-color,
+    ),
+    text-focus-outline-color: (
+      value: #1976d2,
+      css-var: --gmd-button-text-focus-outline-color,
+    ),
+  );
+}
+
+// Component-level override mixin
+@mixin overrides($overrides: ()) {
+  @include token-utils.apply-token-overrides(tokens(), $overrides);
+}

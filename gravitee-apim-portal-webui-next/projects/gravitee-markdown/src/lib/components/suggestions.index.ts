@@ -17,8 +17,10 @@ import { ComponentSuggestionConfiguration } from '../models/componentSuggestionC
 import { gridConfiguration } from './grid/grid.suggestions';
 import { ComponentSelector } from '../models/componentSelector';
 import { cellConfiguration } from './grid/cell/cell.suggestions';
+import { buttonConfiguration } from './button/button.suggestions';
 
 export const componentSuggestionMap: Record<string, ComponentSuggestionConfiguration> = {
   [ComponentSelector.GRID]: gridConfiguration,
   [ComponentSelector.CELL]: cellConfiguration,
+  [ComponentSelector.BUTTON]: buttonConfiguration,
 };

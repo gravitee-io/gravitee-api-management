@@ -1,0 +1,112 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/token-utils' as token-utils;
+@use './overrides' as button-overrides;
+
+.gmd-button {
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  outline: none;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  vertical-align: middle;
+  white-space: nowrap;
+  height: 36px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+
+  // Filled appearance
+  &--filled {
+    background-color: token-utils.slot(filled-container-color, button-overrides.tokens());
+    border-radius: token-utils.slot(filled-container-shape, button-overrides.tokens());
+    color: token-utils.slot(filled-text-color, button-overrides.tokens());
+    padding: 8px token-utils.slot(filled-horizontal-padding, button-overrides.tokens());
+    text-transform: token-utils.slot(filled-text-transform, button-overrides.tokens());
+
+    &:hover {
+      background-color: token-utils.slot(filled-hover-container-color, button-overrides.tokens());
+    }
+
+    &:focus {
+      border-color: token-utils.slot(filled-focus-outline-color, button-overrides.tokens());
+    }
+
+    &:active {
+      background-color: token-utils.slot(filled-active-container-color, button-overrides.tokens());
+    //   border-color: token-utils.slot(filled-active-outline-color, button-overrides.tokens());
+    }
+  }
+
+  // Outlined appearance
+  &--outlined {
+    background-color: transparent;
+    border: token-utils.slot(outlined-outline-width, button-overrides.tokens()) solid token-utils.slot(outlined-outline-color, button-overrides.tokens());
+    border-radius: token-utils.slot(outlined-container-shape, button-overrides.tokens());
+    color: token-utils.slot(outlined-text-color, button-overrides.tokens());
+    padding: 8px token-utils.slot(outlined-horizontal-padding, button-overrides.tokens());
+    text-transform: token-utils.slot(outlined-text-transform, button-overrides.tokens());
+
+    &:hover {
+      background-color: token-utils.slot(outlined-hover-container-color, button-overrides.tokens());
+    }
+
+    &:focus {
+    //   border-color: token-utils.slot(outlined-focus-outline-color, button-overrides.tokens());
+      box-shadow: 0 0 0 1px token-utils.slot(outlined-outline-color, button-overrides.tokens()) inset;
+    }
+
+    &:active {
+      background-color: token-utils.slot(outlined-active-container-color, button-overrides.tokens());
+    }
+  }
+
+  // Text appearance
+  &--text {
+    background-color: transparent;
+    // border: none;
+    border-radius: token-utils.slot(text-container-shape, button-overrides.tokens());
+    color: token-utils.slot(text-text-color, button-overrides.tokens());
+    padding: auto 12px;
+    text-transform: token-utils.slot(text-text-transform, button-overrides.tokens());
+
+    &:hover {
+      background-color: token-utils.slot(text-hover-container-color, button-overrides.tokens());
+    }
+
+    &:focus {
+      border-color: token-utils.slot(text-focus-outline-color, button-overrides.tokens());
+    }
+
+    &:active {
+        background-color: token-utils.slot(text-active-container-color, button-overrides.tokens());
+    }
+  }
+
+  // Disabled state
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}

@@ -13,8 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum ComponentSelector {
-  GRID = 'grid',
-  CELL = 'cell',
-  BUTTON = 'button',
+import { CommonModule } from '@angular/common';
+import { Component, Input } from '@angular/core';
+
+export type ButtonAppearance = 'filled' | 'outlined' | 'text';
+
+@Component({
+  selector: 'gmd-button',
+  imports: [CommonModule],
+  templateUrl: './button.component.html',
+  styleUrl: './button.component.scss',
+})
+export class ButtonComponent {
+  @Input() appearance: ButtonAppearance = 'filled';
 }
+

@@ -22,3 +22,4 @@ export interface ComponentSuggestionConfiguration {
   hoverDocumentation: ComponentDocumentation;
   attributeHoverDocumentation: ComponentDocumentationMap;
 }
+
