@@ -44,7 +44,7 @@
              in gravitee-apim-gateway-tests-sdk and gravitee-apim-integration-tests
              along with the grpc libs to create test clients and servers -->
         <vertx.version>4.5.21</vertx.version>
-        <protobuf-java.version>4.28.2</protobuf-java.version>
+        <protobuf-java.version>3.25.5</protobuf-java.version>
         <grpc-java.version>1.65.0</grpc-java.version>
         <!-- Gravitee dependencies version -->
         <gravitee-bom.version>8.3.41</gravitee-bom.version>
