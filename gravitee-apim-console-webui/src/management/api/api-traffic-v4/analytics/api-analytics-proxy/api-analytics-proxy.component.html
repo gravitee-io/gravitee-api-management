@@ -15,6 +15,12 @@
     limitations under the License.
 
 -->
+<api-navigation-header [menuItemHeader]="menuItemHeader">
+  <div actionButtons>
+    <button mat-raised-button (click)="navigateToLogs()">View Logs</button>
+  </div>
+</api-navigation-header>
+
 <api-analytics-proxy-filter-bar
   [activeFilters]="activeFilters()"
   [plans]="apiPlans$ | async"

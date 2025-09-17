@@ -43,6 +43,7 @@ import { ApiNavigationTitleComponent } from './api-navigation-title/api-navigati
 import { ApiNavigationComponent } from './api-navigation.component';
 import { ApiNavigationDisabledComponent } from './api-navigation-disabled/api-navigation-disabled.component';
 import { ApiNavigationHeaderComponent } from './api-navigation-header/api-navigation-header.component';
+import { ActionButtonsDirective } from './api-navigation-header/action-buttons.directive';
 
 @NgModule({
   imports: [
@@ -66,6 +67,7 @@ import { ApiNavigationHeaderComponent } from './api-navigation-header/api-naviga
     MatSnackBarModule,
     RouterModule,
     GioMenuModule,
+    ActionButtonsDirective,
   ],
   declarations: [
     ApiNavigationComponent,
@@ -76,6 +78,6 @@ import { ApiNavigationHeaderComponent } from './api-navigation-header/api-naviga
     ApiConfirmDeploymentDialogComponent,
     ApiReviewDialogComponent,
   ],
-  exports: [ApiNavigationComponent],
+  exports: [ApiNavigationComponent, ApiNavigationHeaderComponent, ActionButtonsDirective],
 })
 export class ApiNavigationModule {}
