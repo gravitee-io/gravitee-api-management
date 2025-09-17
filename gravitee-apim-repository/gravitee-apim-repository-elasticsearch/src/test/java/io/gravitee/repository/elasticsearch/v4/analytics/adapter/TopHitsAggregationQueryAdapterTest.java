@@ -50,6 +50,7 @@ import io.gravitee.repository.log.v4.model.analytics.Aggregation;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
+import io.gravitee.repository.log.v4.model.analytics.Term;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Duration;
 import java.time.Instant;
@@ -62,17 +63,20 @@ class TopHitsAggregationQueryAdapterTest {
     private static final String API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
     private static final Long FROM = 1756104349879L;
     private static final Long TO = 1756190749879L;
+    private static final String APP_ID = "1";
+    private static final String PLAN_ID = "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Test
     void should_throw_when_no_aggregate_functions_specified() {
-        assertThrows(IllegalArgumentException.class, () -> adapt(buildHistogramQuery(List.of())));
+        assertThrows(IllegalArgumentException.class, () -> adapt(buildHistogramQuery(List.of(), null)));
     }
 
     @Test
     void should_throw_when_more_than_one_aggregate_functions_specified() {
         Aggregation agg1 = new Aggregation("downstream-active-connections", AggregationType.VALUE);
         Aggregation agg2 = new Aggregation("upstream-active-connections", AggregationType.DELTA);
-        var query = buildHistogramQuery(List.of(agg1, agg2));
+        var query = buildHistogramQuery(List.of(agg1, agg2), null);
 
         assertThrows(IllegalArgumentException.class, () -> adapt(query));
     }
@@ -81,7 +85,7 @@ class TopHitsAggregationQueryAdapterTest {
     void should_adapt_top_value_hits_query() throws JsonProcessingException {
         Aggregation agg1 = new Aggregation("downstream-active-connections", AggregationType.VALUE);
         Aggregation agg2 = new Aggregation("upstream-active-connections", AggregationType.VALUE);
-        var query = buildHistogramQuery(List.of(agg1, agg2));
+        var query = buildHistogramQuery(List.of(agg1, agg2), null);
 
         String json = adapt(query);
 
@@ -124,7 +128,7 @@ class TopHitsAggregationQueryAdapterTest {
     void should_adapt_top_delta_hits_query() throws JsonProcessingException {
         Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
         Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-        var query = buildHistogramQuery(List.of(agg1, agg2));
+        var query = buildHistogramQuery(List.of(agg1, agg2), null);
 
         String json = adapt(query);
 
@@ -183,7 +187,7 @@ class TopHitsAggregationQueryAdapterTest {
     void should_adapt_trend_query() throws JsonProcessingException {
         Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.TREND);
         Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.TREND);
-        var query = buildHistogramQuery(List.of(agg1, agg2));
+        var query = buildHistogramQuery(List.of(agg1, agg2), null);
 
         String json = adapt(query);
 
@@ -242,12 +246,39 @@ class TopHitsAggregationQueryAdapterTest {
         assertEquals(TO, filters.get(1).get(RANGE).get(TIMESTAMP).get(LTE).asLong());
     }
 
-    private static @NotNull HistogramQuery buildHistogramQuery(List<Aggregation> aggregations) {
+    @Test
+    void should_apply_filters() throws JsonProcessingException {
+        Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+        Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+        Term appIdFilter = new Term("app-id", APP_ID);
+        Term planIdFilter = new Term("plan-id", PLAN_ID);
+        var query = buildHistogramQuery(List.of(agg1, agg2), List.of(appIdFilter, planIdFilter));
+
+        String json = adapt(query);
+
+        JsonNode node = MAPPER.readTree(json);
+        JsonNode aggs = node.get(AGGS);
+        assertNotNull(aggs);
+        assertFalse(aggs.isEmpty());
+        // Assert query filters
+        JsonNode filters = node.get("query").get("bool").get(FILTER);
+        assertFalse(filters.isEmpty());
+        // Assert default filters
+        assertEquals(API_ID, filters.get(0).get(TERM).get("api-id").asText());
+        assertEquals(FROM, filters.get(1).get(RANGE).get(TIMESTAMP).get(GTE).asLong());
+        assertEquals(TO, filters.get(1).get(RANGE).get(TIMESTAMP).get(LTE).asLong());
+        // Assert optional filters
+        assertEquals(APP_ID, filters.get(2).get(TERM).get("app-id").asText());
+        assertEquals(PLAN_ID, filters.get(3).get(TERM).get("plan-id").asText());
+    }
+
+    private static @NotNull HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms) {
         return new HistogramQuery(
             new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
             new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), Duration.ofMillis(60000)),
             aggregations,
-            null
+            null,
+            terms
         );
     }
 }

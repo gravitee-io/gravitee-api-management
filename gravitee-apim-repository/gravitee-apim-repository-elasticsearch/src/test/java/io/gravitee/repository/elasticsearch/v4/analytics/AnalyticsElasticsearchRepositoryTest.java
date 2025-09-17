@@ -48,6 +48,7 @@ import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import io.gravitee.repository.log.v4.model.analytics.StatsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.StatsQuery;
+import io.gravitee.repository.log.v4.model.analytics.Term;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
@@ -664,7 +665,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(from, to, interval),
                 List.of(new Aggregation("status", AggregationType.FIELD)),
-                Optional.empty()
+                Optional.empty(),
+                null
             );
 
             var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
@@ -704,7 +706,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(from, to, interval),
                 List.of(new Aggregation("gateway-response-time-ms", AggregationType.AVG)),
-                Optional.empty()
+                Optional.empty(),
+                null
             );
 
             var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
@@ -732,7 +735,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
                 new TimeRange(from, to, interval),
                 List.of(new Aggregation("status", AggregationType.FIELD)),
-                Optional.of("status:404")
+                Optional.of("status:404"),
+                null
             );
 
             var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
@@ -1073,7 +1077,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             Aggregation agg1 = new Aggregation("downstream-active-connections", AggregationType.VALUE);
             Aggregation agg2 = new Aggregation("upstream-active-connections", AggregationType.VALUE);
 
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2)));
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(aggregate -> {
@@ -1096,7 +1100,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             Aggregation agg3 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.VALUE);
             Aggregation agg4 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.VALUE);
 
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2, agg3, agg4)));
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), null, NATIVE_API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(aggregate -> {
@@ -1107,16 +1111,16 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(data).containsKey("upstream-subscribe-message-bytes_latest");
                     Map<String, List<Long>> downstreamMessagesConsumedBucket = data.get("downstream-subscribe-messages-total_latest");
                     assertThat(downstreamMessagesConsumedBucket).containsKey("downstream-subscribe-messages-total");
-                    assertThat(downstreamMessagesConsumedBucket.get("downstream-subscribe-messages-total").getFirst()).isEqualTo(3240L);
+                    assertThat(downstreamMessagesConsumedBucket.get("downstream-subscribe-messages-total").getFirst()).isEqualTo(4056L);
                     Map<String, List<Long>> downstreamMessageBytesConsumedBucket = data.get("downstream-subscribe-message-bytes_latest");
                     assertThat(downstreamMessageBytesConsumedBucket).containsKey("downstream-subscribe-message-bytes");
-                    assertThat(downstreamMessageBytesConsumedBucket.get("downstream-subscribe-message-bytes").getFirst()).isEqualTo(32298L);
+                    assertThat(downstreamMessageBytesConsumedBucket.get("downstream-subscribe-message-bytes").getFirst()).isEqualTo(40638L);
                     Map<String, List<Long>> upstreamMessagesConsumedBucket = data.get("upstream-subscribe-messages-total_latest");
                     assertThat(upstreamMessagesConsumedBucket).containsKey("upstream-subscribe-messages-total");
-                    assertThat(upstreamMessagesConsumedBucket.get("upstream-subscribe-messages-total").getFirst()).isEqualTo(3240L);
+                    assertThat(upstreamMessagesConsumedBucket.get("upstream-subscribe-messages-total").getFirst()).isEqualTo(4056L);
                     Map<String, List<Long>> upstreamMessageBytesConsumedBucket = data.get("upstream-subscribe-message-bytes_latest");
                     assertThat(upstreamMessageBytesConsumedBucket).containsKey("upstream-subscribe-message-bytes");
-                    assertThat(upstreamMessageBytesConsumedBucket.get("upstream-subscribe-message-bytes").getFirst()).isEqualTo(32298L);
+                    assertThat(upstreamMessageBytesConsumedBucket.get("upstream-subscribe-message-bytes").getFirst()).isEqualTo(40638L);
                 });
         }
 
@@ -1127,7 +1131,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             Aggregation agg3 = new Aggregation("downstream-publish-message-bytes", AggregationType.VALUE);
             Aggregation agg4 = new Aggregation("upstream-publish-message-bytes", AggregationType.VALUE);
 
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2, agg3, agg4)));
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), null, NATIVE_API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(aggregate -> {
@@ -1156,7 +1160,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
             Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
 
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2)));
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(aggregate -> {
@@ -1177,7 +1181,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.DELTA);
             Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.DELTA);
 
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2)));
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(aggregate -> {
@@ -1186,10 +1190,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(data).containsKey("upstream-subscribe-messages-total_delta");
                     Map<String, List<Long>> downstreamMessagesConsumedBucket = data.get("downstream-subscribe-messages-total_delta");
                     assertThat(downstreamMessagesConsumedBucket).containsKey("downstream-subscribe-messages-total");
-                    assertThat(downstreamMessagesConsumedBucket.get("downstream-subscribe-messages-total").getFirst()).isEqualTo(3228L);
+                    assertThat(downstreamMessagesConsumedBucket.get("downstream-subscribe-messages-total").getFirst()).isEqualTo(4044L);
                     Map<String, List<Long>> upstreamMessagesConsumedBucket = data.get("upstream-subscribe-messages-total_delta");
                     assertThat(upstreamMessagesConsumedBucket).containsKey("upstream-subscribe-messages-total");
-                    assertThat(upstreamMessagesConsumedBucket.get("upstream-subscribe-messages-total").getFirst()).isEqualTo(3228L);
+                    assertThat(upstreamMessagesConsumedBucket.get("upstream-subscribe-messages-total").getFirst()).isEqualTo(4044L);
                 });
         }
 
@@ -1198,7 +1202,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             Aggregation agg1 = new Aggregation("downstream-publish-message-bytes", AggregationType.DELTA);
             Aggregation agg2 = new Aggregation("upstream-publish-message-bytes", AggregationType.DELTA);
 
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2)));
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(aggregate -> {
@@ -1219,7 +1223,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             Aggregation agg1 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.DELTA);
             Aggregation agg2 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.DELTA);
 
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2)));
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
 
             assertThat(result)
                 .hasValueSatisfying(aggregate -> {
@@ -1228,10 +1232,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(data).containsKey("upstream-subscribe-message-bytes_delta");
                     Map<String, List<Long>> downstreamMessageBytesConsumedBucket = data.get("downstream-subscribe-message-bytes_delta");
                     assertThat(downstreamMessageBytesConsumedBucket).containsKey("downstream-subscribe-message-bytes");
-                    assertThat(downstreamMessageBytesConsumedBucket.get("downstream-subscribe-message-bytes").getFirst()).isEqualTo(32178L);
+                    assertThat(downstreamMessageBytesConsumedBucket.get("downstream-subscribe-message-bytes").getFirst()).isEqualTo(40518L);
                     Map<String, List<Long>> upstreamMessageBytesConsumedBucket = data.get("upstream-subscribe-message-bytes_delta");
                     assertThat(upstreamMessageBytesConsumedBucket).containsKey("upstream-subscribe-message-bytes");
-                    assertThat(upstreamMessageBytesConsumedBucket.get("upstream-subscribe-message-bytes").getFirst()).isEqualTo(32178L);
+                    assertThat(upstreamMessageBytesConsumedBucket.get("upstream-subscribe-message-bytes").getFirst()).isEqualTo(40518L);
                 });
         }
 
@@ -1239,7 +1243,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_search_top_delta_buckets_for_messages_consumed() {
             Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.TREND);
             Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.TREND);
-            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2));
+            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID);
 
             var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
 
@@ -1254,8 +1258,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(upstreamConsumptionTrend).containsKey("upstream-subscribe-messages-total");
                     List<Long> trendValues1 = downstreamConsumptionTrend.get("downstream-subscribe-messages-total");
                     List<Long> trendValues2 = upstreamConsumptionTrend.get("upstream-subscribe-messages-total");
-                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L), trendValues1);
-                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L), trendValues2);
+                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues1);
+                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues2);
                 });
         }
 
@@ -1263,7 +1267,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_search_top_delta_buckets_for_messages_produced() {
             Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.TREND);
             Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.TREND);
-            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2));
+            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID);
 
             var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
 
@@ -1278,8 +1282,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(upstreamConsumptionTrend).containsKey("upstream-publish-messages-total");
                     List<Long> trendValues1 = downstreamConsumptionTrend.get("downstream-publish-messages-total");
                     List<Long> trendValues2 = upstreamConsumptionTrend.get("upstream-publish-messages-total");
-                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L), trendValues1);
-                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L), trendValues2);
+                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues1);
+                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues2);
                 });
         }
 
@@ -1287,7 +1291,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_search_top_delta_buckets_for_bytes_consumed() {
             Aggregation agg1 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.TREND);
             Aggregation agg2 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.TREND);
-            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2));
+            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID);
 
             var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
 
@@ -1302,8 +1306,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(upstreamConsumptionTrend).containsKey("upstream-subscribe-message-bytes");
                     List<Long> trendValues1 = downstreamConsumptionTrend.get("downstream-subscribe-message-bytes");
                     List<Long> trendValues2 = upstreamConsumptionTrend.get("upstream-subscribe-message-bytes");
-                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L), trendValues1);
-                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L), trendValues2);
+                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues1);
+                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues2);
                 });
         }
 
@@ -1311,7 +1315,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_search_top_delta_buckets_for_bytes_produced() {
             Aggregation agg1 = new Aggregation("downstream-publish-message-bytes", AggregationType.TREND);
             Aggregation agg2 = new Aggregation("upstream-publish-message-bytes", AggregationType.TREND);
-            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2));
+            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID);
 
             var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
 
@@ -1326,21 +1330,57 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(upstreamConsumptionTrend).containsKey("upstream-publish-message-bytes");
                     List<Long> trendValues1 = downstreamConsumptionTrend.get("downstream-publish-message-bytes");
                     List<Long> trendValues2 = upstreamConsumptionTrend.get("upstream-publish-message-bytes");
-                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L), trendValues1);
-                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L), trendValues2);
+                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues1);
+                    assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues2);
                 });
         }
 
-        private static @NotNull HistogramQuery buildHistogramQuery(List<Aggregation> aggregations) {
+        @Test
+        void should_apply_optional_filters() {
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.VALUE);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.VALUE);
+            Aggregation agg3 = new Aggregation("downstream-publish-message-bytes", AggregationType.VALUE);
+            Aggregation agg4 = new Aggregation("upstream-publish-message-bytes", AggregationType.VALUE);
+            Term appIdFilter = new Term("app-id", "yyy-yyy-yyy");
+
+            var result = cut.searchEventAnalytics(
+                QUERY_CONTEXT,
+                buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), List.of(appIdFilter), "xxx-xxx-xxx")
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(aggregate -> {
+                    Map<String, Map<String, List<Long>>> data = aggregate.values();
+                    assertThat(data).containsKey("downstream-publish-messages-total_latest");
+                    assertThat(data).containsKey("upstream-publish-messages-total_latest");
+                    assertThat(data).containsKey("downstream-publish-message-bytes_latest");
+                    assertThat(data).containsKey("upstream-publish-message-bytes_latest");
+                    Map<String, List<Long>> downstreamMessagesPublishedBucket = data.get("downstream-publish-messages-total_latest");
+                    assertThat(downstreamMessagesPublishedBucket).containsKey("downstream-publish-messages-total");
+                    assertThat(downstreamMessagesPublishedBucket.get("downstream-publish-messages-total").getFirst()).isEqualTo(157L);
+                    Map<String, List<Long>> downstreamMessageBytesPublishedBucket = data.get("downstream-publish-message-bytes_latest");
+                    assertThat(downstreamMessageBytesPublishedBucket).containsKey("downstream-publish-message-bytes");
+                    assertThat(downstreamMessageBytesPublishedBucket.get("downstream-publish-message-bytes").getFirst()).isEqualTo(8421L);
+                    Map<String, List<Long>> upstreamMessagesPublishedBucket = data.get("upstream-publish-messages-total_latest");
+                    assertThat(upstreamMessagesPublishedBucket).containsKey("upstream-publish-messages-total");
+                    assertThat(upstreamMessagesPublishedBucket.get("upstream-publish-messages-total").getFirst()).isEqualTo(157L);
+                    Map<String, List<Long>> upstreamMessageBytesPublishedBucket = data.get("upstream-publish-message-bytes_latest");
+                    assertThat(upstreamMessageBytesPublishedBucket).containsKey("upstream-publish-message-bytes");
+                    assertThat(upstreamMessageBytesPublishedBucket.get("upstream-publish-message-bytes").getFirst()).isEqualTo(8421L);
+                });
+        }
+
+        private static @NotNull HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms, String apiId) {
             var now = TIME_PROVIDER.getNow();
             var from = now.minusSeconds(4 * 60);
-            var to = now.plusSeconds(4 * 60);
+            var to = now.plusSeconds(6 * 60);
 
             return new HistogramQuery(
-                new SearchTermId(SearchTermId.SearchTerm.API, NATIVE_API_ID),
+                new SearchTermId(SearchTermId.SearchTerm.API, apiId),
                 new TimeRange(from, to, Duration.ofMillis(2 * 60 * 1000)),
                 aggregations,
-                null
+                null,
+                terms
             );
         }
     }

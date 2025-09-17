@@ -21,6 +21,7 @@ import io.gravitee.apim.core.analytics.domain_service.ApiAnalyticsSpecification;
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
+import io.gravitee.apim.core.analytics.model.Term;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
@@ -65,7 +66,8 @@ public class SearchHistogramAnalyticsUseCase {
             Instant.ofEpochMilli(input.to()),
             Duration.ofMillis(input.interval()),
             input.aggregations(),
-            input.query()
+            input.query(),
+            null
         );
         var result = analyticsQueryService
             .searchHistogramAnalytics(executionContext, histogramQuery)
@@ -118,7 +120,8 @@ public class SearchHistogramAnalyticsUseCase {
             to,
             Duration.ofMillis(input.interval()),
             input.aggregations(),
-            input.query()
+            input.query(),
+            (input.terms() != null && input.terms().isPresent()) ? input.terms().get() : List.of()
         );
 
         Optional<EventAnalytics> eventAnalytics = analyticsQueryService.searchEventAnalytics(executionContext, histogramQuery);
@@ -143,7 +146,15 @@ public class SearchHistogramAnalyticsUseCase {
         return new Output(timestamp, buckets, Collections.emptyMap());
     }
 
-    public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations, Optional<String> query) {}
+    public record Input(
+        String api,
+        long from,
+        long to,
+        long interval,
+        List<Aggregation> aggregations,
+        Optional<String> query,
+        Optional<List<Term>> terms
+    ) {}
 
     public record Output(
         Timestamp timestamp,
