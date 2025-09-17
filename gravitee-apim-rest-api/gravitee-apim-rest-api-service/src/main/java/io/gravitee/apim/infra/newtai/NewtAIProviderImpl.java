@@ -16,18 +16,19 @@
 package io.gravitee.apim.infra.newtai;
 
 import io.gravitee.apim.core.newtai.exception.NewtAIReplyException;
+import io.gravitee.apim.core.newtai.exception.NewtAiSubmitFeedbackException;
+import io.gravitee.apim.core.newtai.model.ELGenFeedback;
 import io.gravitee.apim.core.newtai.model.ELGenQuery;
 import io.gravitee.apim.core.newtai.model.ELGenReply;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.infra.apim.ApimProductInfoImpl;
 import io.gravitee.cockpit.api.CockpitConnector;
-import io.gravitee.cockpit.api.command.v1.newtai.elgen.ELCommand;
-import io.gravitee.cockpit.api.command.v1.newtai.elgen.ELCommandPayload;
-import io.gravitee.cockpit.api.command.v1.newtai.elgen.ELReplyPayload;
+import io.gravitee.cockpit.api.command.v1.newtai.elgen.*;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.InstallationNotFoundException;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -61,11 +62,7 @@ public class NewtAIProviderImpl implements NewtAIProvider {
 
         return cockpitConnector
             .sendCommand(command)
-            .onErrorResumeNext(error ->
-                Single.error(
-                    new NewtAIReplyException(command.getId(), error.getMessage() != null ? error.getMessage() : error.toString(), error)
-                )
-            )
+            .onErrorResumeNext(error -> Single.error(new NewtAIReplyException(command.getId(), getErrorMessage(error), error)))
             .map(reply -> {
                 if (reply.getCommandStatus() == CommandStatus.ERROR) {
                     throw new NewtAIReplyException(command.getId(), reply.getErrorDetails());
@@ -74,6 +71,29 @@ public class NewtAIProviderImpl implements NewtAIProvider {
                 }
                 throw new NewtAIReplyException(command.getId(), "Unexpected reply payload:" + reply.getPayload());
             });
+    }
+
+    @Override
+    public Completable submitFeedback(ELGenFeedback feedback) {
+        var command = new ELGenFeedbackCommand(
+            new ELGenFeedbackCommandPayload(
+                new ELReplyPayload.RequestId(feedback.chatId(), feedback.userMessageId(), feedback.agentMessageId()),
+                feedback.answerHelpful()
+            )
+        );
+        return cockpitConnector
+            .sendCommand(command)
+            .onErrorResumeNext(error -> Single.error(new NewtAiSubmitFeedbackException(command.getId(), getErrorMessage(error), error)))
+            .flatMapCompletable(reply -> {
+                if (reply.getCommandStatus() == CommandStatus.ERROR) {
+                    return Completable.error(new NewtAiSubmitFeedbackException(command.getId(), reply.getErrorDetails()));
+                }
+                return Completable.complete();
+            });
+    }
+
+    private String getErrorMessage(Throwable error) {
+        return error.getMessage() != null ? error.getMessage() : error.toString();
     }
 
     private record Output(String message, FeedbackId feedbackId) implements ELGenReply {
