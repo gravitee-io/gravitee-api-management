@@ -34,15 +34,20 @@ export function getJiraVersion(versionName) {
 export async function getJiraIssuesOfVersion(versionId) {
   const token = process.env.JIRA_TOKEN;
 
-  const issuesFromJira = await fetch(`https://gravitee.atlassian.net/rest/api/3/search?jql=project=APIM AND fixVersion=${versionId}`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Basic ${token}`,
-      Accept: 'application/json',
-    },
-  })
-    .then((response) => response.json())
-    .then((body) => body.issues);
+    const issuesFromJira = await fetch('https://gravitee.atlassian.net/rest/api/3/search/jql', {
+        method: 'POST',
+        headers: {
+            Authorization: `Basic ${token}`,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            jql: `project = APIM AND fixVersion = "${versionId}"`,
+            fields: ['issuetype', 'summary', 'components', 'customfield_10115'],
+        }),
+    })
+        .then((response) => response.json())
+        .then((body) => body.issues);
 
   // Filter out issues that are not public bugs or public security issues
   const issues = issuesFromJira
