@@ -461,7 +461,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .originContext(new OriginContext.Integration("a2a-integration-id", "A2A Integration", "A2A"))
                         .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
                         .groups(Set.of())
-                        .federatedAgent(federatedAgent)
+                        .apiDefinitionValue(federatedAgent)
                         .lifecycleState(null)
                         .build()
                 );
@@ -549,7 +549,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .groups(Set.of())
                         .createdAt(ZonedDateTime.parse("2023-10-22T12:15:30+02:00[Europe/Paris]"))
                         .updatedAt(ZonedDateTime.parse("2023-10-22T12:15:30+02:00[Europe/Paris]"))
-                        .federatedAgent(federatedAgent1)
+                        .apiDefinitionValue(federatedAgent1)
                         .lifecycleState(null)
                         .build(),
                     Api.builder()
@@ -563,7 +563,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .originContext(new OriginContext.Integration("a2a-integration-id", "A2A Integration", "A2A"))
                         .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
                         .groups(Set.of())
-                        .federatedAgent(federatedAgent2)
+                        .apiDefinitionValue(federatedAgent2)
                         .lifecycleState(null)
                         .build()
                 );
