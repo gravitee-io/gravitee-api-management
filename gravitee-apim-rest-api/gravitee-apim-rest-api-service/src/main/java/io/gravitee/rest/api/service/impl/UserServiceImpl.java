@@ -1279,8 +1279,28 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         } else {
             // UserDocumentTransformation remove domain from email address for security reasons
             // remove it during search phase to provide results
-            String sanitizedQuery = query.indexOf('@') > 0 ? query.substring(0, query.indexOf('@')) : query;
-            userQuery = QueryBuilder.create(UserEntity.class).setQuery(sanitizedQuery).setPage(pageable).build();
+//            String sanitizedQuery = query.indexOf('@') > 0 ? query.substring(0, query.indexOf('@')) : query;
+//            userQuery = QueryBuilder.create(UserEntity.class).setQuery(sanitizedQuery).setPage(pageable).build();
+
+            String trimmedQuery = query.trim();
+            String sanitizedQuery = trimmedQuery.contains("@")
+                    ? trimmedQuery.substring(0, trimmedQuery.indexOf('@'))
+                    : trimmedQuery;
+
+// Prefer prefix wildcard over full
+            String searchQuery = sanitizedQuery;
+
+// Use stable, multi-field sorting
+            SortableImpl sort = new SortableImpl(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME, true)
+                    .thenSort(new SortableImpl("id", true)); // or any consistently present field
+
+            userQuery = QueryBuilder
+                    .create(UserEntity.class)
+                    .setQuery(searchQuery)
+                    .setPage(pageable)
+                    .setSort(sort)
+                    .build();
+
         }
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
@@ -1300,11 +1320,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 }
             }
 
-            users.sort(
-                Comparator
-                    .comparing(UserEntity::getFirstname, Comparator.nullsLast(String::compareToIgnoreCase))
-                    .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String::compareToIgnoreCase))
-            );
 
             populateUserFlags(executionContext.getOrganizationId(), users);
 
@@ -1360,8 +1375,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .map(u -> convert(u, false, userMetadataService.findAllByUserId(u.getId())))
                 .sorted(
                     Comparator
-                        .comparing(UserEntity::getFirstname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
-                        .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                        .comparing(UserEntity::getId, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
                 )
                 .collect(toList());
 

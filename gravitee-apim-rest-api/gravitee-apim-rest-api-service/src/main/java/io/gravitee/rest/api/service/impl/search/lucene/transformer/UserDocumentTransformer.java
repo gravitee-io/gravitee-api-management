@@ -84,6 +84,8 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
         Document doc = new Document();
 
         doc.add(new StringField(FIELD_ID, user.getId(), Field.Store.YES));
+        // Add a sorted doc value for stable sorting by id when needed
+        doc.add(new SortedDocValuesField(FIELD_ID + "_sorted", new BytesRef(user.getId())));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
 
         if (user.getReferenceId() != null) {

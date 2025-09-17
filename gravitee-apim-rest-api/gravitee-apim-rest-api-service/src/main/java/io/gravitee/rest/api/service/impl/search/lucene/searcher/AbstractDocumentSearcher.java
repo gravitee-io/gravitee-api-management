@@ -113,10 +113,29 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
     }
 
     protected Sort convert(Sortable sort) {
-        if (sort != null) {
-            return new Sort(new SortField(sort.getField() + "_sorted", SortField.Type.STRING, !sort.isAscOrder()));
+        if (sort == null) {
+            return null;
         }
-        return null;
+        // Support chained sorts when using SortableImpl.thenSort
+        if (sort instanceof io.gravitee.rest.api.model.common.SortableImpl s) {
+            List<SortField> fields = new ArrayList<>();
+            fields.add(new SortField(s.getField() + "_sorted", SortField.Type.STRING, !s.isAscOrder()));
+            try {
+                java.lang.reflect.Field nextSortsField = s.getClass().getDeclaredField("nextSorts");
+                nextSortsField.setAccessible(true);
+                @SuppressWarnings("unchecked")
+                List<io.gravitee.rest.api.model.common.SortableImpl> next = (List<io.gravitee.rest.api.model.common.SortableImpl>) nextSortsField.get(s);
+                if (next != null) {
+                    for (io.gravitee.rest.api.model.common.SortableImpl ns : next) {
+                        fields.add(new SortField(ns.getField() + "_sorted", SortField.Type.STRING, !ns.isAscOrder()));
+                    }
+                }
+            } catch (Exception ignore) {
+                // fallback to single field
+            }
+            return new Sort(fields.toArray(SortField[]::new));
+        }
+        return new Sort(new SortField(sort.getField() + "_sorted", SortField.Type.STRING, !sort.isAscOrder()));
     }
 
     protected IndexSearcher getIndexSearcher() throws IOException {

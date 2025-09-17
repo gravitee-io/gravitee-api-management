@@ -15,12 +15,15 @@
  */
 package io.gravitee.rest.api.model.common;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class SortableImpl implements Sortable {
 
     private final String field;
     private final boolean ascOrder;
+    private final List<SortableImpl> nextSorts = new ArrayList<>();
 
     public SortableImpl(final String field, final boolean ascOrder) {
         this.field = field;
@@ -48,5 +51,10 @@ public class SortableImpl implements Sortable {
     @Override
     public int hashCode() {
         return Objects.hash(field, ascOrder);
+    }
+
+    public SortableImpl thenSort(SortableImpl nextSort) {
+        nextSorts.add(nextSort);
+        return this;
     }
 }
