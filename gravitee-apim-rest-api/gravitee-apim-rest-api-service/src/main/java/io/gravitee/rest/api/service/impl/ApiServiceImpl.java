@@ -558,15 +558,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Make sure visibility is PRIVATE by default if not set.
             repoApi.setVisibility(api.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(api.getVisibility().toString()));
 
-<<<<<<< HEAD
             // Add Default groups
-            Set<String> defaultGroups = groupService
-                .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
-                .stream()
-                .map(GroupEntity::getId)
-                .collect(toSet());
-=======
-            log.debug("Add default groups");
             Set<GroupEntity> defaultGroupEntities = groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE);
 
             Set<String> defaultGroups;
@@ -579,7 +571,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     .map(GroupEntity::getId)
                     .collect(toSet());
 
->>>>>>> de72768890 (fix(api): prevent multiple primary owners)
             if (repoApi.getGroups() == null) {
                 repoApi.setGroups(defaultGroups.isEmpty() ? null : defaultGroups);
             } else {
