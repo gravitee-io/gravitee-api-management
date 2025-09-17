@@ -45,9 +45,6 @@
   <#if metrics.getTenant()??>
   ,"tenant":"${metrics.getTenant()}"
   </#if>
-  <#if metrics.getMessage()??>
-  ,"message":"${metrics.getMessage()?j_string}"
-  </#if>
   <#if metrics.getPath()??>
   ,"path":"${metrics.getPath()}"
   </#if>
@@ -71,14 +68,45 @@
   <#if metrics.getSecurityToken()??>
   ,"security-token":"${metrics.getSecurityToken()}"
   </#if>
-  <#if metrics.getErrorKey()??>
-  ,"error-key":"${metrics.getErrorKey()}"
-  </#if>
   <#if metrics.getSubscription()??>
   ,"subscription":"${metrics.getSubscription()}"
   </#if>
   <#if metrics.getZone()??>
   ,"zone":"${metrics.getZone()}"
+  </#if>
+  <#if metrics.getFailure()??>
+  <#if metrics.getFailure().getKey()??>
+  ,"error-key":"${metrics.getFailure().getKey()}"
+  </#if>
+  <#if metrics.getFailure().getMessage()??>
+  ,"message":"${metrics.getFailure().getMessage()?j_string}"
+  </#if>
+  <#if metrics.getFailure().getComponentType()??>
+  ,"error-component-type":"${metrics.getFailure().getComponentType()}"
+  </#if>
+  <#if metrics.getFailure().getComponentName()??>
+  ,"error-component-name":"${metrics.getFailure().getComponentName()}"
+  </#if>
+  </#if>
+  <#if metrics.getWarnings()?? && metrics.getWarnings()?size gt 0>
+  ,"warnings": [
+    <#list metrics.getWarnings() as warning>
+    {
+      <#if warning.getKey()??>
+      "key":"${warning.getKey()}"
+      </#if>
+      <#if warning.getMessage()??>
+      ,"message":"${warning.getMessage()}"
+      </#if>
+      <#if warning.getComponentType()??>
+      ,"component-type":"${warning.getComponentType()}"
+      </#if>
+      <#if warning.getComponentName()??>
+      ,"component-name":"${warning.getComponentName()}"
+      </#if>
+    }<#sep>,
+    </#list>
+  ]
   </#if>
   <#if metrics.getCustomMetrics()??>
     ,"custom": {

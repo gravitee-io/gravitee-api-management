@@ -24,6 +24,7 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.v4.log.MessageLog;
+import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.common.formatter.AbstractFormatter;
 import io.vertx.core.buffer.Buffer;
@@ -112,6 +113,8 @@ public class ElasticsearchFormatter<T extends Reportable>
       return getSource(log, esOptions);
     } else if (reportable instanceof MessageLog log) {
       return getSource(log, esOptions);
+    } else if (reportable instanceof EventMetrics metrics) {
+      return getSource(metrics, esOptions);
     }
 
     return null;
@@ -415,6 +418,17 @@ public class ElasticsearchFormatter<T extends Reportable>
     data.put("log", log);
 
     return generateData("v4-message-log.ftl", data);
+  }
+
+  private Buffer getSource(
+    EventMetrics metrics,
+    Map<String, Object> esOptions
+  ) {
+    final Map<String, Object> data = new HashMap<>(5);
+    addCommonFields(data, metrics, esOptions);
+    data.put("metrics", metrics);
+
+    return generateData("event-metrics.ftl", data);
   }
 
   private Buffer generateData(String template, Map<String, Object> data) {

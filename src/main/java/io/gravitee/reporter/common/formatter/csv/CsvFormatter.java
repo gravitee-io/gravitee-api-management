@@ -21,11 +21,11 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.v4.log.MessageLog;
+import io.gravitee.reporter.api.v4.metric.EventMetrics;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.common.formatter.AbstractFormatter;
+import io.gravitee.reporter.common.formatter.csv.v4.*;
 import io.gravitee.reporter.common.formatter.csv.v4.LogFormatter;
-import io.gravitee.reporter.common.formatter.csv.v4.MessageLogFormatter;
-import io.gravitee.reporter.common.formatter.csv.v4.MessageMetricsFormatter;
 import io.gravitee.reporter.common.formatter.csv.v4.MetricsFormatter;
 import io.vertx.core.buffer.Buffer;
 
@@ -51,6 +51,8 @@ public class CsvFormatter<T extends Reportable> extends AbstractFormatter<T> {
     new MetricsFormatter();
   private static final MessageMetricsFormatter MESSAGE_METRICS_FORMATTER =
     new MessageMetricsFormatter();
+  private static final EventMetricsFormatter EVENT_METRICS_FORMATTER =
+    new EventMetricsFormatter();
 
   @Override
   public Buffer format0(T reportable) {
@@ -74,6 +76,8 @@ public class CsvFormatter<T extends Reportable> extends AbstractFormatter<T> {
       return LOG_V4_FORMATTER.format(log);
     } else if (reportable instanceof MessageLog log) {
       return MESSAGE_LOG_FORMATTER.format(log);
+    } else if (reportable instanceof EventMetrics metrics) {
+      return EVENT_METRICS_FORMATTER.format(metrics);
     }
 
     return null;
