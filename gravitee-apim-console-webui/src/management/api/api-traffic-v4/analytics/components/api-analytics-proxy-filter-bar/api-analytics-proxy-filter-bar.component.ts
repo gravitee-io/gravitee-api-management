@@ -23,7 +23,7 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
-import moment, { Moment } from 'moment';
+import { Moment } from 'moment';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -43,6 +43,11 @@ import { Plan } from '../../../../../../entities/management-api-v2';
 import { GioTimeframeComponent } from '../../../../../../shared/components/gio-timeframe/gio-timeframe.component';
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
 import { ApplicationService } from '../../../../../../services-ngx/application.service';
+import { 
+  ApiAnalyticsBaseFilterBarService, 
+  BaseFilterBarFilters, 
+  FilterChip 
+} from '../api-analytics-base-filter-bar/api-analytics-base-filter-bar.service';
 
 interface ApiAnalyticsProxyFilterBarForm {
   httpStatuses: FormControl<string[] | null>;
@@ -51,19 +56,13 @@ interface ApiAnalyticsProxyFilterBarForm {
   applications: FormControl<string[] | null>;
 }
 
-export interface ApiAnalyticsProxyFilters {
+export interface ApiAnalyticsProxyFilters extends BaseFilterBarFilters {
   period: string;
   from?: number | null;
   to?: number | null;
   httpStatuses: string[] | null;
   plans: string[] | null;
   applications: string[] | null;
-}
-
-interface FilterChip {
-  key: string;
-  value: string;
-  display: string;
 }
 
 @Component({
@@ -93,11 +92,25 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
   protected readonly httpStatuses = [...httpStatuses];
   plans = input<Plan[]>([]);
+  
+  // Inject services
+  private readonly baseService = inject(ApiAnalyticsBaseFilterBarService);
+  
+  // Use base service properties
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
-  public planOptions = computed<SelectOption[]>(() => {
-    const plans = this.plans() || [];
-    return plans.map((plan) => ({ value: plan.id, label: plan.name }));
-  });
+  protected readonly customPeriod = 'custom';
+  private readonly apiId = inject(ActivatedRoute).snapshot.params.apiId;
+  private readonly apiV2Service = inject(ApiV2Service);
+  private readonly applicationService = inject(ApplicationService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly formBuilder = inject(FormBuilder);
+  
+  // Define supported filters for proxy component: plans + timeframe + httpStatuses + applications
+  private readonly supportedFilters: string[] = ['period', 'from', 'to', 'httpStatuses', 'plans', 'applications'];
+
+  public planOptions = computed<SelectOption[]>(() => 
+    this.baseService.generatePlanOptions(this.plans())
+  );
 
   applicationResultsLoader = (input: ResultsLoaderInput): Observable<ResultsLoaderOutput> => {
     return this.apiV2Service.getSubscribers(this.apiId, input.searchTerm, input.page, 20).pipe(
@@ -112,6 +125,7 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
     const filters = this.activeFilters();
     const chips: FilterChip[] = [];
 
+    // HTTP Status chips - proxy specific
     if (filters?.httpStatuses?.length) {
       filters.httpStatuses.forEach((status) => {
         const statusOption = this.httpStatuses?.find((opt) => opt.value === status);
@@ -123,40 +137,24 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
       });
     }
 
-    if (filters?.plans?.length) {
-      const plans = this.plans();
-      filters.plans.forEach((planId) => {
-        const plan = plans?.find((p) => p.id === planId);
-        const display = plan ? plan.name : planId;
-        chips.push({
-          key: 'plans',
-          value: planId,
-          display: display,
-        });
-      });
-    }
+    // Plan chips - use base service
+    chips.push(...this.baseService.generatePlanFilterChips(filters?.plans, this.plans()));
 
+    // Application chips - proxy specific
     chips.push(...(this.applicationFilterChips() ?? []));
 
     return chips;
   });
 
-  public isFiltering = computed(() => this.currentFilterChips().length > 0);
-
-  // INJECTIONS
-  private readonly apiId = inject(ActivatedRoute).snapshot.params.apiId;
-  private readonly apiV2Service = inject(ApiV2Service);
-  private readonly applicationService = inject(ApplicationService);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly formBuilder = inject(FormBuilder);
+  public isFiltering = computed(() => 
+    this.baseService.isFiltering(this.currentFilterChips())
+  );
 
   form: FormGroup<ApiAnalyticsProxyFilterBarForm> = this.formBuilder.group({
     httpStatuses: this.formBuilder.control<string[] | null>(null),
-    timeframe: this.formBuilder.control<{ period: string; from: Moment | null; to: Moment | null } | null>(null),
-    plans: this.formBuilder.control<string[] | null>(null),
+    ...this.baseService.createBaseForm(this.formBuilder),
     applications: this.formBuilder.control<string[] | null>(null),
   });
-  customPeriod: string = 'custom';
 
   private applicationChipCache: Record<string, FilterChip> = {};
   private applicationFilterChips: Signal<FilterChip[]> = toSignal(
@@ -173,17 +171,15 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
 
   ngOnInit() {
     this.form.controls.timeframe.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((tf) => {
-      if (tf?.period && tf.period !== this.customPeriod) {
-        this.emitFilters({ period: tf.period, from: null, to: null });
-      }
+      this.baseService.handleTimeframeChange(tf, (partial) => this.emitFilters(partial));
     });
 
     this.form.controls.httpStatuses.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((httpStatuses) => {
-      this.emitFilters({ httpStatuses: httpStatuses });
+      this.emitFilters({ httpStatuses });
     });
 
     this.form.controls.plans.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((plans) => {
-      this.emitFilters({ plans });
+      this.baseService.handlePlansChange(plans, (partial) => this.emitFilters(partial));
     });
 
     this.form.controls.applications.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((applications) => {
@@ -192,64 +188,36 @@ export class ApiAnalyticsProxyFilterBarComponent implements OnInit {
   }
 
   applyCustomTimeframe() {
-    const tf = this.form.controls.timeframe.value;
-    const from = tf?.from?.valueOf() ?? null;
-    const to = tf?.to?.valueOf() ?? null;
-
-    const currentFilters = this.activeFilters();
-    const updatedFilters = {
-      ...currentFilters,
-      from,
-      to,
-      period: this.customPeriod,
-    };
-
-    this.filtersChange.emit(updatedFilters);
+    this.baseService.applyCustomTimeframe(
+      this.form.controls.timeframe.value,
+      this.activeFilters(),
+      (filters) => this.filtersChange.emit(filters)
+    );
   }
 
   refreshFilters() {
     this.refresh.emit();
   }
 
-  private removeValueFromFilter(currentList: string[] | null, value: string, formControl: FormControl<string[] | null>): void {
-    const filteredList = (currentList || []).filter((item) => item !== value);
-    formControl.setValue(filteredList.length > 0 ? filteredList : null);
-  }
-
   removeFilter(key: string, value: string) {
-    if (key === 'httpStatuses') {
-      this.removeValueFromFilter(this.form.controls.httpStatuses.value, value, this.form.controls.httpStatuses);
-    } else if (key === 'plans') {
-      this.removeValueFromFilter(this.form.controls.plans.value, value, this.form.controls.plans);
-    } else if (key === 'applications') {
-      this.removeValueFromFilter(this.form.controls.applications.value, value, this.form.controls.applications);
-    }
+    this.baseService.handleRemoveFilter(key, value, this.form, this.supportedFilters);
   }
 
   resetAllFilters() {
-    this.emitFilters({ httpStatuses: null, plans: null, applications: null });
+    const resetFilters = this.baseService.getResetFiltersObject<ApiAnalyticsProxyFilters>(this.supportedFilters);
+    this.emitFilters(resetFilters);
   }
 
   private updateFormFromFilters(filters: ApiAnalyticsProxyFilters) {
-    if (this.form) {
-      this.form.patchValue({
-        timeframe: {
-          period: filters.period,
-          from: filters.from ? moment(filters.from) : null,
-          to: filters.to ? moment(filters.to) : null,
-        },
-        plans: filters.plans,
-        httpStatuses: filters.httpStatuses,
-        applications: filters.applications,
-      });
-    }
+    this.baseService.updateFormFromFilters(filters, this.form, this.supportedFilters);
   }
 
   private emitFilters(partial: Partial<ApiAnalyticsProxyFilters>) {
-    this.filtersChange.emit({
-      ...this.activeFilters(),
-      ...partial,
-    });
+    this.baseService.emitFilters(
+      this.activeFilters(),
+      partial,
+      (filters) => this.filtersChange.emit(filters)
+    );
   }
 
   private getApplicationChips(applications: string[] | null): Observable<FilterChip[]> {

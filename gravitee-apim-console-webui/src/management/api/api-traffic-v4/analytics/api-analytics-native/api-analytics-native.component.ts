@@ -21,26 +21,25 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map, shareReplay } from 'rxjs/operators';
 
-import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
 import {
   ApiAnalyticsNativeFilterBarComponent,
   ApiAnalyticsNativeFilters,
 } from '../components/api-analytics-native-filter-bar/api-analytics-native-filter-bar.component';
 import { ApiAnalyticsWidgetComponent, ApiAnalyticsWidgetConfig } from '../components/api-analytics-widget/api-analytics-widget.component';
-import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../api-analytics-widget.service';
+import { ApiAnalyticsWidgetService } from '../api-analytics-widget.service';
 import { ApiAnalyticsDashboardWidgetConfig } from '../api-analytics-proxy/api-analytics-proxy.component';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
-import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 import { AggregationTypes, AggregationFields } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import { ApiAnalyticsBaseService, BaseAnalyticsFilters } from '../api-analytics-base.service';
 
-interface QueryParamsBase {
-  from?: string;
-  to?: string;
-  period?: string;
-  plans?: string;
-  applications?: string[];
+// Extend the native filters to work with base service
+// Native only supports: plans + timeframe (period/from/to)
+interface ExtendedNativeFilters extends BaseAnalyticsFilters {
+  period: string;
+  from?: number | null;
+  to?: number | null;
+  plans: string[] | null; // Required to match ApiAnalyticsNativeFilters
 }
 
 @Component({
@@ -60,14 +59,22 @@ interface QueryParamsBase {
 export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
   private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
-  private planService = inject(ApiPlanV2Service);
+  private baseService = inject(ApiAnalyticsBaseService);
+  
+  // Define supported filters for native component: plans + timeframe only
+  private readonly supportedFilters: (keyof ExtendedNativeFilters)[] = ['period', 'from', 'to', 'plans'];
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public bottomRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
 
-  public activeFilters: Signal<ApiAnalyticsNativeFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
+  public activeFilters: Signal<ApiAnalyticsNativeFilters> = computed(() => 
+    this.baseService.mapQueryParamsToFilters<ExtendedNativeFilters>(
+      this.activatedRouteQueryParams(),
+      this.supportedFilters
+    )
+  );
 
   private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
@@ -243,12 +250,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     },
   ];
 
-  apiPlans$ = this.planService
-    .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
-    .pipe(
-      map((plans) => plans.data),
-      shareReplay(1),
-    );
+  apiPlans$ = this.baseService.getApiPlans$(this.apiId);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -256,7 +258,12 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     private readonly apiAnalyticsWidgetService: ApiAnalyticsWidgetService,
   ) {
     effect(() => {
-      this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activatedRouteQueryParams()));
+      this.apiAnalyticsWidgetService.setUrlParamsData(
+        this.baseService.mapQueryParamsToUrlParamsData<ExtendedNativeFilters>(
+          this.activatedRouteQueryParams(),
+          this.supportedFilters
+        )
+      );
     });
   }
 
@@ -279,105 +286,15 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChange(filters: ApiAnalyticsNativeFilters): void {
-    this.updateQueryParamsFromFilters(filters);
+    this.baseService.onFiltersChange(filters as ExtendedNativeFilters, this.supportedFilters);
   }
 
   onRefreshFilters(): void {
-    this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activeFilters()));
+    this.baseService.onRefreshFilters(this.activeFilters() as ExtendedNativeFilters, this.supportedFilters);
   }
 
   ngOnDestroy(): void {
-    this.apiAnalyticsWidgetService.clearStatsCache();
+    this.baseService.clearStatsCache();
   }
 
-  private updateQueryParamsFromFilters(filters: ApiAnalyticsNativeFilters): void {
-    const queryParams = this.createQueryParamsFromFilters(filters);
-    this.router.navigate([], {
-      queryParams,
-      queryParamsHandling: 'replace',
-    });
-  }
-
-  private createQueryParamsFromFilters(filters: ApiAnalyticsNativeFilters): QueryParamsBase {
-    const params: Partial<QueryParamsBase> = {};
-
-    if (filters.period === 'custom' && filters.from && filters.to) {
-      params.from = filters.from.toString();
-      params.to = filters.to.toString();
-      params.period = 'custom';
-    } else {
-      params.period = filters.period;
-    }
-
-    if (filters.plans?.length) {
-      params.plans = filters.plans.join(',');
-    }
-
-    return params as QueryParamsBase;
-  }
-
-  private mapQueryParamsToUrlParamsData(queryParams: unknown): ApiAnalyticsWidgetUrlParamsData {
-    const params = queryParams as QueryParamsBase;
-    const normalizedPeriod = params.period || '1d';
-    const filters = this.getFilterFields(params);
-
-    if (normalizedPeriod === 'custom' && params.from && params.to) {
-      return <ApiAnalyticsWidgetUrlParamsData>{
-        timeRangeParams: {
-          from: +params.from,
-          to: +params.to,
-          interval: this.calculateCustomInterval(+params.from, +params.to),
-        },
-        ...filters,
-      };
-    }
-
-    const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
-    return {
-      timeRangeParams: timeFrame.timeFrameRangesParams(),
-      httpStatuses: [],
-      ...filters,
-    };
-  }
-
-  private mapQueryParamsToFilters(queryParams: unknown): ApiAnalyticsNativeFilters {
-    const params = queryParams as QueryParamsBase;
-    const normalizedPeriod = params.period || '1d';
-    const filters = this.getFilterFields(params);
-
-    if (normalizedPeriod === 'custom' && params.from && params.to) {
-      return <ApiAnalyticsNativeFilters>{
-        period: normalizedPeriod,
-        from: +params.from,
-        to: +params.to,
-        ...filters,
-      };
-    }
-
-    return {
-      period: normalizedPeriod,
-      from: null,
-      to: null,
-      ...filters,
-    };
-  }
-
-  private getFilterFields(queryParams: QueryParamsBase) {
-    return {
-      plans: this.processFilter(queryParams.plans),
-      applications: this.processFilter(queryParams.applications),
-    };
-  }
-
-  private processFilter(value: string | string[] | undefined): string[] | undefined {
-    if (value === undefined) {
-      return undefined;
-    }
-    return Array.isArray(value) ? value : value.split(',');
-  }
-
-  private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {
-    const range: number = to - from;
-    return Math.floor(range / nbValuesByBucket);
-  }
 }

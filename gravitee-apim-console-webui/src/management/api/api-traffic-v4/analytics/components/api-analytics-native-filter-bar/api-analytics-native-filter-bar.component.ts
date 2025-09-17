@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, OnInit, input, effect, output, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, input, effect, output, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -23,7 +23,7 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
-import moment, { Moment } from 'moment';
+import { Moment } from 'moment';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -32,23 +32,22 @@ import { customTimeFrames, timeFrames } from '../../../../../../shared/utils/tim
 import { GioSelectSearchComponent, SelectOption } from '../../../../../../shared/components/gio-select-search/gio-select-search.component';
 import { Plan } from '../../../../../../entities/management-api-v2';
 import { GioTimeframeComponent } from '../../../../../../shared/components/gio-timeframe/gio-timeframe.component';
+import { 
+  ApiAnalyticsBaseFilterBarService, 
+  BaseFilterBarFilters, 
+  FilterChip 
+} from '../api-analytics-base-filter-bar/api-analytics-base-filter-bar.service';
 
 interface ApiAnalyticsNativeFilterBarForm {
   timeframe: FormControl<{ period: string; from: Moment | null; to: Moment | null } | null>;
   plans: FormControl<string[] | null>;
 }
 
-export interface ApiAnalyticsNativeFilters {
+export interface ApiAnalyticsNativeFilters extends BaseFilterBarFilters {
   period: string;
   from?: number | null;
   to?: number | null;
   plans: string[] | null;
-}
-
-interface FilterChip {
-  key: string;
-  value: string;
-  display: string;
 }
 
 @Component({
@@ -77,45 +76,37 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
   refresh = output<void>();
 
   plans = input<Plan[]>([]);
+  
+  // Inject services
+  private readonly baseService = inject(ApiAnalyticsBaseFilterBarService);
+  
+  // Use base service properties
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
+  protected readonly customPeriod = 'custom';
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+  
+  // Define supported filters for native component: plans + timeframe only
+  private readonly supportedFilters: string[] = ['period', 'from', 'to', 'plans'];
 
-  public planOptions = computed<SelectOption[]>(() => {
-    const plans = this.plans() || [];
-    return plans.map((plan) => ({ value: plan.id, label: plan.name }));
-  });
+  public planOptions = computed<SelectOption[]>(() => 
+    this.baseService.generatePlanOptions(this.plans())
+  );
 
   public currentFilterChips = computed<FilterChip[]>(() => {
     const filters = this.activeFilters();
-    const chips: FilterChip[] = [];
-
-    if (filters?.plans?.length) {
-      const plans = this.plans();
-      filters.plans.forEach((planId) => {
-        const plan = plans?.find((p) => p.id === planId);
-        const display = plan ? plan.name : planId;
-        chips.push({
-          key: 'plans',
-          value: planId,
-          display: display,
-        });
-      });
-    }
-
-    return chips;
+    return this.baseService.generatePlanFilterChips(filters?.plans, this.plans());
   });
 
-  public isFiltering = computed(() => this.currentFilterChips().length > 0);
+  public isFiltering = computed(() => 
+    this.baseService.isFiltering(this.currentFilterChips())
+  );
 
   form: FormGroup<ApiAnalyticsNativeFilterBarForm> = this.formBuilder.group({
-    timeframe: this.formBuilder.control<{ period: string; from: Moment | null; to: Moment | null } | null>(null),
-    plans: [null],
+    ...this.baseService.createBaseForm(this.formBuilder),
   });
-  customPeriod: string = 'custom';
 
-  constructor(
-    private readonly formBuilder: FormBuilder,
-    private readonly destroyRef: DestroyRef,
-  ) {
+  constructor() {
     // Set up effect to update form when activeFilters changes
     effect(() => {
       const filters = this.activeFilters();
@@ -125,68 +116,44 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
 
   ngOnInit() {
     this.form.controls.timeframe.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((tf) => {
-      if (tf?.period && tf.period !== this.customPeriod) {
-        this.emitFilters({ period: tf.period, from: null, to: null });
-      }
+      this.baseService.handleTimeframeChange(tf, (partial) => this.emitFilters(partial));
     });
 
     this.form.controls.plans.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((plans) => {
-      this.emitFilters({ plans });
+      this.baseService.handlePlansChange(plans, (partial) => this.emitFilters(partial));
     });
   }
 
   applyCustomTimeframe() {
-    const tf = this.form.controls.timeframe.value;
-    const from = tf?.from?.valueOf() ?? null;
-    const to = tf?.to?.valueOf() ?? null;
-
-    const currentFilters = this.activeFilters();
-    const updatedFilters = {
-      ...currentFilters,
-      from,
-      to,
-      period: this.customPeriod,
-    };
-
-    this.filtersChange.emit(updatedFilters);
+    this.baseService.applyCustomTimeframe(
+      this.form.controls.timeframe.value,
+      this.activeFilters(),
+      (filters) => this.filtersChange.emit(filters)
+    );
   }
 
   refreshFilters() {
     this.refresh.emit();
   }
 
-  private removeValueFromFilter(currentList: string[] | null, value: string, formControl: FormControl<string[] | null>): void {
-    const filteredList = (currentList || []).filter((item) => item !== value);
-    formControl.setValue(filteredList.length > 0 ? filteredList : null);
-  }
-
   removeFilter(key: string, value: string) {
-    if (key === 'plans') {
-      this.removeValueFromFilter(this.form.controls.plans.value, value, this.form.controls.plans);
-    }
+    this.baseService.handleRemoveFilter(key, value, this.form, this.supportedFilters);
   }
 
   resetAllFilters() {
-    this.emitFilters({ plans: null });
+    const resetFilters = this.baseService.getResetFiltersObject<ApiAnalyticsNativeFilters>(this.supportedFilters);
+    this.emitFilters(resetFilters);
   }
 
   private updateFormFromFilters(filters: ApiAnalyticsNativeFilters) {
-    if (this.form) {
-      this.form.patchValue({
-        timeframe: {
-          period: filters.period,
-          from: filters.from ? moment(filters.from) : null,
-          to: filters.to ? moment(filters.to) : null,
-        },
-        plans: filters.plans,
-      });
-    }
+    this.baseService.updateFormFromFilters(filters, this.form, this.supportedFilters);
   }
 
   private emitFilters(partial: Partial<ApiAnalyticsNativeFilters>) {
-    this.filtersChange.emit({
-      ...this.activeFilters(),
-      ...partial,
-    });
+    this.baseService.emitFilters(
+      this.activeFilters(),
+      partial,
+      (filters) => this.filtersChange.emit(filters)
+    );
   }
 }

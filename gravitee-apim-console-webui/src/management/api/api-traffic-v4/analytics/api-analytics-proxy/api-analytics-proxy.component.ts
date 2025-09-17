@@ -21,9 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map, shareReplay } from 'rxjs/operators';
 
-import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
 import {
   ApiAnalyticsProxyFilterBarComponent,
   ApiAnalyticsProxyFilters,
@@ -39,10 +37,10 @@ import {
   ApiAnalyticsWidgetConfig,
   ApiAnalyticsWidgetType,
 } from '../components/api-analytics-widget/api-analytics-widget.component';
-import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../api-analytics-widget.service';
+import { ApiAnalyticsWidgetService } from '../api-analytics-widget.service';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
-import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { ApiAnalyticsBaseService, BaseAnalyticsFilters } from '../api-analytics-base.service';
 
 type WidgetDisplayConfig = {
   title: string;
@@ -79,13 +77,15 @@ type WidgetDataConfig = {
   };
 };
 
-interface QueryParamsBase {
-  from?: string;
-  to?: string;
-  period?: string;
-  httpStatuses?: string;
-  plans?: string;
-  applications?: string[];
+// Extend the proxy filters to work with base service
+// Proxy supports: plans + timeframe + httpStatuses + applications
+interface ExtendedProxyFilters extends BaseAnalyticsFilters {
+  period: string;
+  from?: number | null;
+  to?: number | null;
+  httpStatuses: string[] | null; // Required to match ApiAnalyticsProxyFilters
+  plans: string[] | null; // Required to match ApiAnalyticsProxyFilters  
+  applications: string[] | null; // Required to match ApiAnalyticsProxyFilters
 }
 
 export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetDataConfig;
@@ -107,13 +107,21 @@ export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetData
 export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
   private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
-  private planService = inject(ApiPlanV2Service);
+  private baseService = inject(ApiAnalyticsBaseService);
+  
+  // Define supported filters for proxy component: plans + timeframe + httpStatuses + applications
+  private readonly supportedFilters: (keyof ExtendedProxyFilters)[] = ['period', 'from', 'to', 'httpStatuses', 'plans', 'applications'];
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
 
-  public activeFilters: Signal<ApiAnalyticsProxyFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
+  public activeFilters: Signal<ApiAnalyticsProxyFilters> = computed(() => 
+    this.baseService.mapQueryParamsToFilters<ExtendedProxyFilters>(
+      this.activatedRouteQueryParams(),
+      this.supportedFilters
+    )
+  );
 
   private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
@@ -330,12 +338,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     },
   ];
 
-  apiPlans$ = this.planService
-    .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
-    .pipe(
-      map((plans) => plans.data),
-      shareReplay(1),
-    );
+  apiPlans$ = this.baseService.getApiPlans$(this.apiId);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -343,7 +346,12 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     private readonly apiAnalyticsWidgetService: ApiAnalyticsWidgetService,
   ) {
     effect(() => {
-      this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activatedRouteQueryParams()));
+      this.apiAnalyticsWidgetService.setUrlParamsData(
+        this.baseService.mapQueryParamsToUrlParamsData<ExtendedProxyFilters>(
+          this.activatedRouteQueryParams(),
+          this.supportedFilters
+        )
+      );
     });
   }
 
@@ -363,113 +371,15 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChange(filters: ApiAnalyticsProxyFilters): void {
-    this.updateQueryParamsFromFilters(filters);
+    this.baseService.onFiltersChange(filters as ExtendedProxyFilters, this.supportedFilters);
   }
 
   onRefreshFilters(): void {
-    this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activeFilters()));
+    this.baseService.onRefreshFilters(this.activeFilters() as ExtendedProxyFilters, this.supportedFilters);
   }
 
   ngOnDestroy(): void {
-    this.apiAnalyticsWidgetService.clearStatsCache();
+    this.baseService.clearStatsCache();
   }
 
-  private updateQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): void {
-    const queryParams = this.createQueryParamsFromFilters(filters);
-    this.router.navigate([], {
-      queryParams,
-      queryParamsHandling: 'replace',
-    });
-  }
-
-  private createQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): Record<string, any> {
-    const params: Record<string, any> = {};
-
-    if (filters.period === 'custom' && filters.from && filters.to) {
-      params.from = filters.from;
-      params.to = filters.to;
-      params.period = 'custom';
-    } else {
-      params.period = filters.period;
-    }
-
-    if (filters.httpStatuses?.length) {
-      params.httpStatuses = filters.httpStatuses.join(',');
-    }
-
-    if (filters.plans?.length) {
-      params.plans = filters.plans.join(',');
-    }
-
-    if (filters.applications?.length) {
-      params.applications = filters.applications.join(',');
-    }
-
-    return params;
-  }
-
-  private mapQueryParamsToUrlParamsData(queryParams: unknown): ApiAnalyticsWidgetUrlParamsData {
-    const params = queryParams as QueryParamsBase;
-    const normalizedPeriod = params.period || '1d';
-    const filters = this.getFilterFields(params);
-
-    if (normalizedPeriod === 'custom' && params.from && params.to) {
-      return <ApiAnalyticsWidgetUrlParamsData>{
-        timeRangeParams: {
-          from: +params.from,
-          to: +params.to,
-          interval: this.calculateCustomInterval(+params.from, +params.to),
-        },
-        ...filters,
-      };
-    }
-
-    const timeFrame = timeFrames.find((tf) => tf.id === normalizedPeriod) || timeFrames.find((tf) => tf.id === '1d');
-    return {
-      timeRangeParams: timeFrame.timeFrameRangesParams(),
-      ...filters,
-    };
-  }
-
-  private mapQueryParamsToFilters(queryParams: unknown): ApiAnalyticsProxyFilters {
-    const params = queryParams as QueryParamsBase;
-    const normalizedPeriod = params.period || '1d';
-    const filters = this.getFilterFields(params);
-
-    if (normalizedPeriod === 'custom' && params.from && params.to) {
-      return <ApiAnalyticsProxyFilters>{
-        period: normalizedPeriod,
-        from: +params.from,
-        to: +params.to,
-        ...filters,
-      };
-    }
-
-    return {
-      period: normalizedPeriod,
-      from: null,
-      to: null,
-      ...filters,
-    };
-  }
-
-  private getFilterFields(queryParams: QueryParamsBase) {
-    return {
-      httpStatuses: this.processFilter(queryParams.httpStatuses),
-      plans: this.processFilter(queryParams.plans),
-      applications: this.processFilter(queryParams.applications),
-    };
-  }
-
-  private processFilter(value: string | string[] | undefined): string[] | undefined {
-    if (value === undefined) {
-      return undefined;
-    }
-    return Array.isArray(value) ? value : value.split(',');
-  }
-
-  private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {
-    const range: number = to - from;
-    return Math.floor(range / nbValuesByBucket);
-  }
 }
