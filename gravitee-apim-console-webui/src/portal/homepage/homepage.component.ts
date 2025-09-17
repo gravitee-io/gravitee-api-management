@@ -15,7 +15,7 @@
  */
 import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 
-import { Component, computed, DestroyRef, effect, inject, Signal, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, signal, WritableSignal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, startWith, tap } from 'rxjs/operators';
@@ -40,6 +40,7 @@ export class HomepageComponent {
     value: '',
     disabled: true,
   });
+
   isSaveDisabled = computed(() => {
     const currentContent = this.contentValue();
     const savedContent = this.portalHomepage().content;
@@ -53,14 +54,19 @@ export class HomepageComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
-  private readonly portalHomepage: Signal<PortalPageWithDetails> = toSignal(this.getPortalHomepage(), {
-    initialValue: { content: '' } as PortalPageWithDetails,
-  });
-  private contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
+  private readonly portalHomepage: WritableSignal<PortalPageWithDetails> = signal({ content: '' } as PortalPageWithDetails);
+  private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
   constructor() {
+    this.getPortalHomepage()
+      .pipe(
+        tap((portalPage) => this.portalHomepage.set(portalPage)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
     effect(() => {
-      this.contentControl.setValue(this.portalHomepage().content);
+      this.contentControl.reset(this.portalHomepage().content);
     });
 
     effect(() => {
@@ -76,7 +82,10 @@ export class HomepageComponent {
         content: this.contentControl.value,
       })
       .pipe(
-        tap((_) => this.snackbarService.success(`The page has been updated successfully`)),
+        tap((portalPage) => {
+          this.snackbarService.success(`The page has been updated successfully`);
+          this.portalHomepage.set(portalPage);
+        }),
         catchError(() => {
           this.snackbarService.error('An error occurred while updating the homepage');
           return EMPTY;

@@ -130,6 +130,7 @@ describe('HomepageComponent', () => {
     await saveButton.click();
 
     expectPortalPageUpdate({ content: updatedContent }, { ...page, content: updatedContent });
+    expect(await saveButton.isDisabled()).toBeTruthy();
   });
 
   async function getSaveButton() {
