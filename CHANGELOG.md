@@ -1,3 +1,24 @@
+# [1.7.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.6.4...1.7.0) (2025-09-17)
+
+
+### Bug Fixes
+
+* bulk request format for es7x/OpenSearch 2.5.0 ([de21f46](https://github.com/gravitee-io/gravitee-reporter-common/commit/de21f4696302dd1fe3100bdd8093af26763cf6c8))
+* bump gravitee-parent ([7e93256](https://github.com/gravitee-io/gravitee-reporter-common/commit/7e93256eb819b3b17775acd069e9bb68a5cdd2c8))
+* clean event-metrics.ftl template indentation and add ligne break at the end ([419399c](https://github.com/gravitee-io/gravitee-reporter-common/commit/419399c559143d88a573b1a3242137c0a87fce0d))
+* clientIdentifier validation for unauthorised error ([26d67fa](https://github.com/gravitee-io/gravitee-reporter-common/commit/26d67fad22cd5fcc747a660386024bc3f9c3eae4))
+
+
+### Features
+
+* add csv formatter for native kafka metrics ([62b50e2](https://github.com/gravitee-io/gravitee-reporter-common/commit/62b50e2f1f8a4778efc6d13c537ec985af0b4020))
+* add elasticsearch formatter and template for native kafka metrics ([de7f06a](https://github.com/gravitee-io/gravitee-reporter-common/commit/de7f06a4ecfd3f66f0dde2977d8921cfa6eb8f78))
+* add failure and warnings metrics to v2 and v4 ([#72](https://github.com/gravitee-io/gravitee-reporter-common/issues/72)) ([a5e2764](https://github.com/gravitee-io/gravitee-reporter-common/commit/a5e2764d9c3b513b5c0688956495597d322bd6eb))
+* add more metrics in all formatters ([170d2c8](https://github.com/gravitee-io/gravitee-reporter-common/commit/170d2c8f64512fe8f505aff12f6a0251dfdd84c8))
+* add update template for even metrics in ES7 ([b3ad341](https://github.com/gravitee-io/gravitee-reporter-common/commit/b3ad3413b32a963c1d6939c1847b040b3c690931))
+* change index templates to perform only create operations ([4e82695](https://github.com/gravitee-io/gravitee-reporter-common/commit/4e82695895651d262be91afb4465f63fbb645383))
+* renaming indices, templates to event-metrics and add tests ([84ad5af](https://github.com/gravitee-io/gravitee-reporter-common/commit/84ad5af33f39a31574345861f69b4ae5af6cbf59))
+
 # [1.7.0-alpha.9](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0-alpha.8...1.7.0-alpha.9) (2025-09-15)
 
 
