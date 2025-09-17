@@ -31,8 +31,7 @@ public class V4toV2RollbackOperator {
             .definitionVersion(DefinitionVersion.V2)
             .updatedAt(TimeProvider.now())
             .type(ApiType.PROXY)
-            .apiDefinition(apiDefinition.toBuilder().plans(null).build())
-            .apiDefinitionHttpV4(null)
+            .apiDefinitionValue(apiDefinition.toBuilder().plans(null).build())
             .build();
     }
 

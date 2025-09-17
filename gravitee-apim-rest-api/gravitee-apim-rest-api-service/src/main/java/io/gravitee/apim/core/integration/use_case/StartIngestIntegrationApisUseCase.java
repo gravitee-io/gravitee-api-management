@@ -165,7 +165,7 @@ public class StartIngestIntegrationApisUseCase {
                     .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
                     .environmentId(a2aIntegration.environmentId())
                     .originContext(new OriginContext.Integration(a2aIntegration.id(), a2aIntegration.name(), a2aIntegration.provider()))
-                    .federatedAgent(federatedAgent)
+                    .apiDefinitionValue(federatedAgent)
                     .build();
                 UnaryOperator<Api> updater = update(api);
 
@@ -219,7 +219,7 @@ public class StartIngestIntegrationApisUseCase {
                 .name(newOne.getName())
                 .description(newOne.getDescription())
                 .version(newOne.getVersion())
-                .federatedAgent(newOne.getFederatedAgent())
+                .apiDefinitionValue(newOne.getFederatedAgent())
                 .build();
     }
 

@@ -79,7 +79,7 @@ public class ApiFixtures {
         return BASE.get()
             .type(ApiType.PROXY)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(
+            .apiDefinitionValue(
                 io.gravitee.definition.model.v4.Api.builder()
                     .id(MY_API)
                     .name(MY_API_NAME)
@@ -127,7 +127,7 @@ public class ApiFixtures {
         return BASE.get()
             .type(ApiType.PROXY)
             .definitionVersion(DefinitionVersion.V2)
-            .apiDefinition(
+            .apiDefinitionValue(
                 io.gravitee.definition.model.Api.builder()
                     .id(MY_API)
                     .name("api-name")
@@ -167,7 +167,7 @@ public class ApiFixtures {
         return BASE.get()
             .type(ApiType.MESSAGE)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(
+            .apiDefinitionValue(
                 io.gravitee.definition.model.v4.Api.builder()
                     .id("my-api")
                     .name("My message Api")
@@ -215,7 +215,7 @@ public class ApiFixtures {
         return BASE.get()
             .type(ApiType.PROXY)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionHttpV4(
+            .apiDefinitionValue(
                 io.gravitee.definition.model.v4.Api.builder()
                     .id(MY_API)
                     .name("My Api")
@@ -263,10 +263,8 @@ public class ApiFixtures {
         return BASE.get()
             .crossId(null)
             .lifecycleState(null)
-            .apiDefinitionHttpV4(null)
-            .apiDefinition(null)
             .originContext(new OriginContext.Integration("integration-id"))
-            .federatedApiDefinition(FederatedApi.builder().id(MY_API).providerId("provider-id").name("My Api").apiVersion("1.0.0").build())
+            .apiDefinitionValue(FederatedApi.builder().id(MY_API).providerId("provider-id").name("My Api").apiVersion("1.0.0").build())
             .build();
     }
 
@@ -274,10 +272,8 @@ public class ApiFixtures {
         return BASE.get()
             .crossId(null)
             .lifecycleState(null)
-            .apiDefinitionHttpV4(null)
-            .apiDefinition(null)
             .originContext(new OriginContext.Integration("integration-id"))
-            .federatedAgent(
+            .apiDefinitionValue(
                 new FederatedAgent(
                     "My agent",
                     "a fake agent",
@@ -301,7 +297,7 @@ public class ApiFixtures {
         return BASE.get()
             .type(ApiType.NATIVE)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionNativeV4(
+            .apiDefinitionValue(
                 NativeApi.builder()
                     .id("my-api")
                     .name("My message Api")

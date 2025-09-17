@@ -20,10 +20,12 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedAgent;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
@@ -82,11 +84,7 @@ public class Api {
      */
     private DefinitionVersion definitionVersion;
 
-    private io.gravitee.definition.model.v4.Api apiDefinitionHttpV4;
-    private io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefinitionNativeV4;
-    private io.gravitee.definition.model.Api apiDefinition;
-    private io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition;
-    private FederatedAgent federatedAgent;
+    private ApiDefinition apiDefinitionValue;
 
     /**
      * The api type.
@@ -142,8 +140,7 @@ public class Api {
     private String background;
 
     public boolean isTcpProxy() {
-        ApiDefinition apiDefinition1 = getInternalApiDefinition();
-        return apiDefinition1 instanceof io.gravitee.definition.model.v4.Api v4Api && v4Api.isTcpProxy();
+        return apiDefinitionValue instanceof io.gravitee.definition.model.v4.Api v4Api && v4Api.isTcpProxy();
     }
 
     public enum Visibility {
@@ -171,69 +168,73 @@ public class Api {
         ARCHIVED,
     }
 
-    private ApiDefinition getInternalApiDefinition() {
-        if (apiDefinitionHttpV4 != null) {
-            return apiDefinitionHttpV4;
-        } else if (apiDefinition != null) {
-            return apiDefinition;
-        } else if (apiDefinitionNativeV4 != null) {
-            return apiDefinitionNativeV4;
-        } else if (federatedApiDefinition != null) {
-            return federatedApiDefinition;
-        } else {
-            return null;
-        }
-    }
-
     public boolean isDeprecated() {
         return apiLifecycleState == ApiLifecycleState.DEPRECATED;
     }
 
     public Set<String> getTags() {
-        var apiDefinition = getInternalApiDefinition();
-        return apiDefinition != null ? apiDefinition.getTags() : Set.of();
+        return apiDefinitionValue != null ? apiDefinitionValue.getTags() : Set.of();
     }
 
     public Api setTags(Set<String> tags) {
-        var apiDefinition = getInternalApiDefinition();
-        if (apiDefinition != null) {
-            apiDefinition.setTags(tags);
+        if (apiDefinitionValue != null) {
+            apiDefinitionValue.setTags(tags);
         }
         return this;
     }
 
     public Api setId(String id) {
         this.id = id;
-        var apiDefinition = getInternalApiDefinition();
-        if (apiDefinition != null) {
-            apiDefinition.setId(id);
+        if (apiDefinitionValue != null) {
+            apiDefinitionValue.setId(id);
         }
         return this;
     }
 
-    public Api setApiDefinitionHttpV4(io.gravitee.definition.model.v4.Api apiDefinitionHttpV4) {
-        this.apiDefinitionHttpV4 = apiDefinitionHttpV4;
-        this.definitionVersion = apiDefinitionHttpV4.getDefinitionVersion();
-        return this;
+    public io.gravitee.definition.model.v4.Api getApiDefinitionHttpV4() {
+        return apiDefinitionValue instanceof io.gravitee.definition.model.v4.Api api ? api : null;
     }
 
-    public Api setApiDefinition(io.gravitee.definition.model.Api apiDefinition) {
-        this.apiDefinition = apiDefinition;
+    public NativeApi getApiDefinitionNativeV4() {
+        return apiDefinitionValue instanceof NativeApi api ? api : null;
+    }
+
+    public io.gravitee.definition.model.Api getApiDefinition() {
+        return apiDefinitionValue instanceof io.gravitee.definition.model.Api api ? api : null;
+    }
+
+    public FederatedApi getFederatedApiDefinition() {
+        return apiDefinitionValue instanceof FederatedApi api ? api : null;
+    }
+
+    public FederatedAgent getFederatedAgent() {
+        return apiDefinitionValue instanceof FederatedAgent agent ? agent : null;
+    }
+
+    public Api setApiDefinitionHttpV4(io.gravitee.definition.model.v4.Api apiDefinitionHttpV4) {
+        return setApiDefinitionValue(apiDefinitionHttpV4);
+    }
+
+    public Api setApiDefinitionValue(ApiDefinition apiDefinition) {
+        this.apiDefinitionValue = apiDefinition;
         this.definitionVersion = apiDefinition.getDefinitionVersion();
         return this;
     }
 
+    public Api setApiDefinition(ApiDefinition apiDefinition) {
+        return setApiDefinitionValue(apiDefinition);
+    }
+
     public Api setFederatedApiDefinition(io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition) {
-        this.federatedApiDefinition = federatedApiDefinition;
-        this.definitionVersion = federatedApiDefinition.getDefinitionVersion();
-        return this;
+        return setApiDefinitionValue(federatedApiDefinition);
+    }
+
+    public Api setApiDefinitionNativeV4(NativeApi nativeApi) {
+        return setApiDefinitionValue(nativeApi);
     }
 
     public List<? extends AbstractListener<? extends AbstractEntrypoint>> getApiListeners() {
-        if (getInternalApiDefinition() instanceof AbstractApi v4ApiDefinition) {
-            return v4ApiDefinition.getListeners();
-        }
-        return List.of();
+        return apiDefinitionValue instanceof AbstractApi v4ApiDefinition ? v4ApiDefinition.getListeners() : List.of();
     }
 
     public boolean isNative() {
@@ -247,11 +248,10 @@ public class Api {
      * @return true if an update has been done, meaning the Api need to be persisted
      */
     public boolean updateDynamicProperties(List<Property> dynamicProperties) {
-        ApiDefinition apiDefinition1 = getInternalApiDefinition();
-        if (apiDefinition1 == null) {
+        if (apiDefinitionValue == null) {
             return false;
         }
-        var needToUpdate = apiDefinition1.updateDynamicProperties(props -> {
+        var needToUpdate = apiDefinitionValue.updateDynamicProperties(props -> {
             final DynamicApiProperties apiProperties = new DynamicApiProperties(props);
             return apiProperties.updateDynamicProperties(dynamicProperties);
         });
@@ -299,36 +299,28 @@ public class Api {
 
     public abstract static class ApiBuilder<C extends Api, B extends ApiBuilder<C, B>> {
 
-        public B apiDefinition(io.gravitee.definition.model.Api apiDefinition) {
-            this.apiDefinition = apiDefinition;
+        public B apiDefinitionValue(ApiDefinition apiDefinition) {
+            this.apiDefinitionValue = apiDefinition;
             if (apiDefinition != null) {
                 this.definitionVersion = apiDefinition.getDefinitionVersion();
             }
             return self();
         }
 
+        public B apiDefinition(ApiDefinition apiDefinition) {
+            return apiDefinitionValue(apiDefinition);
+        }
+
         public B apiDefinitionHttpV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
-            this.apiDefinitionHttpV4 = apiDefinitionV4;
-            if (apiDefinitionV4 != null) {
-                this.definitionVersion = apiDefinitionV4.getDefinitionVersion();
-            }
-            return self();
+            return apiDefinitionValue(apiDefinitionV4);
         }
 
         public B federatedApiDefinition(io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition) {
-            this.federatedApiDefinition = federatedApiDefinition;
-            if (federatedApiDefinition != null) {
-                this.definitionVersion = federatedApiDefinition.getDefinitionVersion();
-            }
-            return self();
+            return apiDefinitionValue(federatedApiDefinition);
         }
 
         public B apiDefinitionNativeV4(io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiDefinition) {
-            this.apiDefinitionNativeV4 = nativeApiDefinition;
-            if (nativeApiDefinition != null) {
-                this.definitionVersion = nativeApiDefinition.getDefinitionVersion();
-            }
-            return self();
+            return apiDefinitionValue(nativeApiDefinition);
         }
     }
 }

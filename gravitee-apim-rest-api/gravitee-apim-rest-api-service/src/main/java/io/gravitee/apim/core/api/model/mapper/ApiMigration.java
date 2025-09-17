@@ -80,13 +80,7 @@ class ApiMigration {
 
     MigrationResult<Api> mapApi(Api source) {
         return apiDefinitionHttpV4(source.getApiDefinition()).map(definition ->
-            source
-                .toBuilder()
-                .definitionVersion(DefinitionVersion.V4)
-                .apiDefinitionHttpV4(definition)
-                .apiDefinition(null)
-                .type(ApiType.PROXY)
-                .build()
+            source.toBuilder().apiDefinitionValue(definition).type(ApiType.PROXY).build()
         );
     }
 
