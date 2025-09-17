@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import hljs from 'highlight.js';
 import { marked, Renderer, RendererObject } from 'marked';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
-import { markedHighlight } from 'marked-highlight';
 
 const ANCHOR_CLASSNAME = 'anchor';
 
 @Injectable()
-export class GraviteeMarkdownViewerService {
+export class GraviteeMarkdownRendererService {
   constructor() {
     marked.use(gfmHeadingId());
-    marked.use(
-      markedHighlight({
-        langPrefix: 'hljs language-',
-        highlight(_code, language) {
-          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-          return hljs.highlight(validLanguage, { language: validLanguage }).value;
-        },
-      }),
-    );
     marked.setOptions({
       breaks: true,
       gfm: true,
