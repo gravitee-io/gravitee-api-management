@@ -15,13 +15,4 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-import java.util.List;
-import java.util.Optional;
-
-public record HistogramQuery(
-    SearchTermId searchTermId,
-    TimeRange timeRange,
-    List<Aggregation> aggregations,
-    Optional<String> query,
-    List<Term> terms
-) {}
+public record Term(String key, String value) {}
