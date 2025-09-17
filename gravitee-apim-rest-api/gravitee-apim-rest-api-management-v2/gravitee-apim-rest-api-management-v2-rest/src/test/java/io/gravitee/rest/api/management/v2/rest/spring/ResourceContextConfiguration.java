@@ -29,6 +29,7 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.NewtAIProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
@@ -798,7 +799,7 @@ public class ResourceContextConfiguration {
 
     @Bean
     public NewtAIProvider newtAIProvider() {
-        return mock(NewtAIProvider.class);
+        return new NewtAIProviderInMemory();
     }
 
     @Bean
