@@ -550,7 +550,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Make sure visibility is PRIVATE by default if not set.
             repoApi.setVisibility(api.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(api.getVisibility().toString()));
 
-            log.debug("Add default groups");
+            // Set Default group
             Set<GroupEntity> defaultGroupEntities = groupService.findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE);
 
             Set<String> defaultGroups;
