@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.newtai.service_provider;
+package io.gravitee.apim.core.newtai.exception;
 
-import io.gravitee.apim.core.newtai.model.ELGenFeedback;
-import io.gravitee.apim.core.newtai.model.ELGenQuery;
-import io.gravitee.apim.core.newtai.model.ELGenReply;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Single;
+import lombok.Getter;
 
-public interface NewtAIProvider {
-    Single<ELGenReply> generateEL(ELGenQuery query);
-    Completable submitFeedback(ELGenFeedback feedback);
+public class NewtAiSubmitFeedbackException extends RuntimeException {
+
+    @Getter
+    private final String commandId;
+
+    public NewtAiSubmitFeedbackException(String commandId, String message) {
+        super(message);
+        this.commandId = commandId;
+    }
+
+    public NewtAiSubmitFeedbackException(String commandId, String message, Throwable cause) {
+        super(message, cause);
+        this.commandId = commandId;
+    }
 }
