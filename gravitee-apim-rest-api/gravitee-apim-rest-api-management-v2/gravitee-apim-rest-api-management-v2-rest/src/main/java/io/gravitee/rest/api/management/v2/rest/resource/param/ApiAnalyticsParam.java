@@ -64,6 +64,9 @@ public class ApiAnalyticsParam {
     @QueryParam("query")
     private String query;
 
+    @QueryParam("terms")
+    private List<String> terms;
+
     public AnalyticsType getType() {
         return Arrays
             .stream(AnalyticsType.values())
@@ -116,6 +119,20 @@ public class ApiAnalyticsParam {
             .toList();
     }
 
+    public List<Term> getTerms() {
+        if (terms == null || terms.isEmpty()) {
+            return List.of();
+        }
+
+        return terms
+            .stream()
+            .map(String::trim)
+            .map(t -> t.split(":", 2))
+            .filter(temp -> temp.length == 2)
+            .map(temp -> new Term(temp[0], temp[1]))
+            .toList();
+    }
+
     public SearchHistogramAnalyticsUseCase.Input toHistogramInput(String apiId) {
         ApiAnalyticsParamSpecification.forHistogram().throwIfNotSatisfied(this);
         var aggregations = getAggregations()
@@ -131,13 +148,19 @@ public class ApiAnalyticsParam {
             })
             .toList();
 
+        List<io.gravitee.apim.core.analytics.model.Term> appliedFilters = getTerms()
+            .stream()
+            .map(term -> new io.gravitee.apim.core.analytics.model.Term(term.getKey(), term.getValue()))
+            .toList();
+
         return new SearchHistogramAnalyticsUseCase.Input(
             apiId,
             getFrom(),
             getTo(),
             getInterval(),
             aggregations,
-            Optional.ofNullable(getQuery())
+            Optional.ofNullable(getQuery()),
+            Optional.of(appliedFilters)
         );
     }
 
@@ -197,6 +220,19 @@ public class ApiAnalyticsParam {
         public Aggregation(String type, String field) {
             this.type = type;
             this.field = field;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class Term {
+
+        private String key;
+        private String value;
+
+        public Term(String key, String value) {
+            this.key = key;
+            this.value = value;
         }
     }
 }

@@ -26,6 +26,7 @@ import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.Term;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.common.http.HttpMethod;
@@ -340,7 +341,8 @@ class AnalyticsQueryServiceImplTest {
                 to,
                 interval,
                 null,
-                Optional.empty()
+                Optional.empty(),
+                null
             );
 
             Optional<HistogramAnalytics> result = cut.searchHistogramAnalytics(GraviteeContext.getExecutionContext(), query);
@@ -659,7 +661,7 @@ class AnalyticsQueryServiceImplTest {
                 new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE),
                 new Aggregation("upstream-active-connections", Aggregation.AggregationType.VALUE)
             );
-            AnalyticsQueryService.HistogramQuery params = buildHistogramQuery(aggregations);
+            AnalyticsQueryService.HistogramQuery params = buildHistogramQuery(aggregations, null);
             when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
 
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
@@ -687,7 +689,7 @@ class AnalyticsQueryServiceImplTest {
                 new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.DELTA),
                 new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.DELTA)
             );
-            AnalyticsQueryService.HistogramQuery query = buildHistogramQuery(aggregations);
+            AnalyticsQueryService.HistogramQuery query = buildHistogramQuery(aggregations, null);
             when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
 
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
@@ -715,7 +717,10 @@ class AnalyticsQueryServiceImplTest {
                 new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.TREND),
                 new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.TREND)
             );
-            AnalyticsQueryService.HistogramQuery query = buildHistogramQuery(aggregations);
+            Term appIdFilter = new Term("app-id", "xxx-xxx-xxx");
+            Term planIdFilter = new Term("plan-id", "yyy-yyy-yyy");
+            List<Term> terms = List.of(appIdFilter, planIdFilter);
+            AnalyticsQueryService.HistogramQuery query = buildHistogramQuery(aggregations, terms);
             when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
 
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
@@ -731,14 +736,15 @@ class AnalyticsQueryServiceImplTest {
                 });
         }
 
-        private static @NotNull AnalyticsQueryService.HistogramQuery buildHistogramQuery(List<Aggregation> aggregations) {
+        private static @NotNull AnalyticsQueryService.HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms) {
             return new AnalyticsQueryService.HistogramQuery(
                 new AnalyticsQueryService.SearchTermId(AnalyticsQueryService.SearchTerm.API, API_ID),
                 Instant.ofEpochMilli(FROM),
                 Instant.ofEpochMilli(TO),
                 Duration.ofMillis(2 * 60 * 1000),
                 aggregations,
-                null
+                null,
+                terms
             );
         }
     }
