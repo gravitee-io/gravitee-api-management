@@ -13,15 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.newtai.service_provider;
+package io.gravitee.apim.core.newtai.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.newtai.model.ELGenFeedback;
-import io.gravitee.apim.core.newtai.model.ELGenQuery;
-import io.gravitee.apim.core.newtai.model.ELGenReply;
+import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Single;
+import lombok.RequiredArgsConstructor;
 
-public interface NewtAIProvider {
-    Single<ELGenReply> generateEL(ELGenQuery query);
-    Completable submitFeedback(ELGenFeedback feedback);
+@RequiredArgsConstructor
+@UseCase
+public class SubmitFeedbackUseCase {
+
+    private final NewtAIProvider newtAIProvider;
+
+    public Completable execute(Input input) {
+        return newtAIProvider.submitFeedback(input);
+    }
+
+    public record Input(String chatId, String userMessageId, String agentMessageId, boolean answerHelpful) implements ELGenFeedback {}
 }
