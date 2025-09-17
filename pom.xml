@@ -50,7 +50,7 @@
              https://github.com/awhitford/lombok.maven/issues/179 -->
         <maven-lombok.version>1.18.36</maven-lombok.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>8.3.38</gravitee-bom.version>
+        <gravitee-bom.version>8.3.41</gravitee-bom.version>
         <gravitee-alert-api.version>2.0.0</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>3.9.6</gravitee-cockpit-api.version>
         <gravitee-cloud-initializer.version>2.1.1</gravitee-cloud-initializer.version>
