@@ -941,15 +941,15 @@ describe('ApiAnalyticsWidgetComponent', () => {
       expect(await harness.isLoading()).toBe(false);
       expect(await harness.getTitleText()).toBe('Test Stats Widget');
       const statsHarness = await harness.getStatsComponentHarness();
-      expect(await statsHarness.getDisplayedValue()).toBe('1,000,000');
+      expect(await statsHarness.getDisplayedValue()).toBe('1M');
     });
 
-    it('should show defined value with the unit', async () => {
+    it('should show 3505523400 milliseconds formatted to 1.4mo', async () => {
       fixture.componentRef.setInput('config', {
         title: 'Test Stats Widget',
         state: 'success',
         widgetType: 'stats',
-        widgetData: { stats: 100, statsUnit: 'candies' },
+        widgetData: { stats: 3505523400, statsUnit: 'ms' },
       });
 
       fixture.detectChanges();
@@ -957,7 +957,39 @@ describe('ApiAnalyticsWidgetComponent', () => {
       expect(await harness.isLoading()).toBe(false);
       expect(await harness.getTitleText()).toBe('Test Stats Widget');
       const statsHarness = await harness.getStatsComponentHarness();
-      expect(await statsHarness.getDisplayedValue()).toBe('100candies');
+      expect(await statsHarness.getDisplayedValue()).toBe('1.4mo');
+    });
+
+    it('should show 691200000 milliseconds formatted to 8d', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Stats Widget',
+        state: 'success',
+        widgetType: 'stats',
+        widgetData: { stats: 691200000, statsUnit: 'ms' },
+      });
+
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(false);
+      expect(await harness.getTitleText()).toBe('Test Stats Widget');
+      const statsHarness = await harness.getStatsComponentHarness();
+      expect(await statsHarness.getDisplayedValue()).toBe('8d');
+    });
+
+    it('should show defined value with the unit', async () => {
+      fixture.componentRef.setInput('config', {
+        title: 'Test Stats Widget',
+        state: 'success',
+        widgetType: 'stats',
+        widgetData: { stats: 100, statsUnit: 'ms' },
+      });
+
+      fixture.detectChanges();
+
+      expect(await harness.isLoading()).toBe(false);
+      expect(await harness.getTitleText()).toBe('Test Stats Widget');
+      const statsHarness = await harness.getStatsComponentHarness();
+      expect(await statsHarness.getDisplayedValue()).toBe('100ms');
     });
 
     it('should display empty state for undefined stats', async () => {
