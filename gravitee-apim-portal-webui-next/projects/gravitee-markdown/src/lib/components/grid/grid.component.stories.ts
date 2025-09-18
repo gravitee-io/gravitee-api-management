@@ -406,3 +406,127 @@ export const WithMarkdownEditor: StoryObj<GridComponent> = {
     `,
   }),
 };
+
+export const WithTokenOverrides: StoryObj<GridComponent> = {
+  args: {
+    columns: 3,
+  },
+  render: args => ({
+    props: args,
+    template: `
+      <style>
+        gmd-cell {
+          display: block;
+          padding: 12px;
+          border: 1px solid #e0e0e0;
+          border-radius: 6px;
+          background-color: #f8f9fa;
+          min-height: 60px;
+        }
+
+        .gap-examples {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+
+        .gap-example {
+          border: 1px solid #dee2e6;
+          border-radius: 8px;
+          padding: 16px;
+          background: white;
+        }
+
+        .gap-example h3 {
+          margin-top: 0;
+          margin-bottom: 12px;
+          color: #495057;
+        }
+
+        .gap-example p {
+          margin-bottom: 16px;
+          color: #6c757d;
+          font-size: 14px;
+        }
+      </style>
+      <div style="padding: 20px;">
+        <h2>Grid Component with Custom Gap Overrides</h2>
+        <p>This story demonstrates how to customize the grid gap using CSS custom properties.</p>
+
+        <div class="gap-examples">
+          <div class="gap-example">
+            <h3>Default Gap (16px)</h3>
+            <gmd-grid [columns]="columns">
+              <gmd-cell>
+                <h4>Cell 1</h4>
+                <p>Default spacing</p>
+              </gmd-cell>
+              <gmd-cell>
+                <h4>Cell 2</h4>
+                <p>Default spacing</p>
+              </gmd-cell>
+              <gmd-cell>
+                <h4>Cell 3</h4>
+                <p>Default spacing</p>
+              </gmd-cell>
+            </gmd-grid>
+          </div>
+
+          <div class="gap-example" style="--gmd-grid-spacing: 8px;">
+            <h3>Small Gap (8px)</h3>
+            <gmd-grid [columns]="columns">
+              <gmd-cell>
+                <h4>Cell 1</h4>
+                <p>Tighter spacing</p>
+              </gmd-cell>
+              <gmd-cell>
+                <h4>Cell 2</h4>
+                <p>Tighter spacing</p>
+              </gmd-cell>
+              <gmd-cell>
+                <h4>Cell 3</h4>
+                <p>Tighter spacing</p>
+              </gmd-cell>
+            </gmd-grid>
+          </div>
+
+          <div class="gap-example" style="--gmd-grid-spacing: 32px;">
+            <h3>Large Gap (32px)</h3>
+            <gmd-grid [columns]="columns">
+              <gmd-cell>
+                <h4>Cell 1</h4>
+                <p>More spacious</p>
+              </gmd-cell>
+              <gmd-cell>
+                <h4>Cell 2</h4>
+                <p>More spacious</p>
+              </gmd-cell>
+              <gmd-cell>
+                <h4>Cell 3</h4>
+                <p>More spacious</p>
+              </gmd-cell>
+            </gmd-grid>
+          </div>
+
+          <div class="gap-example" style="--gmd-grid-spacing: 0px;">
+            <h3>No Gap (0px)</h3>
+            <gmd-grid [columns]="columns">
+              <gmd-cell>
+                <h4>Cell 1</h4>
+                <p>No spacing</p>
+              </gmd-cell>
+              <gmd-cell>
+                <h4>Cell 2</h4>
+                <p>No spacing</p>
+              </gmd-cell>
+              <gmd-cell>
+                <h4>Cell 3</h4>
+                <p>No spacing</p>
+              </gmd-cell>
+            </gmd-grid>
+          </div>
+        </div>
+      </div>
+    `,
+  }),
+};
