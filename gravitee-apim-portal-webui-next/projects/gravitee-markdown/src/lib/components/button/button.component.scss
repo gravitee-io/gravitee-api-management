@@ -41,15 +41,16 @@
     background-color: token-utils.slot(filled-container-color, button-overrides.tokens());
     border-radius: token-utils.slot(filled-container-shape, button-overrides.tokens());
     color: token-utils.slot(filled-text-color, button-overrides.tokens());
-    padding: 8px token-utils.slot(filled-horizontal-padding, button-overrides.tokens());
+    padding-left: token-utils.slot(filled-horizontal-padding, button-overrides.tokens());
+    padding-right: token-utils.slot(filled-horizontal-padding, button-overrides.tokens());
     text-transform: token-utils.slot(filled-text-transform, button-overrides.tokens());
 
     &:hover {
       background-color: token-utils.slot(filled-hover-container-color, button-overrides.tokens());
     }
 
-    &:focus {
-      border-color: token-utils.slot(filled-focus-outline-color, button-overrides.tokens());
+    &:focus-within {
+      border-color: token-utils.slot(focus-outline-color, button-overrides.tokens());
     }
 
     &:active {
@@ -64,17 +65,25 @@
     border: token-utils.slot(outlined-outline-width, button-overrides.tokens()) solid token-utils.slot(outlined-outline-color, button-overrides.tokens());
     border-radius: token-utils.slot(outlined-container-shape, button-overrides.tokens());
     color: token-utils.slot(outlined-text-color, button-overrides.tokens());
-    padding: 8px token-utils.slot(outlined-horizontal-padding, button-overrides.tokens());
+    padding-left: token-utils.slot(outlined-horizontal-padding, button-overrides.tokens());
+    padding-right: token-utils.slot(outlined-horizontal-padding, button-overrides.tokens());
     text-transform: token-utils.slot(outlined-text-transform, button-overrides.tokens());
 
     &:hover {
       background-color: token-utils.slot(outlined-hover-container-color, button-overrides.tokens());
     }
 
-    &:focus {
-    //   border-color: token-utils.slot(outlined-focus-outline-color, button-overrides.tokens());
-      box-shadow: 0 0 0 1px token-utils.slot(outlined-outline-color, button-overrides.tokens()) inset;
-    }
+    //&:focus {
+    //   border-color: transparent;
+    //
+    //  box-shadow: 0 0 0 1px token-utils.slot(outlined-focus-outline-color, button-overrides.tokens()) inset;
+    //}
+
+    &:focus-within {
+
+      border-color: transparent;
+
+      box-shadow: 0 0 0 2px token-utils.slot(focus-outline-color, button-overrides.tokens()) inset;    }
 
     &:active {
       background-color: token-utils.slot(outlined-active-container-color, button-overrides.tokens());
@@ -87,18 +96,20 @@
     // border: none;
     border-radius: token-utils.slot(text-container-shape, button-overrides.tokens());
     color: token-utils.slot(text-text-color, button-overrides.tokens());
-    padding: auto 12px;
+    padding-left:  token-utils.slot(text-horizontal-padding, button-overrides.tokens());
+    padding-right: token-utils.slot(text-horizontal-padding, button-overrides.tokens());
     text-transform: token-utils.slot(text-text-transform, button-overrides.tokens());
 
     &:hover {
       background-color: token-utils.slot(text-hover-container-color, button-overrides.tokens());
     }
 
-    &:focus {
-      border-color: token-utils.slot(text-focus-outline-color, button-overrides.tokens());
+    &:focus-within {
+      border-color: token-utils.slot(focus-outline-color, button-overrides.tokens());
     }
 
     &:active {
+      border-color: transparent;
         background-color: token-utils.slot(text-active-container-color, button-overrides.tokens());
     }
   }

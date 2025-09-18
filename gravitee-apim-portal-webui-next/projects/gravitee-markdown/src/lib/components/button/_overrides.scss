@@ -17,6 +17,12 @@
 
 @function tokens() {
   @return (
+    // Generic tokens
+    focus-outline-color: (
+      value: #CDD7E1,
+      css-var: --gmd-button-focus-outline-color,
+    ),
+
     // Filled appearance tokens
     filled-text-transform: (
       value: uppercase,
@@ -45,10 +51,6 @@
     filled-active-container-color: (
       value: #275CF6,
       css-var: --gmd-button-filled-active-container-color,
-    ),
-    filled-focus-outline-color: (
-      value: #1976d2,
-      css-var: --gmd-button-filled-focus-outline-color,
     ),
     filled-active-outline-color: (
       value: #64B5F6,
@@ -85,12 +87,8 @@
       css-var: --gmd-button-outlined-hover-container-color,
     ),
     outlined-active-container-color: (
-      value: rgba(25, 118, 210, 0.502),
+      value: #b9daff,
       css-var: --gmd-button-outlined-active-container-color,
-    ),
-    outlined-focus-outline-color: (
-      value: #1976d2,
-      css-var: --gmd-button-outlined-focus-outline-color,
     ),
 
     // Text appearance tokens
@@ -106,6 +104,10 @@
       value: 4px,
       css-var: --gmd-button-text-container-shape,
     ),
+    text-horizontal-padding: (
+      value: 16px,
+      css-var: --gmd-button-text-horizontal-padding,
+    ),
     text-hover-container-color: (
       value: #F4F7FD,
       css-var: --gmd-button-text-hover-container-color,
@@ -113,10 +115,6 @@
     text-active-container-color: (
       value: rgba(25, 118, 210, 0.502),
       css-var: --gmd-button-text-active-container-color,
-    ),
-    text-focus-outline-color: (
-      value: #1976d2,
-      css-var: --gmd-button-text-focus-outline-color,
     ),
   );
 }
