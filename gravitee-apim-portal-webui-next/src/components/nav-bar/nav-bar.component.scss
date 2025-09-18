@@ -17,8 +17,9 @@
 @use '../../scss/theme' as app-theme;
 
 :host {
-  position: relative;
+  position: sticky;
   z-index: 99;
+  top: 0;
   display: block;
 }
 
