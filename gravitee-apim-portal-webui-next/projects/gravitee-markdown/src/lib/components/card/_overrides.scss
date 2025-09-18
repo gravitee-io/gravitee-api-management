@@ -17,17 +17,41 @@
 
 @function tokens() {
   @return (
-    card-background-color: (
-      value: #f4f7fd,
-      css-var: --gio-app-primary-main-color,
+    title-font-weight: (
+      value: 700,
+      css-var: --gmd-card-title-font-weight,
     ),
-    card-border-color: (
-      value: #c7c7c7,
-      css-var: --gmd-card-border-color,
-    ),
-    card-border-radius: (
+    title-font-size: (
       value: 16px,
-      css-var: --gmd-card-border-radius,
+      css-var: --gmd-card-title-font-size,
+    ),
+    title-line-height: (
+      value: 21px,
+      css-var: --gmd-card-title-line-height,
+    ),
+    subtitle-font-weight: (
+      value: 400,
+      css-var: --gmd-card-subtitle-font-weight,
+    ),
+    subtitle-font-size: (
+      value: 14px,
+      css-var: --gmd-card-subtitle-font-size,
+    ),
+    subtitle-line-height: (
+      value: 20px,
+      css-var: --gmd-card-subtitle-line-height,
+    ),
+    container-color: (
+      value: #f4f7fd,
+      css-var: --gmd-card-container-color,
+    ),
+    outline-color: (
+      value: #c7c7c7,
+      css-var: --gmd-card-outline-color,
+    ),
+    container-shape: (
+      value: 16px,
+      css-var: --gmd-card-container-shape,
     )
   );
 }

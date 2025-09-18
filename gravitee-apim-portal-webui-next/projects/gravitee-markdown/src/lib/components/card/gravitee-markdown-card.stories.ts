@@ -68,6 +68,7 @@ export const WithTitle: StoryObj<GraviteeMarkdownCardComponent> = {
     template: `
       <div style="background-color: white; width: 600px;">
         <gmd-card>
+          <gmd-card-title>Card Title</gmd-card-title>
           <pre>{{ markdownContent }}</pre>
         </gmd-card>
       </div>
@@ -87,6 +88,101 @@ export const WithTitle: StoryObj<GraviteeMarkdownCardComponent> = {
         2. Consectetur adipiscing elit
         3. Integer molestie lorem at massa
       `,
+    },
+  }),
+};
+
+export const WithMdOverrides: StoryObj<GraviteeMarkdownCardComponent> = {
+  render: () => ({
+    template: `
+      <div style="background-color: white; width: 600px;">
+        <gmd-card>
+          <gmd-card-title>Card Title</gmd-card-title>
+          <pre>{{ markdownContent }}</pre>
+        </gmd-card>
+      </div>
+    `,
+    props: {
+      markdownContent: `
+        # h1
+        ## h2
+        ### h3
+        #### h4
+
+        > Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+
+        Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+        It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.
+        It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages,
+        and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+
+        1. Lorem ipsum dolor sit amet
+        2. Consectetur adipiscing elit
+        3. Integer molestie lorem at massa
+      `,
+    },
+  }),
+};
+
+export const WithTitleAndSubtitle: StoryObj<GraviteeMarkdownCardComponent> = {
+  render: () => ({
+    template: `
+      <div style="background-color: white; width: 600px;">
+        <gmd-card>
+          <gmd-card-title>Card Title</gmd-card-title>
+          <gmd-card-subtitle>Card Subtitle</gmd-card-subtitle>
+          <pre>{{ markdownContent }}</pre>
+        </gmd-card>
+      </div>
+    `,
+    props: {
+      markdownContent: `
+        <h4>md content</h4>
+
+        > Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+
+        Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+        It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.
+        It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages,
+        and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+
+        1. Lorem ipsum dolor sit amet
+        2. Consectetur adipiscing elit
+        3. Integer molestie lorem at massa
+      `,
+    },
+  }),
+};
+
+export const FigmaSimpleExample: StoryObj<GraviteeMarkdownCardComponent> = {
+  render: () => ({
+    template: `
+      <div style="background-color: white; width: 300px;">
+        <gmd-card>
+          <gmd-card-title>A simple placeholder</gmd-card-title>
+          <pre>{{ markdownContent }}</pre>
+        </gmd-card>
+      </div>
+    `,
+    props: {
+      markdownContent: `Here's a paragraph. Are you happy now? Just fill in your own content here.`,
+    },
+  }),
+};
+
+export const FigmaSimpleExampleWithSubtitle: StoryObj<GraviteeMarkdownCardComponent> = {
+  render: () => ({
+    template: `
+      <div style="background-color: white; width: 300px;">
+        <gmd-card>
+          <gmd-card-title>A simple placeholder</gmd-card-title>
+          <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
+          <pre>{{ markdownContent }}</pre>
+        </gmd-card>
+      </div>
+    `,
+    props: {
+      markdownContent: `Here's a paragraph. Are you happy now? Just fill in your own content here.`,
     },
   }),
 };

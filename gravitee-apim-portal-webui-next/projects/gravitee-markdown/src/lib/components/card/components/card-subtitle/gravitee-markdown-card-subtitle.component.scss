@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use './overrides' as overrides;
+@use '../../overrides' as overrides;
 @use '../../../../scss/token-utils' as token-utils;
 
 $token-mapping: overrides.tokens();
 
 :host {
-  background-color: yellow;
-  color: red;
-  font-size: token-utils.slot(card-subtitle-font-size, $token-mapping);
-  font-weight: token-utils.slot(card-subtitle-font-weight, $token-mapping);
-  line-height: token-utils.slot(card-subtitle-line-height, $token-mapping);
+  font-size: token-utils.slot(subtitle-font-size, $token-mapping);
+  font-weight: token-utils.slot(subtitle-font-weight, $token-mapping);
+  line-height: token-utils.slot(subtitle-line-height, $token-mapping);
 }
