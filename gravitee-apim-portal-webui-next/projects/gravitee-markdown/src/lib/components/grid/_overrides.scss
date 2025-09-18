@@ -13,5 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/grid/public-api';
+@use '../../scss/token-utils' as token-utils;
+
+@function tokens() {
+  @return (
+    spacing: (
+      value: 16px,
+      css-var: --gmd-grid-spacing,
+    )
+  );
+}
+
+// Component-level override mixin
+@mixin overrides($overrides: ()) {
+  @include token-utils.apply-token-overrides(tokens(), $overrides);
+}
