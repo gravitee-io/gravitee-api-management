@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use './overrides' as overrides;
+@use '../../scss/token-utils' as token-utils;
+
 .grid-container {
   display: grid;
   width: 100%;
-  gap: 16px;
+  gap: token-utils.slot(spacing, overrides.tokens());
 }
 
 .grid-cols-1 {
