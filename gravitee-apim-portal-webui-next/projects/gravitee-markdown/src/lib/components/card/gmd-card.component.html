@@ -15,6 +15,11 @@
     limitations under the License.
 
 -->
-<div class="grid-container" [ngClass]="'grid-cols-' + columns">
+<div class="gmd-card">
+  <div class="gmd-card__header">
+    <ng-content select="gmd-card-title" />
+    <ng-content select="gmd-card-subtitle" />
+  </div>
+
   <ng-content />
 </div>
