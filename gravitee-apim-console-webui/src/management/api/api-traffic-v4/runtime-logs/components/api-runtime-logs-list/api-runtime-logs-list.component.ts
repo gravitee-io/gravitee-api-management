@@ -22,7 +22,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 
 import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ConnectionLog, Pagination } from '../../../../../../entities/management-api-v2';
@@ -47,7 +47,6 @@ import { GioTooltipOnEllipsisModule } from '../../../../../../shared/components/
     RouterLink,
     MatButtonModule,
     DatePipe,
-    DecimalPipe,
     GioTooltipOnEllipsisModule,
   ],
 })

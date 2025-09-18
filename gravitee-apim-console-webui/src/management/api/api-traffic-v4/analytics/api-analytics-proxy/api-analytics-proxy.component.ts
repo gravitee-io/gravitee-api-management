@@ -43,11 +43,12 @@ import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../a
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { StatsUnitType } from "../../../../../shared/components/analytics-stats/analytics-stats.component";
 
 type WidgetDisplayConfig = {
   title: string;
   statsKey?: Stats;
-  statsUnit?: string;
+  statsUnit?: StatsUnitType;
   tooltip: string;
   shouldSortBuckets?: boolean;
   type: ApiAnalyticsWidgetType;
@@ -121,7 +122,6 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       apiId: this.apiId,
       title: 'Total Requests',
       statsKey: 'count',
-      statsUnit: '',
       tooltip: '',
       shouldSortBuckets: false,
       statsField: 'gateway-response-time-ms',
@@ -165,7 +165,6 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       apiId: this.apiId,
       title: 'Requests Per Second',
       statsKey: 'rps',
-      statsUnit: '',
       tooltip: '',
       shouldSortBuckets: false,
       statsField: 'gateway-response-time-ms',
