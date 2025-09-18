@@ -13,6 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/grid/public-api';
-@forward './lib/components/card/public-api';
+import { ComponentSuggestion } from '../../../../models/componentSuggestion';
+import { ComponentSuggestionConfiguration } from '../../../../models/componentSuggestionConfiguration';
+
+const cardTitle: ComponentSuggestion = {
+  label: 'Card title',
+  insertText: `<gmd-card-title>$1</gmd-card-title>`,
+  detail: 'Add a card title.',
+};
+
+export const cardTitleConfiguration: ComponentSuggestionConfiguration = {
+  suggestions: [cardTitle],
+  attributeSuggestions: [],
+  attributeHoverDocumentation: {},
+  hoverDocumentation: {
+    label: 'Card title',
+    description: 'Layout component to add a title in a `<gmd-card>`',
+  },
+};

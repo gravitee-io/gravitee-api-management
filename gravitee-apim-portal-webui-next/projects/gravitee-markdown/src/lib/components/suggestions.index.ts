@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 import { ComponentSuggestionConfiguration } from '../models/componentSuggestionConfiguration';
+import { cardSubtitleConfiguration } from './card/components/card-subtitle/gmd-card-subtitle.suggestions';
 import { gridConfiguration } from './grid/grid.suggestions';
 import { ComponentSelector } from '../models/componentSelector';
+import { mdBlockConfiguration } from './block/gmd-md.suggestions';
+import { cardTitleConfiguration } from './card/components/card-title/gmd-card-title.suggestions';
+import { cardConfiguration } from './card/gmd-card.suggestions';
 import { cellConfiguration } from './grid/cell/cell.suggestions';
 
 export const componentSuggestionMap: Record<string, ComponentSuggestionConfiguration> = {
   [ComponentSelector.GRID]: gridConfiguration,
   [ComponentSelector.CELL]: cellConfiguration,
+  [ComponentSelector.CARD]: cardConfiguration,
+  [ComponentSelector.CARD_TITLE]: cardTitleConfiguration,
+  [ComponentSelector.CARD_SUBTITLE]: cardSubtitleConfiguration,
+  [ComponentSelector.MD_BLOCK]: mdBlockConfiguration,
 };
