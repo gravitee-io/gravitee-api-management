@@ -397,7 +397,7 @@ public class ApiService_UpdateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
 
-        // Picture management as a dedicated service, so we should reuse the same picture as the one saved
+        // If no picture provided in update, existing picture should be preserved and background unchanged
         verify(apiRepository)
             .update(
                 argThat(apiToUpdate ->
@@ -406,6 +406,22 @@ public class ApiService_UpdateTest {
                 )
             );
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+    }
+
+    @Test
+    public void shouldUpdatePictureWhenProvided() throws TechnicalException {
+        prepareUpdate();
+        String newPicture = "new-picture";
+        updateApiEntity.setPicture(newPicture);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository)
+            .update(
+                argThat(updated ->
+                    Objects.equals(updated.getPicture(), newPicture) && Objects.equals(updated.getBackground(), api.getBackground())
+                )
+            );
     }
 
     @Test
