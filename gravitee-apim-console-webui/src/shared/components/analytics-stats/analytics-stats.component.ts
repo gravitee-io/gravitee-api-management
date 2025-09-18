@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { Component, input } from "@angular/core";
+import { MatTooltip } from "@angular/material/tooltip";
+import { MatIcon } from "@angular/material/icon";
+import { DecimalPipe } from "@angular/common";
 
-export type StatsWidgetData = { stats: number; statsUnit: string };
+import { FormatDurationPipe } from "../../pipes/format-duration.pipe";
+import { FormatNumberPipe } from "../../pipes/format-number.pipe";
+
+export type StatsUnitType = 'ms';
+
+export type StatsWidgetData = { stats: number; statsUnit: StatsUnitType };
 
 @Component({
   selector: 'analytics-stats',
-  imports: [DecimalPipe],
+  imports: [FormatDurationPipe, FormatNumberPipe, MatTooltip, MatIcon, DecimalPipe],
   templateUrl: './analytics-stats.component.html',
   styleUrl: './analytics-stats.component.scss',
 })

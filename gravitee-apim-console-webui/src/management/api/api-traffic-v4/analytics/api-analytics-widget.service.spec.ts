@@ -180,7 +180,6 @@ describe('ApiAnalyticsWidgetService', () => {
               apiId: API_ID,
               title: 'Test',
               statsKey: 'count',
-              statsUnit: '',
               tooltip: '',
               shouldSortBuckets: false,
               statsField: 'gateway-response-time-ms',
@@ -203,7 +202,7 @@ describe('ApiAnalyticsWidgetService', () => {
 
             // Assertions for the second result
             expect(result2.state).toBe('success');
-            expect(result2.widgetData).toEqual({ stats: 100, statsUnit: '' });
+            expect(result2.widgetData).toEqual({ stats: 100, statsUnit: undefined });
 
             done();
           });
