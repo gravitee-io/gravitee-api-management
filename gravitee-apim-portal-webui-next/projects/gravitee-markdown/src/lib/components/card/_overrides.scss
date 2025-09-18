@@ -13,5 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/card/public-api';
+@use '../../scss/token-utils' as token-utils;
+
+@function tokens() {
+  @return (
+    card-background-color: (
+      value: #f4f7fd,
+      css-var: --gio-app-primary-main-color,
+    ),
+    card-border-color: (
+      value: #c7c7c7,
+      css-var: --gmd-card-border-color,
+    ),
+    card-border-radius: (
+      value: 16px,
+      css-var: --gmd-card-border-radius,
+    )
+  );
+}
+
+// Component-level override mixin
+@mixin overrides($overrides: ()) {
+  @include token-utils.apply-token-overrides(tokens(), $overrides);
+}

@@ -13,5 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/card/public-api';
+import { ComponentHarness } from '@angular/cdk/testing';
+
+export class GraviteeMarkdownCardHarness extends ComponentHarness {
+  static hostSelector = 'gmd-card';
+}

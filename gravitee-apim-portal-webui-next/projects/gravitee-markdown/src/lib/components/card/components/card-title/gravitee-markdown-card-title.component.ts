@@ -13,5 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/card/public-api';
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'gmd-card-title',
+  template: '<ng-content/>',
+  styleUrls: ['gravitee-markdown-card-title.component.scss'],
+  // eslint-disable-next-line @angular-eslint/prefer-standalone
+  standalone: false,
+})
+export class GraviteeMarkdownCardTitleComponent {}

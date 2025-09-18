@@ -13,5 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/card/public-api';
+@use './overrides' as overrides;
+@use '../../../../scss/token-utils' as token-utils;
+
+$token-mapping: overrides.tokens();
+
+:host {
+  font-size: token-utils.slot(card-title-font-size, $token-mapping);
+  font-weight: token-utils.slot(card-title-font-weight, $token-mapping);
+  line-height: token-utils.slot(card-title-line-height, $token-mapping);
+}
