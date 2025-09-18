@@ -39,7 +39,7 @@ public class HttpSecurityPlanFactory {
         final HttpSecurityPolicy policy = SecurityPolicyFactory.forPlan(plan, policyManager);
 
         if (policy != null) {
-            return new HttpSecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+            return new HttpSecurityPlan(SecurityPlanContext.builder().fromV2(plan).build(), policy);
         }
 
         log.warn(

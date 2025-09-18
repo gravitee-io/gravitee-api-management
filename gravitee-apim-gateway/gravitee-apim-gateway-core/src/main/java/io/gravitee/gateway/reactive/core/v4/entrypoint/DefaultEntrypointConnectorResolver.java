@@ -22,34 +22,29 @@ import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnectorFactory;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.HttpEntrypointConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.async.HttpEntrypointAsyncConnectorFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @SuppressWarnings("unchecked")
 public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultEntrypointConnectorResolver> {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultEntrypointConnectorResolver.class);
+    @Getter
     private final List<BaseEntrypointConnector> entrypointConnectors;
 
     public DefaultEntrypointConnectorResolver(

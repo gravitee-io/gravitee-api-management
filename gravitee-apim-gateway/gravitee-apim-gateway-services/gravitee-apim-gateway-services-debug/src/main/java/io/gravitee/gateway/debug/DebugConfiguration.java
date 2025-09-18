@@ -49,6 +49,7 @@ import io.gravitee.gateway.policy.ConfigurablePolicyChainProvider;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
+import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.debug.DebugReactorEventListener;
 import io.gravitee.gateway.reactive.debug.handlers.api.v4.DebugV4ApiReactorHandlerFactory;
 import io.gravitee.gateway.reactive.debug.policy.condition.DebugExpressionLanguageConditionFilter;
@@ -318,7 +319,8 @@ public class DebugConfiguration {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
-        Vertx vertx
+        Vertx vertx,
+        @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
     ) {
         return new DebugHttpRequestDispatcher(
             gatewayConfiguration,
@@ -331,7 +333,8 @@ public class DebugConfiguration {
             notFoundProcessorChainFactory,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
-            vertx
+            vertx,
+            warningsEnabled
         );
     }
 
@@ -353,7 +356,8 @@ public class DebugConfiguration {
         @Value("${debug.http.port:8482}") String httpPort,
         GatewayConfiguration gatewayConfiguration,
         EventRepository eventRepository,
-        ObjectMapper objectMapper
+        ObjectMapper objectMapper,
+        ConnectionDrainManager connectionDrainManager
     ) {
         return new DebugPlatformProcessorChainFactory(
             transactionHandlerFactory,
@@ -366,7 +370,8 @@ public class DebugConfiguration {
             false,
             gatewayConfiguration,
             eventRepository,
-            objectMapper
+            objectMapper,
+            connectionDrainManager
         );
     }
 
@@ -446,7 +451,8 @@ public class DebugConfiguration {
         AccessPointManager accessPointManager,
         EventManager eventManager,
         GatewayConfiguration gatewayConfiguration,
-        final DictionaryManager dictionaryManager
+        final DictionaryManager dictionaryManager,
+        ConnectionDrainManager connectionDrainManager
     ) {
         return new DebugV4ApiReactorHandlerFactory(
             applicationContext.getParent(),
@@ -465,7 +471,8 @@ public class DebugConfiguration {
             eventManager,
             new HttpAcceptorFactory(false),
             gatewayConfiguration,
-            dictionaryManager
+            dictionaryManager,
+            connectionDrainManager
         );
     }
 }

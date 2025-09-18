@@ -15,8 +15,11 @@
  */
 package io.gravitee.apim.core.analytics.use_case;
 
+import static fixtures.core.model.ApiFixtures.MY_API;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
@@ -24,7 +27,9 @@ import inmemory.ApiCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
 import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
 import io.gravitee.apim.core.analytics.model.Aggregation;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
+import io.gravitee.apim.core.analytics.model.Term;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase.Input;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
@@ -36,6 +41,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -100,7 +106,7 @@ class SearchHistogramAnalyticsUseCaseTest {
         var expectedBuckets = List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket("name", "field", Map.of()));
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
-        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.empty());
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.empty(), null);
         var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
         assertThat(output).isNotNull();
@@ -121,7 +127,7 @@ class SearchHistogramAnalyticsUseCaseTest {
         var expectedBuckets = List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.MetricBucket("name", "field", List.of()));
         analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
 
-        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.of(queryString));
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, aggregations, Optional.of(queryString), null);
         var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
         assertThat(output).isNotNull();
@@ -130,9 +136,103 @@ class SearchHistogramAnalyticsUseCaseTest {
     }
 
     @Test
+    void shouldReturnTopValueHitsForANativeAPI() {
+        apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
+        GraviteeContext.setCurrentEnvironment("environment-id");
+        Map<String, Map<String, List<Long>>> analytics = new HashMap<>();
+        analytics.put("downstream-active-connections_latest", Map.of("downstream-active-connections", List.of(1L)));
+        analytics.put("upstream-active-connections_latest", Map.of("upstream-active-connections", List.of(1L)));
+        analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
+        var input = new SearchHistogramAnalyticsUseCase.Input(MY_API, from, to, interval, List.of(), Optional.empty(), null);
+
+        var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        List<HistogramAnalytics.Bucket> buckets = result.values();
+        assertFalse(buckets.isEmpty());
+        assertEquals(2, buckets.size());
+        HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
+        assertEquals("downstream-active-connections", bucket0.getField());
+        assertEquals("downstream-active-connections_latest", bucket0.getName());
+        assertEquals(1L, bucket0.getValues().getFirst());
+        HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
+        assertEquals("upstream-active-connections", bucket1.getField());
+        assertEquals("upstream-active-connections_latest", bucket1.getName());
+        assertEquals(1L, bucket1.getValues().getFirst());
+    }
+
+    @Test
+    void shouldReturnTopDeltaHitsForANativeAPI() {
+        apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
+        GraviteeContext.setCurrentEnvironment("environment-id");
+        Map<String, Map<String, List<Long>>> analytics = new HashMap<>();
+        analytics.put("downstream-subscribe-message-bytes_delta", Map.of("downstream-subscribe-message-bytes", List.of(1432142112L)));
+        analytics.put("upstream-subscribe-message-bytes_delta", Map.of("upstream-subscribe-message-bytes", List.of(12321213L)));
+        analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
+        var input = new SearchHistogramAnalyticsUseCase.Input(MY_API, from, to, interval, List.of(), Optional.empty(), null);
+
+        var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        List<HistogramAnalytics.Bucket> buckets = result.values();
+        assertFalse(buckets.isEmpty());
+        assertEquals(2, buckets.size());
+        HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
+        assertEquals("downstream-subscribe-message-bytes", bucket0.getField());
+        assertEquals("downstream-subscribe-message-bytes_delta", bucket0.getName());
+        assertEquals(1432142112L, bucket0.getValues().getFirst());
+        HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
+        assertEquals("upstream-subscribe-message-bytes", bucket1.getField());
+        assertEquals("upstream-subscribe-message-bytes_delta", bucket1.getName());
+        assertEquals(12321213L, bucket1.getValues().getFirst());
+    }
+
+    @Test
+    void shouldReturnTopTrendsForANativeAPI() {
+        apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
+        GraviteeContext.setCurrentEnvironment("environment-id");
+        Map<String, Map<String, List<Long>>> analytics = new HashMap<>();
+        analytics.put("downstream-subscribe-message-bytes_delta", Map.of("downstream-subscribe-message-bytes", List.of(100L, 193L, 121L)));
+        analytics.put("upstream-subscribe-message-bytes_delta", Map.of("upstream-subscribe-message-bytes", List.of(100L, 193L, 121L)));
+        analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
+        Term appIdFilter = new Term("app-id", "xxx-xxx-xxx");
+        Term planIdFilter = new Term("plan-id", "yyy-yyy-yyy");
+        var input = new SearchHistogramAnalyticsUseCase.Input(
+            MY_API,
+            from,
+            to,
+            interval,
+            List.of(),
+            Optional.empty(),
+            Optional.of(List.of(appIdFilter, planIdFilter))
+        );
+
+        var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        List<HistogramAnalytics.Bucket> buckets = result.values();
+        assertFalse(buckets.isEmpty());
+        assertEquals(2, buckets.size());
+        HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
+        assertEquals("downstream-subscribe-message-bytes", bucket0.getField());
+        assertEquals("downstream-subscribe-message-bytes_delta", bucket0.getName());
+        assertEquals(List.of(100L, 193L, 121L), bucket0.getValues());
+        HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
+        assertEquals("upstream-subscribe-message-bytes", bucket1.getField());
+        assertEquals("upstream-subscribe-message-bytes_delta", bucket1.getName());
+        assertEquals(List.of(100L, 193L, 121L), bucket1.getValues());
+    }
+
+    @Test
     void shouldThrowWhenApiNotV4() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty(), null);
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
@@ -140,7 +240,7 @@ class SearchHistogramAnalyticsUseCaseTest {
     @Test
     void shouldThrowWhenTcpProxy() {
         apiCrudService.initWith(List.of(ApiFixtures.aTcpApiV4()));
-        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty(), null);
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(TcpProxyNotSupportedException.class);
     }
@@ -148,7 +248,7 @@ class SearchHistogramAnalyticsUseCaseTest {
     @Test
     void shouldThrowWhenApiNotInEnvironment() {
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("definitely not" + ENV_ID).build()));
-        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty());
+        var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty(), null);
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
     }
@@ -159,7 +259,7 @@ class SearchHistogramAnalyticsUseCaseTest {
         long from = 2000L;
         long to = 1000L;
         long interval = 100L;
-        var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of(), Optional.empty());
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of(), Optional.empty(), null);
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(IllegalTimeRangeException.class);
     }
@@ -176,7 +276,8 @@ class SearchHistogramAnalyticsUseCaseTest {
             to,
             interval,
             List.of(new Aggregation("api-id", Aggregation.AggregationType.FIELD)),
-            Optional.empty()
+            Optional.empty(),
+            null
         );
         var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
         var expectedBuckets = List.of(

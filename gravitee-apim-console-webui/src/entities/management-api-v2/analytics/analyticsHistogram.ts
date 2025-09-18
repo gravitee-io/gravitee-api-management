@@ -19,6 +19,9 @@ export enum AggregationTypes {
   MIN = 'MIN',
   AVG = 'AVG',
   FIELD = 'FIELD',
+  VALUE = 'VALUE',
+  DELTA = 'DELTA',
+  TREND = 'TREND',
 }
 
 export enum AggregationFields {
@@ -26,6 +29,20 @@ export enum AggregationFields {
   STATUS = 'status',
   GATEWAY_RESPONSE_TIME_MS = 'gateway-response-time-ms',
   ENDPOINT_RESPONSE_TIME_MS = 'endpoint-response-time-ms',
+  DOWNSTREAM_ACTIVE_CONNECTIONS = 'downstream-active-connections',
+  UPSTREAM_ACTIVE_CONNECTIONS = 'upstream-active-connections',
+  DOWNSTREAM_AUTHENTICATION_FAILURES_TOTAL = 'downstream-authentication-failures-total',
+  DOWNSTREAM_AUTHENTICATION_SUCCESSES_TOTAL = 'downstream-authentication-successes-total',
+  UPSTREAM_AUTHENTICATION_FAILURES_TOTAL = 'upstream-authentication-failures-total',
+  UPSTREAM_AUTHENTICATION_SUCCESSES_TOTAL = 'upstream-authentication-successes-total',
+  DOWNSTREAM_PUBLISH_MESSAGES_TOTAL = 'downstream-publish-messages-total',
+  UPSTREAM_PUBLISH_MESSAGES_TOTAL = 'upstream-publish-messages-total',
+  DOWNSTREAM_PUBLISH_MESSAGE_BYTES = 'downstream-publish-message-bytes',
+  UPSTREAM_PUBLISH_MESSAGE_BYTES = 'upstream-publish-message-bytes',
+  UPSTREAM_SUBSCRIBE_MESSAGES_TOTAL = 'upstream-subscribe-messages-total',
+  DOWNSTREAM_SUBSCRIBE_MESSAGES_TOTAL = 'downstream-subscribe-messages-total',
+  UPSTREAM_SUBSCRIBE_MESSAGE_BYTES = 'upstream-subscribe-message-bytes',
+  DOWNSTREAM_SUBSCRIBE_MESSAGE_BYTES = 'downstream-subscribe-message-bytes',
 }
 
 export interface AnalyticsHistogramAggregation {

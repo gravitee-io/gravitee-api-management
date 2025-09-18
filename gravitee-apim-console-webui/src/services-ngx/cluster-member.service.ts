@@ -20,6 +20,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
+import { TransferOwnership } from '../management/clusters/details/user-permissions/transfer-ownership/cluster-transfer-ownership-dialog.component';
 
 @Injectable({
   providedIn: 'root',
@@ -29,10 +30,6 @@ export class ClusterMemberService {
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
-
-  getPermissions(clusterId: string): Observable<Record<string, string>> {
-    return this.http.get<Record<string, string>>(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/members/permissions`);
-  }
 
   getMembers(clusterId: string, page = 1, perPage = 10): Observable<MembersResponse> {
     return this.http.get<MembersResponse>(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/members`, {
@@ -53,5 +50,9 @@ export class ClusterMemberService {
 
   deleteMember(clusterId: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/members/${memberId}`);
+  }
+
+  transferOwnership(clusterId: string, transferOwnership: TransferOwnership): Observable<any> {
+    return this.http.post(`${this.constants.env.v2BaseURL}/clusters/${clusterId}/members/_transfer-ownership`, transferOwnership);
   }
 }

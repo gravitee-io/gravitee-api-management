@@ -545,7 +545,7 @@ jobs:
           root: .
           paths:
             - gravitee-apim-console-webui/storybook-static
-            - gravitee-apim-portal-webui-next/dist
+            - gravitee-apim-console-webui/dist-lib
   job-console-webui-chromatic-deployment:
     docker:
       - image: cimg/node:20.11.1

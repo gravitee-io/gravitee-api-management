@@ -28,6 +28,7 @@ export enum ApimFeature {
   APIM_POLICY_V2 = 'apim-policy-v2',
   APIM_SCHEMA_REGISTRY_PROVIDER = 'apim-en-schema-registry-provider',
   APIM_EN_MESSAGE_REACTOR = 'apim-en-message-reactor',
+  APIM_CLUSTER = 'apim-cluster',
   ALERT_ENGINE = 'alert-engine',
   FEDERATION = 'federation',
 }
@@ -150,6 +151,13 @@ export const getFeatureInfoData = (ctaConfig: CTAConfiguration): Record<ApimFeat
       title,
       image: 'assets/gio-ee-unlock-dialog/alert-engine.svg',
       description: `Alert Engine allows you to isolate, understand and remediate for API performance and security risks before they cause a problem for your customers.`,
+      trialButtonLabel,
+      hideDays,
+    },
+    [ApimFeature.APIM_CLUSTER]: {
+      title,
+      image: 'assets/gio-ee-unlock-dialog/clusters.svg',
+      description: `Cluster is part of ${ee}. Accelerate and standardize event-driven development by allowing you to configure, manage permissions for, and reuse your event-broker clusters as centrally-governed assets.`,
       trialButtonLabel,
       hideDays,
     },

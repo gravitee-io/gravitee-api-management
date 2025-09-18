@@ -14,37 +14,96 @@
  * limitations under the License.
  */
 
-/**
-Global variables
- */
+// ============================================================================
+// Global variables
+// ============================================================================
 
+// -- Typography --
 $font-family: var(--gio-app-font-family);
-$background-color: var(--gio-app-background-color);
-$nav-bar-background-color: var(--gio-app-nav-bar-container-color, color-mix(in srgb, $background-color, transparent 20%));
-$card-background-color: var(--gio-app-card-background-color);
-$card-container-shape: var(--gio-app-card-container-shape, 4px);
-$button-container-shape: var(--gio-app-button-container-shape, 4px);
 $default-text-color: var(--gio-app-font-color, #1d192b);
 $default-text-contrast-color: var(--gio-app-font-contrast-color, #fff);
 $paragraph-color: color-mix(in srgb, $default-text-color 75%, transparent);
 
-// HSL values calculated in theme.service.ts
+// -- Theme Color Palette calculated by a theme service --
+$background-color: var(--gio-app-background-color, #f7f8fd);
 $primary-main-color: var(--gio-app-primary-main-color);
 $secondary-main-color: var(--gio-app-secondary-main-color);
 $tertiary-main-color: var(--gio-app-tertiary-main-color);
 $error-main-color: var(--gio-app-error-main-color);
 
-/**
-Component variables
- */
-$banner-background-color: var(--mdc-list-list-item-leading-avatar-color);
+// -- Shapes --
+$container-shape: 4px;
+
+// ============================================================================
+// Component-Specific variables
+// ============================================================================
+
+// -- Cards --
+$card-container-shape: var(--gio-app-card-container-shape, $container-shape);
+$card-border-width: var(--gio-app-card-outline-width);
+$card-border-color: var(--gio-app-card-outline-color, #c9c4d0);
+$card-background-color: var(--gio-app-card-background-color);
+$card-text-color: var(--gio-app-card-text-color);
+$card-elevation: var(--gio-app-card-elevation);
+
+// -- Nav Bar --
+$nav-bar-background-color: var(--gio-app-nav-bar-container-color, $background-color);
+$nav-bar-link-padding: var(--gio-app-nav-bar-link-padding);
+$nav-bar-link-color: var(--gio-app-nav-bar-link-color);
+$nav-bar-link-active-color: var(--gio-app-nav-bar-link-active-color, $primary-main-color);
+$nav-bar-link-active-background-color: var(
+  --gio-app-nav-bar-link-active-container-color,
+  color-mix(in srgb, $nav-bar-link-active-color, transparent 90%)
+);
+$nav-bar-border-color: var(--gio-app-nav-bar-outline-color, #c7c7c7);
+$nav-bar-elevation: var(--gio-app-nav-bar-elevation);
+
+// -- Banner --
+$banner-background-color: var(--gio-app-banner-container-color, var(--mdc-list-list-item-leading-avatar-color));
+$banner-text-color: var(--gio-app-banner-text-color, var(--mdc-outlined-text-field-focus-label-text-color));
 $banner-error-background-color: color-mix(in srgb, $error-main-color 16%, $card-background-color);
-$banner-text-color: var(--mdc-outlined-text-field-focus-label-text-color);
 $banner-error-text-color: $error-main-color;
-$chip-background: var(--gio-app-chip-container-color, $card-background-color);
-$table-border-color: color-mix(in srgb, $secondary-main-color 35%, transparent);
+
+// -- User Avatar --
+$user-avatar-height: var(--gio-app-user-avatar-height);
+$user-avatar-container-shape: var(--gio-app-user-avatar-container-shape, $container-shape);
+$user-avatar-border-color: var(--gio-app-user-avatar-outline-color, $nav-bar-border-color);
+$user-avatar-text-color: var(--gio-app-user-avatar-text-color, $banner-text-color);
+$user-avatar-text-transform: var(--gio-app-user-avatar-text-transform, uppercase);
+
+// -- Buttons --
+// Outlined Button
+$button-outlined-text-transform: var(--gio-app-button-outlined-text-transform);
+$button-outlined-text-color: var(--gio-app-button-outlined-text-color, $banner-text-color);
+$button-outlined-border-width: var(--gio-app-button-outlined-outline-width, 1px);
+$button-outlined-border-color: var(--gio-app-button-outlined-outline-color, #79757f);
+$button-outlined-container-shape: var(--gio-app-button-outlined-container-shape, $container-shape);
+
+// Filled Button
+$button-filled-container-color: var(--gio-app-button-filled-container-color, $banner-text-color);
+$button-filled-text-transform: var(--gio-app-button-filled-text-transform);
+$button-filled-text-color: var(--gio-app-button-filled-text-color, $default-text-contrast-color);
+$button-filled-container-shape: var(--gio-app-button-filled-container-shape, $container-shape);
+
+// Text Button
+$button-text-text-transform: var(--gio-app-button-text-text-transform);
+$button-text-text-color: var(--gio-app-button-text-text-color);
+$button-text-container-shape: var(--gio-app-button-text-container-shape, $container-shape);
+
+// -- Search Bar --
+$search-bar-container-shape: var(--gio-app-search-bar-container-shape, $container-shape);
+$search-bar-border-color: var(--gio-app-search-bar-outline-color);
+$search-bar-icon-color: var(--gio-app-search-bar-icon-color, $primary-main-color);
+$search-bar-input-text-color: var(--gio-app-search-bar-input-text-color);
+
+// -- Table --
+$table-border-color: var(--gio-app-table-outline-color, color-mix(in srgb, $secondary-main-color 35%, transparent));
+$table-border-radius: var(--gio-app-table-container-shape, $container-shape);
 $table-header-background-color: var(--gio-app-table-header-container-color, $secondary-main-color);
-$table-border-radius: var(--gio-app-table-container-shape, 4px);
+$table-body-background-color: var(--gio-app-table-body-container-color, $card-background-color);
+$table-header-headline-color: var(--gio-app-table-header-headline-color, $default-text-contrast-color);
+
+// -- Other Components --
+$chip-background: var(--gio-app-chip-container-color, $card-background-color);
 $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%, $card-background-color);
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
-$search-bar-container-shape: var(--gio-app-search-bar-container-shape, 4px);

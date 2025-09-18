@@ -23,6 +23,11 @@ import {
 } from '../../../../../../shared/components/gio-widget-layout/gio-widget-layout.component';
 import { GioChartPieInput } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
+import {
+  GioChartBarData,
+  GioChartBarOptions,
+  GioChartBarComponent,
+} from '../../../../../../shared/components/gio-chart-bar/gio-chart-bar.component';
 import { GioChartPieModule } from '../../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { GioChartLineModule } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.module';
 import {
@@ -31,6 +36,10 @@ import {
   ApiAnalyticsWidgetTableRowData,
 } from '../api-analytics-widget-table/api-analytics-widget-table.component';
 import { AnalyticsStatsComponent, StatsWidgetData } from '../../../../../../shared/components/analytics-stats/analytics-stats.component';
+import {
+  AnalyticsMultiStatsComponent,
+  MultiStatsWidgetData,
+} from '../../../../../../shared/components/analytics-multi-stats/analytics-multi-stats.component';
 
 type PieWidgetData = GioChartPieInput[];
 type LineWidgetData = { data: GioChartLineData[]; options?: GioChartLineOptions };
@@ -41,6 +50,7 @@ export type TableWidgetData = {
   firstColumnClickable?: boolean;
   relativePath?: string;
 };
+type BarWidgetData = { data: GioChartBarData[]; options?: GioChartBarOptions };
 
 interface BaseApiAnalyticsWidgetConfig {
   title: string;
@@ -54,6 +64,11 @@ type ApiAnalyticsWidgetStatsConfig = BaseApiAnalyticsWidgetConfig & {
   widgetData: StatsWidgetData;
 };
 
+type ApiAnalyticsWidgetMultiStatsConfig = BaseApiAnalyticsWidgetConfig & {
+  widgetType: 'multi-stats';
+  widgetData: MultiStatsWidgetData;
+};
+
 type ApiAnalyticsWidgetPieConfig = BaseApiAnalyticsWidgetConfig & {
   widgetType: 'pie';
   widgetData: PieWidgetData;
@@ -64,6 +79,11 @@ type ApiAnalyticsWidgetLineConfig = BaseApiAnalyticsWidgetConfig & {
   widgetData: LineWidgetData;
 };
 
+type ApiAnalyticsWidgetBarConfig = BaseApiAnalyticsWidgetConfig & {
+  widgetType: 'bar';
+  widgetData: BarWidgetData;
+};
+
 export type ApiAnalyticsWidgetTableConfig = BaseApiAnalyticsWidgetConfig & {
   widgetType: 'table';
   widgetData: TableWidgetData;
@@ -71,10 +91,12 @@ export type ApiAnalyticsWidgetTableConfig = BaseApiAnalyticsWidgetConfig & {
 
 export type ApiAnalyticsWidgetConfig =
   | ApiAnalyticsWidgetStatsConfig
+  | ApiAnalyticsWidgetMultiStatsConfig
   | ApiAnalyticsWidgetPieConfig
   | ApiAnalyticsWidgetLineConfig
+  | ApiAnalyticsWidgetBarConfig
   | ApiAnalyticsWidgetTableConfig;
-export type ApiAnalyticsWidgetType = 'pie' | 'line' | 'table' | 'stats';
+export type ApiAnalyticsWidgetType = 'pie' | 'line' | 'bar' | 'table' | 'stats' | 'multi-stats';
 
 @Component({
   selector: 'api-analytics-widget',
@@ -82,9 +104,11 @@ export type ApiAnalyticsWidgetType = 'pie' | 'line' | 'table' | 'stats';
     GioWidgetLayoutComponent,
     GioChartPieModule,
     GioChartLineModule,
+    GioChartBarComponent,
     ApiAnalyticsWidgetTableComponent,
     NgClass,
     AnalyticsStatsComponent,
+    AnalyticsMultiStatsComponent,
   ],
   templateUrl: './api-analytics-widget.component.html',
   styleUrl: './api-analytics-widget.component.scss',
@@ -101,6 +125,11 @@ export class ApiAnalyticsWidgetComponent {
     return currentConfig.widgetType === 'stats' ? currentConfig.widgetData : null;
   });
 
+  multiStatsData: Signal<MultiStatsWidgetData | null> = computed(() => {
+    const currentConfig = this.config();
+    return currentConfig.widgetType === 'multi-stats' ? currentConfig.widgetData : null;
+  });
+
   pieData: Signal<PieWidgetData | null> = computed(() => {
     const currentConfig = this.config();
     return currentConfig.widgetType === 'pie' ? currentConfig.widgetData : null;
@@ -109,6 +138,11 @@ export class ApiAnalyticsWidgetComponent {
   lineData: Signal<LineWidgetData | null> = computed(() => {
     const currentConfig = this.config();
     return currentConfig.widgetType === 'line' ? currentConfig.widgetData : null;
+  });
+
+  barData: Signal<BarWidgetData | null> = computed(() => {
+    const currentConfig = this.config();
+    return currentConfig.widgetType === 'bar' ? currentConfig.widgetData : null;
   });
 
   tableData: Signal<TableWidgetData | null> = computed(() => {

@@ -15,7 +15,9 @@
  */
 package io.gravitee.apim.core.membership.domain_service;
 
+import io.gravitee.apim.core.membership.model.TransferOwnership;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Map;
 
@@ -26,4 +28,5 @@ public interface MembershipDomainService {
         String referenceId,
         String userId
     );
+    void transferOwnership(TransferOwnership transferOwnership, RoleScope roleScope, String itemId);
 }

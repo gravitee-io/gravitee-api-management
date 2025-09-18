@@ -84,6 +84,29 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="diagnostics">
+      <th mat-header-cell *matHeaderCellDef id="diagnostics">Diagnostics</th>
+      <td mat-cell *matCellDef="let log">
+        <div class="diagnostics-container">
+          <!-- Error indicator -->
+          @if (log.errorKey) {
+            <span class="gio-badge-error" matTooltip="{{ log.errorKey }}">
+              <mat-icon svgIcon="gio:alert-circle"></mat-icon>
+            </span>
+          }
+          <!-- Warning indicator -->
+          @if (log.warnings && log.warnings.length > 0) {
+            <span
+              class="gio-badge-warning"
+              matTooltip="{{ log.warnings.length === 1 ? log.warnings[0].key : log.warnings.length + ' warning(s)' }}"
+            >
+              <mat-icon svgIcon="gio:alert-circle"></mat-icon>
+            </span>
+          }
+        </div>
+      </td>
+    </ng-container>
+
     <!-- Actions Column -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef id="actions"></th>

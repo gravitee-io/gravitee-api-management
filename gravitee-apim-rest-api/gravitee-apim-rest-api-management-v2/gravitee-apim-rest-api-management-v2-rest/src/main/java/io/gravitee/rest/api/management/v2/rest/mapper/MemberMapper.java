@@ -30,6 +30,7 @@ public interface MemberMapper {
 
     Member map(MemberEntity memberEntity);
     MemberEntity map(Member member);
+    Member map(io.gravitee.apim.core.member.model.Member member);
 
     Set<Member> map(Set<MemberEntity> memberEntityCollection);
 

@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
 import io.gravitee.apim.core.event.use_case.CleanupEventsUseCase;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import java.time.Duration;
@@ -38,6 +39,7 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
     private final OrganizationService organizationService;
     private final EnvironmentService environmentService;
     private final TaskScheduler scheduler;
+    private final ClusterManager clusterManager;
 
     private final String cronTrigger;
     private final int eventsKeep;
@@ -50,6 +52,7 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
         OrganizationService organizationService,
         EnvironmentService environmentService,
         @Qualifier("eventsCleaningTaskScheduler") TaskScheduler scheduler,
+        ClusterManager clusterManager,
         @Value("${services.events.cron:@daily}") String cronTrigger,
         @Value("${services.events.keep:5}") int eventsKeep,
         @Value("${services.events.enabled:false}") boolean enabled,
@@ -59,6 +62,7 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
         this.organizationService = organizationService;
         this.environmentService = environmentService;
         this.scheduler = scheduler;
+        this.clusterManager = clusterManager;
         this.cronTrigger = cronTrigger;
         this.eventsKeep = eventsKeep;
         this.enabled = enabled;
@@ -67,12 +71,14 @@ public class ScheduledEventsCleaningService extends AbstractService implements R
 
     @Override
     protected void doStart() throws Exception {
-        if (enabled) {
-            super.doStart();
-            logger.info("Event cleaner service has been initialized with cron [{}]", cronTrigger);
-            scheduler.schedule(this, new CronTrigger(cronTrigger));
-        } else {
-            logger.warn("Event cleaner Refresher service has been disabled");
+        if (clusterManager.self().primary()) {
+            if (enabled) {
+                super.doStart();
+                logger.info("Event cleaner service has been initialized with cron [{}]", cronTrigger);
+                scheduler.schedule(this, new CronTrigger(cronTrigger));
+            } else {
+                logger.warn("Event cleaner Refresher service has been disabled");
+            }
         }
     }
 

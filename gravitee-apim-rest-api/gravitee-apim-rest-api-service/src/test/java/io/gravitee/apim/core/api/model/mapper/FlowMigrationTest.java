@@ -19,7 +19,11 @@ import static io.gravitee.apim.core.api.model.utils.MigrationResultUtils.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
+import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
@@ -28,16 +32,20 @@ import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class FlowMigrationTest {
 
-    private final FlowMigration cut = new FlowMigration();
+    private final FlowMigration cut = new FlowMigration(JsonMapperFactory.build());
 
     @Test
     void should_map_a_simple_flow() {
@@ -115,7 +123,7 @@ class FlowMigrationTest {
         assertThrows(NullPointerException.class, () -> get(result));
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
-            .containsExactly("Policy cloud-events is not compatible with V4 APIs");
+            .containsExactly(MigrationWarnings.POLICY_NOT_COMPATIBLE.formatted("cloud-events"));
         assertThat(result.issues()).map(MigrationResult.Issue::state).containsExactly(MigrationResult.State.IMPOSSIBLE);
     }
 
@@ -131,9 +139,7 @@ class FlowMigrationTest {
         assertThat(get(result)).isNotNull();
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
-            .containsExactly(
-                "Policy unknown-policy is not a Gravitee policy. Please ensure it is compatible with V4 API before migrating to V4"
-            );
+            .containsExactly(MigrationWarnings.NON_GRAVITEE_POLICY.formatted("unknown-policy"));
         assertThat(result.issues()).map(MigrationResult.Issue::state).containsExactly(MigrationResult.State.CAN_BE_FORCED);
     }
 
@@ -195,5 +201,108 @@ class FlowMigrationTest {
 
         assertThat(get(result)).map(AbstractFlow::getName).containsExactly("flow1", "flow2");
         assertThat(result.issues()).isEmpty();
+    }
+
+    @Nested
+    class GroovyPolicy {
+
+        private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+        private static final String GROOVY_SCRIPT = "println(Hello World);";
+        private static final Collection<String> OLD_KEYS = List.of(
+            "onRequestContentScript",
+            "onResponseContentScript",
+            "onRequestScript",
+            "onResponseScript"
+        );
+
+        @ParameterizedTest
+        @CsvSource(
+            delimiterString = "|",
+            textBlock = """
+        onRequestContentScript  | true        | true
+        onRequestScript         | false       | false
+        onResponseContentScript | true        | true
+        onResponseScript        | false       | false
+        """
+        )
+        void should_map_the_configuration(String inputField, boolean expectedReadContent, boolean expectedOverrideContent)
+            throws Exception {
+            // Given
+            var v2Flow = buildV2Flow(
+                """
+                    {
+                      "%s" : "%s",
+                      "scope" : "REQUEST"
+                    }
+                    """.formatted(
+                        inputField,
+                        GROOVY_SCRIPT
+                    )
+            );
+
+            // When
+            var result = get(cut.mapFlow(v2Flow));
+
+            // Then
+            JsonNode jsonNode = OBJECT_MAPPER.readTree(result.getRequest().getFirst().getConfiguration());
+            assertThat(jsonNode.get("scope").asText()).isEqualTo("REQUEST");
+            assertThat(jsonNode.get("script").asText()).isEqualTo(GROOVY_SCRIPT);
+            assertThat(jsonNode.get("readContent").asBoolean()).isEqualTo(expectedReadContent);
+            assertThat(jsonNode.get("overrideContent").asBoolean()).isEqualTo(expectedOverrideContent);
+            for (var key : OLD_KEYS) {
+                assertThat(jsonNode.has(key)).isFalse();
+            }
+        }
+
+        @Test
+        void impossible_to_parse_configuration() {
+            // Given
+            var v2Flow = buildV2Flow("""
+                    {
+                      "%s" : "%s
+                    """);
+
+            // When
+            var result = cut.mapFlow(v2Flow);
+
+            // Then
+            assertThat(result.issues()).hasSize(1);
+            assertThat(result.issues().iterator().next().message()).startsWith(MigrationWarnings.GROOVY_PARSE_ERROR);
+            assertThat(result.issues().iterator().next().state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+        }
+
+        @Test
+        void bad_policy_configuration() {
+            // Given
+            var v2Flow = buildV2Flow(
+                """
+                    {
+                      "onRequestContentScript" : "%s",
+                      "onRequestScript" : "%s",
+                      "scope" : "REQUEST"
+                    }
+                    """.formatted(
+                        GROOVY_SCRIPT,
+                        GROOVY_SCRIPT
+                    )
+            );
+
+            // When
+            var result = cut.mapFlow(v2Flow);
+
+            // Then
+            assertThat(result.issues()).hasSize(1);
+            assertThat(result.issues().iterator().next().message()).startsWith(MigrationWarnings.GROOVY_MULTIPLE_SCRIPTS);
+            assertThat(result.issues().iterator().next().state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+        }
+
+        private Flow buildV2Flow(String groovyPolicyCfg) {
+            var v2Flow = new Flow();
+            var step = new Step();
+            step.setPolicy("groovy");
+            step.setConfiguration(groovyPolicyCfg);
+            v2Flow.setPre(List.of(step));
+            return v2Flow;
+        }
     }
 }

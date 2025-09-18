@@ -96,8 +96,8 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
         if (apiEntity.getDefinitionVersion() == null || apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             switch (event.type()) {
-                case DEPLOY -> startDynamicProperties(apiEntity);
-                case UNDEPLOY -> stopDynamicProperties(apiEntity);
+                case DEPLOY, START_DYNAMIC_PROPERTY_V2 -> startDynamicProperties(apiEntity);
+                case UNDEPLOY, STOP_DYNAMIC_PROPERTY_V2 -> stopDynamicProperties(apiEntity);
                 case UPDATE -> update(apiEntity);
             }
         } else {
@@ -135,7 +135,6 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
             // API is not started so do not start dynamic properties
             return;
         }
-
         DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
         if (dynamicPropertyService == null || !dynamicPropertyService.isEnabled()) {
             log.info("{} Dynamic properties service is disabled for API: {} [{}]", api.getId(), api.getName(), api.getVersion());

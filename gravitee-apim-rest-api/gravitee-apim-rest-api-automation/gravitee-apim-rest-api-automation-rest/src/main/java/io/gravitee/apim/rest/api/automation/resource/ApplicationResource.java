@@ -75,14 +75,11 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private ApplicationMetadataCrudService applicationMetadataCrudService;
 
-    @PathParam("hrid")
-    private String hrid;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = { RolePermissionAction.READ }) })
-    public Response getApplicationByHRID(@QueryParam("legacy") boolean legacy) {
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = { RolePermissionAction.READ }) })
+    public Response getApplicationByHRID(@PathParam("hrid") String hrid, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             ApplicationEntity applicationEntity = applicationService.findById(
@@ -146,8 +143,8 @@ public class ApplicationResource extends AbstractResource {
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApplicationByHrid(@QueryParam("legacy") boolean legacy) {
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
+    public Response deleteApplicationByHrid(@PathParam("hrid") String hrid, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {

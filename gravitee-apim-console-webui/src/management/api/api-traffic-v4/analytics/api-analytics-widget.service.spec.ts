@@ -927,6 +927,100 @@ describe('ApiAnalyticsWidgetService', () => {
 
         expectHistogramRequest('FIELD:application-id', mockHistogramResponse);
       });
+
+      it('should transform authentication histogram data into combined bar chart format', (done) => {
+        const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
+          type: 'bar',
+          apiId: API_ID,
+          title: 'Authentication Success vs Failure',
+          tooltip: 'Authentication success and failure over time',
+          analyticsType: 'HISTOGRAM',
+          aggregations: [
+            {
+              type: AggregationTypes.TREND,
+              field: AggregationFields.DOWNSTREAM_AUTHENTICATION_SUCCESSES_TOTAL,
+              label: 'Downstream Success',
+            },
+            {
+              type: AggregationTypes.TREND,
+              field: AggregationFields.DOWNSTREAM_AUTHENTICATION_FAILURES_TOTAL,
+              label: 'Downstream Failure',
+            },
+            {
+              type: AggregationTypes.TREND,
+              field: AggregationFields.UPSTREAM_AUTHENTICATION_SUCCESSES_TOTAL,
+              label: 'Upstream Success',
+            },
+            {
+              type: AggregationTypes.TREND,
+              field: AggregationFields.UPSTREAM_AUTHENTICATION_FAILURES_TOTAL,
+              label: 'Upstream Failure',
+            },
+          ],
+        };
+
+        const mockHistogramResponse: HistogramAnalyticsResponse = {
+          analyticsType: 'HISTOGRAM',
+          timestamp: { from: 1000, to: 2000, interval: 100 },
+          values: [
+            {
+              field: 'downstream-authentication-failures-total',
+              name: 'downstream-authentication-failures-total',
+              buckets: [{ name: 'all', data: [2, 4, 3] }],
+            },
+            {
+              field: 'upstream-authentication-failures-total',
+              name: 'upstream-authentication-failures-total',
+              buckets: [{ name: 'all', data: [1, 2, 1] }],
+            },
+            {
+              field: 'upstream-authentication-successes-total',
+              name: 'upstream-authentication-successes-total',
+              buckets: [{ name: 'all', data: [5, 8, 6] }],
+            },
+            {
+              field: 'downstream-authentication-successes-total',
+              name: 'downstream-authentication-successes-total',
+              buckets: [{ name: 'all', data: [10, 20, 15] }],
+            },
+          ],
+        };
+
+        service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe((result) => {
+          if (result.state === 'loading') return;
+          if (result.widgetType === 'bar') {
+            expect(result.state).toBe('success');
+            expect(result.widgetType).toBe('bar');
+            expect(result.title).toBe('Authentication Success vs Failure');
+
+            const barData = result.widgetData.data;
+            expect(barData).toHaveLength(2); // Success and Failure
+
+            // Verify combined data: Success = Downstream + Upstream
+            expect(barData[0].name).toBe('Success');
+            expect(barData[0].values).toEqual([15, 28, 21]);
+            expect(barData[0].color).toBeDefined();
+
+            // Verify combined data: Failure = Downstream + Upstream
+            expect(barData[1].name).toBe('Failure');
+            expect(barData[1].values).toEqual([3, 6, 4]);
+            expect(barData[1].color).toBeDefined();
+
+            // Verify chart options
+            const options = result.widgetData.options;
+            expect(options.stacked).toBe(true);
+            expect(options.reverseStack).toBe(true);
+            expect(options.categories).toHaveLength(3);
+          }
+
+          done();
+        });
+
+        expectHistogramRequest(
+          'TREND:downstream-authentication-successes-total,TREND:downstream-authentication-failures-total,TREND:upstream-authentication-successes-total,TREND:upstream-authentication-failures-total',
+          mockHistogramResponse,
+        );
+      });
     });
 
     describe('error handling', () => {

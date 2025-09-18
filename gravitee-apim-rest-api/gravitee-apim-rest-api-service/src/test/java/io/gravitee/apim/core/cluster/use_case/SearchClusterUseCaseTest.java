@@ -17,14 +17,22 @@ package io.gravitee.apim.core.cluster.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
 import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -35,18 +43,19 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
 
     private final ClusterQueryServiceInMemory clusterQueryService = new ClusterQueryServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private SearchClusterUseCase searchClusterUseCase;
 
     @BeforeEach
     void setUp() {
-        searchClusterUseCase = new SearchClusterUseCase(clusterQueryService, membershipQueryService);
+        searchClusterUseCase = new SearchClusterUseCase(clusterQueryService, membershipQueryService, permissionDomainService);
         initDb();
     }
 
     @Test
     void should_search_admin_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -61,7 +70,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_search_not_admin_no_pageable_no_sort_by() {
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, false, "member-1"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "member-1"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -74,10 +83,23 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void sould_search_not_admin_no_membership_no_pageable_no_sort_by() {
+        // When
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "unknown-member"));
+        // Then
+        assertAll(
+            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(0),
+            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(0),
+            () -> assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEmpty()
+        );
+    }
+
+    @Test
     void should_search_admin_with_pageable_no_sort_by() {
         Pageable pageable = new PageableImpl(2, 5);
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, pageable, null, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, pageable, null, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
@@ -93,7 +115,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
     void should_search_admin_no_pageable_with_sort_by() {
         String sortBy = "id";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, sortBy, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, sortBy, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
@@ -112,7 +134,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
         Pageable pageable = new PageableImpl(2, 5);
         String sortBy = "id";
         // When
-        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, pageable, sortBy, true, "admin"));
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, pageable, sortBy, true, "admin"));
         // Then
         assertAll(
             () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(2),
@@ -123,6 +145,106 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                     .isEqualTo(
                         initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).toList().subList(5, 10)
                     )
+        );
+    }
+
+    @Test
+    void should_search_with_query() {
+        Pageable pageable = new PageableImpl(1, 10);
+        String query = "Cluster 1";
+        // When
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, query, pageable, null, true, "admin"));
+        // Then
+        assertAll(
+            () -> assertThat(result.pageResult().getPageNumber()).isEqualTo(1),
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
+            () -> assertThat(result.pageResult().getPageElements()).isEqualTo(3),
+            () ->
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
+                    .isEqualTo(List.of("Cluster 1", "Cluster 12", "Cluster 13"))
+        );
+    }
+
+    @Test
+    void should_hide_configuration_when_no_permission() {
+        // When
+        lenient()
+            .when(
+                permissionDomainService.hasPermission(
+                    eq(ORG_ID),
+                    eq("member-1"),
+                    eq(RolePermission.CLUSTER_CONFIGURATION),
+                    argThat(s -> !s.equals("cluster-1")),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+            .thenReturn(false);
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "member-2"));
+        // Then
+        assertAll(
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(1),
+            () -> assertThat(result.pageResult().getContent().get(0).getName()).isEqualTo("2 - Cluster"),
+            () -> assertThat(result.pageResult().getContent().get(0).getConfiguration()).isNull()
+        );
+    }
+
+    @Test
+    void should_show_configuration_when_permission() {
+        // When
+        lenient()
+            .when(
+                permissionDomainService.hasPermission(
+                    eq(ORG_ID),
+                    eq("member-1"),
+                    eq(RolePermission.CLUSTER_CONFIGURATION),
+                    argThat(s -> s.equals("cluster-1")),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+            .thenReturn(true);
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, false, "member-1"));
+        // Then
+        assertAll(
+            () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
+            () ->
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
+                    .containsExactlyInAnyOrder("Cluster 1", "Cluster 4", "Cluster 8"),
+            () ->
+                assertThat(
+                    result
+                        .pageResult()
+                        .getContent()
+                        .stream()
+                        .filter(c -> c.getName().equals("Cluster 1"))
+                        .findFirst()
+                        .get()
+                        .getConfiguration()
+                )
+                    .isNotNull(),
+            () ->
+                assertThat(
+                    result
+                        .pageResult()
+                        .getContent()
+                        .stream()
+                        .filter(c -> c.getName().equals("Cluster 4"))
+                        .findFirst()
+                        .get()
+                        .getConfiguration()
+                )
+                    .isNull(),
+            () ->
+                assertThat(
+                    result
+                        .pageResult()
+                        .getContent()
+                        .stream()
+                        .filter(c -> c.getName().equals("Cluster 8"))
+                        .findFirst()
+                        .get()
+                        .getConfiguration()
+                )
+                    .isNull()
         );
     }
 

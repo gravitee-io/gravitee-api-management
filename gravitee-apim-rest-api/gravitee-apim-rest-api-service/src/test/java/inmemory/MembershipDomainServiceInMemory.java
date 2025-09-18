@@ -17,11 +17,16 @@ package inmemory;
 
 import io.gravitee.apim.core.member.domain_service.MemberDomainService;
 import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
+import io.gravitee.apim.core.membership.model.TransferOwnership;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class MembershipDomainServiceInMemory extends AbstractServiceInMemory<MemberEntity> implements MembershipDomainService {
 
@@ -41,5 +46,51 @@ public class MembershipDomainServiceInMemory extends AbstractServiceInMemory<Mem
             .findFirst()
             .map(MemberEntity::getPermissions)
             .orElse(null);
+    }
+
+    @Override
+    public void transferOwnership(TransferOwnership transferOwnership, RoleScope roleScope, String itemId) {
+        MemberEntity currentPrimaryOwnerMember = storage
+            .stream()
+            .filter(memberEntity -> memberEntity.getReferenceType().equals(MembershipReferenceType.valueOf(roleScope.name())))
+            .filter(memberEntity -> memberEntity.getReferenceId().equals(itemId))
+            .filter(memberEntity ->
+                memberEntity
+                    .getRoles()
+                    .stream()
+                    .anyMatch(role -> role.getScope().equals(roleScope) && role.getName().equals("PRIMARY_OWNER"))
+            )
+            .findAny()
+            .orElseThrow();
+        RoleEntity currentPrimaryOwnerRole = currentPrimaryOwnerMember
+            .getRoles()
+            .stream()
+            .filter(role -> role.getScope().equals(roleScope))
+            .findFirst()
+            .orElseThrow();
+        currentPrimaryOwnerRole.setName(transferOwnership.getCurrentPrimaryOwnerNewRole());
+        Optional<MemberEntity> newPrimaryOwnerMember = storage
+            .stream()
+            .filter(memberEntity -> memberEntity.getReferenceType().equals(MembershipReferenceType.valueOf(roleScope.name())))
+            .filter(memberEntity -> memberEntity.getReferenceId().equals(itemId))
+            .filter(memberEntity -> memberEntity.getId().equals(transferOwnership.getNewPrimaryOwnerId()))
+            .findAny();
+        if (newPrimaryOwnerMember.isPresent()) {
+            RoleEntity newPrimaryOwnerRole = newPrimaryOwnerMember
+                .get()
+                .getRoles()
+                .stream()
+                .filter(role -> role.getScope().equals(roleScope))
+                .findFirst()
+                .orElseThrow();
+            newPrimaryOwnerRole.setName("PRIMARY_OWNER");
+        } else {
+            MemberEntity newPrimaryOwner = new MemberEntity();
+            newPrimaryOwner.setId(transferOwnership.getNewPrimaryOwnerId());
+            newPrimaryOwner.setReferenceType(MembershipReferenceType.valueOf(roleScope.name()));
+            newPrimaryOwner.setReferenceId(itemId);
+            newPrimaryOwner.setRoles(List.of(RoleEntity.builder().name("PRIMARY_OWNER").build()));
+            storage.add(newPrimaryOwner);
+        }
     }
 }

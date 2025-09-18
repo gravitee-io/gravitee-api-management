@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
@@ -24,7 +27,6 @@ import io.gravitee.apim.rest.api.automation.mapper.SharedPolicyGroupMapper;
 import io.gravitee.apim.rest.api.automation.model.LegacySharedPolicyGroupSpec;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -58,7 +60,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { CREATE, UPDATE }) })
     public Response createOrUpdate(
         @Valid @NotNull LegacySharedPolicyGroupSpec spec,
         @QueryParam("dryRun") boolean dryRun,

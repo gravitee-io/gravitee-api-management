@@ -19,10 +19,14 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.domain_service.AnalyticsMetadataProvider;
 import io.gravitee.apim.core.analytics.domain_service.ApiAnalyticsSpecification;
 import io.gravitee.apim.core.analytics.model.Aggregation;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
+import io.gravitee.apim.core.analytics.model.Term;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Duration;
 import java.time.Instant;
@@ -45,21 +49,29 @@ public class SearchHistogramAnalyticsUseCase {
     private final List<AnalyticsMetadataProvider> metadataProviders;
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        ApiAnalyticsSpecification
-            .forSearchHistogramAnalytics()
-            .throwIfNotSatisfied(apiCrudService.get(input.api), executionContext, input.from(), input.to());
+        Api api = apiCrudService.get(input.api);
+        ApiAnalyticsSpecification.forSearchHistogramAnalytics().throwIfNotSatisfied(api, executionContext, input.from(), input.to());
 
+        if (api.getType() == ApiType.NATIVE) {
+            return executeV4NativeAPICase(executionContext, input);
+        }
+
+        return executeV4APICase(executionContext, input);
+    }
+
+    private Output executeV4APICase(ExecutionContext executionContext, Input input) {
         var histogramQuery = new AnalyticsQueryService.HistogramQuery(
             AnalyticsQueryService.SearchTermId.forApi(input.api),
             Instant.ofEpochMilli(input.from()),
             Instant.ofEpochMilli(input.to()),
             Duration.ofMillis(input.interval()),
             input.aggregations(),
-            input.query()
+            input.query(),
+            null
         );
         var result = analyticsQueryService
             .searchHistogramAnalytics(executionContext, histogramQuery)
-            .map(io.gravitee.apim.core.analytics.model.HistogramAnalytics::buckets)
+            .map(HistogramAnalytics::buckets)
             .orElse(List.of());
 
         Map<String, Map<String, Map<String, String>>> metadata = new HashMap<>();
@@ -99,7 +111,50 @@ public class SearchHistogramAnalyticsUseCase {
         );
     }
 
-    public record Input(String api, long from, long to, long interval, List<Aggregation> aggregations, Optional<String> query) {}
+    private Output executeV4NativeAPICase(ExecutionContext executionContext, Input input) {
+        Instant from = Instant.ofEpochMilli(input.from());
+        Instant to = Instant.ofEpochMilli(input.to());
+        var histogramQuery = new AnalyticsQueryService.HistogramQuery(
+            AnalyticsQueryService.SearchTermId.forApi(input.api),
+            from,
+            to,
+            Duration.ofMillis(input.interval()),
+            input.aggregations(),
+            input.query(),
+            (input.terms() != null && input.terms().isPresent()) ? input.terms().get() : List.of()
+        );
+
+        Optional<EventAnalytics> eventAnalytics = analyticsQueryService.searchEventAnalytics(executionContext, histogramQuery);
+        // Dump analytics data into metric buckets.
+        List<HistogramAnalytics.Bucket> buckets = new ArrayList<>();
+        Timestamp timestamp = new Timestamp(from, to, Duration.ofMillis(input.interval()));
+        eventAnalytics.ifPresent(
+            (
+                analytics ->
+                    analytics
+                        .values()
+                        .forEach((aggName, values) -> {
+                            if (!values.isEmpty()) {
+                                String field = values.keySet().iterator().next();
+                                List<Long> valueList = values.get(field);
+                                buckets.add(new HistogramAnalytics.MetricBucket(aggName, field, valueList));
+                            }
+                        })
+            )
+        );
+
+        return new Output(timestamp, buckets, Collections.emptyMap());
+    }
+
+    public record Input(
+        String api,
+        long from,
+        long to,
+        long interval,
+        List<Aggregation> aggregations,
+        Optional<String> query,
+        Optional<List<Term>> terms
+    ) {}
 
     public record Output(
         Timestamp timestamp,

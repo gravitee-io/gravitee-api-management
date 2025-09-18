@@ -39,9 +39,12 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,25 +55,30 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApiResource extends AbstractResource {
 
+    @Context
+    private ResourceContext resourceContext;
+
     @Inject
     private ExportApiCRDUseCase exportApiCRDUseCase;
 
     @Inject
     protected io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
 
-    @PathParam("hrid")
-    private String hrid;
+    @Path("subscriptions")
+    public ApiSubscriptionsResource getSubscriptionsResource() {
+        return resourceContext.getResource(ApiSubscriptionsResource.class);
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
-    public Response getApiByHRID(@QueryParam("legacy") boolean legacy) {
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = { RolePermissionAction.READ }) })
+    public Response getApiByHRID(@PathParam("apiHrid") String apiHrid, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
         var input = new ExportApiCRDUseCase.Input(
-            legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId(),
+            legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId(),
             IDExportStrategy.ALL,
             buildAuditInfo(executionContext, userDetails)
         );
@@ -91,25 +99,25 @@ public class ApiResource extends AbstractResource {
                 )
                 .build();
         } catch (ApiNotFoundException e) {
-            log.warn("API not found for HRID: {}, operation: getApiByHRID", hrid, e);
-            throw new HRIDNotFoundException(hrid);
+            log.warn("API not found for HRID: {}, operation: getApiByHRID", apiHrid, e);
+            throw new HRIDNotFoundException(apiHrid);
         }
     }
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi(@QueryParam("legacy") boolean legacy) {
+    public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
             apiServiceV4.delete(
                 GraviteeContext.getExecutionContext(),
-                legacy ? hrid : IdBuilder.builder(executionContext, hrid).buildId(),
+                legacy ? apiHrid : IdBuilder.builder(executionContext, apiHrid).buildId(),
                 true
             );
         } catch (ApiNotFoundException e) {
-            log.warn("API not found for HRID: {}, operation: deleteApi", hrid, e);
-            throw new HRIDNotFoundException(hrid);
+            log.warn("API not found for HRID: {}, operation: deleteApi", apiHrid, e);
+            throw new HRIDNotFoundException(apiHrid);
         }
         return Response.noContent().build();
     }

@@ -24,12 +24,8 @@ import lombok.Getter;
 @Getter
 public enum ClusterPermission implements Permission {
     DEFINITION("DEFINITION", 1000),
-    USE("USE", 1100),
     ANALYTICS("ANALYTICS", 1200),
-    TOPICS("TOPICS", 1300),
-    CONSUMER_GROUPS("CONSUMER_GROUPS", 1400),
-    MESSAGES("MESSAGES", 1500),
-    GATEWAY_DEFINITION("GATEWAY_DEFINITION", 1600),
+    CONFIGURATION("CONFIGURATION", 1600),
     MEMBER("MEMBER", 1700);
 
     String name;

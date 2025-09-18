@@ -46,6 +46,15 @@ ng build gravitee-markdown --configuration=production
 
 This command will compile the project, and the build artifacts will be placed in the `dist/gravitee-markdown/` directory.
 
+**Console Configuration**
+
+To build the library for the Console application, run:
+
+```bash
+# Build with console configuration
+ng build gravitee-markdown --configuration=console
+```
+
 ## Testing
 
 **Note**: Tests are currently executed by the parent project. The library itself does not have its own test runner configured at this time.
@@ -69,4 +78,24 @@ src/
 │   └── types/             # TypeScript type definitions
 ├── public-api.ts          # Public API exports
 └── index.ts               # Library entry point
+```
+
+## Theming
+
+The library supports theming through CSS variables. You can customize the appearance of the components by overriding the default CSS variables in your application's global styles.
+
+### Editor Theming
+To customize the editor's appearance, you can override components using the pertinent mixin. 
+
+For example, to change the outline color of the editor containers, you can add the following CSS to your global styles:
+
+```css
+@use '@gravitee/gravitee-markdown' as gmd;
+
+.my-container {
+  @include gmd.editor-overrides((
+    container-outline-color: red,
+  ))
+}
+
 ```

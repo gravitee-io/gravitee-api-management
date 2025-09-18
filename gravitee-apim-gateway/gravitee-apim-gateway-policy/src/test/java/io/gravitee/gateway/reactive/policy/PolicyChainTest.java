@@ -29,6 +29,7 @@ import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.ArrayList;
@@ -130,6 +131,7 @@ class PolicyChainTest {
         final Policy policy1 = mock(Policy.class);
         final Policy policy2 = mock(Policy.class);
         final HttpExecutionContext ctx = new DefaultExecutionContext(null, null);
+        ((DefaultExecutionContext) ctx).metrics(mock(Metrics.class));
         when(policy1.onRequest(ctx)).thenAnswer(invocation -> ((HttpExecutionContext) invocation.getArgument(0)).interrupt());
 
         final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
@@ -147,6 +149,7 @@ class PolicyChainTest {
         final Policy policy2 = mock(Policy.class);
         final MutableResponse response = mock(MutableResponse.class);
         final HttpExecutionContext ctx = new DefaultExecutionContext(null, response);
+        ((DefaultExecutionContext) ctx).metrics(mock(Metrics.class));
 
         final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
         when(policy1.onRequest(ctx)).thenAnswer(invocation -> ctx.interruptWith(new ExecutionFailure(400).message(MOCK_ERROR_MESSAGE)));
@@ -163,6 +166,7 @@ class PolicyChainTest {
         final Policy policy2 = mock(Policy.class);
         final MutableResponse response = mock(MutableResponse.class);
         final HttpExecutionContext ctx = new DefaultExecutionContext(null, response);
+        ((DefaultExecutionContext) ctx).metrics(mock(Metrics.class));
 
         final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.REQUEST);
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());

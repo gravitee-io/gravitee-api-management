@@ -66,6 +66,7 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
     protected TlsSession tlsSession;
     protected boolean ended;
     protected WebSocket webSocket;
+    protected long connectionTimestamp = -1;
 
     @Override
     public String id() {
@@ -328,5 +329,10 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
         }
 
         return this.messageFlow;
+    }
+
+    @Override
+    public long connectionTimestamp() {
+        return connectionTimestamp;
     }
 }

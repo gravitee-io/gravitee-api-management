@@ -16,6 +16,7 @@
 import { BasePlan } from '../plan';
 import { BaseApplication } from '../application';
 import { HttpMethod } from '../api';
+import { ConnectionLogDiagnostic } from '../log';
 
 export interface BaseInstance {
   id: string;
@@ -31,7 +32,7 @@ export interface ApiMetricsDetailResponse {
   host: string;
   plan: BasePlan;
   application: BaseApplication;
-  gateway: BaseInstance;
+  gateway: string;
   uri: string;
   status: number;
   requestContentLength: number;
@@ -42,4 +43,9 @@ export interface ApiMetricsDetailResponse {
   endpointResponseTime: number;
   method: HttpMethod;
   endpoint: string;
+  message?: string;
+  errorKey?: string;
+  errorComponentName?: string;
+  errorComponentType?: string;
+  warnings?: ConnectionLogDiagnostic[];
 }

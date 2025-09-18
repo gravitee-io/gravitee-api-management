@@ -32,6 +32,9 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PortalPageContextCrudServiceInMemory;
+import inmemory.PortalPageCrudServiceInMemory;
+import inmemory.PortalPageQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -73,6 +76,7 @@ import io.gravitee.apim.core.cluster.use_case.members.AddClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.DeleteClusterMemberUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterMembersUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.GetClusterPermissionsUseCase;
+import io.gravitee.apim.core.cluster.use_case.members.TransferClusterOwnershipUseCase;
 import io.gravitee.apim.core.cluster.use_case.members.UpdateClusterMemberUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
@@ -100,6 +104,9 @@ import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
@@ -785,6 +792,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public TransferClusterOwnershipUseCase transferClusterOwnershipUseCase() {
+        return mock(TransferClusterOwnershipUseCase.class);
+    }
+
+    @Bean
     public NewtAIProvider newtAIProvider() {
         return mock(NewtAIProvider.class);
     }
@@ -827,5 +839,20 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateClusterGroupsUseCase updateClusterGroupsUseCase() {
         return mock(UpdateClusterGroupsUseCase.class);
+    }
+
+    @Bean
+    public PortalPageCrudService portalPageCrudService() {
+        return new PortalPageCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalPageContextCrudService portalPageContextCrudService() {
+        return new PortalPageContextCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalPageQueryService portalPageQueryService() {
+        return new PortalPageQueryServiceInMemory();
     }
 }

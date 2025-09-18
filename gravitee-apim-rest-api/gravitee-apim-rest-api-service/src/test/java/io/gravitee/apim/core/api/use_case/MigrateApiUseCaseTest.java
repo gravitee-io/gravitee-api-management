@@ -25,6 +25,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
@@ -47,6 +49,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
+import io.gravitee.apim.core.api.model.utils.MigrationWarnings;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -63,35 +66,50 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.api.ApiStateDomainServiceLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.common.event.EventManager;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Failover;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
+import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
+import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -125,6 +143,7 @@ class MigrateApiUseCaseTest {
     private final ApiCategoryQueryServiceInMemory apiCategoryQueryService = new ApiCategoryQueryServiceInMemory();
     private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private final PageQueryService pageQueryService = mock(PageQueryService.class);
+    private final EventManager eventManager = mock(EventManager.class);
     private final AuditDomainService auditDomainService = new AuditDomainService(
         auditCrudService,
         userCrudService,
@@ -154,6 +173,7 @@ class MigrateApiUseCaseTest {
         planCrudService,
         flowCrudService,
         apiStateDomainService,
+        JsonMapperFactory.build(),
         pageQueryService
     );
 
@@ -238,9 +258,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
-            .containsExactly(
-                new MigrationResult.Issue("Cannot migrate an API which is not a v2 definition", MigrationResult.State.IMPOSSIBLE)
-            );
+            .containsExactly(new MigrationResult.Issue(MigrationWarnings.API_NOT_V2_DEFINITION, MigrationResult.State.IMPOSSIBLE));
     }
 
     @Test
@@ -259,7 +277,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
-            .containsExactly(new MigrationResult.Issue("Cannot migrate an API which is out of sync", MigrationResult.State.CAN_BE_FORCED));
+            .containsExactly(new MigrationResult.Issue(MigrationWarnings.API_OUT_OF_SYNC, MigrationResult.State.CAN_BE_FORCED));
     }
 
     @Test
@@ -276,7 +294,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
-            .containsExactly(new MigrationResult.Issue("Cannot migrate an API not using V4 emulation", MigrationResult.State.IMPOSSIBLE));
+            .containsExactly(new MigrationResult.Issue(MigrationWarnings.V4_EMULATION_ENGINE_REQUIRED, MigrationResult.State.IMPOSSIBLE));
     }
 
     @ParameterizedTest
@@ -335,10 +353,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.apiId()).isEqualTo(API_ID);
         assertThat(result.issues())
             .containsExactly(
-                new MigrationResult.Issue(
-                    "Cannot migrate an API having document: document1, with translations",
-                    MigrationResult.State.IMPOSSIBLE
-                )
+                new MigrationResult.Issue(MigrationWarnings.DOC_WITH_TRANSLATIONS.formatted("document1"), MigrationResult.State.IMPOSSIBLE)
             );
     }
 
@@ -372,7 +387,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.issues())
             .containsExactly(
                 new MigrationResult.Issue(
-                    "Cannot migrate an API having document: document1, with Access Control",
+                    MigrationWarnings.DOC_WITH_ACCESS_CONTROL.formatted("document1"),
                     MigrationResult.State.IMPOSSIBLE
                 )
             );
@@ -410,7 +425,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.issues())
             .containsExactly(
                 new MigrationResult.Issue(
-                    "Cannot migrate an API having document: document1, with Attached Resources",
+                    MigrationWarnings.DOC_WITH_ATTACHED_RESOURCES.formatted("document1"),
                     MigrationResult.State.IMPOSSIBLE
                 )
             );
@@ -621,7 +636,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
-            .containsExactly("Policy cloud-events is not compatible with V4 APIs");
+            .containsExactly(MigrationWarnings.POLICY_NOT_COMPATIBLE.formatted("cloud-events"));
     }
 
     @Test
@@ -645,9 +660,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
         assertThat(result.issues())
             .map(MigrationResult.Issue::message)
-            .containsExactly(
-                "Policy unknown-policy is not a Gravitee policy. Please ensure it is compatible with V4 API before migrating to V4"
-            );
+            .containsExactly(MigrationWarnings.NON_GRAVITEE_POLICY.formatted("unknown-policy"));
     }
 
     @Test
@@ -690,6 +703,86 @@ class MigrateApiUseCaseTest {
                         new io.gravitee.definition.model.v4.property.Property("key2", "value2", true, false),
                         new io.gravitee.definition.model.v4.property.Property("key3", "value3", true, false)
                     );
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_null_dp_and_disable_dynamicProps() {
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        Services services = new Services();
+        v2api.getApiDefinition().setServices(services);
+        v2api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+
+        apiCrudService.initWith(java.util.List.of(v2api));
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedServices = api.getApiDefinitionHttpV4().getServices();
+
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().getServices().getDynamicProperty()).isNull();
+                });
+            });
+    }
+
+    @Test
+    void should_migrate_api_with_valid_dynamicprops_and_enable_dynamicprops() {
+        var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
+        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+
+        HttpDynamicPropertyProviderConfiguration httpDynamicPropertyProviderConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        httpDynamicPropertyProviderConfiguration.setBody("abc");
+        httpDynamicPropertyProviderConfiguration.setHeaders(List.of(new HttpHeader("key1", "value1")));
+        httpDynamicPropertyProviderConfiguration.setUrl("http://localhost:8082/api/dynamicprops");
+        httpDynamicPropertyProviderConfiguration.setSpecification("xyz");
+        httpDynamicPropertyProviderConfiguration.setUseSystemProxy(false);
+        DynamicPropertyService dynamicPropertyService = DynamicPropertyService
+            .builder()
+            .enabled(true) // comes from ScheduledService (superclass)
+            .schedule("*/30 * * * * *") // run every 30s, for example
+            .build();
+        dynamicPropertyService.setConfiguration(httpDynamicPropertyProviderConfiguration);
+        Services services = new Services();
+        services.setDynamicPropertyService(dynamicPropertyService);
+        v2api.getApiDefinition().setServices(services);
+        apiCrudService.initWith(java.util.List.of(v2api));
+        // When
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
+
+        // Then
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(result.apiId()).isEqualTo(API_ID);
+
+        var migrated = apiCrudService.findById(API_ID);
+
+        assertThat(migrated)
+            .hasValueSatisfying(api -> {
+                assertApiV4(api);
+
+                var migratedDP = api.getApiDefinitionHttpV4().getServices().getDynamicProperty();
+                assertSoftly(softly -> {
+                    softly.assertThat(api.getApiDefinitionHttpV4().getServices().getDynamicProperty()).isNotNull();
+                    softly.assertThat(api.getApiDefinitionHttpV4().getServices().getDynamicProperty().isEnabled()).isTrue();
+                    softly.assertThat(migratedDP).isNotNull();
+                    softly.assertThat(migratedDP.isEnabled()).isTrue();
+                    softly
+                        .assertThat(migratedDP.getConfiguration())
+                        .isEqualTo(
+                            "{\"schedule\":\"*/30 * * * * *\",\"headers\":[{\"name\":\"key1\",\"value\":\"value1\"}],\"method\":\"GET\",\"systemProxy\":false,\"transformation\":\"xyz\",\"url\":\"http://localhost:8082/api/dynamicprops\"}"
+                        );
+                });
             });
     }
 
@@ -1200,8 +1293,7 @@ class MigrateApiUseCaseTest {
             .hasValueSatisfying(api -> {
                 assertApiV4(api);
                 var migratedResources = api.getApiDefinitionHttpV4().getResources();
-                assertThat(migratedResources).hasSize(1);
-                assertThat(migratedResources.get(0).getName()).isEqualTo("cache-resource");
+                assertThat(migratedResources).map(Resource::getName).containsExactly("cache-resource");
             });
     }
 
@@ -1293,9 +1385,11 @@ class MigrateApiUseCaseTest {
             .hasValueSatisfying(api -> {
                 assertApiV4(api);
                 var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
-                assertThat(endpointGroups).hasSize(1);
-                var services = endpointGroups.get(0).getServices();
-                assertThat(services.getDiscovery()).isNull();
+                assertThat(endpointGroups)
+                    .map(EndpointGroup::getServices)
+                    .map(EndpointGroupServices::getDiscovery)
+                    .singleElement()
+                    .isNull();
             });
     }
 
@@ -1333,11 +1427,7 @@ class MigrateApiUseCaseTest {
 
         // Then
         assertThat(result.state()).isEqualTo(MigrationResult.State.CAN_BE_FORCED);
-        assertThat(result.issues())
-            .map(MigrationResult.Issue::message)
-            .containsExactly(
-                "Service discovery configuration can be migrated, but the configuration page will not be available in the new version."
-            );
+        assertThat(result.issues()).map(MigrationResult.Issue::message).containsExactly(MigrationWarnings.SERVICE_DISCOVERY_LIMITATION);
     }
 
     @Test
@@ -1382,8 +1472,7 @@ class MigrateApiUseCaseTest {
                 assertApiV4(api);
                 var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
                 assertThat(endpointGroups).hasSize(1);
-                var migratedServices = endpointGroups.get(0).getServices();
-                assertThat(migratedServices.getDiscovery()).isNotNull();
+                var migratedServices = endpointGroups.getFirst().getServices();
                 assertThat(migratedServices.getDiscovery().getType()).isEqualTo("consul-service-discovery");
                 assertThat(migratedServices.getDiscovery().isEnabled()).isTrue();
                 assertThat(migratedServices.getDiscovery().getConfiguration())
@@ -1428,7 +1517,7 @@ class MigrateApiUseCaseTest {
         assertThat(result.issues())
             .anySatisfy(issue ->
                 assertThat(issue.message())
-                    .contains("Service discovery provider 'kubernetes-service-discovery' is not supported for migration")
+                    .contains(MigrationWarnings.SERVICE_DISCOVERY_NOT_SUPPORTED.formatted("kubernetes-service-discovery"))
             );
     }
 
@@ -1476,27 +1565,26 @@ class MigrateApiUseCaseTest {
             .hasValueSatisfying(api -> {
                 assertApiV4(api);
                 var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
-                assertThat(endpointGroups).hasSize(1);
 
-                var sharedConfiguration = endpointGroups.get(0).getSharedConfiguration();
-                assertThat(sharedConfiguration).isNotNull();
-
-                assertSoftly(softly -> {
-                    softly.assertThat(sharedConfiguration).contains("\"version\":\"HTTP_1_1\"");
-                    softly.assertThat(sharedConfiguration).contains("\"keepAlive\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"keepAliveTimeout\":30000");
-                    softly.assertThat(sharedConfiguration).contains("\"connectTimeout\":5000");
-                    softly.assertThat(sharedConfiguration).contains("\"pipelining\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"readTimeout\":10000");
-                    softly.assertThat(sharedConfiguration).contains("\"useCompression\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"propagateClientAcceptEncoding\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"idleTimeout\":60000");
-                    softly.assertThat(sharedConfiguration).contains("\"followRedirects\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"maxConcurrentConnections\":100");
-
-                    softly.assertThat(sharedConfiguration).doesNotContain("clearTextUpgrade");
-                    softly.assertThat(sharedConfiguration).doesNotContain("http2MultiplexingLimit");
-                });
+                assertThat(endpointGroups)
+                    .map(AbstractEndpointGroup::getSharedConfiguration)
+                    .singleElement()
+                    .isNotNull()
+                    .asString()
+                    .contains(
+                        "\"version\":\"HTTP_1_1\"",
+                        "\"keepAlive\":true",
+                        "\"keepAliveTimeout\":30000",
+                        "\"connectTimeout\":5000",
+                        "\"pipelining\":false",
+                        "\"readTimeout\":10000",
+                        "\"useCompression\":true",
+                        "\"propagateClientAcceptEncoding\":false",
+                        "\"idleTimeout\":60000",
+                        "\"followRedirects\":false",
+                        "\"maxConcurrentConnections\":100"
+                    )
+                    .doesNotContain("clearTextUpgrade", "http2MultiplexingLimit");
             });
     }
 
@@ -1545,28 +1633,177 @@ class MigrateApiUseCaseTest {
             .hasValueSatisfying(api -> {
                 assertApiV4(api);
                 var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
-                assertThat(endpointGroups).hasSize(1);
-
-                var sharedConfiguration = endpointGroups.get(0).getSharedConfiguration();
-                assertThat(sharedConfiguration).isNotNull();
 
                 // Verify HTTP 2 configuration contains all required fields
-                assertSoftly(softly -> {
-                    softly.assertThat(sharedConfiguration).contains("\"version\":\"HTTP_2\"");
-                    softly.assertThat(sharedConfiguration).contains("\"keepAlive\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"keepAliveTimeout\":30000");
-                    softly.assertThat(sharedConfiguration).contains("\"connectTimeout\":5000");
-                    softly.assertThat(sharedConfiguration).contains("\"pipelining\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"readTimeout\":10000");
-                    softly.assertThat(sharedConfiguration).contains("\"useCompression\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"propagateClientAcceptEncoding\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"idleTimeout\":60000");
-                    softly.assertThat(sharedConfiguration).contains("\"followRedirects\":false");
-                    softly.assertThat(sharedConfiguration).contains("\"maxConcurrentConnections\":100");
-                    softly.assertThat(sharedConfiguration).contains("\"clearTextUpgrade\":true");
-                    softly.assertThat(sharedConfiguration).contains("\"http2MultiplexingLimit\":-1");
-                });
+                assertThat(endpointGroups)
+                    .map(EndpointGroup::getSharedConfiguration)
+                    .singleElement()
+                    .asString()
+                    .contains(
+                        "\"version\":\"HTTP_2\"",
+                        "\"keepAlive\":true",
+                        "\"keepAliveTimeout\":30000",
+                        "\"connectTimeout\":5000",
+                        "\"pipelining\":false",
+                        "\"readTimeout\":10000",
+                        "\"useCompression\":true",
+                        "\"propagateClientAcceptEncoding\":false",
+                        "\"idleTimeout\":60000",
+                        "\"followRedirects\":false",
+                        "\"maxConcurrentConnections\":100",
+                        "\"clearTextUpgrade\":true",
+                        "\"http2MultiplexingLimit\":-1"
+                    );
             });
+    }
+
+    @Nested
+    class FlowSpecific {
+
+        @Nested
+        class GroovyPolicy {
+
+            private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+            private static final String GROOVY_SCRIPT = "println(Hello World);";
+            private static final Collection<String> OLD_KEYS = List.of(
+                "onRequestContentScript",
+                "onResponseContentScript",
+                "onRequestScript",
+                "onResponseScript"
+            );
+
+            @BeforeEach
+            void setUp() {
+                var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+                v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+                v2Api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+                apiCrudService.initWith(List.of(v2Api));
+
+                var plan = PlanFixtures.aPlanV2().toBuilder().id("plan-id").apiId(API_ID).build();
+                planCrudService.initWith(List.of(plan));
+
+                var planFlow = new io.gravitee.definition.model.flow.Flow();
+                planFlow.setName("plan-flow");
+                flowCrudService.savePlanFlowsV2("plan-id", List.of(planFlow));
+            }
+
+            @ParameterizedTest
+            @CsvSource(
+                delimiterString = "|",
+                textBlock = """
+                onRequestContentScript  | true        | true
+                onRequestScript         | false       | false
+                onResponseContentScript | true        | true
+                onResponseScript        | false       | false
+                """
+            )
+            void should_map_the_configuration(String inputField, boolean expectedReadContent, boolean expectedOverrideContent) {
+                // Given
+                var apiFlow = buildFlow(
+                    """
+                        {
+                          "%s" : "%s",
+                          "scope" : "REQUEST"
+                        }
+                        """.formatted(
+                            inputField,
+                            GROOVY_SCRIPT
+                        )
+                );
+                flowCrudService.saveApiFlowsV2(API_ID, List.of(apiFlow));
+
+                // When
+                var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+                // Then
+                assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+
+                var apiV4Flows = flowCrudService.getApiV4Flows(API_ID);
+                assertGroovyConfiguration(apiV4Flows)
+                    .satisfies(cfg -> {
+                        JsonNode jsonNode = OBJECT_MAPPER.readTree(cfg);
+                        assertSoftly(softly -> {
+                            softly.assertThat(jsonNode.get("scope").asText()).isEqualTo("REQUEST");
+                            softly.assertThat(jsonNode.get("script").asText()).isEqualTo(GROOVY_SCRIPT);
+                            softly.assertThat(jsonNode.get("readContent").asBoolean()).isEqualTo(expectedReadContent);
+                            softly.assertThat(jsonNode.get("overrideContent").asBoolean()).isEqualTo(expectedOverrideContent);
+                            for (var key : OLD_KEYS) {
+                                softly.assertThat(jsonNode.has(key)).isFalse();
+                            }
+                        });
+                    });
+            }
+
+            @Test
+            void impossible_to_parse_configuration() {
+                // Given
+                var apiFlow = buildFlow("""
+                    {
+                      "%s" : "%s
+                    """);
+                flowCrudService.saveApiFlowsV2(API_ID, List.of(apiFlow));
+
+                // When
+                var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+                // Then
+                assertThat(result.issues())
+                    .singleElement()
+                    .satisfies(issue ->
+                        assertSoftly(softly -> {
+                            softly.assertThat(issue.message()).startsWith(MigrationWarnings.GROOVY_PARSE_ERROR);
+                            softly.assertThat(issue.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+                        })
+                    );
+            }
+
+            @Test
+            void bad_policy_configuration() {
+                // Given
+                var v2Flow = buildFlow(
+                    """
+                            {
+                              "onRequestContentScript" : "%s",
+                              "onRequestScript" : "%s",
+                              "scope" : "REQUEST"
+                            }
+                            """.formatted(
+                            GROOVY_SCRIPT,
+                            GROOVY_SCRIPT
+                        )
+                );
+                flowCrudService.saveApiFlowsV2(API_ID, List.of(v2Flow));
+
+                // When
+                var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+                // Then
+                assertThat(result.issues())
+                    .singleElement()
+                    .satisfies(issue ->
+                        assertSoftly(softly -> {
+                            softly.assertThat(issue.message()).startsWith(MigrationWarnings.GROOVY_MULTIPLE_SCRIPTS);
+                            softly.assertThat(issue.state()).isEqualTo(MigrationResult.State.IMPOSSIBLE);
+                        })
+                    );
+            }
+
+            private static io.gravitee.definition.model.flow.Flow buildFlow(String policyConfiguration) {
+                var apiFlow = new io.gravitee.definition.model.flow.Flow();
+                apiFlow.setName("api-flow");
+                apiFlow.setPre(List.of(Step.builder().policy("groovy").configuration(policyConfiguration).build()));
+                return apiFlow;
+            }
+
+            private static ObjectAssert<String> assertGroovyConfiguration(List<Flow> apiV4Flows) {
+                return assertThat(apiV4Flows)
+                    .filteredOn(e -> "api-flow".equals(e.getName()))
+                    .flatMap(Flow::getRequest)
+                    .filteredOn(e -> "groovy".equals(e.getPolicy()))
+                    .map(io.gravitee.definition.model.v4.flow.step.Step::getConfiguration)
+                    .singleElement();
+            }
+        }
     }
 
     private static void assertApiV4(Api upgradedApi) {

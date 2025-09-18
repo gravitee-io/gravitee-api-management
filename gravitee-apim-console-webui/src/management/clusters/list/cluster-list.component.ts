@@ -113,8 +113,8 @@ export class ClusterListComponent implements OnInit {
           const items = pagedResult.data.map((cluster) => ({
             id: cluster.id,
             name: cluster.name,
-            bootstrapServer: cluster.configuration.bootstrapServers,
-            security: get(cluster.configuration, 'security.protocol', 'PLAINTEXT') as string,
+            bootstrapServer: get(cluster.configuration, 'bootstrapServers', ''),
+            security: get(cluster.configuration, 'security.protocol', 'PLAINTEXT'),
             updatedAt: cluster.updatedAt,
           }));
 

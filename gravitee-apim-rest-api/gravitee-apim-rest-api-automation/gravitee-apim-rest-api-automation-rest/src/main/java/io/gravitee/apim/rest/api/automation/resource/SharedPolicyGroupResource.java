@@ -43,9 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SharedPolicyGroupResource extends AbstractResource {
 
-    @PathParam("hrid")
-    private String hrid;
-
     @Inject
     private SharedPolicyGroupCrudService sharedPolicyGroupCrudService;
 
@@ -54,7 +51,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
-    public Response get(@QueryParam("legacy") boolean legacy) {
+    public Response get(@PathParam("hrid") String hrid, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
@@ -71,7 +68,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.DELETE }) })
-    public Response delete(@QueryParam("dryRun") boolean dryRun, @QueryParam("legacy") boolean legacy) {
+    public Response delete(@PathParam("hrid") String hrid, @QueryParam("dryRun") boolean dryRun, @QueryParam("legacy") boolean legacy) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 

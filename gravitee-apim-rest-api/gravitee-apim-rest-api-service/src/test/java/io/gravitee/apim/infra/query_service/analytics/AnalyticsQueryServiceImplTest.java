@@ -21,13 +21,17 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
+import io.gravitee.apim.core.analytics.model.Term;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
@@ -54,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -336,7 +341,8 @@ class AnalyticsQueryServiceImplTest {
                 to,
                 interval,
                 null,
-                Optional.empty()
+                Optional.empty(),
+                null
             );
 
             Optional<HistogramAnalytics> result = cut.searchHistogramAnalytics(GraviteeContext.getExecutionContext(), query);
@@ -551,9 +557,7 @@ class AnalyticsQueryServiceImplTest {
             when(analyticsRepository.searchRequestsCountByEvent(any(QueryContext.class), any()))
                 .thenReturn(Optional.of(new CountByAggregate(10)));
             assertThat(cut.searchRequestsCountByEvent(GraviteeContext.getExecutionContext(), query))
-                .hasValueSatisfying(requestsCount -> {
-                    assertThat(requestsCount.getTotal()).isEqualTo(10);
-                });
+                .hasValueSatisfying(requestsCount -> assertThat(requestsCount.getTotal()).isEqualTo(10));
         }
 
         @Test
@@ -633,6 +637,115 @@ class AnalyticsQueryServiceImplTest {
                     assertThat(apiMetricsDetail.getMethod()).isEqualTo(HttpMethod.GET);
                     assertThat(apiMetricsDetail.getEndpoint()).isEqualTo("http://endpoint.example.com/foo");
                 });
+        }
+    }
+
+    @Nested
+    class SearchEventAnalytics {
+
+        private static final String API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
+        private static final long FROM = 1755691682768L;
+        private static final long TO = 1755778082768L;
+
+        @Test
+        void should_search_top_value_hits_for_a_given_native_api() {
+            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
+                Map.of(
+                    "downstream-active-connections_latest",
+                    Map.of("downstream-active-connections", List.of(2L)),
+                    "upstream-active-connections_latest",
+                    Map.of("upstream-active-connections", List.of(2L))
+                )
+            );
+            List<Aggregation> aggregations = List.of(
+                new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE),
+                new Aggregation("upstream-active-connections", Aggregation.AggregationType.VALUE)
+            );
+            AnalyticsQueryService.HistogramQuery params = buildHistogramQuery(aggregations, null);
+            when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
+
+            Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
+
+            assertThat(stats)
+                .hasValueSatisfying(analytics -> {
+                    assertThat(analytics.values().containsKey("downstream-active-connections_latest")).isTrue();
+                    assertThat(analytics.values().get("downstream-active-connections_latest")).containsValue(List.of(2L));
+                    assertThat(analytics.values().containsKey("upstream-active-connections_latest")).isTrue();
+                    assertThat(analytics.values().get("upstream-active-connections_latest")).containsValue(List.of(2L));
+                });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_a_given_native_api() {
+            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
+                Map.of(
+                    "downstream-publish-messages-total_delta",
+                    Map.of("downstream-publish-messages-total", List.of(82L)),
+                    "upstream-publish-messages-total_delta",
+                    Map.of("upstream-publish-messages-total", List.of(82L))
+                )
+            );
+            List<Aggregation> aggregations = List.of(
+                new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.DELTA),
+                new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.DELTA)
+            );
+            AnalyticsQueryService.HistogramQuery query = buildHistogramQuery(aggregations, null);
+            when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
+
+            Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
+
+            assertThat(stats)
+                .hasValueSatisfying(analytics -> {
+                    assertThat(analytics.values().containsKey("downstream-publish-messages-total_delta")).isTrue();
+                    assertThat(analytics.values().get("downstream-publish-messages-total_delta")).containsValue(List.of(82L));
+                    assertThat(analytics.values().containsKey("upstream-publish-messages-total_delta")).isTrue();
+                    assertThat(analytics.values().get("upstream-publish-messages-total_delta")).containsValue(List.of(82L));
+                });
+        }
+
+        @Test
+        void should_search_top_trends_for_a_given_native_api() {
+            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
+                Map.of(
+                    "downstream-publish-messages-total_delta",
+                    Map.of("downstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L)),
+                    "upstream-publish-messages-total_delta",
+                    Map.of("upstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L))
+                )
+            );
+            List<Aggregation> aggregations = List.of(
+                new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.TREND),
+                new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.TREND)
+            );
+            Term appIdFilter = new Term("app-id", "xxx-xxx-xxx");
+            Term planIdFilter = new Term("plan-id", "yyy-yyy-yyy");
+            List<Term> terms = List.of(appIdFilter, planIdFilter);
+            AnalyticsQueryService.HistogramQuery query = buildHistogramQuery(aggregations, terms);
+            when(analyticsRepository.searchEventAnalytics(any(), any())).thenReturn(Optional.of(aggregate));
+
+            Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
+
+            assertThat(stats)
+                .hasValueSatisfying(analytics -> {
+                    assertThat(analytics.values().containsKey("downstream-publish-messages-total_delta")).isTrue();
+                    assertThat(analytics.values().get("downstream-publish-messages-total_delta"))
+                        .containsValue(List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L));
+                    assertThat(analytics.values().containsKey("upstream-publish-messages-total_delta")).isTrue();
+                    assertThat(analytics.values().get("upstream-publish-messages-total_delta"))
+                        .containsValue(List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L));
+                });
+        }
+
+        private static @NotNull AnalyticsQueryService.HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms) {
+            return new AnalyticsQueryService.HistogramQuery(
+                new AnalyticsQueryService.SearchTermId(AnalyticsQueryService.SearchTerm.API, API_ID),
+                Instant.ofEpochMilli(FROM),
+                Instant.ofEpochMilli(TO),
+                Duration.ofMillis(2 * 60 * 1000),
+                aggregations,
+                null,
+                terms
+            );
         }
     }
 }

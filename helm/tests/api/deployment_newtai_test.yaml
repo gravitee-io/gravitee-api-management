@@ -1,0 +1,34 @@
+suite: Test NewtAI setup
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Check NewtAI port is enabled
+    template: api/api-configmap.yaml
+    set:
+      api:
+        newtai:
+          elgen:
+            enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "(?s)newtai:.*elgen:.*enabled: true"
+  - it: Check NewtAI port is disabled
+    template: api/api-configmap.yaml
+    set:
+      api:
+        newtai:
+          elgen:
+            enabled: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "(?s)newtai:.*elgen:.*enabled: false"

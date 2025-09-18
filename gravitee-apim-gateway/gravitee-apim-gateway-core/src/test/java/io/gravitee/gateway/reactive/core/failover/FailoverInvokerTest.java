@@ -32,6 +32,7 @@ import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.core.v4.invoker.HttpEndpointInvoker;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.concurrent.TimeUnit;
@@ -64,6 +65,9 @@ class FailoverInvokerTest {
     @Mock
     private MutableResponse response;
 
+    @Mock
+    private Metrics metrics;
+
     private HttpExecutionContext executionContext;
 
     private FailoverInvoker cut;
@@ -71,6 +75,7 @@ class FailoverInvokerTest {
     @BeforeEach
     void setUp() {
         executionContext = new DefaultExecutionContext(request, response);
+        ((DefaultExecutionContext) executionContext).metrics(metrics);
         lenient().when(request.body()).thenReturn(Maybe.just(Buffer.buffer("body")));
     }
 

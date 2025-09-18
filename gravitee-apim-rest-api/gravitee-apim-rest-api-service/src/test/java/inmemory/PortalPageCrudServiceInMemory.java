@@ -18,73 +18,45 @@ package inmemory;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
-import io.gravitee.apim.core.portal_page.model.PortalViewContext;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InMemoryAlternative<PortalPage> {
 
-    private final List<PortalPage> storage = new ArrayList<>();
-    private final Map<PageId, PortalPage> pages = new HashMap<>();
-    private final Map<PortalViewContext, PortalPage> entrypoints = new HashMap<>();
+    private final Map<PageId, PortalPage> storage = new HashMap<>();
 
     @Override
     public void initWith(List<PortalPage> items) {
         storage.clear();
-        storage.addAll(items);
-        pages.clear();
-        entrypoints.clear();
-        for (PortalPage page : items) {
-            pages.put(page.id(), page);
-        }
+        items.forEach(item -> storage.put(item.getId(), item));
     }
 
     @Override
     public void reset() {
         storage.clear();
-        pages.clear();
-        entrypoints.clear();
     }
 
     @Override
     public List<PortalPage> storage() {
-        return storage;
+        return storage.values().stream().toList();
     }
 
     @Override
-    public PortalPage create(PortalPage page) {
-        storage.add(page);
-        pages.put(page.id(), page);
+    public List<PortalPage> findByIds(List<PageId> pageIds) {
+        return storage.entrySet().stream().filter(entry -> pageIds.contains(entry.getKey())).map(Map.Entry::getValue).toList();
+    }
+
+    @Override
+    public PortalPage update(PortalPage page) {
+        storage.remove(page.getId());
+        storage.put(page.getId(), page);
         return page;
     }
 
     @Override
-    public PortalPage setPortalViewContextPage(PortalViewContext portalViewContext, PortalPage page) {
-        entrypoints.put(portalViewContext, page);
-        pages.put(page.id(), page);
-        if (!storage.contains(page)) {
-            storage.add(page);
-        }
-        return page;
-    }
-
-    public PortalPage byPortalViewContext(PortalViewContext portalViewContext) {
-        return entrypoints.get(portalViewContext);
-    }
-
-    public PortalPage getById(PageId id) {
-        return pages.get(id);
-    }
-
-    @Override
-    public boolean portalViewContextExists(PortalViewContext key) {
-        return entrypoints.containsKey(key);
-    }
-
-    @Override
-    public boolean pageIdExists(PageId pageId) {
-        return pages.containsKey(pageId);
+    public Optional<PortalPage> findById(PageId pageId) {
+        return Optional.ofNullable(storage.get(pageId));
     }
 }

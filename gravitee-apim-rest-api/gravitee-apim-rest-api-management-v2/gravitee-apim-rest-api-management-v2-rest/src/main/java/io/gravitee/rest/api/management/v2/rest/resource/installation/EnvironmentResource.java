@@ -22,12 +22,13 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.application.ApplicationsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.category.CategoriesResource;
-import io.gravitee.rest.api.management.v2.rest.resource.environment.ClustersResource;
+import io.gravitee.rest.api.management.v2.rest.resource.cluster.ClustersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentAnalyticsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentNewtAIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentScoringResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.portal_pages.PortalPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.PortalMenuLinksResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ThemesResource;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -105,6 +106,16 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/newtai")
     public EnvironmentNewtAIResource getEnvironmentNewtAIResource() {
         return resourceContext.getResource(EnvironmentNewtAIResource.class);
+    }
+
+    @Path("/instances")
+    public InstancesResource getInstancesResource() {
+        return resourceContext.getResource(InstancesResource.class);
+    }
+
+    @Path("/portal-pages")
+    public PortalPagesResource getPortalPagesResource() {
+        return resourceContext.getResource(PortalPagesResource.class);
     }
 
     @GET

@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.core.tracing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -29,6 +30,7 @@ import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpSpan;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,6 +47,7 @@ class TracingHookTest {
     @BeforeEach
     public void beforeEach() {
         ctx = new DefaultExecutionContext(null, null);
+        ctx.metrics(mock(Metrics.class));
         spyNoopTracer = spy(new NoOpTracer());
         ctx.tracer(new Tracer(null, spyNoopTracer));
         tracingHook = new TracingHook("test");

@@ -35,8 +35,13 @@ public class ConnectionLogField {
     public static final String URI = "uri";
     public static final String REQUEST_CONTENT_LENGTH = "request-content-length";
     public static final String RESPONSE_CONTENT_LENGTH = "response-content-length";
+    public static final String ERROR_KEY = "error-key";
+    public static final String ERROR_COMPONENT_NAME = "error-component-name";
+    public static final String ERROR_COMPONENT_TYPE = "error-component-type";
+    public static final String WARNINGS = "warnings";
 
     // Fields with different names in each index
+    public static final Field MESSAGE = new Field("message", "error-message");
     public static final Field REQUEST_ID = new Field("_id", "request-id");
     public static final Field APPLICATION_ID = new Field("application", "application-id");
     public static final Field API_ID = new Field("api", "api-id");

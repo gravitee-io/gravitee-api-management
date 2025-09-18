@@ -30,8 +30,19 @@ export interface ConnectionLog {
   gatewayResponseTime: number;
   uri: string;
   endpoint: string;
+  message?: string;
+  errorKey?: string;
+  errorComponentName?: string;
+  errorComponentType?: string;
+  warnings?: ConnectionLogDiagnostic[];
 }
 
+export interface ConnectionLogDiagnostic {
+  componentType: string;
+  componentName: string;
+  key: string;
+  message: string;
+}
 export interface ConnectionLogDetail {
   apiId: string;
   requestId: string;
@@ -42,6 +53,11 @@ export interface ConnectionLogDetail {
   endpointRequest: ConnectionLogDetailRequest;
   entrypointResponse: ConnectionLogDetailResponse;
   endpointResponse: ConnectionLogDetailResponse;
+  message?: string;
+  errorKey?: string;
+  errorComponentName?: string;
+  errorComponentType?: string;
+  warnings?: ConnectionLogDiagnostic[];
 }
 
 export interface ConnectionLogDetailRequest {

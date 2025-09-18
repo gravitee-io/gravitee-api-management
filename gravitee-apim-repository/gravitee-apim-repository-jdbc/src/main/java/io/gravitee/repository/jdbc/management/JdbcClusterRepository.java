@@ -136,6 +136,12 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
             andWhereParams.addAll(criteria.getIds());
         }
 
+        if (criteria.getQuery() != null) {
+            andWhere.add("((lower(name) like ?) OR (lower(description) like ?))");
+            andWhereParams.add("%" + criteria.getQuery().toLowerCase() + "%");
+            andWhereParams.add("%" + criteria.getQuery().toLowerCase() + "%");
+        }
+
         Long total = jdbcTemplate.queryForObject(
             "select count(*) from " + this.tableName + " WHERE " + andWhere,
             Long.class,

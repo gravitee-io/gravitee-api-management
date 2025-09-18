@@ -90,6 +90,11 @@ public class SearchApiV4ConnectionLogsUseCase {
             .gatewayResponseTime(connectionLog.getGatewayResponseTime())
             .uri(connectionLog.getUri())
             .endpoint(connectionLog.getEndpoint())
+            .errorComponentType(connectionLog.getErrorComponentType())
+            .errorComponentName(connectionLog.getErrorComponentName())
+            .errorKey(connectionLog.getErrorKey())
+            .message(connectionLog.getMessage())
+            .warnings(connectionLog.getWarnings() != null ? connectionLog.getWarnings() : List.of())
             .build();
     }
 
@@ -104,7 +109,7 @@ public class SearchApiV4ConnectionLogsUseCase {
 
     private BaseApplicationEntity getApplicationEntity(ExecutionContext executionContext, String applicationId) {
         try {
-            return applicationCrudService.findById(executionContext, applicationId);
+            return applicationCrudService.findById(applicationId, executionContext.getEnvironmentId());
         } catch (ApplicationNotFoundException | TechnicalManagementException e) {
             return BaseApplicationEntity.builder().id(applicationId).name(UNKNOWN).build();
         }

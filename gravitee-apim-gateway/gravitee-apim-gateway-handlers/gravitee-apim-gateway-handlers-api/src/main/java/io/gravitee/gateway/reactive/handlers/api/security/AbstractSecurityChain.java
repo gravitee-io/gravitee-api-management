@@ -17,11 +17,15 @@ package io.gravitee.gateway.reactive.handlers.api.security;
 
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_NAME;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_DIAGNOSTIC;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
 import static io.reactivex.rxjava3.core.Completable.defer;
 
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
@@ -78,6 +82,10 @@ public abstract class AbstractSecurityChain<
     public Completable execute(C ctx) {
         return defer(() -> {
             if (!Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
+                ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.SYSTEM);
+                ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, "security");
+                SecurityChainDiagnostic securityChainDiagnostic = new SecurityChainDiagnostic();
+                ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC, securityChainDiagnostic);
                 return chain
                     .concatMapSingle(securityPlan -> continueChain(ctx, securityPlan))
                     .any(Boolean::booleanValue)
@@ -88,13 +96,17 @@ public abstract class AbstractSecurityChain<
                                 return sendError(
                                     ctx,
                                     new ExecutionFailure(SERVICE_UNAVAILABLE_503)
+                                        .cause(throwable)
                                         .key(PLAN_RESOLUTION_FAILURE)
                                         .message(TEMPORARILY_UNAVAILABLE_MESSAGE)
                                 );
                             }
                             return sendError(
                                 ctx,
-                                new ExecutionFailure(UNAUTHORIZED_401).key(PLAN_UNRESOLVABLE).message(UNAUTHORIZED_MESSAGE)
+                                new ExecutionFailure(UNAUTHORIZED_401)
+                                    .key(PLAN_UNRESOLVABLE)
+                                    .message(UNAUTHORIZED_MESSAGE)
+                                    .cause(securityChainDiagnostic.cause())
                             );
                         }
                         return Completable.complete();
@@ -104,6 +116,9 @@ public abstract class AbstractSecurityChain<
                         ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
                     })
                     .doOnTerminate(() -> {
+                        ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
+                        ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
+                        ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC);
                         ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE);
                         ctx.removeInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
                         ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);

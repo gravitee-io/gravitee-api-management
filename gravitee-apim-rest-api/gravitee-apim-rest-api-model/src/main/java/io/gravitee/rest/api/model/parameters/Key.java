@@ -421,6 +421,7 @@ public enum Key {
 
     ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM)),
     FEDERATION_ENABLED("integration.enabled", "false", Set.of(SYSTEM)),
+    NEWTAI_ELGEN_ENABLED("newtai.elgen.enabled", "false", Set.of(SYSTEM)),
 
     INSTALLATION_TYPE("installation.type", "standalone", Set.of(SYSTEM)),
     TRIAL_INSTANCE("trialInstance.enabled", "false", Set.of(SYSTEM)),

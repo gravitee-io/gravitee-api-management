@@ -194,7 +194,8 @@ class HttpEndpointInvokerTest {
                 .isInstanceOf(InterruptionFailureException.class)
                 .asInstanceOf(new InstanceOfAssertFactory<>(InterruptionFailureException.class, Assertions::assertThat))
                 .extracting(InterruptionFailureException::getExecutionFailure)
-                .isEqualTo(new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503).key(NO_ENDPOINT_FOUND_KEY));
+                .extracting(ExecutionFailure::key)
+                .isEqualTo(NO_ENDPOINT_FOUND_KEY);
 
             return true;
         });

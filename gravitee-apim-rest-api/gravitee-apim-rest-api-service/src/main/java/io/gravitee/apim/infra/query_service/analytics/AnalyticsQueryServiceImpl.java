@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.query_service.analytics;
 
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
+import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
@@ -25,7 +26,10 @@ import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.infra.adapter.ApiMetricsDetailAdapter;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
+import io.gravitee.repository.log.v4.model.analytics.Aggregation;
+import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
@@ -35,6 +39,7 @@ import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCri
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
+import io.gravitee.repository.log.v4.model.analytics.Term;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
@@ -53,6 +58,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +67,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -273,18 +281,13 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
 
     @Override
     public Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters) {
-        List<io.gravitee.repository.log.v4.model.analytics.Aggregation> repoAggregations = null;
+        List<Aggregation> repoAggregations = null;
         if (histogramParameters.aggregations() != null) {
             repoAggregations =
                 histogramParameters
                     .aggregations()
                     .stream()
-                    .map(agg ->
-                        new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                            agg.getField(),
-                            io.gravitee.repository.log.v4.model.analytics.AggregationType.valueOf(agg.getAggregationType().name())
-                        )
-                    )
+                    .map(agg -> new Aggregation(agg.getField(), AggregationType.valueOf(agg.getAggregationType().name())))
                     .collect(Collectors.toList());
         }
 
@@ -294,7 +297,8 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 toModelSearchTermId(histogramParameters.searchTermId()),
                 new TimeRange(histogramParameters.from(), histogramParameters.to(), histogramParameters.interval()),
                 repoAggregations,
-                histogramParameters.query()
+                histogramParameters.query(),
+                null
             )
         );
 
@@ -313,10 +317,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<GroupByAnalytics> searchGroupByAnalytics(
-        ExecutionContext executionContext,
-        io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.GroupByQuery groupByQuery
-    ) {
+    public Optional<GroupByAnalytics> searchGroupByAnalytics(ExecutionContext executionContext, GroupByQuery groupByQuery) {
         var repoGroups = groupByQuery
             .groups()
             .stream()
@@ -352,10 +353,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     }
 
     @Override
-    public Optional<StatsAnalytics> searchStatsAnalytics(
-        ExecutionContext executionContext,
-        io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService.StatsQuery statsQuery
-    ) {
+    public Optional<StatsAnalytics> searchStatsAnalytics(ExecutionContext executionContext, StatsQuery statsQuery) {
         var repoQuery = new io.gravitee.repository.log.v4.model.analytics.StatsQuery(
             statsQuery.field(),
             toModelSearchTermId(statsQuery.searchTermId()),
@@ -398,6 +396,46 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .findApiMetricsDetail(executionContext.getQueryContext(), new ApiMetricsDetailQuery(apiId, requestId))
             .map(ApiMetricsDetailAdapter.INSTANCE::map);
+    }
+
+    @Override
+    public Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, HistogramQuery query) {
+        List<Aggregation> aggregations = new ArrayList<>();
+        mapAggregations(query, aggregations);
+        List<Term> terms = mapTerms(query);
+        io.gravitee.repository.log.v4.model.analytics.HistogramQuery histogramQuery =
+            new io.gravitee.repository.log.v4.model.analytics.HistogramQuery(
+                toModelSearchTermId(query.searchTermId()),
+                new TimeRange(query.from(), query.to(), query.interval()),
+                aggregations,
+                query.query(),
+                terms
+            );
+
+        Optional<EventAnalyticsAggregate> aggregate = analyticsRepository.searchEventAnalytics(
+            executionContext.getQueryContext(),
+            histogramQuery
+        );
+
+        return aggregate.map(analyticsAggregate -> new EventAnalytics(analyticsAggregate.values()));
+    }
+
+    private static @NotNull List<Term> mapTerms(HistogramQuery query) {
+        List<io.gravitee.apim.core.analytics.model.Term> terms = query.terms();
+
+        return (terms != null && !terms.isEmpty()) ? terms.stream().map(t -> new Term(t.key(), t.value())).toList() : List.of();
+    }
+
+    private static void mapAggregations(HistogramQuery query, List<Aggregation> aggregations) {
+        query
+            .aggregations()
+            .forEach(aggregation ->
+                Arrays
+                    .stream(AggregationType.values())
+                    .filter(value -> value.name().equals(aggregation.getAggregationType().name()))
+                    .findFirst()
+                    .ifPresent(type -> aggregations.add(new Aggregation(aggregation.getField(), type)))
+            );
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(

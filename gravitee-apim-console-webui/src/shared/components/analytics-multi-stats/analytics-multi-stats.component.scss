@@ -1,0 +1,23 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.analytics-multi-stats {
+  display: flex;
+  flex-direction: column;
+  padding-left: 16px;
+
+  &__item {
+    text-align: left;
+  }
+
+  &__value {
+    @include mat.m2-typography-level($typography, headline-6);
+  }
+
+  &__label {
+    @include mat.m2-typography-level($typography, body-2);
+  }
+}

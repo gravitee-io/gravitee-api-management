@@ -39,7 +39,6 @@ public class FindApiMetricsDetailUseCase {
     private final AnalyticsQueryService analyticsQueryService;
     private final ApplicationCrudService applicationCrudService;
     private final PlanCrudService planCrudService;
-    private final InstanceQueryService instanceQueryService;
 
     public FindApiMetricsDetailUseCase.Output execute(ExecutionContext executionContext, FindApiMetricsDetailUseCase.Input input) {
         return analyticsQueryService
@@ -72,7 +71,7 @@ public class FindApiMetricsDetailUseCase {
             .host(apiMetricsDetail.getHost())
             .application(getApplication(executionContext.getEnvironmentId(), apiMetricsDetail.getApplicationId()))
             .plan(getPlan(apiMetricsDetail.getPlanId()))
-            .gateway(instanceQueryService.findById(executionContext, apiMetricsDetail.getGateway()))
+            .gateway(apiMetricsDetail.getGateway())
             .uri(apiMetricsDetail.getUri())
             .status(apiMetricsDetail.getStatus())
             .requestContentLength(apiMetricsDetail.getRequestContentLength())
@@ -83,6 +82,11 @@ public class FindApiMetricsDetailUseCase {
             .endpointResponseTime(apiMetricsDetail.getEndpointResponseTime())
             .method(apiMetricsDetail.getMethod())
             .endpoint(apiMetricsDetail.getEndpoint())
+            .message(apiMetricsDetail.getMessage())
+            .errorKey(apiMetricsDetail.getErrorKey())
+            .errorComponentName(apiMetricsDetail.getErrorComponentName())
+            .errorComponentType(apiMetricsDetail.getErrorComponentType())
+            .warnings(apiMetricsDetail.getWarnings())
             .build();
 
         return new Output(result);

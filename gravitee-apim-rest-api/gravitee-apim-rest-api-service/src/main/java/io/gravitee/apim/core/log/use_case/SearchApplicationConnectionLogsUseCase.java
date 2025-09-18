@@ -91,6 +91,11 @@ public class SearchApplicationConnectionLogsUseCase {
             .gatewayResponseTime(connectionLog.getGatewayResponseTime())
             .requestContentLength(connectionLog.getRequestContentLength())
             .responseContentLength(connectionLog.getResponseContentLength())
+            .message(connectionLog.getMessage())
+            .errorKey(connectionLog.getErrorKey())
+            .errorComponentName(connectionLog.getErrorComponentName())
+            .errorComponentType(connectionLog.getErrorComponentType())
+            .warnings(connectionLog.getWarnings())
             .build();
     }
 

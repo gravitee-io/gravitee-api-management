@@ -177,6 +177,34 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void search_by_name_in_query_criteria() {
+        ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").query("cluster-1").build();
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
+        Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.empty());
+        assertAll(
+            () -> assertThat(clusters.getContent().size()).isEqualTo(2),
+            () -> assertThat(clusters.getPageNumber()).isEqualTo(0),
+            () -> assertThat(clusters.getPageElements()).isEqualTo(2),
+            () -> assertThat(clusters.getTotalElements()).isEqualTo(2),
+            () -> assertThat(clusters.getContent().stream().map(Cluster::getName).toList()).isEqualTo(List.of("cluster-1", "cluster-10"))
+        );
+    }
+
+    @Test
+    public void search_by_description_in_query_criteria() {
+        ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-2").query("the cluster no 4").build();
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();
+        Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.empty());
+        assertAll(
+            () -> assertThat(clusters.getContent().size()).isEqualTo(1),
+            () -> assertThat(clusters.getPageNumber()).isEqualTo(0),
+            () -> assertThat(clusters.getPageElements()).isEqualTo(1),
+            () -> assertThat(clusters.getTotalElements()).isEqualTo(1),
+            () -> assertThat(clusters.getContent().stream().map(Cluster::getName).toList()).isEqualTo(List.of("cluster-4"))
+        );
+    }
+
+    @Test
     public void should_update_groups() throws Exception {
         String clusterId = "cluster-id-1";
 

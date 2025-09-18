@@ -15,31 +15,28 @@
  */
 package io.gravitee.rest.api.model.log;
 
+import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public abstract class LogItem {
 
     private String id;
 
     private long timestamp;
 
-    public String getId() {
-        return id;
-    }
+    private String message;
+    private String errorKey;
+    private String errorComponentName;
+    private String errorComponentType;
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
+    private List<DiagnosticItem> warnings;
 
     @Override
     public boolean equals(Object o) {

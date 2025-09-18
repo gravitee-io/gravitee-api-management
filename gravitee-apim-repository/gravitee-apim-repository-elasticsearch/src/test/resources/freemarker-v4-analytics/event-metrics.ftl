@@ -1,0 +1,28 @@
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowMinus6}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "downstream-active-connections": 2, "upstream-active-connections": 2 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowMinus5}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "downstream-active-connections": 5, "upstream-active-connections": 5 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowMinus4}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "1", "topic": "test-topic", "downstream-publish-messages-total": 12, "downstream-publish-message-bytes": 120, "upstream-publish-messages-total": 12, "upstream-publish-message-bytes": 120 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowMinus3}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "1", "topic": "test-topic", "downstream-subscribe-messages-total": 12, "downstream-subscribe-message-bytes": 120, "upstream-subscribe-messages-total": 12, "upstream-subscribe-message-bytes": 120 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowMinus2}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "1", "topic": "test-topic", "downstream-publish-messages-total": 1800, "downstream-publish-message-bytes": 18690, "upstream-publish-messages-total": 1800, "upstream-publish-message-bytes": 18690 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowMinus1}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "1", "topic": "test-topic", "downstream-subscribe-messages-total": 1800, "downstream-subscribe-message-bytes": 16120, "upstream-subscribe-messages-total": 1800, "upstream-subscribe-message-bytes": 16120 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${now}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "downstream-active-connections": 0, "upstream-active-connections": 0 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowPlus1}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "downstream-active-connections": 3, "upstream-active-connections": 3 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowPlus2}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "1", "topic": "test-topic", "downstream-publish-messages-total": 3240, "downstream-publish-message-bytes": 36240, "upstream-publish-messages-total": 3240, "upstream-publish-message-bytes": 36240 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowPlus3}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "1", "topic": "test-topic", "downstream-subscribe-messages-total": 3240, "downstream-subscribe-message-bytes": 32298, "upstream-subscribe-messages-total": 3240, "upstream-subscribe-message-bytes": 32298 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowPlus4}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "1", "topic": "test-topic", "downstream-publish-messages-total": 4056, "downstream-publish-message-bytes": 42749, "upstream-publish-messages-total": 4056, "upstream-publish-message-bytes": 42749 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowPlus5}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "273f4728-1e30-4c78-bf47-281e304c78a5", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "1", "topic": "test-topic", "downstream-subscribe-messages-total": 4056, "downstream-subscribe-message-bytes": 40638, "upstream-subscribe-messages-total": 4056, "upstream-subscribe-message-bytes": 40638 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowPlus6}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "xxx-xxx-xxx", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "yyy-yyy-yyy", "topic": "test-topic", "downstream-publish-messages-total": 157, "downstream-publish-message-bytes": 8421, "upstream-publish-messages-total": 157, "upstream-publish-message-bytes": 8421 }
+{ "create" : { ${index} } }
+{ "@timestamp": "${nowPlus7}", "gw-id": "d956fc60-9f77-4fbc-96fc-609f778fbcc2", "org-id": "DEFAULT", "env-id": "DEFAULT", "api-id": "xxx-xxx-xxx", "plan-id": "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10", "app-id": "yyy-yyy-yyy", "topic": "test-topic", "downstream-publish-messages-total": 232, "downstream-publish-message-bytes": 12345, "upstream-publish-messages-total": 232, "upstream-publish-message-bytes": 12345 }

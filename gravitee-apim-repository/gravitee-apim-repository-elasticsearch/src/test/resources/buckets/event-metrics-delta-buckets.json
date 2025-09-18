@@ -1,0 +1,68 @@
+{
+  "upstream-subscribe-messages-total_delta": {
+    "doc_count": 11,
+    "end_value": {
+      "hits": {
+        "total": { "value": 11, "relation": "eq" },
+        "max_score": null,
+        "hits": [
+          {
+            "_index": ".ds-gravitee-event-metrics-2025.09.09-2025.09.09-000001",
+            "_id": "KROlwhb4F7motMKjAAABmS2KUnw",
+            "_score": null,
+            "_source": { "upstream-subscribe-messages-total": 132 },
+            "sort": [1757405663868]
+          }
+        ]
+      }
+    },
+    "start_value": {
+      "hits": {
+        "total": { "value": 11, "relation": "eq" },
+        "max_score": null,
+        "hits": [
+          {
+            "_index": ".ds-gravitee-event-metrics-2025.09.09-2025.09.09-000001",
+            "_id": "KROlwhb4F7motMKjAAABmS2BKrw",
+            "_score": null,
+            "_source": { "upstream-subscribe-messages-total": 12 },
+            "sort": [1757405063868]
+          }
+        ]
+      }
+    }
+  },
+  "downstream-subscribe-messages-total_delta": {
+    "doc_count": 11,
+    "end_value": {
+      "hits": {
+        "total": { "value": 11, "relation": "eq" },
+        "max_score": null,
+        "hits": [
+          {
+            "_index": ".ds-gravitee-event-metrics-2025.09.09-2025.09.09-000001",
+            "_id": "KROlwhb4F7motMKjAAABmS2KUnw",
+            "_score": null,
+            "_source": { "downstream-subscribe-messages-total": 132 },
+            "sort": [1757405663868]
+          }
+        ]
+      }
+    },
+    "start_value": {
+      "hits": {
+        "total": { "value": 11, "relation": "eq" },
+        "max_score": null,
+        "hits": [
+          {
+            "_index": ".ds-gravitee-event-metrics-2025.09.09-2025.09.09-000001",
+            "_id": "KROlwhb4F7motMKjAAABmS2BKrw",
+            "_score": null,
+            "_source": { "downstream-subscribe-messages-total": 12 },
+            "sort": [1757405063868]
+          }
+        ]
+      }
+    }
+  }
+}

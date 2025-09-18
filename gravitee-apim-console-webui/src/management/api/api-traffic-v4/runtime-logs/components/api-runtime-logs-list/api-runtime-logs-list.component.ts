@@ -20,8 +20,9 @@ import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 
 import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { ConnectionLog, Pagination } from '../../../../../../entities/management-api-v2';
@@ -29,13 +30,26 @@ import {
   GioTableWrapperFilters,
   GioTableWrapperPagination,
 } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GioTooltipOnEllipsisModule } from '../../../../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
 
 @Component({
   selector: 'api-runtime-logs-list',
   templateUrl: './api-runtime-logs-list.component.html',
   styleUrls: ['./api-runtime-logs-list.component.scss'],
   standalone: true,
-  imports: [GioAvatarModule, GioTableWrapperModule, MatIcon, MatTableModule, MatSort, RouterLink, MatButtonModule, DatePipe],
+  imports: [
+    GioAvatarModule,
+    GioTableWrapperModule,
+    MatIcon,
+    MatTableModule,
+    MatSort,
+    MatTooltipModule,
+    RouterLink,
+    MatButtonModule,
+    DatePipe,
+    DecimalPipe,
+    GioTooltipOnEllipsisModule,
+  ],
 })
 export class ApiRuntimeLogsListComponent {
   logs = input.required<ConnectionLog[]>();
@@ -60,6 +74,7 @@ export class ApiRuntimeLogsListComponent {
     'plan',
     'responseTime',
     ...(this.isMessageApi() ? [] : ['endpoint']),
+    'diagnostics',
     'actions',
   ]);
 

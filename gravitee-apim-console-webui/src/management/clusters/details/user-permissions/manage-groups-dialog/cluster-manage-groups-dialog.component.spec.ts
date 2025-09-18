@@ -24,7 +24,7 @@ import { ClusterManageGroupsDialogHarness } from './cluster-manage-groups-dialog
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { expectGetClusterRequest, expectUpdateGroupsRequest } from '../../../../../services-ngx/clusters.service.spec';
+import { expectGetClusterRequest, expectUpdateGroupsRequest } from '../../../../../services-ngx/cluster.service.spec';
 import { fakeBaseGroup, fakeCluster, fakeGroupsResponse } from '../../../../../entities/management-api-v2';
 
 describe('ClusterManageGroupsDialogComponent (harness)', () => {

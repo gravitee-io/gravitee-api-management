@@ -144,7 +144,7 @@ public class Api {
 
     public boolean isTcpProxy() {
         if (definitionVersion != DefinitionVersion.V4) return false;
-        return apiDefinitionHttpV4.isTcpProxy();
+        return apiDefinitionHttpV4 != null && apiDefinitionHttpV4.isTcpProxy();
     }
 
     public enum Visibility {

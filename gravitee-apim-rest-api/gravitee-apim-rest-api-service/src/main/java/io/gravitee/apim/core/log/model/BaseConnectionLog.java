@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.log.model;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -43,4 +45,9 @@ public class BaseConnectionLog {
     private long gatewayResponseTime;
     private Long requestContentLength;
     private Long responseContentLength;
+    private String message;
+    private String errorKey;
+    private String errorComponentName;
+    private String errorComponentType;
+    private List<ConnectionDiagnosticModel> warnings;
 }

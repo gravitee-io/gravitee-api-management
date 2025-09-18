@@ -34,9 +34,8 @@ import { Role } from '../../../../../entities/role/role';
 import { ApiPrimaryOwnerMode } from '../../../../../services/apiPrimaryOwnerMode.service';
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
 import { SearchableUser } from '../../../../../entities/user/searchableUser';
-import { Member } from '../../../../../entities/management-api-v2';
 import { GroupMembership } from '../../../../../entities/group/groupMember';
-import { RoleName } from '../membershipState';
+import { Member, RoleName } from '../membershipState';
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { AddOrInviteMembersDialogData } from '../group.component';
 import { Group } from '../../../../../entities/group/group';
@@ -65,10 +64,12 @@ export class AddMembersDialogComponent implements OnInit {
   defaultAPIRoles: Role[];
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles: Role[];
+  defaultClusterRoles: Role[];
   addMemberForm: FormGroup<{
     defaultAPIRole: FormControl<string>;
     defaultApplicationRole: FormControl<string>;
     defaultIntegrationRole: FormControl<string>;
+    defaultClusterRole: FormControl<string>;
     searchTerm: FormControl<string>;
   }>;
   disabledAPIRoles = new Set<string>();
@@ -99,6 +100,7 @@ export class AddMembersDialogComponent implements OnInit {
     this.defaultAPIRoles = this.data.defaultAPIRoles;
     this.defaultApplicationRoles = this.data.defaultApplicationRoles;
     this.defaultIntegrationRoles = this.data.defaultIntegrationRoles;
+    this.defaultClusterRoles = this.data.defaultClusterRoles;
   }
 
   private initializeForm() {
@@ -109,6 +111,7 @@ export class AddMembersDialogComponent implements OnInit {
         disabled: false,
       }),
       defaultIntegrationRole: new FormControl<string>({ value: 'USER', disabled: false }),
+      defaultClusterRole: new FormControl<string>({ value: 'USER', disabled: false }),
       searchTerm: new FormControl<string>({ value: '', disabled: false }),
     });
     this.disableSearch();
@@ -134,6 +137,7 @@ export class AddMembersDialogComponent implements OnInit {
     this.disableDefaultAPIRole();
     this.disableDefaultApplicationRole();
     this.disableDefaultIntegrationRole();
+    this.disableDefaultClusterRole();
     this.disableAPIRoleOptions();
   }
 
@@ -152,6 +156,12 @@ export class AddMembersDialogComponent implements OnInit {
   private disableDefaultIntegrationRole(): void {
     if (!this.canUpdateGroup()) {
       this.addMemberForm.controls.defaultIntegrationRole.disable();
+    }
+  }
+
+  private disableDefaultClusterRole(): void {
+    if (!this.canUpdateGroup()) {
+      this.addMemberForm.controls.defaultClusterRole.disable();
     }
   }
 
@@ -201,6 +211,10 @@ export class AddMembersDialogComponent implements OnInit {
         {
           name: this.addMemberForm.controls.defaultIntegrationRole.value,
           scope: 'INTEGRATION',
+        },
+        {
+          name: this.addMemberForm.controls.defaultClusterRole.value,
+          scope: 'CLUSTER',
         },
       ],
     };

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.reactor;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
+import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_CONNECTION_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
@@ -55,6 +57,9 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
+import io.netty.channel.Channel;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -63,7 +68,9 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.impl.HttpServerConnection;
 import io.vertx.rxjava3.core.MultiMap;
+import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.util.List;
@@ -189,6 +196,8 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
         lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10L);
 
+        mockConnectionCreationTimestamp();
+
         spyNoopTracer = spy(new NoOpTracer());
         tracingContext = new TracingContext(spyNoopTracer, true, false);
         cut =
@@ -204,10 +213,24 @@ class DefaultHttpRequestDispatcherTest {
                 tracingContext,
                 requestTimeoutConfiguration,
                 requestClientAuthConfiguration,
-                vertx
+                vertx,
+                true
             );
         //TODO: to check: is this needed ?
         // cut.setApplicationContext(mock(ApplicationContext.class));
+    }
+
+    private void mockConnectionCreationTimestamp() {
+        HttpConnection httpConnection = mock(HttpConnection.class);
+        HttpServerConnection httpServerConnection = mock(HttpServerConnection.class);
+        Channel channel = mock(Channel.class);
+        Attribute attribute = mock(Attribute.class);
+
+        lenient().when(rxRequest.connection()).thenReturn(httpConnection);
+        lenient().when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
+        lenient().when(httpServerConnection.channel()).thenReturn(channel);
+        lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
+        lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
 
     @Nested
@@ -294,6 +317,7 @@ class DefaultHttpRequestDispatcherTest {
             when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(handlerEntrypoint);
             when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
             when(apiReactor.tracingContext()).thenReturn(tracingContext);
+            mockConnectionCreationTimestamp();
         }
 
         @Test

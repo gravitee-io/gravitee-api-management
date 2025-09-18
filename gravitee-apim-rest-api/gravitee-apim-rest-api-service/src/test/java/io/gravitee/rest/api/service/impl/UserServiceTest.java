@@ -317,6 +317,8 @@ public class UserServiceTest {
     public void shouldComputeRolesToAddToUserFromRoleMapping() throws IOException {
         List<RoleMappingEntity> roleMappingEntities = getRoleMappingEntities();
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token_body.json"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token_body.json"), Charset.defaultCharset());
 
         RoleEntity orgAdminRole = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", ORGANIZATION)).thenReturn(Optional.of(orgAdminRole));
@@ -331,14 +333,18 @@ public class UserServiceTest {
             EXECUTION_CONTEXT,
             roleMappingEntities,
             USER_NAME,
-            userInfo
+            userInfo,
+            accessToken,
+            idToken
         );
 
         Map<String, Set<RoleEntity>> roleEntitiesForEnvironments = userService.computeEnvironmentRoles(
             EXECUTION_CONTEXT,
             roleMappingEntities,
             USER_NAME,
-            userInfo
+            userInfo,
+            accessToken,
+            idToken
         );
 
         assertEquals(2, roleEntitiesForOrganization.size());
@@ -353,6 +359,9 @@ public class UserServiceTest {
     @Test
     public void setDefaultRolesIfRoleMappingIsNotMatching() throws IOException {
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token_body.json"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token_body.json"), Charset.defaultCharset());
+
         RoleMappingEntity role1 = new RoleMappingEntity();
         role1.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_4'}");
         role1.setOrganizations(Collections.singletonList("ADMIN"));
@@ -379,14 +388,18 @@ public class UserServiceTest {
             EXECUTION_CONTEXT,
             rolesMapping,
             USER_NAME,
-            userInfo
+            userInfo,
+            accessToken,
+            idToken
         );
 
         Map<String, Set<RoleEntity>> roleEntitiesForEnvironments = userService.computeEnvironmentRoles(
             EXECUTION_CONTEXT,
             rolesMapping,
             USER_NAME,
-            userInfo
+            userInfo,
+            accessToken,
+            idToken
         );
 
         assertEquals(1, roleEntitiesForOrganization.size());
@@ -1588,7 +1601,9 @@ public class UserServiceTest {
         when(identityProvider.isEmailRequired()).thenReturn(Boolean.TRUE);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
     }
 
     @Test
@@ -1612,7 +1627,9 @@ public class UserServiceTest {
         when(userRepository.create(any())).thenReturn(mockUser());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
 
         verify(groupService, times(1)).findById(EXECUTION_CONTEXT, "Api consumer");
 
@@ -1634,8 +1651,10 @@ public class UserServiceTest {
         when(userRepository.update(user)).thenReturn(user);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
         verify(userRepository, times(1)).update(refEq(user));
     }
 
@@ -1662,8 +1681,10 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
         verify(userRepository, times(1)).create(any(User.class));
     }
 
@@ -1680,8 +1701,10 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
         verify(userRepository, times(1)).create(any(User.class));
     }
 
@@ -1698,7 +1721,9 @@ public class UserServiceTest {
         when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION)).thenReturn(Optional.empty());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body_no_matching.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
 
         //verify group creations
         verify(membershipService, never())
@@ -1797,7 +1822,9 @@ public class UserServiceTest {
             .thenReturn(Collections.singletonList(mockMemberEntity()));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
 
         //verify group creations
         verify(membershipService, times(1))
@@ -1963,7 +1990,9 @@ public class UserServiceTest {
             .thenReturn(Collections.singletonList(mockMemberEntity()));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
 
         //verify group creations
         verify(membershipService, times(1))
@@ -2050,7 +2079,115 @@ public class UserServiceTest {
         when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        //verify group creations
+        verify(membershipService, never())
+            .addRoleToMemberOnReference(
+                eq(EXECUTION_CONTEXT),
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipMember.class),
+                any(MembershipService.MembershipRole.class)
+            );
+
+        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION);
+        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ENVIRONMENT);
+    }
+
+    @Test
+    public void shouldCreateNewUserWithGroupsMappingFromAccessTokenWhenGroupIsNotFound() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, groupService, roleService, membershipService);
+        mockDefaultEnvironment();
+
+        GroupMappingEntity groupCondition1 = new GroupMappingEntity();
+        groupCondition1.setCondition("{#jsonPath(#accessToken, '$.custom_access_token') == 'foobar'}");
+        groupCondition1.setGroups(Collections.singletonList("Api consumer"));
+        GroupMappingEntity groupCondition2 = new GroupMappingEntity();
+        groupCondition2.setCondition("{#jsonPath(#accessToken, '$.custom_access_token') == 'unknown'}");
+        groupCondition2.setGroups(Collections.singletonList("Api consumer"));
+
+        when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(groupCondition1, groupCondition2));
+
+        User createdUser = mockUser();
+        when(userRepository.create(any(User.class))).thenReturn(createdUser);
+
+        when(identityProvider.getId()).thenReturn(createdUser.getSource());
+        when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        //verify group creations
+        verify(membershipService, never())
+            .addRoleToMemberOnReference(
+                eq(EXECUTION_CONTEXT),
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipMember.class),
+                any(MembershipService.MembershipRole.class)
+            );
+
+        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION);
+        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ENVIRONMENT);
+        verify(groupService, times(1)).findById(EXECUTION_CONTEXT, "Api consumer");
+    }
+
+    @Test
+    public void shouldCreateNewUserWithGroupsMappingFromIdTokenWhenGroupIsNotFound() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, groupService, roleService, membershipService);
+        mockDefaultEnvironment();
+
+        GroupMappingEntity groupCondition1 = new GroupMappingEntity();
+        groupCondition1.setCondition("{#jsonPath(#idToken, '$.custom_id_token') == 'foobar'}");
+        groupCondition1.setGroups(Collections.singletonList("Api consumer"));
+        GroupMappingEntity groupCondition2 = new GroupMappingEntity();
+        groupCondition2.setCondition("{#jsonPath(#idToken, '$.custom_id_token') == 'unknown'}");
+        groupCondition2.setGroups(Collections.singletonList("Api consumer"));
+
+        when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(groupCondition1, groupCondition2));
+
+        User createdUser = mockUser();
+        when(userRepository.create(any(User.class))).thenReturn(createdUser);
+
+        when(identityProvider.getId()).thenReturn(createdUser.getSource());
+        when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        //verify group creations
+        verify(membershipService, never())
+            .addRoleToMemberOnReference(
+                eq(EXECUTION_CONTEXT),
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipMember.class),
+                any(MembershipService.MembershipRole.class)
+            );
+
+        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION);
+        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ENVIRONMENT);
+        verify(groupService, times(1)).findById(EXECUTION_CONTEXT, "Api consumer");
+    }
+
+    @Test
+    public void shouldCreateNewUserWithGroupsMappingFromIdTokenWhenGroupIsNull() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, groupService, roleService, membershipService);
+        mockDefaultEnvironment();
+        mockGroupsMapping();
+
+        User createdUser = mockUser();
+        when(userRepository.create(any(User.class))).thenReturn(createdUser);
+
+        when(identityProvider.getId()).thenReturn(createdUser.getSource());
+        when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, null, null);
 
         //verify group creations
         verify(membershipService, never())
@@ -2105,7 +2242,7 @@ public class UserServiceTest {
             .thenReturn(List.of(mockMemberEntity()));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, null, null);
         verify(membershipService).updateRolesToMemberOnReferenceBySource(any(), any(), any(), any(), any());
     }
 
@@ -2136,7 +2273,7 @@ public class UserServiceTest {
         when(roleService.findDefaultRoleByScopes(eq(ORGANIZATION), any())).thenReturn(Collections.emptyList());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, null, null);
 
         // No memberships should be created
         verify(membershipService, never()).updateRolesToMemberOnReferenceBySource(any(), any(), any(), any(), any());
@@ -2169,7 +2306,11 @@ public class UserServiceTest {
         condition2.setGroups(Collections.singletonList("Others"));
 
         GroupMappingEntity condition3 = new GroupMappingEntity();
-        condition3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        condition3.setCondition(
+            "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'" +
+            "&& #jsonPath(#accessToken, '$.custom_access_token') == 'foobar' " +
+            "&& #jsonPath(#idToken, '$.custom_id_token') == 'foobar'}"
+        );
         condition3.setGroups(Collections.singletonList("Api consumer"));
 
         when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(condition1, condition2, condition3));
@@ -2183,7 +2324,10 @@ public class UserServiceTest {
     private List<RoleMappingEntity> getRoleMappingEntities() {
         RoleMappingEntity role1 = new RoleMappingEntity();
         role1.setCondition(
-            "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
+            "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' " +
+            "&& #jsonPath(#profile, '$.job_id') != 'API_BREAKER' " +
+            "&& #jsonPath(#accessToken, '$.custom_access_token') == 'foobar' " +
+            "&& #jsonPath(#idToken, '$.custom_id_token') == 'foobar'}"
         );
         role1.setOrganizations(Collections.singletonList("ADMIN"));
 
@@ -2192,7 +2336,11 @@ public class UserServiceTest {
         role2.setOrganizations(Collections.singletonList("USER"));
 
         RoleMappingEntity role3 = new RoleMappingEntity();
-        role3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        role3.setCondition(
+            "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'" +
+            "&& #jsonPath(#accessToken, '$.custom_access_token') == 'foobar' " +
+            "&& #jsonPath(#idToken, '$.custom_id_token') == 'foobar'}"
+        );
         role3.setOrganizations(Collections.singletonList("USER"));
         role3.setEnvironments(Collections.singletonMap(ENVIRONMENT, Collections.singletonList("USER")));
         final List<RoleMappingEntity> roleMappingList = Arrays.asList(role1, role2, role3);
@@ -2220,5 +2368,119 @@ public class UserServiceTest {
 
     private InputStream read(String resource) throws IOException {
         return this.getClass().getResourceAsStream(resource);
+    }
+
+    @Test
+    public void shouldSearchUsers_hasResults_ordersUniqueAndPopulateFlags() {
+        UserServiceImpl spyUserService = spy(userService);
+
+        // Search engine returns duplicated ids and one unknown id
+        List<String> docs = Arrays.asList("u1", "u2", "u1", "u3", "u4", "u3");
+        io.gravitee.rest.api.service.impl.search.SearchResult searchResult = new io.gravitee.rest.api.service.impl.search.SearchResult(
+            docs,
+            42
+        );
+        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any())).thenReturn(searchResult);
+
+        // Prepare fetched users (u4 is missing on purpose)
+        UserEntity ue1 = new UserEntity();
+        ue1.setId("u1");
+        UserEntity ue2 = new UserEntity();
+        ue2.setId("u2");
+        UserEntity ue3 = new UserEntity();
+        ue3.setId("u3");
+        doReturn(new HashSet<>(Arrays.asList(ue1, ue2, ue3))).when(spyUserService).findByIds(eq(EXECUTION_CONTEXT), anyCollection());
+
+        // Mock roles for Primary Owner checks
+        RoleEntity apiPORole = mockRoleEntity(RoleScope.API, "PRIMARY_OWNER");
+        RoleEntity appPORole = mockRoleEntity(RoleScope.APPLICATION, "PRIMARY_OWNER");
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPORole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION)).thenReturn(appPORole);
+
+        // Only u2 is primary owner (API). Others not.
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                eq(MembershipMemberType.USER),
+                eq("u2"),
+                eq(MembershipReferenceType.API),
+                eq(apiPORole.getId())
+            )
+        )
+            .thenReturn(
+                java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>singleton(
+                    new io.gravitee.rest.api.model.MembershipEntity()
+                )
+            );
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                eq(MembershipMemberType.USER),
+                eq("u1"),
+                eq(MembershipReferenceType.API),
+                eq(apiPORole.getId())
+            )
+        )
+            .thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                eq(MembershipMemberType.USER),
+                eq("u3"),
+                eq(MembershipReferenceType.API),
+                eq(apiPORole.getId())
+            )
+        )
+            .thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
+
+        // No application PO for anyone
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                eq(MembershipMemberType.USER),
+                anyString(),
+                eq(MembershipReferenceType.APPLICATION),
+                eq(appPORole.getId())
+            )
+        )
+            .thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
+
+        // Tokens per user: u1=1, u2=3, u3=0
+        when(tokenService.findByUser("u1")).thenReturn(Collections.singletonList(new io.gravitee.rest.api.model.TokenEntity()));
+        when(tokenService.findByUser("u2"))
+            .thenReturn(
+                Arrays.asList(
+                    new io.gravitee.rest.api.model.TokenEntity(),
+                    new io.gravitee.rest.api.model.TokenEntity(),
+                    new io.gravitee.rest.api.model.TokenEntity()
+                )
+            );
+        when(tokenService.findByUser("u3")).thenReturn(Collections.emptyList());
+
+        io.gravitee.rest.api.model.common.Pageable pageable = new io.gravitee.rest.api.model.common.PageableImpl(2, 5);
+
+        io.gravitee.common.data.domain.Page<UserEntity> page = spyUserService.search(EXECUTION_CONTEXT, "john", pageable);
+
+        // Then: order preserved, duplicates removed, missing id filtered out
+        List<UserEntity> content = page.getContent();
+        assertEquals(3, content.size());
+        assertEquals("u1", content.get(0).getId());
+        assertEquals("u2", content.get(1).getId());
+        assertEquals("u3", content.get(2).getId());
+
+        // Page metadata
+        assertEquals(2, page.getPageNumber());
+        assertEquals(5, page.getPageElements());
+        assertEquals(42, page.getTotalElements());
+
+        // Flags populated
+        assertFalse(content.get(0).isPrimaryOwner());
+        assertTrue(content.get(1).isPrimaryOwner());
+        assertFalse(content.get(2).isPrimaryOwner());
+
+        assertEquals(1, content.get(0).getNbActiveTokens());
+        assertEquals(3, content.get(1).getNbActiveTokens());
+        assertEquals(0, content.get(2).getNbActiveTokens());
+
+        // Verify that search was called and populateUserFlags implied calls
+        verify(searchEngineService).search(eq(EXECUTION_CONTEXT), any());
+        verify(roleService).findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API);
+        verify(roleService).findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION);
     }
 }

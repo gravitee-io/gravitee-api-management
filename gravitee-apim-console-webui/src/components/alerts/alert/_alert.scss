@@ -1,6 +1,17 @@
+.prevent-overlap {
+  overflow-x: auto;
+}
 .gv-alerts-alert {
   md-tab-content {
     padding-bottom: 2rem;
+  }
+
+  .scrollable {
+    overflow-x: auto;
+    width: 100%;
+    display: grid;
+    flex-direction: row;
+    flex-wrap: nowrap;
   }
 
   .gv-alerts-alert_trigger-msg {

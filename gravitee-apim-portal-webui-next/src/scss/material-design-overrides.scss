@@ -18,19 +18,8 @@
 @use '../scss/theme';
 @use './m3-adapter';
 
-.secondary-button {
-  @include mat.button-color(theme.$light-theme, $color-variant: secondary);
-}
-
 mat-chip {
   --mdc-chip-elevated-container-color: #{theme.$chip-background};
-}
-
-mat-card {
-  --mdc-elevated-card-container-elevation: 0;
-  --mdc-outlined-card-container-color: #{theme.$card-background-color};
-  --mdc-outlined-card-container-shape: #{theme.$card-container-shape};
-  --mdc-elevated-card-container-shape: #{theme.$card-container-shape};
 }
 
 mat-dialog-container {
@@ -48,23 +37,6 @@ mat-expansion-panel {
   --mat-expansion-container-background-color: #{theme.$card-background-color};
 }
 
-table.mat-mdc-table {
-  --mat-table-row-item-outline-color: #{theme.$table-border-color};
-  --mat-table-background-color: #{theme.$table-header-background-color};
-
-  overflow: hidden;
-  border: 1px solid theme.$table-border-color;
-  border-radius: #{theme.$card-container-shape};
-
-  th {
-    color: theme.$default-text-contrast-color;
-  }
-
-  tbody {
-    background: theme.$card-background-color;
-  }
-}
-
 .mat-mdc-select-panel {
   --mat-select-panel-background-color: #{theme.$select-panel-background-color};
 }
@@ -73,8 +45,60 @@ mat-datepicker-content.mat-datepicker-content.mat-primary {
   --mat-datepicker-calendar-container-background-color: #{theme.$calendar-background-color};
 }
 
-button,
-a {
-  --mdc-outlined-button-container-shape: #{theme.$button-container-shape};
-  --mdc-filled-button-container-shape: #{theme.$button-container-shape};
+:root {
+  @include mat.button-overrides(
+    (
+      outlined-container-shape: #{theme.$button-outlined-container-shape},
+      outlined-label-text-transform: #{theme.$button-outlined-text-transform},
+      outlined-label-text-color: #{theme.$button-outlined-text-color},
+      outlined-outline-color: #{theme.$button-outlined-border-color},
+      outlined-outline-width: #{theme.$button-outlined-border-width},
+      filled-container-shape: #{theme.$button-filled-container-shape},
+      filled-container-color: #{theme.$button-filled-container-color},
+      filled-label-text-transform: #{theme.$button-filled-text-transform},
+      filled-label-text-color: #{theme.$button-filled-text-color},
+      text-container-shape: #{theme.$button-text-container-shape},
+      text-label-text-transform: #{theme.$button-text-text-transform},
+      text-label-text-color: #{theme.$button-text-text-color},
+    )
+  );
+}
+
+table.mat-mdc-table {
+  overflow: hidden;
+  border: 1px solid #{theme.$table-border-color};
+  border-radius: #{theme.$table-border-radius};
+
+  @include mat.table-overrides(
+    (
+      header-headline-color: #{theme.$table-header-headline-color},
+      background-color: #{theme.$table-header-background-color},
+      row-item-outline-color: #{theme.$table-border-color},
+    )
+  );
+
+  tbody {
+    background: #{theme.$table-body-background-color};
+  }
+}
+
+mat-card {
+  color: #{theme.$card-text-color};
+
+  @include mat.card-overrides(
+    (
+      elevated-container-shape: #{theme.$card-container-shape},
+      elevated-container-color: #{theme.$card-background-color},
+      elevated-container-elevation: #{theme.$card-elevation},
+      outlined-container-shape: #{theme.$card-container-shape},
+      outlined-container-color: #{theme.$card-background-color},
+      outlined-outline-width: #{theme.$card-border-width},
+      outlined-outline-color: #{theme.$card-border-color},
+      outlined-container-elevation: #{theme.$card-elevation},
+    )
+  );
+}
+
+.secondary-button {
+  @include mat.button-color(theme.$light-theme, $color-variant: secondary);
 }

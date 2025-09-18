@@ -21,7 +21,9 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
+import { ClusterTransferOwnershipDialogHarness } from './transfer-ownership/cluster-transfer-ownership-dialog.harness';
 import { ClusterUserPermissionsHarness } from './cluster-user-permissions.harness';
 import { ClusterUserPermissionsComponent } from './cluster-user-permissions.component';
 
@@ -31,7 +33,7 @@ import { fakeRole } from '../../../../entities/role/role.fixture';
 import { fakeBaseGroup, fakeCluster, fakeGroupsResponse, GroupsResponse, MembersResponse } from '../../../../entities/management-api-v2';
 import { GioUsersSelectorHarness } from '../../../../shared/components/gio-users-selector/gio-users-selector.harness';
 import { fakeSearchableUser } from '../../../../entities/user/searchableUser.fixture';
-import { expectGetClusterRequest } from '../../../../services-ngx/clusters.service.spec';
+import { expectGetClusterRequest } from '../../../../services-ngx/cluster.service.spec';
 import { fakeMember } from '../../../../entities/management-api-v2/member/member.fixture';
 
 describe('ClusterUserPermissionsComponent', () => {
@@ -204,6 +206,45 @@ describe('ClusterUserPermissionsComponent', () => {
     postReq.flush({});
 
     // Then component re-inits
+    expectInitRequests();
+  });
+
+  it('should transfer ownership to an existing member using the dialog harness', async () => {
+    // Arrange initial requests with a PRIMARY_OWNER and another USER
+    expectInitRequests({
+      members: {
+        data: [
+          { id: '1', displayName: 'Mufasa', roles: [{ name: 'PRIMARY_OWNER', scope: 'CLUSTER' }] },
+          { id: '2', displayName: 'Simba', roles: [{ name: 'USER', scope: 'CLUSTER' }] },
+        ],
+        pagination: { totalCount: 2 },
+      },
+    });
+
+    // Open the transfer ownership dialog
+    const transferBtn = await rootHarness.getHarness(MatButtonHarness.with({ text: /Transfer ownership/i }));
+    await transferBtn.click();
+
+    // Interact with the dialog using its harness
+    const dialog = await rootHarness.getHarness(ClusterTransferOwnershipDialogHarness);
+
+    // Default mode is ENTITY_MEMBER; select the member 'Simba' and choose new role for current PO
+    await dialog.selectEntityMemberByText('Simba');
+    await dialog.selectRoleByText('OWNER');
+
+    // Submit the dialog
+    expect(await dialog.isSubmitEnabled()).toBe(true);
+    await dialog.submit();
+
+    // Expect POST to transfer ownership endpoint
+    const transferReq = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/clusters/${CLUSTER_ID}/members/_transfer-ownership`,
+      method: 'POST',
+    });
+    expect(transferReq.request.body).toEqual(expect.objectContaining({ newPrimaryOwnerId: '2', currentPrimaryOwnerNewRole: 'OWNER' }));
+    transferReq.flush({});
+
+    // Then component re-inits: expect the sequence again
     expectInitRequests();
   });
 

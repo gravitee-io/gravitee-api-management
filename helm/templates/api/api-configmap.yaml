@@ -557,6 +557,9 @@ data:
     auth:
       external: {{- toYaml .Values.api.auth.external | nindent 8 -}}
     {{- end }}
+    newtai:
+      elgen:
+        enabled: {{ .Values.api.newtai.elgen.enabled }}
     # Cloud connector
     {{- if .Values.cloud.enabled }}
     cloud:

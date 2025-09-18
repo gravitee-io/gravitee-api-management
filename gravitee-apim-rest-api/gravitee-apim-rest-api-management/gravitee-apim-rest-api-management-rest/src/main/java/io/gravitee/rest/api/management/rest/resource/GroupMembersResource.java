@@ -228,6 +228,7 @@ public class GroupMembersResource extends AbstractResource {
             RoleEntity previousApplicationRole = null;
             RoleEntity previousGroupRole = null;
             RoleEntity previousIntegrationRole = null;
+            RoleEntity previousClusterRole = null;
 
             if (membership.getId() != null) {
                 Set<RoleEntity> userRoles = membershipService.getRoles(
@@ -249,6 +250,9 @@ public class GroupMembersResource extends AbstractResource {
                             break;
                         case INTEGRATION:
                             previousIntegrationRole = role;
+                            break;
+                        case CLUSTER:
+                            previousClusterRole = role;
                             break;
                         default:
                             break;
@@ -297,6 +301,12 @@ public class GroupMembersResource extends AbstractResource {
                     updateRole(RoleScope.INTEGRATION, roleName, previousIntegrationRole, membership, executionContext);
                 }
 
+                RoleEntity clusterRoleEntity = roleEntities.get(RoleScope.CLUSTER);
+                if (clusterRoleEntity != null && !clusterRoleEntity.equals(previousClusterRole)) {
+                    String roleName = getRoleName(RoleScope.CLUSTER, clusterRoleEntity, groupEntity, e -> true, hasPermission);
+                    updateRole(RoleScope.CLUSTER, roleName, previousClusterRole, membership, executionContext);
+                }
+
                 RoleEntity groupRoleEntity = roleEntities.get(RoleScope.GROUP);
                 if (groupRoleEntity != null && !groupRoleEntity.equals(previousGroupRole)) {
                     updateRole(RoleScope.GROUP, groupRoleEntity.getName(), previousGroupRole, membership, executionContext);
@@ -307,6 +317,7 @@ public class GroupMembersResource extends AbstractResource {
                 deleteIfNewAndPreviousRoleNull(apiRoleEntity, previousApiRole, membershipId);
                 deleteIfNewAndPreviousRoleNull(applicationRoleEntity, previousApplicationRole, membershipId);
                 deleteIfNewAndPreviousRoleNull(integrationRoleEntity, previousIntegrationRole, membershipId);
+                deleteIfNewAndPreviousRoleNull(clusterRoleEntity, previousClusterRole, membershipId);
                 deleteIfNewAndPreviousRoleNull(groupRoleEntity, previousGroupRole, membershipId);
 
                 // Send notification
@@ -315,6 +326,7 @@ public class GroupMembersResource extends AbstractResource {
                     previousApplicationRole == null &&
                     previousGroupRole == null &&
                     previousIntegrationRole == null &&
+                    previousClusterRole == null &&
                     updatedMembership != null
                 ) {
                     UserEntity userEntity = this.userService.findById(executionContext, updatedMembership.getId());

@@ -95,4 +95,12 @@ public class ApplicationRequestItem extends LogItem {
     public void setUser(String user) {
         this.user = user;
     }
+
+    public java.util.List<DiagnosticItem> getWarnings() {
+        return super.getWarnings();
+    }
+
+    public void setWarnings(java.util.List<DiagnosticItem> warnings) {
+        super.setWarnings(warnings);
+    }
 }

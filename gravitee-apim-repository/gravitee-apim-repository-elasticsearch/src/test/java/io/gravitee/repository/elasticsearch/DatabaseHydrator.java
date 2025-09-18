@@ -17,11 +17,14 @@ package io.gravitee.repository.elasticsearch;
 
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.elasticsearch.utils.Type;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.buffer.Buffer;
 import jakarta.annotation.PostConstruct;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +58,8 @@ public class DatabaseHydrator {
             "v4-log",
             "v4-metrics",
             "v4-message-log",
-            "v4-message-metrics"
+            "v4-message-metrics",
+            "event-metrics"
         );
         createTemplate(indexTypes).andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true))).ignoreElement().blockingAwait();
     }
@@ -86,18 +90,32 @@ public class DatabaseHydrator {
         return types
             .stream()
             .map(type -> {
-                Map<String, Object> data = Map.ofEntries(
-                    Map.entry("dateToday", this.timeProvider.getDateToday()),
-                    Map.entry("dateYesterday", this.timeProvider.getDateYesterday()),
-                    Map.entry("dateTimeToday", this.timeProvider.getDateTimeToday()),
-                    Map.entry("dateTimeYesterday", this.timeProvider.getDateTimeYesterday()),
-                    Map.entry("indexNameToday", indexTemplate(type, this.timeProvider.getTodayWithDot())),
-                    Map.entry("indexNameTodayEntrypoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "entrypoint")),
-                    Map.entry("indexNameTodayEndpoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "endpoint")),
-                    Map.entry("indexNameYesterday", indexTemplate(type, this.timeProvider.getYesterdayWithDot())),
-                    Map.entry("indexNameYesterdayEntrypoint", indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "entrypoint")),
-                    Map.entry("indexNameYesterdayEndpoint", indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "endpoint"))
-                );
+                Map<String, Object> data = new HashMap<>();
+
+                if (Type.EVENT_METRICS.getType().equals(type)) {
+                    data.putIfAbsent("index", indexTemplate(type, this.timeProvider.getTodayWithDot()));
+                    this.timeProvider.setTimestamps(data);
+                } else {
+                    data =
+                        Map.ofEntries(
+                            Map.entry("dateToday", this.timeProvider.getDateToday()),
+                            Map.entry("dateYesterday", this.timeProvider.getDateYesterday()),
+                            Map.entry("dateTimeToday", this.timeProvider.getDateTimeToday()),
+                            Map.entry("dateTimeYesterday", this.timeProvider.getDateTimeYesterday()),
+                            Map.entry("indexNameToday", indexTemplate(type, this.timeProvider.getTodayWithDot())),
+                            Map.entry("indexNameTodayEntrypoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "entrypoint")),
+                            Map.entry("indexNameTodayEndpoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "endpoint")),
+                            Map.entry("indexNameYesterday", indexTemplate(type, this.timeProvider.getYesterdayWithDot())),
+                            Map.entry(
+                                "indexNameYesterdayEntrypoint",
+                                indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "entrypoint")
+                            ),
+                            Map.entry(
+                                "indexNameYesterdayEndpoint",
+                                indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "endpoint")
+                            )
+                        );
+                }
                 var filename = type + ".ftl";
                 return freeMarkerComponent.generateFromTemplate(filename, data);
             })

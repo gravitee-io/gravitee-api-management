@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.elasticsearch.log;
 
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.http.HttpHeaders;
@@ -22,6 +24,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.log.model.Log;
+import io.gravitee.repository.log.model.LogDiagnostic;
 import io.gravitee.repository.log.model.Request;
 import io.gravitee.repository.log.model.Response;
 import java.text.ParseException;
@@ -29,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,6 +88,12 @@ final class LogBuilder {
     private static final String FIELD_SECURITY_TOKEN = "security-token";
 
     private static final String FIELD_ERROR_KEY = "error-key";
+    private static final String FIELD_ERROR_COMPONENT_NAME = "error-component-name";
+    private static final String FIELD_ERROR_COMPONENT_TYPE = "error-component-type";
+    private static final String FIELD_WARNINGS = "warnings";
+    private static final String FIELD_COMPONENT_TYPE = "component-type";
+    private static final String FIELD_COMPONENT_NAME = "component-name";
+    private static final String FIELD_KEY = "key";
 
     static Log createLog(final SearchHit hit) {
         return createLog(hit, new Log());
@@ -189,6 +199,20 @@ final class LogBuilder {
             log.setErrorKey(errorKeyNode.asText());
         }
 
+        final JsonNode errorComponentNameNode = source.get(FIELD_ERROR_COMPONENT_NAME);
+        if (errorComponentNameNode != null && !errorComponentNameNode.isNull()) {
+            log.setErrorComponentName(errorComponentNameNode.asText());
+        }
+
+        final JsonNode errorComponentTypeNode = source.get(FIELD_ERROR_COMPONENT_TYPE);
+        if (errorComponentTypeNode != null && !errorComponentTypeNode.isNull()) {
+            log.setErrorComponentType(errorComponentTypeNode.asText());
+        }
+
+        final JsonNode warningsNode = source.get(FIELD_WARNINGS);
+        if (warningsNode != null && !warningsNode.isNull() && warningsNode.isArray()) {
+            log.setWarnings(createDiagnosticsOrNull(warningsNode));
+        }
         return log;
     }
 
@@ -247,5 +271,27 @@ final class LogBuilder {
         final List<String> result = new ArrayList<>(values.size());
         values.forEach(jsonNode -> result.add(jsonNode.asText()));
         return result;
+    }
+
+    private static LogDiagnostic createDiagnosticOrNull(JsonNode json) {
+        if (json == null) {
+            return null;
+        }
+
+        return LogDiagnostic
+            .builder()
+            .key(asTextOrNull(json.get(FIELD_KEY)))
+            .message(asTextOrNull(json.get(FIELD_MESSAGE)))
+            .componentType(asTextOrNull(json.get(FIELD_COMPONENT_TYPE)))
+            .componentName(asTextOrNull(json.get(FIELD_COMPONENT_NAME)))
+            .build();
+    }
+
+    private static List<LogDiagnostic> createDiagnosticsOrNull(JsonNode json) {
+        if (json == null) {
+            return null;
+        }
+
+        return StreamSupport.stream(json.spliterator(), false).map(LogBuilder::createDiagnosticOrNull).toList();
     }
 }

@@ -1,5 +1,53 @@
-gio-loader {
-  height: 50px;
-  width: 50px;
-  margin: 40px auto;
+@use 'sass:map';
+@use '@angular/material/index' as mat;
+@use '@gravitee/ui-particles-angular/index' as gio;
+@use '../src/scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-full-width-content-container;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.widgets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.top-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  min-width: 0;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.left-column,
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.bottom-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
 }

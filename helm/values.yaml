@@ -290,7 +290,7 @@ mongodb:
   replicaSetName: rs0
   podAffinityPreset: soft
   image:
-    repository: bitnami/mongodb
+    repository: bitnamilegacy/mongodb
     tag: 6.0.13
   auth:
     enabled: false
@@ -364,7 +364,7 @@ elasticsearch:
   name: "elasticsearch"
   fullnameOverride: "graviteeio-apim-elasticsearch"
   image:
-    repository: "bitnami/elasticsearch"
+    repository: "bitnamilegacy/elasticsearch"
     tag: "8.17.4"
   master:
     replicaCount: 2
@@ -473,8 +473,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.10.0.zip
-    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.10.0.zip
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.11.1.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.11.1.zip
 
 api:
   enabled: true
@@ -873,6 +873,9 @@ api:
   #      algorithm: HS256
   #      verificationKey: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm # verificationKey or the JWKS URL
   #      issuer: MY_ISSUER
+  newtai:
+    elgen:
+      enabled: false
 
   federation:
     enabled: false
@@ -1503,6 +1506,8 @@ gateway:
   #     request:
   #       header: X-Gravitee-Request-Id
 #  reporters:
+#    warnings:
+#      enabled: true
 #    elasticsearch:
 #      enabled: true
 #    tcp:

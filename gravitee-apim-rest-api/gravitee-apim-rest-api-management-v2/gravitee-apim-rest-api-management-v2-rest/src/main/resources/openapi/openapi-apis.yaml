@@ -849,7 +849,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/members:
@@ -870,7 +870,7 @@ paths:
             operationId: listApiMembers
             responses:
                 "200":
-                    $ref: "#/components/responses/MembersResponse"
+                    $ref: "./openapi-environments.yaml#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -889,7 +889,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/AddMember"
+                            $ref: "./openapi-environments.yaml#/components/schemas/AddMember"
                 required: true
             responses:
                 "201":
@@ -897,14 +897,14 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/members/{memberId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
-            - $ref: "#/components/parameters/memberIdParam"
+            - $ref: "./openapi-environments.yaml#/components/parameters/memberId"
         put:
             tags:
                 - API Members
@@ -921,7 +921,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateMember"
+                            $ref: "./openapi-environments.yaml#/components/schemas/UpdateMember"
                 required: true
             responses:
                 "200":
@@ -929,7 +929,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -1222,7 +1222,7 @@ paths:
             operationId: listGroupMembers
             responses:
                 "200":
-                    $ref: "#/components/responses/MembersResponse"
+                    $ref: "./openapi-environments.yaml#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -1438,7 +1438,7 @@ paths:
             operationId: listIntegrationMembers
             responses:
                 "200":
-                    $ref: "#/components/responses/MembersResponse"
+                    $ref: "./openapi-environments.yaml#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
         post:
@@ -1457,7 +1457,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/AddMember"
+                            $ref: "./openapi-environments.yaml#/components/schemas/AddMember"
                 required: true
             responses:
                 "201":
@@ -1465,14 +1465,14 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/integrations/{integrationId}/members/{memberId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/integrationIdParam"
-            - $ref: "#/components/parameters/memberIdParam"
+            - $ref: "./openapi-environments.yaml#/components/parameters/memberId"
         put:
             tags:
                 - Integration Members
@@ -1489,7 +1489,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateMember"
+                            $ref: "./openapi-environments.yaml#/components/schemas/UpdateMember"
                 required: true
             responses:
                 "200":
@@ -1497,7 +1497,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Member"
+                                $ref: "./openapi-environments.yaml#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
         delete:
@@ -2151,6 +2151,14 @@ paths:
             description: Custom search query
             schema:
               type: string
+          - name: terms
+            description: Optional filters like plan-id, application-id applied in the dashboard, e.g. "plan-id:xyz,application-id:abc"
+            in: query
+            explode: false
+            schema:
+              type: array
+              items:
+                type: string
         responses:
           "200":
             $ref: "#/components/responses/ApiAnalyticsResponse"
@@ -3534,7 +3542,7 @@ components:
                     type: array
                     description: The list of members associated with this API.
                     items:
-                        $ref: "#/components/schemas/Member"
+                        $ref: "./openapi-environments.yaml#/components/schemas/Member"
                     uniqueItems: true
                 metadata:
                     type: array
@@ -5555,67 +5563,6 @@ components:
                     items:
                         type: string
                     uniqueItems: true
-        Member:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: Member's uuid.
-                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                displayName:
-                    type: string
-                    description: Member's name.
-                    example: John Doe
-                    minLength: 1
-                roles:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Role"
-                    description: The list of roles for this Member.
-        Role:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: Role's name.
-                    example: OWNER
-                scope:
-                    $ref: "#/components/schemas/RoleScope"
-        RoleScope:
-            type: string
-            description: Scope of a role.
-            enum:
-                - API
-                - APPLICATION
-                - GROUP
-                - ENVIRONMENT
-                - ORGANIZATION
-                - PLATFORM
-                - INTEGRATION
-                - CLUSTER
-        AddMember:
-            type: object
-            description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
-            properties:
-                userId:
-                    type: string
-                    description: Technical identifier for existing user.
-                externalReference:
-                    type: string
-                    description: User's reference for user provided from an identity provider.
-                roleName:
-                    type: string
-                    description: The name of the role
-                    minLength: 1
-            required: [roleName]
-        UpdateMember:
-            type: object
-            properties:
-                roleName:
-                    type: string
-                    description: The name of the role
-                    minLength: 1
-            required: [roleName]
         PrimaryOwner:
             type: object
             properties:
@@ -6686,6 +6633,46 @@ components:
                   type: string
                   description: The endpoint URL.
                   example: "https://my-api-example.com"
+                message:
+                  type: string
+                  description: The error message.
+                  example: "The timeout period of 1000ms has been exceeded"
+                errorKey:
+                  type: string
+                  description: The error key.
+                  example: "TIMEOUT_ERROR"
+                errorComponentName:
+                  type: string
+                  description: The name of the component that generated the error.
+                  example: "security"
+                errorComponentType:
+                  type: string
+                  description: The type of the component that generated the error.
+                  example: "ENDPOINT"
+                warnings:
+                  type: array
+                  description: The warning diagnotics
+                  items:
+                    $ref: "#/components/schemas/ApiLogDiagnostic"
+
+        ApiLogDiagnostic:
+          type: object
+          properties:
+            componentType:
+              type: string
+              description: The type of the component from where the diagnostic has been emitted
+              example: POLICY
+            componentName:
+              type: string
+              description: The name of the component from where the diagnostic has been emitted
+              example: transform-header
+            key:
+              type: string
+              description: The diagnostic key.
+              example: TRANSFORM_HEADERS_FAILURE
+            message:
+              type: string
+              description: The diagnostic message.
         ApiMessageLog:
             type: object
             properties:
@@ -8076,22 +8063,6 @@ components:
             agentMessageId:
               type: string
 
-        BaseInstance:
-          type: object
-          properties:
-            id:
-              type: string
-              description: Gateway's uuid.
-              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-            hostname:
-              type: string
-              description: Gateway's hostname.
-              example: my-gateway.example.com
-            ip:
-              type: string
-              description: Gateway's ip.
-              example: 10.0.1.123
-
     parameters:
         #############
         # PathParam #
@@ -8138,13 +8109,6 @@ components:
             in: path
             required: true
             description: Id of a group.
-            schema:
-                type: string
-        memberIdParam:
-            name: memberId
-            in: path
-            required: true
-            description: Id of an API member.
             schema:
                 type: string
         pageIdParam:
@@ -8598,24 +8562,6 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
 
-        MembersResponse:
-            description: Page of API members
-            content:
-                application/json:
-                    schema:
-                        title: "MembersResponse"
-                        properties:
-                            data:
-                                description: List of API members.
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/Member"
-                            links:
-                                $ref: "#/components/schemas/Links"
-                            metadata:
-                                $ref: "#/components/schemas/ResponseMetadata"
-                            pagination:
-                                $ref: "#/components/schemas/Pagination"
         SchemaFormResponse:
             description: Schema form of a plugin
             content:
@@ -8859,7 +8805,9 @@ components:
                   application:
                     $ref: "#/components/schemas/BaseApplication"
                   gateway:
-                    $ref: "#/components/schemas/BaseInstance"
+                    type: string
+                    description: The id of the gateway.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
                   uri:
                     type: string
                     description: URI of the request.
@@ -8898,6 +8846,27 @@ components:
                     type: string
                     description: The endpoint URL.
                     example: "https://my-api-example.com"
+                  message:
+                    type: string
+                    description: The error message.
+                    example: "The timeout period of 1000ms has been exceeded"
+                  errorKey:
+                    type: string
+                    description: The error key.
+                    example: "TIMEOUT_ERROR"
+                  errorComponentName:
+                    type: string
+                    description: The name of the component that generated the error.
+                    example: "security"
+                  errorComponentType:
+                    type: string
+                    description: The type of the component that generated the error.
+                    example: "ENDPOINT"
+                  warnings:
+                    type: array
+                    description: The warning diagnotics
+                    items:
+                      $ref: "#/components/schemas/ApiLogDiagnostic"
 
         # Analytics - Logs
         ApiLogsResponse:

@@ -24,11 +24,9 @@ import assertions.MAPIAssertions;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
-import inmemory.InstanceQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
 import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
-import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageConnectionDurationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsOverPeriodResponse;
@@ -56,7 +54,6 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.inject.Inject;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -87,9 +84,6 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     ApiCrudServiceInMemory apiCrudServiceInMemory;
 
     @Inject
-    InstanceQueryServiceInMemory instanceQueryService;
-
-    @Inject
     private PlanCrudServiceInMemory planCrudServiceInMemory;
 
     @Override
@@ -110,7 +104,6 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         GraviteeContext.cleanContext();
         fakeAnalyticsQueryService.reset();
         apiCrudServiceInMemory.reset();
-        instanceQueryService.reset();
         planCrudServiceInMemory.reset();
     }
 
@@ -1006,12 +999,6 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             );
 
             var instanceId = "instance-id";
-            var hostname = "foo.example.com";
-            var ip = "42.42.42.1";
-            instanceQueryService.initWith(
-                List.of(Instance.builder().id(instanceId).hostname(hostname).ip(ip).environments(Set.of(ENVIRONMENT)).build())
-            );
-
             var timestamp = "2025-08-01T17:29:20.385+02:00";
             var transactionId = "transaction-id";
             var host = "request.host.example.com";
@@ -1069,20 +1056,13 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     assertThat(apiMetricsDetail.getMethod()).isEqualTo(HttpMethod.GET);
                     assertThat(apiMetricsDetail.getEndpointResponseTime()).isEqualTo(endpointResponseTime);
                     assertThat(apiMetricsDetail.getEndpoint()).isEqualTo(endpoint);
+                    assertThat(apiMetricsDetail.getGateway()).isEqualTo(instanceId);
 
                     assertThat(apiMetricsDetail.getApplication())
                         .extracting(BaseApplication::getId, BaseApplication::getName)
                         .containsExactly(applicationId, appName);
 
                     assertThat(apiMetricsDetail.getPlan()).extracting(BasePlan::getId, BasePlan::getName).containsExactly(planId, planName);
-
-                    assertThat(apiMetricsDetail.getGateway())
-                        .extracting(
-                            io.gravitee.rest.api.management.v2.rest.model.BaseInstance::getId,
-                            io.gravitee.rest.api.management.v2.rest.model.BaseInstance::getHostname,
-                            io.gravitee.rest.api.management.v2.rest.model.BaseInstance::getIp
-                        )
-                        .containsExactly(instanceId, hostname, ip);
                 });
         }
     }

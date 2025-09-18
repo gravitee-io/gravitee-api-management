@@ -46,6 +46,7 @@ public class PageModelFactory {
             .homepage(pageCRD.isHomepage())
             .configuration(pageCRD.getConfiguration())
             .excludedAccessControls(pageCRD.isExcludedAccessControls())
+            .useAutoFetch(pageCRD.getUseAutoFetch())
             .accessControls(
                 pageCRD.getAccessControls() == null
                     ? Set.of()
@@ -82,6 +83,7 @@ public class PageModelFactory {
             .homepage(page.isHomepage())
             .configuration(page.getConfiguration())
             .excludedAccessControls(page.isExcludedAccessControls())
+            .useAutoFetch(page.getUseAutoFetch())
             .accessControls(
                 page.getAccessControls() == null
                     ? Set.of()

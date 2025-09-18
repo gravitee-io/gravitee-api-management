@@ -1,0 +1,28 @@
+@use '../../../../../scss/gio-layout' as gio-layout;
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use 'sass:map';
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.transfer-ownership {
+  color: inherit;
+
+  &__userOrGroup_radio {
+    padding-left: 8px;
+  }
+
+  &__userOrGroup {
+    &__field {
+      width: 100%;
+    }
+  }
+
+  &__userOrGroup__toggle-group {
+    @include gio.gio-button-toggle-group;
+  }
+
+  &__new-role {
+    display: block;
+  }
+}

@@ -34,11 +34,11 @@ import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { GroupComponent } from './group.component';
+import { Member } from './membershipState';
 
 import { Group } from '../../../../entities/group/group';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { Member } from '../../../../entities/management-api-v2';
 import { Invitation } from '../../../../entities/invitation/invitation';
 import { Role } from '../../../../entities/role/role';
 import { EnvironmentSettingsService } from '../../../../services-ngx/environment-settings.service';
@@ -80,14 +80,12 @@ describe('GroupComponent', () => {
     {
       id: '1',
       displayName: 'Test Member 1',
-      roles: [
-        { name: 'OWNER', scope: 'API' },
-        { name: 'OWNER', scope: 'APPLICATION' },
-        {
-          name: 'OWNER',
-          scope: 'INTEGRATION',
-        },
-      ],
+      roles: {
+        API: 'OWNER',
+        APPLICATION: 'OWNER',
+        INTEGRATION: 'OWNER',
+        CLUSTER: 'USER',
+      },
     },
   ];
 
@@ -385,16 +383,19 @@ describe('GroupComponent', () => {
       await editButton.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
-      expect(matSelectHarnesses.length).toEqual(3);
+      expect(matSelectHarnesses.length).toEqual(4);
       await matSelectHarnesses[0].open();
       const apiRoleOptions = await matSelectHarnesses[0].getOptions();
       await apiRoleOptions[2].click();
       await matSelectHarnesses[1].open();
-      const applicationRoleOptions = await matSelectHarnesses[1].getOptions();
+      const applicationRoleOptions = await matSelectHarnesses[1].getOptions({ text: /USER/ });
       await applicationRoleOptions[0].click();
       await matSelectHarnesses[2].open();
       const integrationRoleOptions = await matSelectHarnesses[2].getOptions();
       await integrationRoleOptions[0].click();
+      await matSelectHarnesses[3].open();
+      const clusterRoleOptions = await matSelectHarnesses[3].getOptions();
+      await clusterRoleOptions[0].click();
       const groupAdminHarness = await dialogHarness.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="groupAdmin"]' }));
       expect(await groupAdminHarness.isDisabled()).toEqual(false);
       await groupAdminHarness.check();
@@ -402,8 +403,9 @@ describe('GroupComponent', () => {
       await confirmButtonHarness.click();
       expectAddOrUpdateMembership('1', 'testmember1', [
         { name: 'REVIEWER', scope: 'API' },
-        { name: 'OWNER', scope: 'APPLICATION' },
+        { name: 'USER', scope: 'APPLICATION' },
         { name: 'OWNER', scope: 'INTEGRATION' },
+        { name: 'USER', scope: 'CLUSTER' },
         { name: 'ADMIN', scope: 'GROUP' },
       ]);
     });
@@ -530,7 +532,7 @@ describe('GroupComponent', () => {
       await userSearchMenuItem.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
-      expect(matSelectHarnesses.length).toEqual(3);
+      expect(matSelectHarnesses.length).toEqual(4);
       await matSelectHarnesses[0].open();
       const apiRoleOptions = await matSelectHarnesses[0].getOptions();
       expect(await apiRoleOptions[3].isSelected()).toEqual(true);
@@ -549,26 +551,22 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: [
-            { name: 'OWNER', scope: 'API' },
-            { name: 'OWNER', scope: 'APPLICATION' },
-            {
-              name: 'OWNER',
-              scope: 'INTEGRATION',
-            },
-          ],
+          roles: {
+            API: 'OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+          },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: [
-            { name: 'OWNER', scope: 'API' },
-            { name: 'OWNER', scope: 'APPLICATION' },
-            {
-              name: 'OWNER',
-              scope: 'INTEGRATION',
-            },
-          ],
+          roles: {
+            API: 'OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+          },
         },
       ]);
       expectGetGroupAPIs();
@@ -723,7 +721,7 @@ describe('GroupComponent', () => {
       await userSearchMenuItem.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
-      expect(matSelectHarnesses.length).toEqual(3);
+      expect(matSelectHarnesses.length).toEqual(4);
       await matSelectHarnesses[0].open();
       const apiRoleOptions = await matSelectHarnesses[0].getOptions();
       await apiRoleOptions[2].click();
@@ -743,6 +741,7 @@ describe('GroupComponent', () => {
         { name: 'REVIEWER', scope: 'API' },
         { name: 'OWNER', scope: 'APPLICATION' },
         { name: 'OWNER', scope: 'INTEGRATION' },
+        { name: 'USER', scope: 'CLUSTER' },
       ]);
     });
 
@@ -853,6 +852,13 @@ describe('GroupComponent', () => {
       },
     ]);
     expectGetRolesList('INTEGRATION', [{ id: '6', name: 'OWNER', scope: 'INTEGRATION' }]);
+    expectGetRolesList('CLUSTER', [
+      {
+        id: '8',
+        name: 'USER',
+        scope: 'CLUSTER',
+      },
+    ]);
   }
 
   function expectGetRolesList(type: string, roles: Role[] = ROLES) {

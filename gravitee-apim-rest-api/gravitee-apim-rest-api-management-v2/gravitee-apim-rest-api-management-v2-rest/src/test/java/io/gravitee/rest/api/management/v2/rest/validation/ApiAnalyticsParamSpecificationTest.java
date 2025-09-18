@@ -197,4 +197,36 @@ class ApiAnalyticsParamSpecificationTest {
         assertFalse(andSpec.satisfies(param));
         assertThrows(BadRequestException.class, () -> andSpec.throwIfNotSatisfied(param));
     }
+
+    @Test
+    void testOptionalFilters() {
+        ApiAnalyticsParam param = new ApiAnalyticsParam();
+        param.setTerms(List.of("app-id:123", "plan-id:456"));
+
+        List<ApiAnalyticsParam.Term> terms = param.getTerms();
+
+        assertEquals(2, terms.size());
+        assertTrue(terms.stream().allMatch(term -> term.getKey().equals("app-id") || term.getKey().equals("plan-id")));
+        assertTrue(terms.stream().allMatch(term -> term.getValue().equals("123") || term.getValue().equals("456")));
+    }
+
+    @Test
+    void testOptionalFiltersWhenNull() {
+        ApiAnalyticsParam param = new ApiAnalyticsParam();
+        param.setTerms(null);
+
+        List<ApiAnalyticsParam.Term> terms = param.getTerms();
+
+        assertEquals(0, terms.size());
+    }
+
+    @Test
+    void testOptionalFiltersWhenEmpty() {
+        ApiAnalyticsParam param = new ApiAnalyticsParam();
+        param.setTerms(List.of());
+
+        List<ApiAnalyticsParam.Term> terms = param.getTerms();
+
+        assertEquals(0, terms.size());
+    }
 }

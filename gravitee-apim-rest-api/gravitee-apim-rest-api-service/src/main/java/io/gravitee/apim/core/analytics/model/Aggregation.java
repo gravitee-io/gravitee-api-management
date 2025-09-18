@@ -29,6 +29,9 @@ public class Aggregation {
         AVG,
         MIN,
         MAX,
+        VALUE,
+        DELTA,
+        TREND,
     }
 
     private String field;

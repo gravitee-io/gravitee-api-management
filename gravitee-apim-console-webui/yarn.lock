@@ -3078,10 +3078,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/gravitee-markdown@portal:../gravitee-apim-portal-webui-next/dist/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A.":
+"@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@gravitee/gravitee-markdown@portal:../gravitee-apim-portal-webui-next/dist/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A."
+  resolution: "@gravitee/gravitee-markdown@portal:dist-lib/gravitee-markdown::locator=gravitee-apim-console-webui%40workspace%3A."
   dependencies:
+    marked-gfm-heading-id: "npm:3.2.0"
+    ngx-dynamic-hooks: "npm:^3.1.2"
     tslib: "npm:^2.3.0"
   peerDependencies:
     "@angular/common": ^19.2.0
@@ -3089,15 +3091,15 @@ __metadata:
   languageName: node
   linkType: soft
 
-"@gravitee/ui-analytics@npm:15.8.1":
-  version: 15.8.1
-  resolution: "@gravitee/ui-analytics@npm:15.8.1"
+"@gravitee/ui-analytics@npm:15.10.2":
+  version: 15.10.2
+  resolution: "@gravitee/ui-analytics@npm:15.10.2"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
     "@angular/common": ^19.0.0
     "@angular/core": ^19.0.0
-  checksum: 10c0/856b279ad88afde58c21ecb8a4c3c54d7a0ff77e0458677e241c1a05fcc41991fe9682cc0eab3789ca8d2937100ee683af8ddb59841e249da030a477970bd57f
+  checksum: 10c0/5fdbfd39fffb904a990b4e4ec5ecb3c0260dd847cef5b903d1265128bdfb922c5296223fddb51cd33fde149785d29b078e4833f69d020352fc4a4abbaef2ef0d
   languageName: node
   linkType: hard
 
@@ -3146,9 +3148,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-particles-angular@npm:15.8.1":
-  version: 15.8.1
-  resolution: "@gravitee/ui-particles-angular@npm:15.8.1"
+"@gravitee/ui-particles-angular@npm:15.10.2":
+  version: 15.10.2
+  resolution: "@gravitee/ui-particles-angular@npm:15.10.2"
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -3177,13 +3179,13 @@ __metadata:
       optional: true
     prismjs:
       optional: true
-  checksum: 10c0/7e499178b479a48fa03c630e8e4c5d85684d2012dc33e509de404fe12764ad5e7fd4e69a2fd908349a01fcdd79752d5dcdd2886dda20c1e4b284ba6b73bad3ab
+  checksum: 10c0/a3f055ff890bacbebd0bf017a729143f6a0a79f59273ad69b81703d3042bc633cbc6486832057830d958cac8c9e629f00c02b8a31170f8cda84908aed64e94c6
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:15.8.1":
-  version: 15.8.1
-  resolution: "@gravitee/ui-policy-studio-angular@npm:15.8.1"
+"@gravitee/ui-policy-studio-angular@npm:15.10.2":
+  version: 15.10.2
+  resolution: "@gravitee/ui-policy-studio-angular@npm:15.10.2"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -3196,19 +3198,19 @@ __metadata:
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
     ngx-markdown: ^19.1.1
-  checksum: 10c0/d9b26b8701a6b4b7ee61deb0cdf1644e31caf7f8b97920e6320e0fef150e6b1c32e366ad1961ff629d05d1da2d548953b227538e8ac307b5c6bf1fb2faf48935
+  checksum: 10c0/1a5999528b19c93090227c96c65b0520e1ce7eac8e75b858813a4be0f69398876da71370072dfaf69296dd549a982471a56f3dc1a7a6d8592f62163a55f39674
   languageName: node
   linkType: hard
 
-"@gravitee/ui-schematics@npm:15.8.1":
-  version: 15.8.1
-  resolution: "@gravitee/ui-schematics@npm:15.8.1"
+"@gravitee/ui-schematics@npm:15.10.2":
+  version: 15.10.2
+  resolution: "@gravitee/ui-schematics@npm:15.10.2"
   dependencies:
     tslib: "npm:^2.6.3"
   peerDependencies:
     "@angular/common": ^17.2.0
     "@angular/core": ^17.2.0
-  checksum: 10c0/0ed0e2bfda4620147e0b5a88d08e236dc1cd60b597deadb088f4d994958e42b21ca74c5fec89a074ebef97883f78571ee13a627eb91634fc97d0fe7ed0b3c420
+  checksum: 10c0/ad9b539b014b247de8b204d50ca569a52d05384ddb584e88097b26bbb097be2610863e53c9d11f8f47b38b8c991d6f59f340efa613d77c24e6c3f9b9cae953a0
   languageName: node
   linkType: hard
 
@@ -11998,6 +12000,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"github-slugger@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "github-slugger@npm:2.0.0"
+  checksum: 10c0/21b912b6b1e48f1e5a50b2292b48df0ff6abeeb0691b161b3d93d84f4ae6b1acd6ae23702e914af7ea5d441c096453cf0f621b72d57893946618d21dd1a1c486
+  languageName: node
+  linkType: hard
+
 "gitignore-to-glob@npm:^0.3.0":
   version: 0.3.0
   resolution: "gitignore-to-glob@npm:0.3.0"
@@ -12200,12 +12209,12 @@ __metadata:
     "@danielmoncada/angular-datetime-picker": "npm:19.0.0"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:6.0.2"
     "@fontsource/libre-franklin": "npm:4.5.11"
-    "@gravitee/gravitee-markdown": "portal:../gravitee-apim-portal-webui-next/dist/gravitee-markdown"
-    "@gravitee/ui-analytics": "npm:15.8.1"
+    "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown"
+    "@gravitee/ui-analytics": "npm:15.10.2"
     "@gravitee/ui-components": "npm:4.4.0"
-    "@gravitee/ui-particles-angular": "npm:15.8.1"
-    "@gravitee/ui-policy-studio-angular": "npm:15.8.1"
-    "@gravitee/ui-schematics": "npm:15.8.1"
+    "@gravitee/ui-particles-angular": "npm:15.10.2"
+    "@gravitee/ui-policy-studio-angular": "npm:15.10.2"
+    "@gravitee/ui-schematics": "npm:15.10.2"
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
     "@ngx-formly/material": "npm:6.3.12"
@@ -14956,6 +14965,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"marked-gfm-heading-id@npm:3.2.0":
+  version: 3.2.0
+  resolution: "marked-gfm-heading-id@npm:3.2.0"
+  dependencies:
+    github-slugger: "npm:^2.0.0"
+  peerDependencies:
+    marked: ">=4 <13"
+  checksum: 10c0/aba170f042049248047db4c1202c9cf3434858ca8e15b1b0d42905a6086135e98ac5edc8437c48c1206402cdb1f0fd0fbdcad410792a7d7150bec6095108b365
+  languageName: node
+  linkType: hard
+
 "marked-highlight@npm:2.2.1":
   version: 2.2.1
   resolution: "marked-highlight@npm:2.2.1"
@@ -15810,6 +15830,20 @@ __metadata:
   peerDependencies:
     angular: ^1.2.0
   checksum: 10c0/a6c43d4c2a118540491700d20040c4cac70717bbed9df9335b0aa0d797d0d75118d6e001f7fa86b2e68ec54f495edf87dcca57c93b93d950855d9bfdd58418f2
+  languageName: node
+  linkType: hard
+
+"ngx-dynamic-hooks@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "ngx-dynamic-hooks@npm:3.1.2"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/common": ">=17"
+    "@angular/core": ">=17"
+    "@angular/platform-browser": ">=17"
+    rxjs: ">=7"
+  checksum: 10c0/99d1b3b07f12aabd31fe1a5b3f763232451f41d35fea9b08ab79649e4e5ec6b4e10a12d9f287baf1807bf755f8a585a61a124eb080e1eb7228b64d9f96d73dc4
   languageName: node
   linkType: hard
 

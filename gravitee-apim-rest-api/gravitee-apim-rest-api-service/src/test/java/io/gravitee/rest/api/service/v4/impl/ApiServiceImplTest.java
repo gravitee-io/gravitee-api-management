@@ -54,6 +54,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -298,6 +299,9 @@ public class ApiServiceImplTest {
     @Mock
     private ScoringReportRepository scoringReportRepository;
 
+    @Mock
+    private EventManager eventManager;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -393,7 +397,8 @@ public class ApiServiceImplTest {
                 apiValidationService,
                 planSearchService,
                 apiConverter,
-                synchronizationService
+                synchronizationService,
+                eventManager
             );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);
