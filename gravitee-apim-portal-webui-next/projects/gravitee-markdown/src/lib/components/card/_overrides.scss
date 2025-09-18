@@ -1,0 +1,70 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/token-utils' as token-utils;
+
+@function tokens() {
+  @return (
+    title-text-weight: (
+      value: 700,
+      css-var: --gmd-card-title-text-weight,
+    ),
+    title-text-size: (
+      value: 16px,
+      css-var: --gmd-card-title-text-size,
+    ),
+    title-line-height: (
+      value: 21px,
+      css-var: --gmd-card-title-line-height,
+    ),
+    subtitle-text-weight: (
+      value: 400,
+      css-var: --gmd-card-subtitle-text-weight,
+    ),
+    subtitle-text-size: (
+      value: 14px,
+      css-var: --gmd-card-subtitle-text-size,
+    ),
+    subtitle-line-height: (
+      value: 20px,
+      css-var: --gmd-card-subtitle-line-height,
+    ),
+    container-color: (
+      value: #f4f7fd,
+      css-var: --gmd-card-container-color,
+    ),
+    outline-color: (
+      value: #c7c7c7,
+      css-var: --gmd-card-outline-color,
+    ),
+    container-shape: (
+      value: 16px,
+      css-var: --gmd-card-container-shape,
+    ),
+    text-color: (
+      value: #1d192b,
+      css-var: --gmd-card-text-color,
+    ),
+    text-align: (
+      value: 'left',
+      css-var: --gmd-card-text-align,
+    )
+  );
+}
+
+// Component-level override mixin
+@mixin overrides($overrides: ()) {
+  @include token-utils.apply-token-overrides(tokens(), $overrides);
+}
