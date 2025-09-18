@@ -146,8 +146,10 @@ export class ApiRuntimeLogsComponent implements OnInit {
                 const application = applications.data.find((app) => app.id === id);
                 return { value: id, label: `${application.name} ( ${application.owner?.displayName} )` };
               }) ?? undefined,
-            from: this.activatedRoute.snapshot.queryParams?.from ? moment(this.activatedRoute.snapshot.queryParams.from) : undefined,
-            to: this.activatedRoute.snapshot.queryParams?.to ? moment(this.activatedRoute.snapshot.queryParams.to) : undefined,
+            from: this.activatedRoute.snapshot.queryParams?.from
+              ? moment(Number(this.activatedRoute.snapshot.queryParams.from))
+              : undefined,
+            to: this.activatedRoute.snapshot.queryParams?.to ? moment(Number(this.activatedRoute.snapshot.queryParams.to)) : undefined,
             methods: this.activatedRoute.snapshot.queryParams?.methods?.split(',') ?? undefined,
             statuses: statuses?.size > 0 ? statuses : undefined,
             entrypoints: this.activatedRoute.snapshot.queryParams?.entrypointIds?.split(',') ?? undefined,
