@@ -133,8 +133,7 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         assertThat(existing).isNotNull();
         assertThat(existing.isPublished()).isFalse();
 
-        PortalPageContext toUpdate = PortalPageContext
-            .builder()
+        PortalPageContext toUpdate = PortalPageContext.builder()
             .pageId(existing.getPageId())
             .contextType(existing.getContextType())
             .environmentId(existing.getEnvironmentId())
