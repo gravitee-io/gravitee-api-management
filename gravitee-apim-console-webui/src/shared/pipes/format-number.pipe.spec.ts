@@ -19,72 +19,39 @@ import { FormatNumberPipe } from './format-number.pipe';
 describe('FormatNumberPipe', () => {
   const pipe = new FormatNumberPipe();
 
-  // --- Test Cases for Invalid and Edge Case Inputs ---
+  describe('transform', () => {
+    const testCases = [
+      // --- Invalid and Edge Case Inputs ---
+      { input: null, expected: 'N/A' },
+      { input: undefined, expected: 'N/A' },
+      { input: NaN, expected: 'N/A' },
+      { input: 0, expected: '0' },
 
-  it('should return "N/A" for null input', () => {
-    expect(pipe.transform(null)).toBe('N/A');
-  });
+      // --- Numbers Less Than 1000 ---
+      { input: 123, expected: '123' },
+      { input: 999, expected: '999' },
+      { input: -123, expected: '-123' },
+      { input: -999, expected: '-999' },
 
-  it('should return "N/A" for undefined input', () => {
-    expect(pipe.transform(undefined)).toBe('N/A');
-  });
+      // --- Thousands (K) ---
+      { input: 1000, expected: '1K' },
+      { input: 1234, expected: '1.2K' },
+      { input: 9876, expected: '9.9K' },
+      { input: 1990, expected: '2K' },
 
-  it('should return "N/A" for NaN input', () => {
-    expect(pipe.transform(NaN)).toBe('N/A');
-  });
+      // --- Millions (M) ---
+      { input: 1_000_000, expected: '1M' },
+      { input: 1_550_000, expected: '1.6M' },
+      { input: 123_456_789, expected: '123.5M' },
 
-  it('should return "0" for an input of 0', () => {
-    expect(pipe.transform(0)).toBe('0');
-  });
+      // --- Billions (B) ---
+      { input: 1_000_000_000, expected: '1B' },
+      { input: 2_345_000_000, expected: '2.3B' },
+    ];
 
-  // --- Test Cases for Numbers Less Than 1000 ---
-
-  it('should return the number as a string if it is less than 1000', () => {
-    expect(pipe.transform(123)).toBe('123');
-    expect(pipe.transform(999)).toBe('999');
-  });
-
-  it('should handle negative numbers less than 1000', () => {
-    expect(pipe.transform(-123)).toBe('-123');
-    expect(pipe.transform(-999)).toBe('-999');
-  });
-
-  // --- Test Cases for Thousands (K) ---
-
-  it('should format 1000 as "1K"', () => {
-    expect(pipe.transform(1000)).toBe('1K');
-  });
-
-  it('should format numbers in the thousands with one decimal place', () => {
-    expect(pipe.transform(1234)).toBe('1.2K');
-  });
-
-  it('should round numbers in the thousands correctly', () => {
-    expect(pipe.transform(9876)).toBe('9.9K'); // Rounds up
-    expect(pipe.transform(1990)).toBe('2K'); // Rounds up and removes .0
-  });
-
-  // --- Test Cases for Millions (M) ---
-
-  it('should format 1,000,000 as "1M"', () => {
-    expect(pipe.transform(1_000_000)).toBe('1M');
-  });
-
-  it('should format numbers in the millions with one decimal place', () => {
-    expect(pipe.transform(1_550_000)).toBe('1.6M');
-  });
-
-  it('should format large millions correctly', () => {
-    expect(pipe.transform(123_456_789)).toBe('123.5M');
-  });
-
-  // --- Test Cases for Billions (B) ---
-
-  it('should format 1,000,000,000 as "1B"', () => {
-    expect(pipe.transform(1_000_000_000)).toBe('1B');
-  });
-
-  it('should format numbers in the billions with one decimal place', () => {
-    expect(pipe.transform(2_345_000_000)).toBe('2.3B');
+    // A single parameterized test runs all the cases from the table above
+    it.each(testCases)('should transform $input to "$expected"', ({ input, expected }) => {
+      expect(pipe.transform(input)).toBe(expected);
+    });
   });
 });

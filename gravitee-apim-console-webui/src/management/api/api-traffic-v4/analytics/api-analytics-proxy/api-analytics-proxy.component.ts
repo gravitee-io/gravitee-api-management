@@ -43,7 +43,7 @@ import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../a
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
-import { StatsUnitType } from "../../../../../shared/components/analytics-stats/analytics-stats.component";
+import { StatsUnitType } from '../../../../../shared/components/analytics-stats/analytics-stats.component';
 
 type WidgetDisplayConfig = {
   title: string;
