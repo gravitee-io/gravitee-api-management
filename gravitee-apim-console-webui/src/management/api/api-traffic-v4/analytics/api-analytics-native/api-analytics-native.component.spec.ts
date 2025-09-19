@@ -113,7 +113,7 @@ describe('ApiAnalyticsNativeComponent', () => {
     });
 
     it('should use and select plans from query params', async () => {
-      await initComponent({ plans: '1' });
+      await initComponent({ plans: '1', terms: 'plan-id:1' });
 
       expectPlanList([plan1, plan2]);
 
@@ -139,6 +139,7 @@ describe('ApiAnalyticsNativeComponent', () => {
         queryParams: {
           period: '1d',
           plans: '2',
+          terms: 'plan-id:2',
         },
         queryParamsHandling: 'replace',
       });
@@ -166,7 +167,7 @@ describe('ApiAnalyticsNativeComponent', () => {
     });
 
     it('should make backend calls with custom period from query params', async () => {
-      await initComponent({ period: 'custom', from: '1', to: '2' });
+      await initComponent({ period: 'custom', from: '1', to: '2', terms: 'plan-id:1,app-id:1,plan-id:2,app-id:2' });
 
       // Verify that backend calls are made with 7d time range
       const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
@@ -179,6 +180,7 @@ describe('ApiAnalyticsNativeComponent', () => {
           expect(req.request.url).toContain('from=1');
           expect(req.request.url).toContain('to=2');
           expect(req.request.url).toContain('interval=0');
+          expect(req.request.url).toContain('terms=plan-id:1,app-id:1,plan-id:2,app-id:2');
         });
 
       flushAllRequests();

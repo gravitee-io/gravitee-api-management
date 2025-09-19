@@ -41,6 +41,7 @@ interface QueryParamsBase {
   period?: string;
   plans?: string;
   applications?: string[];
+  terms: string;
 }
 
 @Component({
@@ -311,6 +312,9 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
 
     if (filters.plans?.length) {
       params.plans = filters.plans.join(',');
+      const plans = filters.plans.map((planId) => `plan-id:${planId}`).join(',');
+      const applications = filters.applications.map((planId) => `app-id:${planId}`).join(',');
+      params.terms = [plans, applications].filter((term) => term).join(',');
     }
 
     return params as QueryParamsBase;
@@ -345,12 +349,28 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     const normalizedPeriod = params.period || '1d';
     const filters = this.getFilterFields(params);
 
+    const filterBucket: Record<string, string[]> = {
+      'app-id': [],
+      'plan-id': [],
+    };
+
+    if (filters.terms?.length) {
+      for (const term of filters.terms) {
+        const [key, value] = term.split(':', 2);
+
+        if (value && filterBucket[key]) {
+          filterBucket[key].push(value);
+        }
+      }
+    }
+
     if (normalizedPeriod === 'custom' && params.from && params.to) {
       return <ApiAnalyticsNativeFilters>{
         period: normalizedPeriod,
         from: +params.from,
         to: +params.to,
-        ...filters,
+        plans: filterBucket['plan-id'],
+        applications: filterBucket['app-id'],
       };
     }
 
@@ -358,7 +378,8 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       period: normalizedPeriod,
       from: null,
       to: null,
-      ...filters,
+      plans: filterBucket['plan-id'],
+      applications: filterBucket['app-id']
     };
   }
 
@@ -366,6 +387,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     return {
       plans: this.processFilter(queryParams.plans),
       applications: this.processFilter(queryParams.applications),
+      terms: this.processFilter(queryParams.terms)
     };
   }
 
