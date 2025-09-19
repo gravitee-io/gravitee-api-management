@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.repository.management.model.PortalPage;
@@ -71,5 +72,16 @@ public interface PortalPageAdapter {
         core.setCreatedAt(value.getCreatedAt());
         core.setUpdatedAt(value.getUpdatedAt());
         return core;
+    }
+
+    default PortalPageContext map(PageId pageId, PortalPageView toUpdate) {
+        if (pageId == null && toUpdate == null) {
+            return null;
+        }
+        PortalPageContext portalPageContext = new PortalPageContext();
+        portalPageContext.setPageId(map(pageId));
+        portalPageContext.setContextType(PortalPageContextType.valueOf(toUpdate.context().name()));
+        portalPageContext.setPublished(toUpdate.published());
+        return portalPageContext;
     }
 }

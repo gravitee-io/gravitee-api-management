@@ -15,6 +15,23 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.portal_page.exception.IllegalPublicationStateException;
 import jakarta.annotation.Nonnull;
 
-public record PortalPageView(@Nonnull PortalViewContext context, boolean published) {}
+public record PortalPageView(@Nonnull PortalViewContext context, boolean published) {
+    public PortalPageView publish() {
+        if (this.published) {
+            throw IllegalPublicationStateException.alreadyPublished();
+        }
+
+        return new PortalPageView(this.context, true);
+    }
+
+    public PortalPageView unpublish() {
+        if (!this.published) {
+            throw IllegalPublicationStateException.alreadyUnpublished();
+        }
+
+        return new PortalPageView(this.context, false);
+    }
+}
