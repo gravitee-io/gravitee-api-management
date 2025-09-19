@@ -18,7 +18,10 @@ package io.gravitee.rest.api.management.rest.resource;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.debug.use_case.DebugApiUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -546,12 +549,14 @@ public class ApiResource extends AbstractResource {
     }
 
     private Response updateApiWithDefinitionOrUrl(Object apiDefinitionOrUrl) {
+        // Validate and sanitize inline images if present. Invalid images are ignored and treated as null.
+        Object sanitizedPayload = sanitizeInlineImages(apiDefinitionOrUrl);
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
         ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(
             GraviteeContext.getExecutionContext(),
             apiEntity.getId(),
-            apiDefinitionOrUrl
+            sanitizedPayload
         );
         return Response.ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
@@ -1052,5 +1057,47 @@ public class ApiResource extends AbstractResource {
         entity.setResources(null);
         entity.setPathMappings(null);
         entity.setResponseTemplates(null);
+    }
+
+    private Object sanitizeInlineImages(Object apiDefinitionOrUrl) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            if (apiDefinitionOrUrl instanceof JsonNode node && node.isObject()) {
+                ObjectNode root = (ObjectNode) node;
+                sanitizeImageField(root, "picture");
+                sanitizeImageField(root, "background");
+                return root;
+            }
+
+            if (apiDefinitionOrUrl instanceof String str) {
+                String trimmed = str.trim();
+                if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+                    JsonNode parsed = mapper.readTree(trimmed);
+                    if (parsed.isObject()) {
+                        ObjectNode root = (ObjectNode) parsed;
+                        sanitizeImageField(root, "picture");
+                        sanitizeImageField(root, "background");
+                        return mapper.writeValueAsString(root);
+                    }
+                }
+            }
+        } catch (JsonProcessingException e) {
+            LOGGER.debug("Skipping inline image sanitization due to malformed JSON input", e);
+        } catch (Exception e) {
+            LOGGER.warn("Unexpected error while sanitizing inline images, returning original payload", e);
+        }
+
+        return apiDefinitionOrUrl;
+    }
+
+    private void sanitizeImageField(ObjectNode node, String fieldName) {
+        if (node.hasNonNull(fieldName) && node.get(fieldName).isTextual()) {
+            String value = node.get(fieldName).asText();
+            try {
+                ImageUtils.verify(value);
+            } catch (InvalidImageException e) {
+                node.putNull(fieldName); // replace invalid image with null
+            }
+        }
     }
 }
