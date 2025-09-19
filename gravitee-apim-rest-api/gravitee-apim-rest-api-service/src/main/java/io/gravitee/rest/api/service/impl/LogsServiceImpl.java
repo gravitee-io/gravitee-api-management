@@ -136,6 +136,7 @@ public class LogsServiceImpl implements LogsService {
     public SearchLogResponse<ApiRequestItem> findByApi(final ExecutionContext executionContext, String api, LogQuery query) {
         try {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
+
             TabularResponse response = logRepository.query(
                 executionContext.getQueryContext(),
                 QueryBuilders
@@ -144,7 +145,10 @@ public class LogsServiceImpl implements LogsService {
                     .size(query.getSize())
                     .query(query.getQuery())
                     .sort(SortBuilder.on(field, query.isOrder() ? Order.ASC : Order.DESC, null))
-                    .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
+                    .timeRange(
+                        DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                        IntervalBuilder.interval(query.getInterval())
+                    )
                     .root("api", api)
                     .build()
             );
@@ -159,7 +163,7 @@ public class LogsServiceImpl implements LogsService {
             logResponse.setLogs(response.getLogs().stream().map(this::toApiRequestItem).collect(Collectors.toList()));
 
             // Add metadata (only if they are results)
-            if (response.getSize() > 0) {
+            if (response.getLogs() != null && !response.getLogs().isEmpty()) {
                 Map<String, Map<String, String>> metadata = new HashMap<>();
 
                 logResponse
