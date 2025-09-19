@@ -43,6 +43,7 @@ export interface ApiAnalyticsNativeFilters {
   from?: number | null;
   to?: number | null;
   plans: string[] | null;
+  applications: string[] | null;
 }
 
 interface FilterChip {
