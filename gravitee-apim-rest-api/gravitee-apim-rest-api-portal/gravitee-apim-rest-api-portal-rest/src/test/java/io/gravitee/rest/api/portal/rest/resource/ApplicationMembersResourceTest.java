@@ -97,7 +97,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         assertEquals(2, membersResponse.getData().size());
         assertTrue(
             (MEMBER_1.equals(membersResponse.getData().get(0).getId()) && MEMBER_2.equals(membersResponse.getData().get(1).getId())) ||
-            (MEMBER_1.equals(membersResponse.getData().get(1).getId()) && MEMBER_2.equals(membersResponse.getData().get(0).getId()))
+                (MEMBER_1.equals(membersResponse.getData().get(1).getId()) && MEMBER_2.equals(membersResponse.getData().get(0).getId()))
         );
 
         Links links = membersResponse.getLinks();
@@ -173,15 +173,13 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").path(MEMBER_1).request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
-        Mockito
-            .verify(membershipService)
-            .deleteReferenceMember(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION,
-                MembershipMemberType.USER,
-                MEMBER_1
-            );
+        Mockito.verify(membershipService).deleteReferenceMember(
+            GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.APPLICATION,
+            APPLICATION,
+            MembershipMemberType.USER,
+            MEMBER_1
+        );
     }
 
     @Test
@@ -210,14 +208,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
             MembershipService.MembershipMember.class
         );
 
-        Mockito
-            .verify(membershipService)
-            .addRoleToMemberOnReference(
-                eq(GraviteeContext.getExecutionContext()),
-                memberShipRefCaptor.capture(),
-                memberShipUserCaptor.capture(),
-                memberShipRoleCaptor.capture()
-            );
+        Mockito.verify(membershipService).addRoleToMemberOnReference(
+            eq(GraviteeContext.getExecutionContext()),
+            memberShipRefCaptor.capture(),
+            memberShipUserCaptor.capture(),
+            memberShipRoleCaptor.capture()
+        );
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
         assertEquals("USER", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
@@ -239,14 +235,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
             MembershipService.MembershipMember.class
         );
 
-        Mockito
-            .verify(membershipService)
-            .updateRoleToMemberOnReference(
-                eq(GraviteeContext.getExecutionContext()),
-                memberShipRefCaptor.capture(),
-                memberShipUserCaptor.capture(),
-                memberShipRoleCaptor.capture()
-            );
+        Mockito.verify(membershipService).updateRoleToMemberOnReference(
+            eq(GraviteeContext.getExecutionContext()),
+            memberShipRefCaptor.capture(),
+            memberShipUserCaptor.capture(),
+            memberShipRoleCaptor.capture()
+        );
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
         assertEquals("USER", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_2, memberShipUserCaptor.getValue().getMemberId());
@@ -266,14 +260,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
             MembershipService.MembershipMember.class
         );
 
-        Mockito
-            .verify(membershipService)
-            .transferApplicationOwnership(
-                eq(GraviteeContext.getExecutionContext()),
-                applicationCaptor.capture(),
-                memberShipUserCaptor.capture(),
-                roleCaptor.capture()
-            );
+        Mockito.verify(membershipService).transferApplicationOwnership(
+            eq(GraviteeContext.getExecutionContext()),
+            applicationCaptor.capture(),
+            memberShipUserCaptor.capture(),
+            roleCaptor.capture()
+        );
         assertEquals(APPLICATION, applicationCaptor.getValue());
         assertEquals(mockRoleEntity, roleCaptor.getValue().get(0));
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
@@ -292,14 +284,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
             MembershipService.MembershipMember.class
         );
 
-        Mockito
-            .verify(membershipService)
-            .transferApplicationOwnership(
-                eq(GraviteeContext.getExecutionContext()),
-                applicationCaptor.capture(),
-                memberShipUserCaptor.capture(),
-                roleCaptor.capture()
-            );
+        Mockito.verify(membershipService).transferApplicationOwnership(
+            eq(GraviteeContext.getExecutionContext()),
+            applicationCaptor.capture(),
+            memberShipUserCaptor.capture(),
+            roleCaptor.capture()
+        );
         assertEquals(APPLICATION, applicationCaptor.getValue());
         assertNotNull(roleCaptor.getValue());
         assertTrue(roleCaptor.getValue().isEmpty());

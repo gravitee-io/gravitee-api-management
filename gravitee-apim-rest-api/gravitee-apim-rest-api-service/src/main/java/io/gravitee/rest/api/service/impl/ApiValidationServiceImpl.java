@@ -71,13 +71,11 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
 
         UserDetails authenticatedUser = getAuthenticatedUser();
 
-        AuditInfo auditInfo = AuditInfo
-            .builder()
+        AuditInfo auditInfo = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(authenticatedUser.getUsername())
                     .userSource(authenticatedUser.getSource())
                     .userSourceId(authenticatedUser.getSourceId())
@@ -164,6 +162,9 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
     }
 
     private static List<VirtualHost> mapPaths(List<Path> paths) {
-        return paths.stream().map(path -> new VirtualHost(path.getHost(), path.getPath(), path.isOverrideAccess())).toList();
+        return paths
+            .stream()
+            .map(path -> new VirtualHost(path.getHost(), path.getPath(), path.isOverrideAccess()))
+            .toList();
     }
 }

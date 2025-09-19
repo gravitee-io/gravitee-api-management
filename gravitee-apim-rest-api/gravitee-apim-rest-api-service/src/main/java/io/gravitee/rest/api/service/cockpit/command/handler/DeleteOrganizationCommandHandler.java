@@ -143,11 +143,10 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
             List<EnvironmentEntity> environments = environmentService.findByOrganization(organization.getId());
 
             if (!environments.isEmpty()) {
-                String errorDetails =
-                    "Error occurred when deleting organization with id [%s] have [%s] environment(s)".formatted(
-                            payload.id(),
-                            environments.size()
-                        );
+                String errorDetails = "Error occurred when deleting organization with id [%s] have [%s] environment(s)".formatted(
+                    payload.id(),
+                    environments.size()
+                );
                 log.error(errorDetails);
                 return Single.just(new DeleteOrganizationReply(command.getId(), errorDetails));
             }
@@ -174,12 +173,12 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
 
         // Deactivate all identity providers
         this.identityProviderActivationService.removeAllIdpsFromTarget(
-                context,
-                new IdentityProviderActivationService.ActivationTarget(
-                    executionContext.getOrganizationId(),
-                    IdentityProviderActivationReferenceType.ORGANIZATION
-                )
-            );
+            context,
+            new IdentityProviderActivationService.ActivationTarget(
+                executionContext.getOrganizationId(),
+                IdentityProviderActivationReferenceType.ORGANIZATION
+            )
+        );
     }
 
     private void deleteOrganization(ExecutionContext executionContext, OrganizationEntity organization) throws TechnicalException {

@@ -104,11 +104,9 @@ public class AlertAnalyticsServiceImpl implements AlertAnalyticsService {
                 .entrySet()
                 .stream()
                 .sorted(
-                    Map.Entry
-                        .<AlertTrigger, HashSet<AlertEvent>>comparingByKey((a1, a2) ->
-                            compareSeverity().compare(a1.getSeverity(), a2.getSeverity())
-                        )
-                        .thenComparing(Map.Entry.<AlertTrigger, HashSet<AlertEvent>>comparingByValue(comparing(Set::size)).reversed())
+                    Map.Entry.<AlertTrigger, HashSet<AlertEvent>>comparingByKey((a1, a2) ->
+                        compareSeverity().compare(a1.getSeverity(), a2.getSeverity())
+                    ).thenComparing(Map.Entry.<AlertTrigger, HashSet<AlertEvent>>comparingByValue(comparing(Set::size)).reversed())
                 )
                 .map(e -> {
                     AlertAnalyticsEntity.AlertTriggerAnalytics alertTriggerAnalytics = new AlertAnalyticsEntity.AlertTriggerAnalytics();

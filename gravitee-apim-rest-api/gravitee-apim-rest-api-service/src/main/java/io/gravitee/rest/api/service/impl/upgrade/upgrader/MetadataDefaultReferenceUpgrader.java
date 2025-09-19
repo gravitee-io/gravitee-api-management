@@ -54,18 +54,16 @@ public class MetadataDefaultReferenceUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-                Set<Environment> environments = environmentRepository.findAll();
-                List<Metadata> metadataList = metadataRepository
-                    .findAll()
-                    .stream()
-                    .filter(metadata -> metadata.getReferenceId().equals("_"))
-                    .flatMap(
-                        (Function<Metadata, Stream<Metadata>>) metadata -> migrateDefaultMetadataToEnvironments(environments, metadata)
-                    )
-                    .toList();
-                log.info("Migrating metadata: {} for environments {}", metadataList.size(), environments);
-                return true;
-            });
+            Set<Environment> environments = environmentRepository.findAll();
+            List<Metadata> metadataList = metadataRepository
+                .findAll()
+                .stream()
+                .filter(metadata -> metadata.getReferenceId().equals("_"))
+                .flatMap((Function<Metadata, Stream<Metadata>>) metadata -> migrateDefaultMetadataToEnvironments(environments, metadata))
+                .toList();
+            log.info("Migrating metadata: {} for environments {}", metadataList.size(), environments);
+            return true;
+        });
     }
 
     private Stream<Metadata> migrateDefaultMetadataToEnvironments(Set<Environment> environments, Metadata metadata) {
@@ -93,8 +91,7 @@ public class MetadataDefaultReferenceUpgrader implements Upgrader {
     }
 
     private Metadata duplicateMetadata(Environment environment, Metadata metadata) {
-        return Metadata
-            .builder()
+        return Metadata.builder()
             .referenceId(environment.getId())
             .referenceType(MetadataReferenceType.ENVIRONMENT)
             .name(metadata.getName())

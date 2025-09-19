@@ -103,13 +103,11 @@ public class SubscriptionKeysResource extends AbstractResource {
                 new RevokeSubscriptionApiKeyUseCase.Input(
                     subscriptionId,
                     apiKey,
-                    AuditInfo
-                        .builder()
+                    AuditInfo.builder()
                         .organizationId(executionContext.getOrganizationId())
                         .environmentId(executionContext.getEnvironmentId())
                         .actor(
-                            AuditActor
-                                .builder()
+                            AuditActor.builder()
                                 .userId(user.getUsername())
                                 .userSource(user.getSource())
                                 .userSourceId(user.getSourceId())

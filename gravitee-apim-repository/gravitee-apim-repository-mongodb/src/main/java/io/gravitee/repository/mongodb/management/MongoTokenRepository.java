@@ -106,7 +106,10 @@ public class MongoTokenRepository implements TokenRepository {
     @Override
     public Set<Token> findAll() throws TechnicalException {
         final List<TokenMongo> tokens = internalTokenRepo.findAll();
-        return tokens.stream().map(tokenMongo -> mapper.map(tokenMongo)).collect(Collectors.toSet());
+        return tokens
+            .stream()
+            .map(tokenMongo -> mapper.map(tokenMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -114,7 +117,10 @@ public class MongoTokenRepository implements TokenRepository {
         LOGGER.debug("Find token by ref type '{}' and ref id '{}'", referenceType, referenceId);
         final List<TokenMongo> token = internalTokenRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
         LOGGER.debug("Find token by ref type '{}' and ref id '{}' done", referenceType, referenceId);
-        return token.stream().map(t -> mapper.map(t)).collect(Collectors.toList());
+        return token
+            .stream()
+            .map(t -> mapper.map(t))
+            .collect(Collectors.toList());
     }
 
     @Override

@@ -50,8 +50,7 @@ public sealed interface GraviteeDefinition {
         List<Media> apiMedia,
         String apiPicture,
         String apiBackground
-    )
-        implements GraviteeDefinition {}
+    ) implements GraviteeDefinition {}
 
     @Builder(toBuilder = true)
     record Native(
@@ -64,8 +63,7 @@ public sealed interface GraviteeDefinition {
         List<Media> apiMedia,
         String apiPicture,
         String apiBackground
-    )
-        implements GraviteeDefinition {}
+    ) implements GraviteeDefinition {}
 
     @Builder(toBuilder = true)
     record Federated(
@@ -78,8 +76,7 @@ public sealed interface GraviteeDefinition {
         List<Media> apiMedia,
         String apiPicture,
         String apiBackground
-    )
-        implements GraviteeDefinition {}
+    ) implements GraviteeDefinition {}
 
     @Builder(toBuilder = true)
     record V2(
@@ -92,8 +89,7 @@ public sealed interface GraviteeDefinition {
         List<Media> apiMedia,
         String apiPicture,
         String apiBackground
-    )
-        implements GraviteeDefinition {}
+    ) implements GraviteeDefinition {}
 
     record Export(Instant date, String apimVersion) {
         public Export() {

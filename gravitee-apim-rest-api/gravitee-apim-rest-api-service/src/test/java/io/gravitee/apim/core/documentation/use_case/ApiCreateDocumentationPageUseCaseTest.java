@@ -99,47 +99,43 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
 
-        documentationValidationDomainService =
-            new DocumentationValidationDomainService(
-                new HtmlSanitizerImpl(htmlSanitizer),
-                new NoopTemplateResolverDomainService(),
-                apiCrudService,
-                new NoopSwaggerOpenApiResolver(),
-                new ApiMetadataQueryServiceInMemory(),
-                new ApiPrimaryOwnerDomainService(
-                    new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                    groupQueryService,
-                    membershipCrudService,
-                    membershipQueryService,
-                    roleQueryService,
-                    userCrudService
-                ),
-                new ApiDocumentationDomainService(pageQueryService, planQueryService),
-                pageCrudService,
-                pageSourceDomainService,
-                groupQueryService,
-                roleQueryService
-            );
-
-        createApiDocumentationDomainService =
-            new CreateApiDocumentationDomainService(
-                pageCrudService,
-                pageRevisionCrudService,
+        documentationValidationDomainService = new DocumentationValidationDomainService(
+            new HtmlSanitizerImpl(htmlSanitizer),
+            new NoopTemplateResolverDomainService(),
+            apiCrudService,
+            new NoopSwaggerOpenApiResolver(),
+            new ApiMetadataQueryServiceInMemory(),
+            new ApiPrimaryOwnerDomainService(
                 new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                indexer
-            );
-        apiCreateDocumentationPageUsecase =
-            new ApiCreateDocumentationPageUseCase(
-                createApiDocumentationDomainService,
-                new HomepageDomainService(pageQueryService, pageCrudService),
-                pageQueryService,
-                documentationValidationDomainService
-            );
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService
+            ),
+            new ApiDocumentationDomainService(pageQueryService, planQueryService),
+            pageCrudService,
+            pageSourceDomainService,
+            groupQueryService,
+            roleQueryService
+        );
+
+        createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
+            pageCrudService,
+            pageRevisionCrudService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            indexer
+        );
+        apiCreateDocumentationPageUsecase = new ApiCreateDocumentationPageUseCase(
+            createApiDocumentationDomainService,
+            new HomepageDomainService(pageQueryService, pageCrudService),
+            pageQueryService,
+            documentationValidationDomainService
+        );
         apiCrudService.initWith(List.of(API_MESSAGE_V4));
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .id(ROLE_ID)
                     .scope(Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
@@ -151,8 +147,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         groupQueryService.initWith(List.of(Group.builder().id(GROUP_ID).build()));
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)
@@ -167,18 +162,16 @@ class ApiCreateDocumentationPageUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                pageQueryService,
-                pageCrudService,
-                pageRevisionCrudService,
-                auditCrudService,
-                userCrudService,
-                roleQueryService,
-                membershipCrudService,
-                userCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            pageQueryService,
+            pageCrudService,
+            pageRevisionCrudService,
+            auditCrudService,
+            userCrudService,
+            roleQueryService,
+            membershipCrudService,
+            userCrudService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @AfterAll
@@ -191,8 +184,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_markdown() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -203,11 +195,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.MARKDOWN)
                             .name("new page ")
                             .content("nice content")
@@ -250,11 +240,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_create_audit() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.MARKDOWN)
                             .name("new page")
                             .content("nice content")
@@ -280,11 +268,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_create_a_page_revision() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.MARKDOWN)
                             .name("new page")
                             .content("nice content")
@@ -312,8 +298,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_change_homepage_to_new_page() {
             final String EXISTING_PAGE_ID = "existing-homepage-id";
-            var existingHomepage = Page
-                .builder()
+            var existingHomepage = Page.builder()
                 .id(EXISTING_PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -325,11 +310,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(existingHomepage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.MARKDOWN)
                             .name("new page")
                             .content("nice content")
@@ -347,7 +330,12 @@ class ApiCreateDocumentationPageUseCaseTest {
 
             assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
 
-            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            var formerHomepage = pageCrudService
+                .storage()
+                .stream()
+                .filter(p -> p.getId().equals(EXISTING_PAGE_ID))
+                .toList()
+                .get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
         }
 
@@ -355,8 +343,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         void should_give_new_markdown_highest_count() {
             final String EXISTING_PAGE_ID = "existing-page-id";
             final String PARENT_ID = "123";
-            var existingParent = Page
-                .builder()
+            var existingParent = Page.builder()
                 .id(PARENT_ID)
                 .type(Page.Type.FOLDER)
                 .referenceType(Page.ReferenceType.API)
@@ -365,8 +352,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .order(1)
                 .build();
 
-            var existingPage = Page
-                .builder()
+            var existingPage = Page.builder()
                 .id(EXISTING_PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -379,11 +365,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(existingPage, existingParent));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.MARKDOWN)
                             .name("new page")
                             .content("nice content")
@@ -403,11 +387,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_not_add_missing_parent() {
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.MARKDOWN)
                             .name("new page")
                             .content("nice content")
@@ -429,11 +411,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_ignore_empty_parent_id() {
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.MARKDOWN)
                             .name("new page")
                             .content("nice content")
@@ -455,34 +435,30 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_throw_error_if_markdown_unsafe() {
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .type(Page.Type.MARKDOWN)
-                                    .name("new page")
-                                    .content(getNotSafe())
-                                    .homepage(false)
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .parentId(PARENT_ID)
-                                    .order(1)
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId(API_ID)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.MARKDOWN)
+                                .name("new page")
+                                .content(getNotSafe())
+                                .homepage(false)
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(PageContentUnsafeException.class);
+            ).isInstanceOf(PageContentUnsafeException.class);
         }
 
         @Test
         void should_throw_error_if_parent_is_not_folder() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -492,34 +468,30 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .type(Page.Type.MARKDOWN)
-                                    .name("new page")
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .parentId(PARENT_ID)
-                                    .order(1)
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId(API_ID)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.MARKDOWN)
+                                .name("new page")
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageParentException.class);
+            ).isInstanceOf(InvalidPageParentException.class);
         }
 
         @ParameterizedTest
         @ValueSource(strings = { "  " })
         @NullAndEmptySource
         void should_throw_error_if_page_name_is_null_or_empty(String name) {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -530,32 +502,28 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .type(Page.Type.MARKDOWN)
-                                    .name(name)
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .parentId(PARENT_ID)
-                                    .order(1)
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId(API_ID)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.MARKDOWN)
+                                .name(name)
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageNameException.class);
+            ).isInstanceOf(InvalidPageNameException.class);
         }
 
         @Test
         void should_throw_error_if_name_not_unique() {
-            var parentFolder = Page
-                .builder()
+            var parentFolder = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -563,8 +531,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .parentId("")
                 .name("parent")
                 .build();
-            var subPage = Page
-                .builder()
+            var subPage = Page.builder()
                 .id("sub-page-id")
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -576,33 +543,30 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(parentFolder, subPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .id("sub-page-id")
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId("api-id")
-                                    .type(Page.Type.MARKDOWN)
-                                    .parentId(PARENT_ID)
-                                    .name("sub-page")
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .id("sub-page-id")
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId("api-id")
+                                .type(Page.Type.MARKDOWN)
+                                .parentId(PARENT_ID)
+                                .name("sub-page")
+                                .visibility(Page.Visibility.PRIVATE)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
+            )
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Name already exists with the same parent and type: sub-page");
         }
 
         @Test
         void should_only_return_valid_access_controls() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -618,11 +582,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             accessControls.add(AccessControl.builder().referenceId("type-does-exist").referenceType("USER").build());
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.MARKDOWN)
                             .name("new page ")
                             .content("nice content")
@@ -668,8 +630,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_swagger() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -680,11 +641,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.SWAGGER)
                             .name("new page ")
                             .content("openapi: 3.0.0")
@@ -727,11 +686,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_create_audit() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.SWAGGER)
                             .name("new page")
                             .content("openapi: 3.0.0")
@@ -757,11 +714,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_create_a_page_revision() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.SWAGGER)
                             .name("new page")
                             .content("openapi: 3.0.0")
@@ -789,8 +744,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_change_homepage_to_new_page() {
             final String EXISTING_PAGE_ID = "existing-homepage-id";
-            var existingHomepage = Page
-                .builder()
+            var existingHomepage = Page.builder()
                 .id(EXISTING_PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -802,11 +756,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(existingHomepage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.SWAGGER)
                             .name("new page")
                             .content("openapi: 3.0.0")
@@ -824,7 +776,12 @@ class ApiCreateDocumentationPageUseCaseTest {
 
             assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
 
-            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            var formerHomepage = pageCrudService
+                .storage()
+                .stream()
+                .filter(p -> p.getId().equals(EXISTING_PAGE_ID))
+                .toList()
+                .get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
         }
 
@@ -832,8 +789,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         void should_give_new_markdown_highest_count() {
             final String EXISTING_PAGE_ID = "existing-page-id";
             final String PARENT_ID = "123";
-            var existingParent = Page
-                .builder()
+            var existingParent = Page.builder()
                 .id(PARENT_ID)
                 .type(Page.Type.FOLDER)
                 .referenceType(Page.ReferenceType.API)
@@ -842,8 +798,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .order(1)
                 .build();
 
-            var existingPage = Page
-                .builder()
+            var existingPage = Page.builder()
                 .id(EXISTING_PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -856,11 +811,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(existingPage, existingParent));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.SWAGGER)
                             .name("new page")
                             .content("openapi: 3.0.0")
@@ -880,11 +833,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_not_add_missing_parent() {
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.SWAGGER)
                             .name("new page")
                             .content("openapi: 3.0.0")
@@ -906,11 +857,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_ignore_empty_parent_id() {
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.SWAGGER)
                             .name("new page")
                             .content("openapi: 3.0.0")
@@ -932,34 +881,30 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_throw_error_if_content_invalid() {
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .type(Page.Type.SWAGGER)
-                                    .name("new page")
-                                    .content(getNotSafe())
-                                    .homepage(false)
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .parentId(PARENT_ID)
-                                    .order(1)
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId(API_ID)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.SWAGGER)
+                                .name("new page")
+                                .content(getNotSafe())
+                                .homepage(false)
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageContentException.class);
+            ).isInstanceOf(InvalidPageContentException.class);
         }
 
         @Test
         void should_throw_error_if_parent_is_not_folder() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -969,34 +914,30 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .type(Page.Type.SWAGGER)
-                                    .name("new page")
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .parentId(PARENT_ID)
-                                    .order(1)
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId(API_ID)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.SWAGGER)
+                                .name("new page")
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageParentException.class);
+            ).isInstanceOf(InvalidPageParentException.class);
         }
 
         @ParameterizedTest
         @ValueSource(strings = { "  " })
         @NullAndEmptySource
         void should_throw_error_if_page_name_is_null_or_empty(String name) {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1007,32 +948,28 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .type(Page.Type.SWAGGER)
-                                    .name(name)
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .parentId(PARENT_ID)
-                                    .order(1)
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId(API_ID)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.SWAGGER)
+                                .name(name)
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageNameException.class);
+            ).isInstanceOf(InvalidPageNameException.class);
         }
 
         @Test
         void should_throw_error_if_name_not_unique() {
-            var parentFolder = Page
-                .builder()
+            var parentFolder = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1040,8 +977,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .parentId("")
                 .name("parent")
                 .build();
-            var subPage = Page
-                .builder()
+            var subPage = Page.builder()
                 .id("sub-page-id")
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1053,33 +989,30 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(parentFolder, subPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .id("sub-page-id")
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId("api-id")
-                                    .type(Page.Type.SWAGGER)
-                                    .parentId(PARENT_ID)
-                                    .name("sub-page")
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .id("sub-page-id")
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId("api-id")
+                                .type(Page.Type.SWAGGER)
+                                .parentId(PARENT_ID)
+                                .name("sub-page")
+                                .visibility(Page.Visibility.PRIVATE)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
+            )
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Name already exists with the same parent and type: sub-page");
         }
 
         @Test
         void should_only_return_valid_access_controls() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1095,11 +1028,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             accessControls.add(AccessControl.builder().referenceId("type-does-exist").referenceType("USER").build());
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.SWAGGER)
                             .name("new page ")
                             .content("openapi: 3.0.0")
@@ -1145,8 +1076,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_markdown() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1157,11 +1087,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.ASYNCAPI)
                             .name("new page ")
                             .content("nice content")
@@ -1204,11 +1132,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_create_audit() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.ASYNCAPI)
                             .name("new page")
                             .content("nice content")
@@ -1234,11 +1160,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_not_create_a_page_revision() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.ASYNCAPI)
                             .name("new page")
                             .content("nice content")
@@ -1260,8 +1184,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_change_homepage_to_new_page() {
             final String EXISTING_PAGE_ID = "existing-homepage-id";
-            var existingHomepage = Page
-                .builder()
+            var existingHomepage = Page.builder()
                 .id(EXISTING_PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1273,11 +1196,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(existingHomepage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.ASYNCAPI)
                             .name("new page")
                             .content("nice content")
@@ -1295,7 +1216,12 @@ class ApiCreateDocumentationPageUseCaseTest {
 
             assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
 
-            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            var formerHomepage = pageCrudService
+                .storage()
+                .stream()
+                .filter(p -> p.getId().equals(EXISTING_PAGE_ID))
+                .toList()
+                .get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
         }
 
@@ -1303,8 +1229,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         void should_give_new_markdown_highest_count() {
             final String EXISTING_PAGE_ID = "existing-page-id";
             final String PARENT_ID = "123";
-            var existingParent = Page
-                .builder()
+            var existingParent = Page.builder()
                 .id(PARENT_ID)
                 .type(Page.Type.FOLDER)
                 .referenceType(Page.ReferenceType.API)
@@ -1313,8 +1238,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .order(1)
                 .build();
 
-            var existingPage = Page
-                .builder()
+            var existingPage = Page.builder()
                 .id(EXISTING_PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1327,11 +1251,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(existingPage, existingParent));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.ASYNCAPI)
                             .name("new page")
                             .content("nice content")
@@ -1351,11 +1273,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_not_add_missing_parent() {
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.ASYNCAPI)
                             .name("new page")
                             .content("nice content")
@@ -1377,11 +1297,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_ignore_empty_parent_id() {
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.ASYNCAPI)
                             .name("new page")
                             .content("nice content")
@@ -1402,8 +1320,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_throw_error_if_parent_is_not_folder() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1413,34 +1330,30 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .type(Page.Type.ASYNCAPI)
-                                    .name("new page")
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .parentId(PARENT_ID)
-                                    .order(1)
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId(API_ID)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.ASYNCAPI)
+                                .name("new page")
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageParentException.class);
+            ).isInstanceOf(InvalidPageParentException.class);
         }
 
         @ParameterizedTest
         @ValueSource(strings = { "  " })
         @NullAndEmptySource
         void should_throw_error_if_page_name_is_null_or_empty(String name) {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1451,32 +1364,28 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .type(Page.Type.ASYNCAPI)
-                                    .name(name)
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .parentId(PARENT_ID)
-                                    .order(1)
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId(API_ID)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.ASYNCAPI)
+                                .name(name)
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageNameException.class);
+            ).isInstanceOf(InvalidPageNameException.class);
         }
 
         @Test
         void should_throw_error_if_name_not_unique() {
-            var parentFolder = Page
-                .builder()
+            var parentFolder = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1484,8 +1393,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .parentId("")
                 .name("parent")
                 .build();
-            var subPage = Page
-                .builder()
+            var subPage = Page.builder()
                 .id("sub-page-id")
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1497,33 +1405,30 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(parentFolder, subPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .id("sub-page-id")
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId("api-id")
-                                    .type(Page.Type.ASYNCAPI)
-                                    .parentId(PARENT_ID)
-                                    .name("sub-page")
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .id("sub-page-id")
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId("api-id")
+                                .type(Page.Type.ASYNCAPI)
+                                .parentId(PARENT_ID)
+                                .name("sub-page")
+                                .visibility(Page.Visibility.PRIVATE)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
+            )
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Name already exists with the same parent and type: sub-page");
         }
 
         @Test
         void should_only_return_valid_access_controls() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1539,11 +1444,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             accessControls.add(AccessControl.builder().referenceId("type-does-exist").referenceType("USER").build());
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.ASYNCAPI)
                             .name("new page ")
                             .content("nice content")
@@ -1589,8 +1492,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_create_folder() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1601,11 +1503,9 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.FOLDER)
                             .name("new page")
                             .visibility(Page.Visibility.PRIVATE)
@@ -1642,11 +1542,9 @@ class ApiCreateDocumentationPageUseCaseTest {
         @Test
         void should_create_audit() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUseCase.Input
-                    .builder()
+                ApiCreateDocumentationPageUseCase.Input.builder()
                     .page(
-                        Page
-                            .builder()
+                        Page.builder()
                             .type(Page.Type.FOLDER)
                             .name("new page")
                             .visibility(Page.Visibility.PRIVATE)
@@ -1669,8 +1567,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
         @Test
         void should_throw_error_if_parent_is_not_folder() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1680,32 +1577,28 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .type(Page.Type.FOLDER)
-                                    .name("new page")
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .parentId(PARENT_ID)
-                                    .order(1)
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId(API_ID)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .type(Page.Type.FOLDER)
+                                .name("new page")
+                                .visibility(Page.Visibility.PRIVATE)
+                                .parentId(PARENT_ID)
+                                .order(1)
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId(API_ID)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageParentException.class);
+            ).isInstanceOf(InvalidPageParentException.class);
         }
 
         @Test
         void should_throw_error_if_name_not_unique() {
-            var parentFolder = Page
-                .builder()
+            var parentFolder = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1713,8 +1606,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .parentId("")
                 .name("parent")
                 .build();
-            var subFolder = Page
-                .builder()
+            var subFolder = Page.builder()
                 .id("sub-page-id")
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -1726,25 +1618,23 @@ class ApiCreateDocumentationPageUseCaseTest {
             pageQueryService.initWith(List.of(parentFolder, subFolder));
 
             assertThatThrownBy(() ->
-                    apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUseCase.Input
-                            .builder()
-                            .page(
-                                Page
-                                    .builder()
-                                    .id("sub-page-id")
-                                    .referenceType(Page.ReferenceType.API)
-                                    .referenceId("api-id")
-                                    .type(Page.Type.FOLDER)
-                                    .parentId(PARENT_ID)
-                                    .name("sub-page")
-                                    .visibility(Page.Visibility.PRIVATE)
-                                    .build()
-                            )
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiCreateDocumentationPageUsecase.execute(
+                    ApiCreateDocumentationPageUseCase.Input.builder()
+                        .page(
+                            Page.builder()
+                                .id("sub-page-id")
+                                .referenceType(Page.ReferenceType.API)
+                                .referenceId("api-id")
+                                .type(Page.Type.FOLDER)
+                                .parentId(PARENT_ID)
+                                .name("sub-page")
+                                .visibility(Page.Visibility.PRIVATE)
+                                .build()
+                        )
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
+            )
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Name already exists with the same parent and type: sub-page");
         }

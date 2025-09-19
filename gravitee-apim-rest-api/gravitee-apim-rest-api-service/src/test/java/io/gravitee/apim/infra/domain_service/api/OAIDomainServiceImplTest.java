@@ -63,7 +63,8 @@ class OAIDomainServiceImplTest {
         importSwaggerDescriptor.setPayload("{ \"openapi\": \"3.0.0\" }");
 
         // When
-        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor))
-            .isExactlyInstanceOf(SwaggerDescriptorException.class);
+        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor)).isExactlyInstanceOf(
+            SwaggerDescriptorException.class
+        );
     }
 }

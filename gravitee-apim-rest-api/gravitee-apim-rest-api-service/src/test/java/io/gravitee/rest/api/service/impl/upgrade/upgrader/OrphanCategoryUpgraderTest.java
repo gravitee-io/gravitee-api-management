@@ -71,8 +71,9 @@ public class OrphanCategoryUpgraderTest {
 
         Api apiWithOrphanCategory = new Api();
         apiWithOrphanCategory.setCategories(Set.of(orphanCategoryId, existingCategory.getId()));
-        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
-            .thenReturn(Stream.of(apiWithOrphanCategory));
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(
+            Stream.of(apiWithOrphanCategory)
+        );
 
         assertTrue(upgrader.upgrade());
 

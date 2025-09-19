@@ -38,27 +38,34 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
     public List<SubscriptionEntity> findExpiredSubscriptions() {
         return storage
             .stream()
-            .filter(subscription ->
-                subscription.getStatus().equals(SubscriptionEntity.Status.ACCEPTED) &&
-                subscription.getEndingAt().isBefore(ZonedDateTime.now())
+            .filter(
+                subscription ->
+                    subscription.getStatus().equals(SubscriptionEntity.Status.ACCEPTED) &&
+                    subscription.getEndingAt().isBefore(ZonedDateTime.now())
             )
             .toList();
     }
 
     @Override
     public List<SubscriptionEntity> findSubscriptionsByPlan(String planId) {
-        return storage.stream().filter(subscription -> subscription.getPlanId().equals(planId)).toList();
+        return storage
+            .stream()
+            .filter(subscription -> subscription.getPlanId().equals(planId))
+            .toList();
     }
 
     @Override
     public List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId) {
         return storage
             .stream()
-            .filter(subscription ->
-                List
-                    .of(SubscriptionEntity.Status.ACCEPTED, SubscriptionEntity.Status.PENDING, SubscriptionEntity.Status.PAUSED)
-                    .contains(subscription.getStatus()) &&
-                subscription.getPlanId().equals(planId)
+            .filter(
+                subscription ->
+                    List.of(
+                        SubscriptionEntity.Status.ACCEPTED,
+                        SubscriptionEntity.Status.PENDING,
+                        SubscriptionEntity.Status.PAUSED
+                    ).contains(subscription.getStatus()) &&
+                    subscription.getPlanId().equals(planId)
             )
             .toList();
     }
@@ -67,12 +74,15 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
     public List<SubscriptionEntity> findActiveByApplicationIdAndApiId(String applicationId, String apiId) {
         return storage
             .stream()
-            .filter(subscription ->
-                List
-                    .of(SubscriptionEntity.Status.ACCEPTED, SubscriptionEntity.Status.PENDING, SubscriptionEntity.Status.PAUSED)
-                    .contains(subscription.getStatus()) &&
-                apiId.equals(subscription.getApiId()) &&
-                applicationId.equals(subscription.getApplicationId())
+            .filter(
+                subscription ->
+                    List.of(
+                        SubscriptionEntity.Status.ACCEPTED,
+                        SubscriptionEntity.Status.PENDING,
+                        SubscriptionEntity.Status.PAUSED
+                    ).contains(subscription.getStatus()) &&
+                    apiId.equals(subscription.getApiId()) &&
+                    applicationId.equals(subscription.getApplicationId())
             )
             .toList();
     }

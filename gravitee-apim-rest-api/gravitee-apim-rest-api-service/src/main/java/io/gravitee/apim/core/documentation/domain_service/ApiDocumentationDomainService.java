@@ -68,8 +68,11 @@ public class ApiDocumentationDomainService {
         if (page.isFolder()) {
             return null;
         }
-        var results =
-            this.planQueryService.findAllByApiIdAndGeneralConditionsAndIsActive(api.getId(), api.getDefinitionVersion(), page.getId());
+        var results = this.planQueryService.findAllByApiIdAndGeneralConditionsAndIsActive(
+            api.getId(),
+            api.getDefinitionVersion(),
+            page.getId()
+        );
         return !results.isEmpty();
     }
 }

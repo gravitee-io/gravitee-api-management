@@ -175,8 +175,11 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         this.configuration = configuration;
         this.pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
-        this.loggingExcludedResponseType =
-            configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
+        this.loggingExcludedResponseType = configuration.getProperty(
+            REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY,
+            String.class,
+            null
+        );
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
 
         this.processorChainHooks = new ArrayList<>();
@@ -304,15 +307,15 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
      */
     private Completable invokeBackend(final MutableExecutionContext ctx) {
         return defer(() -> {
-                if (!Objects.equals(false, ctx.<Boolean>getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))) {
-                    HttpInvoker invoker = getInvoker(ctx);
+            if (!Objects.equals(false, ctx.<Boolean>getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER))) {
+                HttpInvoker invoker = getInvoker(ctx);
 
-                    if (invoker != null) {
-                        return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
-                    }
+                if (invoker != null) {
+                    return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
                 }
-                return Completable.complete();
-            })
+            }
+            return Completable.complete();
+        })
             .doOnSubscribe(disposable -> ctx.metrics().setEndpointResponseTimeMs(System.currentTimeMillis()))
             .doOnDispose(() -> setApiResponseTimeMetric(ctx))
             .doOnTerminate(() -> setApiResponseTimeMetric(ctx));
@@ -399,33 +402,32 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     public List<Acceptor<?>> acceptors() {
         try {
             if (acceptors == null) {
-                acceptors =
-                    api
-                        .getDefinition()
-                        .getProxy()
-                        .getVirtualHosts()
-                        .stream()
-                        .map(virtualHost -> {
-                            if (virtualHost.getHost() != null) {
-                                return httpAcceptorFactory.create(
-                                    virtualHost.getHost(),
-                                    virtualHost.getPath(),
-                                    this,
-                                    api.getDefinition().getProxy().getServers()
-                                );
-                            } else {
-                                return new AccessPointHttpAcceptor(
-                                    eventManager,
-                                    httpAcceptorFactory,
-                                    api.getEnvironmentId(),
-                                    accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
-                                    virtualHost.getPath(),
-                                    this,
-                                    api.getDefinition().getProxy().getServers()
-                                );
-                            }
-                        })
-                        .collect(Collectors.toList());
+                acceptors = api
+                    .getDefinition()
+                    .getProxy()
+                    .getVirtualHosts()
+                    .stream()
+                    .map(virtualHost -> {
+                        if (virtualHost.getHost() != null) {
+                            return httpAcceptorFactory.create(
+                                virtualHost.getHost(),
+                                virtualHost.getPath(),
+                                this,
+                                api.getDefinition().getProxy().getServers()
+                            );
+                        } else {
+                            return new AccessPointHttpAcceptor(
+                                eventManager,
+                                httpAcceptorFactory,
+                                api.getEnvironmentId(),
+                                accessPointManager.getByEnvironmentId(api.getEnvironmentId()),
+                                virtualHost.getPath(),
+                                this,
+                                api.getDefinition().getProxy().getServers()
+                            );
+                        }
+                    })
+                    .collect(Collectors.toList());
             }
 
             return acceptors;
@@ -450,8 +452,12 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.httpSecurityChain = new HttpSecurityChain(api.getDefinition(), policyManager, REQUEST);
 
         tracingContext.start();
-        this.analyticsContext =
-            AnalyticsUtils.createAnalyticsContext(api.getDefinition(), loggingMaxSize, loggingExcludedResponseType, tracingContext);
+        this.analyticsContext = AnalyticsUtils.createAnalyticsContext(
+            api.getDefinition(),
+            loggingMaxSize,
+            loggingExcludedResponseType,
+            tracingContext
+        );
         if (analyticsContext.isLoggingEnabled()) {
             invokerHooks.add(new LoggingHook());
         }

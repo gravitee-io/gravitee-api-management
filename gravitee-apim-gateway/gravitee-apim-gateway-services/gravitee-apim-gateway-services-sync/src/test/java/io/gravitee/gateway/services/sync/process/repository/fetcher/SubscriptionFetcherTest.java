@@ -61,7 +61,11 @@ class SubscriptionFetcherTest {
     void should_fetch_subscriptions() throws TechnicalException {
         Subscription subscription = new Subscription();
         when(subscriptionRepository.search(any(), any())).thenReturn(List.of(subscription));
-        cut.fetchLatest(null, null, Set.of()).test().assertValueCount(1).assertValue(subscriptions -> subscriptions.contains(subscription));
+        cut
+            .fetchLatest(null, null, Set.of())
+            .test()
+            .assertValueCount(1)
+            .assertValue(subscriptions -> subscriptions.contains(subscription));
     }
 
     @Test
@@ -71,16 +75,16 @@ class SubscriptionFetcherTest {
         Subscription subscription = new Subscription();
         when(
             subscriptionRepository.search(
-                argThat(argument ->
-                    argument.getEnvironments().contains("env") &&
-                    argument.getStatuses().containsAll(Set.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name())) &&
-                    argument.getFrom() < from.toEpochMilli() &&
-                    argument.getTo() > to.toEpochMilli()
+                argThat(
+                    argument ->
+                        argument.getEnvironments().contains("env") &&
+                        argument.getStatuses().containsAll(Set.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name())) &&
+                        argument.getFrom() < from.toEpochMilli() &&
+                        argument.getTo() > to.toEpochMilli()
                 ),
                 argThat(argument -> argument.field().equals("updatedAt") && argument.order().equals(Order.ASC))
             )
-        )
-            .thenReturn(List.of(subscription));
+        ).thenReturn(List.of(subscription));
         cut
             .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
             .test()

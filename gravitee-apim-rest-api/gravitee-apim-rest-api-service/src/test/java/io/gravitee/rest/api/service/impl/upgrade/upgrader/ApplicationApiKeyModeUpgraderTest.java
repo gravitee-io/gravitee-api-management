@@ -63,49 +63,46 @@ public class ApplicationApiKeyModeUpgraderTest {
 
     @Test
     public void upgrade_should_set_apiKeyMode_of_applications_regarding_apiKeys_subscriptions() throws Exception {
-        when(planRepository.findAll())
-            .thenReturn(
-                Set.of(
-                    buildTestPlan("plan-1", API_KEY),
-                    buildTestPlan("plan-2", KEY_LESS),
-                    buildTestPlan("plan-3", OAUTH2),
-                    buildTestPlan("plan-4", API_KEY)
-                )
-            );
+        when(planRepository.findAll()).thenReturn(
+            Set.of(
+                buildTestPlan("plan-1", API_KEY),
+                buildTestPlan("plan-2", KEY_LESS),
+                buildTestPlan("plan-3", OAUTH2),
+                buildTestPlan("plan-4", API_KEY)
+            )
+        );
 
-        when(subscriptionRepository.findAll())
-            .thenReturn(
-                Set.of(
-                    // application-1 has 1 subscription to 3 plans, but only 1 API Key
-                    buildTestSubscription("plan-1", "application-1"),
-                    buildTestSubscription("plan-2", "application-1"),
-                    buildTestSubscription("plan-3", "application-1"),
-                    // application-2 has 1 subscription to 3 plans, including 2 API Key plans
-                    buildTestSubscription("plan-1", "application-2"),
-                    buildTestSubscription("plan-2", "application-2"),
-                    buildTestSubscription("plan-4", "application-2"),
-                    // application-3 has 1 subscription on key less plan only
-                    buildTestSubscription("plan-2", "application-3"),
-                    // application-4 has 2 subscription to API Key plans
-                    buildTestSubscription("plan-1", "application-4"),
-                    buildTestSubscription("plan-4", "application-4"),
-                    // application-4 has 2 subscription to API Key plans
-                    buildTestSubscription("plan-1", "application-6"),
-                    buildTestSubscription("plan-4", "application-6")
-                )
-            );
+        when(subscriptionRepository.findAll()).thenReturn(
+            Set.of(
+                // application-1 has 1 subscription to 3 plans, but only 1 API Key
+                buildTestSubscription("plan-1", "application-1"),
+                buildTestSubscription("plan-2", "application-1"),
+                buildTestSubscription("plan-3", "application-1"),
+                // application-2 has 1 subscription to 3 plans, including 2 API Key plans
+                buildTestSubscription("plan-1", "application-2"),
+                buildTestSubscription("plan-2", "application-2"),
+                buildTestSubscription("plan-4", "application-2"),
+                // application-3 has 1 subscription on key less plan only
+                buildTestSubscription("plan-2", "application-3"),
+                // application-4 has 2 subscription to API Key plans
+                buildTestSubscription("plan-1", "application-4"),
+                buildTestSubscription("plan-4", "application-4"),
+                // application-4 has 2 subscription to API Key plans
+                buildTestSubscription("plan-1", "application-6"),
+                buildTestSubscription("plan-4", "application-6")
+            )
+        );
 
-        when(applicationRepository.findAll())
-            .thenReturn(
-                Set.of(
-                    buildTestApplication("application-1"),
-                    buildTestApplication("application-2"),
-                    buildTestApplication("application-3"),
-                    buildTestApplication("application-4"),
-                    buildTestApplication("application-5"),
-                    buildTestApplication("application-6", SHARED) // application-6 won't be updated as its API Key mode is already defined
-                )
-            );
+        when(applicationRepository.findAll()).thenReturn(
+            Set.of(
+                buildTestApplication("application-1"),
+                buildTestApplication("application-2"),
+                buildTestApplication("application-3"),
+                buildTestApplication("application-4"),
+                buildTestApplication("application-5"),
+                buildTestApplication("application-6", SHARED) // application-6 won't be updated as its API Key mode is already defined
+            )
+        );
 
         upgrader.upgrade();
 

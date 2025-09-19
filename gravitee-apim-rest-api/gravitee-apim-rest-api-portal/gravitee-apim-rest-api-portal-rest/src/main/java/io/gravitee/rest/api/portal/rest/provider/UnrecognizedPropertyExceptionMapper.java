@@ -33,8 +33,7 @@ public class UnrecognizedPropertyExceptionMapper extends AbstractExceptionMapper
     public Response toResponse(UnrecognizedPropertyException e) {
         Status status = Response.Status.BAD_REQUEST;
 
-        return Response
-            .status(status)
+        return Response.status(status)
             .type(MediaType.APPLICATION_JSON_TYPE)
             .entity(
                 new Error()

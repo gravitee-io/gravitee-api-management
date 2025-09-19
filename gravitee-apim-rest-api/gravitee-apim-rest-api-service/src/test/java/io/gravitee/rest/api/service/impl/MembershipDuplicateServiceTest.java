@@ -111,17 +111,15 @@ public class MembershipDuplicateServiceTest {
             .build();
         when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID)).thenReturn(Set.of(member1, member2));
 
-        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any()))
-            .thenAnswer(invocation ->
-                MemberEntity
-                    .builder()
-                    .id(invocation.getArgument(4))
-                    .type(invocation.getArgument(3))
-                    .referenceType(invocation.getArgument(1))
-                    .referenceId(invocation.getArgument(2))
-                    .roles(List.of(RoleEntity.builder().id(invocation.getArgument(5)).build()))
-                    .build()
-            );
+        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any())).thenAnswer(invocation ->
+            MemberEntity.builder()
+                .id(invocation.getArgument(4))
+                .type(invocation.getArgument(3))
+                .referenceType(invocation.getArgument(1))
+                .referenceId(invocation.getArgument(2))
+                .roles(List.of(RoleEntity.builder().id(invocation.getArgument(5)).build()))
+                .build()
+        );
 
         var duplicated = membershipDuplicateService.duplicateMemberships(
             GraviteeContext.getExecutionContext(),
@@ -130,8 +128,7 @@ public class MembershipDuplicateServiceTest {
             USER_ID
         );
 
-        Assertions
-            .assertThat(duplicated)
+        Assertions.assertThat(duplicated)
             .hasSize(2)
             .extracting(MemberEntity::getReferenceId, MemberEntity::getId, MemberEntity::getRoles)
             .contains(
@@ -163,20 +160,19 @@ public class MembershipDuplicateServiceTest {
             .referenceId(SOURCE_API_ID)
             .roleId("role2")
             .build();
-        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID))
-            .thenReturn(Set.of(member1, primaryOwner, member2));
+        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID)).thenReturn(
+            Set.of(member1, primaryOwner, member2)
+        );
 
-        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any()))
-            .thenAnswer(invocation ->
-                MemberEntity
-                    .builder()
-                    .id(invocation.getArgument(4))
-                    .type(invocation.getArgument(3))
-                    .referenceType(invocation.getArgument(1))
-                    .referenceId(invocation.getArgument(2))
-                    .roles(List.of(RoleEntity.builder().id(invocation.getArgument(5)).build()))
-                    .build()
-            );
+        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any())).thenAnswer(invocation ->
+            MemberEntity.builder()
+                .id(invocation.getArgument(4))
+                .type(invocation.getArgument(3))
+                .referenceType(invocation.getArgument(1))
+                .referenceId(invocation.getArgument(2))
+                .roles(List.of(RoleEntity.builder().id(invocation.getArgument(5)).build()))
+                .build()
+        );
 
         var duplicated = membershipDuplicateService.duplicateMemberships(
             GraviteeContext.getExecutionContext(),
@@ -185,8 +181,7 @@ public class MembershipDuplicateServiceTest {
             USER_ID
         );
 
-        Assertions
-            .assertThat(duplicated)
+        Assertions.assertThat(duplicated)
             .hasSize(3)
             .extracting(MemberEntity::getReferenceId, MemberEntity::getId, MemberEntity::getRoles)
             .contains(tuple(DUPLICATED_API_ID, primaryOwner.getMemberId(), List.of(RoleEntity.builder().id(DEFAULT_ROLE_ID).build())));
@@ -222,20 +217,19 @@ public class MembershipDuplicateServiceTest {
             .referenceId(SOURCE_API_ID)
             .roleId("role2")
             .build();
-        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID))
-            .thenReturn(Set.of(member1, sourcePrimaryOwner, newPO, member2));
+        when(membershipService.getMembershipsByReference(MembershipReferenceType.API, SOURCE_API_ID)).thenReturn(
+            Set.of(member1, sourcePrimaryOwner, newPO, member2)
+        );
 
-        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any()))
-            .thenAnswer(invocation ->
-                MemberEntity
-                    .builder()
-                    .id(invocation.getArgument(4))
-                    .type(invocation.getArgument(3))
-                    .referenceType(invocation.getArgument(1))
-                    .referenceId(invocation.getArgument(2))
-                    .roles(List.of(RoleEntity.builder().id(invocation.getArgument(5)).build()))
-                    .build()
-            );
+        when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any(), any())).thenAnswer(invocation ->
+            MemberEntity.builder()
+                .id(invocation.getArgument(4))
+                .type(invocation.getArgument(3))
+                .referenceType(invocation.getArgument(1))
+                .referenceId(invocation.getArgument(2))
+                .roles(List.of(RoleEntity.builder().id(invocation.getArgument(5)).build()))
+                .build()
+        );
 
         var duplicated = membershipDuplicateService.duplicateMemberships(
             GraviteeContext.getExecutionContext(),
@@ -244,8 +238,7 @@ public class MembershipDuplicateServiceTest {
             USER_ID
         );
 
-        Assertions
-            .assertThat(duplicated)
+        Assertions.assertThat(duplicated)
             .hasSize(3)
             .extracting(MemberEntity::getReferenceId, MemberEntity::getId)
             .doesNotContain(tuple(DUPLICATED_API_ID, newPO.getMemberId()));
@@ -257,13 +250,12 @@ public class MembershipDuplicateServiceTest {
         when(roleService.findDefaultRoleByScopes(ORGANIZATION_ID, RoleScope.API)).thenReturn(roles);
 
         assertThatThrownBy(() ->
-                membershipDuplicateService.duplicateMemberships(
-                    GraviteeContext.getExecutionContext(),
-                    SOURCE_API_ID,
-                    DUPLICATED_API_ID,
-                    USER_ID
-                )
+            membershipDuplicateService.duplicateMemberships(
+                GraviteeContext.getExecutionContext(),
+                SOURCE_API_ID,
+                DUPLICATED_API_ID,
+                USER_ID
             )
-            .isInstanceOf(IllegalStateException.class);
+        ).isInstanceOf(IllegalStateException.class);
     }
 }

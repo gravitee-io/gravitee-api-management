@@ -81,73 +81,64 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     public void findLatestFor_should_return_diagnostic_report_if_exists() throws Exception {
         var result = scoringReportRepository.findLatestFor("api2");
 
-        Assertions
-            .assertThat(result)
-            .satisfies(report -> {
-                assertThat(report).isPresent();
-                assertThat(report.get().getApiId()).isEqualTo("api2");
-                assertThat(report.get().getEnvironmentId()).isEqualTo("env1");
-                assertThat(report.get().getCreatedAt()).isEqualTo(new Date(1470157767000L));
-                assertThat(report.get().getSummary())
-                    .usingRecursiveComparison()
-                    .isEqualTo(new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L));
-                assertThat(report.get().getAssets())
-                    .contains(
-                        new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of()),
-                        new ScoringReport.Asset("7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of(), List.of()),
-                        new ScoringReport.Asset(
-                            "f931618f-3207-412a-adad-5bffdce746f7",
-                            "SWAGGER",
-                            List.of(
-                                new ScoringReport.Diagnostic(
-                                    "WARN",
-                                    new ScoringReport.Range(new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 1)),
-                                    "operation-operationId",
-                                    "Operation must have \"operationId\".",
-                                    "paths./echo.options"
-                                )
-                            ),
-                            List.of()
+        Assertions.assertThat(result).satisfies(report -> {
+            assertThat(report).isPresent();
+            assertThat(report.get().getApiId()).isEqualTo("api2");
+            assertThat(report.get().getEnvironmentId()).isEqualTo("env1");
+            assertThat(report.get().getCreatedAt()).isEqualTo(new Date(1470157767000L));
+            assertThat(report.get().getSummary()).usingRecursiveComparison().isEqualTo(new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L));
+            assertThat(report.get().getAssets()).contains(
+                new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of()),
+                new ScoringReport.Asset("7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of(), List.of()),
+                new ScoringReport.Asset(
+                    "f931618f-3207-412a-adad-5bffdce746f7",
+                    "SWAGGER",
+                    List.of(
+                        new ScoringReport.Diagnostic(
+                            "WARN",
+                            new ScoringReport.Range(new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 1)),
+                            "operation-operationId",
+                            "Operation must have \"operationId\".",
+                            "paths./echo.options"
                         )
-                    );
-            });
+                    ),
+                    List.of()
+                )
+            );
+        });
     }
 
     @Test
     public void findLatestFor_should_return_error_report_if_exists() throws Exception {
         var result = scoringReportRepository.findLatestFor("api6");
 
-        Assertions
-            .assertThat(result)
-            .satisfies(report -> {
-                assertThat(report).isPresent();
-                assertThat(report.get().getApiId()).isEqualTo("api6");
-                assertThat(report.get().getEnvironmentId()).isEqualTo("env2");
-                assertThat(report.get().getCreatedAt()).isEqualTo(new Date(1470157767000L));
-                assertThat(report.get().getSummary()).usingRecursiveComparison().isEqualTo(new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L));
-                assertThat(report.get().getAssets())
-                    .contains(
-                        new ScoringReport.Asset(
-                            null,
-                            "GRAVITEE_DEFINITION",
-                            List.of(),
-                            List.of(
-                                new ScoringReport.ScoringError(
-                                    "undefined-function",
-                                    List.of("rules", "api-key-security-scheme", "then", "function")
-                                )
-                            )
+        Assertions.assertThat(result).satisfies(report -> {
+            assertThat(report).isPresent();
+            assertThat(report.get().getApiId()).isEqualTo("api6");
+            assertThat(report.get().getEnvironmentId()).isEqualTo("env2");
+            assertThat(report.get().getCreatedAt()).isEqualTo(new Date(1470157767000L));
+            assertThat(report.get().getSummary()).usingRecursiveComparison().isEqualTo(new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L));
+            assertThat(report.get().getAssets()).contains(
+                new ScoringReport.Asset(
+                    null,
+                    "GRAVITEE_DEFINITION",
+                    List.of(),
+                    List.of(
+                        new ScoringReport.ScoringError(
+                            "undefined-function",
+                            List.of("rules", "api-key-security-scheme", "then", "function")
                         )
-                    );
-            });
+                    )
+                )
+            );
+        });
     }
 
     @Test
     public void findLatestFor_should_return_empty_report() throws Exception {
         var result = scoringReportRepository.findLatestFor("api3");
 
-        Assertions
-            .assertThat(result)
+        Assertions.assertThat(result)
             .isPresent()
             .get()
             .usingRecursiveComparison()
@@ -168,51 +159,49 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     public void findLatestReports_should_return_reports() throws Exception {
         var result = scoringReportRepository.findLatestReports(List.of("api1", "api2", "api3"));
 
-        Assertions
-            .assertThat(result)
-            .contains(
-                new ScoringReport(
-                    "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
-                    "api1",
-                    "env1",
-                    new Date(1470157767000L),
-                    new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
-                    List.of(new ScoringReport.Asset("a8e754af-a593-4dc5-bf38-2d0b83a7edc1", "SWAGGER", List.of(), List.of()))
-                ),
-                new ScoringReport(
-                    "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
-                    "api2",
-                    "env1",
-                    new Date(1470157767000L),
-                    new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L),
-                    List.of(
-                        new ScoringReport.Asset(
-                            "f931618f-3207-412a-adad-5bffdce746f7",
-                            "SWAGGER",
-                            List.of(
-                                new ScoringReport.Diagnostic(
-                                    "WARN",
-                                    new ScoringReport.Range(new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 1)),
-                                    "operation-operationId",
-                                    "Operation must have \"operationId\".",
-                                    "paths./echo.options"
-                                )
-                            ),
-                            List.of()
+        Assertions.assertThat(result).contains(
+            new ScoringReport(
+                "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
+                "api1",
+                "env1",
+                new Date(1470157767000L),
+                new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
+                List.of(new ScoringReport.Asset("a8e754af-a593-4dc5-bf38-2d0b83a7edc1", "SWAGGER", List.of(), List.of()))
+            ),
+            new ScoringReport(
+                "cad107c9-27f2-40b2-9107-c927f2e0b2fc",
+                "api2",
+                "env1",
+                new Date(1470157767000L),
+                new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L),
+                List.of(
+                    new ScoringReport.Asset(
+                        "f931618f-3207-412a-adad-5bffdce746f7",
+                        "SWAGGER",
+                        List.of(
+                            new ScoringReport.Diagnostic(
+                                "WARN",
+                                new ScoringReport.Range(new ScoringReport.Position(1, 1), new ScoringReport.Position(1, 1)),
+                                "operation-operationId",
+                                "Operation must have \"operationId\".",
+                                "paths./echo.options"
+                            )
                         ),
-                        new ScoringReport.Asset("7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of(), List.of()),
-                        new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of())
-                    )
-                ),
-                new ScoringReport(
-                    "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
-                    "api3",
-                    "env1",
-                    new Date(1470157767000L),
-                    new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
-                    List.of()
+                        List.of()
+                    ),
+                    new ScoringReport.Asset("7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of(), List.of()),
+                    new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of())
                 )
-            );
+            ),
+            new ScoringReport(
+                "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
+                "api3",
+                "env1",
+                new Date(1470157767000L),
+                new ScoringReport.Summary(1D, 0L, 0L, 0L, 0L),
+                List.of()
+            )
+        );
     }
 
     // findEnvironmentLatestReports
@@ -220,46 +209,44 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     public void findEnvironmentLatestReports_should_return_reports() throws Exception {
         var result = scoringReportRepository.findEnvironmentLatestReports("env1", new PageableBuilder().pageNumber(0).pageSize(3).build());
 
-        Assertions
-            .assertThat(result.getContent())
-            .contains(
-                new ScoringEnvironmentApi(
-                    "api1",
-                    "api 1",
-                    new Date(1439022010883L),
-                    "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
-                    new Date(1470157767000L),
-                    1D,
-                    0L,
-                    0L,
-                    0L,
-                    0L
-                ),
-                new ScoringEnvironmentApi(
-                    "api3",
-                    "api 3",
-                    new Date(1439022010883L),
-                    "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
-                    new Date(1470157767000L),
-                    1D,
-                    0L,
-                    0L,
-                    0L,
-                    0L
-                ),
-                new ScoringEnvironmentApi(
-                    "api5",
-                    "api 5",
-                    new Date(1439022010883L),
-                    "26a590f2-05fa-433e-a982-d64c0a274ee9",
-                    new Date(1470157767000L),
-                    0.95D,
-                    0L,
-                    1L,
-                    0L,
-                    0L
-                )
-            );
+        Assertions.assertThat(result.getContent()).contains(
+            new ScoringEnvironmentApi(
+                "api1",
+                "api 1",
+                new Date(1439022010883L),
+                "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
+                new Date(1470157767000L),
+                1D,
+                0L,
+                0L,
+                0L,
+                0L
+            ),
+            new ScoringEnvironmentApi(
+                "api3",
+                "api 3",
+                new Date(1439022010883L),
+                "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
+                new Date(1470157767000L),
+                1D,
+                0L,
+                0L,
+                0L,
+                0L
+            ),
+            new ScoringEnvironmentApi(
+                "api5",
+                "api 5",
+                new Date(1439022010883L),
+                "26a590f2-05fa-433e-a982-d64c0a274ee9",
+                new Date(1470157767000L),
+                0.95D,
+                0L,
+                1L,
+                0L,
+                0L
+            )
+        );
     }
 
     @Test
@@ -309,8 +296,7 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     }
 
     private static ScoringReport aDiagnosticScoring() {
-        return ScoringReport
-            .builder()
+        return ScoringReport.builder()
             .id(UUID.random().toString())
             .apiId("apiId")
             .environmentId("envId")
@@ -338,8 +324,7 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     }
 
     private static ScoringReport anErrorScoring() {
-        return ScoringReport
-            .builder()
+        return ScoringReport.builder()
             .id(UUID.random().toString())
             .apiId("error-apiId")
             .environmentId("envId")

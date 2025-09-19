@@ -79,15 +79,13 @@ public class HttpSecurityChain
 
     @Override
     protected Single<Boolean> executePlan(HttpSecurityPlan httpSecurityPlan, HttpPlainExecutionContext ctx) {
-        return HookHelper
-            .hook(
-                () -> httpSecurityPlan.execute(ctx, executionPhase),
-                httpSecurityPlan.id(),
-                securityPlanHooks,
-                (HttpExecutionContext) ctx,
-                executionPhase
-            )
-            .andThen(TRUE);
+        return HookHelper.hook(
+            () -> httpSecurityPlan.execute(ctx, executionPhase),
+            httpSecurityPlan.id(),
+            securityPlanHooks,
+            (HttpExecutionContext) ctx,
+            executionPhase
+        ).andThen(TRUE);
     }
 
     @Override

@@ -138,21 +138,20 @@ public class APIV1toAPIV2ConverterTest {
             .collect(Collectors.toList());
 
         for (int i = 0; i < actualPlans.size(); i++) {
-            assertThat(actualPlans.get(i))
-                .isEqualToComparingOnlyGivenFields(
-                    expectedPlans.get(i),
-                    "id",
-                    "name",
-                    "security",
-                    "securityDefinition",
-                    "api",
-                    "selectionRule",
-                    "status",
-                    "tags",
-                    "validation",
-                    "description",
-                    "type"
-                );
+            assertThat(actualPlans.get(i)).isEqualToComparingOnlyGivenFields(
+                expectedPlans.get(i),
+                "id",
+                "name",
+                "security",
+                "securityDefinition",
+                "api",
+                "selectionRule",
+                "status",
+                "tags",
+                "validation",
+                "description",
+                "type"
+            );
 
             assertThat(actualPlans.get(i).getPaths()).isEmpty();
 

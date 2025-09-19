@@ -26,6 +26,7 @@ public record ScoringReportView(String id, String apiId, ZonedDateTime createdAt
             this(score, errors + warnings + infos + hints, errors, warnings, infos, hints);
         }
     }
+
     public record AssetView(
         String name,
         ScoringAssetType type,

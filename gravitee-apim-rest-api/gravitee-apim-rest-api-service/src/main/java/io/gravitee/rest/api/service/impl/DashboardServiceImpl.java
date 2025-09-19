@@ -202,8 +202,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     }
 
     private void createDashboard(ExecutionContext executionContext, DashboardType type, String prefixName) {
-        final NewDashboardEntity dashboard = NewDashboardEntity
-            .builder()
+        final NewDashboardEntity dashboard = NewDashboardEntity.builder()
             .name(prefixName + " dashboard")
             .referenceType(DashboardReferenceType.ENVIRONMENT)
             .referenceId(executionContext.getEnvironmentId())
@@ -233,8 +232,12 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             final Dashboard dashboard = convert(dashboardEntity);
             final DashboardEntity savedDashboard;
             if (dashboard.getOrder() != existing.getOrder()) {
-                savedDashboard =
-                    reorderAndSaveDashboards(dashboardEntity.getReferenceType(), dashboardEntity.getReferenceId(), dashboard, false);
+                savedDashboard = reorderAndSaveDashboards(
+                    dashboardEntity.getReferenceType(),
+                    dashboardEntity.getReferenceId(),
+                    dashboard,
+                    false
+                );
             } else {
                 savedDashboard = convert(dashboardRepository.update(dashboard));
             }

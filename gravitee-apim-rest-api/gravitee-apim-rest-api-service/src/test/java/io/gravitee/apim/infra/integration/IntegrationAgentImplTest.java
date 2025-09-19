@@ -92,21 +92,21 @@ class IntegrationAgentImplTest {
 
         @Test
         void should_return_connected_when_an_active_channel_exist() {
-            when(controller.channelsMetricsForTarget(INTEGRATION_ID))
-                .thenReturn(Flowable.just(ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(true).primary(true).build()));
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID)).thenReturn(
+                Flowable.just(ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(true).primary(true).build())
+            );
 
             agent.getAgentStatusFor(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).assertValue(IntegrationAgent.Status.CONNECTED);
         }
 
         @Test
         void should_return_disconnected_when_no_active_channel_exist() {
-            when(controller.channelsMetricsForTarget(INTEGRATION_ID))
-                .thenReturn(
-                    Flowable.just(
-                        ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(false).primary(false).build(),
-                        ChannelMetric.builder().id("c2").targetId(INTEGRATION_ID).active(false).primary(false).build()
-                    )
-                );
+            when(controller.channelsMetricsForTarget(INTEGRATION_ID)).thenReturn(
+                Flowable.just(
+                    ChannelMetric.builder().id("c1").targetId(INTEGRATION_ID).active(false).primary(false).build(),
+                    ChannelMetric.builder().id("c2").targetId(INTEGRATION_ID).active(false).primary(false).build()
+                )
+            );
 
             agent
                 .getAgentStatusFor(INTEGRATION_ID)
@@ -267,8 +267,7 @@ class IntegrationAgentImplTest {
             String planProviderId = "plan-provider-id";
             var subscriptionParameter = new SubscriptionParameter.OAuth(
                 oAuthClientId,
-                PlanFixtures
-                    .aFederatedPlan()
+                PlanFixtures.aFederatedPlan()
                     .toBuilder()
                     .security(PlanSecurity.builder().type("oauth2").build())
                     .providerId(planProviderId)
@@ -277,8 +276,7 @@ class IntegrationAgentImplTest {
             agent
                 .subscribe(
                     INTEGRATION_ID,
-                    ApiDefinitionFixtures
-                        .aFederatedApi()
+                    ApiDefinitionFixtures.aFederatedApi()
                         .toBuilder()
                         .id("gravitee-api-id")
                         .providerId("api-provider-id")
@@ -491,8 +489,7 @@ class IntegrationAgentImplTest {
 
     @NotNull
     private static io.gravitee.integration.api.model.Api buildApi(int index) {
-        return io.gravitee.integration.api.model.Api
-            .builder()
+        return io.gravitee.integration.api.model.Api.builder()
             .uniqueId("asset-uid-" + index)
             .id("asset-" + index)
             .name("asset-name-" + index)
@@ -501,8 +498,7 @@ class IntegrationAgentImplTest {
             .connectionDetails(Map.of("url", "https://example.com/" + index))
             .plans(
                 List.of(
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id("plan-id-" + index)
                         .name("Gold " + index)
                         .description("Gold description " + index)
@@ -541,37 +537,36 @@ class IntegrationAgentImplTest {
         void should_discover_apis() {
             var result = agent.discoverApis(INTEGRATION_ID).test().awaitDone(10, TimeUnit.SECONDS).values();
 
-            assertThat(result)
-                .containsExactly(
-                    new IntegrationApi(
-                        INTEGRATION_ID,
-                        "asset-uid-1",
-                        "asset-1",
-                        "asset-name-1",
-                        "asset-description-1",
-                        "asset-version-1",
-                        Map.of("url", "https://example.com/1"),
-                        List.of(
-                            new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY, List.of())
-                        ),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
-                        null
+            assertThat(result).containsExactly(
+                new IntegrationApi(
+                    INTEGRATION_ID,
+                    "asset-uid-1",
+                    "asset-1",
+                    "asset-name-1",
+                    "asset-description-1",
+                    "asset-version-1",
+                    Map.of("url", "https://example.com/1"),
+                    List.of(
+                        new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY, List.of())
                     ),
-                    new IntegrationApi(
-                        INTEGRATION_ID,
-                        "asset-uid-2",
-                        "asset-2",
-                        "asset-name-2",
-                        "asset-description-2",
-                        "asset-version-2",
-                        Map.of("url", "https://example.com/2"),
-                        List.of(
-                            new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY, List.of())
-                        ),
-                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
-                        null
-                    )
-                );
+                    List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
+                    null
+                ),
+                new IntegrationApi(
+                    INTEGRATION_ID,
+                    "asset-uid-2",
+                    "asset-2",
+                    "asset-name-2",
+                    "asset-description-2",
+                    "asset-version-2",
+                    Map.of("url", "https://example.com/2"),
+                    List.of(
+                        new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY, List.of())
+                    ),
+                    List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc", "MyPage.yml")),
+                    null
+                )
+            );
         }
 
         @Test

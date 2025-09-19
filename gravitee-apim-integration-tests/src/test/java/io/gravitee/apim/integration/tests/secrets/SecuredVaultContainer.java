@@ -278,16 +278,15 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
         assertThat(result.getStderr()).isEmpty();
         assertThat(result.getStdout()).isNotEmpty();
         var roleId = result.getStdout();
-        result =
-            runCommand(
-                false,
-                "vault",
-                "write",
-                "-f",
-                "-ca-cert=" + CONTAINER_CERT_PEMFILE,
-                "-field=secret_id",
-                "auth/approle/role/" + TESTROLE + "/secret-id"
-            );
+        result = runCommand(
+            false,
+            "vault",
+            "write",
+            "-f",
+            "-ca-cert=" + CONTAINER_CERT_PEMFILE,
+            "-field=secret_id",
+            "auth/approle/role/" + TESTROLE + "/secret-id"
+        );
         assertThat(result.getStderr()).isEmpty();
         assertThat(result.getStdout()).isNotEmpty();
         var secretId = result.getStdout();

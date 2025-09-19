@@ -24,9 +24,9 @@ public enum DeploymentMode {
     API_PUBLISHED;
 
     public static DeploymentMode fromDeployModelPayload(DeployModelCommandPayload payload) {
-        DeployModelCommandPayload.DeploymentMode mode = Optional
-            .ofNullable(payload.mode())
-            .orElse(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
+        DeployModelCommandPayload.DeploymentMode mode = Optional.ofNullable(payload.mode()).orElse(
+            DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED
+        );
 
         if (mode == DeployModelCommandPayload.DeploymentMode.API_MOCKED) {
             return DeploymentMode.API_MOCKED;

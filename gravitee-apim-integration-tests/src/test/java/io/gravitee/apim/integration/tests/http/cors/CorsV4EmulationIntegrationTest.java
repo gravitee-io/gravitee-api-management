@@ -62,12 +62,11 @@ public class CorsV4EmulationIntegrationTest {
                 )
                 .flatMapPublisher(response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response))
-                        .contains(
-                            Map.entry("Access-Control-Allow-Origin", "https://mydomain.com"),
-                            Map.entry("Access-Control-Allow-Methods", "POST, GET"),
-                            Map.entry("Access-Control-Allow-Headers", "x-gravitee-test")
-                        );
+                    assertThat(extractHeaders(response)).contains(
+                        Map.entry("Access-Control-Allow-Origin", "https://mydomain.com"),
+                        Map.entry("Access-Control-Allow-Methods", "POST, GET"),
+                        Map.entry("Access-Control-Allow-Headers", "x-gravitee-test")
+                    );
                     return response.toFlowable();
                 })
                 .test()
@@ -173,8 +172,11 @@ public class CorsV4EmulationIntegrationTest {
                     httpClientRequest.putHeader("Origin", "https://unknown.com").putHeader("Access-Control-Request-Method", "GET").rxSend()
                 )
                 .flatMapPublisher(response -> {
-                    assertThat(extractHeaders(response))
-                        .doesNotContainKeys("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers");
+                    assertThat(extractHeaders(response)).doesNotContainKeys(
+                        "Access-Control-Allow-Origin",
+                        "Access-Control-Allow-Methods",
+                        "Access-Control-Allow-Headers"
+                    );
 
                     return response.toFlowable();
                 })
@@ -243,17 +245,16 @@ public class CorsV4EmulationIntegrationTest {
             apiKey = anApiKey(api);
             if (api.getDefinition() instanceof Api) {
                 ((Api) api.getDefinition()).setPlans(
-                        List.of(
-                            Plan
-                                .builder()
-                                .id("plan-id")
-                                .api(api.getId())
-                                .security("API_KEY")
-                                .status("PUBLISHED")
-                                .securityDefinition("{\"propagateApiKey\":true}")
-                                .build()
-                        )
-                    );
+                    List.of(
+                        Plan.builder()
+                            .id("plan-id")
+                            .api(api.getId())
+                            .security("API_KEY")
+                            .status("PUBLISHED")
+                            .securityDefinition("{\"propagateApiKey\":true}")
+                            .build()
+                    )
+                );
             }
         }
 

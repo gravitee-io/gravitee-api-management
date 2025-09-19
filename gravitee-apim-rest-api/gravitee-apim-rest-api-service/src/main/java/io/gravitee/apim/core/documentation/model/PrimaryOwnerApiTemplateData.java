@@ -31,8 +31,7 @@ public class PrimaryOwnerApiTemplateData {
     private String type;
 
     public static PrimaryOwnerApiTemplateData from(PrimaryOwnerEntity primaryOwner) {
-        return PrimaryOwnerApiTemplateData
-            .builder()
+        return PrimaryOwnerApiTemplateData.builder()
             .id(primaryOwner.id())
             .displayName(primaryOwner.displayName())
             .email(primaryOwner.email())

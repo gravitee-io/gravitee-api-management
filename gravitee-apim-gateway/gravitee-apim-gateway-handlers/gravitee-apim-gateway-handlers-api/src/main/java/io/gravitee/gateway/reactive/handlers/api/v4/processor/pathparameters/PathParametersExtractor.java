@@ -72,26 +72,29 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
     @Override
     protected Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(Stream<Flow> flows) {
         final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByMethod = flows
-            .flatMap(f -> f.selectorByType(SelectorType.HTTP).map(selector -> (HttpSelector) selector).stream())
+            .flatMap(f ->
+                f
+                    .selectorByType(SelectorType.HTTP)
+                    .map(selector -> (HttpSelector) selector)
+                    .stream()
+            )
             .flatMap(selector -> {
                 List<Map.Entry<PathParameterHttpMethod, PathParameters>> flowByMethod;
                 if (selector.getMethods() == null || selector.getMethods().isEmpty()) {
-                    flowByMethod =
-                        List.of(
-                            Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameters(selector.getPath(), selector.getPathOperator()))
-                        );
+                    flowByMethod = List.of(
+                        Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameters(selector.getPath(), selector.getPathOperator()))
+                    );
                 } else {
-                    flowByMethod =
-                        selector
-                            .getMethods()
-                            .stream()
-                            .map(m ->
-                                Map.entry(
-                                    PathParameterHttpMethod.valueOf(m.name()),
-                                    new PathParameters(selector.getPath(), selector.getPathOperator())
-                                )
+                    flowByMethod = selector
+                        .getMethods()
+                        .stream()
+                        .map(m ->
+                            Map.entry(
+                                PathParameterHttpMethod.valueOf(m.name()),
+                                new PathParameters(selector.getPath(), selector.getPathOperator())
                             )
-                            .collect(Collectors.toList());
+                        )
+                        .collect(Collectors.toList());
                 }
                 return flowByMethod.stream();
             })

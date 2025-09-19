@@ -69,8 +69,7 @@ class SharedPolicyGroupQueryServiceImplTest {
                     eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
                     eq(new SortableBuilder().field(null).setAsc(false).build())
                 )
-            )
-                .thenReturn(new Page<>(List.of(), 0, 0, 0));
+            ).thenReturn(new Page<>(List.of(), 0, 0, 0));
 
             // When
             Pageable pageable = new PageableImpl(1, 10);
@@ -94,19 +93,14 @@ class SharedPolicyGroupQueryServiceImplTest {
                     any(),
                     eq(new SortableBuilder().field("createdAt").setAsc(true).build())
                 )
-            )
-                .thenReturn(
-                    new Page<>(
-                        List.of(
-                            aRepositorySharedPolicyGroup("id"),
-                            aRepositorySharedPolicyGroup("id2"),
-                            aRepositorySharedPolicyGroup("id3")
-                        ),
-                        1,
-                        3,
-                        42
-                    )
-                );
+            ).thenReturn(
+                new Page<>(
+                    List.of(aRepositorySharedPolicyGroup("id"), aRepositorySharedPolicyGroup("id2"), aRepositorySharedPolicyGroup("id3")),
+                    1,
+                    3,
+                    42
+                )
+            );
 
             // When
             Pageable pageable = new PageableImpl(0, 3);
@@ -125,8 +119,7 @@ class SharedPolicyGroupQueryServiceImplTest {
     }
 
     private io.gravitee.repository.management.model.SharedPolicyGroup aRepositorySharedPolicyGroup(String id) {
-        return io.gravitee.repository.management.model.SharedPolicyGroup
-            .builder()
+        return io.gravitee.repository.management.model.SharedPolicyGroup.builder()
             .id(id)
             .name("name")
             .version(1)

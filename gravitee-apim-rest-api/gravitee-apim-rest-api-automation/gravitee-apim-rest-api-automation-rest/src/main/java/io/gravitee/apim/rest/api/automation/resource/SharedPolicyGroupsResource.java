@@ -68,13 +68,11 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        var audit = AuditInfo
-            .builder()
+        var audit = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(userDetails.getUsername())
                     .userSource(userDetails.getSource())
                     .userSourceId(userDetails.getSourceId())
@@ -107,18 +105,18 @@ public class SharedPolicyGroupsResource extends AbstractResource {
                             .environmentId(audit.environmentId()),
                     errors -> statusBuilder.errors(SharedPolicyGroupCRDStatus.Errors.fromErrorList(errors))
                 );
-            return Response
-                .ok(SharedPolicyGroupMapper.INSTANCE.withStatusInfos(SharedPolicyGroupMapper.INSTANCE.toState(spec), statusBuilder.build()))
-                .build();
+            return Response.ok(
+                SharedPolicyGroupMapper.INSTANCE.withStatusInfos(SharedPolicyGroupMapper.INSTANCE.toState(spec), statusBuilder.build())
+            ).build();
         }
 
         var output = importSharedPolicyGroupCRDCRDUseCase.execute(
             new ImportSharedPolicyGroupCRDCRDUseCase.Input(audit, SharedPolicyGroupMapper.INSTANCE.map(spec))
         );
 
-        return Response
-            .ok(SharedPolicyGroupMapper.INSTANCE.withStatusInfos(SharedPolicyGroupMapper.INSTANCE.toState(spec), output.status()))
-            .build();
+        return Response.ok(
+            SharedPolicyGroupMapper.INSTANCE.withStatusInfos(SharedPolicyGroupMapper.INSTANCE.toState(spec), output.status())
+        ).build();
     }
 
     @Path("/{hrid}")

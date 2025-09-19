@@ -110,8 +110,7 @@ public class ApplicationMembersResource extends AbstractResource {
             new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole())
         );
 
-        return Response
-            .created(this.getLocationHeader(membership.getId()))
+        return Response.created(this.getLocationHeader(membership.getId()))
             .entity(memberMapper.convert(GraviteeContext.getExecutionContext(), membership, uriInfo))
             .build();
     }

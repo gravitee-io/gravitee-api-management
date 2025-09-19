@@ -75,12 +75,11 @@ class ApiMetadataDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-            new ApiMetadataDomainService(
-                metadataCrudService,
-                apiMetadataQueryServiceInMemory,
-                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
-            );
+        service = new ApiMetadataDomainService(
+            metadataCrudService,
+            apiMetadataQueryServiceInMemory,
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
+        );
     }
 
     @AfterEach
@@ -95,20 +94,18 @@ class ApiMetadataDomainServiceTest {
         void should_create_email_support_metadata() {
             service.createDefaultApiMetadata(API_ID, AUDIT_INFO);
 
-            assertThat(metadataCrudService.storage())
-                .contains(
-                    Metadata
-                        .builder()
-                        .key("email-support")
-                        .format(Metadata.MetadataFormat.MAIL)
-                        .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
-                        .value("${(api.primaryOwner.email)!''}")
-                        .referenceType(Metadata.ReferenceType.API)
-                        .referenceId(API_ID)
-                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .build()
-                );
+            assertThat(metadataCrudService.storage()).contains(
+                Metadata.builder()
+                    .key("email-support")
+                    .format(Metadata.MetadataFormat.MAIL)
+                    .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
+                    .value("${(api.primaryOwner.email)!''}")
+                    .referenceType(Metadata.ReferenceType.API)
+                    .referenceId(API_ID)
+                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .build()
+            );
         }
 
         @Test
@@ -118,8 +115,7 @@ class ApiMetadataDomainServiceTest {
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
                 .containsExactly(
-                    AuditEntity
-                        .builder()
+                    AuditEntity.builder()
                         .id("generated-id")
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
@@ -136,8 +132,7 @@ class ApiMetadataDomainServiceTest {
         @Test
         void should_create_metadata_with_name_as_key() {
             service.create(
-                NewApiMetadata
-                    .builder()
+                NewApiMetadata.builder()
                     .apiId(API_ID)
                     .name("metadata-name")
                     .format(Metadata.MetadataFormat.STRING)
@@ -146,20 +141,18 @@ class ApiMetadataDomainServiceTest {
                 AUDIT_INFO
             );
 
-            assertThat(metadataCrudService.storage())
-                .contains(
-                    Metadata
-                        .builder()
-                        .key("metadata-name")
-                        .format(Metadata.MetadataFormat.STRING)
-                        .name("metadata-name")
-                        .value("metadata-value")
-                        .referenceType(Metadata.ReferenceType.API)
-                        .referenceId(API_ID)
-                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .build()
-                );
+            assertThat(metadataCrudService.storage()).contains(
+                Metadata.builder()
+                    .key("metadata-name")
+                    .format(Metadata.MetadataFormat.STRING)
+                    .name("metadata-name")
+                    .value("metadata-value")
+                    .referenceType(Metadata.ReferenceType.API)
+                    .referenceId(API_ID)
+                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .build()
+            );
         }
     }
 
@@ -170,8 +163,7 @@ class ApiMetadataDomainServiceTest {
         void should_update_existing_metadata_value() {
             metadataCrudService.initWith(
                 List.of(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("metadata-name")
@@ -183,8 +175,7 @@ class ApiMetadataDomainServiceTest {
                         .build()
                 )
             );
-            var updatedMetadata = Metadata
-                .builder()
+            var updatedMetadata = Metadata.builder()
                 .key("metadata-key")
                 .format(Metadata.MetadataFormat.STRING)
                 .name("metadata-updated-name")
@@ -204,8 +195,7 @@ class ApiMetadataDomainServiceTest {
         void should_not_remove_previous_metadata() {
             metadataCrudService.initWith(
                 List.of(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("metadata-name")
@@ -221,8 +211,7 @@ class ApiMetadataDomainServiceTest {
             service.saveApiMetadata(
                 API_ID,
                 List.of(
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .key("new-metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("another-name")
@@ -238,8 +227,7 @@ class ApiMetadataDomainServiceTest {
                 .hasSize(2)
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
                 .contains(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("new-metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("another-name")
@@ -247,8 +235,7 @@ class ApiMetadataDomainServiceTest {
                         .referenceType(Metadata.ReferenceType.API)
                         .referenceId(API_ID)
                         .build(),
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("metadata-name")
@@ -284,8 +271,7 @@ class ApiMetadataDomainServiceTest {
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
                 .contains(
-                    AuditEntity
-                        .builder()
+                    AuditEntity.builder()
                         .id("generated-id")
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
@@ -312,8 +298,7 @@ class ApiMetadataDomainServiceTest {
         void should_reset_metadata() {
             metadataCrudService.initWith(
                 List.of(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("metadata-name")
@@ -332,8 +317,7 @@ class ApiMetadataDomainServiceTest {
                 .isNotNull()
                 .hasSize(1)
                 .contains(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("email-support")
                         .format(Metadata.MetadataFormat.MAIL)
                         .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
@@ -350,8 +334,7 @@ class ApiMetadataDomainServiceTest {
         void should_replace_metadata() {
             metadataCrudService.initWith(
                 List.of(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("metadata-name")
@@ -367,8 +350,7 @@ class ApiMetadataDomainServiceTest {
             service.importApiMetadata(
                 API_ID,
                 List.of(
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .key("another-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("another-name")
@@ -384,8 +366,7 @@ class ApiMetadataDomainServiceTest {
                 .hasSize(2)
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
                 .contains(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("another-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("another-name")
@@ -400,8 +381,7 @@ class ApiMetadataDomainServiceTest {
         void should_update_metadata() {
             metadataCrudService.initWith(
                 List.of(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("metadata-name")
@@ -417,8 +397,7 @@ class ApiMetadataDomainServiceTest {
             service.importApiMetadata(
                 API_ID,
                 List.of(
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .key("metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("another-name")
@@ -434,8 +413,7 @@ class ApiMetadataDomainServiceTest {
                 .hasSize(2)
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
                 .contains(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("metadata-key")
                         .format(Metadata.MetadataFormat.STRING)
                         .name("another-name")

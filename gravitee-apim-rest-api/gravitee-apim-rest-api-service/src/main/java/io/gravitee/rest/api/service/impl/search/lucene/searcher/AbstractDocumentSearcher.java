@@ -87,10 +87,9 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
                 var collectorManager = new TopScoreDocCollectorManager(1000, null, 1000);
                 searcher.search(query, collectorManager);
 
-                topDocs =
-                    collectorManager
-                        .newCollector()
-                        .topDocs((pageable.getPageNumber() - 1) * pageable.getPageSize(), pageable.getPageSize());
+                topDocs = collectorManager
+                    .newCollector()
+                    .topDocs((pageable.getPageNumber() - 1) * pageable.getPageSize(), pageable.getPageSize());
             } else if (sort != null) {
                 topDocs = searcher.search(query, Integer.MAX_VALUE, convert(sort));
             } else {
@@ -128,7 +127,11 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             return Optional.empty();
         }
 
-        var queries = filters.entrySet().stream().flatMap(e -> prepareQuery(e.getKey(), e.getValue(), remapFields)).toList();
+        var queries = filters
+            .entrySet()
+            .stream()
+            .flatMap(e -> prepareQuery(e.getKey(), e.getValue(), remapFields))
+            .toList();
 
         return switch (queries.size()) {
             case 0 -> Optional.empty();

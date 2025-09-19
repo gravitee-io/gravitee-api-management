@@ -76,13 +76,12 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
             MembershipService.MembershipMember.class
         );
 
-        verify(membershipService)
-            .addRoleToMemberOnReference(
-                eq(GraviteeContext.getExecutionContext()),
-                memberShipRefCaptor.capture(),
-                memberShipUserCaptor.capture(),
-                memberShipRoleCaptor.capture()
-            );
+        verify(membershipService).addRoleToMemberOnReference(
+            eq(GraviteeContext.getExecutionContext()),
+            memberShipRefCaptor.capture(),
+            memberShipUserCaptor.capture(),
+            memberShipRoleCaptor.capture()
+        );
         assertEquals(APPLICATION, memberShipRefCaptor.getValue().getId());
         assertEquals("my-application-membership-role", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());

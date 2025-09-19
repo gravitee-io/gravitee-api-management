@@ -64,31 +64,30 @@ public class MembershipService_EditMemberTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        membershipService =
-            new MembershipServiceImpl(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                membershipRepository,
-                roleService,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            );
+        membershipService = new MembershipServiceImpl(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            membershipRepository,
+            roleService,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
     }
 
     @Test
@@ -100,18 +99,18 @@ public class MembershipService_EditMemberTest {
         Membership membership = new Membership();
         membership.setRoleId(API_PO_ROLE_ID);
 
-        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
-            .thenReturn(Set.of(membership));
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any())).thenReturn(
+            Set.of(membership)
+        );
 
         assertThatThrownBy(() ->
-                membershipService.updateRoleToMemberOnReference(
-                    GraviteeContext.getExecutionContext(),
-                    new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                    new MembershipService.MembershipMember(MEMBER_ID, REFERENCE_ID, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(RoleScope.API, "USER")
-                )
+            membershipService.updateRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+                new MembershipService.MembershipMember(MEMBER_ID, REFERENCE_ID, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.API, "USER")
             )
-            .isInstanceOf(PrimaryOwnerRemovalException.class);
+        ).isInstanceOf(PrimaryOwnerRemovalException.class);
     }
 
     private static Optional<RoleEntity> apiPrimaryOwnerRole() {
@@ -131,19 +130,19 @@ public class MembershipService_EditMemberTest {
 
         Membership membership = new Membership();
         membership.setRoleId(APP_PO_ROLE_ID);
-        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
-            .thenReturn(Set.of(membership));
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any())).thenReturn(
+            Set.of(membership)
+        );
         assertThatThrownBy(() ->
-                membershipService.updateRolesToMemberOnReference(
-                    GraviteeContext.getExecutionContext(),
-                    new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, API_ID),
-                    new MembershipService.MembershipMember(MEMBER_ID, REFERENCE_ID, MembershipMemberType.USER),
-                    List.of(new MembershipService.MembershipRole(RoleScope.APPLICATION, "USER")),
-                    "source",
-                    true
-                )
+            membershipService.updateRolesToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, API_ID),
+                new MembershipService.MembershipMember(MEMBER_ID, REFERENCE_ID, MembershipMemberType.USER),
+                List.of(new MembershipService.MembershipRole(RoleScope.APPLICATION, "USER")),
+                "source",
+                true
             )
-            .isInstanceOf(PrimaryOwnerRemovalException.class);
+        ).isInstanceOf(PrimaryOwnerRemovalException.class);
     }
 
     private static Optional<RoleEntity> appPrimaryOwnerRole() {

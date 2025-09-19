@@ -58,15 +58,11 @@ public class RateLimitRepositoryProbe implements Probe {
                 final String rlIdentifier = "hc-" + node.id();
 
                 // Search for a rate-limit value to check repository connection
-                var rateLimitSingle = rateLimitRepository.incrementAndGet(
-                    rlIdentifier,
-                    1L,
-                    () -> {
-                        RateLimit rateLimit = new RateLimit(rlIdentifier);
-                        rateLimit.setSubscription(rlIdentifier);
-                        return rateLimit;
-                    }
-                );
+                var rateLimitSingle = rateLimitRepository.incrementAndGet(rlIdentifier, 1L, () -> {
+                    RateLimit rateLimit = new RateLimit(rlIdentifier);
+                    rateLimit.setSubscription(rlIdentifier);
+                    return rateLimit;
+                });
 
                 if (NONE_RATE_LIMIT_TYPE.equalsIgnoreCase(rateLimitType) && rateLimitSingle == null) {
                     future.complete(Result.healthy("RateLimit type is none"));

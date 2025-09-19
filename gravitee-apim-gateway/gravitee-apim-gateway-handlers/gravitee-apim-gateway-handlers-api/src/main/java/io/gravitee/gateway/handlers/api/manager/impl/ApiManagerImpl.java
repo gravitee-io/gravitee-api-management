@@ -72,15 +72,14 @@ public class ApiManagerImpl implements ApiManager {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
         this.licenseManager = licenseManager;
-        deployers =
-            Map.of(
-                Api.class,
-                new ApiDeployer(gatewayConfiguration, dataEncryptor),
-                io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
-                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor),
-                io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
-                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.NativeApiDeployer(gatewayConfiguration, dataEncryptor)
-            );
+        deployers = Map.of(
+            Api.class,
+            new ApiDeployer(gatewayConfiguration, dataEncryptor),
+            io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
+            new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor),
+            io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
+            new io.gravitee.gateway.reactive.handlers.api.v4.deployer.NativeApiDeployer(gatewayConfiguration, dataEncryptor)
+        );
     }
 
     private boolean register(ReactableApi<?> api, boolean force) {
@@ -97,7 +96,10 @@ public class ApiManagerImpl implements ApiManager {
         try {
             licenseManager.validatePluginFeatures(
                 api.getOrganizationId(),
-                plugins.stream().map(p -> new LicenseManager.Plugin(p.type(), p.id())).collect(Collectors.toSet())
+                plugins
+                    .stream()
+                    .map(p -> new LicenseManager.Plugin(p.type(), p.id()))
+                    .collect(Collectors.toSet())
             );
         } catch (InvalidLicenseException | ForbiddenFeatureException e) {
             log.warn("The API {} could not be deployed because it is not allowed by the current license", api.getName(), e);

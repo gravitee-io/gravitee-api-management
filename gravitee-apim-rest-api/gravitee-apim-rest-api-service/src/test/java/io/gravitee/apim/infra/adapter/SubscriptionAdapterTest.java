@@ -100,8 +100,7 @@ class SubscriptionAdapterTest {
                 soft
                     .assertThat(subscriptionEntity.getConfiguration())
                     .isEqualTo(
-                        SubscriptionConfiguration
-                            .builder()
+                        SubscriptionConfiguration.builder()
                             .entrypointId("entrypoint-id")
                             .channel("my-channel")
                             .entrypointConfiguration("{}")
@@ -127,8 +126,7 @@ class SubscriptionAdapterTest {
 
         @Test
         void should_convert_subscription_entity_to_subscription() {
-            SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-                .aSubscription()
+            SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .reasonMessage("reason-message")
                 .status(SubscriptionEntity.Status.CLOSED)
@@ -138,8 +136,7 @@ class SubscriptionAdapterTest {
                 .consumerPausedAt(Instant.parse("2020-02-05T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .failureCause("failure-cause")
                 .configuration(
-                    SubscriptionConfiguration
-                        .builder()
+                    SubscriptionConfiguration.builder()
                         .entrypointId("entrypoint-id")
                         .channel("my-channel")
                         .entrypointConfiguration(
@@ -181,8 +178,8 @@ class SubscriptionAdapterTest {
                     .assertThat(subscription.getConfiguration())
                     .isEqualTo(
                         """
-                              {"entrypointId":"entrypoint-id","channel":"my-channel","entrypointConfiguration":{"callback":"http://webhook.site"}
-                              }"""
+                        {"entrypointId":"entrypoint-id","channel":"my-channel","entrypointConfiguration":{"callback":"http://webhook.site"}
+                        }"""
                     );
                 soft.assertThat(subscription.getMetadata()).containsExactly(Map.entry("metadata1", "value1"));
                 soft.assertThat(subscription.getType()).isEqualTo(Subscription.Type.STANDARD);
@@ -200,8 +197,7 @@ class SubscriptionAdapterTest {
     }
 
     private Subscription.SubscriptionBuilder aRepositorySubscription() {
-        return Subscription
-            .builder()
+        return Subscription.builder()
             .id("subscription-id")
             .api("api-id")
             .plan("plan-id")
@@ -228,8 +224,8 @@ class SubscriptionAdapterTest {
             .daysToExpirationOnLastNotification(310)
             .configuration(
                 """
-                    { "entrypointId": "entrypoint-id", "channel": "my-channel", "entrypointConfiguration": {} }
-                    """
+                { "entrypointId": "entrypoint-id", "channel": "my-channel", "entrypointConfiguration": {} }
+                """
             )
             .metadata(Map.of("metadata1", "value1"))
             .failureCause("failure-cause");

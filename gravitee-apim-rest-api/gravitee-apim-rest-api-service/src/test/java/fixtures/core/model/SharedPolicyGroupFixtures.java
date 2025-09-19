@@ -34,8 +34,7 @@ public class SharedPolicyGroupFixtures {
     private SharedPolicyGroupFixtures() {}
 
     private static final Supplier<SharedPolicyGroup.SharedPolicyGroupBuilder> BASE = () ->
-        SharedPolicyGroup
-            .builder()
+        SharedPolicyGroup.builder()
             .id("sharedPolicyGroupId")
             .environmentId("environmentId")
             .organizationId("organizationId")
@@ -56,8 +55,7 @@ public class SharedPolicyGroupFixtures {
         return BASE.get().build();
     }
 
-    private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD
-        .builder()
+    private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD.builder()
         .crossId(UUID.random().toString())
         .name("My Shared Policy Group CRD")
         .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)
@@ -79,8 +77,7 @@ public class SharedPolicyGroupFixtures {
     }
 
     public static CreateSharedPolicyGroup aCreateSharedPolicyGroupWithAllFields() {
-        return CREATE_BASE
-            .get()
+        return CREATE_BASE.get()
             .description("description")
             .crossId("crossId")
             .steps(List.of(Step.builder().policy("policyId").name("Step name").configuration("{\"key\":\"value\"}").build()))
@@ -88,8 +85,7 @@ public class SharedPolicyGroupFixtures {
     }
 
     public static SharedPolicyGroupPolicyPlugin aSharedPolicyGroupPolicyPlugin() {
-        return SharedPolicyGroupPolicyPlugin
-            .builder()
+        return SharedPolicyGroupPolicyPlugin.builder()
             .id("sharedPolicyGroupId")
             .name("name")
             .description("description")

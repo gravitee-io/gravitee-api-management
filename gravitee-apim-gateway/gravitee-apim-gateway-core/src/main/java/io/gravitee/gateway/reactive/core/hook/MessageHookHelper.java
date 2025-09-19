@@ -62,8 +62,7 @@ public class MessageHookHelper {
                         .doOnTerminate(() -> onMessagesInterceptor.unregisterMessagesInterceptor(interceptorId))
                         .doOnSubscribe(disposable ->
                             onMessagesInterceptor.registerMessagesInterceptor(
-                                OnMessagesInterceptor.MessagesInterceptor
-                                    .<Message>builder()
+                                OnMessagesInterceptor.MessagesInterceptor.<Message>builder()
                                     .id(interceptorId)
                                     .transformersFunction(interceptedTransformer ->
                                         transformerInterceptor(interceptedTransformer, componentId, messageHooks, ctx, executionPhase)
@@ -101,16 +100,19 @@ public class MessageHookHelper {
                 executeHooks(componentId, hooks, HookPhase.PRE, ctx, executionPhase, originalMessage, null, null)
                     .andThen(interceptedTransformer.apply(Flowable.just(originalMessage)))
                     .switchIfEmpty(
-                        executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, originalMessage, null, null)
-                            .andThen(Flowable.empty())
+                        executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, originalMessage, null, null).andThen(
+                            Flowable.empty()
+                        )
                     )
                     .concatMap(transformMessage ->
-                        executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, transformMessage, null, null)
-                            .andThen(Flowable.just(transformMessage))
+                        executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, transformMessage, null, null).andThen(
+                            Flowable.just(transformMessage)
+                        )
                     )
                     .onErrorResumeNext(throwable ->
-                        executeHookOnError(componentId, hooks, ctx, executionPhase, originalMessage, throwable)
-                            .andThen(Flowable.error(throwable))
+                        executeHookOnError(componentId, hooks, ctx, executionPhase, originalMessage, throwable).andThen(
+                            Flowable.error(throwable)
+                        )
                     )
                     .doOnCancel(() ->
                         executeHooks(componentId, hooks, HookPhase.POST, ctx, executionPhase, originalMessage, null, null).subscribe()
@@ -154,8 +156,7 @@ public class MessageHookHelper {
         final Throwable throwable,
         final ExecutionFailure executionFailure
     ) {
-        return Flowable
-            .fromIterable(hooks)
+        return Flowable.fromIterable(hooks)
             .concatMapCompletable(hook ->
                 switch (phase) {
                     case PRE -> hook.preMessage(componentId, ctx, executionPhase, message);

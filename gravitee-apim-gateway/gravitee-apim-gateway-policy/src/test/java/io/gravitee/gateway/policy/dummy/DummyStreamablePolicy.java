@@ -35,8 +35,7 @@ public class DummyStreamablePolicy {
 
     @OnRequestContent
     public ReadWriteStream<Buffer> onRequestContent(Request request, ExecutionContext executionContext, PolicyChain policyChain) {
-        return TransformableRequestStreamBuilder
-            .on(request)
+        return TransformableRequestStreamBuilder.on(request)
             .chain(policyChain)
             .transform(buffer -> {
                 try {
@@ -51,8 +50,7 @@ public class DummyStreamablePolicy {
 
     @OnResponseContent
     public ReadWriteStream<Buffer> onResponseContent(Response response, ExecutionContext executionContext, PolicyChain policyChain) {
-        return TransformableResponseStreamBuilder
-            .on(response)
+        return TransformableResponseStreamBuilder.on(response)
             .chain(policyChain)
             .transform(buffer -> {
                 try {

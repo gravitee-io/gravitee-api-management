@@ -117,7 +117,8 @@ public class DynamicPropertiesServiceTest {
         lenient().doCallRealMethod().when(apiConverter).toApiEntity(any(), any());
         lenient()
             .when(objectMapper.readValue(any(String.class), (Class<Object>) any()))
-            .thenAnswer(i -> graviteeMapper.readValue((String) i.getArgument(0), (Class<io.gravitee.definition.model.Api>) i.getArgument(1))
+            .thenAnswer(i ->
+                graviteeMapper.readValue((String) i.getArgument(0), (Class<io.gravitee.definition.model.Api>) i.getArgument(1))
             );
     }
 

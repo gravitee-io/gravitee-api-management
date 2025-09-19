@@ -49,13 +49,12 @@ public class CreateApiDocumentationDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        createApiDocumentationDomainService =
-            new CreateApiDocumentationDomainService(
-                pageCrudService,
-                pageRevisionCrudService,
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                indexer
-            );
+        createApiDocumentationDomainService = new CreateApiDocumentationDomainService(
+            pageCrudService,
+            pageRevisionCrudService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            indexer
+        );
     }
 
     @AfterEach
@@ -68,8 +67,7 @@ public class CreateApiDocumentationDomainServiceTest {
 
         @Test
         void should_create_markdown() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -79,8 +77,7 @@ public class CreateApiDocumentationDomainServiceTest {
             pageCrudService.initWith(List.of(parentPage));
 
             var res = createApiDocumentationDomainService.createPage(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .createdAt(DATE)
                     .updatedAt(DATE)
@@ -114,8 +111,7 @@ public class CreateApiDocumentationDomainServiceTest {
         @Test
         void should_create_an_audit() {
             createApiDocumentationDomainService.createPage(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .createdAt(DATE)
                     .updatedAt(DATE)
@@ -141,8 +137,7 @@ public class CreateApiDocumentationDomainServiceTest {
         @Test
         void should_create_a_page_revision() {
             createApiDocumentationDomainService.createPage(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .createdAt(DATE)
                     .updatedAt(DATE)
@@ -170,8 +165,7 @@ public class CreateApiDocumentationDomainServiceTest {
 
         @Test
         void shouldIndexPage() {
-            var page = Page
-                .builder()
+            var page = Page.builder()
                 .id(PAGE_ID)
                 .createdAt(DATE)
                 .updatedAt(DATE)
@@ -197,8 +191,7 @@ public class CreateApiDocumentationDomainServiceTest {
 
         @Test
         void should_create_folder() {
-            var parentPage = Page
-                .builder()
+            var parentPage = Page.builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
@@ -208,8 +201,7 @@ public class CreateApiDocumentationDomainServiceTest {
             pageCrudService.initWith(List.of(parentPage));
 
             var res = createApiDocumentationDomainService.createPage(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .createdAt(DATE)
                     .updatedAt(DATE)
@@ -249,8 +241,7 @@ public class CreateApiDocumentationDomainServiceTest {
         @Test
         void should_create_audit() {
             createApiDocumentationDomainService.createPage(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .createdAt(DATE)
                     .updatedAt(DATE)
@@ -275,8 +266,7 @@ public class CreateApiDocumentationDomainServiceTest {
         @Test
         void should_not_create_page_revision() {
             createApiDocumentationDomainService.createPage(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .createdAt(DATE)
                     .updatedAt(DATE)

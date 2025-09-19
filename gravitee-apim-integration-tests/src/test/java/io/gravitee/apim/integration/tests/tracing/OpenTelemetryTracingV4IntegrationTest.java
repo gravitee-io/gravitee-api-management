@@ -185,27 +185,18 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
         startSseStream(httpClient)
             // expect 3 chunks: retry, two messages
             .awaitCount(3)
-            .assertValueAt(
-                0,
-                chunk -> {
-                    assertRetry(chunk);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                chunk -> {
-                    assertOnMessage(chunk, 0L, MESSAGE);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                chunk -> {
-                    assertOnMessage(chunk, 1L, MESSAGE);
-                    return true;
-                }
-            )
+            .assertValueAt(0, chunk -> {
+                assertRetry(chunk);
+                return true;
+            })
+            .assertValueAt(1, chunk -> {
+                assertOnMessage(chunk, 0L, MESSAGE);
+                return true;
+            })
+            .assertValueAt(2, chunk -> {
+                assertOnMessage(chunk, 1L, MESSAGE);
+                return true;
+            })
             .cancel();
 
         httpClient.close().blockingAwait();

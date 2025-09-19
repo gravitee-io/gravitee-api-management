@@ -32,8 +32,7 @@ public class ValidationExceptionMapper extends AbstractExceptionMapper<AbstractV
 
     @Override
     public Response toResponse(AbstractValidationException ve) {
-        return Response
-            .status(Response.Status.fromStatusCode(ve.getHttpStatusCode()))
+        return Response.status(Response.Status.fromStatusCode(ve.getHttpStatusCode()))
             .type(MediaType.APPLICATION_JSON_TYPE)
             .entity(validationError(ve))
             .build();

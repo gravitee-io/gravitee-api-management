@@ -108,8 +108,7 @@ public class RejectSubscriptionDomainService {
 
     private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity rejectedSubscriptionEntity, AuditInfo auditInfo) {
         auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .actor(auditInfo.actor())
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
@@ -122,8 +121,7 @@ public class RejectSubscriptionDomainService {
                 .build()
         );
         auditDomainService.createApplicationAuditLog(
-            ApplicationAuditLogEntity
-                .builder()
+            ApplicationAuditLogEntity.builder()
                 .actor(auditInfo.actor())
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())

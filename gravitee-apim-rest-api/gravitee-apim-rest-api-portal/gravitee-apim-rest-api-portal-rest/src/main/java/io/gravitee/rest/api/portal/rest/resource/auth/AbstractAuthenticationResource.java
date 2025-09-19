@@ -146,8 +146,7 @@ abstract class AbstractAuthenticationResource {
             .toInstant()
             .plus(Duration.ofSeconds(environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
 
-        final String sign = JWT
-            .create()
+        final String sign = JWT.create()
             .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
             .withIssuedAt(issueAt)
             .withExpiresAt(Date.from(expireAt))

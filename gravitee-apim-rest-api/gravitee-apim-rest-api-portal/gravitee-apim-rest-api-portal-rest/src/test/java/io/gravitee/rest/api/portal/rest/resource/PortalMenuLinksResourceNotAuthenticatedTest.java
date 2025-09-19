@@ -62,14 +62,12 @@ public class PortalMenuLinksResourceNotAuthenticatedTest extends AbstractResourc
     @Test
     public void should_list_public_portal_menu_links_for_environment_only() {
         // Given
-        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .visibility(PortalMenuLinkVisibility.PUBLIC)
             .environmentId(ENV_ID)
             .build();
-        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .visibility(PortalMenuLinkVisibility.PRIVATE)
             .environmentId(ENV_ID)

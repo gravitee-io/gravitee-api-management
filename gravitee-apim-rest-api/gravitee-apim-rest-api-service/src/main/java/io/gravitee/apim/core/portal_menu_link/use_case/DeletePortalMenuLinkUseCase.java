@@ -32,8 +32,10 @@ public class DeletePortalMenuLinkUseCase {
     private final PortalMenuLinkQueryService portalMenuLinkQueryService;
 
     public Output execute(Input input) {
-        PortalMenuLink existingPortalMenuLink =
-            this.portalMenuLinkCrudService.getByIdAndEnvironmentId(input.portalMenuLinkId(), input.environmentId());
+        PortalMenuLink existingPortalMenuLink = this.portalMenuLinkCrudService.getByIdAndEnvironmentId(
+            input.portalMenuLinkId(),
+            input.environmentId()
+        );
 
         this.portalMenuLinkCrudService.delete(existingPortalMenuLink.getId());
         this.updatePortalMenuLinkOrder(existingPortalMenuLink.getOrder(), existingPortalMenuLink.getEnvironmentId());

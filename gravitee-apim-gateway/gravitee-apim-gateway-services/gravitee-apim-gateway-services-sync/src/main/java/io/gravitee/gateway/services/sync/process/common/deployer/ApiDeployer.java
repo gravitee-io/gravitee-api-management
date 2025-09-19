@@ -55,9 +55,9 @@ public class ApiDeployer implements Deployer<ApiReactorDeployable> {
 
     @Override
     public Completable doAfterDeployment(final ApiReactorDeployable deployable) {
-        return Completable
-            .fromRunnable(() -> planService.register(deployable))
-            .andThen(distributedSyncService.distributeIfNeeded(deployable));
+        return Completable.fromRunnable(() -> planService.register(deployable)).andThen(
+            distributedSyncService.distributeIfNeeded(deployable)
+        );
     }
 
     @Override

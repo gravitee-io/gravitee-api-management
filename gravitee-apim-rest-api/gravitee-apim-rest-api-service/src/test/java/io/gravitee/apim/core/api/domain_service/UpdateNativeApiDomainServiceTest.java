@@ -101,8 +101,7 @@ class UpdateNativeApiDomainServiceTest {
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)
@@ -114,8 +113,7 @@ class UpdateNativeApiDomainServiceTest {
         );
         groupQueryService.initWith(
             List.of(
-                Group
-                    .builder()
+                Group.builder()
                     .id("group-1")
                     .environmentId("environment-id")
                     .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
@@ -134,25 +132,24 @@ class UpdateNativeApiDomainServiceTest {
             userCrudService
         );
 
-        cut =
-            new UpdateNativeApiDomainService(
-                apiCrudService,
-                planQueryService,
-                new DeprecatePlanDomainService(planCrudService, auditDomainService),
-                triggerNotificationDomainService,
-                flowCrudService,
-                categoryDomainService,
-                auditDomainService,
-                new ApiIndexerDomainService(
-                    new ApiMetadataDecoderDomainService(
-                        new ApiMetadataQueryServiceInMemory(metadataCrudService),
-                        new FreemarkerTemplateProcessor()
-                    ),
-                    apiPrimaryOwnerService,
-                    new ApiCategoryQueryServiceInMemory(),
-                    indexer
-                )
-            );
+        cut = new UpdateNativeApiDomainService(
+            apiCrudService,
+            planQueryService,
+            new DeprecatePlanDomainService(planCrudService, auditDomainService),
+            triggerNotificationDomainService,
+            flowCrudService,
+            categoryDomainService,
+            auditDomainService,
+            new ApiIndexerDomainService(
+                new ApiMetadataDecoderDomainService(
+                    new ApiMetadataQueryServiceInMemory(metadataCrudService),
+                    new FreemarkerTemplateProcessor()
+                ),
+                apiPrimaryOwnerService,
+                new ApiCategoryQueryServiceInMemory(),
+                indexer
+            )
+        );
     }
 
     @BeforeAll
@@ -173,8 +170,7 @@ class UpdateNativeApiDomainServiceTest {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         String categoryKey = "categoryKey-1";
-        var apiToUpdate = ApiFixtures
-            .aNativeApi()
+        var apiToUpdate = ApiFixtures.aNativeApi()
             .toBuilder()
             .name("updated-name")
             .description("updated-description")
@@ -218,8 +214,7 @@ class UpdateNativeApiDomainServiceTest {
         //given
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures
-            .aNativeApi()
+        var apiToUpdate = ApiFixtures.aNativeApi()
             .toBuilder()
             .name("updated-name")
             .description("updated-description")
@@ -315,8 +310,7 @@ class UpdateNativeApiDomainServiceTest {
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .contains(
                 // API Audit
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
@@ -396,8 +390,9 @@ class UpdateNativeApiDomainServiceTest {
             oneShotIndexation(auditInfo)
         );
 
-        assertThat(triggerNotificationDomainService.getApiNotifications())
-            .containsExactly(new ApiUpdatedApiHookContext(apiToUpdate.getId()));
+        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+            new ApiUpdatedApiHookContext(apiToUpdate.getId())
+        );
     }
 
     @Test
@@ -448,8 +443,10 @@ class UpdateNativeApiDomainServiceTest {
             oneShotIndexation(auditInfo)
         );
 
-        assertThat(triggerNotificationDomainService.getApiNotifications())
-            .containsExactly(new ApiDeprecatedApiHookContext(apiToUpdate.getId()), new ApiUpdatedApiHookContext(apiToUpdate.getId()));
+        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+            new ApiDeprecatedApiHookContext(apiToUpdate.getId()),
+            new ApiUpdatedApiHookContext(apiToUpdate.getId())
+        );
     }
 
     PrimaryOwnerEntity buildPrimaryOwnerEntity() {
@@ -457,8 +454,7 @@ class UpdateNativeApiDomainServiceTest {
     }
 
     Plan aNativePlanWithStatus(PlanStatus status) {
-        return Plan
-            .builder()
+        return Plan.builder()
             .id(status.name())
             .definitionVersion(DefinitionVersion.V4)
             .apiId(ApiFixtures.aNativeApi().getId())
@@ -468,7 +464,12 @@ class UpdateNativeApiDomainServiceTest {
     }
 
     private static void assertThatPlanHasStatus(List<Plan> planRepository, String planId, PlanStatus expectedStatus) {
-        assertThat(planRepository.stream().filter(p -> Objects.equals(planId, p.getId())).findFirst())
+        assertThat(
+            planRepository
+                .stream()
+                .filter(p -> Objects.equals(planId, p.getId()))
+                .findFirst()
+        )
             .isNotEmpty()
             .get()
             .extracting(Plan::getPlanDefinitionNativeV4)

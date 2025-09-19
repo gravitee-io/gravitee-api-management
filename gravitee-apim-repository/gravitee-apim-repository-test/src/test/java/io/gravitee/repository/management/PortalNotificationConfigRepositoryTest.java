@@ -40,8 +40,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
 
     @Test
     public void shouldCreate() throws Exception {
-        final PortalNotificationConfig expected = PortalNotificationConfig
-            .builder()
+        final PortalNotificationConfig expected = PortalNotificationConfig.builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-created")
             .user("userid")
@@ -62,8 +61,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
     public void shouldDelete() throws Exception {
         assertTrue(portalNotificationConfigRepository.findById("userD", NotificationReferenceType.API, "config-to-delete").isPresent());
 
-        final PortalNotificationConfig cfg = PortalNotificationConfig
-            .builder()
+        final PortalNotificationConfig cfg = PortalNotificationConfig.builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-delete")
             .user("userid")
@@ -76,8 +74,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
 
     @Test
     public void shouldUpdate() throws Exception {
-        final PortalNotificationConfig expected = PortalNotificationConfig
-            .builder()
+        final PortalNotificationConfig expected = PortalNotificationConfig.builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-update")
             .user("userE")
@@ -96,8 +93,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
 
     @Test
     public void shouldFindById() throws Exception {
-        final PortalNotificationConfig expected = PortalNotificationConfig
-            .builder()
+        final PortalNotificationConfig expected = PortalNotificationConfig.builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("config-to-find")
             .user("userF")
@@ -121,8 +117,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
 
     @Test
     public void shouldKubernetesOriginById() throws Exception {
-        final PortalNotificationConfig cfg = PortalNotificationConfig
-            .builder()
+        final PortalNotificationConfig cfg = PortalNotificationConfig.builder()
             .referenceType(NotificationReferenceType.API)
             .referenceId("kubernetes-config-to-find")
             .user("userid")
@@ -145,12 +140,15 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
 
     @Test
     public void shouldNotFoundById() throws Exception {
-        assertThat(portalNotificationConfigRepository.findById("userid-unknown", NotificationReferenceType.API, "config-to-find"))
-            .isNotPresent();
-        assertThat(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.APPLICATION, "config-to-find"))
-            .isNotPresent();
-        assertThat(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-not-find"))
-            .isNotPresent();
+        assertThat(
+            portalNotificationConfigRepository.findById("userid-unknown", NotificationReferenceType.API, "config-to-find")
+        ).isNotPresent();
+        assertThat(
+            portalNotificationConfigRepository.findById("userid", NotificationReferenceType.APPLICATION, "config-to-find")
+        ).isNotPresent();
+        assertThat(
+            portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-not-find")
+        ).isNotPresent();
     }
 
     @Test

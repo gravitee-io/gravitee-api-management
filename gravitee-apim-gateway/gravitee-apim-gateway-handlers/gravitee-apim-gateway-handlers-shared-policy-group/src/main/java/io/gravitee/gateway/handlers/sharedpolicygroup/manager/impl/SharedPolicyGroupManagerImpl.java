@@ -113,7 +113,10 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
         try {
             licenseManager.validatePluginFeatures(
                 sharedPolicyGroup.getOrganizationId(),
-                plugins.stream().map(p -> new LicenseManager.Plugin(p.type(), p.id())).collect(Collectors.toSet())
+                plugins
+                    .stream()
+                    .map(p -> new LicenseManager.Plugin(p.type(), p.id()))
+                    .collect(Collectors.toSet())
             );
         } catch (InvalidLicenseException | ForbiddenFeatureException e) {
             log.warn(

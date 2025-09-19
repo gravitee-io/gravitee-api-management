@@ -149,9 +149,9 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             }
 
             ((ObjectNode) jsonNode).set(
-                    "notifyMembers",
-                    BooleanNode.valueOf(!jsonNode.get("disable_membership_notifications").asBoolean())
-                );
+                "notifyMembers",
+                BooleanNode.valueOf(!jsonNode.get("disable_membership_notifications").asBoolean())
+            );
 
             ((ObjectNode) jsonNode).remove("disable_membership_notifications");
 

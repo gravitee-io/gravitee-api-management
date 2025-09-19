@@ -49,7 +49,12 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(13, pages.getPageElements());
         assertEquals(13, pages.getContent().size());
 
-        Page findApiPage = pages.getContent().stream().filter(p -> p.getId().equals("FindApiPage")).findFirst().get();
+        Page findApiPage = pages
+            .getContent()
+            .stream()
+            .filter(p -> p.getId().equals("FindApiPage"))
+            .findFirst()
+            .get();
         assertFindPage(findApiPage);
     }
 

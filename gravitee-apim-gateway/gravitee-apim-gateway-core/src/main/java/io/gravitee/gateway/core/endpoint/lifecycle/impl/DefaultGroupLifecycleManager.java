@@ -109,28 +109,26 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
                             EndpointGroupLifecycleManager groupLifecycleManager;
 
                             if (tenant.isPresent()) {
-                                groupLifecycleManager =
-                                    new MultiTenantAwareEndpointLifecycleManager(
-                                        api,
-                                        group,
-                                        endpointFactory,
-                                        referenceRegister,
-                                        connectorRegistry,
-                                        configuration,
-                                        mapper,
-                                        tenant.get()
-                                    );
+                                groupLifecycleManager = new MultiTenantAwareEndpointLifecycleManager(
+                                    api,
+                                    group,
+                                    endpointFactory,
+                                    referenceRegister,
+                                    connectorRegistry,
+                                    configuration,
+                                    mapper,
+                                    tenant.get()
+                                );
                             } else {
-                                groupLifecycleManager =
-                                    new EndpointGroupLifecycleManager(
-                                        api,
-                                        group,
-                                        endpointFactory,
-                                        referenceRegister,
-                                        connectorRegistry,
-                                        configuration,
-                                        mapper
-                                    );
+                                groupLifecycleManager = new EndpointGroupLifecycleManager(
+                                    api,
+                                    group,
+                                    endpointFactory,
+                                    referenceRegister,
+                                    connectorRegistry,
+                                    configuration,
+                                    mapper
+                                );
                             }
 
                             groups.put(group.getName(), groupLifecycleManager);

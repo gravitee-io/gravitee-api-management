@@ -27,8 +27,7 @@ public class NodeIdTypeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("node_monitoring")
             .name("ni1t1")
             .key("nodeId", ascending())

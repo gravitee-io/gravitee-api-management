@@ -166,23 +166,21 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     }
 
     private static Criteria buildOrganizationsCriteria(EventCriteria criteria) {
-        return new Criteria()
-            .orOperator(
-                Criteria.where(ORGANIZATIONS_FIELD).exists(false),
-                Criteria.where(ORGANIZATIONS_FIELD).isNull(),
-                Criteria.where(ORGANIZATIONS_FIELD).is(Collections.emptyList()),
-                Criteria.where(ORGANIZATIONS_FIELD).in(criteria.getOrganizations())
-            );
+        return new Criteria().orOperator(
+            Criteria.where(ORGANIZATIONS_FIELD).exists(false),
+            Criteria.where(ORGANIZATIONS_FIELD).isNull(),
+            Criteria.where(ORGANIZATIONS_FIELD).is(Collections.emptyList()),
+            Criteria.where(ORGANIZATIONS_FIELD).in(criteria.getOrganizations())
+        );
     }
 
     private static Criteria buildEnvironmentsCriteria(EventCriteria criteria) {
-        return new Criteria()
-            .orOperator(
-                Criteria.where(ENVIRONMENTS_FIELD).exists(false),
-                Criteria.where(ENVIRONMENTS_FIELD).isNull(),
-                Criteria.where(ENVIRONMENTS_FIELD).is(Collections.emptyList()),
-                Criteria.where(ENVIRONMENTS_FIELD).in(criteria.getEnvironments())
-            );
+        return new Criteria().orOperator(
+            Criteria.where(ENVIRONMENTS_FIELD).exists(false),
+            Criteria.where(ENVIRONMENTS_FIELD).isNull(),
+            Criteria.where(ENVIRONMENTS_FIELD).is(Collections.emptyList()),
+            Criteria.where(ENVIRONMENTS_FIELD).in(criteria.getEnvironments())
+        );
     }
 
     @Override
@@ -198,8 +196,10 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
             "PUBLISH_ORGANIZATION"
         );
 
-        var criteria = new Criteria()
-            .andOperator(Criteria.where("type").nin(nonApiEventTypes), Criteria.where(ENVIRONMENTS_FIELD).is(environmentId));
+        var criteria = new Criteria().andOperator(
+            Criteria.where("type").nin(nonApiEventTypes),
+            Criteria.where(ENVIRONMENTS_FIELD).is(environmentId)
+        );
         var query = new Query(criteria).with(Sort.by(Sort.Direction.DESC, "createdAt"));
         query.fields().include("_id", "properties.api_id");
         return mongoTemplate

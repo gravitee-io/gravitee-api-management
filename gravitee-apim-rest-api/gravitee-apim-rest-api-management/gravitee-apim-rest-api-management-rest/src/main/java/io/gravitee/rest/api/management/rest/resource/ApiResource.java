@@ -345,8 +345,7 @@ public class ApiResource extends AbstractResource {
         final ApiEntity updatedApi = apiService.update(GraviteeContext.getExecutionContext(), api, apiToUpdate, true);
         setPictures(updatedApi);
 
-        return Response
-            .ok(updatedApi)
+        return Response.ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();
@@ -386,8 +385,7 @@ public class ApiResource extends AbstractResource {
                 EventType.PUBLISH_API,
                 apiDeploymentEntity
             );
-            return Response
-                .ok(apiEntity)
+            return Response.ok(apiEntity)
                 .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
                 .lastModified(apiEntity.getUpdatedAt())
                 .build();
@@ -413,13 +411,11 @@ public class ApiResource extends AbstractResource {
     @GraviteeLicenseFeature("apim-debug-mode")
     public Response debugAPI(@Parameter(name = "request") @Valid final DebugApiEntity debugApiEntity) {
         debugApiEntity.setId(api);
-        return Response
-            .ok(
-                debugApiUseCase
-                    .execute(new DebugApiUseCase.Input(api, DebugApiMapper.INSTANCE.fromEntity(debugApiEntity), getAuditInfo()))
-                    .debugApiEvent()
-            )
-            .build();
+        return Response.ok(
+            debugApiUseCase
+                .execute(new DebugApiUseCase.Input(api, DebugApiMapper.INSTANCE.fromEntity(debugApiEntity), getAuditInfo()))
+                .debugApiEvent()
+        ).build();
     }
 
     @GET
@@ -459,8 +455,7 @@ public class ApiResource extends AbstractResource {
     public Response rollbackApi(@Parameter(name = "api", required = true) @Valid @NotNull final RollbackApiEntity apiEntity) {
         try {
             ApiEntity rollbackedApi = apiService.rollback(GraviteeContext.getExecutionContext(), api, apiEntity);
-            return Response
-                .ok(rollbackedApi)
+            return Response.ok(rollbackedApi)
                 .tag(Long.toString(rollbackedApi.getUpdatedAt().getTime()))
                 .lastModified(rollbackedApi.getUpdatedAt())
                 .build();
@@ -486,8 +481,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response deprecated_updateApiWithDefinition(@RequestBody @Valid @NotNull Object apiDefinitionOrUrl) {
         ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
-        return Response
-            .ok(updatedApi)
+        return Response.ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();
@@ -559,8 +553,7 @@ public class ApiResource extends AbstractResource {
             apiEntity.getId(),
             apiDefinitionOrUrl
         );
-        return Response
-            .ok(updatedApi)
+        return Response.ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();
@@ -588,8 +581,7 @@ public class ApiResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(executionContext, swaggerDescriptor);
         final ApiEntity updatedApi = apiService.updateFromSwagger(executionContext, api, swaggerApiEntity, swaggerDescriptor);
-        return Response
-            .ok(updatedApi)
+        return Response.ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();
@@ -621,8 +613,7 @@ public class ApiResource extends AbstractResource {
             DefinitionVersion.valueOfLabel(definitionVersion)
         );
         final ApiEntity updatedApi = apiService.updateFromSwagger(executionContext, api, swaggerApiEntity, swaggerDescriptor);
-        return Response
-            .ok(updatedApi)
+        return Response.ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();
@@ -649,8 +640,7 @@ public class ApiResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiEntity apiEntity = apiService.findById(executionContext, api);
         final String apiDefinition = apiExportService.exportAsJson(executionContext, api, version, exclude.split(","));
-        return Response
-            .ok(apiDefinition)
+        return Response.ok(apiDefinition)
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity, "json")))
             .build();
     }
@@ -669,8 +659,7 @@ public class ApiResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final ApiEntity apiEntity = apiService.findById(executionContext, api);
 
-        final ApiExportQuery exportQuery = ApiExportQuery
-            .builder()
+        final ApiExportQuery exportQuery = ApiExportQuery.builder()
             .removeIds(exportParams.isRemoveIds())
             .contextPath(exportParams.getContextPath())
             .version(exportParams.getVersion())
@@ -681,8 +670,7 @@ public class ApiResource extends AbstractResource {
 
         final String apiDefinition = apiExportService.exportAsCustomResourceDefinition(executionContext, apiEntity.getId(), exportQuery);
 
-        return Response
-            .ok(apiDefinition)
+        return Response.ok(apiDefinition)
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity, "yml")))
             .build();
     }
@@ -721,8 +709,7 @@ public class ApiResource extends AbstractResource {
             page,
             DefinitionVersion.valueOfLabel(definitionVersion)
         );
-        return Response
-            .ok(updatedApi)
+        return Response.ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();
@@ -796,18 +783,30 @@ public class ApiResource extends AbstractResource {
         switch (action) {
             case ASK:
                 hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, api, RolePermissionAction.UPDATE);
-                updatedApi =
-                    apiService.askForReview(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser(), reviewEntity);
+                updatedApi = apiService.askForReview(
+                    GraviteeContext.getExecutionContext(),
+                    apiEntity.getId(),
+                    getAuthenticatedUser(),
+                    reviewEntity
+                );
                 break;
             case ACCEPT:
                 hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_REVIEWS, api, RolePermissionAction.UPDATE);
-                updatedApi =
-                    apiService.acceptReview(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser(), reviewEntity);
+                updatedApi = apiService.acceptReview(
+                    GraviteeContext.getExecutionContext(),
+                    apiEntity.getId(),
+                    getAuthenticatedUser(),
+                    reviewEntity
+                );
                 break;
             case REJECT:
                 hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_REVIEWS, api, RolePermissionAction.UPDATE);
-                updatedApi =
-                    apiService.rejectReview(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser(), reviewEntity);
+                updatedApi = apiService.rejectReview(
+                    GraviteeContext.getExecutionContext(),
+                    apiEntity.getId(),
+                    getAuthenticatedUser(),
+                    reviewEntity
+                );
                 break;
         }
 

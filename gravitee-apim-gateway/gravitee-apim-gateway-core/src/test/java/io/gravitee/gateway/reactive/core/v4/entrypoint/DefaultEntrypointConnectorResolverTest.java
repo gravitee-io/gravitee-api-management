@@ -292,12 +292,11 @@ class DefaultEntrypointConnectorResolverTest {
     }
 
     private Listener buildListener(ListenerType listenerType) {
-        Listener listener =
-            switch (listenerType) {
-                case HTTP -> new HttpListener();
-                case SUBSCRIPTION -> new SubscriptionListener();
-                default -> throw new UnsupportedOperationException(String.format("Listener type '%s' not yet supported", listenerType));
-            };
+        Listener listener = switch (listenerType) {
+            case HTTP -> new HttpListener();
+            case SUBSCRIPTION -> new SubscriptionListener();
+            default -> throw new UnsupportedOperationException(String.format("Listener type '%s' not yet supported", listenerType));
+        };
         final List<Entrypoint> entrypoints = new ArrayList<>();
         listener.setEntrypoints(entrypoints);
         entrypoints.add(buildEntrypoint());

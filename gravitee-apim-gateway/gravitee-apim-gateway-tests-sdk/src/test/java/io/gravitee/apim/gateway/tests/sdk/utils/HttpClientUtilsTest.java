@@ -41,11 +41,11 @@ class HttpClientUtilsTest {
 
     @Test
     void should_extract_headers() {
-        when(response.headers())
-            .thenReturn(MultiMap.caseInsensitiveMultiMap().set("X-Header-one", "value-one").set("X-Header-two", "value-two"));
+        when(response.headers()).thenReturn(
+            MultiMap.caseInsensitiveMultiMap().set("X-Header-one", "value-one").set("X-Header-two", "value-two")
+        );
 
-        Assertions
-            .assertThat(HttpClientUtils.extractHeaders(response))
+        Assertions.assertThat(HttpClientUtils.extractHeaders(response))
             .contains(Map.entry("X-Header-one", "value-one"), Map.entry("X-Header-two", "value-two"))
             .doesNotContainKeys("random", "X-Header-three");
     }

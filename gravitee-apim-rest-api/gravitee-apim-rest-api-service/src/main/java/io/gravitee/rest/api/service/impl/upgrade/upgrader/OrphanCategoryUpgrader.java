@@ -53,13 +53,13 @@ public class OrphanCategoryUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-                Set<Api> updatedApis = findAndFixApisWithOrphanCategories();
-                for (Api api : updatedApis) {
-                    log.info("Removing orphan categories for API [{}]", api.getId());
-                    apiRepository.update(api);
-                }
-                return true;
-            });
+            Set<Api> updatedApis = findAndFixApisWithOrphanCategories();
+            for (Api api : updatedApis) {
+                log.info("Removing orphan categories for API [{}]", api.getId());
+                apiRepository.update(api);
+            }
+            return true;
+        });
     }
 
     private Set<Api> findAndFixApisWithOrphanCategories() throws TechnicalException {

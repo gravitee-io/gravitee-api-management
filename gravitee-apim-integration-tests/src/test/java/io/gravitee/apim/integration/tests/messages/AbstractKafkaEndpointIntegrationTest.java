@@ -252,10 +252,9 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
 
         return getKafkaProducerSingle(vertx)
             .flatMapCompletable(producer ->
-                Single
-                    .defer(() ->
-                        producer.rxSend(KafkaProducerRecord.create(topic, "key", Buffer.buffer(payload + "-" + i.getAndIncrement())))
-                    )
+                Single.defer(() ->
+                    producer.rxSend(KafkaProducerRecord.create(topic, "key", Buffer.buffer(payload + "-" + i.getAndIncrement())))
+                )
                     .delay(5, TimeUnit.MILLISECONDS)
                     .repeat()
                     .ignoreElements()

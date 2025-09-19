@@ -54,19 +54,17 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
             this.message = violation.getMessage();
             this.path = violation.getPropertyPath().toString();
             this.invalidValue = violation.getInvalidValue();
-            this.details =
-                cve
-                    .getConstraintViolations()
-                    .stream()
-                    .map(constraintViolation ->
-                        ConstraintViolationDetail
-                            .builder()
-                            .message(constraintViolation.getMessage())
-                            .location(extractLocation(constraintViolation))
-                            .invalidValue(constraintViolation.getInvalidValue())
-                            .build()
-                    )
-                    .toList();
+            this.details = cve
+                .getConstraintViolations()
+                .stream()
+                .map(constraintViolation ->
+                    ConstraintViolationDetail.builder()
+                        .message(constraintViolation.getMessage())
+                        .location(extractLocation(constraintViolation))
+                        .invalidValue(constraintViolation.getInvalidValue())
+                        .build()
+                )
+                .toList();
         }
 
         private String extractLocation(ConstraintViolation<?> constraintViolation) {

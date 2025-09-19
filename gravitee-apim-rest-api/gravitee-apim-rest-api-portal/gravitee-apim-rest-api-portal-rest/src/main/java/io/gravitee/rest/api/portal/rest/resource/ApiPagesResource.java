@@ -80,8 +80,9 @@ public class ApiPagesResource extends AbstractResource {
                 )
                 .stream()
                 .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, apiId, page))
-                .filter(pageEntity ->
-                    !Objects.equals(pageEntity.getType(), "FOLDER") || pageService.folderHasPublishedChildren(pageEntity.getId())
+                .filter(
+                    pageEntity ->
+                        !Objects.equals(pageEntity.getType(), "FOLDER") || pageService.folderHasPublishedChildren(pageEntity.getId())
                 )
                 .map(pageMapper::convert)
                 .map(page -> this.addPageLink(apiId, page));

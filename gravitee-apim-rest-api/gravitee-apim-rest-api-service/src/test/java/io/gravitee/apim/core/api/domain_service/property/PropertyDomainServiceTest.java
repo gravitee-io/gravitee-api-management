@@ -55,24 +55,21 @@ public class PropertyDomainServiceTest {
     @Test
     public void should_encrypt_properties() throws GeneralSecurityException {
         // Given
-        var encryptedProperty = EncryptableProperty
-            .builder()
+        var encryptedProperty = EncryptableProperty.builder()
             .key("encrypted")
             .value("encrypted")
             .dynamic(false)
             .encrypted(true)
             .encryptable(true)
             .build();
-        var encryptableProperty = EncryptableProperty
-            .builder()
+        var encryptableProperty = EncryptableProperty.builder()
             .key("encryptable")
             .value("not encrypted")
             .encrypted(false)
             .dynamic(false)
             .encryptable(true)
             .build();
-        var notEncryptableDynamicProperty = EncryptableProperty
-            .builder()
+        var notEncryptableDynamicProperty = EncryptableProperty.builder()
             .key("notEncryptableDynamic")
             .value("not encrypted")
             .encrypted(false)
@@ -88,35 +85,31 @@ public class PropertyDomainServiceTest {
         // Then
         verify(dataEncryptor, times(1)).encrypt(anyString());
 
-        assertThat(result)
-            .containsExactly(
-                Property.builder().key("encrypted").value("encrypted").dynamic(false).encrypted(true).build(),
-                Property.builder().key("encryptable").value("encrypted value").dynamic(false).encrypted(true).build(),
-                Property.builder().key("notEncryptableDynamic").value("not encrypted").dynamic(true).encrypted(false).build()
-            );
+        assertThat(result).containsExactly(
+            Property.builder().key("encrypted").value("encrypted").dynamic(false).encrypted(true).build(),
+            Property.builder().key("encryptable").value("encrypted value").dynamic(false).encrypted(true).build(),
+            Property.builder().key("notEncryptableDynamic").value("not encrypted").dynamic(true).encrypted(false).build()
+        );
     }
 
     @Test
     public void should_return_properties_non_encrypted_on_error() throws GeneralSecurityException {
         // Given
-        var encryptedProperty = EncryptableProperty
-            .builder()
+        var encryptedProperty = EncryptableProperty.builder()
             .key("encrypted")
             .value("encrypted")
             .dynamic(false)
             .encrypted(true)
             .encryptable(true)
             .build();
-        var encryptableProperty = EncryptableProperty
-            .builder()
+        var encryptableProperty = EncryptableProperty.builder()
             .key("encryptable")
             .value("not encrypted")
             .encrypted(false)
             .dynamic(false)
             .encryptable(true)
             .build();
-        var notEncryptableDynamicProperty = EncryptableProperty
-            .builder()
+        var notEncryptableDynamicProperty = EncryptableProperty.builder()
             .key("notEncryptableDynamic")
             .value("not encrypted")
             .encrypted(false)
@@ -132,12 +125,11 @@ public class PropertyDomainServiceTest {
         // Then
         verify(dataEncryptor, times(1)).encrypt(anyString());
 
-        assertThat(result)
-            .containsExactly(
-                Property.builder().key("encrypted").value("encrypted").dynamic(false).encrypted(true).build(),
-                Property.builder().key("encryptable").value("not encrypted").dynamic(false).encrypted(false).build(),
-                Property.builder().key("notEncryptableDynamic").value("not encrypted").dynamic(true).encrypted(false).build()
-            );
+        assertThat(result).containsExactly(
+            Property.builder().key("encrypted").value("encrypted").dynamic(false).encrypted(true).build(),
+            Property.builder().key("encryptable").value("not encrypted").dynamic(false).encrypted(false).build(),
+            Property.builder().key("notEncryptableDynamic").value("not encrypted").dynamic(true).encrypted(false).build()
+        );
     }
 
     @Test

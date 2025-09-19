@@ -58,19 +58,19 @@ public class TableConstraintsTest extends AbstractRepositoryTest {
 
         jt.query(
             "select tab.table_schema as database_name,\n" +
-            "       tab.table_name\n" +
-            "from information_schema.tables tab\n" +
-            "         left join information_schema.table_constraints tco\n" +
-            "                   on tab.table_schema = tco.table_schema\n" +
-            "                       and tab.table_name = tco.table_name\n" +
-            "                       and tco.constraint_type = 'PRIMARY KEY'\n" +
-            "where tco.constraint_type is null\n" +
-            "  and tab.table_schema not in ('mysql', 'information_schema',\n" +
-            "                               'performance_schema', 'sys')\n" +
-            "  and tab.table_type = 'BASE TABLE'\n" +
-            "  and tab.table_schema = 'test' -- <-- database name\n" +
-            "order by tab.table_schema,\n" +
-            "         tab.table_name;",
+                "       tab.table_name\n" +
+                "from information_schema.tables tab\n" +
+                "         left join information_schema.table_constraints tco\n" +
+                "                   on tab.table_schema = tco.table_schema\n" +
+                "                       and tab.table_name = tco.table_name\n" +
+                "                       and tco.constraint_type = 'PRIMARY KEY'\n" +
+                "where tco.constraint_type is null\n" +
+                "  and tab.table_schema not in ('mysql', 'information_schema',\n" +
+                "                               'performance_schema', 'sys')\n" +
+                "  and tab.table_type = 'BASE TABLE'\n" +
+                "  and tab.table_schema = 'test' -- <-- database name\n" +
+                "order by tab.table_schema,\n" +
+                "         tab.table_name;",
             rs -> {
                 if (rs.wasNull()) {
                     return;

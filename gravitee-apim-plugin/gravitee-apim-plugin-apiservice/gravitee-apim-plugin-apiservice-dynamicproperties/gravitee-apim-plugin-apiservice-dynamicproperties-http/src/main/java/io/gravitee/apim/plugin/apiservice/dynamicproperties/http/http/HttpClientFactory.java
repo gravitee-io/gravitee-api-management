@@ -47,8 +47,7 @@ public class HttpClientFactory {
         ManagementDeploymentContext deploymentContext,
         HttpDynamicPropertiesServiceConfiguration configuration
     ) {
-        return VertxHttpClientFactory
-            .builder()
+        return VertxHttpClientFactory.builder()
             .vertx(deploymentContext.getComponent(Vertx.class))
             .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
             .defaultTarget(configuration.getUrl())

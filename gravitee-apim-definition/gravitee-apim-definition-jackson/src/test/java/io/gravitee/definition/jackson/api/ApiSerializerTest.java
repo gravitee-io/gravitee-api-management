@@ -126,12 +126,12 @@ public class ApiSerializerTest extends AbstractTest {
         String generatedJsonDefinition = objectMapper().writeValueAsString(rule);
         JSONAssert.assertEquals(
             "{\n" +
-            "  \"methods\" : [ \"CONNECT\", \"DELETE\", \"GET\", \"HEAD\", \"OPTIONS\", \"PATCH\", \"POST\", \"PUT\", \"TRACE\", \"OTHER\" ],\n" +
-            "  \"enabled\" : true,\n" +
-            "  \"test\" : {\n" +
-            "     \"foo\":\"bar\"\n" +
-            "  }\n" +
-            "}",
+                "  \"methods\" : [ \"CONNECT\", \"DELETE\", \"GET\", \"HEAD\", \"OPTIONS\", \"PATCH\", \"POST\", \"PUT\", \"TRACE\", \"OTHER\" ],\n" +
+                "  \"enabled\" : true,\n" +
+                "  \"test\" : {\n" +
+                "     \"foo\":\"bar\"\n" +
+                "  }\n" +
+                "}",
             generatedJsonDefinition,
             JSONCompareMode.STRICT
         );

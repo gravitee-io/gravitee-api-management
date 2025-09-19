@@ -110,7 +110,10 @@ public class VerifyApiHostsDomainService {
 
     private void checkNoDuplicate(List<String> hosts) throws DuplicatedHostException {
         var set = new HashSet<>();
-        var duplicates = hosts.stream().filter(n -> !set.add(n)).toList();
+        var duplicates = hosts
+            .stream()
+            .filter(n -> !set.add(n))
+            .toList();
 
         if (!duplicates.isEmpty()) {
             throw new DuplicatedHostException(String.join(", ", duplicates));
@@ -132,13 +135,12 @@ public class VerifyApiHostsDomainService {
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).build()
             )
-            .filter(api ->
-                !api.getId().equals(apiId) &&
-                DefinitionVersion.V4.equals(api.getDefinitionVersion()) &&
-                (
-                    (ApiType.PROXY.equals(api.getType()) && null != api.getApiDefinitionHttpV4()) ||
-                    (ApiType.NATIVE.equals(api.getType()) && null != api.getApiDefinitionNativeV4())
-                )
+            .filter(
+                api ->
+                    !api.getId().equals(apiId) &&
+                    DefinitionVersion.V4.equals(api.getDefinitionVersion()) &&
+                    ((ApiType.PROXY.equals(api.getType()) && null != api.getApiDefinitionHttpV4()) ||
+                        (ApiType.NATIVE.equals(api.getType()) && null != api.getApiDefinitionNativeV4()))
             )
             .flatMap(this::extractHostsFromListeners)
             .map(String::toLowerCase)

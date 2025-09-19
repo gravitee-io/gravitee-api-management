@@ -116,8 +116,7 @@ class FlowCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.flow.Flow
-                        .builder()
+                    io.gravitee.repository.management.model.flow.Flow.builder()
                         .referenceType(FlowReferenceType.API)
                         .referenceId(API_ID)
                         .order(0)
@@ -185,8 +184,7 @@ class FlowCrudServiceImplTest {
                 NativeFlow.builder().name("My flow").enabled(true).publish(List.of(Step.builder().name("step 1").build())).build()
             );
 
-            var repoFlow = io.gravitee.repository.management.model.flow.Flow
-                .builder()
+            var repoFlow = io.gravitee.repository.management.model.flow.Flow.builder()
                 .referenceType(FlowReferenceType.API)
                 .referenceId(API_ID)
                 .order(0)
@@ -276,8 +274,7 @@ class FlowCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.flow.Flow
-                        .builder()
+                    io.gravitee.repository.management.model.flow.Flow.builder()
                         .referenceType(FlowReferenceType.PLAN)
                         .referenceId(PLAN_ID)
                         .order(0)
@@ -413,8 +410,7 @@ class FlowCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.flow.Flow
-                        .builder()
+                    io.gravitee.repository.management.model.flow.Flow.builder()
                         .referenceType(FlowReferenceType.PLAN)
                         .referenceId(PLAN_ID)
                         .order(0)
@@ -525,8 +521,7 @@ class FlowCrudServiceImplTest {
         void should_return_flows() {
             // Given
             var repoFlows = List.of(
-                io.gravitee.repository.management.model.flow.Flow
-                    .builder()
+                io.gravitee.repository.management.model.flow.Flow.builder()
                     .id("flow-id")
                     .referenceType(FlowReferenceType.API)
                     .referenceId(API_ID)
@@ -585,8 +580,7 @@ class FlowCrudServiceImplTest {
         void should_return_flows() {
             // Given
             var repoFlows = List.of(
-                io.gravitee.repository.management.model.flow.Flow
-                    .builder()
+                io.gravitee.repository.management.model.flow.Flow.builder()
                     .id("flow-id")
                     .referenceType(FlowReferenceType.API)
                     .referenceId(API_ID)
@@ -645,8 +639,7 @@ class FlowCrudServiceImplTest {
         void should_return_flows() {
             // Given
             var repoFlows = List.of(
-                io.gravitee.repository.management.model.flow.Flow
-                    .builder()
+                io.gravitee.repository.management.model.flow.Flow.builder()
                     .id("flow-id")
                     .referenceType(FlowReferenceType.PLAN)
                     .referenceId(PLAN_ID)
@@ -705,8 +698,7 @@ class FlowCrudServiceImplTest {
         void should_return_flows() {
             // Given
             var repoFlows = List.of(
-                io.gravitee.repository.management.model.flow.Flow
-                    .builder()
+                io.gravitee.repository.management.model.flow.Flow.builder()
                     .id("flow-id")
                     .referenceType(FlowReferenceType.PLAN)
                     .referenceId(PLAN_ID)
@@ -765,8 +757,7 @@ class FlowCrudServiceImplTest {
         void should_return_flows() {
             // Given
             var repoFlows = List.of(
-                io.gravitee.repository.management.model.flow.Flow
-                    .builder()
+                io.gravitee.repository.management.model.flow.Flow.builder()
                     .id("flow-id")
                     .referenceType(FlowReferenceType.API)
                     .referenceId(API_ID)

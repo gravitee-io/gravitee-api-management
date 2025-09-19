@@ -46,9 +46,9 @@ public class IntegrationWebsocketControllerAuthentication implements WebSocketCo
     @Override
     public IntegrationCommandContext authenticate(final HttpServerRequest httpServerRequest) {
         var headers = httpServerRequest.headers();
-        var tokenValue = Optional
-            .ofNullable(headers.get(AUTHORIZATION_HEADER))
-            .map(authorizationHeader -> authorizationHeader.substring(AUTHORIZATION_HEADER_BEARER.length()).trim());
+        var tokenValue = Optional.ofNullable(headers.get(AUTHORIZATION_HEADER)).map(authorizationHeader ->
+            authorizationHeader.substring(AUTHORIZATION_HEADER_BEARER.length()).trim()
+        );
 
         if (tokenValue.isPresent()) {
             try {

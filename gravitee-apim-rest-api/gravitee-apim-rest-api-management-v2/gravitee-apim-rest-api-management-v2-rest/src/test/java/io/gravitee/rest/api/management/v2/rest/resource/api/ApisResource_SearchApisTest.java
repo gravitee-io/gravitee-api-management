@@ -109,8 +109,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
@@ -150,8 +149,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
@@ -192,8 +190,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
@@ -230,8 +227,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
@@ -281,8 +277,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().queryParam("sortBy", "name").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
@@ -319,8 +314,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().queryParam("sortBy", "-paths").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
@@ -358,8 +352,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
         assertThat(response)
@@ -402,8 +395,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().queryParam("sortBy", "paths").request().post(Entity.json(apiSearchQuery));
         assertThat(response)
@@ -446,8 +438,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(true),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
 
@@ -469,8 +460,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var apiSearchQuery = new ApiSearchQuery();
         apiSearchQuery.setQuery("api-name");
 
-        var apiEntity = FederatedApiEntity
-            .builder()
+        var apiEntity = FederatedApiEntity.builder()
             .id("api-id")
             .name("api-name")
             .originContext(new OriginContext.Integration("integration-id"))
@@ -486,8 +476,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(true)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
 
@@ -552,8 +541,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(false),
                 eq(false)
             )
-        )
-            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
         final Response response = rootTarget().queryParam("manageOnly", false).request().post(Entity.json(apiSearchQuery));
         assertThat(response)

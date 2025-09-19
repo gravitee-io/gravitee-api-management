@@ -45,14 +45,15 @@ public sealed interface Integration {
         ZonedDateTime createdAt,
         ZonedDateTime updatedAt,
         Set<String> groups
-    )
-        implements Integration {
+    ) implements Integration {
         public ApiIntegration update(String name, String description, Set<String> groups) {
             return new ApiIntegration(id, name, description, provider, environmentId, createdAt, TimeProvider.now(), groups);
         }
+
         public ApiIntegration withId(String id) {
             return new ApiIntegration(id, name, description, provider, environmentId, createdAt, updatedAt, groups);
         }
+
         public ApiIntegration withEnvironmentId(String environmentId) {
             return new ApiIntegration(id, name, description, provider, environmentId, createdAt, updatedAt, groups);
         }
@@ -68,12 +69,13 @@ public sealed interface Integration {
         ZonedDateTime updatedAt,
         Set<String> groups,
         Collection<WellKnownUrl> wellKnownUrls
-    )
-        implements Integration {
+    ) implements Integration {
         public record WellKnownUrl(String url) {}
+
         public A2aIntegration update(String name, String description, Set<String> groups, Collection<WellKnownUrl> wellKnownUrls) {
             return new A2aIntegration(id, name, description, provider, environmentId, createdAt, TimeProvider.now(), groups, wellKnownUrls);
         }
+
         public A2aIntegration withEnvironmentId(String environmentId) {
             return new A2aIntegration(id, name, description, provider, environmentId, createdAt, updatedAt, groups, wellKnownUrls);
         }

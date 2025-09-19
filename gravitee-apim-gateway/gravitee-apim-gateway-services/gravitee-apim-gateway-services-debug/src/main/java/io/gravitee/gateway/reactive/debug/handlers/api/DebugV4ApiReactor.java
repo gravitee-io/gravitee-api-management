@@ -120,15 +120,14 @@ public class DebugV4ApiReactor extends DefaultApiReactor {
     public List<Acceptor<?>> acceptors() {
         try {
             if (acceptors == null) {
-                acceptors =
-                    api
-                        .getDefinition()
-                        .getListeners()
-                        .stream()
-                        .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
-                        .flatMap(l -> ((HttpListener) l).getPaths().stream())
-                        .map(p -> new DefaultHttpAcceptor(null, p.getPath(), this, null))
-                        .collect(Collectors.toList());
+                acceptors = api
+                    .getDefinition()
+                    .getListeners()
+                    .stream()
+                    .filter(l -> l.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
+                    .flatMap(l -> ((HttpListener) l).getPaths().stream())
+                    .map(p -> new DefaultHttpAcceptor(null, p.getPath(), this, null))
+                    .collect(Collectors.toList());
             }
             return acceptors;
         } catch (Exception ex) {

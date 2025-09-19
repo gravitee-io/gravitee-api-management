@@ -27,8 +27,7 @@ public class PageIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("categories")
             .name("p1")
             .key("page", ascending())

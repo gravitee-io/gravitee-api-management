@@ -54,27 +54,24 @@ class WorkflowQueryServiceImplTest {
         @SneakyThrows
         void should_find_workflows() {
             // Given
-            when(workflowRepository.findByReferenceAndType(eq("API"), eq(API_ID), eq("REVIEW")))
-                .thenReturn(
-                    List.of(
-                        io.gravitee.repository.management.model.Workflow
-                            .builder()
-                            .id("workflow-1")
-                            .referenceId(API_ID)
-                            .referenceType("API")
-                            .type("REVIEW")
-                            .state("DRAFT")
-                            .build(),
-                        io.gravitee.repository.management.model.Workflow
-                            .builder()
-                            .id("workflow-2")
-                            .referenceId(API_ID)
-                            .referenceType("API")
-                            .type("REVIEW")
-                            .state("IN_REVIEW")
-                            .build()
-                    )
-                );
+            when(workflowRepository.findByReferenceAndType(eq("API"), eq(API_ID), eq("REVIEW"))).thenReturn(
+                List.of(
+                    io.gravitee.repository.management.model.Workflow.builder()
+                        .id("workflow-1")
+                        .referenceId(API_ID)
+                        .referenceType("API")
+                        .type("REVIEW")
+                        .state("DRAFT")
+                        .build(),
+                    io.gravitee.repository.management.model.Workflow.builder()
+                        .id("workflow-2")
+                        .referenceId(API_ID)
+                        .referenceType("API")
+                        .type("REVIEW")
+                        .state("IN_REVIEW")
+                        .build()
+                )
+            );
 
             // When
             var results = service.findAllByApiIdAndType(API_ID, Workflow.Type.REVIEW);
@@ -84,16 +81,14 @@ class WorkflowQueryServiceImplTest {
                 .usingRecursiveComparison()
                 .isEqualTo(
                     List.of(
-                        Workflow
-                            .builder()
+                        Workflow.builder()
                             .id("workflow-1")
                             .type(Workflow.Type.REVIEW)
                             .referenceId(API_ID)
                             .referenceType(Workflow.ReferenceType.API)
                             .state(Workflow.State.DRAFT)
                             .build(),
-                        Workflow
-                            .builder()
+                        Workflow.builder()
                             .id("workflow-2")
                             .type(Workflow.Type.REVIEW)
                             .referenceId(API_ID)

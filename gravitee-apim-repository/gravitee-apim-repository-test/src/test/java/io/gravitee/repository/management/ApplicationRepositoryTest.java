@@ -353,8 +353,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldSearchByQueryAndNameAndRestrictedIds() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            ApplicationCriteria
-                .builder()
+            ApplicationCriteria.builder()
                 .query("app")
                 .name("Application test")
                 .restrictedToIds(Set.of("app-with-long-name", "dbc12b15-e975-4fa1-812b-15e975bfa13c"))

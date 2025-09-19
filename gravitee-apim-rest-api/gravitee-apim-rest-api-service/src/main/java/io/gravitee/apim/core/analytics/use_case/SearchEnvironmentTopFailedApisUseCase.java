@@ -59,8 +59,7 @@ public class SearchEnvironmentTopFailedApisUseCase {
     private Map<String, Api> getAllApisForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria
-                    .builder()
+                ApiSearchCriteria.builder()
                     .environmentId(envId)
                     .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
                     .build(),
@@ -77,8 +76,7 @@ public class SearchEnvironmentTopFailedApisUseCase {
             .sorted(Comparator.comparingLong(TopFailedApis.TopFailedApi::failedCalls).reversed())
             .map(topFailedApi -> {
                 var api = apis.get(topFailedApi.id());
-                return TopFailedApis.TopFailedApi
-                    .builder()
+                return TopFailedApis.TopFailedApi.builder()
                     .id(topFailedApi.id())
                     .name(api.getName())
                     .definitionVersion(Optional.ofNullable(api.getDefinitionVersion()).orElse(DefinitionVersion.V2))

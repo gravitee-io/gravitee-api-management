@@ -58,8 +58,7 @@ public class DeprecatePlanDomainService {
 
     private void createAuditLog(Plan originalPlan, Plan planUpdated, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(originalPlan.getApiId())

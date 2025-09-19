@@ -101,7 +101,7 @@ public class GroupByQueryCommand extends AbstractElasticsearchQueryCommand<Group
     }
 
     private JsonNode getFirstSubAggregation(JsonNode bucket) {
-        for (final Iterator<String> it = bucket.fieldNames(); it.hasNext();) {
+        for (final Iterator<String> it = bucket.fieldNames(); it.hasNext(); ) {
             final String fieldName = it.next();
             final JsonNode subAggregation = bucket.get(fieldName);
             if (

@@ -36,8 +36,7 @@ public class Stream2Policy {
 
     @OnRequestContent
     public ReadWriteStream<Buffer> onRequestContent(Request request, Response response, PolicyChain policyChain) {
-        return TransformableRequestStreamBuilder
-            .on(request)
+        return TransformableRequestStreamBuilder.on(request)
             .chain(policyChain)
             .transform((Function<Buffer, Buffer>) buffer -> Buffer.buffer("OnRequestContent2Policy"))
             .build();

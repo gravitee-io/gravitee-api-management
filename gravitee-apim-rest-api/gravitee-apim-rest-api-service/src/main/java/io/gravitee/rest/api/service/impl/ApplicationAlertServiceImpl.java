@@ -248,8 +248,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
 
                         JsonNode emailNode = mapper.readTree(notification.getConfiguration());
 
-                        final String to = Arrays
-                            .stream(emailNode.path("to").asText().split(",|;|\\s"))
+                        final String to = Arrays.stream(emailNode.path("to").asText().split(",|;|\\s"))
                             .filter(mailTo -> !mailTo.equals(email))
                             .collect(Collectors.joining(","));
 
@@ -322,9 +321,8 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             .findByIdsAndStatus(executionContext, new ArrayList<>(applicationIds), ApplicationStatus.ACTIVE)
             .stream()
             .collect(
-                Collectors.toMap(
-                    ApplicationListItem::getId,
-                    app -> getNotificationRecipients(executionContext, app.getId(), app.getGroups())
+                Collectors.toMap(ApplicationListItem::getId, app ->
+                    getNotificationRecipients(executionContext, app.getId(), app.getGroups())
                 )
             );
 

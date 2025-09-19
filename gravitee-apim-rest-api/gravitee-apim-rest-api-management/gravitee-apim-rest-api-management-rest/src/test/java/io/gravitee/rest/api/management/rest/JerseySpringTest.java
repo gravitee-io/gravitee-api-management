@@ -108,31 +108,30 @@ public abstract class JerseySpringTest {
     public void setApplicationContext(final ApplicationContext context) {
         var followRedirect = this.followRedirect();
 
-        _jerseyTest =
-            new JerseyTest() {
-                @Override
-                protected Application configure() {
-                    // Find first available port.
-                    forceSet(TestProperties.CONTAINER_PORT, "0");
+        _jerseyTest = new JerseyTest() {
+            @Override
+            protected Application configure() {
+                // Find first available port.
+                forceSet(TestProperties.CONTAINER_PORT, "0");
 
-                    ResourceConfig application = new GraviteeManagementApplication();
+                ResourceConfig application = new GraviteeManagementApplication();
 
-                    application.property("contextConfig", context);
-                    decorate(application);
+                application.property("contextConfig", context);
+                decorate(application);
 
-                    return application;
-                }
+                return application;
+            }
 
-                @Override
-                protected void configureClient(ClientConfig config) {
-                    super.configureClient(config);
+            @Override
+            protected void configureClient(ClientConfig config) {
+                super.configureClient(config);
 
-                    config.register(ObjectMapperResolver.class);
-                    config.register(MultiPartFeature.class);
-                    config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
-                    config.property(ClientProperties.FOLLOW_REDIRECTS, followRedirect);
-                }
-            };
+                config.register(ObjectMapperResolver.class);
+                config.register(MultiPartFeature.class);
+                config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
+                config.property(ClientProperties.FOLLOW_REDIRECTS, followRedirect);
+            }
+        };
     }
 
     protected void decorate(ResourceConfig resourceConfig) {

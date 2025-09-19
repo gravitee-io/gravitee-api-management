@@ -84,34 +84,32 @@ public class DynamicPropertyScheduler {
         CronTrigger cronTrigger = new CronTrigger(schedule);
         log.debug("[{}] Running dynamic properties scheduler", api.getId());
 
-        disposable =
-            Observable
-                .defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
-                .observeOn(Schedulers.computation())
-                .filter(aLong -> clusterManager.self().primary())
-                .switchMapCompletable(aLong ->
-                    provider
-                        .get()
-                        .flatMapCompletable(dynamicProperties ->
-                            Completable.fromRunnable(() -> {
-                                log.debug("[{}] Got {} dynamic properties to update", api.getId(), dynamicProperties.size());
-                                authenticateAsAdmin();
-                                update(dynamicProperties);
-                            })
-                        )
-                        .doOnComplete(() -> log.debug("[{}] Dynamic properties updated", api.getId()))
-                )
-                .onErrorResumeNext(throwable -> {
-                    log.error(
-                        "[{}] Unexpected error while getting dynamic properties from provider: {}",
-                        api.getId(),
-                        provider.name(),
-                        throwable
-                    );
-                    return Completable.complete();
-                })
-                .repeat()
-                .subscribe(() -> {}, throwable -> log.error("Unable to run Dynamic Properties for Api: {}", api.getId()));
+        disposable = Observable.defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
+            .observeOn(Schedulers.computation())
+            .filter(aLong -> clusterManager.self().primary())
+            .switchMapCompletable(aLong ->
+                provider
+                    .get()
+                    .flatMapCompletable(dynamicProperties ->
+                        Completable.fromRunnable(() -> {
+                            log.debug("[{}] Got {} dynamic properties to update", api.getId(), dynamicProperties.size());
+                            authenticateAsAdmin();
+                            update(dynamicProperties);
+                        })
+                    )
+                    .doOnComplete(() -> log.debug("[{}] Dynamic properties updated", api.getId()))
+            )
+            .onErrorResumeNext(throwable -> {
+                log.error(
+                    "[{}] Unexpected error while getting dynamic properties from provider: {}",
+                    api.getId(),
+                    provider.name(),
+                    throwable
+                );
+                return Completable.complete();
+            })
+            .repeat()
+            .subscribe(() -> {}, throwable -> log.error("Unable to run Dynamic Properties for Api: {}", api.getId()));
     }
 
     public void cancel() {
@@ -134,7 +132,10 @@ public class DynamicPropertyScheduler {
         List<Property> properties = (latestApi.getProperties() != null)
             ? latestApi.getProperties().getProperties()
             : Collections.emptyList();
-        List<Property> userDefinedProperties = properties.stream().filter(property -> !property.isDynamic()).toList();
+        List<Property> userDefinedProperties = properties
+            .stream()
+            .filter(property -> !property.isDynamic())
+            .toList();
 
         Map<String, Property> propertyMap = properties.stream().collect(Collectors.toMap(Property::getKey, property -> property));
 

@@ -27,8 +27,7 @@ public class LabelsIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("apis")
             .name("l1")
             .key("labels", ascending())

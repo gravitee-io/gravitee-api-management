@@ -23,8 +23,7 @@ public class PageFixture {
     private PageFixture() {}
 
     public static final Supplier<Page.PageBuilder> BASE = () ->
-        Page
-            .builder()
+        Page.builder()
             .id("page-id")
             .name("page-name")
             .type(Page.Type.SWAGGER)

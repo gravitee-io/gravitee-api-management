@@ -116,7 +116,10 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
     ) {
         LOGGER.debug("Find metadata by id {} and reference {} / {}", metadataId, referenceType, referenceId);
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(referenceType, referenceId, environmentId);
-        final Optional<ReferenceMetadataEntity> optMetadata = allMetadata.stream().filter(m -> metadataId.equals(m.getKey())).findAny();
+        final Optional<ReferenceMetadataEntity> optMetadata = allMetadata
+            .stream()
+            .filter(m -> metadataId.equals(m.getKey()))
+            .findAny();
         if (optMetadata.isPresent()) {
             final ReferenceMetadataEntity metadata = optMetadata.get();
             if (metadata.getValue() == null) {

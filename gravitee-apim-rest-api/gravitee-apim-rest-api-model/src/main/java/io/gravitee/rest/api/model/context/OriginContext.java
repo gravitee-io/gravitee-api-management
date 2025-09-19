@@ -54,8 +54,8 @@ public sealed interface OriginContext {
         }
     }
 
-    record Integration(Origin origin, String integrationId, @Nullable String integrationName, @Nullable String provider)
-        implements OriginContext {
+    record Integration(Origin origin, String integrationId, @Nullable String integrationName, @Nullable String provider) implements
+        OriginContext {
         public Integration(String integrationId, String integrationName, String provider) {
             this(Origin.INTEGRATION, integrationId, integrationName, provider);
         }

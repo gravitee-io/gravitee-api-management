@@ -51,8 +51,7 @@ public class ApisOrderParam extends AbstractParam<ApisOrderParam.ApisOrder> {
         public static ApisOrder forValue(String order) {
             boolean isAsc = !order.startsWith("-");
             String field = order.replace("-", "");
-            return Arrays
-                .stream(ApisOrder.values())
+            return Arrays.stream(ApisOrder.values())
                 .filter(o -> o.field.equalsIgnoreCase(field) && o.isAsc == isAsc)
                 .findFirst()
                 .orElse(null);

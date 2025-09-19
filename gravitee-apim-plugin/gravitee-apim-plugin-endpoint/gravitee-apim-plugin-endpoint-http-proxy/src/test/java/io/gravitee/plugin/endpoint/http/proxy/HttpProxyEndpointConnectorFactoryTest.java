@@ -58,7 +58,9 @@ class HttpProxyEndpointConnectorFactoryTest {
     void beforeEach() {
         lenient().when(deploymentContext.getTemplateEngine()).thenReturn(templateEngine);
         lenient().when(templateEngine.getTemplateContext()).thenReturn(templateContext);
-        lenient().when(templateEngine.eval(anyString(), any())).thenAnswer(i -> Maybe.just(i.getArgument(0)));
+        lenient()
+            .when(templateEngine.eval(anyString(), any()))
+            .thenAnswer(i -> Maybe.just(i.getArgument(0)));
         cut = new HttpProxyEndpointConnectorFactory(new PluginConfigurationHelper(null, new ObjectMapper()));
     }
 

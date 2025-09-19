@@ -77,89 +77,88 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @BeforeEach
     void init() {
-        identityProvider =
-            new SocialIdentityProviderEntity() {
-                @Override
-                public String getId() {
-                    return USER_SOURCE_OAUTH2;
-                }
+        identityProvider = new SocialIdentityProviderEntity() {
+            @Override
+            public String getId() {
+                return USER_SOURCE_OAUTH2;
+            }
 
-                @Override
-                public IdentityProviderType getType() {
-                    return IdentityProviderType.OIDC;
-                }
+            @Override
+            public IdentityProviderType getType() {
+                return IdentityProviderType.OIDC;
+            }
 
-                @Override
-                public String getAuthorizationEndpoint() {
-                    return null;
-                }
+            @Override
+            public String getAuthorizationEndpoint() {
+                return null;
+            }
 
-                @Override
-                public String getTokenEndpoint() {
-                    return "http://localhost:" + wireMockServer.port() + "/token";
-                }
+            @Override
+            public String getTokenEndpoint() {
+                return "http://localhost:" + wireMockServer.port() + "/token";
+            }
 
-                @Override
-                public String getUserInfoEndpoint() {
-                    return "http://localhost:" + wireMockServer.port() + "/userinfo";
-                }
+            @Override
+            public String getUserInfoEndpoint() {
+                return "http://localhost:" + wireMockServer.port() + "/userinfo";
+            }
 
-                @Override
-                public List<String> getRequiredUrlParams() {
-                    return null;
-                }
+            @Override
+            public List<String> getRequiredUrlParams() {
+                return null;
+            }
 
-                @Override
-                public List<String> getOptionalUrlParams() {
-                    return null;
-                }
+            @Override
+            public List<String> getOptionalUrlParams() {
+                return null;
+            }
 
-                @Override
-                public List<String> getScopes() {
-                    return null;
-                }
+            @Override
+            public List<String> getScopes() {
+                return null;
+            }
 
-                @Override
-                public String getDisplay() {
-                    return null;
-                }
+            @Override
+            public String getDisplay() {
+                return null;
+            }
 
-                @Override
-                public String getColor() {
-                    return null;
-                }
+            @Override
+            public String getColor() {
+                return null;
+            }
 
-                @Override
-                public String getClientSecret() {
-                    return "the_client_secret";
-                }
+            @Override
+            public String getClientSecret() {
+                return "the_client_secret";
+            }
 
-                private Map<String, String> userProfileMapping = new HashMap<>();
+            private Map<String, String> userProfileMapping = new HashMap<>();
 
-                @Override
-                public Map<String, String> getUserProfileMapping() {
-                    return userProfileMapping;
-                }
+            @Override
+            public Map<String, String> getUserProfileMapping() {
+                return userProfileMapping;
+            }
 
-                private List<GroupMappingEntity> groupMappings = new ArrayList<>();
+            private List<GroupMappingEntity> groupMappings = new ArrayList<>();
 
-                @Override
-                public List<GroupMappingEntity> getGroupMappings() {
-                    return groupMappings;
-                }
+            @Override
+            public List<GroupMappingEntity> getGroupMappings() {
+                return groupMappings;
+            }
 
-                private List<RoleMappingEntity> roleMappings = new ArrayList<>();
+            private List<RoleMappingEntity> roleMappings = new ArrayList<>();
 
-                @Override
-                public List<RoleMappingEntity> getRoleMappings() {
-                    return roleMappings;
-                }
+            @Override
+            public List<RoleMappingEntity> getRoleMappings() {
+                return roleMappings;
+            }
 
-                @Override
-                public boolean isEmailRequired() {
-                    return true;
-                }
-            };
+            @Override
+            public boolean isEmailRequired() {
+                return true;
+            }
+        };
 
         when(socialIdentityProviderService.findById(eq(USER_SOURCE_OAUTH2), any())).thenReturn(identityProvider);
         cleanEnvironment();
@@ -208,8 +207,7 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 eq(identityProvider),
                 anyString()
             )
-        )
-            .thenReturn(userEntity);
+        ).thenReturn(userEntity);
 
         //mock DB user connect
         when(userService.connect(GraviteeContext.getExecutionContext(), userEntity.getId())).thenReturn(userEntity);
@@ -221,8 +219,11 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(1))
-            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(identityProvider),
+            anyString()
+        );
         verify(userService, times(1)).connect(GraviteeContext.getExecutionContext(), userEntity.getSourceId());
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -291,9 +292,9 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         //mock oauth2 user info call
         mockUserInfo(
-            WireMock
-                .unauthorized()
-                .withBody(IOUtils.toString(read("/oauth2/json/user_info_401_response_body.json"), Charset.defaultCharset()))
+            WireMock.unauthorized().withBody(
+                IOUtils.toString(read("/oauth2/json/user_info_401_response_body.json"), Charset.defaultCharset())
+            )
         );
 
         // -- CALL
@@ -303,8 +304,11 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(0))
-            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+        verify(userService, times(0)).createOrUpdateUserFromSocialIdentityProvider(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(identityProvider),
+            anyString()
+        );
         verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
@@ -332,8 +336,7 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 refEq(identityProvider),
                 anyString()
             )
-        )
-            .thenThrow(new EmailRequiredException(USER_NAME));
+        ).thenThrow(new EmailRequiredException(USER_NAME));
         // -- CALL
 
         final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe");
@@ -341,8 +344,11 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(1))
-            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(identityProvider),
+            anyString()
+        );
         verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -416,8 +422,7 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 eq(identityProvider),
                 anyString()
             )
-        )
-            .thenThrow(new ExpressionEvaluationException("cannot convert from java.lang.String to boolean"));
+        ).thenThrow(new ExpressionEvaluationException("cannot convert from java.lang.String to boolean"));
 
         // -- CALL
 
@@ -426,8 +431,11 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(form(payload));
 
         // -- VERIFY
-        verify(userService, times(1))
-            .createOrUpdateUserFromSocialIdentityProvider(eq(GraviteeContext.getExecutionContext()), eq(identityProvider), anyString());
+        verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(identityProvider),
+            anyString()
+        );
         verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());

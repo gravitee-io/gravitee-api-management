@@ -80,10 +80,11 @@ public class ValidateCreateSharedPolicyGroupDomainService implements Validator<V
     }
 
     private void ensureSharedPolicyGroupDoesNotExist(SharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
-        this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroupToCreate.getCrossId())
-            .ifPresent(sharedPolicyGroup -> {
+        this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroupToCreate.getCrossId()).ifPresent(
+            sharedPolicyGroup -> {
                 throw new SharedPolicyGroupDuplicateCrossIdException(sharedPolicyGroupToCreate.getCrossId(), environmentId);
-            });
+            }
+        );
 
         // Validate and sanitize policies configuration
         if (sharedPolicyGroupToCreate.getSteps() != null) {

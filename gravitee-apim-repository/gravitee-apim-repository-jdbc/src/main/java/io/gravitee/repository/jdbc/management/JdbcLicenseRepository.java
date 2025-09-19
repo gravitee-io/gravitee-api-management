@@ -44,20 +44,19 @@ public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<Licens
 
     @Override
     protected JdbcObjectMapper<License> buildOrm() {
-        return JdbcObjectMapper
-            .builder(License.class, this.tableName, "reference_id")
+        return JdbcObjectMapper.builder(License.class, this.tableName, "reference_id")
             .updateSql(
                 "update " +
-                this.tableName +
-                " set " +
-                " reference_id = ?" +
-                " , reference_type = ?" +
-                " , license = ?" +
-                " , created_at = ? " +
-                " , updated_at = ? " +
-                WHERE_CLAUSE +
-                " reference_id = ? " +
-                " and reference_type = ? "
+                    this.tableName +
+                    " set " +
+                    " reference_id = ?" +
+                    " , reference_type = ?" +
+                    " , license = ?" +
+                    " , created_at = ? " +
+                    " , updated_at = ? " +
+                    WHERE_CLAUSE +
+                    " reference_id = ? " +
+                    " and reference_type = ? "
             )
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, License.ReferenceType.class)

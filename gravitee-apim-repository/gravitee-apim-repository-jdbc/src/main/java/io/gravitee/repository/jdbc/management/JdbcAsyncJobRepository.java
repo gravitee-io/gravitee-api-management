@@ -122,8 +122,7 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
 
     @Override
     protected JdbcObjectMapper<AsyncJob> buildOrm() {
-        return JdbcObjectMapper
-            .builder(AsyncJob.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(AsyncJob.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("source_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)

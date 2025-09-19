@@ -85,10 +85,12 @@ class TargetTokenCommandHandlerTest {
         command = new TargetTokenCommand(generatePayload(TargetTokenCommandPayload.Scope.GKO));
 
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID)))
-            .thenReturn(Optional.of(new RoleEntity()));
-        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ORGANISATION_ID)))
-            .thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID))).thenReturn(
+            Optional.of(new RoleEntity())
+        );
+        when(
+            roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ORGANISATION_ID))
+        ).thenReturn(Optional.of(new RoleEntity()));
 
         TokenEntity tokenEntity = new TokenEntity();
         tokenEntity.setToken("token gko");
@@ -110,12 +112,12 @@ class TargetTokenCommandHandlerTest {
         command = new TargetTokenCommand(generatePayload(TargetTokenCommandPayload.Scope.FEDERATION));
 
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(DEFAULT_ROLE_ORGANIZATION_USER.getName()), eq(ORGANISATION_ID)))
-            .thenReturn(Optional.of(new RoleEntity()));
+        when(
+            roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(DEFAULT_ROLE_ORGANIZATION_USER.getName()), eq(ORGANISATION_ID))
+        ).thenReturn(Optional.of(new RoleEntity()));
         when(
             roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_FEDERATION_AGENT.getName()), eq(ORGANISATION_ID))
-        )
-            .thenReturn(Optional.of(new RoleEntity()));
+        ).thenReturn(Optional.of(new RoleEntity()));
 
         TokenEntity tokenEntity = new TokenEntity();
         tokenEntity.setToken("token federation");
@@ -151,8 +153,9 @@ class TargetTokenCommandHandlerTest {
         command = new TargetTokenCommand(generatePayload(TargetTokenCommandPayload.Scope.GKO));
 
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID)))
-            .thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID))).thenReturn(
+            Optional.empty()
+        );
 
         targetTokenCommandHandler
             .handle(command)
@@ -167,8 +170,9 @@ class TargetTokenCommandHandlerTest {
         command = new TargetTokenCommand(generatePayload(TargetTokenCommandPayload.Scope.GKO));
 
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID)))
-            .thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID))).thenReturn(
+            Optional.empty()
+        );
 
         targetTokenCommandHandler.handle(command).test().awaitDone(2, SECONDS);
 
@@ -180,10 +184,12 @@ class TargetTokenCommandHandlerTest {
         command = new TargetTokenCommand(generatePayload(TargetTokenCommandPayload.Scope.GKO));
 
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID)))
-            .thenReturn(Optional.of(new RoleEntity()));
-        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ORGANISATION_ID)))
-            .thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID))).thenReturn(
+            Optional.of(new RoleEntity())
+        );
+        when(
+            roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ORGANISATION_ID))
+        ).thenReturn(Optional.empty());
 
         targetTokenCommandHandler
             .handle(command)
@@ -198,10 +204,12 @@ class TargetTokenCommandHandlerTest {
         command = new TargetTokenCommand(generatePayload(TargetTokenCommandPayload.Scope.GKO));
 
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID)))
-            .thenReturn(Optional.of(new RoleEntity()));
-        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ENVIRONMENT_ID)))
-            .thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID))).thenReturn(
+            Optional.of(new RoleEntity())
+        );
+        when(
+            roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ENVIRONMENT_ID))
+        ).thenReturn(Optional.empty());
 
         targetTokenCommandHandler.handle(command).test().awaitDone(2, SECONDS);
 
@@ -214,10 +222,12 @@ class TargetTokenCommandHandlerTest {
         command = new TargetTokenCommand(generatePayload(TargetTokenCommandPayload.Scope.GKO));
 
         when(userService.create(any(), any(), eq(false))).thenReturn(user);
-        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID)))
-            .thenReturn(Optional.of(new RoleEntity()));
-        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ENVIRONMENT_ID)))
-            .thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(eq(RoleScope.ORGANIZATION), eq(SystemRole.ADMIN.name()), eq(ORGANISATION_ID))).thenReturn(
+            Optional.of(new RoleEntity())
+        );
+        when(
+            roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), eq(ROLE_ENVIRONMENT_API_PUBLISHER.getName()), eq(ENVIRONMENT_ID))
+        ).thenReturn(Optional.of(new RoleEntity()));
         when(tokenService.create(any(), any(), anyString())).thenThrow(new RuntimeException("Token creation failed"));
 
         targetTokenCommandHandler.handle(command).test().awaitDone(2, SECONDS);
@@ -227,8 +237,7 @@ class TargetTokenCommandHandlerTest {
     }
 
     private static TargetTokenCommandPayload generatePayload(TargetTokenCommandPayload.Scope scope) {
-        return TargetTokenCommandPayload
-            .builder()
+        return TargetTokenCommandPayload.builder()
             .organizationId(ORGANISATION_ID)
             .environmentId(ENVIRONMENT_ID)
             .id(COMMAND_ID)

@@ -52,8 +52,7 @@ public class CreateApiMetadataUseCaseTest {
     private final String API_ID = "api-id";
     private final String ORG_ID = "org-id";
     private final String ENV_ID = "env-id";
-    private final AuditInfo AUDIT_INFO = AuditInfo
-        .builder()
+    private final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .organizationId(ORG_ID)
         .environmentId(ENV_ID)
         .actor(AuditActor.builder().userId("user").build())
@@ -105,27 +104,24 @@ public class CreateApiMetadataUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                auditCrudService,
-                membershipCrudService,
-                roleQueryService,
-                userCrudService,
-                metadataCrudServiceInMemory,
-                apiMetadataQueryService,
-                apiCrudService,
-                groupQueryService,
-                membershipQueryService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            auditCrudService,
+            membershipCrudService,
+            roleQueryService,
+            userCrudService,
+            metadataCrudServiceInMemory,
+            apiMetadataQueryService,
+            apiCrudService,
+            groupQueryService,
+            membershipQueryService
+        ).forEach(InMemoryAlternative::reset);
 
         GraviteeContext.cleanContext();
     }
 
     @Test
     void creates_api_metadata() {
-        var expected = ApiMetadata
-            .builder()
+        var expected = ApiMetadata.builder()
             .apiId(API_ID)
             .name("name")
             .value("value")
@@ -134,8 +130,7 @@ public class CreateApiMetadataUseCaseTest {
             .build();
         var createdMetadata = createApiMetadataUseCase.execute(
             new CreateApiMetadataUseCase.Input(
-                NewApiMetadata
-                    .builder()
+                NewApiMetadata.builder()
                     .apiId(API_ID)
                     .key("key")
                     .name("name")
@@ -153,8 +148,7 @@ public class CreateApiMetadataUseCaseTest {
     void creates_api_metadata_overriding_global_metadata() {
         apiMetadataQueryService.initWith(
             List.of(
-                Metadata
-                    .builder()
+                Metadata.builder()
                     .referenceId("env-id")
                     .referenceType(Metadata.ReferenceType.ENVIRONMENT)
                     .name("global name")
@@ -164,8 +158,7 @@ public class CreateApiMetadataUseCaseTest {
                     .build()
             )
         );
-        var expected = ApiMetadata
-            .builder()
+        var expected = ApiMetadata.builder()
             .apiId(API_ID)
             .name("name")
             .value("value")
@@ -175,8 +168,7 @@ public class CreateApiMetadataUseCaseTest {
             .build();
         var createdMetadata = createApiMetadataUseCase.execute(
             new CreateApiMetadataUseCase.Input(
-                NewApiMetadata
-                    .builder()
+                NewApiMetadata.builder()
                     .apiId(API_ID)
                     .key("key")
                     .name("name")
@@ -193,22 +185,19 @@ public class CreateApiMetadataUseCaseTest {
     @Test
     void cannot_create_if_api_not_in_env() {
         apiCrudService.reset();
-        assertThrows(
-            ApiNotFoundException.class,
-            () ->
-                createApiMetadataUseCase.execute(
-                    new CreateApiMetadataUseCase.Input(
-                        NewApiMetadata
-                            .builder()
-                            .apiId(API_ID)
-                            .key("key")
-                            .name("name")
-                            .value("value")
-                            .format(Metadata.MetadataFormat.STRING)
-                            .build(),
-                        AUDIT_INFO
-                    )
+        assertThrows(ApiNotFoundException.class, () ->
+            createApiMetadataUseCase.execute(
+                new CreateApiMetadataUseCase.Input(
+                    NewApiMetadata.builder()
+                        .apiId(API_ID)
+                        .key("key")
+                        .name("name")
+                        .value("value")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .build(),
+                    AUDIT_INFO
                 )
+            )
         );
     }
 
@@ -217,22 +206,19 @@ public class CreateApiMetadataUseCaseTest {
         apiMetadataQueryService.initWithApiMetadata(
             List.of(ApiMetadata.builder().apiId(API_ID).key("key").format(Metadata.MetadataFormat.STRING).build())
         );
-        assertThrows(
-            DuplicateApiMetadataKeyException.class,
-            () ->
-                createApiMetadataUseCase.execute(
-                    new CreateApiMetadataUseCase.Input(
-                        NewApiMetadata
-                            .builder()
-                            .apiId(API_ID)
-                            .key("key")
-                            .name("name")
-                            .value("value")
-                            .format(Metadata.MetadataFormat.STRING)
-                            .build(),
-                        AUDIT_INFO
-                    )
+        assertThrows(DuplicateApiMetadataKeyException.class, () ->
+            createApiMetadataUseCase.execute(
+                new CreateApiMetadataUseCase.Input(
+                    NewApiMetadata.builder()
+                        .apiId(API_ID)
+                        .key("key")
+                        .name("name")
+                        .value("value")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .build(),
+                    AUDIT_INFO
                 )
+            )
         );
     }
 
@@ -240,8 +226,7 @@ public class CreateApiMetadataUseCaseTest {
     void cannot_create_with_duplicate_api_metadata_name() {
         apiMetadataQueryService.initWith(
             List.of(
-                Metadata
-                    .builder()
+                Metadata.builder()
                     .name("name")
                     .key("key")
                     .referenceId(API_ID)
@@ -250,22 +235,19 @@ public class CreateApiMetadataUseCaseTest {
                     .build()
             )
         );
-        assertThrows(
-            DuplicateApiMetadataNameException.class,
-            () ->
-                createApiMetadataUseCase.execute(
-                    new CreateApiMetadataUseCase.Input(
-                        NewApiMetadata
-                            .builder()
-                            .apiId(API_ID)
-                            .key("new key")
-                            .name("name")
-                            .value("value")
-                            .format(Metadata.MetadataFormat.STRING)
-                            .build(),
-                        AUDIT_INFO
-                    )
+        assertThrows(DuplicateApiMetadataNameException.class, () ->
+            createApiMetadataUseCase.execute(
+                new CreateApiMetadataUseCase.Input(
+                    NewApiMetadata.builder()
+                        .apiId(API_ID)
+                        .key("new key")
+                        .name("name")
+                        .value("value")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .build(),
+                    AUDIT_INFO
                 )
+            )
         );
     }
 
@@ -273,8 +255,7 @@ public class CreateApiMetadataUseCaseTest {
     void cannot_create_with_duplicate_environment_metadata_name() {
         apiMetadataQueryService.initWith(
             List.of(
-                Metadata
-                    .builder()
+                Metadata.builder()
                     .name("nAmE")
                     .key("key")
                     .referenceId("env-id")
@@ -283,64 +264,55 @@ public class CreateApiMetadataUseCaseTest {
                     .build()
             )
         );
-        assertThrows(
-            DuplicateApiMetadataNameException.class,
-            () ->
-                createApiMetadataUseCase.execute(
-                    new CreateApiMetadataUseCase.Input(
-                        NewApiMetadata
-                            .builder()
-                            .apiId(API_ID)
-                            .key("new key")
-                            .name("name")
-                            .value("value")
-                            .format(Metadata.MetadataFormat.STRING)
-                            .build(),
-                        AUDIT_INFO
-                    )
+        assertThrows(DuplicateApiMetadataNameException.class, () ->
+            createApiMetadataUseCase.execute(
+                new CreateApiMetadataUseCase.Input(
+                    NewApiMetadata.builder()
+                        .apiId(API_ID)
+                        .key("new key")
+                        .name("name")
+                        .value("value")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .build(),
+                    AUDIT_INFO
                 )
+            )
         );
     }
 
     @Test
     void error_if_value_does_not_match_format() {
-        assertThrows(
-            InvalidApiMetadataValueException.class,
-            () ->
-                createApiMetadataUseCase.execute(
-                    new CreateApiMetadataUseCase.Input(
-                        NewApiMetadata
-                            .builder()
-                            .apiId(API_ID)
-                            .key("new key")
-                            .name("name")
-                            .value("not an email")
-                            .format(Metadata.MetadataFormat.MAIL)
-                            .build(),
-                        AUDIT_INFO
-                    )
+        assertThrows(InvalidApiMetadataValueException.class, () ->
+            createApiMetadataUseCase.execute(
+                new CreateApiMetadataUseCase.Input(
+                    NewApiMetadata.builder()
+                        .apiId(API_ID)
+                        .key("new key")
+                        .name("name")
+                        .value("not an email")
+                        .format(Metadata.MetadataFormat.MAIL)
+                        .build(),
+                    AUDIT_INFO
                 )
+            )
         );
     }
 
     @Test
     void error_if_value_with_template_does_not_match_format() {
-        assertThrows(
-            InvalidApiMetadataValueException.class,
-            () ->
-                createApiMetadataUseCase.execute(
-                    new CreateApiMetadataUseCase.Input(
-                        NewApiMetadata
-                            .builder()
-                            .apiId(API_ID)
-                            .key("new key")
-                            .name("name")
-                            .value("${api.version}")
-                            .format(Metadata.MetadataFormat.MAIL)
-                            .build(),
-                        AUDIT_INFO
-                    )
+        assertThrows(InvalidApiMetadataValueException.class, () ->
+            createApiMetadataUseCase.execute(
+                new CreateApiMetadataUseCase.Input(
+                    NewApiMetadata.builder()
+                        .apiId(API_ID)
+                        .key("new key")
+                        .name("name")
+                        .value("${api.version}")
+                        .format(Metadata.MetadataFormat.MAIL)
+                        .build(),
+                    AUDIT_INFO
                 )
+            )
         );
     }
 
@@ -348,8 +320,7 @@ public class CreateApiMetadataUseCaseTest {
     void can_create_with_templated_value() {
         var createdApiMetadata = createApiMetadataUseCase.execute(
             new CreateApiMetadataUseCase.Input(
-                NewApiMetadata
-                    .builder()
+                NewApiMetadata.builder()
                     .apiId(API_ID)
                     .key("new key")
                     .name("name")
@@ -365,8 +336,7 @@ public class CreateApiMetadataUseCaseTest {
     private void initializePrimaryOwnerData() {
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .id("role-id")
                     .scope(Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
@@ -377,8 +347,7 @@ public class CreateApiMetadataUseCaseTest {
         );
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)

@@ -71,8 +71,7 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
     @Override
     public void cleanupEvents(String environmentId, int nbEventsToKeep, Duration timeToLive) {
         var counters = AtomicLongMap.<String>create();
-        Flowable
-            .fromStream(eventRepository.findGatewayEvents(environmentId))
+        Flowable.fromStream(eventRepository.findGatewayEvents(environmentId))
             .filter(event -> event.apiId() != null && counters.incrementAndGet(event.apiId()) > nbEventsToKeep)
             .map(EventRepository.EventToClean::id)
             .buffer(20)

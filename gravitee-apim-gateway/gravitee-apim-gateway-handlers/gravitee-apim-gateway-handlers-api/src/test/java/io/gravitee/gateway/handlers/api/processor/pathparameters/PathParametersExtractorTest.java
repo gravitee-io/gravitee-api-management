@@ -44,7 +44,9 @@ class PathParametersExtractorTest {
 
     @Test
     void can_not_extract_param_null_api() {
-        assertThatThrownBy(() -> new PathParametersExtractor(null)).isInstanceOf(NullPointerException.class).hasMessage("Api is mandatory");
+        assertThatThrownBy(() -> new PathParametersExtractor(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("Api is mandatory");
     }
 
     @Test

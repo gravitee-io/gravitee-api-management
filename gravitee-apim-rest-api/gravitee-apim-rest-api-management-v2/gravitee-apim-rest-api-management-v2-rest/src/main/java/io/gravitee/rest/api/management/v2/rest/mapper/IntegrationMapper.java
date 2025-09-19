@@ -94,8 +94,20 @@ public interface IntegrationMapper {
     static IngestionPreviewResponse mapper(DiscoveryUseCase.Output preview) {
         return new IngestionPreviewResponse()
             .totalCount(preview.apis().size())
-            .newCount(preview.apis().stream().filter(api -> api.state() == NEW).count())
-            .updateCount(preview.apis().stream().filter(api -> api.state() == UPDATE).count())
+            .newCount(
+                preview
+                    .apis()
+                    .stream()
+                    .filter(api -> api.state() == NEW)
+                    .count()
+            )
+            .updateCount(
+                preview
+                    .apis()
+                    .stream()
+                    .filter(api -> api.state() == UPDATE)
+                    .count()
+            )
             .apis(
                 preview
                     .apis()

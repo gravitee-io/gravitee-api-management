@@ -47,8 +47,7 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
 
     @Override
     protected JdbcObjectMapper<Ticket> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Ticket.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Ticket.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("from_user", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -88,21 +87,20 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
 
                 applySortable(sortable, query);
 
-                result =
-                    jdbcTemplate.query(
-                        query.toString(),
-                        (PreparedStatement ps) -> {
-                            int idx = 1;
-                            if (criteria.getFromUser() != null && criteria.getFromUser().length() > 0) {
-                                idx = getOrm().setArguments(ps, Arrays.asList(criteria.getFromUser()), idx);
-                            }
+                result = jdbcTemplate.query(
+                    query.toString(),
+                    (PreparedStatement ps) -> {
+                        int idx = 1;
+                        if (criteria.getFromUser() != null && criteria.getFromUser().length() > 0) {
+                            idx = getOrm().setArguments(ps, Arrays.asList(criteria.getFromUser()), idx);
+                        }
 
-                            if (criteria.getApi() != null && criteria.getApi().length() > 0) {
-                                idx = getOrm().setArguments(ps, Arrays.asList(criteria.getApi()), idx);
-                            }
-                        },
-                        getOrm().getRowMapper()
-                    );
+                        if (criteria.getApi() != null && criteria.getApi().length() > 0) {
+                            idx = getOrm().setArguments(ps, Arrays.asList(criteria.getApi()), idx);
+                        }
+                    },
+                    getOrm().getRowMapper()
+                );
             }
             return getResultAsPage(pageable, result);
         } catch (final Exception ex) {

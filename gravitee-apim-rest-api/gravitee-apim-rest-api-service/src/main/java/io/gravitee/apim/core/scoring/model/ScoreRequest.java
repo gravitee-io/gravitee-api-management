@@ -33,16 +33,19 @@ public record ScoreRequest(
     }
 
     public record AssetToScore(String assetId, AssetType assetType, String assetName, String content) {}
+
     public record AssetType(ScoringAssetType type, Format format) {
         public AssetType(ScoringAssetType type) {
             this(type, null);
         }
     }
+
     public record CustomRuleset(String content, Format format) {
         public CustomRuleset(String content) {
             this(content, null);
         }
     }
+
     public record Function(String filename, String content) {}
 
     public enum Format {

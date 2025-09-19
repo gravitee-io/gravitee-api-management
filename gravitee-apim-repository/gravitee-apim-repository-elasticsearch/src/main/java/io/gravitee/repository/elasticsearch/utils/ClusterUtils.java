@@ -64,8 +64,7 @@ public class ClusterUtils {
                 int lastParenthesis = filter.indexOf(')', idx);
                 int and = filter.indexOf(" AND", idx);
                 String tenantQuery = filter.substring(idx, and < 0 ? lastParenthesis < 0 ? filter.length() : lastParenthesis : and);
-                return Stream
-                    .of(tenantQuery.split(" OR "))
+                return Stream.of(tenantQuery.split(" OR "))
                     .map(tenant -> {
                         //clear the tenant name
                         tenant = tenant.replaceAll("\\\\", "").replaceAll("\\(", "").replaceAll("\\)", "").replaceAll("\"", "");

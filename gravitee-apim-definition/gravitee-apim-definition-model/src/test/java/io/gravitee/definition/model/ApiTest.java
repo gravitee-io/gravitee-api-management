@@ -65,8 +65,10 @@ class ApiTest {
         flow.setPre(List.of(Step.builder().policy("policy-request-validation").build()));
         flow.setPost(List.of(Step.builder().policy("json-validation").build()));
         apiWithFlows.setFlows(List.of(flow));
-        assertThat(apiWithFlows.getPlugins())
-            .containsOnly(new Plugin("policy", "policy-request-validation"), new Plugin("policy", "json-validation"));
+        assertThat(apiWithFlows.getPlugins()).containsOnly(
+            new Plugin("policy", "policy-request-validation"),
+            new Plugin("policy", "json-validation")
+        );
     }
 
     @Test
@@ -118,12 +120,10 @@ class ApiTest {
         io.gravitee.definition.model.Service dynamicPropertyService = new DynamicPropertyService();
         services.set(List.of(endpointDiscoveryService, healthCheckService, dynamicPropertyService));
         apiWithProxy.setProxy(
-            Proxy
-                .builder()
+            Proxy.builder()
                 .groups(
                     Set.of(
-                        io.gravitee.definition.model.EndpointGroup
-                            .builder()
+                        io.gravitee.definition.model.EndpointGroup.builder()
                             .endpoints(Set.of(io.gravitee.definition.model.Endpoint.builder().type("http").build()))
                             .services(services)
                             .build()
@@ -131,13 +131,12 @@ class ApiTest {
                 )
                 .build()
         );
-        assertThat(apiWithProxy.getPlugins())
-            .containsOnly(
-                new Plugin("connector", "connector-http"),
-                new Plugin("service_discovery", "provider"),
-                new Plugin("service", "healthcheck"),
-                new Plugin("service", "mgmt-service-dynamicproperties")
-            );
+        assertThat(apiWithProxy.getPlugins()).containsOnly(
+            new Plugin("connector", "connector-http"),
+            new Plugin("service_discovery", "provider"),
+            new Plugin("service", "healthcheck"),
+            new Plugin("service", "mgmt-service-dynamicproperties")
+        );
     }
 
     @Test
@@ -148,12 +147,10 @@ class ApiTest {
         service.setEnabled(false);
         services.set(List.of(service));
         apiWithProxy.setProxy(
-            Proxy
-                .builder()
+            Proxy.builder()
                 .groups(
                     Set.of(
-                        io.gravitee.definition.model.EndpointGroup
-                            .builder()
+                        io.gravitee.definition.model.EndpointGroup.builder()
                             .endpoints(Set.of(io.gravitee.definition.model.Endpoint.builder().type("http").build()))
                             .services(services)
                             .build()
@@ -197,13 +194,12 @@ class ApiTest {
         flow.setPublish(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("policy-override-request-method").build()));
         flow.setSubscribe(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("transform-queryparams").build()));
         apiWithMessageFlows.setFlows(List.of(flow));
-        assertThat(apiWithMessageFlows.getPlugins())
-            .containsOnly(
-                new Plugin("policy", "policy-request-validation"),
-                new Plugin("policy", "json-validation"),
-                new Plugin("policy", "policy-override-request-method"),
-                new Plugin("policy", "transform-queryparams")
-            );
+        assertThat(apiWithMessageFlows.getPlugins()).containsOnly(
+            new Plugin("policy", "policy-request-validation"),
+            new Plugin("policy", "json-validation"),
+            new Plugin("policy", "policy-override-request-method"),
+            new Plugin("policy", "transform-queryparams")
+        );
     }
 
     @Test
@@ -236,24 +232,21 @@ class ApiTest {
         );
         proxyFlow.setSubscribe(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("transform-queryparams").build()));
         apiWithProxyFlows.setFlows(List.of(proxyFlow));
-        assertThat(apiWithProxyFlows.getPlugins())
-            .containsOnly(
-                new Plugin("policy", "policy-request-validation"),
-                new Plugin("policy", "json-validation"),
-                new Plugin("policy", "policy-override-request-method"),
-                new Plugin("policy", "transform-queryparams")
-            );
+        assertThat(apiWithProxyFlows.getPlugins()).containsOnly(
+            new Plugin("policy", "policy-request-validation"),
+            new Plugin("policy", "json-validation"),
+            new Plugin("policy", "policy-override-request-method"),
+            new Plugin("policy", "transform-queryparams")
+        );
     }
 
     @Test
     void getPluginsForApiV4WithPlans() {
         io.gravitee.definition.model.v4.Api apiWithPlans = ApiDefinitionFixtures.anApiV4();
-        io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan
-            .builder()
+        io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan.builder()
             .flows(
                 List.of(
-                    io.gravitee.definition.model.v4.flow.Flow
-                        .builder()
+                    io.gravitee.definition.model.v4.flow.Flow.builder()
                         .request(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().policy("json-xml").build()))
                         .build()
                 )
