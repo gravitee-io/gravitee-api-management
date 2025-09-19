@@ -49,15 +49,14 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
     ) {
         super(reactable, resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
         this.legacyMode = legacyMode;
-        this.resourceLoader =
-            new ResourceLoader(
-                classLoader,
-                resourcePluginManager,
-                resourceClassLoaderFactory,
-                resourceConfigurationFactory,
-                applicationContext,
-                deploymentContext
-            );
+        this.resourceLoader = new ResourceLoader(
+            classLoader,
+            resourcePluginManager,
+            resourceClassLoaderFactory,
+            resourceConfigurationFactory,
+            applicationContext,
+            deploymentContext
+        );
     }
 
     protected void initialize() {

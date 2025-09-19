@@ -82,10 +82,9 @@ class SearchRequestsCountResponseAdapterTest {
 
         searchResponse.setAggregations(Map.of("all_apis_status_ranges", statusRangesAggregation, "entrypoints", entrypointsAggregation));
 
-        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse))
-            .hasValueSatisfying(countAggregate -> {
-                assertThat(countAggregate.getTotal()).isEqualTo(expectedCount);
-            });
+        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate -> {
+            assertThat(countAggregate.getTotal()).isEqualTo(expectedCount);
+        });
     }
 
     private static Stream<Arguments> provideSearchDataWithRanges() {
@@ -101,10 +100,9 @@ class SearchRequestsCountResponseAdapterTest {
 
         searchResponse.setAggregations(Map.of("all_apis_status_ranges", statusRangesAggregation, "entrypoints", entrypointsAggregation));
 
-        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse))
-            .hasValueSatisfying(countAggregate -> {
-                assertThat(countAggregate.getCountBy()).containsAllEntriesOf(buckets);
-            });
+        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate -> {
+            assertThat(countAggregate.getCountBy()).containsAllEntriesOf(buckets);
+        });
     }
 
     private static Stream<Arguments> provideSearchDataWithEntryPoints() {

@@ -57,14 +57,13 @@ class ApiPrimaryOwnerFactoryTest {
 
     @BeforeEach
     void setUp() {
-        factory =
-            new ApiPrimaryOwnerFactory(
-                groupQueryService,
-                membershipQueryService,
-                parametersQueryService,
-                roleQueryService,
-                userCrudService
-            );
+        factory = new ApiPrimaryOwnerFactory(
+            groupQueryService,
+            membershipQueryService,
+            parametersQueryService,
+            roleQueryService,
+            userCrudService
+        );
     }
 
     @Nested
@@ -92,8 +91,9 @@ class ApiPrimaryOwnerFactoryTest {
 
             var primaryOwner = factory.createForNewApi(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
-            assertThat(primaryOwner)
-                .isEqualTo(new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER));
+            assertThat(primaryOwner).isEqualTo(
+                new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER)
+            );
         }
     }
 
@@ -128,8 +128,7 @@ class ApiPrimaryOwnerFactoryTest {
             givenExistingMemberships(
                 List.of(
                     // PO role for member-id
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.GROUP)
                         .referenceId(GROUP_ID)
                         .memberType(Membership.Type.USER)
@@ -137,8 +136,7 @@ class ApiPrimaryOwnerFactoryTest {
                         .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .build(),
                     // Regular role for user-id
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.GROUP)
                         .referenceId(GROUP_ID)
                         .memberType(Membership.Type.USER)
@@ -152,8 +150,9 @@ class ApiPrimaryOwnerFactoryTest {
             var primaryOwner = factory.createForNewApi(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
             // Then
-            assertThat(primaryOwner)
-                .isEqualTo(new PrimaryOwnerEntity(GROUP_ID, "john.doe@gravitee.io", "My Group", PrimaryOwnerEntity.Type.GROUP));
+            assertThat(primaryOwner).isEqualTo(
+                new PrimaryOwnerEntity(GROUP_ID, "john.doe@gravitee.io", "My Group", PrimaryOwnerEntity.Type.GROUP)
+            );
         }
 
         @Test
@@ -162,8 +161,7 @@ class ApiPrimaryOwnerFactoryTest {
             givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("My Group").build()));
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.GROUP)
                         .referenceId(GROUP_ID)
                         .memberType(Membership.Type.USER)
@@ -188,8 +186,7 @@ class ApiPrimaryOwnerFactoryTest {
             givenExistingMemberships(
                 List.of(
                     // PO role for member-id
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.GROUP)
                         .referenceId(GROUP_ID)
                         .memberType(Membership.Type.USER)
@@ -197,8 +194,7 @@ class ApiPrimaryOwnerFactoryTest {
                         .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .build(),
                     // Regular role for user-id
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.GROUP)
                         .referenceId(GROUP_ID)
                         .memberType(Membership.Type.USER)
@@ -241,8 +237,9 @@ class ApiPrimaryOwnerFactoryTest {
 
             var primaryOwner = factory.createForNewApi(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
-            assertThat(primaryOwner)
-                .isEqualTo(new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER));
+            assertThat(primaryOwner).isEqualTo(
+                new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER)
+            );
         }
     }
 

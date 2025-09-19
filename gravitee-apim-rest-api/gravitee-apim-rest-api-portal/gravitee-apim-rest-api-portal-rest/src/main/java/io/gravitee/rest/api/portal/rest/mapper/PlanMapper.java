@@ -158,8 +158,7 @@ public class PlanMapper {
         if (configuration.getLimit().intValue() == 0) {
             return Duration.ZERO;
         }
-        return ChronoUnit
-            .valueOf(configuration.getPeriodTimeUnit().getValue())
+        return ChronoUnit.valueOf(configuration.getPeriodTimeUnit().getValue())
             .getDuration()
             .multipliedBy(configuration.getPeriodTime().intValue())
             .dividedBy(configuration.getLimit().intValue());

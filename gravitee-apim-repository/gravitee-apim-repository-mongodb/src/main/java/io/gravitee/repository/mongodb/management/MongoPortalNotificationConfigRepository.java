@@ -126,8 +126,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     }
 
     private PortalNotificationConfig map(PortalNotificationConfigMongo mongo) {
-        return PortalNotificationConfig
-            .builder()
+        return PortalNotificationConfig.builder()
             .referenceType(mongo.getId().getReferenceType())
             .referenceId(mongo.getId().getReferenceId())
             .user(mongo.getId().getUser())

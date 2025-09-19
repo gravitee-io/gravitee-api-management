@@ -57,38 +57,33 @@ public class WebhookNotifierServiceImplTest {
 
         Map<String, Object> params = new HashMap<>();
 
-        ApiNotificationTemplateData apiNotificationTemplateData = ApiNotificationTemplateData
-            .builder()
+        ApiNotificationTemplateData apiNotificationTemplateData = ApiNotificationTemplateData.builder()
             .id("apiNotifId")
             .name("apiNotifName")
             .apiVersion("apiNotifVersion")
             .build();
         params.put("api", apiNotificationTemplateData);
 
-        ApplicationNotificationTemplateData applicationNotificationTemplateData = ApplicationNotificationTemplateData
-            .builder()
+        ApplicationNotificationTemplateData applicationNotificationTemplateData = ApplicationNotificationTemplateData.builder()
             .id("appNotifTempDataId")
             .name("appNotifTempName")
             .build();
         params.put("application", applicationNotificationTemplateData);
 
-        PrimaryOwnerNotificationTemplateData primaryOwnerNotificationTemplateData = PrimaryOwnerNotificationTemplateData
-            .builder()
+        PrimaryOwnerNotificationTemplateData primaryOwnerNotificationTemplateData = PrimaryOwnerNotificationTemplateData.builder()
             .id("primaryId")
             .displayName("displayNamePrimary")
             .build();
         params.put("owner", primaryOwnerNotificationTemplateData);
 
-        PlanNotificationTemplateData planNotificationTemplateData = PlanNotificationTemplateData
-            .builder()
+        PlanNotificationTemplateData planNotificationTemplateData = PlanNotificationTemplateData.builder()
             .id("planNotifId")
             .name("planNotifName")
             .security("API_KEY")
             .build();
         params.put("plan", planNotificationTemplateData);
 
-        SubscriptionNotificationTemplateData subscriptionNotificationTemplateData = SubscriptionNotificationTemplateData
-            .builder()
+        SubscriptionNotificationTemplateData subscriptionNotificationTemplateData = SubscriptionNotificationTemplateData.builder()
             .id("subsNotifId")
             .reason("subsNotifReason")
             .status("PENDING")

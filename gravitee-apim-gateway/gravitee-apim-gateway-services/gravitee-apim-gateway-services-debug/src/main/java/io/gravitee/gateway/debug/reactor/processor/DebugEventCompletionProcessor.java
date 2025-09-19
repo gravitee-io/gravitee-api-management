@@ -68,29 +68,23 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         final DebugApi debugApiComponent = (DebugApi) debugContext.getComponent(Api.class);
 
         final Vertx vertx = context.getComponent(Vertx.class);
-        vertx.executeBlocking(
-            (Handler<Promise<Void>>) promise -> {
-                Event event = null;
-                try {
-                    event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
-                    final io.gravitee.definition.model.debug.DebugApi debugApi = computeDebugApiEventPayload(
-                        debugContext,
-                        debugApiComponent
-                    );
+        vertx.executeBlocking((Handler<Promise<Void>>) promise -> {
+            Event event = null;
+            try {
+                event = eventRepository.findById(debugApiComponent.getEventId()).orElseThrow(TechnicalException::new);
+                final io.gravitee.definition.model.debug.DebugApi debugApi = computeDebugApiEventPayload(debugContext, debugApiComponent);
 
-                    event.setPayload(objectMapper.writeValueAsString(debugApi));
-                    updateEvent(event, ApiDebugStatus.SUCCESS);
-                } catch (JsonProcessingException | TechnicalException e) {
-                    LOGGER.error("Error occurs while saving debug event", e);
-                    failEvent(event);
-                }
-                promise.complete();
-            },
-            result -> {
-                // Push response to the next handler
-                next.handle(context);
+                event.setPayload(objectMapper.writeValueAsString(debugApi));
+                updateEvent(event, ApiDebugStatus.SUCCESS);
+            } catch (JsonProcessingException | TechnicalException e) {
+                LOGGER.error("Error occurs while saving debug event", e);
+                failEvent(event);
             }
-        );
+            promise.complete();
+        }, result -> {
+            // Push response to the next handler
+            next.handle(context);
+        });
     }
 
     private io.gravitee.definition.model.debug.DebugApi computeDebugApiEventPayload(

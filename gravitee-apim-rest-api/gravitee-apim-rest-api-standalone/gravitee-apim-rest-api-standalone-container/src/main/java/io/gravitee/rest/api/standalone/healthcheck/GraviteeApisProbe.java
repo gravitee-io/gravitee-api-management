@@ -54,19 +54,15 @@ public class GraviteeApisProbe implements Probe {
         NetClientOptions options = new NetClientOptions().setConnectTimeout(500);
         NetClient client = vertx.createNetClient(options);
 
-        client.connect(
-            port,
-            host,
-            res -> {
-                if (res.succeeded()) {
-                    promise.complete(Result.healthy());
-                } else {
-                    promise.complete(Result.unhealthy(res.cause()));
-                }
-
-                client.close();
+        client.connect(port, host, res -> {
+            if (res.succeeded()) {
+                promise.complete(Result.healthy());
+            } else {
+                promise.complete(Result.unhealthy(res.cause()));
             }
-        );
+
+            client.close();
+        });
 
         return promise.future().toCompletionStage().toCompletableFuture();
     }

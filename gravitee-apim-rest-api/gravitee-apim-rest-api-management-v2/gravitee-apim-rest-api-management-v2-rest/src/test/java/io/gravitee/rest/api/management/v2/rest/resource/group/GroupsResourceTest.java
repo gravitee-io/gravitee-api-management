@@ -113,8 +113,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     ENVIRONMENT,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.queryParam("perPage", 10).queryParam("page", 1).request().get();
             assertThat(response).hasStatus(FORBIDDEN_403);
@@ -131,8 +130,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(GroupsResponse.class)
                 .isEqualTo(
-                    GroupsResponse
-                        .builder()
+                    GroupsResponse.builder()
                         .data(List.of())
                         .pagination(Pagination.builder().build())
                         .links(Links.builder().self(paginatedTarget.getUri().toString()).build())
@@ -142,8 +140,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_groups() {
-            GroupEntity group1 = GroupEntity
-                .builder()
+            GroupEntity group1 = GroupEntity.builder()
                 .id("group-1")
                 .name("group-1")
                 .eventRules(List.of(GroupEventRuleEntity.builder().event("API_CREATE").build()))
@@ -161,8 +158,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .maxInvitation(100)
                 .build();
 
-            GroupEntity group2 = GroupEntity
-                .builder()
+            GroupEntity group2 = GroupEntity.builder()
                 .id("group-2")
                 .name("group-2")
                 .eventRules(List.of())
@@ -189,8 +185,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(GroupsResponse.class)
                 .isEqualTo(
-                    GroupsResponse
-                        .builder()
+                    GroupsResponse.builder()
                         .data(Stream.of(group1, group2).map(GroupMapper.INSTANCE::map).toList())
                         .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L).build())
                         .links(Links.builder().self(target.getUri().toString()).build())
@@ -221,8 +216,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     GROUP_ID,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
@@ -230,8 +224,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     ENVIRONMENT,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().get();
 
@@ -249,8 +242,9 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_get_error_when_technical_management_exception_thrown() {
-            when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID))
-                .thenThrow(new TechnicalManagementException("Oops"));
+            when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenThrow(
+                new TechnicalManagementException("Oops")
+            );
 
             final Response response = target.request().get();
 
@@ -259,8 +253,9 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_empty_page_when_no_results() {
-            when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID))
-                .thenReturn(Set.of());
+            when(
+                membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID)
+            ).thenReturn(Set.of());
 
             final Response response = target.request().get();
 
@@ -268,8 +263,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(MembersResponse.class)
                 .isEqualTo(
-                    MembersResponse
-                        .builder()
+                    MembersResponse.builder()
                         .pagination(Pagination.builder().build())
                         .data(List.of())
                         .metadata(Map.of("groupName", GROUP_NAME))
@@ -283,8 +277,9 @@ public class GroupsResourceTest extends AbstractResourceTest {
             MemberEntity member1 = aGroupMember(GROUP_ID).withId("member-1");
             MemberEntity member2 = aGroupMember(GROUP_ID).withId("member-2");
 
-            when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID))
-                .thenReturn(Set.of(member1, member2));
+            when(
+                membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID)
+            ).thenReturn(Set.of(member1, member2));
 
             final Response response = target.request().get();
 
@@ -292,8 +287,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(MembersResponse.class)
                 .isEqualTo(
-                    MembersResponse
-                        .builder()
+                    MembersResponse.builder()
                         .pagination(Pagination.builder().page(1).pageCount(1).perPage(10).pageItemsCount(2).totalCount(2L).build())
                         .data(Stream.of(member1, member2).map(MemberMapper.INSTANCE::map).toList())
                         .metadata(Map.of("groupName", GROUP_NAME))
@@ -316,37 +310,32 @@ public class GroupsResourceTest extends AbstractResourceTest {
             userDomainServiceInMemory.reset();
             userCrudService.reset();
 
-            when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION, RoleScope.INTEGRATION))
-                .thenReturn(
-                    List.of(
-                        RoleEntity
-                            .builder()
-                            .id("e3b00195-b7ea-432a-a416-3bc41ee5cf2e")
-                            .scope(RoleScope.API)
-                            .defaultRole(true)
-                            .name("OWNER")
-                            .build(),
-                        RoleEntity
-                            .builder()
-                            .id("1c826553-6589-42cd-9e93-f9b098d857c8")
-                            .scope(RoleScope.APPLICATION)
-                            .defaultRole(true)
-                            .name("OWNER")
-                            .build(),
-                        RoleEntity
-                            .builder()
-                            .id("70ebba73-21f2-41a2-b108-aa19cf50f644")
-                            .scope(RoleScope.INTEGRATION)
-                            .defaultRole(true)
-                            .name("OWNER")
-                            .build()
-                    )
-                );
+            when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION, RoleScope.INTEGRATION)).thenReturn(
+                List.of(
+                    RoleEntity.builder()
+                        .id("e3b00195-b7ea-432a-a416-3bc41ee5cf2e")
+                        .scope(RoleScope.API)
+                        .defaultRole(true)
+                        .name("OWNER")
+                        .build(),
+                    RoleEntity.builder()
+                        .id("1c826553-6589-42cd-9e93-f9b098d857c8")
+                        .scope(RoleScope.APPLICATION)
+                        .defaultRole(true)
+                        .name("OWNER")
+                        .build(),
+                    RoleEntity.builder()
+                        .id("70ebba73-21f2-41a2-b108-aa19cf50f644")
+                        .scope(RoleScope.INTEGRATION)
+                        .defaultRole(true)
+                        .name("OWNER")
+                        .build()
+                )
+            );
 
             userDomainServiceInMemory.initWith(
                 List.of(
-                    BaseUserEntity
-                        .builder()
+                    BaseUserEntity.builder()
                         .organizationId(ORGANIZATION)
                         .sourceId("api1")
                         .source("memory")
@@ -357,48 +346,42 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
             roleQueryService.initWith(
                 List.of(
-                    Role
-                        .builder()
+                    Role.builder()
                         .name("OWNER")
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
                         .id("e3b00195-b7ea-432a-a416-3bc41ee5cf2e")
                         .scope(Role.Scope.API)
                         .build(),
-                    Role
-                        .builder()
+                    Role.builder()
                         .name("OWNER")
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
                         .id("1c826553-6589-42cd-9e93-f9b098d857c8")
                         .scope(Role.Scope.APPLICATION)
                         .build(),
-                    Role
-                        .builder()
+                    Role.builder()
                         .name("USER")
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
                         .id("70ebba73-21f2-41a2-b108-aa19cf50f644")
                         .scope(Role.Scope.INTEGRATION)
                         .build(),
-                    Role
-                        .builder()
+                    Role.builder()
                         .name("OWNER")
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
                         .id("72efc643-f638-4d3f-94ba-3605e8993d12")
                         .scope(Role.Scope.INTEGRATION)
                         .build(),
-                    Role
-                        .builder()
+                    Role.builder()
                         .name("PRIMARY_OWNER")
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
                         .id("07d1195b-1281-4c33-8cfd-e1d564be6067")
                         .scope(Role.Scope.API)
                         .build(),
-                    Role
-                        .builder()
+                    Role.builder()
                         .name("PRIMARY_OWNER")
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
@@ -416,13 +399,11 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        GroupCRDStatus
-                            .builder()
+                        GroupCRDStatus.builder()
                             .id("2868ef55-561e-4b99-a981-450015a248d9")
                             .members(1)
                             .errors(
-                                GroupCRDStatus.Errors
-                                    .builder()
+                                GroupCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(List.of("property [name] must not be empty"))
                                     .build()
@@ -441,12 +422,10 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        GroupCRDStatus
-                            .builder()
+                        GroupCRDStatus.builder()
                             .members(1)
                             .errors(
-                                GroupCRDStatus.Errors
-                                    .builder()
+                                GroupCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(List.of("property [id] must be a valid UUID"))
                                     .build()
@@ -465,8 +444,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        GroupCRDStatus
-                            .builder()
+                        GroupCRDStatus.builder()
                             .id("2868ef55-561e-4b99-a981-450015a248d9")
                             .errors(GroupCRDStatus.Errors.EMPTY)
                             .members(1)
@@ -484,13 +462,11 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        GroupCRDStatus
-                            .builder()
+                        GroupCRDStatus.builder()
                             .id("2868ef55-561e-4b99-a981-450015a248d9")
                             .members(0)
                             .errors(
-                                GroupCRDStatus.Errors
-                                    .builder()
+                                GroupCRDStatus.Errors.builder()
                                     .warning(List.of("member [unknown] of source [memory] could not be found in organization [fake-org]"))
                                     .severe(List.of())
                                     .build()
@@ -509,13 +485,11 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        GroupCRDStatus
-                            .builder()
+                        GroupCRDStatus.builder()
                             .id("2868ef55-561e-4b99-a981-450015a248d9")
                             .members(1)
                             .errors(
-                                GroupCRDStatus.Errors
-                                    .builder()
+                                GroupCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(List.of("setting a member with the primary owner role is not allowed"))
                                     .build()
@@ -534,13 +508,11 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        GroupCRDStatus
-                            .builder()
+                        GroupCRDStatus.builder()
                             .id("2868ef55-561e-4b99-a981-450015a248d9")
                             .members(1)
                             .errors(
-                                GroupCRDStatus.Errors
-                                    .builder()
+                                GroupCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(List.of("setting a member with the primary owner role is not allowed"))
                                     .build()
@@ -588,8 +560,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(jakarta.ws.rs.client.Entity.json(Map.of("ids", Set.of("group-1", "group-2"))));
 
@@ -612,15 +583,13 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_groups_with_pagination() {
-            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group
-                .builder()
+            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group.builder()
                 .id("group-1")
                 .name("Group 1")
                 .environmentId(ENVIRONMENT)
                 .build();
 
-            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group
-                .builder()
+            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group.builder()
                 .id("group-2")
                 .name("Group 2")
                 .environmentId(ENVIRONMENT)
@@ -639,15 +608,13 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_groups_with_links() {
-            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group
-                .builder()
+            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group.builder()
                 .id("group-1")
                 .name("Group 1")
                 .environmentId(ENVIRONMENT)
                 .build();
 
-            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group
-                .builder()
+            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group.builder()
                 .id("group-2")
                 .name("Group 2")
                 .environmentId(ENVIRONMENT)

@@ -38,8 +38,9 @@ public class EnvironmentConfigurationResourceTest {
 
     @Test
     public void getApiNotifiers() {
-        when(notifierService.list())
-            .thenReturn(List.of(NotifierEntity.builder().id("n1").build(), NotifierEntity.builder().id("n2").build()));
+        when(notifierService.list()).thenReturn(
+            List.of(NotifierEntity.builder().id("n1").build(), NotifierEntity.builder().id("n2").build())
+        );
         List<NotifierEntity> notifiers = environmentConfigurationResource.getPortalNotifiers();
         var notifiersIds = notifiers.stream().map(NotifierEntity::getId).toList();
         assertThat(notifiersIds.size()).isEqualTo(2);

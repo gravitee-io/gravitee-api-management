@@ -76,8 +76,9 @@ public class ReCaptchaServiceImplTest {
     public void isValid() {
         when(configuration.getProperty("reCaptcha.minScore", Double.class, 0.5)).thenReturn(0.5);
         when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
-        when(httpClientService.request(any(), any(), any(), any(), any()))
-            .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
+        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(
+            Buffer.buffer("{ \"success\": true, \"score\": 1.0 }")
+        );
 
         assertTrue(reCaptchaService.isValid("any"));
     }
@@ -86,8 +87,9 @@ public class ReCaptchaServiceImplTest {
     public void isValidAboveMinScore() {
         when(configuration.getProperty("reCaptcha.minScore", Double.class, 0.5)).thenReturn(0.5);
         when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
-        when(httpClientService.request(any(), any(), any(), any(), any()))
-            .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
+        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(
+            Buffer.buffer("{ \"success\": true, \"score\": 1.0 }")
+        );
 
         assertTrue(reCaptchaService.isValid("any"));
     }
@@ -96,8 +98,9 @@ public class ReCaptchaServiceImplTest {
     public void isNotValidBelowMinScore() {
         when(configuration.getProperty("reCaptcha.minScore", Double.class, 0.5)).thenReturn(0.5);
         when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
-        when(httpClientService.request(any(), any(), any(), any(), any()))
-            .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 0.4 }"));
+        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(
+            Buffer.buffer("{ \"success\": true, \"score\": 0.4 }")
+        );
 
         assertFalse(reCaptchaService.isValid("any"));
     }

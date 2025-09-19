@@ -61,7 +61,9 @@ class NotifySpecGenResponseUseCaseTest {
     void must_notify_user() {
         useCase.notify(API_ID, USER_ID);
 
-        await().atMost(2, TimeUnit.SECONDS).until(() -> !provider.storage().isEmpty());
+        await()
+            .atMost(2, TimeUnit.SECONDS)
+            .until(() -> !provider.storage().isEmpty());
         assertThat(provider.storage().get(0).getValue()).isEqualTo(1);
     }
 
@@ -69,14 +71,18 @@ class NotifySpecGenResponseUseCaseTest {
     void must_not_notify_user_with_non_existing_api() {
         useCase.notify(UuidString.generateRandom(), USER_ID);
 
-        await().atMost(2, TimeUnit.SECONDS).until(() -> provider.storage().isEmpty());
+        await()
+            .atMost(2, TimeUnit.SECONDS)
+            .until(() -> provider.storage().isEmpty());
     }
 
     @Test
     void must_not_notify_user_with_null_user() {
         useCase.notify(UuidString.generateRandom(), null);
 
-        await().atMost(2, TimeUnit.SECONDS).until(() -> provider.storage().isEmpty());
+        await()
+            .atMost(2, TimeUnit.SECONDS)
+            .until(() -> provider.storage().isEmpty());
     }
 
     @AfterEach

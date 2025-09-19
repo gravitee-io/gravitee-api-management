@@ -27,8 +27,7 @@ public class CorsFixtures {
 
     private CorsFixtures() {}
 
-    private static final Cors.CorsBuilder BASE_CORS = Cors
-        .builder()
+    private static final Cors.CorsBuilder BASE_CORS = Cors.builder()
         .allowCredentials(true)
         .allowHeaders(Set.of("header1", "header2"))
         .allowMethods(Set.of("method1", "method2"))

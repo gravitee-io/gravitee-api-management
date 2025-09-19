@@ -49,21 +49,20 @@ class ApiVariables {
 
     public Map<String, String> getProperties() {
         if (apiProperties == null && api.getDefinition().getProperties() != null) {
-            this.apiProperties =
-                api
-                    .getDefinition()
-                    .getProperties()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            io.gravitee.definition.model.v4.property.Property::getKey,
-                            io.gravitee.definition.model.v4.property.Property::getValue,
-                            (v1, v2) -> {
-                                throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
-                            },
-                            TemplatedValueHashMap::new
-                        )
-                    );
+            this.apiProperties = api
+                .getDefinition()
+                .getProperties()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        io.gravitee.definition.model.v4.property.Property::getKey,
+                        io.gravitee.definition.model.v4.property.Property::getValue,
+                        (v1, v2) -> {
+                            throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
+                        },
+                        TemplatedValueHashMap::new
+                    )
+                );
         }
 
         return this.apiProperties;

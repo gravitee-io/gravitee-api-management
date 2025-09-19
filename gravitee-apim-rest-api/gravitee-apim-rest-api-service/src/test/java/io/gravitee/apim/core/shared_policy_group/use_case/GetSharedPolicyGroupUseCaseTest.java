@@ -54,9 +54,8 @@ class GetSharedPolicyGroupUseCaseTest {
         SharedPolicyGroup expectedSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         sharedPolicyGroupCrudService.initWith(List.of(expectedSharedPolicyGroup));
         // When
-        var throwable = assertThrows(
-            SharedPolicyGroupNotFoundException.class,
-            () -> getSharedPolicyGroupUseCase.execute(new GetSharedPolicyGroupUseCase.Input(ENV_ID, "unknown"))
+        var throwable = assertThrows(SharedPolicyGroupNotFoundException.class, () ->
+            getSharedPolicyGroupUseCase.execute(new GetSharedPolicyGroupUseCase.Input(ENV_ID, "unknown"))
         );
         // Then
         assertEquals("SharedPolicyGroup [unknown] cannot be found.", throwable.getMessage());
@@ -68,9 +67,8 @@ class GetSharedPolicyGroupUseCaseTest {
         SharedPolicyGroup expectedSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
         sharedPolicyGroupCrudService.initWith(List.of(expectedSharedPolicyGroup));
         // When
-        var throwable = assertThrows(
-            SharedPolicyGroupNotFoundException.class,
-            () -> getSharedPolicyGroupUseCase.execute(new GetSharedPolicyGroupUseCase.Input("unknown", expectedSharedPolicyGroup.getId()))
+        var throwable = assertThrows(SharedPolicyGroupNotFoundException.class, () ->
+            getSharedPolicyGroupUseCase.execute(new GetSharedPolicyGroupUseCase.Input("unknown", expectedSharedPolicyGroup.getId()))
         );
         // Then
         assertEquals("SharedPolicyGroup [" + expectedSharedPolicyGroup.getId() + "] cannot be found.", throwable.getMessage());

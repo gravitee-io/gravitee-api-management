@@ -246,9 +246,10 @@ public class TagServiceImpl extends AbstractService implements TagService {
 
             return tags
                 .stream()
-                .filter(tag ->
-                    !restrictedTags.contains(tag.getId()) ||
-                    (tag.getRestrictedGroups() != null && anyMatch(tag.getRestrictedGroups(), groups))
+                .filter(
+                    tag ->
+                        !restrictedTags.contains(tag.getId()) ||
+                        (tag.getRestrictedGroups() != null && anyMatch(tag.getRestrictedGroups(), groups))
                 )
                 .map(TagEntity::getId)
                 .collect(toSet());

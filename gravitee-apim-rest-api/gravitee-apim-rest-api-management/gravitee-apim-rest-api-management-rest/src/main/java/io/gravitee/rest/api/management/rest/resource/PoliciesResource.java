@@ -80,17 +80,17 @@ public class PoliciesResource {
                 ? GraviteeContext.getCurrentOrganization()
                 : GraviteeContext.getDefaultOrganization()
         );
-        Stream<PolicyListItem> stream = policyService.findAll(withResource).stream().map(policy -> convert(policy, license));
+        Stream<PolicyListItem> stream = policyService
+            .findAll(withResource)
+            .stream()
+            .map(policy -> convert(policy, license));
         if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
-                        stream =
-                            stream.peek(policyListItem ->
-                                policyListItem.setSchema(
-                                    policyService.getSchema(policyListItem.getId(), SchemaDisplayFormat.GV_SCHEMA_FORM)
-                                )
-                            );
+                        stream = stream.peek(policyListItem ->
+                            policyListItem.setSchema(policyService.getSchema(policyListItem.getId(), SchemaDisplayFormat.GV_SCHEMA_FORM))
+                        );
                     case "icon":
                         stream = stream.peek(policyListItem -> policyListItem.setIcon(policyService.getIcon(policyListItem.getId())));
                     default:

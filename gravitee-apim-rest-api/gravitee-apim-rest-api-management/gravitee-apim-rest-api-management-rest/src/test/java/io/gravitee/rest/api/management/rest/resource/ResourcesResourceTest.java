@@ -49,32 +49,13 @@ public class ResourcesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnResources() {
-        when(resourceService.findAll())
-            .thenReturn(
-                Set.of(
-                    PlatformPluginEntity
-                        .builder()
-                        .id("resource-id-1")
-                        .feature("resource-feature-1")
-                        .name("Resource 1")
-                        .deployed(true)
-                        .build(),
-                    PlatformPluginEntity
-                        .builder()
-                        .id("resource-id-2")
-                        .feature("resource-feature-2")
-                        .name("Resource 2")
-                        .deployed(true)
-                        .build(),
-                    PlatformPluginEntity
-                        .builder()
-                        .id("resource-id-3")
-                        .feature("resource-feature-3")
-                        .name("Resource 3")
-                        .deployed(false)
-                        .build()
-                )
-            );
+        when(resourceService.findAll()).thenReturn(
+            Set.of(
+                PlatformPluginEntity.builder().id("resource-id-1").feature("resource-feature-1").name("Resource 1").deployed(true).build(),
+                PlatformPluginEntity.builder().id("resource-id-2").feature("resource-feature-2").name("Resource 2").deployed(true).build(),
+                PlatformPluginEntity.builder().id("resource-id-3").feature("resource-feature-3").name("Resource 3").deployed(false).build()
+            )
+        );
         var license = mock(License.class);
         when(licenseManager.getOrganizationLicenseOrPlatform("DEFAULT")).thenReturn(license);
         when(license.isFeatureEnabled("resource-feature-1")).thenReturn(false);

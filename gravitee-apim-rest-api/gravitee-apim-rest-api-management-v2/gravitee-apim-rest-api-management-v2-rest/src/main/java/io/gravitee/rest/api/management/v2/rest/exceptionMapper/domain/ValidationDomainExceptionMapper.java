@@ -28,8 +28,7 @@ public class ValidationDomainExceptionMapper extends AbstractDomainExceptionMapp
     }
 
     private Error validationDomainError(ValidationDomainException vde) {
-        return Error
-            .builder()
+        return Error.builder()
             .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
             .message(vde.getMessage())
             .parameters(vde.getParameters())

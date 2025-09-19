@@ -37,11 +37,13 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
     void handleWithOverrideByDefault() {
         Configuration nodeConfiguration = mock(Configuration.class);
         when(nodeConfiguration.getProperty("handlers.request.transaction.overrideMode")).thenReturn(null);
-        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString()))
-            .thenReturn(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER);
+        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString())).thenReturn(
+            TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER
+        );
         when(nodeConfiguration.getProperty("handlers.request.request.overrideMode")).thenReturn(null);
-        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString()))
-            .thenReturn(TransactionHeader.DEFAULT_REQUEST_ID_HEADER);
+        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString())).thenReturn(
+            TransactionHeader.DEFAULT_REQUEST_ID_HEADER
+        );
 
         TransactionPostProcessorConfiguration processorConfiguration = new TransactionPostProcessorConfiguration(nodeConfiguration);
 
@@ -89,10 +91,12 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
 
         transactionPostProcessor.execute(spyCtx).test().assertResult();
 
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER))
-            .isEqualTo(List.of("backend-transaction-id", "transaction-id"));
-        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER))
-            .isEqualTo(List.of("backend-request-id", "request-id"));
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER)).isEqualTo(
+            List.of("backend-transaction-id", "transaction-id")
+        );
+        assertThat(spyResponseHeaders.getAll(TransactionHeader.DEFAULT_REQUEST_ID_HEADER)).isEqualTo(
+            List.of("backend-request-id", "request-id")
+        );
     }
 
     @Test
@@ -134,12 +138,14 @@ class TransactionPostProcessorTest extends AbstractProcessorTest {
     ) {
         Configuration nodeConfiguration = mock(Configuration.class);
         when(nodeConfiguration.getProperty("handlers.request.transaction.overrideMode")).thenReturn(transactionOverrideMode.name());
-        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString()))
-            .thenReturn(TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER);
+        when(nodeConfiguration.getProperty(eq("handlers.request.transaction.header"), anyString())).thenReturn(
+            TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER
+        );
 
         when(nodeConfiguration.getProperty("handlers.request.request.overrideMode")).thenReturn(requestHeaderOverrideMode.name());
-        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString()))
-            .thenReturn(TransactionHeader.DEFAULT_REQUEST_ID_HEADER);
+        when(nodeConfiguration.getProperty(eq("handlers.request.request.header"), anyString())).thenReturn(
+            TransactionHeader.DEFAULT_REQUEST_ID_HEADER
+        );
 
         TransactionPostProcessorConfiguration processorConfiguration = new TransactionPostProcessorConfiguration(nodeConfiguration);
 

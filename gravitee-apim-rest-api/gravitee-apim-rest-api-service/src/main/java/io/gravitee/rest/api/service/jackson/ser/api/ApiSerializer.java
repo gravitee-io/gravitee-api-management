@@ -206,32 +206,31 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                     .search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(apiEntity.getId()).build(), true);
 
                 if (this.version().getVersion().startsWith("1.")) {
-                    pages =
-                        pages
-                            .stream()
-                            .filter(pageEntity ->
+                    pages = pages
+                        .stream()
+                        .filter(
+                            pageEntity ->
                                 !pageEntity.getType().equals(PageType.LINK.name()) &&
                                 !pageEntity.getType().equals(PageType.TRANSLATION.name()) &&
                                 !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name()) &&
                                 !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
                                 !pageEntity.getType().equals(PageType.ASCIIDOC.name())
-                            )
-                            .collect(Collectors.toList());
+                        )
+                        .collect(Collectors.toList());
                 } else if (this.version().getVersion().equals("3.0")) {
-                    pages =
-                        pages
-                            .stream()
-                            .filter(pageEntity ->
+                    pages = pages
+                        .stream()
+                        .filter(
+                            pageEntity ->
                                 !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
                                 !pageEntity.getType().equals(PageType.ASCIIDOC.name())
-                            )
-                            .collect(Collectors.toList());
+                        )
+                        .collect(Collectors.toList());
                 } else if (this.version().getVersion().equals("3.7")) {
-                    pages =
-                        pages
-                            .stream()
-                            .filter(pageEntity -> !pageEntity.getType().equals(PageType.ASCIIDOC.name()))
-                            .collect(Collectors.toList());
+                    pages = pages
+                        .stream()
+                        .filter(pageEntity -> !pageEntity.getType().equals(PageType.ASCIIDOC.name()))
+                        .collect(Collectors.toList());
                 }
 
                 // Replace group id by group name in access control list
@@ -246,9 +245,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                                 )
                                 .peek(accessControlEntity ->
                                     accessControlEntity.setReferenceId(
-                                        groupIdNameMap.computeIfAbsent(
-                                            accessControlEntity.getReferenceId(),
-                                            key -> groupService.findById(GraviteeContext.getExecutionContext(), key).getName()
+                                        groupIdNameMap.computeIfAbsent(accessControlEntity.getReferenceId(), key ->
+                                            groupService.findById(GraviteeContext.getExecutionContext(), key).getName()
                                         )
                                     )
                                 )
@@ -271,7 +269,10 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                     .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
                 Set<PlanEntity> plansToAdd = plans == null
                     ? Collections.emptySet()
-                    : plans.stream().filter(p -> !PlanStatus.CLOSED.equals(p.getStatus())).collect(Collectors.toSet());
+                    : plans
+                        .stream()
+                        .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
+                        .collect(Collectors.toSet());
                 plansToAdd.forEach(p -> {
                     if (p.getExcludedGroups() != null) {
                         p.setExcludedGroups(
@@ -279,17 +280,14 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                                 .getExcludedGroups()
                                 .stream()
                                 .map(groupId ->
-                                    groupIdNameMap.computeIfAbsent(
-                                        groupId,
-                                        key -> {
-                                            try {
-                                                return groupService.findById(GraviteeContext.getExecutionContext(), key).getName();
-                                            } catch (GroupNotFoundException e) {
-                                                log.warn("Unable to find group {}", key);
-                                                return null;
-                                            }
+                                    groupIdNameMap.computeIfAbsent(groupId, key -> {
+                                        try {
+                                            return groupService.findById(GraviteeContext.getExecutionContext(), key).getName();
+                                        } catch (GroupNotFoundException e) {
+                                            log.warn("Unable to find group {}", key);
+                                            return null;
                                         }
-                                    )
+                                    })
                                 )
                                 .filter(Objects::nonNull)
                                 .collect(Collectors.toList())

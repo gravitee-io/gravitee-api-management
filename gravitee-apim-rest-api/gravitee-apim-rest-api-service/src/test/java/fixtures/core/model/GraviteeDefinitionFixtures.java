@@ -68,12 +68,10 @@ public class GraviteeDefinitionFixtures {
     private GraviteeDefinitionFixtures() {}
 
     public static final Supplier<GraviteeDefinition.V4.V4Builder> BASE = () ->
-        GraviteeDefinition.V4
-            .builder()
+        GraviteeDefinition.V4.builder()
             .members(
                 Set.of(
-                    ApiMember
-                        .builder()
+                    ApiMember.builder()
                         .displayName("John Doe")
                         .id("member-id")
                         .roles(List.of(ApiMemberRole.builder().name("PRIMARY_OWNER").scope(RoleScope.API).build()))
@@ -82,8 +80,7 @@ public class GraviteeDefinitionFixtures {
             )
             .metadata(
                 Set.of(
-                    NewApiMetadata
-                        .builder()
+                    NewApiMetadata.builder()
                         .format(Metadata.MetadataFormat.MAIL)
                         .key("email-support")
                         .name("email-support")
@@ -96,16 +93,13 @@ public class GraviteeDefinitionFixtures {
             .apiBackground("data:image/png;base64,background");
 
     public static GraviteeDefinition.V4 aGraviteeDefinitionProxy() {
-        return BASE
-            .get()
+        return BASE.get()
             .api(
-                ApiDescriptor.ApiDescriptorV4
-                    .builder()
+                ApiDescriptor.ApiDescriptorV4.builder()
                     .type(ApiType.PROXY)
                     .listeners(
                         List.of(
-                            HttpListener
-                                .builder()
+                            HttpListener.builder()
                                 .paths(List.of(new Path(null, "/proxy-api", true)))
                                 .entrypoints(List.of(Entrypoint.builder().type("http-proxy").qos(Qos.AUTO).configuration("{}").build()))
                                 .build()
@@ -113,53 +107,51 @@ public class GraviteeDefinitionFixtures {
                     )
                     .endpointGroups(
                         List.of(
-                            EndpointGroup
-                                .builder()
+                            EndpointGroup.builder()
                                 .name("Default HTTP proxy group")
                                 .type("http-proxy")
                                 .loadBalancer(LoadBalancer.builder().type(LoadBalancerType.ROUND_ROBIN).build())
                                 .sharedConfiguration(
                                     """
-                                                {
-                                                  "proxy" : {
-                                                    "useSystemProxy" : false,
-                                                    "enabled" : false
-                                                  },
-                                                  "http" : {
-                                                    "keepAliveTimeout" : 30000,
-                                                    "keepAlive" : true,
-                                                    "followRedirects" : false,
-                                                    "readTimeout" : 10000,
-                                                    "idleTimeout" : 60000,
-                                                    "connectTimeout" : 3000,
-                                                    "useCompression" : true,
-                                                    "maxConcurrentConnections" : 20,
-                                                    "version" : "HTTP_1_1",
-                                                    "pipelining" : false
-                                                  },
-                                                  "ssl" : {
-                                                    "keyStore" : {
-                                                      "type" : ""
-                                                    },
-                                                    "hostnameVerifier" : true,
-                                                    "trustStore" : {
-                                                      "type" : ""
-                                                    },
-                                                    "trustAll" : false
-                                                 }
-                                                }"""
+                                    {
+                                      "proxy" : {
+                                        "useSystemProxy" : false,
+                                        "enabled" : false
+                                      },
+                                      "http" : {
+                                        "keepAliveTimeout" : 30000,
+                                        "keepAlive" : true,
+                                        "followRedirects" : false,
+                                        "readTimeout" : 10000,
+                                        "idleTimeout" : 60000,
+                                        "connectTimeout" : 3000,
+                                        "useCompression" : true,
+                                        "maxConcurrentConnections" : 20,
+                                        "version" : "HTTP_1_1",
+                                        "pipelining" : false
+                                      },
+                                      "ssl" : {
+                                        "keyStore" : {
+                                          "type" : ""
+                                        },
+                                        "hostnameVerifier" : true,
+                                        "trustStore" : {
+                                          "type" : ""
+                                        },
+                                        "trustAll" : false
+                                     }
+                                    }"""
                                 )
                                 .endpoints(
                                     List.of(
-                                        Endpoint
-                                            .builder()
+                                        Endpoint.builder()
                                             .name("Default HTTP proxy")
                                             .type("http-proxy")
                                             .inheritConfiguration(true)
                                             .weight(1)
                                             .configuration(
                                                 """
-                                                                            {"target":"https://api.gravitee.io/echo"}"""
+                                                {"target":"https://api.gravitee.io/echo"}"""
                                             )
                                             .sharedConfigurationOverride("{}")
                                             .services(new EndpointServices())
@@ -167,25 +159,23 @@ public class GraviteeDefinitionFixtures {
                                     )
                                 )
                                 .services(
-                                    EndpointGroupServices
-                                        .builder()
+                                    EndpointGroupServices.builder()
                                         .healthCheck(
-                                            Service
-                                                .builder()
+                                            Service.builder()
                                                 .type("http-health-check")
                                                 .enabled(true)
                                                 .configuration(
                                                     """
-                                                                                {
-                                                                                  "schedule" : "*/1 * * * * *",
-                                                                                  "headers" : [ ],
-                                                                                  "overrideEndpointPath" : true,
-                                                                                  "method" : "GET",
-                                                                                  "failureThreshold" : 2,
-                                                                                  "assertion" : "{#response.status == 200}",
-                                                                                  "successThreshold" : 2,
-                                                                                  "target" : "/"
-                                                                                }"""
+                                                    {
+                                                      "schedule" : "*/1 * * * * *",
+                                                      "headers" : [ ],
+                                                      "overrideEndpointPath" : true,
+                                                      "method" : "GET",
+                                                      "failureThreshold" : 2,
+                                                      "assertion" : "{#response.status == 200}",
+                                                      "successThreshold" : 2,
+                                                      "target" : "/"
+                                                    }"""
                                                 )
                                                 .build()
                                         )
@@ -195,12 +185,10 @@ public class GraviteeDefinitionFixtures {
                         )
                     )
                     .analytics(
-                        Analytics
-                            .builder()
+                        Analytics.builder()
                             .enabled(true)
                             .logging(
-                                Logging
-                                    .builder()
+                                Logging.builder()
                                     .condition("{#request.timestamp <= 1709737299215l}")
                                     .content(LoggingContent.builder().headers(true).payload(true).build())
                                     .phase(LoggingPhase.builder().request(true).response(true).build())
@@ -212,8 +200,7 @@ public class GraviteeDefinitionFixtures {
                     .flowExecution(new FlowExecution())
                     .flows(
                         List.of(
-                            Flow
-                                .builder()
+                            Flow.builder()
                                 .id("flow-id")
                                 .name("api flows")
                                 .enabled(true)
@@ -249,8 +236,7 @@ public class GraviteeDefinitionFixtures {
             )
             .plans(
                 Set.of(
-                    PlanDescriptor.V4
-                        .builder()
+                    PlanDescriptor.V4.builder()
                         .id("plan-id")
                         .name("Default Keyless (UNSECURED)")
                         .definitionVersion(DefinitionVersion.V4)
@@ -273,8 +259,7 @@ public class GraviteeDefinitionFixtures {
             )
             .pages(
                 List.of(
-                    PageExport
-                        .builder()
+                    PageExport.builder()
                         .id("page-id")
                         .referenceType(Page.ReferenceType.API)
                         .referenceId("api-id")

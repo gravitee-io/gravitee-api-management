@@ -154,8 +154,7 @@ public class CreatePlanDomainService {
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(createdPlan.getApiId())

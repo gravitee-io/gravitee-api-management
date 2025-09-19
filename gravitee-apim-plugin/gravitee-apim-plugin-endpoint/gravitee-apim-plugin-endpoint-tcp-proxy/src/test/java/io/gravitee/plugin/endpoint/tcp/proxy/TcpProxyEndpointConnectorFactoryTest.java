@@ -53,21 +53,21 @@ class TcpProxyEndpointConnectorFactoryTest {
         TcpProxyEndpointConnector connector = cut.createConnector(
             deploymentContext,
             """
-                {
-                    "target": {
-                        "host": "www.acme.com",
-                        "port": 8080
-                    }
+            {
+                "target": {
+                    "host": "www.acme.com",
+                    "port": 8080
                 }
-                """,
+            }
+            """,
             """
-                    {
-                        "tcp": {
-                            "connectTimeout": 200,
-                            "reconnectAttempts": 10,
-                            "reconnectInterval": 500
-                        }
-                    }"""
+            {
+                "tcp": {
+                    "connectTimeout": 200,
+                    "reconnectAttempts": 10,
+                    "reconnectInterval": 500
+                }
+            }"""
         );
         assertThat(cut.supportedModes()).containsExactly(ConnectorMode.SOCKET);
         assertThat(cut.supportedApi()).isEqualTo(ApiType.PROXY);
@@ -93,12 +93,12 @@ class TcpProxyEndpointConnectorFactoryTest {
         TcpProxyEndpointConnector connector = cut.createConnector(
             deploymentContext,
             """
-                {
-                    "target": {
-                        "url": "https://www.acme.com:4443"
-                    }
+            {
+                "target": {
+                    "url": "https://www.acme.com:4443"
                 }
-                """,
+            }
+            """,
             null
         );
         assertThat(connector).isNull();

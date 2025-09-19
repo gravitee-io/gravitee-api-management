@@ -38,8 +38,7 @@ public class SubscriptionMapper {
         return Maybe.fromCallable(() -> {
             try {
                 final Subscription subscription = objectMapper.readValue(event.getPayload(), Subscription.class);
-                return SingleSubscriptionDeployable
-                    .builder()
+                return SingleSubscriptionDeployable.builder()
                     .subscription(subscription)
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
                     .build();
@@ -51,28 +50,25 @@ public class SubscriptionMapper {
     }
 
     public Flowable<DistributedEvent> to(final SubscriptionDeployable deployable) {
-        return Flowable
-            .fromIterable(deployable.subscriptions())
-            .flatMapMaybe(subscription ->
-                Maybe.fromCallable(() -> {
-                    try {
-                        DistributedEvent.DistributedEventBuilder builder = DistributedEvent
-                            .builder()
-                            .id(subscription.getId())
-                            .type(DistributedEventType.SUBSCRIPTION)
-                            .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                            .updatedAt(new Date())
-                            .refType(DistributedEventType.API)
-                            .refId(deployable.apiId());
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            builder.payload(objectMapper.writeValueAsString(subscription));
-                        }
-                        return builder.build();
-                    } catch (Exception e) {
-                        log.warn("Error while building distributed event from subscription", e);
-                        return null;
+        return Flowable.fromIterable(deployable.subscriptions()).flatMapMaybe(subscription ->
+            Maybe.fromCallable(() -> {
+                try {
+                    DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
+                        .id(subscription.getId())
+                        .type(DistributedEventType.SUBSCRIPTION)
+                        .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                        .updatedAt(new Date())
+                        .refType(DistributedEventType.API)
+                        .refId(deployable.apiId());
+                    if (deployable.syncAction() == SyncAction.DEPLOY) {
+                        builder.payload(objectMapper.writeValueAsString(subscription));
                     }
-                })
-            );
+                    return builder.build();
+                } catch (Exception e) {
+                    log.warn("Error while building distributed event from subscription", e);
+                    return null;
+                }
+            })
+        );
     }
 }

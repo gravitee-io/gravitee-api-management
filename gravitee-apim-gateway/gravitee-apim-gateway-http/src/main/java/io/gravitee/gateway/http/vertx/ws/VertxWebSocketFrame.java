@@ -41,7 +41,11 @@ class VertxWebSocketFrame implements WebSocketFrame {
                     ? Type.CONTINUATION
                     : frame.isText()
                         ? Type.TEXT
-                        : frame.isPing() ? Type.PING : frame.type() == WebSocketFrameType.PONG ? Type.PONG : Type.CLOSE;
+                        : frame.isPing()
+                            ? Type.PING
+                            : frame.type() == WebSocketFrameType.PONG
+                                ? Type.PONG
+                                : Type.CLOSE;
     }
 
     @Override

@@ -91,8 +91,7 @@ public class CockpitPromotionServiceTest {
         envA.setOrganizationId(ORGANIZATION_ID);
         envA.setName("ENV A");
 
-        BridgeReplyPayload.BridgeReplyContent envAContent = BridgeReplyPayload.BridgeReplyContent
-            .builder()
+        BridgeReplyPayload.BridgeReplyContent envAContent = BridgeReplyPayload.BridgeReplyContent.builder()
             .environmentId(envA.getId())
             .installationId(INSTALLATION_ID)
             .organizationId(ORGANIZATION_ID)
@@ -104,8 +103,7 @@ public class CockpitPromotionServiceTest {
         envB.setOrganizationId(ORGANIZATION_ID);
         envB.setName("ENV B");
 
-        BridgeReplyPayload.BridgeReplyContent envBContent = BridgeReplyPayload.BridgeReplyContent
-            .builder()
+        BridgeReplyPayload.BridgeReplyContent envBContent = BridgeReplyPayload.BridgeReplyContent.builder()
             .environmentId(envB.getId())
             .installationId(INSTALLATION_ID)
             .organizationId(ORGANIZATION_ID)

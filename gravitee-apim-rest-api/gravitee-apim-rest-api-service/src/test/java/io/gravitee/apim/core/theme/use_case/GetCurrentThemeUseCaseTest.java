@@ -48,11 +48,9 @@ public class GetCurrentThemeUseCaseTest {
 
     private final ExecutionContext EXECUTION_CONTEXT = GraviteeContext.getExecutionContext();
 
-    private final ThemeDefinition EXPECTED_PORTAL_NEXT_THEME_DEFINITION = ThemeDefinition
-        .builder()
+    private final ThemeDefinition EXPECTED_PORTAL_NEXT_THEME_DEFINITION = ThemeDefinition.builder()
         .color(
-            ThemeDefinition.Color
-                .builder()
+            ThemeDefinition.Color.builder()
                 .primary("#fff")
                 .secondary("#000")
                 .tertiary("#111")
@@ -77,57 +75,49 @@ public class GetCurrentThemeUseCaseTest {
     void setUp() {
         parametersDomainService.initWith(
             List.of(
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY.key())
                     .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getPrimary())
                     .build(),
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_COLOR_SECONDARY.key())
                     .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getSecondary())
                     .build(),
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_COLOR_TERTIARY.key())
                     .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getTertiary())
                     .build(),
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_COLOR_ERROR.key())
                     .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getError())
                     .build(),
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE.key())
                     .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getBackground().getPage())
                     .build(),
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD.key())
                     .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getColor().getBackground().getCard())
                     .build(),
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_CUSTOM_CSS.key())
                     .value(EXPECTED_PORTAL_NEXT_THEME_DEFINITION.getCustomCss())
                     .build(),
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .referenceId(EXECUTION_CONTEXT.getEnvironmentId())
                     .referenceType(ParameterReferenceType.ENVIRONMENT)
                     .key(Key.PORTAL_NEXT_THEME_FONT_FAMILY.key())
@@ -136,21 +126,20 @@ public class GetCurrentThemeUseCaseTest {
             )
         );
 
-        defaultThemeDomainService =
-            new DefaultThemeDomainService(
-                parametersDomainService,
-                new ThemeDomainService(themeCrudService),
-                themeServiceLegacyWrapper,
-                themePortalNextAssetsDomainService
-            );
+        defaultThemeDomainService = new DefaultThemeDomainService(
+            parametersDomainService,
+            new ThemeDomainService(themeCrudService),
+            themeServiceLegacyWrapper,
+            themePortalNextAssetsDomainService
+        );
         cut = new GetCurrentThemeUseCase(themeQueryServiceInMemory, defaultThemeDomainService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(parametersDomainService, themeCrudService, themeServiceLegacyWrapper, themeQueryServiceInMemory)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(parametersDomainService, themeCrudService, themeServiceLegacyWrapper, themeQueryServiceInMemory).forEach(
+            InMemoryAlternative::reset
+        );
     }
 
     @Test
@@ -206,8 +195,7 @@ public class GetCurrentThemeUseCaseTest {
         var portalDefinition = new io.gravitee.rest.api.model.theme.portal.ThemeDefinition();
         portalDefinition.setData(List.of());
 
-        return Theme
-            .builder()
+        return Theme.builder()
             .id("portal-theme")
             .name("a portal theme")
             .type(ThemeType.PORTAL)
@@ -219,8 +207,7 @@ public class GetCurrentThemeUseCaseTest {
     }
 
     private Theme aPortalNextTheme(boolean enabled) {
-        return Theme
-            .builder()
+        return Theme.builder()
             .id("portal-next-theme")
             .name("a portal next theme")
             .type(ThemeType.PORTAL_NEXT)

@@ -22,8 +22,7 @@ import java.util.Set;
 public class ApiKeyMapper {
 
     public ApiKey to(io.gravitee.repository.management.model.ApiKey apiKeyModel, Set<Subscription> subscriptions) {
-        ApiKey.ApiKeyBuilder apiKeyBuilder = ApiKey
-            .builder()
+        ApiKey.ApiKeyBuilder apiKeyBuilder = ApiKey.builder()
             .id(apiKeyModel.getId())
             .key(apiKeyModel.getKey())
             .application(apiKeyModel.getApplication())
@@ -44,10 +43,10 @@ public class ApiKeyMapper {
                         .subscription(apiKeySubscription.getId())
                         .active(
                             !apiKeyModel.isPaused() &&
-                            !apiKeyModel.isRevoked() &&
-                            io.gravitee.repository.management.model.Subscription.Status.ACCEPTED
-                                .name()
-                                .equals(apiKeySubscription.getStatus())
+                                !apiKeyModel.isRevoked() &&
+                                io.gravitee.repository.management.model.Subscription.Status.ACCEPTED.name().equals(
+                                    apiKeySubscription.getStatus()
+                                )
                         )
                 );
         }

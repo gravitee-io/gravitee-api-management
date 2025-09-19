@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;/**
+package io.gravitee.repository.management.api; /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");

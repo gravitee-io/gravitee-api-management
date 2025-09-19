@@ -85,8 +85,7 @@ class ApiResource_RollbackTest extends ApiResourceTest {
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(aRollbackPayload(EVENT_ID)));
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);

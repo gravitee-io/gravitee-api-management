@@ -52,18 +52,18 @@ class SubscriptionMapperTest {
         subscription = new Subscription();
         subscription.setId("id");
 
-        distributedEvent =
-            DistributedEvent
-                .builder()
-                .id(subscription.getId())
-                .payload(objectMapper.writeValueAsString(subscription))
-                .updatedAt(new Date())
-                .type(DistributedEventType.SUBSCRIPTION)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .build();
+        distributedEvent = DistributedEvent.builder()
+            .id(subscription.getId())
+            .payload(objectMapper.writeValueAsString(subscription))
+            .updatedAt(new Date())
+            .type(DistributedEventType.SUBSCRIPTION)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
 
-        singleSubscriptionDeployable =
-            SingleSubscriptionDeployable.builder().subscription(subscription).syncAction(SyncAction.DEPLOY).build();
+        singleSubscriptionDeployable = SingleSubscriptionDeployable.builder()
+            .subscription(subscription)
+            .syncAction(SyncAction.DEPLOY)
+            .build();
     }
 
     @Test

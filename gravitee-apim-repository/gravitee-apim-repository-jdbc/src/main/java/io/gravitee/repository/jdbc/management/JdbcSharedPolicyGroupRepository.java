@@ -56,8 +56,7 @@ public class JdbcSharedPolicyGroupRepository
 
     @Override
     protected JdbcObjectMapper<SharedPolicyGroup> buildOrm() {
-        return JdbcObjectMapper
-            .builder(SharedPolicyGroup.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(SharedPolicyGroup.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
@@ -148,14 +147,14 @@ public class JdbcSharedPolicyGroupRepository
 
             var result = jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " WHERE " +
-                andWhere +
-                " ORDER BY " +
-                sortField +
-                " " +
-                sortOrder +
-                " " +
-                createPagingClause(pageable.pageSize(), pageable.from()),
+                    " WHERE " +
+                    andWhere +
+                    " ORDER BY " +
+                    sortField +
+                    " " +
+                    sortOrder +
+                    " " +
+                    createPagingClause(pageable.pageSize(), pageable.from()),
                 getOrm().getRowMapper(),
                 andWhereParams.toArray()
             );

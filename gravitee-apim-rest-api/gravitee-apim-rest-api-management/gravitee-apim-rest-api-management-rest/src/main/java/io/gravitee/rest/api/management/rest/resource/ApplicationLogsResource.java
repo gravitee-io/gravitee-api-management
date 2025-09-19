@@ -113,8 +113,7 @@ public class ApplicationLogsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response exportApplicationLogsAsCSV(@BeanParam LogsParam param) {
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getApplicationLogs(param);
-        return Response
-            .ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
+        return Response.ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", application, System.currentTimeMillis()))
             .build();
     }

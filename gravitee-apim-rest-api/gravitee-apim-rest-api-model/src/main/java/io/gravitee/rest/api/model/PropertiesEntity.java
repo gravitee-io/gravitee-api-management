@@ -53,7 +53,12 @@ public class PropertiesEntity {
 
     public Properties toDefinition() {
         Properties definitionProperties = new Properties();
-        definitionProperties.setProperties(properties.stream().map(property -> (Property) property).collect(toList()));
+        definitionProperties.setProperties(
+            properties
+                .stream()
+                .map(property -> (Property) property)
+                .collect(toList())
+        );
         return definitionProperties;
     }
 }

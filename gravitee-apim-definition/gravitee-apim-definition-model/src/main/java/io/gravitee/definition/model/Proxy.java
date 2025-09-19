@@ -136,8 +136,7 @@ public class Proxy implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Optional
-            .ofNullable(this.groups)
+        return Optional.ofNullable(this.groups)
             .map(g -> g.stream().map(EndpointGroup::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
             .orElse(List.of());
     }

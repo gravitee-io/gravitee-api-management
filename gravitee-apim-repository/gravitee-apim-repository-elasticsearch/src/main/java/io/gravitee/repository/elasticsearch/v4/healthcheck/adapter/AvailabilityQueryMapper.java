@@ -69,7 +69,11 @@ public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPer
 
         // Did it this way because of 10.000 hits results per query limit for ElasticSearchQuery
         // https://www.elastic.co/guide/en/app-search/8.12/limits.html
-        var total = entrypointsAggregation.getBuckets().stream().map(jsonNode -> jsonNode.get("doc_count").asLong()).reduce(0L, Long::sum);
+        var total = entrypointsAggregation
+            .getBuckets()
+            .stream()
+            .map(jsonNode -> jsonNode.get("doc_count").asLong())
+            .reduce(0L, Long::sum);
 
         final var byFieldValue = entrypointsAggregation
             .getBuckets()
@@ -100,6 +104,6 @@ public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPer
     private static float round(long num, long denum) {
         int precision = 4;
         var value = ((Double) Math.pow(10, precision)).floatValue();
-        return Math.round(num * value / denum) / value;
+        return Math.round((num * value) / denum) / value;
     }
 }

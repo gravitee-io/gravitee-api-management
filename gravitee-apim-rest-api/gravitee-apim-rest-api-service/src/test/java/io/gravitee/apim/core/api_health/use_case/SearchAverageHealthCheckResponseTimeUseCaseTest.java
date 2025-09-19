@@ -102,17 +102,16 @@ class SearchAverageHealthCheckResponseTimeUseCaseTest {
 
         var queryCaptor = ArgumentCaptor.forClass(ApiHealthQueryService.ApiFieldPeriodQuery.class);
         verify(apiHealthQueryService).averageResponseTime(queryCaptor.capture());
-        assertThat(queryCaptor.getValue())
-            .satisfies(query -> {
-                assertSoftly(softly -> {
-                    softly.assertThat(query.organizationId()).isEqualTo(ORGANIZATION_ID);
-                    softly.assertThat(query.environmentId()).isEqualTo(ENV_ID);
-                    softly.assertThat(query.apiId()).isEqualTo(MY_API);
-                    softly.assertThat(query.field()).isEqualTo("endpoint");
-                    softly.assertThat(query.from()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
-                    softly.assertThat(query.to()).isEqualTo(INSTANT_NOW);
-                });
+        assertThat(queryCaptor.getValue()).satisfies(query -> {
+            assertSoftly(softly -> {
+                softly.assertThat(query.organizationId()).isEqualTo(ORGANIZATION_ID);
+                softly.assertThat(query.environmentId()).isEqualTo(ENV_ID);
+                softly.assertThat(query.apiId()).isEqualTo(MY_API);
+                softly.assertThat(query.field()).isEqualTo("endpoint");
+                softly.assertThat(query.from()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
+                softly.assertThat(query.to()).isEqualTo(INSTANT_NOW);
             });
+        });
     }
 
     @Test

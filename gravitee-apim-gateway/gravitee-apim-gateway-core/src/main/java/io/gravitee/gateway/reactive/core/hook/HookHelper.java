@@ -123,8 +123,7 @@ public class HookHelper {
         final Throwable throwable,
         final ExecutionFailure executionFailure
     ) {
-        return Flowable
-            .fromIterable(hooks)
+        return Flowable.fromIterable(hooks)
             .concatMapCompletable(hook ->
                 switch (phase) {
                     case PRE -> hook.pre(componentId, ctx, executionPhase);

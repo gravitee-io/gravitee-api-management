@@ -71,20 +71,20 @@ class AccessPointFetcherTest {
 
         when(
             accessPointRepository.findByCriteria(
-                argThat(arg ->
-                    arg.getStatus().equals(AccessPointStatus.CREATED) &&
-                    arg.getFrom() < from.toEpochMilli() &&
-                    arg.getTo() > to.toEpochMilli() &&
-                    arg.getTarget().equals(AccessPointTarget.GATEWAY) &&
-                    arg.getReferenceType().equals(AccessPointReferenceType.ENVIRONMENT) &&
-                    arg.getReferenceIds().containsAll(List.of("env1", "env2")) &&
-                    arg.getReferenceIds().size() == 2
+                argThat(
+                    arg ->
+                        arg.getStatus().equals(AccessPointStatus.CREATED) &&
+                        arg.getFrom() < from.toEpochMilli() &&
+                        arg.getTo() > to.toEpochMilli() &&
+                        arg.getTarget().equals(AccessPointTarget.GATEWAY) &&
+                        arg.getReferenceType().equals(AccessPointReferenceType.ENVIRONMENT) &&
+                        arg.getReferenceIds().containsAll(List.of("env1", "env2")) &&
+                        arg.getReferenceIds().size() == 2
                 ),
                 any(),
                 any()
             )
-        )
-            .thenReturn(Collections.singletonList(accessPoint));
+        ).thenReturn(Collections.singletonList(accessPoint));
 
         cut
             .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env1", "env2"), AccessPointStatus.CREATED)

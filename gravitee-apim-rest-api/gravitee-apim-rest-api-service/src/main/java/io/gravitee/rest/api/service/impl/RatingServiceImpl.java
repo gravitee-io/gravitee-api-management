@@ -222,7 +222,10 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         }
         try {
             final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
-            return ratings.stream().map(rating -> convert(executionContext, rating)).collect(toList());
+            return ratings
+                .stream()
+                .map(rating -> convert(executionContext, rating))
+                .collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find ratings for api {}", api, ex);
             throw new TechnicalManagementException("An error occurred while trying to find ratings for api " + api, ex);

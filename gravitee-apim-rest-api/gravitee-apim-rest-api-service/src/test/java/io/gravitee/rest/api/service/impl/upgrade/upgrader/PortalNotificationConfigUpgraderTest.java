@@ -62,8 +62,9 @@ public class PortalNotificationConfigUpgraderTest {
 
     @Test
     public void should_upgrade_only_portal_default_notification() throws TechnicalException {
-        when(environmentRepository.findAll())
-            .thenReturn(Set.of(Environment.builder().id("env#1").build(), Environment.builder().id("env#2").build()));
+        when(environmentRepository.findAll()).thenReturn(
+            Set.of(Environment.builder().id("env#1").build(), Environment.builder().id("env#2").build())
+        );
 
         Set<PortalNotificationConfig> portalNotificationConfigs = Set.of(
             aPortalNotificationConfig("DEFAULT", NotificationReferenceType.PORTAL, "user#1"),
@@ -76,30 +77,26 @@ public class PortalNotificationConfigUpgraderTest {
         assertTrue(upgrader.upgrade());
 
         verify(portalNotificationConfigRepository, times(4)).create(any());
-        verify(portalNotificationConfigRepository)
-            .create(
-                argThat(portalNotificationConfig ->
-                    portalNotificationConfig.equals(aPortalNotificationConfig("env#1", NotificationReferenceType.ENVIRONMENT, "user#1"))
-                )
-            );
-        verify(portalNotificationConfigRepository)
-            .create(
-                argThat(portalNotificationConfig ->
-                    portalNotificationConfig.equals(aPortalNotificationConfig("env#2", NotificationReferenceType.ENVIRONMENT, "user#1"))
-                )
-            );
-        verify(portalNotificationConfigRepository)
-            .create(
-                argThat(portalNotificationConfig ->
-                    portalNotificationConfig.equals(aPortalNotificationConfig("env#1", NotificationReferenceType.ENVIRONMENT, "user#2"))
-                )
-            );
-        verify(portalNotificationConfigRepository)
-            .create(
-                argThat(portalNotificationConfig ->
-                    portalNotificationConfig.equals(aPortalNotificationConfig("env#2", NotificationReferenceType.ENVIRONMENT, "user#2"))
-                )
-            );
+        verify(portalNotificationConfigRepository).create(
+            argThat(portalNotificationConfig ->
+                portalNotificationConfig.equals(aPortalNotificationConfig("env#1", NotificationReferenceType.ENVIRONMENT, "user#1"))
+            )
+        );
+        verify(portalNotificationConfigRepository).create(
+            argThat(portalNotificationConfig ->
+                portalNotificationConfig.equals(aPortalNotificationConfig("env#2", NotificationReferenceType.ENVIRONMENT, "user#1"))
+            )
+        );
+        verify(portalNotificationConfigRepository).create(
+            argThat(portalNotificationConfig ->
+                portalNotificationConfig.equals(aPortalNotificationConfig("env#1", NotificationReferenceType.ENVIRONMENT, "user#2"))
+            )
+        );
+        verify(portalNotificationConfigRepository).create(
+            argThat(portalNotificationConfig ->
+                portalNotificationConfig.equals(aPortalNotificationConfig("env#2", NotificationReferenceType.ENVIRONMENT, "user#2"))
+            )
+        );
 
         verify(portalNotificationConfigRepository, times(2)).delete(any());
         verify(portalNotificationConfigRepository).delete(aPortalNotificationConfig("DEFAULT", NotificationReferenceType.PORTAL, "user#1"));
@@ -108,8 +105,9 @@ public class PortalNotificationConfigUpgraderTest {
 
     @Test
     public void should_not_create_if_not_find_default_notification() throws TechnicalException {
-        when(environmentRepository.findAll())
-            .thenReturn(Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build()));
+        when(environmentRepository.findAll()).thenReturn(
+            Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build())
+        );
 
         when(portalNotificationConfigRepository.findAll()).thenReturn(Collections.emptySet());
 
@@ -129,8 +127,7 @@ public class PortalNotificationConfigUpgraderTest {
         String user,
         List<String> hooks
     ) {
-        return PortalNotificationConfig
-            .builder()
+        return PortalNotificationConfig.builder()
             .referenceId(referenceId)
             .referenceType(referenceType)
             .user(user)

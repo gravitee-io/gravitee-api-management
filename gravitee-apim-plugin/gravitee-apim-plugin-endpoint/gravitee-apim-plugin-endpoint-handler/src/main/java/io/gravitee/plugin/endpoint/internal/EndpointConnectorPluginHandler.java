@@ -46,8 +46,9 @@ public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<
 
     @Override
     protected EndpointConnectorPlugin<?, ?> create(final Plugin plugin, final Class<?> pluginClass) {
-        Class<? extends EndpointConnectorConfiguration> configurationClass = new EndpointConnectorConfigurationClassFinder()
-            .lookupFirst(pluginClass);
+        Class<? extends EndpointConnectorConfiguration> configurationClass = new EndpointConnectorConfigurationClassFinder().lookupFirst(
+            pluginClass
+        );
 
         return new DefaultEndpointConnectorPlugin(plugin, pluginClass, configurationClass);
     }

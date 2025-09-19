@@ -48,8 +48,7 @@ public class CockpitCommandServiceTest {
 
     @Test
     public void shouldSendCommandToCockpitConnector() {
-        BridgeCommandPayload payload = BridgeCommandPayload
-            .builder()
+        BridgeCommandPayload payload = BridgeCommandPayload.builder()
             .installationId(UUID.toString(UUID.random()))
             .organizationId(UUID.toString(UUID.random()))
             .operation("an_operation")
@@ -68,8 +67,7 @@ public class CockpitCommandServiceTest {
 
     @Test
     public void shouldReturnAnErrorBridgeReplyWhenWebSocketIsThrowing() {
-        BridgeCommandPayload payload = BridgeCommandPayload
-            .builder()
+        BridgeCommandPayload payload = BridgeCommandPayload.builder()
             .installationId(UUID.toString(UUID.random()))
             .organizationId(UUID.toString(UUID.random()))
             .operation("an_operation")

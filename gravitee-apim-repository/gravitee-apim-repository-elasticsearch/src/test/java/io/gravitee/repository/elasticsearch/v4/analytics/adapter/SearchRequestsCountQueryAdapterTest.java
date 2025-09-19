@@ -33,20 +33,19 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SearchRequestsCountQueryAdapterTest {
 
-    public static final String QUERY_WITHOUT_FILTER =
-        """
-          {
-              "size": 0,
-              "aggs": {
-                  "entrypoints": {
-                      "terms": {"field":"entrypoint-id"}
-                  },
-                  "all_apis_status_ranges": {
-                       "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
-                  }
-              }
-          }
-          """;
+    public static final String QUERY_WITHOUT_FILTER = """
+        {
+            "size": 0,
+            "aggs": {
+                "entrypoints": {
+                    "terms": {"field":"entrypoint-id"}
+                },
+                "all_apis_status_ranges": {
+                     "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
+                }
+            }
+        }
+        """;
 
     @Test
     void should_build_query_without_filter() {
@@ -66,32 +65,31 @@ class SearchRequestsCountQueryAdapterTest {
     void should_build_query_with_api_filter() {
         var result = SearchRequestsCountQueryAdapter.adapt(new RequestsCountQuery("api-id"), true);
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
+        assertThatJson(result).isEqualTo(
+            """
+            {
+                "size": 0,
+                "query":{
+                    "bool": {
+                        "must": [
                             {
-                                "size": 0,
-                                "query":{
-                                    "bool": {
-                                        "must": [
-                                            {
-                                                "term": {"api-id":"api-id"}
-                                            }
-                                        ]
-                                    }
-                                },
-                                "aggs": {
-                                    "entrypoints": {
-                                        "terms": {"field":"entrypoint-id"}
-                                    },
-                                    "all_apis_status_ranges": {
-                                        "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
-                                      }
-                                  }
-                                }
+                                "term": {"api-id":"api-id"}
                             }
-                            """
-            );
+                        ]
+                    }
+                },
+                "aggs": {
+                    "entrypoints": {
+                        "terms": {"field":"entrypoint-id"}
+                    },
+                    "all_apis_status_ranges": {
+                        "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
+                      }
+                  }
+                }
+            }
+            """
+        );
     }
 
     @Test
@@ -102,71 +100,69 @@ class SearchRequestsCountQueryAdapterTest {
 
         var result = SearchRequestsCountQueryAdapter.adapt(new RequestsCountQuery("api-id", from, to), true);
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
+        assertThatJson(result).isEqualTo(
+            """
+            {
+                "size": 0,
+                "query":{
+                    "bool": {
+                        "must": [
                             {
-                                "size": 0,
-                                "query":{
-                                    "bool": {
-                                        "must": [
-                                            {
-                                                "term": {"api-id":"api-id"}
-                                            },
-                                            {
-                                                 "range": {
-                                                     "@timestamp": {
-                                                         "from": 1609459200000,
-                                                         "include_lower": true,
-                                                         "to": 1609545600000,
-                                                         "include_upper": true
-                                                    }
-                                                }
-                                            }
-                                        ]
+                                "term": {"api-id":"api-id"}
+                            },
+                            {
+                                 "range": {
+                                     "@timestamp": {
+                                         "from": 1609459200000,
+                                         "include_lower": true,
+                                         "to": 1609545600000,
+                                         "include_upper": true
                                     }
-                                },
-                                "aggs": {
-                                    "entrypoints": {
-                                            "terms": {"field":"entrypoint-id"}
-                                    },
-                                    "all_apis_status_ranges": {
-                                        "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
-                                      }
                                 }
                             }
-                            """
-            );
+                        ]
+                    }
+                },
+                "aggs": {
+                    "entrypoints": {
+                            "terms": {"field":"entrypoint-id"}
+                    },
+                    "all_apis_status_ranges": {
+                        "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
+                      }
+                }
+            }
+            """
+        );
     }
 
     @Test
     void should_adapt_the_query_according_when_entrypoint_id_not_keyword() {
         var result = SearchRequestsCountQueryAdapter.adapt(new RequestsCountQuery("api-id"), false);
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
-                        {
-                            "size": 0,
-                            "query":{
-                                "bool": {
-                                    "must": [
-                                        {
-                                            "term": {"api-id":"api-id"}
-                                        }
-                                    ]
-                                }
-                            },
-                            "aggs": {
-                                "entrypoints": {
-                                        "terms": {"field":"entrypoint-id.keyword"}
-                                },
-                                "all_apis_status_ranges": {
-                                      "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
-                                }
-                            }
-                        }
-                     """
-            );
+        assertThatJson(result).isEqualTo(
+            """
+               {
+                   "size": 0,
+                   "query":{
+                       "bool": {
+                           "must": [
+                               {
+                                   "term": {"api-id":"api-id"}
+                               }
+                           ]
+                       }
+                   },
+                   "aggs": {
+                       "entrypoints": {
+                               "terms": {"field":"entrypoint-id.keyword"}
+                       },
+                       "all_apis_status_ranges": {
+                             "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
+                       }
+                   }
+               }
+            """
+        );
     }
 }

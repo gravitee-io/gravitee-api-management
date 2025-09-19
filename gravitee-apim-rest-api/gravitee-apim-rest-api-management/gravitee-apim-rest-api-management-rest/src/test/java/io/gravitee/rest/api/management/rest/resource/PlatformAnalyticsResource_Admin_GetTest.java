@@ -49,8 +49,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
                 "DEFAULT",
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     @Test
@@ -67,13 +66,12 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
             .get();
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(permissionService, times(1))
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            );
+        verify(permissionService, times(1)).hasPermission(
+            GraviteeContext.getExecutionContext(),
+            RolePermission.ENVIRONMENT_PLATFORM,
+            "DEFAULT",
+            RolePermissionAction.READ
+        );
         verify(applicationService).findIdsByEnvironment(any(ExecutionContext.class));
     }
 
@@ -90,13 +88,12 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
             .get();
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(permissionService, times(1))
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            );
+        verify(permissionService, times(1)).hasPermission(
+            GraviteeContext.getExecutionContext(),
+            RolePermission.ENVIRONMENT_PLATFORM,
+            "DEFAULT",
+            RolePermissionAction.READ
+        );
         verify(apiAuthorizationServiceV4).findIdsByEnvironment(any());
     }
 
@@ -122,13 +119,12 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
         var body = response.readEntity(HitsAnalytics.class);
         assertEquals(100L, body.getHits());
 
-        verify(permissionService, times(1))
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            );
+        verify(permissionService, times(1)).hasPermission(
+            GraviteeContext.getExecutionContext(),
+            RolePermission.ENVIRONMENT_PLATFORM,
+            "DEFAULT",
+            RolePermissionAction.READ
+        );
         verify(applicationService).findIdsByEnvironment(any(ExecutionContext.class));
     }
 
@@ -153,13 +149,12 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
         var body = response.readEntity(HitsAnalytics.class);
         assertEquals(100L, body.getHits());
 
-        verify(permissionService, times(1))
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            );
+        verify(permissionService, times(1)).hasPermission(
+            GraviteeContext.getExecutionContext(),
+            RolePermission.ENVIRONMENT_PLATFORM,
+            "DEFAULT",
+            RolePermissionAction.READ
+        );
         verify(apiAuthorizationServiceV4).findIdsByEnvironment(any());
     }
 }

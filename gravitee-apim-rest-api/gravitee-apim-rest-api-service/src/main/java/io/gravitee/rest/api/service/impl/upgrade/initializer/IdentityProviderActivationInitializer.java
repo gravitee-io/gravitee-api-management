@@ -58,17 +58,16 @@ public class IdentityProviderActivationInitializer implements Initializer {
             this.identityProviderActivationService.findAllByTarget(defaultEnvTarget).isEmpty()
         ) {
             logger.info("    No activation found. Active all idp on all target by default if enabled.");
-            this.identityProviderService.findAll(executionContext)
-                .forEach(idp -> {
-                    if (idp.isEnabled()) {
-                        this.identityProviderActivationService.activateIdpOnTargets(
-                                executionContext,
-                                idp.getId(),
-                                defaultOrgTarget,
-                                defaultEnvTarget
-                            );
-                    }
-                });
+            this.identityProviderService.findAll(executionContext).forEach(idp -> {
+                if (idp.isEnabled()) {
+                    this.identityProviderActivationService.activateIdpOnTargets(
+                        executionContext,
+                        idp.getId(),
+                        defaultOrgTarget,
+                        defaultEnvTarget
+                    );
+                }
+            });
         }
         return true;
     }

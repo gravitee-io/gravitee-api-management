@@ -115,8 +115,7 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(ScoringRuleset.class)
                 .isEqualTo(
-                    ScoringRuleset
-                        .builder()
+                    ScoringRuleset.builder()
                         .id("ruleset-id")
                         .name("ruleset-name")
                         .description("ruleset-description")
@@ -147,8 +146,7 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
         void should_update_a_ruleset() {
             // Given
             scoringRulesetCrudService.initWith(List.of(ScoringRulesetFixture.aRuleset().withReferenceId(ENVIRONMENT)));
-            UpdateScoringRuleset updateScoringPayload = UpdateScoringRuleset
-                .builder()
+            UpdateScoringRuleset updateScoringPayload = UpdateScoringRuleset.builder()
                 .name("updated-name")
                 .description("updated-description")
                 .build();
@@ -161,8 +159,7 @@ class EnvironmentScoringRulesetResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(ScoringRuleset.class)
                 .isEqualTo(
-                    ScoringRuleset
-                        .builder()
+                    ScoringRuleset.builder()
                         .id("ruleset-id")
                         .name("updated-name")
                         .description("updated-description")

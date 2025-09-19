@@ -61,19 +61,17 @@ public class HealthCheckLogAdapter implements QueryResponseAdapter<HealthCheckLo
 
     private ObjectNode query(HealthCheckLogQuery query) {
         var termFilter = json().set("term", json().put("api", query.apiId()));
-        var rangeFilter = json()
-            .set(
-                "range",
+        var rangeFilter = json().set(
+            "range",
+            json().set(
+                TIME_FIELD,
                 json()
-                    .set(
-                        TIME_FIELD,
-                        json()
-                            .put("from", query.from().toEpochMilli())
-                            .put("to", query.to().toEpochMilli())
-                            .put("include_lower", true)
-                            .put("include_upper", true)
-                    )
-            );
+                    .put("from", query.from().toEpochMilli())
+                    .put("to", query.to().toEpochMilli())
+                    .put("include_lower", true)
+                    .put("include_upper", true)
+            )
+        );
 
         var mustTerm = json();
         query.success().ifPresent(success -> mustTerm.put("success", success));
@@ -87,13 +85,11 @@ public class HealthCheckLogAdapter implements QueryResponseAdapter<HealthCheckLo
     }
 
     private HealthCheckLog toHealthCheckLog(SearchHit hit) {
-        var steps = StreamSupport
-            .stream(((Iterable<JsonNode>) () -> hit.getSource().get("steps").elements()).spliterator(), false)
+        var steps = StreamSupport.stream(((Iterable<JsonNode>) () -> hit.getSource().get("steps").elements()).spliterator(), false)
             .map(this::toStep)
             .toList();
 
-        return HealthCheckLog
-            .builder()
+        return HealthCheckLog.builder()
             .id(hit.getId())
             .timestamp(Instant.parse(hit.getSource().get(TIME_FIELD).asText()).truncatedTo(ChronoUnit.SECONDS))
             .apiId(toText(hit.getSource().get("api")))

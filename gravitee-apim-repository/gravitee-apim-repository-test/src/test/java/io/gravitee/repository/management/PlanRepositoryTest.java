@@ -82,8 +82,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
             .get()
             .usingRecursiveComparison()
             .isEqualTo(
-                Plan
-                    .builder()
+                Plan.builder()
                     .id("plan-v4")
                     .definitionVersion(DefinitionVersion.V4)
                     .name("Free plan")
@@ -341,8 +340,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_create_v4() throws Exception {
-        var toCreate = Plan
-            .builder()
+        var toCreate = Plan.builder()
             .id("a-plan-v4")
             .definitionVersion(DefinitionVersion.V4)
             .name("Plan V4")
@@ -492,7 +490,14 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         List<String> deleted = planRepository.deleteByEnvironmentId("ToBeDeleted");
 
         assertThat(deleted).containsOnly("plan-deleted-1", "plan-deleted-2");
-        assertEquals(0, planRepository.findAll().stream().filter(plan -> "ToBeDeleted".equals(plan.getEnvironmentId())).count());
+        assertEquals(
+            0,
+            planRepository
+                .findAll()
+                .stream()
+                .filter(plan -> "ToBeDeleted".equals(plan.getEnvironmentId()))
+                .count()
+        );
     }
 
     @Test

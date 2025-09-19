@@ -215,8 +215,7 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
 
-        Assertions
-            .assertThat(mockResponse.headers().getAll(HttpHeaderNames.CONNECTION))
+        Assertions.assertThat(mockResponse.headers().getAll(HttpHeaderNames.CONNECTION))
             .hasSize(1)
             .containsExactly(HttpHeadersValues.CONNECTION_CLOSE);
     }

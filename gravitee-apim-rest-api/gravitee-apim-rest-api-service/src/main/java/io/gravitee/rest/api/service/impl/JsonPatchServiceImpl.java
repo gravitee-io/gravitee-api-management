@@ -95,7 +95,7 @@ public class JsonPatchServiceImpl extends AbstractService implements JsonPatchSe
                 return compile.delete(json, CONFIGURATION);
             } else if (JsonPatch.Operation.TEST.equals(jsonPatch.getOperation())) {
                 Object read = compile.read(json, TEST_CONFIGURATION);
-                if (!(read == null && "null".equals(value) || read != null && read.equals(value))) {
+                if (!((read == null && "null".equals(value)) || (read != null && read.equals(value)))) {
                     throw new JsonPatchTestFailedException(jsonPatch);
                 }
             }

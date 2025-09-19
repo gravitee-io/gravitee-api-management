@@ -111,7 +111,7 @@ public class PortalPagesResource extends AbstractResource {
     @Operation(
         summary = "Get the page's content",
         description = "Retrieves the raw content of a portal page by its identifier. " +
-        "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
+            "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
     )
     @ApiResponse(
         responseCode = "200",
@@ -138,7 +138,7 @@ public class PortalPagesResource extends AbstractResource {
     @Operation(
         summary = "List documentation pages",
         description = "Returns documentation pages for the current environment. " +
-        "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
+            "Requires at least the `ENVIRONMENT_DOCUMENTATION.READ` permission."
     )
     @ApiResponse(
         responseCode = "200",

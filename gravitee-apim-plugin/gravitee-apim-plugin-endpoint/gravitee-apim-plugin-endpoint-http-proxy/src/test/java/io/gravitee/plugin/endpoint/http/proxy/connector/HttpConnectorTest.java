@@ -331,10 +331,9 @@ class HttpConnectorTest {
     void shouldExecutePostRequest() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.POST);
         when(request.headers()).thenReturn(HttpHeaders.create().add(TRANSFER_ENCODING, "chunked"));
-        when(request.chunks())
-            .thenReturn(
-                Flowable.just(Buffer.buffer(REQUEST_BODY_CHUNK1), Buffer.buffer(REQUEST_BODY_CHUNK2), Buffer.buffer(REQUEST_BODY_CHUNK3))
-            );
+        when(request.chunks()).thenReturn(
+            Flowable.just(Buffer.buffer(REQUEST_BODY_CHUNK1), Buffer.buffer(REQUEST_BODY_CHUNK2), Buffer.buffer(REQUEST_BODY_CHUNK3))
+        );
 
         wiremock.stubFor(post(urlPathEqualTo("/team")).willReturn(ok(BACKEND_RESPONSE_BODY)));
 
@@ -501,10 +500,9 @@ class HttpConnectorTest {
         when(request.method()).thenReturn(HttpMethod.GET);
 
         wiremock.stubFor(
-            get("/team")
-                .willReturn(
-                    ok(BACKEND_RESPONSE_BODY).withHeader("X-Response-Header", "Value1", "Value2").withHeader("X-Other", "OtherValue")
-                )
+            get("/team").willReturn(
+                ok(BACKEND_RESPONSE_BODY).withHeader("X-Response-Header", "Value1", "Value2").withHeader("X-Other", "OtherValue")
+            )
         );
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
@@ -525,10 +523,9 @@ class HttpConnectorTest {
         when(request.method()).thenReturn(HttpMethod.GET);
 
         wiremock.stubFor(
-            get("/team")
-                .willReturn(
-                    ok(BACKEND_RESPONSE_BODY).withHeader("X-Response-Header", "Value1", "Value2").withHeader("X-Other", "OtherValue")
-                )
+            get("/team").willReturn(
+                ok(BACKEND_RESPONSE_BODY).withHeader("X-Response-Header", "Value1", "Value2").withHeader("X-Other", "OtherValue")
+            )
         );
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
@@ -545,9 +542,8 @@ class HttpConnectorTest {
     void shouldThrowIllegalArgumentExceptionWithNullTarget() {
         configuration.setTarget(null);
 
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory())
+        assertThrows(IllegalArgumentException.class, () ->
+            cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory())
         );
     }
 
@@ -628,8 +624,10 @@ class HttpConnectorTest {
         assertNoTimeout(obs);
         obs.assertComplete();
         verify(tracer, never()).endOnError(any(Span.class), any(Throwable.class));
-        verify(ctx, never())
-            .setInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE), any(ExecutionFailure.class));
+        verify(ctx, never()).setInternalAttribute(
+            eq(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE),
+            any(ExecutionFailure.class)
+        );
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/error")));
     }
 

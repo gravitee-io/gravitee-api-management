@@ -52,8 +52,7 @@ class SharedPolicyGroupMapperTest {
         ReactableSharedPolicyGroup reactableSharedPolicyGroup = new ReactableSharedPolicyGroup();
         reactableSharedPolicyGroup.setId("env-flow-id");
         reactableSharedPolicyGroup.setName("env-flow-name");
-        final DistributedEvent distributedEvent = DistributedEvent
-            .builder()
+        final DistributedEvent distributedEvent = DistributedEvent.builder()
             .id("env-flow-id")
             .payload(objectMapper.writeValueAsString(reactableSharedPolicyGroup))
             .updatedAt(new Date())
@@ -66,11 +65,10 @@ class SharedPolicyGroupMapperTest {
             .test()
             .assertValue(result -> {
                 assertThat(result.sharedPolicyGroupId()).isEqualTo("env-flow-id");
-                assertThat(result.reactableSharedPolicyGroup())
-                    .satisfies(reactable -> {
-                        assertThat(reactable.getId()).isEqualTo("env-flow-id");
-                        assertThat(reactable.getName()).isEqualTo("env-flow-name");
-                    });
+                assertThat(result.reactableSharedPolicyGroup()).satisfies(reactable -> {
+                    assertThat(reactable.getId()).isEqualTo("env-flow-id");
+                    assertThat(reactable.getName()).isEqualTo("env-flow-name");
+                });
                 return true;
             })
             .assertComplete();

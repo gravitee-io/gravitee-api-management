@@ -62,49 +62,44 @@ public class ScoreApiRequestUseCase {
     private final ScoringFunctionQueryService scoringFunctionQueryService;
 
     public Completable execute(Input input) {
-        var pages$ = Flowable
-            .fromIterable(apiDocumentationDomainService.getApiPages(input.apiId, null))
+        var pages$ = Flowable.fromIterable(apiDocumentationDomainService.getApiPages(input.apiId, null))
             .filter(page -> page.isAsyncApi() || page.isSwagger())
             .map(this::assetToScore);
-        var customRulesets$ = Flowable
-            .fromCallable(() ->
-                scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
-            )
+        var customRulesets$ = Flowable.fromCallable(() ->
+            scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
+        )
             .flatMap(Flowable::fromIterable)
             .flatMapMaybe(this::customRuleset)
             .toList();
-        var customFunctions$ = Flowable
-            .fromCallable(() ->
-                scoringFunctionQueryService.findByReference(input.auditInfo.environmentId(), ScoringFunction.ReferenceType.ENVIRONMENT)
-            )
+        var customFunctions$ = Flowable.fromCallable(() ->
+            scoringFunctionQueryService.findByReference(input.auditInfo.environmentId(), ScoringFunction.ReferenceType.ENVIRONMENT)
+        )
             .flatMap(Flowable::fromIterable)
             .map(r -> new ScoreRequest.Function(r.name(), r.payload()))
             .toList();
 
-        var export$ = Flowable
-            .fromCallable(() -> apiExportDomainService.export(input.apiId, input.auditInfo, EnumSet.noneOf(Excludable.class)))
+        var export$ = Flowable.fromCallable(() ->
+            apiExportDomainService.export(input.apiId, input.auditInfo, EnumSet.noneOf(Excludable.class))
+        )
             .map(this::assetToScore)
             // export service throw error in some case (like if API isn't V4)
             .onErrorResumeNext(th -> Flowable.empty());
 
-        return Maybe
-            .fromOptional(apiCrudService.findById(input.apiId()))
+        return Maybe.fromOptional(apiCrudService.findById(input.apiId()))
             .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId())))
             .flatMap(api -> Flowable.merge(pages$, export$).toList())
             .flatMap(assets ->
-                Single
-                    .zip(customRulesets$, customFunctions$, RulesetAndFunctions::new)
-                    .map(entry ->
-                        new ScoreRequest(
-                            UuidString.generateRandom(),
-                            input.auditInfo.organizationId(),
-                            input.auditInfo.environmentId(),
-                            input.apiId,
-                            assets,
-                            entry.rulesets(),
-                            entry.functions()
-                        )
+                Single.zip(customRulesets$, customFunctions$, RulesetAndFunctions::new).map(entry ->
+                    new ScoreRequest(
+                        UuidString.generateRandom(),
+                        input.auditInfo.organizationId(),
+                        input.auditInfo.environmentId(),
+                        input.apiId,
+                        assets,
+                        entry.rulesets(),
+                        entry.functions()
                     )
+                )
             )
             .flatMapCompletable(request -> {
                 var job = newScoringJob(request.jobId(), input.auditInfo, input.apiId, deadLine(request));
@@ -163,8 +158,7 @@ public class ScoreApiRequestUseCase {
 
     public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId, Duration ttl) {
         var now = TimeProvider.now();
-        return AsyncJob
-            .builder()
+        return AsyncJob.builder()
             .id(id)
             .sourceId(apiId)
             .environmentId(auditInfo.environmentId())

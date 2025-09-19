@@ -33,55 +33,52 @@ public class JoltMapperTest {
 
     private JoltMapper mapper;
 
-    private static final String RESPONSE =
-        """
-            {
-                "content": {
-                    "name": "Elysee",
-                    "country": "FRANCE",
-                    "address": "Avenue des Champs-Élysées",
-                    "city": "PARIS",
-                    "stores_id": 1,
-                    "zip_code": "75000",
-                    "gps_x": "48.869729",
-                    "gps_y": "2.307784",
-                    "phone_number": "01 00 00 00 00",
-                    "backend_url": "https://north-europe.company.com/"
-                }
+    private static final String RESPONSE = """
+        {
+            "content": {
+                "name": "Elysee",
+                "country": "FRANCE",
+                "address": "Avenue des Champs-Élysées",
+                "city": "PARIS",
+                "stores_id": 1,
+                "zip_code": "75000",
+                "gps_x": "48.869729",
+                "gps_y": "2.307784",
+                "phone_number": "01 00 00 00 00",
+                "backend_url": "https://north-europe.company.com/"
             }
-            """;
+        }
+        """;
 
-    private static final String SPEC_KEY_VALUE_SIMPLE =
-        """
-            [
-              {
-                "operation": "shift",
-                "spec": {
-                  "content": {
-                    "*": {
-                      "$": "[#2].key",
-                      "@": "[#2].value"
-                    }
-                  }
+    private static final String SPEC_KEY_VALUE_SIMPLE = """
+        [
+          {
+            "operation": "shift",
+            "spec": {
+              "content": {
+                "*": {
+                  "$": "[#2].key",
+                  "@": "[#2].value"
                 }
               }
-            ]""";
+            }
+          }
+        ]""";
 
-    private static final String SPEC_VALUE_AS_KEY =
-        """
-            [
-              {
-                "operation": "shift",
-                "spec": {
-                  "content": {
-                    "*": {
-                      "$": "[#2].value",
-                      "@": "[#2].key"
-                    }
-                  }
+    private static final String SPEC_VALUE_AS_KEY = """
+        [
+          {
+            "operation": "shift",
+            "spec": {
+              "content": {
+                "*": {
+                  "$": "[#2].value",
+                  "@": "[#2].key"
                 }
               }
-            ]""";
+            }
+          }
+        ]""";
 
     @Test
     public void shouldReturnPropertiesWithValueAsKey() throws IOException {
@@ -90,7 +87,15 @@ public class JoltMapperTest {
         Collection<Property> properties = mapper.map(RESPONSE);
         assertEquals(properties.size(), 10);
         // Should stringify input number value if used as key
-        assertEquals(properties.stream().filter(p -> p.getKey().equals("1")).findFirst().get().getValue(), "stores_id");
+        assertEquals(
+            properties
+                .stream()
+                .filter(p -> p.getKey().equals("1"))
+                .findFirst()
+                .get()
+                .getValue(),
+            "stores_id"
+        );
     }
 
     @Test
@@ -100,6 +105,14 @@ public class JoltMapperTest {
         Collection<Property> properties = mapper.map(RESPONSE);
         assertEquals(properties.size(), 10);
         // Should stringify input number value if used as value
-        assertEquals(properties.stream().filter(p -> p.getKey().equals("stores_id")).findFirst().get().getValue(), "1");
+        assertEquals(
+            properties
+                .stream()
+                .filter(p -> p.getKey().equals("stores_id"))
+                .findFirst()
+                .get()
+                .getValue(),
+            "1"
+        );
     }
 }

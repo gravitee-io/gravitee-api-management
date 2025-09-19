@@ -48,12 +48,11 @@ public class CorsV3IntegrationTest extends CorsV4EmulationIntegrationTest {
                 )
                 .flatMapPublisher(response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response))
-                        .contains(
-                            Map.entry("Access-Control-Allow-Origin", "https://mydomain.com"),
-                            Map.entry("Access-Control-Allow-Methods", "POST, GET"),
-                            Map.entry("Access-Control-Allow-Headers", "x-gravitee-test")
-                        );
+                    assertThat(extractHeaders(response)).contains(
+                        Map.entry("Access-Control-Allow-Origin", "https://mydomain.com"),
+                        Map.entry("Access-Control-Allow-Methods", "POST, GET"),
+                        Map.entry("Access-Control-Allow-Headers", "x-gravitee-test")
+                    );
                     return response.toFlowable();
                 })
                 .test()
@@ -78,8 +77,11 @@ public class CorsV3IntegrationTest extends CorsV4EmulationIntegrationTest {
                 )
                 .flatMapPublisher(response -> {
                     assertThat(response.statusCode()).isEqualTo(expectedStatus);
-                    assertThat(extractHeaders(response))
-                        .doesNotContainKeys("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers");
+                    assertThat(extractHeaders(response)).doesNotContainKeys(
+                        "Access-Control-Allow-Origin",
+                        "Access-Control-Allow-Methods",
+                        "Access-Control-Allow-Headers"
+                    );
                     return response.toFlowable();
                 })
                 .test()

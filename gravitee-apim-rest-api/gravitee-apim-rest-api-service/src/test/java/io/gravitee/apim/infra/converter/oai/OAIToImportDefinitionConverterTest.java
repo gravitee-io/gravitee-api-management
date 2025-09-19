@@ -341,32 +341,28 @@ class OAIToImportDefinitionConverterTest {
                     .containsExactlyElementsOf(
                         List.of(
                             ConditionSelector.builder().condition("").build(),
-                            HttpSelector
-                                .builder()
+                            HttpSelector.builder()
                                 .path("/pets")
                                 .pathOperator(Operator.EQUALS)
                                 .type(SelectorType.HTTP)
                                 .methods(Set.of(HttpMethod.GET))
                                 .build(),
                             ConditionSelector.builder().condition("").build(),
-                            HttpSelector
-                                .builder()
+                            HttpSelector.builder()
                                 .path("/pets")
                                 .pathOperator(Operator.EQUALS)
                                 .type(SelectorType.HTTP)
                                 .methods(Set.of(HttpMethod.POST))
                                 .build(),
                             ConditionSelector.builder().condition("").build(),
-                            HttpSelector
-                                .builder()
+                            HttpSelector.builder()
                                 .path("/pets/:petId")
                                 .pathOperator(Operator.EQUALS)
                                 .type(SelectorType.HTTP)
                                 .methods(Set.of(HttpMethod.GET))
                                 .build(),
                             ConditionSelector.builder().condition("").build(),
-                            HttpSelector
-                                .builder()
+                            HttpSelector.builder()
                                 .path("/pets/:petId")
                                 .pathOperator(Operator.EQUALS)
                                 .type(SelectorType.HTTP)
@@ -641,15 +637,13 @@ class OAIToImportDefinitionConverterTest {
                     .assertThat(result.getMetadata())
                     .containsExactlyInAnyOrderElementsOf(
                         Set.of(
-                            NewApiMetadata
-                                .builder()
+                            NewApiMetadata.builder()
                                 .key("meta1")
                                 .name("meta1")
                                 .value("1234")
                                 .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.NUMERIC)
                                 .build(),
-                            NewApiMetadata
-                                .builder()
+                            NewApiMetadata.builder()
                                 .key("meta2")
                                 .name("meta2")
                                 .value("metaValue2")

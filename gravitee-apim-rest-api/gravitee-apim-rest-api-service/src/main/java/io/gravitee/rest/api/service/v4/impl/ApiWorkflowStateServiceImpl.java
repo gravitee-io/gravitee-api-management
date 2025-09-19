@@ -173,13 +173,13 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
             List<String> reviewersEmail = findAllReviewersEmail(executionContext, genericApiEntity);
             if (reviewersEmail.size() > 0) {
                 this.emailService.sendAsyncEmailNotification(
-                        executionContext,
-                        new EmailNotificationBuilder()
-                            .params(new NotificationParamsBuilder().api(genericApiEntity).user(user).build())
-                            .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
-                            .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
-                            .build()
-                    );
+                    executionContext,
+                    new EmailNotificationBuilder()
+                        .params(new NotificationParamsBuilder().api(genericApiEntity).user(user).build())
+                        .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
+                        .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
+                        .build()
+                );
             }
         }
 
@@ -215,8 +215,11 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
             .stream()
             .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
             .flatMap(role ->
-                this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.API, genericApiEntity.getId(), role.getId())
-                    .stream()
+                this.membershipService.getMembershipsByReferenceAndRole(
+                    MembershipReferenceType.API,
+                    genericApiEntity.getId(),
+                    role.getId()
+                ).stream()
             )
             .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
             .map(MembershipEntity::getMemberId)
@@ -237,8 +240,11 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
                         .stream()
                         .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
                         .flatMap(role ->
-                            this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.GROUP, group, role.getId())
-                                .stream()
+                            this.membershipService.getMembershipsByReferenceAndRole(
+                                MembershipReferenceType.GROUP,
+                                group,
+                                role.getId()
+                            ).stream()
                         )
                         .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
                         .map(MembershipEntity::getMemberId)

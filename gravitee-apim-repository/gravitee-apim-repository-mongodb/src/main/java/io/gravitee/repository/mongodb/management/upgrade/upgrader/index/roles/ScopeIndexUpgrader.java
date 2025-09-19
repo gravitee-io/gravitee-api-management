@@ -27,8 +27,7 @@ public class ScopeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("roles")
             .name("s1")
             .key("scope", ascending())

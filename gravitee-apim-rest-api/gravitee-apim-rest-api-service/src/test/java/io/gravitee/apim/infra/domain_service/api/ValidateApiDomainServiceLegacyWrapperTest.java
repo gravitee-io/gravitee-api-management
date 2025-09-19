@@ -70,8 +70,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ValidateApiDomainServiceLegacyWrapperTest {
 
-    private static final PrimaryOwnerEntity PRIMARY_OWNER = PrimaryOwnerEntity
-        .builder()
+    private static final PrimaryOwnerEntity PRIMARY_OWNER = PrimaryOwnerEntity.builder()
         .id("primary-owner-id")
         .displayName("John Doe")
         .email("john.doe@example.com")
@@ -118,27 +117,23 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             Api api = ApiFixtures.aProxyApiV4();
             service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
-            verify(apiValidationService)
-                .validateAndSanitizeNewApi(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApiAdapter.INSTANCE.toNewApiEntity(api)),
-                    eq(PrimaryOwnerAdapter.INSTANCE.toRestEntity(PRIMARY_OWNER))
-                );
+            verify(apiValidationService).validateAndSanitizeNewApi(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiAdapter.INSTANCE.toNewApiEntity(api)),
+                eq(PrimaryOwnerAdapter.INSTANCE.toRestEntity(PRIMARY_OWNER))
+            );
         }
 
         @Test
         void should_update_api_with_sanitized_value() {
-            var api = ApiFixtures
-                .aProxyApiV4()
+            var api = ApiFixtures.aProxyApiV4()
                 .toBuilder()
                 .apiDefinitionHttpV4(
-                    ApiFixtures
-                        .aProxyApiV4()
+                    ApiFixtures.aProxyApiV4()
                         .getApiDefinitionHttpV4()
                         .toBuilder()
                         .services(
-                            ApiServices
-                                .builder()
+                            ApiServices.builder()
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
                                 .build()
                         )
@@ -146,29 +141,29 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 )
                 .build();
             doAnswer(invocation -> {
-                    NewApiEntity entity = invocation.getArgument(1);
-                    entity.setName("sanitized");
-                    entity.setApiVersion("sanitized");
-                    entity.setType(ApiType.MESSAGE);
-                    entity.setDescription("sanitized");
-                    entity.setGroups(Set.of("sanitized"));
-                    entity.setTags(Set.of("sanitized"));
-                    entity.setListeners(List.of());
-                    entity.setEndpointGroups(List.of());
-                    entity.setAnalytics(Analytics.builder().enabled(true).build());
-                    entity.setFlowExecution(null);
-                    entity.setFlows(List.of(FlowFixtures.aSimpleFlowV4()));
+                NewApiEntity entity = invocation.getArgument(1);
+                entity.setName("sanitized");
+                entity.setApiVersion("sanitized");
+                entity.setType(ApiType.MESSAGE);
+                entity.setDescription("sanitized");
+                entity.setGroups(Set.of("sanitized"));
+                entity.setTags(Set.of("sanitized"));
+                entity.setListeners(List.of());
+                entity.setEndpointGroups(List.of());
+                entity.setAnalytics(Analytics.builder().enabled(true).build());
+                entity.setFlowExecution(null);
+                entity.setFlows(List.of(FlowFixtures.aSimpleFlowV4()));
 
-                    return null;
-                })
+                return null;
+            })
                 .when(apiValidationService)
                 .validateAndSanitizeNewApi(any(), any(), any());
 
             doAnswer(invocation -> {
-                    Service dynamicProperties = invocation.getArgument(0);
-                    dynamicProperties.setConfiguration("sanitized");
-                    return null;
-                })
+                Service dynamicProperties = invocation.getArgument(0);
+                dynamicProperties.setConfiguration("sanitized");
+                return null;
+            })
                 .when(apiValidationService)
                 .validateDynamicProperties(any());
 
@@ -178,8 +173,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
             var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
-            CoreAssertions
-                .assertThat(result)
+            CoreAssertions.assertThat(result)
                 .hasName("sanitized")
                 .hasVersion("sanitized")
                 .hasType(ApiType.MESSAGE)
@@ -224,18 +218,15 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
         @Test
         void should_update_api_with_sanitized_value() {
-            var api = ApiFixtures
-                .aNativeApi()
+            var api = ApiFixtures.aNativeApi()
                 .toBuilder()
                 .description("sani<img src=\"../../../image.png\">tized")
                 .apiDefinitionNativeV4(
-                    ApiFixtures
-                        .aNativeApi()
+                    ApiFixtures.aNativeApi()
                         .getApiDefinitionNativeV4()
                         .toBuilder()
                         .services(
-                            NativeApiServices
-                                .builder()
+                            NativeApiServices.builder()
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
                                 .build()
                         )
@@ -243,35 +234,40 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 )
                 .build();
 
-            doAnswer(invocation -> Set.of("sanitized")).when(tagsValidationService).validateAndSanitize(any(), any(), any());
+            doAnswer(invocation -> Set.of("sanitized"))
+                .when(tagsValidationService)
+                .validateAndSanitize(any(), any(), any());
 
-            doAnswer(invocation -> Set.of("sanitized")).when(groupValidationService).validateAndSanitize(any(), any(), any(), anyBoolean());
+            doAnswer(invocation -> Set.of("sanitized"))
+                .when(groupValidationService)
+                .validateAndSanitize(any(), any(), any(), anyBoolean());
 
-            doAnswer(invocationOnMock -> Set.of("sanitized")).when(categoryDomainService).toCategoryId(any(), any());
+            doAnswer(invocationOnMock -> Set.of("sanitized"))
+                .when(categoryDomainService)
+                .toCategoryId(any(), any());
 
             doAnswer(invocation ->
-                    List.of(KafkaListener.builder().entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build())).build())
-                )
+                List.of(KafkaListener.builder().entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build())).build())
+            )
                 .when(listenerValidationService)
                 .validateAndSanitizeNativeV4(any(), any(), any(), any());
 
             doAnswer(invocation ->
-                    List.of(
-                        NativeEndpointGroup
-                            .builder()
-                            .type("sanitized")
-                            .endpoints(List.of(NativeEndpoint.builder().name("sanitized").type("sanitized").build()))
-                            .build()
-                    )
+                List.of(
+                    NativeEndpointGroup.builder()
+                        .type("sanitized")
+                        .endpoints(List.of(NativeEndpoint.builder().name("sanitized").type("sanitized").build()))
+                        .build()
                 )
+            )
                 .when(endpointGroupsValidationService)
                 .validateAndSanitizeNativeV4(any());
 
             doAnswer(invocation -> {
-                    Service dynamicProperties = invocation.getArgument(0);
-                    dynamicProperties.setConfiguration("sanitized");
-                    return null;
-                })
+                Service dynamicProperties = invocation.getArgument(0);
+                dynamicProperties.setConfiguration("sanitized");
+                return null;
+            })
                 .when(apiValidationService)
                 .validateDynamicProperties(any());
 
@@ -281,8 +277,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
             var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
-            CoreAssertions
-                .assertThat(result)
+            CoreAssertions.assertThat(result)
                 .hasName(api.getName())
                 .hasVersion(api.getVersion())
                 .hasType(ApiType.NATIVE)
@@ -354,19 +349,16 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
         @Test
         void should_update_api_with_sanitized_value() {
-            var exisitingApi = ApiFixtures
-                .aNativeApi()
+            var exisitingApi = ApiFixtures.aNativeApi()
                 .toBuilder()
                 .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
                 .description("old description")
                 .apiDefinitionNativeV4(
-                    ApiFixtures
-                        .aNativeApi()
+                    ApiFixtures.aNativeApi()
                         .getApiDefinitionNativeV4()
                         .toBuilder()
                         .services(
-                            NativeApiServices
-                                .builder()
+                            NativeApiServices.builder()
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
                                 .build()
                         )
@@ -374,19 +366,16 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 )
                 .build();
 
-            var newApi = ApiFixtures
-                .aNativeApi()
+            var newApi = ApiFixtures.aNativeApi()
                 .toBuilder()
                 .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
                 .description("sani<img src=\"../../../image.png\">tized")
                 .apiDefinitionNativeV4(
-                    ApiFixtures
-                        .aNativeApi()
+                    ApiFixtures.aNativeApi()
                         .getApiDefinitionNativeV4()
                         .toBuilder()
                         .services(
-                            NativeApiServices
-                                .builder()
+                            NativeApiServices.builder()
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
                                 .build()
                         )
@@ -395,33 +384,36 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 )
                 .build();
 
-            doAnswer(invocation -> Set.of("sanitized")).when(tagsValidationService).validateAndSanitize(any(), any(), any());
+            doAnswer(invocation -> Set.of("sanitized"))
+                .when(tagsValidationService)
+                .validateAndSanitize(any(), any(), any());
 
-            doAnswer(invocation -> Set.of("sanitized")).when(groupValidationService).validateAndSanitize(any(), any(), any(), anyBoolean());
+            doAnswer(invocation -> Set.of("sanitized"))
+                .when(groupValidationService)
+                .validateAndSanitize(any(), any(), any(), anyBoolean());
 
             doAnswer(invocation ->
-                    List.of(KafkaListener.builder().entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build())).build())
-                )
+                List.of(KafkaListener.builder().entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build())).build())
+            )
                 .when(listenerValidationService)
                 .validateAndSanitizeNativeV4(any(), any(), any(), any());
 
             doAnswer(invocation ->
-                    List.of(
-                        NativeEndpointGroup
-                            .builder()
-                            .type("sanitized")
-                            .endpoints(List.of(NativeEndpoint.builder().name("sanitized").type("sanitized").build()))
-                            .build()
-                    )
+                List.of(
+                    NativeEndpointGroup.builder()
+                        .type("sanitized")
+                        .endpoints(List.of(NativeEndpoint.builder().name("sanitized").type("sanitized").build()))
+                        .build()
                 )
+            )
                 .when(endpointGroupsValidationService)
                 .validateAndSanitizeNativeV4(any());
 
             doAnswer(invocation -> {
-                    Service dynamicProperties = invocation.getArgument(0);
-                    dynamicProperties.setConfiguration("sanitized");
-                    return null;
-                })
+                Service dynamicProperties = invocation.getArgument(0);
+                dynamicProperties.setConfiguration("sanitized");
+                return null;
+            })
                 .when(apiValidationService)
                 .validateDynamicProperties(any());
 
@@ -430,15 +422,17 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .validateAndSanitizeNativeV4(any());
 
             var sanitizedResources = List.of(Resource.builder().name("sanitized").build());
-            doAnswer(invocation -> sanitizedResources).when(resourcesValidationService).validateAndSanitize(any());
+            doAnswer(invocation -> sanitizedResources)
+                .when(resourcesValidationService)
+                .validateAndSanitize(any());
 
-            when(apiLifecycleStateDomainService.validateAndSanitizeForUpdate(any(), any(), any()))
-                .thenReturn(Api.ApiLifecycleState.PUBLISHED);
+            when(apiLifecycleStateDomainService.validateAndSanitizeForUpdate(any(), any(), any())).thenReturn(
+                Api.ApiLifecycleState.PUBLISHED
+            );
 
             var result = service.validateAndSanitizeForUpdate(exisitingApi, newApi, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
-            CoreAssertions
-                .assertThat(result)
+            CoreAssertions.assertThat(result)
                 .hasName(newApi.getName())
                 .hasVersion(newApi.getVersion())
                 .hasApiLifecycleState(Api.ApiLifecycleState.PUBLISHED)

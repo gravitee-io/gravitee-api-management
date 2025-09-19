@@ -46,8 +46,7 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
 
     @Override
     protected JdbcObjectMapper<Dashboard> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Dashboard.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Dashboard.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, String.class)
@@ -90,10 +89,10 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " where reference_type = ? and reference_id = ? and " +
-                escapeReservedWord("type") +
-                "= ? order by " +
-                escapeReservedWord("order"),
+                    " where reference_type = ? and reference_id = ? and " +
+                    escapeReservedWord("type") +
+                    "= ? order by " +
+                    escapeReservedWord("order"),
                 getOrm().getRowMapper(),
                 referenceType,
                 referenceId,

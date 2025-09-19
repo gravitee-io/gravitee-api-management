@@ -27,8 +27,7 @@ public class SharedPolicyGroupFixtures {
 
     private SharedPolicyGroupFixtures() {}
 
-    private static final CreateSharedPolicyGroup.CreateSharedPolicyGroupBuilder CREATE_BASE = CreateSharedPolicyGroup
-        .builder()
+    private static final CreateSharedPolicyGroup.CreateSharedPolicyGroupBuilder CREATE_BASE = CreateSharedPolicyGroup.builder()
         .name("My Shared Policy Group")
         .apiType(ApiType.PROXY)
         .phase(FlowPhase.REQUEST);
@@ -37,8 +36,7 @@ public class SharedPolicyGroupFixtures {
         return CREATE_BASE.build();
     }
 
-    private static final UpdateSharedPolicyGroup.UpdateSharedPolicyGroupBuilder UPDATE_BASE = UpdateSharedPolicyGroup
-        .builder()
+    private static final UpdateSharedPolicyGroup.UpdateSharedPolicyGroupBuilder UPDATE_BASE = UpdateSharedPolicyGroup.builder()
         .name("My Shared Policy Group updated")
         .description("My Shared Policy Group description updated");
 
@@ -46,8 +44,7 @@ public class SharedPolicyGroupFixtures {
         return UPDATE_BASE.build();
     }
 
-    private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD
-        .builder()
+    private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD.builder()
         .crossId(UUID.random().toString())
         .name("My Shared Policy Group CRD")
         .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)

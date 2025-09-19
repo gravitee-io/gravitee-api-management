@@ -41,8 +41,7 @@ public class JsonMapperFactory {
     }
 
     public static JsonMapper.Builder jsonBuilder() {
-        return JsonMapper
-            .builder()
+        return JsonMapper.builder()
             .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             // Deserialization features

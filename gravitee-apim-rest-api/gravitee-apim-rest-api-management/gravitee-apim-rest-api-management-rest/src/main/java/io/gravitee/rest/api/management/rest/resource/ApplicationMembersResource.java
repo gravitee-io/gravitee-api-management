@@ -99,13 +99,12 @@ public class ApplicationMembersResource extends AbstractResource {
             } else {
                 final String username = getAuthenticatedUser();
                 final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-                permissions =
-                    membershipService.getUserMemberPermissions(
-                        executionContext,
-                        MembershipReferenceType.APPLICATION,
-                        application,
-                        username
-                    );
+                permissions = membershipService.getUserMemberPermissions(
+                    executionContext,
+                    MembershipReferenceType.APPLICATION,
+                    application,
+                    username
+                );
             }
         }
         return Response.ok(permissions).build();

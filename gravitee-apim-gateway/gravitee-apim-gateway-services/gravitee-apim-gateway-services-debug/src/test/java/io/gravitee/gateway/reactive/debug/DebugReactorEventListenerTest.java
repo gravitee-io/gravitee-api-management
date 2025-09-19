@@ -115,19 +115,18 @@ class DebugReactorEventListenerTest {
     public void beforeEach() {
         eventManager = new EventManagerImpl();
         debugHttpClientConfiguration = VertxDebugHttpClientConfiguration.builder().build();
-        debugReactorEventListener =
-            spy(
-                new DebugReactorEventListener(
-                    vertx,
-                    eventManager,
-                    eventRepository,
-                    objectMapper,
-                    debugHttpClientConfiguration,
-                    reactorHandlerRegistry,
-                    accessPointManager,
-                    dataEncryptor
-                )
-            );
+        debugReactorEventListener = spy(
+            new DebugReactorEventListener(
+                vertx,
+                eventManager,
+                eventRepository,
+                objectMapper,
+                debugHttpClientConfiguration,
+                reactorHandlerRegistry,
+                accessPointManager,
+                dataEncryptor
+            )
+        );
     }
 
     @Test
@@ -490,11 +489,13 @@ class DebugReactorEventListenerTest {
 
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1))
-            .contains(
-                argThat(debugApi ->
-                    ((DebugApi) debugApi).getDefinition().getPlans().stream().noneMatch(plan -> plan.getStatus().equals("CLOSED"))
-                )
-            );
+        verify(reactorHandlerRegistry, times(1)).contains(
+            argThat(debugApi ->
+                ((DebugApi) debugApi).getDefinition()
+                    .getPlans()
+                    .stream()
+                    .noneMatch(plan -> plan.getStatus().equals("CLOSED"))
+            )
+        );
     }
 }

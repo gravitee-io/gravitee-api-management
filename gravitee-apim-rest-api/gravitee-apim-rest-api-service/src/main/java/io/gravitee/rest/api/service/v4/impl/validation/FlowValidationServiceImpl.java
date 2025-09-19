@@ -125,8 +125,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
     }
 
     private void checkPolicyConfiguration(final Flow flow) {
-        Stream
-            .of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
+        Stream.of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)

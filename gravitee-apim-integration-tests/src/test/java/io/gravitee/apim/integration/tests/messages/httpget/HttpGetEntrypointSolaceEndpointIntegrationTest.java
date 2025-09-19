@@ -137,8 +137,7 @@ class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpo
             .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
             .flatMap(response -> {
                 final DirectMessagePublisher publisher = messagingService.createDirectMessagePublisherBuilder().build();
-                return Completable
-                    .fromCompletionStage(publisher.startAsync())
+                return Completable.fromCompletionStage(publisher.startAsync())
                     .andThen(
                         Completable.fromRunnable(() -> {
                             Topic topic1 = Topic.of(topic);
@@ -174,8 +173,7 @@ class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpo
             .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
             .flatMap(response -> {
                 final DirectMessagePublisher publisher = messagingService.createDirectMessagePublisherBuilder().build();
-                return Completable
-                    .fromCompletionStage(publisher.startAsync())
+                return Completable.fromCompletionStage(publisher.startAsync())
                     .andThen(
                         Completable.fromRunnable(() -> {
                             Topic topic1 = Topic.of(topic);
@@ -220,8 +218,9 @@ class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpo
             .awaitDone(30, TimeUnit.SECONDS)
             .assertValue(body -> {
                 final JsonObject jsonResponse = new JsonObject(body.toString());
-                assertThat(jsonResponse.getString("message"))
-                    .isEqualTo("Incompatible Qos capabilities between entrypoint requirements and endpoint supports");
+                assertThat(jsonResponse.getString("message")).isEqualTo(
+                    "Incompatible Qos capabilities between entrypoint requirements and endpoint supports"
+                );
                 assertThat(jsonResponse.getInteger("http_status_code")).isEqualTo(400);
                 return true;
             });

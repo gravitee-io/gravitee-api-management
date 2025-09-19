@@ -49,8 +49,7 @@ public abstract class AbstractService extends TransactionalService {
         UserDetails authenticatedUser = getAuthenticatedUser();
         return authenticatedUser == null
             ? null
-            : AuditActor
-                .builder()
+            : AuditActor.builder()
                 .userId(getAuthenticatedUser().getUsername())
                 .userSource(getAuthenticatedUser().getSource())
                 .userSourceId(getAuthenticatedUser().getSourceId())
@@ -69,8 +68,7 @@ public abstract class AbstractService extends TransactionalService {
     }
 
     private boolean isUserInRole(final String role) {
-        return SecurityContextHolder
-            .getContext()
+        return SecurityContextHolder.getContext()
             .getAuthentication()
             .getAuthorities()
             .stream()

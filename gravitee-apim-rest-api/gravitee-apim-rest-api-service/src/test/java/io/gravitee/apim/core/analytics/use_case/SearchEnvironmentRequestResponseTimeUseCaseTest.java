@@ -71,23 +71,20 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
                 ApiFixtures.aProxyApiV4().toBuilder().id("other-env-proxy-api-v4-id").environmentId("other-env").build()
             )
         );
-        var input = SearchEnvironmentRequestResponseTimeUseCase.Input
-            .builder()
+        var input = SearchEnvironmentRequestResponseTimeUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchRequestResponseTime(any(), any()))
-            .thenReturn(
-                RequestResponseTime
-                    .builder()
-                    .requestsPerSecond(3.7d)
-                    .requestsTotal(25600L)
-                    .responseMinTime(32.5d)
-                    .responseMaxTime(1220.87d)
-                    .responseAvgTime(159.2d)
-                    .build()
-            );
+        when(analyticsQueryService.searchRequestResponseTime(any(), any())).thenReturn(
+            RequestResponseTime.builder()
+                .requestsPerSecond(3.7d)
+                .requestsTotal(25600L)
+                .responseMinTime(32.5d)
+                .responseMaxTime(1220.87d)
+                .responseAvgTime(159.2d)
+                .build()
+        );
 
         var result = cut.execute(input).requestResponseTime();
 
@@ -97,8 +94,7 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
             softAssertions
                 .assertThat(argumentCaptor.getValue())
                 .isEqualTo(
-                    AnalyticsQueryParameters
-                        .builder()
+                    AnalyticsQueryParameters.builder()
                         .from(FROM)
                         .to(TO)
                         .apiIds(List.of("proper-env-proxy-api-v4-id"))
@@ -111,8 +107,7 @@ class SearchEnvironmentRequestResponseTimeUseCaseTest {
                 .isNotNull()
                 .get()
                 .isEqualTo(
-                    RequestResponseTime
-                        .builder()
+                    RequestResponseTime.builder()
                         .requestsPerSecond(3.7d)
                         .requestsTotal(25600L)
                         .responseMinTime(32.5d)

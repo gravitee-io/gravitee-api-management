@@ -80,15 +80,14 @@ class DisableEnvironmentCommandHandlerTest {
 
     @BeforeEach
     void setUp() {
-        cut =
-            new DisableEnvironmentCommandHandler(
-                environmentService,
-                apiStateService,
-                apiRepository,
-                accessPointService,
-                idpActivationService,
-                dictionaryService
-            );
+        cut = new DisableEnvironmentCommandHandler(
+            environmentService,
+            apiStateService,
+            apiRepository,
+            accessPointService,
+            idpActivationService,
+            dictionaryService
+        );
     }
 
     @Test
@@ -107,8 +106,7 @@ class DisableEnvironmentCommandHandlerTest {
                 eq(new ApiCriteria.Builder().environmentId(ENV_APIM_ID).state(LifecycleState.STARTED).build()),
                 any(ApiFieldFilter.class)
             )
-        )
-            .thenReturn(List.of(Api.builder().id(API_ID).build()));
+        ).thenReturn(List.of(Api.builder().id(API_ID).build()));
         when(dictionaryService.findAll(context)).thenReturn(Set.of(dictionary));
 
         cut
@@ -120,11 +118,10 @@ class DisableEnvironmentCommandHandlerTest {
         verify(apiStateService).stop(eq(context), eq(API_ID), eq(USER_ID));
         verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, ENV_APIM_ID);
         verify(dictionaryService).stop(context, DICTIONARY_ID);
-        verify(idpActivationService)
-            .removeAllIdpsFromTarget(
-                eq(context),
-                eq(new IdentityProviderActivationService.ActivationTarget(ENV_APIM_ID, IdentityProviderActivationReferenceType.ENVIRONMENT))
-            );
+        verify(idpActivationService).removeAllIdpsFromTarget(
+            eq(context),
+            eq(new IdentityProviderActivationService.ActivationTarget(ENV_APIM_ID, IdentityProviderActivationReferenceType.ENVIRONMENT))
+        );
     }
 
     @Test

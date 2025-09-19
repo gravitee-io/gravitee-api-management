@@ -29,8 +29,7 @@ public class QueryParamExceptionMapper extends AbstractExceptionMapper<QueryPara
     @Override
     public Response toResponse(final QueryParamException e) {
         final Response.Status error = Response.Status.BAD_REQUEST;
-        return Response
-            .status(error)
+        return Response.status(error)
             .type(MediaType.APPLICATION_JSON_TYPE)
             .entity(convert(error.getStatusCode(), e.getCause().getMessage(), "queryParam", null))
             .build();

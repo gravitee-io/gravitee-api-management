@@ -144,9 +144,9 @@ public abstract class AbstractRabbitMQEndpointIntegrationTest extends AbstractGa
     }
 
     protected Completable publishToRabbitMQ(Flux<OutboundMessage> messages, final long delay) {
-        return RxJava3Adapter
-            .fluxToFlowable(sender.sendWithPublishConfirms(messages).delaySubscription(Duration.ofMillis(delay)))
-            .ignoreElements();
+        return RxJava3Adapter.fluxToFlowable(
+            sender.sendWithPublishConfirms(messages).delaySubscription(Duration.ofMillis(delay))
+        ).ignoreElements();
     }
 
     private void initSenderAndReceiverForTest() {

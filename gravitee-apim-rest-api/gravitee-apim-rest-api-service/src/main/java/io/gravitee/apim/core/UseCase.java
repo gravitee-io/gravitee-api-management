@@ -50,5 +50,4 @@ import org.springframework.transaction.annotation.Transactional;
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Transactional(value = "graviteeTransactionManager", noRollbackFor = AbstractManagementException.class)
-public @interface UseCase {
-}
+public @interface UseCase {}

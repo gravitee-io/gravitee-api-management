@@ -61,8 +61,7 @@ import org.slf4j.LoggerFactory;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DefaultSharedPolicyGroupPolicyChainFactoryTest {
 
-    public static final Step STEP_FOR_ALREADY_REGISTERED_CHAIN = Step
-        .builder()
+    public static final Step STEP_FOR_ALREADY_REGISTERED_CHAIN = Step.builder()
         .name("in-a-registered-chain")
         .policy("policy")
         .enabled(true)
@@ -131,15 +130,18 @@ class DefaultSharedPolicyGroupPolicyChainFactoryTest {
             if (isSharedPolicyGroup && step.isEnabled()) {
                 nestedSharedPolicyGroupLog++;
             }
-            verify(policyManager, step.isEnabled() && !isSharedPolicyGroup ? times(1) : never())
-                .create(eq(phase), argThat(policyMetadata -> policyMetadata.getName().equals(step.getPolicy())));
+            verify(policyManager, step.isEnabled() && !isSharedPolicyGroup ? times(1) : never()).create(
+                eq(phase),
+                argThat(policyMetadata -> policyMetadata.getName().equals(step.getPolicy()))
+            );
         }
 
         assertThat(listAppender.list)
             .hasSize(nestedSharedPolicyGroupLog)
-            .allMatch(log ->
-                log.getLevel().equals(Level.WARN) &&
-                log.getMessage().equals("Nested Shared Policy Group is not supported. The Shared Policy Group {} will be ignored")
+            .allMatch(
+                log ->
+                    log.getLevel().equals(Level.WARN) &&
+                    log.getMessage().equals("Nested Shared Policy Group is not supported. The Shared Policy Group {} will be ignored")
             );
     }
 

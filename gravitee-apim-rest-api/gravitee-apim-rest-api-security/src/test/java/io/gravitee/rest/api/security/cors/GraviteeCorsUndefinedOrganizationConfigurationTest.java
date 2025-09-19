@@ -72,17 +72,18 @@ public class GraviteeCorsUndefinedOrganizationConfigurationTest {
     public void beforeEach() {
         GraviteeContext.fromExecutionContext(new ExecutionContext());
 
-        lenient().when(environment.getProperty(any(), eq(String.class), anyString())).thenAnswer(invocation -> invocation.getArgument(2));
+        lenient()
+            .when(environment.getProperty(any(), eq(String.class), anyString()))
+            .thenAnswer(invocation -> invocation.getArgument(2));
         eventManager = new EventManagerImpl();
-        cut =
-            new GraviteeCorsConfiguration(
-                environment,
-                parameterService,
-                installationAccessQueryService,
-                eventManager,
-                GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
-                ORGANIZATION_TYPE
-            );
+        cut = new GraviteeCorsConfiguration(
+            environment,
+            parameterService,
+            installationAccessQueryService,
+            eventManager,
+            GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
+            ORGANIZATION_TYPE
+        );
     }
 
     @AfterEach
@@ -92,30 +93,44 @@ public class GraviteeCorsUndefinedOrganizationConfigurationTest {
 
     @Test
     void should_initialize_fields_from_default_value() {
-        verify(environment, times(1))
-            .getProperty(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN.key(), String.class, Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN.defaultValue());
-        verify(environment, times(1))
-            .getProperty(Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS.key(), String.class, Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS.defaultValue());
-        verify(environment, times(1))
-            .getProperty(Key.CONSOLE_HTTP_CORS_ALLOW_METHODS.key(), String.class, Key.CONSOLE_HTTP_CORS_ALLOW_METHODS.defaultValue());
-        verify(environment, times(1))
-            .getProperty(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS.key(), String.class, Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS.defaultValue());
-        verify(environment, times(1))
-            .getProperty(Key.CONSOLE_HTTP_CORS_MAX_AGE.key(), String.class, Key.CONSOLE_HTTP_CORS_MAX_AGE.defaultValue());
+        verify(environment, times(1)).getProperty(
+            Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN.key(),
+            String.class,
+            Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN.defaultValue()
+        );
+        verify(environment, times(1)).getProperty(
+            Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS.key(),
+            String.class,
+            Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS.defaultValue()
+        );
+        verify(environment, times(1)).getProperty(
+            Key.CONSOLE_HTTP_CORS_ALLOW_METHODS.key(),
+            String.class,
+            Key.CONSOLE_HTTP_CORS_ALLOW_METHODS.defaultValue()
+        );
+        verify(environment, times(1)).getProperty(
+            Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS.key(),
+            String.class,
+            Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS.defaultValue()
+        );
+        verify(environment, times(1)).getProperty(
+            Key.CONSOLE_HTTP_CORS_MAX_AGE.key(),
+            String.class,
+            Key.CONSOLE_HTTP_CORS_MAX_AGE.defaultValue()
+        );
 
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
-        assertThat(cut.getAllowedHeaders())
-            .containsOnly(
-                "Cache-Control",
-                "Pragma",
-                "Origin",
-                "Authorization",
-                "Content-Type",
-                "X-Requested-With",
-                "If-Match",
-                "X-Xsrf-Token",
-                "X-Recaptcha-Token"
-            );
+        assertThat(cut.getAllowedHeaders()).containsOnly(
+            "Cache-Control",
+            "Pragma",
+            "Origin",
+            "Authorization",
+            "Content-Type",
+            "X-Requested-With",
+            "If-Match",
+            "X-Xsrf-Token",
+            "X-Recaptcha-Token"
+        );
         assertThat(cut.getAllowedMethods()).containsOnly("OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH");
         assertThat(cut.getExposedHeaders()).containsOnly("ETag", "X-Xsrf-Token");
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);
@@ -124,15 +139,14 @@ public class GraviteeCorsUndefinedOrganizationConfigurationTest {
     @Test
     void should_initialize_fields_from_default_value_and_installation() {
         when(installationAccessQueryService.getConsoleUrls()).thenReturn(List.of("custom-console-url"));
-        cut =
-            new GraviteeCorsConfiguration(
-                environment,
-                parameterService,
-                installationAccessQueryService,
-                eventManager,
-                GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
-                ORGANIZATION_TYPE
-            );
+        cut = new GraviteeCorsConfiguration(
+            environment,
+            parameterService,
+            installationAccessQueryService,
+            eventManager,
+            GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
+            ORGANIZATION_TYPE
+        );
 
         assertEquals(Arrays.asList("*", "custom-console-url"), cut.getAllowedOriginPatterns());
     }

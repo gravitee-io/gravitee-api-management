@@ -48,6 +48,7 @@ import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 
 @SuppressWarnings("java:S112") // only used in tests
 public class TLSUtils {
+
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
@@ -139,8 +140,9 @@ public class TLSUtils {
 
         final AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256WithRSAEncryption");
         final AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-        final ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
-            .build(PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded()));
+        final ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(
+            PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded())
+        );
         final X509CertificateHolder x509CertificateHolder = certificateBuilder.build(signer);
 
         final X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(x509CertificateHolder);

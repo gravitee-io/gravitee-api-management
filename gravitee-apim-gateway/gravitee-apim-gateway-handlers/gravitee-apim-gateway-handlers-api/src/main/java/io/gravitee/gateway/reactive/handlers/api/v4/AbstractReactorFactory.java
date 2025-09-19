@@ -159,8 +159,9 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
         final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
         templateVariableProviders.add(new ApiTemplateVariableProvider(reactableApi));
         templateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(reactableApi.getEnvironmentId()));
-        List<TemplateVariableProvider> list = Stream
-            .of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class))
+        List<TemplateVariableProvider> list = Stream.of(
+            BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class)
+        )
             .map(name -> (TemplateVariableProviderFactory) applicationContext.getBean(name))
             .filter(factory -> factory.getTemplateVariableScope() == TemplateVariableScope.API)
             .flatMap(factory -> factory.getTemplateVariableProviders().stream())

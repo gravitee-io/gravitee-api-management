@@ -24,8 +24,7 @@ public class SourceIdStatusIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("asyncjobs")
             .name("sis1")
             .key("sourceId", ascending())

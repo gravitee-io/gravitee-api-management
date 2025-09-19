@@ -118,8 +118,7 @@ public class DictionaryResource extends AbstractResource {
 
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
             dictionaryEntity = dictionaryService.deploy(GraviteeContext.getExecutionContext(), dictionary);
-            return Response
-                .ok(dictionaryEntity)
+            return Response.ok(dictionaryEntity)
                 .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
                 .lastModified(dictionaryEntity.getUpdatedAt())
                 .build();
@@ -147,8 +146,7 @@ public class DictionaryResource extends AbstractResource {
 
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
             dictionaryEntity = dictionaryService.undeploy(GraviteeContext.getExecutionContext(), dictionary);
-            return Response
-                .ok(dictionaryEntity)
+            return Response.ok(dictionaryEntity)
                 .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
                 .lastModified(dictionaryEntity.getUpdatedAt())
                 .build();
@@ -203,8 +201,7 @@ public class DictionaryResource extends AbstractResource {
                     break;
             }
 
-            return Response
-                .ok(dictionaryEntity)
+            return Response.ok(dictionaryEntity)
                 .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
                 .lastModified(dictionaryEntity.getUpdatedAt())
                 .build();

@@ -114,8 +114,7 @@ public class PortalApisResource extends AbstractResource {
             Map<String, Object> filters = new HashMap<>();
             filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
-            return Response
-                .ok()
+            return Response.ok()
                 .entity(
                     apiService
                         .search(executionContext, query, filters)

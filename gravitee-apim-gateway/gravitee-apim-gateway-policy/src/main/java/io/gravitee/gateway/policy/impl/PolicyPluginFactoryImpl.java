@@ -84,38 +84,34 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
     }
 
     private <T> Constructor<T> lookingForConstructor(Class<T> policyClass) {
-        return (Constructor<T>) constructors.computeIfAbsent(
-            policyClass,
-            aClass -> {
-                LOGGER.debug("Looking for a constructor to inject policy configuration");
+        return (Constructor<T>) constructors.computeIfAbsent(policyClass, aClass -> {
+            LOGGER.debug("Looking for a constructor to inject policy configuration");
 
-                Set<Constructor> policyConstructors = ReflectionUtils.getConstructors(
-                    policyClass,
-                    withModifier(Modifier.PUBLIC),
-                    withParametersAssignableFrom(PolicyConfiguration.class),
-                    withParametersCount(1)
+            Set<Constructor> policyConstructors = ReflectionUtils.getConstructors(
+                policyClass,
+                withModifier(Modifier.PUBLIC),
+                withParametersAssignableFrom(PolicyConfiguration.class),
+                withParametersCount(1)
+            );
+
+            if (policyConstructors.isEmpty()) {
+                LOGGER.debug(
+                    "No configuration can be injected for {} because there is no valid constructor. " + "Using default empty constructor.",
+                    policyClass.getName()
                 );
-
-                if (policyConstructors.isEmpty()) {
-                    LOGGER.debug(
-                        "No configuration can be injected for {} because there is no valid constructor. " +
-                        "Using default empty constructor.",
-                        policyClass.getName()
-                    );
-                    try {
-                        return policyClass.getConstructor();
-                    } catch (NoSuchMethodException nsme) {
-                        LOGGER.error("Unable to find default empty constructor for {}", policyClass.getName(), nsme);
-                    }
-                } else if (policyConstructors.size() == 1) {
-                    return policyConstructors.iterator().next();
-                } else {
-                    LOGGER.info("Too much constructors to instantiate policy {}", policyClass.getName());
+                try {
+                    return policyClass.getConstructor();
+                } catch (NoSuchMethodException nsme) {
+                    LOGGER.error("Unable to find default empty constructor for {}", policyClass.getName(), nsme);
                 }
-
-                return null;
+            } else if (policyConstructors.size() == 1) {
+                return policyConstructors.iterator().next();
+            } else {
+                LOGGER.info("Too much constructors to instantiate policy {}", policyClass.getName());
             }
-        );
+
+            return null;
+        });
     }
 
     private static Predicate<Member> withParametersAssignableFrom(final Class... types) {
@@ -141,7 +137,9 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
         return member != null
             ? member.getClass() == Method.class
                 ? ((Method) member).getParameterTypes()
-                : member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null
+                : member.getClass() == Constructor.class
+                    ? ((Constructor) member).getParameterTypes()
+                    : null
             : null;
     }
 }

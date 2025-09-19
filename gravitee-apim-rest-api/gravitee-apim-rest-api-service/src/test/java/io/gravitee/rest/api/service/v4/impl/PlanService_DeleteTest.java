@@ -80,8 +80,9 @@ public class PlanService_DeleteTest {
     public void shouldNotDeleteBecauseSubscriptionsExist() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
-            .thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
+            Collections.singleton(subscription)
+        );
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
     }

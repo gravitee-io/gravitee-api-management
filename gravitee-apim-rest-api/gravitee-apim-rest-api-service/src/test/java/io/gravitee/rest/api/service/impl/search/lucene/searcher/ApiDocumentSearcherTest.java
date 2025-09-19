@@ -34,8 +34,9 @@ public class ApiDocumentSearcherTest {
         var query = QueryBuilder.create(ApiEntity.class).setQuery("name: Foobar AND name: \"Foo Foo\"").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
-        assertThat(builder.build())
-            .hasToString("#(+(name_lowercase:\"foobar\" name_lowercase:foobar) +(name_lowercase:\"foo foo\" name_lowercase:foo foo))");
+        assertThat(builder.build()).hasToString(
+            "#(+(name_lowercase:\"foobar\" name_lowercase:foobar) +(name_lowercase:\"foo foo\" name_lowercase:foo foo))"
+        );
     }
 
     @Test
@@ -51,10 +52,9 @@ public class ApiDocumentSearcherTest {
         var query = QueryBuilder.create(ApiEntity.class).setQuery("categories:Sports AND Cycling").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertThat(searcher.completeQueryWithFilters(query, builder)).isEmpty();
-        assertThat(builder.build())
-            .hasToString(
-                "#(+(categories:\"sports\" categories:sports)) +(+((name:*Cycling*)^20.0 (name_lowercase:*cycling*)^18.0 (name_sorted:*cycling*)^15.0 (name:*Cycling*)^12.0 (name_lowercase:*cycling*)^10.0 (paths:*Cycling*)^8.0 description:*Cycling* description_lowercase:*cycling* hosts:*Cycling* labels:*Cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))"
-            );
+        assertThat(builder.build()).hasToString(
+            "#(+(categories:\"sports\" categories:sports)) +(+((name:*Cycling*)^20.0 (name_lowercase:*cycling*)^18.0 (name_sorted:*cycling*)^15.0 (name:*Cycling*)^12.0 (name_lowercase:*cycling*)^10.0 (paths:*Cycling*)^8.0 description:*Cycling* description_lowercase:*cycling* hosts:*Cycling* labels:*Cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))"
+        );
     }
 
     @Test

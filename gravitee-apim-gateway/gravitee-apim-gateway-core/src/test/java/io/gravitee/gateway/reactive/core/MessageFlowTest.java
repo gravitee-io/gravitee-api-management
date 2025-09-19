@@ -38,8 +38,9 @@ class MessageFlowTest {
             upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
 
         cut.messages(Flowable.just(DefaultMessage.builder().content("test").build()));
-        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor
-            .<Message>builder()
+        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor.<
+                Message
+            >builder()
             .id("id")
             .transformersFunction(interceptor)
             .build();
@@ -73,8 +74,9 @@ class MessageFlowTest {
             upstream -> upstream.doOnNext(message -> message.attribute("intercepted", true)).compose(onMessages);
 
         cut.messages(Flowable.just(DefaultMessage.builder().content("test").build()));
-        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor
-            .<Message>builder()
+        OnMessagesInterceptor.MessagesInterceptor<Message> messagesInterceptor = OnMessagesInterceptor.MessagesInterceptor.<
+                Message
+            >builder()
             .id("id")
             .transformersFunction(interceptor)
             .build();

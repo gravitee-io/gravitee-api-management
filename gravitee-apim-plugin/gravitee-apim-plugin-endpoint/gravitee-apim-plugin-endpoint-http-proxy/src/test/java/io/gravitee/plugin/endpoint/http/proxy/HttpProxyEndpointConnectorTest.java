@@ -250,8 +250,9 @@ class HttpProxyEndpointConnectorTest {
             spyHttpClientFactory = spy((HttpClientFactory) Objects.requireNonNull(ReflectionTestUtils.getField(cut, "httpClientFactory")));
             lenient().doReturn(mockHttpClient).when(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             ReflectionTestUtils.setField(cut, "httpClientFactory", spyHttpClientFactory);
-            spyGrpcHttpClientFactory =
-                spy((GrpcHttpClientFactory) Objects.requireNonNull(ReflectionTestUtils.getField(cut, "grpcHttpClientFactory")));
+            spyGrpcHttpClientFactory = spy(
+                (GrpcHttpClientFactory) Objects.requireNonNull(ReflectionTestUtils.getField(cut, "grpcHttpClientFactory"))
+            );
             lenient().doReturn(mockHttpClient).when(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             ReflectionTestUtils.setField(cut, "grpcHttpClientFactory", spyGrpcHttpClientFactory);
         }
@@ -266,7 +267,11 @@ class HttpProxyEndpointConnectorTest {
 
             // We don't want to test the request itself just that the correct factory is used
             when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
-            cut.connect(ctx).onErrorComplete(throwable -> throwable instanceof IllegalStateException).test().assertComplete();
+            cut
+                .connect(ctx)
+                .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
+                .test()
+                .assertComplete();
             verify(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
         }
@@ -278,7 +283,11 @@ class HttpProxyEndpointConnectorTest {
             when(request.isWebSocket()).thenReturn(true);
 
             // connect will throw an exception
-            cut.connect(ctx).onErrorComplete(throwable -> throwable instanceof IllegalStateException).test().assertComplete();
+            cut
+                .connect(ctx)
+                .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
+                .test()
+                .assertComplete();
             verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
             verify(request).isWebSocket();
@@ -288,7 +297,11 @@ class HttpProxyEndpointConnectorTest {
         void should_use_http_client_factory() {
             // We don't want to test the request itself just that the correct factory is used
             when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
-            cut.connect(ctx).onErrorComplete(throwable -> throwable instanceof IllegalStateException).test().assertComplete();
+            cut
+                .connect(ctx)
+                .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
+                .test()
+                .assertComplete();
             verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
         }

@@ -46,18 +46,16 @@ public class Properties implements Serializable {
     public void setProperties(List<Property> properties) {
         this.propertiesList = properties == null ? List.of() : properties;
 
-        this.entries =
-            this.propertiesList.stream()
-                .collect(
-                    Collectors.toMap(
-                        Property::getKey,
-                        Property::getValue,
-                        (v1, v2) -> {
-                            throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
-                        },
-                        TemplatedValueHashMap::new
-                    )
-                );
+        this.entries = this.propertiesList.stream().collect(
+            Collectors.toMap(
+                Property::getKey,
+                Property::getValue,
+                (v1, v2) -> {
+                    throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
+                },
+                TemplatedValueHashMap::new
+            )
+        );
     }
 
     public List<Property> getProperties() {

@@ -157,16 +157,14 @@ class EnvironmentScoringFunctionsResourceTest extends AbstractResourceTest {
                 .extracting(ScoringFunctionsResponse::getData)
                 .asInstanceOf(InstanceOfAssertFactories.LIST)
                 .containsExactly(
-                    io.gravitee.rest.api.management.v2.rest.model.ScoringFunction
-                        .builder()
+                    io.gravitee.rest.api.management.v2.rest.model.ScoringFunction.builder()
                         .name("function-name")
                         .payload("function-payload")
                         .referenceId(ENVIRONMENT)
                         .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringFunctionReferenceType.ENVIRONMENT)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                         .build(),
-                    io.gravitee.rest.api.management.v2.rest.model.ScoringFunction
-                        .builder()
+                    io.gravitee.rest.api.management.v2.rest.model.ScoringFunction.builder()
                         .name("function-name")
                         .payload("function-payload")
                         .referenceId(ENVIRONMENT)

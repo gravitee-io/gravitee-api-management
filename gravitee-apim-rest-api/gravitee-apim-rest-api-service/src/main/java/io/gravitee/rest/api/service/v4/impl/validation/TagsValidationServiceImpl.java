@@ -63,8 +63,16 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
             tags = tagsToUpdate;
         } else {
             // Filter to keep only those newed or removed
-            tags = existingTags.stream().filter(tag -> !tagsToUpdate.contains(tag)).collect(toSet());
-            tags.addAll(tagsToUpdate.stream().filter(tag -> !existingTags.contains(tag)).collect(toSet()));
+            tags = existingTags
+                .stream()
+                .filter(tag -> !tagsToUpdate.contains(tag))
+                .collect(toSet());
+            tags.addAll(
+                tagsToUpdate
+                    .stream()
+                    .filter(tag -> !existingTags.contains(tag))
+                    .collect(toSet())
+            );
         }
 
         if (!tags.isEmpty()) {
@@ -74,7 +82,10 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
                 TagReferenceType.ORGANIZATION
             );
             if (!userTags.containsAll(tags)) {
-                final String[] notAllowedTags = tags.stream().filter(tag -> !userTags.contains(tag)).toArray(String[]::new);
+                final String[] notAllowedTags = tags
+                    .stream()
+                    .filter(tag -> !userTags.contains(tag))
+                    .toArray(String[]::new);
                 throw new TagNotAllowedException(notAllowedTags);
             }
         }

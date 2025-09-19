@@ -73,31 +73,35 @@ public class SharedPolicyGroupResource_GetHistoriesTest extends AbstractResource
     void should_get_shared_policy_group_histories() {
         // Given
         var sharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
-        when(searchSharedPolicyGroupHistoryUseCase.execute(any()))
-            .thenReturn(new SearchSharedPolicyGroupHistoryUseCase.Output(new Page<>(List.of(sharedPolicyGroup), 1, 1, 1)));
+        when(searchSharedPolicyGroupHistoryUseCase.execute(any())).thenReturn(
+            new SearchSharedPolicyGroupHistoryUseCase.Output(new Page<>(List.of(sharedPolicyGroup), 1, 1, 1))
+        );
 
         // When
         var response = rootTarget().request().get();
 
         // Then
         assertThat(response).hasStatus(200);
-        verify(searchSharedPolicyGroupHistoryUseCase)
-            .execute(new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID, new PageableImpl(0, 10), null));
+        verify(searchSharedPolicyGroupHistoryUseCase).execute(
+            new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID, new PageableImpl(0, 10), null)
+        );
     }
 
     @Test
     void should_get_shared_policy_group_histories_with_pagination_and_sorting() {
         // Given
         var sharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup();
-        when(searchSharedPolicyGroupHistoryUseCase.execute(any()))
-            .thenReturn(new SearchSharedPolicyGroupHistoryUseCase.Output(new Page<>(List.of(sharedPolicyGroup), 1, 1, 1)));
+        when(searchSharedPolicyGroupHistoryUseCase.execute(any())).thenReturn(
+            new SearchSharedPolicyGroupHistoryUseCase.Output(new Page<>(List.of(sharedPolicyGroup), 1, 1, 1))
+        );
 
         // When
         var response = rootTarget().queryParam("page", 2).queryParam("perPage", 1).queryParam("sortBy", "version").request().get();
 
         // Then
         assertThat(response).hasStatus(200);
-        verify(searchSharedPolicyGroupHistoryUseCase)
-            .execute(new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID, new PageableImpl(2, 1), "version"));
+        verify(searchSharedPolicyGroupHistoryUseCase).execute(
+            new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID, new PageableImpl(2, 1), "version")
+        );
     }
 }

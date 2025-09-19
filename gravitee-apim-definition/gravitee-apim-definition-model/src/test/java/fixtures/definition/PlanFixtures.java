@@ -53,8 +53,7 @@ public class PlanFixtures {
         private HttpV4Definition() {}
 
         public static Plan aKeylessV4() {
-            return (Plan) BASE_HTTP_V4
-                .get()
+            return (Plan) BASE_HTTP_V4.get()
                 .id(KEYLESS_PLAN_ID)
                 .name(KEYLESS_PLAN_NAME)
                 .security(PlanSecurity.builder().type(KEYLESS_PLAN_SECURITY_TYPE).build())
@@ -62,8 +61,7 @@ public class PlanFixtures {
         }
 
         public static Plan anApiKeyV4() {
-            return (Plan) BASE_HTTP_V4
-                .get()
+            return (Plan) BASE_HTTP_V4.get()
                 .id(API_KEY_PLAN_ID)
                 .name(API_KEY_PLAN_NAME)
                 .security(PlanSecurity.builder().type(API_KEY_PLAN_SECURITY_TYPE).build())
@@ -84,8 +82,7 @@ public class PlanFixtures {
         private NativeV4Definition() {}
 
         public static NativePlan aKeylessV4() {
-            return (NativePlan) BASE_NATIVE_V4
-                .get()
+            return (NativePlan) BASE_NATIVE_V4.get()
                 .id(KEYLESS_PLAN_ID)
                 .name(KEYLESS_PLAN_NAME)
                 .security(PlanSecurity.builder().type(KEYLESS_PLAN_SECURITY_TYPE).build())
@@ -93,8 +90,7 @@ public class PlanFixtures {
         }
 
         public static NativePlan anApiKeyV4() {
-            return (NativePlan) BASE_NATIVE_V4
-                .get()
+            return (NativePlan) BASE_NATIVE_V4.get()
                 .id(API_KEY_PLAN_ID)
                 .name(API_KEY_PLAN_NAME)
                 .security(PlanSecurity.builder().type(API_KEY_PLAN_SECURITY_TYPE).build())
@@ -106,8 +102,7 @@ public class PlanFixtures {
         }
 
         public static NativePlan anMtlsPlanV4() {
-            return (NativePlan) BASE_NATIVE_V4
-                .get()
+            return (NativePlan) BASE_NATIVE_V4.get()
                 .id("mtls")
                 .name("mTLS Plan")
                 .security(PlanSecurity.builder().type("mtls").build())
@@ -116,8 +111,7 @@ public class PlanFixtures {
     }
 
     public static io.gravitee.definition.model.Plan aKeylessV2() {
-        return BASE_V2
-            .get()
+        return BASE_V2.get()
             .id(KEYLESS_PLAN_ID)
             .name(KEYLESS_PLAN_NAME)
             .security(KEYLESS_PLAN_SECURITY_TYPE)
@@ -130,8 +124,7 @@ public class PlanFixtures {
     }
 
     public static io.gravitee.definition.model.Plan aKeylessV1() {
-        return BASE_V2
-            .get()
+        return BASE_V2.get()
             .id(KEYLESS_PLAN_ID)
             .name(KEYLESS_PLAN_NAME)
             .security(KEYLESS_PLAN_SECURITY_TYPE)
@@ -140,8 +133,7 @@ public class PlanFixtures {
     }
 
     public static FederatedPlan aFederatedPlan() {
-        return FederatedPlan
-            .builder()
+        return FederatedPlan.builder()
             .id(PLAN_ID)
             .mode(PlanMode.STANDARD)
             .providerId("provider-id")

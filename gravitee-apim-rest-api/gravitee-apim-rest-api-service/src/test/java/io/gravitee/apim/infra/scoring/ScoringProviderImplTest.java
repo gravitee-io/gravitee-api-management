@@ -75,8 +75,7 @@ class ScoringProviderImplTest {
         lenient()
             .when(installationService.get())
             .thenReturn(
-                InstallationEntity
-                    .builder()
+                InstallationEntity.builder()
                     .additionalInformation(Map.of(InstallationService.COCKPIT_INSTALLATION_ID, INSTALLATION_ID))
                     .build()
             );

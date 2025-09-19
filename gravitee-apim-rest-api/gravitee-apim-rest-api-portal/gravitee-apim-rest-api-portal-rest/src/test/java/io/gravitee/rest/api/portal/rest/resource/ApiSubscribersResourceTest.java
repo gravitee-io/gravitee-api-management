@@ -73,8 +73,9 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFoundApiWhileGettingApiSubscribers() {
         // init
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API))
-            .thenReturn(new io.gravitee.rest.api.model.v4.api.ApiEntity());
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(
+            new io.gravitee.rest.api.model.v4.api.ApiEntity()
+        );
         // test
         final Response response = target(API).path("metrics").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());

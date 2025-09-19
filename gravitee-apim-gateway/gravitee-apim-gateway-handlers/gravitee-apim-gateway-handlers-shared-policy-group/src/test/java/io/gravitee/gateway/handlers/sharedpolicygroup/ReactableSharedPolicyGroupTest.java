@@ -68,8 +68,7 @@ class ReactableSharedPolicyGroupTest {
     void should_return_policy_dependencies() {
         final ReactableSharedPolicyGroup sharedPolicyGroup = new ReactableSharedPolicyGroup();
         sharedPolicyGroup.setDefinition(
-            SharedPolicyGroup
-                .builder()
+            SharedPolicyGroup.builder()
                 .policies(
                     List.of(
                         Step.builder().policy("policy-enabled").enabled(true).build(),

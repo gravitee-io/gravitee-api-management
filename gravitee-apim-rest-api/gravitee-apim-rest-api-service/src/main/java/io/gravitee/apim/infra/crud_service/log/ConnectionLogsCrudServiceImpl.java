@@ -91,8 +91,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             if (executeConnectionLogDetailsSearch) {
                 var connectionLogDetailsResponse = searchConnectionLogDetails(
                     executionContext,
-                    ConnectionLogDetailQuery
-                        .builder()
+                    ConnectionLogDetailQuery.builder()
                         .projectionFields(List.of("_id", "request-id"))
                         .filter(mapToConnectionLogDetailQueryFilterBuilder(logsFilters).build())
                         .page(pageable.getPageNumber())
@@ -138,8 +137,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         try {
             var response = logRepository.searchConnectionLogDetail(
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                ConnectionLogDetailQuery
-                    .builder()
+                ConnectionLogDetailQuery.builder()
                     .filter(ConnectionLogDetailQuery.Filter.builder().apiIds(Set.of(apiId)).requestIds(Set.of(requestId)).build())
                     .build()
             );
@@ -164,8 +162,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
     }
 
     private static ConnectionLogQuery.Filter.FilterBuilder mapToConnectionLogQueryFilterBuilder(SearchLogsFilters searchLogsFilters) {
-        return ConnectionLogQuery.Filter
-            .builder()
+        return ConnectionLogQuery.Filter.builder()
             .from(searchLogsFilters.from())
             .to(searchLogsFilters.to())
             .applicationIds(searchLogsFilters.applicationIds())
@@ -183,8 +180,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
     private static ConnectionLogDetailQuery.Filter.FilterBuilder mapToConnectionLogDetailQueryFilterBuilder(
         SearchLogsFilters searchLogsFilters
     ) {
-        return ConnectionLogDetailQuery.Filter
-            .builder()
+        return ConnectionLogDetailQuery.Filter.builder()
             .from(searchLogsFilters.from())
             .to(searchLogsFilters.to())
             .apiIds(searchLogsFilters.apiIds())
@@ -203,8 +199,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
     ) throws AnalyticsException {
         return logRepository.searchConnectionLogs(
             new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-            ConnectionLogQuery
-                .builder()
+            ConnectionLogQuery.builder()
                 .filter(connectionLogQueryFilter)
                 .page(pageable.getPageNumber())
                 .size(pageable.getPageSize())

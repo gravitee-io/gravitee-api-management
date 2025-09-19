@@ -125,7 +125,11 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             return Optional.empty();
         }
 
-        var queries = filters.entrySet().stream().flatMap(e -> prepareQuery(e.getKey(), e.getValue(), remapFields)).toList();
+        var queries = filters
+            .entrySet()
+            .stream()
+            .flatMap(e -> prepareQuery(e.getKey(), e.getValue(), remapFields))
+            .toList();
 
         return switch (queries.size()) {
             case 0 -> Optional.empty();

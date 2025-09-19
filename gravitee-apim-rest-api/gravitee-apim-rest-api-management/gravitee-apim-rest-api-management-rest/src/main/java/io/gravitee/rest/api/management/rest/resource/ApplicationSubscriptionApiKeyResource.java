@@ -74,13 +74,11 @@ public class ApplicationSubscriptionApiKeyResource extends AbstractApiKeyResourc
                 apikey,
                 application,
                 subscription,
-                AuditInfo
-                    .builder()
+                AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
                     .environmentId(executionContext.getEnvironmentId())
                     .actor(
-                        AuditActor
-                            .builder()
+                        AuditActor.builder()
                             .userId(user.getUsername())
                             .userSource(user.getSource())
                             .userSourceId(user.getSourceId())

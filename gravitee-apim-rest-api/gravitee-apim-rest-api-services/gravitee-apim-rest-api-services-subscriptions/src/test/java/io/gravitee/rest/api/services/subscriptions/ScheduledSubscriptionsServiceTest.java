@@ -43,7 +43,8 @@ public class ScheduledSubscriptionsServiceTest {
     public void shouldCloseOutdatedSubscriptions() {
         service.run();
 
-        verify(closeExpiredSubscriptionsUsecase, times(1))
-            .execute(new CloseExpiredSubscriptionsUseCase.Input(AuditActor.builder().userId("system").build()));
+        verify(closeExpiredSubscriptionsUsecase, times(1)).execute(
+            new CloseExpiredSubscriptionsUseCase.Input(AuditActor.builder().userId("system").build())
+        );
     }
 }

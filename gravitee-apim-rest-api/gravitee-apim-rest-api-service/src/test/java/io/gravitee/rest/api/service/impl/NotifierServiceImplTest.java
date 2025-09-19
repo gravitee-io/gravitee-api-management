@@ -86,17 +86,16 @@ class NotifierServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        cut =
-            new NotifierServiceImpl(
-                notifierManager,
-                portalNotificationConfigRepository,
-                portalNotificationService,
-                genericNotificationConfigRepository,
-                emailNotifierService,
-                webhookNotifierService,
-                emailRecipientsService,
-                parameterService
-            );
+        cut = new NotifierServiceImpl(
+            notifierManager,
+            portalNotificationConfigRepository,
+            portalNotificationService,
+            genericNotificationConfigRepository,
+            emailNotifierService,
+            webhookNotifierService,
+            emailRecipientsService,
+            parameterService
+        );
     }
 
     @Nested
@@ -114,25 +113,23 @@ class NotifierServiceImplTest {
                     NotificationReferenceType.API,
                     "api-id"
                 )
-            )
-                .thenReturn(
-                    List.of(
-                        GenericNotificationConfig
-                            .builder()
-                            .notifier("default-email")
-                            .id(DEFAULT_EMAIL_NOTIFIER_ID)
-                            .config("${(api.primaryOwner.email)!''};second.mail@gio.test")
-                            .build()
-                    )
-                );
-            when(emailRecipientsService.processTemplatedRecipients(List.of("${(api.primaryOwner.email)!''};second.mail@gio.test"), params))
-                .thenReturn(Set.of("recipient@gio.test", "second.mail@gio.test"));
+            ).thenReturn(
+                List.of(
+                    GenericNotificationConfig.builder()
+                        .notifier("default-email")
+                        .id(DEFAULT_EMAIL_NOTIFIER_ID)
+                        .config("${(api.primaryOwner.email)!''};second.mail@gio.test")
+                        .build()
+                )
+            );
+            when(
+                emailRecipientsService.processTemplatedRecipients(List.of("${(api.primaryOwner.email)!''};second.mail@gio.test"), params)
+            ).thenReturn(Set.of("recipient@gio.test", "second.mail@gio.test"));
             when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM)).thenReturn(false);
 
             cut.triggerGenericNotifications(
                 executionContext,
-                NotifierServiceImpl.TriggerNotificationsData
-                    .builder()
+                NotifierServiceImpl.TriggerNotificationsData.builder()
                     .hook(ApiHook.API_STARTED)
                     .referenceType(NotificationReferenceType.API)
                     .referenceId("api-id")
@@ -159,37 +156,32 @@ class NotifierServiceImplTest {
                     NotificationReferenceType.API,
                     "api-id"
                 )
-            )
-                .thenReturn(
-                    List.of(
-                        GenericNotificationConfig
-                            .builder()
-                            .notifier("default-email")
-                            .id(DEFAULT_EMAIL_NOTIFIER_ID)
-                            .config("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test")
-                            .build()
-                    )
-                );
+            ).thenReturn(
+                List.of(
+                    GenericNotificationConfig.builder()
+                        .notifier("default-email")
+                        .id(DEFAULT_EMAIL_NOTIFIER_ID)
+                        .config("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test")
+                        .build()
+                )
+            );
             when(
                 emailRecipientsService.processTemplatedRecipients(
                     List.of("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test"),
                     params
                 )
-            )
-                .thenReturn(Set.of("recipient@gio.test", "second.mail-not-opted-in@gio.test"));
+            ).thenReturn(Set.of("recipient@gio.test", "second.mail-not-opted-in@gio.test"));
             when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM)).thenReturn(true);
             when(
                 emailRecipientsService.filterRegisteredUser(
                     executionContext,
                     Set.of("recipient@gio.test", "second.mail-not-opted-in@gio.test")
                 )
-            )
-                .thenReturn(Set.of("recipient@gio.test"));
+            ).thenReturn(Set.of("recipient@gio.test"));
 
             cut.triggerGenericNotifications(
                 executionContext,
-                NotifierServiceImpl.TriggerNotificationsData
-                    .builder()
+                NotifierServiceImpl.TriggerNotificationsData.builder()
                     .hook(ApiHook.API_STARTED)
                     .referenceType(NotificationReferenceType.API)
                     .referenceId("api-id")
@@ -215,17 +207,15 @@ class NotifierServiceImplTest {
                     NotificationReferenceType.API,
                     "api-id"
                 )
-            )
-                .thenReturn(
-                    List.of(
-                        GenericNotificationConfig
-                            .builder()
-                            .notifier("default-email")
-                            .id(DEFAULT_EMAIL_NOTIFIER_ID)
-                            .config("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test")
-                            .build()
-                    )
-                );
+            ).thenReturn(
+                List.of(
+                    GenericNotificationConfig.builder()
+                        .notifier("default-email")
+                        .id(DEFAULT_EMAIL_NOTIFIER_ID)
+                        .config("${(api.primaryOwner.email)!''};second.mail-not-opted-in@gio.test")
+                        .build()
+                )
+            );
             when(
                 emailRecipientsService.processTemplatedRecipients(
                     argThat(a ->
@@ -233,21 +223,18 @@ class NotifierServiceImplTest {
                     ),
                     eq(params)
                 )
-            )
-                .thenReturn(Set.of("additional@gio.test", "recipient@gio.test", "second.mail-not-opted-in@gio.test"));
+            ).thenReturn(Set.of("additional@gio.test", "recipient@gio.test", "second.mail-not-opted-in@gio.test"));
             when(parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM)).thenReturn(true);
             when(
                 emailRecipientsService.filterRegisteredUser(
                     eq(executionContext),
                     argThat(a -> a.containsAll(List.of("recipient@gio.test", "additional@gio.test", "second.mail-not-opted-in@gio.test")))
                 )
-            )
-                .thenReturn(Set.of("additional@gio.test", "recipient@gio.test"));
+            ).thenReturn(Set.of("additional@gio.test", "recipient@gio.test"));
 
             cut.triggerGenericNotifications(
                 executionContext,
-                NotifierServiceImpl.TriggerNotificationsData
-                    .builder()
+                NotifierServiceImpl.TriggerNotificationsData.builder()
                     .hook(ApiHook.API_STARTED)
                     .referenceType(NotificationReferenceType.API)
                     .referenceId("api-id")
@@ -273,13 +260,11 @@ class NotifierServiceImplTest {
                     NotificationReferenceType.API,
                     "api-id"
                 )
-            )
-                .thenReturn(Collections.emptyList());
+            ).thenReturn(Collections.emptyList());
 
             cut.triggerGenericNotifications(
                 executionContext,
-                NotifierServiceImpl.TriggerNotificationsData
-                    .builder()
+                NotifierServiceImpl.TriggerNotificationsData.builder()
                     .hook(ApiHook.API_STARTED)
                     .referenceType(NotificationReferenceType.API)
                     .referenceId("api-id")

@@ -155,7 +155,10 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
                 .getSelectors()
                 .stream()
                 .allMatch(flowSelector ->
-                    flowCreated.getSelectors().stream().anyMatch(flowSelectorCreated -> flowSelectorCreated.equals(flowSelector))
+                    flowCreated
+                        .getSelectors()
+                        .stream()
+                        .anyMatch(flowSelectorCreated -> flowSelectorCreated.equals(flowSelector))
                 )
         );
 
@@ -215,7 +218,10 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
                 .getSelectors()
                 .stream()
                 .allMatch(flowSelectorUpdated ->
-                    flow.getSelectors().stream().anyMatch(flowSelector -> flowSelector.equals(flowSelectorUpdated))
+                    flow
+                        .getSelectors()
+                        .stream()
+                        .anyMatch(flowSelector -> flowSelector.equals(flowSelectorUpdated))
                 )
         );
 

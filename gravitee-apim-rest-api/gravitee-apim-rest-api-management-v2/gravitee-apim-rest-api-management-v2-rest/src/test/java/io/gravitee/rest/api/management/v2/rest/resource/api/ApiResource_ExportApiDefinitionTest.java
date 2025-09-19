@@ -113,8 +113,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                 API,
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
     }
@@ -220,25 +219,24 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         tcpListener.setType(ListenerType.TCP);
         tcpListener.setEntrypoints(List.of(entrypoint));
 
-        var endpoint = Endpoint
-            .builder()
+        var endpoint = Endpoint.builder()
             .type("http-get")
             .configuration(
                 """
-                        {
-                                                "bootstrapServers": "kafka:9092",
-                                                "topics": [
-                                                    "demo"
-                                                ],
-                                                "producer": {
-                                                    "enabled": false
-                                                },
-                                                "consumer": {
-                                                    "encodeMessageId": true,
-                                                    "enabled": true,
-                                                    "autoOffsetReset": "earliest"
-                                                }
-                                            }"""
+                {
+                                        "bootstrapServers": "kafka:9092",
+                                        "topics": [
+                                            "demo"
+                                        ],
+                                        "producer": {
+                                            "enabled": false
+                                        },
+                                        "consumer": {
+                                            "encodeMessageId": true,
+                                            "enabled": true,
+                                            "autoOffsetReset": "earliest"
+                                        }
+                                    }"""
             )
             .build();
         var endpointGroup = EndpointGroup.builder().type("http-get").endpoints(List.of(endpoint)).build();
@@ -270,8 +268,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         flow.setSelectors(List.of(httpSelector, channelSelector, conditionSelector));
 
-        return ApiDescriptor.ApiDescriptorV4
-            .builder()
+        return ApiDescriptor.ApiDescriptorV4.builder()
             .id(API)
             .name(API)
             .apiVersion("v1.0")
@@ -296,8 +293,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
         var flow = NativeFlow.builder().name("flowName").enabled(true).interact(List.of(step)).tags(Set.of("tag1", "tag2")).build();
 
-        return ApiDescriptor.Native
-            .builder()
+        return ApiDescriptor.Native.builder()
             .id(API)
             .name(API)
             .apiVersion("v1.0")
@@ -372,8 +368,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         planFlow.setTags(null);
 
         return Set.of(
-            PlanDescriptor.V4
-                .builder()
+            PlanDescriptor.V4.builder()
                 .apiId(API)
                 .characteristics(List.of("characteristic1", "characteristic2"))
                 .commentMessage("commentMessage")
@@ -424,8 +419,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         planFlow.setTags(null);
 
         return Set.of(
-            PlanDescriptor.Native
-                .builder()
+            PlanDescriptor.Native.builder()
                 .apiId(API)
                 .characteristics(List.of("characteristic1", "characteristic2"))
                 .commentMessage("commentMessage")
@@ -575,17 +569,17 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         assertThat(httpSelector).isNotNull();
         assertThat(httpSelector.getPath()).isEqualTo("/test");
         assertThat(httpSelector.getPathOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
-        assertThat(httpSelector.getMethods())
-            .containsOnly(
-                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
-                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
-            );
+        assertThat(httpSelector.getMethods()).containsOnly(
+            io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
+            io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
+        );
 
         var channelSelector = flow.getSelectors().get(1).getChannelSelector();
         assertThat(channelSelector.getChannel()).isEqualTo("my-channel");
         assertThat(channelSelector.getChannelOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
-        assertThat(channelSelector.getOperations())
-            .containsOnly(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE);
+        assertThat(channelSelector.getOperations()).containsOnly(
+            io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE
+        );
         assertThat(channelSelector.getEntrypoints()).containsOnly("my-entrypoint");
 
         var conditionSelector = flow.getSelectors().get(2).getConditionSelector();
@@ -717,11 +711,10 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             assertThat(httpSelector).isNotNull();
             assertThat(httpSelector.getPath()).isEqualTo("/test");
             assertThat(httpSelector.getPathOperator()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Operator.STARTS_WITH);
-            assertThat(httpSelector.getMethods())
-                .containsOnly(
-                    io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
-                    io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
-                );
+            assertThat(httpSelector.getMethods()).containsOnly(
+                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.GET,
+                io.gravitee.rest.api.management.v2.rest.model.HttpMethod.POST
+            );
         }
 
         assertThat(plan.getSecurity()).isNotNull();

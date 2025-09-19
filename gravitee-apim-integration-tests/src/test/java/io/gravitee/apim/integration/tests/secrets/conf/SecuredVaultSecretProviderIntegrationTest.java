@@ -284,15 +284,14 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
             writeSecret("secret/tls-test", Map.of("crt", newSSLPairs.cert(), "key", newSSLPairs.privateKey()));
 
             // create a new client to avoid sharing the connection
-            var newHttpClient = getBean(Vertx.class)
-                .createHttpClient(
-                    new HttpClientOptions()
-                        .setDefaultPort(this.gatewayPort())
-                        .setDefaultHost("localhost")
-                        .setSsl(true)
-                        .setVerifyHost(false)
-                        .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())))
-                );
+            var newHttpClient = getBean(Vertx.class).createHttpClient(
+                new HttpClientOptions()
+                    .setDefaultPort(this.gatewayPort())
+                    .setDefaultHost("localhost")
+                    .setSsl(true)
+                    .setVerifyHost(false)
+                    .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())))
+            );
 
             await()
                 .pollInterval(1, TimeUnit.SECONDS)

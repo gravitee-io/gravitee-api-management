@@ -107,8 +107,7 @@ public class PlanService_DeprecateTest {
 
     @Test
     public void shouldDepreciateWithStagingPlanAndAllowStaging() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -124,8 +123,7 @@ public class PlanService_DeprecateTest {
 
     @Test
     public void shouldDepreciateNativePlanWithStagingAndAllowStaging() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -144,8 +142,7 @@ public class PlanService_DeprecateTest {
 
     @Test(expected = PlanNotYetPublishedException.class)
     public void shouldNotDepreciateWithStagingPlanAndNotAllowStaging() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -167,8 +164,7 @@ public class PlanService_DeprecateTest {
 
     @Test
     public void shouldDepreciate() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.PUBLISHED)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)

@@ -44,8 +44,7 @@ class RandomLoadBalancerTest {
 
     @Test
     void shouldReturnRandomEndpoint() {
-        List<ManagedEndpoint> endpoints = IntStream
-            .range(0, 5)
+        List<ManagedEndpoint> endpoints = IntStream.range(0, 5)
             .mapToObj(i ->
                 new DefaultManagedEndpoint(
                     new Endpoint(),

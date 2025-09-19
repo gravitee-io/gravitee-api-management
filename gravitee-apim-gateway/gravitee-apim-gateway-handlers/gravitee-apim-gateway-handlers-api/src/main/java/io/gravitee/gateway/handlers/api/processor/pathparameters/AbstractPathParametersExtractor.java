@@ -81,15 +81,14 @@ public abstract class AbstractPathParametersExtractor<A, F, P> {
             flowsWithParam = Stream.concat(flowsWithParam, getApiFlows(api).stream().filter(this::isEnabled).filter(this::hasPathParam));
         }
         if (getPlans(api) != null) {
-            flowsWithParam =
-                Stream.concat(
-                    flowsWithParam,
-                    getPlans(api)
-                        .stream()
-                        .flatMap(plan -> getPlanFlows(plan) == null ? Stream.empty() : getPlanFlows(plan).stream())
-                        .filter(this::isEnabled)
-                        .filter(this::hasPathParam)
-                );
+            flowsWithParam = Stream.concat(
+                flowsWithParam,
+                getPlans(api)
+                    .stream()
+                    .flatMap(plan -> getPlanFlows(plan) == null ? Stream.empty() : getPlanFlows(plan).stream())
+                    .filter(this::isEnabled)
+                    .filter(this::hasPathParam)
+            );
         }
         return flowsWithParam;
     }

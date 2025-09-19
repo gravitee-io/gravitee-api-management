@@ -84,8 +84,11 @@ public class TcpApiReactor extends AbstractApiReactor {
         this.endpointManager = endpointManager;
         this.defaultInvoker = new TcpEndpointInvoker(endpointManager);
         this.lifecycleState = Lifecycle.State.INITIALIZED;
-        this.loggingExcludedResponseType =
-            configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
+        this.loggingExcludedResponseType = configuration.getProperty(
+            REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY,
+            String.class,
+            null
+        );
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
     }
 
@@ -193,7 +196,12 @@ public class TcpApiReactor extends AbstractApiReactor {
             .stream()
             .filter(TcpListener.class::isInstance)
             .map(l -> (TcpListener) l)
-            .flatMap(listener -> listener.getHosts().stream().map(host -> new DefaultTcpAcceptor(this, host, listener.getServers())))
+            .flatMap(listener ->
+                listener
+                    .getHosts()
+                    .stream()
+                    .map(host -> new DefaultTcpAcceptor(this, host, listener.getServers()))
+            )
             .collect(Collectors.<Acceptor<?>>toList());
     }
 

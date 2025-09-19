@@ -246,15 +246,14 @@ class AccessPointHttpAcceptorTest {
 
         @BeforeEach
         public void beforeEach() {
-            cut =
-                new AccessPointHttpAcceptor(
-                    eventManager,
-                    ENV_ID,
-                    List.of(ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build()),
-                    "/test",
-                    reactorHandler,
-                    List.of("a", "b", SERVER_ID)
-                );
+            cut = new AccessPointHttpAcceptor(
+                eventManager,
+                ENV_ID,
+                List.of(ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build()),
+                "/test",
+                reactorHandler,
+                List.of("a", "b", SERVER_ID)
+            );
         }
 
         @Test
@@ -305,15 +304,14 @@ class AccessPointHttpAcceptorTest {
 
         @BeforeEach
         public void beforeEach() {
-            cut =
-                new AccessPointHttpAcceptor(
-                    eventManager,
-                    ENV_ID,
-                    List.of(ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build()),
-                    "/test",
-                    reactorHandler,
-                    List.of("a", "b", SERVER_ID)
-                );
+            cut = new AccessPointHttpAcceptor(
+                eventManager,
+                ENV_ID,
+                List.of(ReactableAccessPoint.builder().id("id1").environmentId(ENV_ID).host("host1").build()),
+                "/test",
+                reactorHandler,
+                List.of("a", "b", SERVER_ID)
+            );
         }
 
         @Test

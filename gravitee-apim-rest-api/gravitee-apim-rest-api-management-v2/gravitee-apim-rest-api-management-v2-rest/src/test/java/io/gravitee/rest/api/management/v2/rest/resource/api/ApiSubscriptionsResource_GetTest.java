@@ -64,8 +64,7 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
 
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
             .api("ANOTHER-API")
@@ -90,8 +89,7 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
                 eq(API),
                 eq(RolePermissionAction.READ)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -103,8 +101,7 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
 
     @Test
     public void should_return_subscription() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
             .api(API)
@@ -123,8 +120,7 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
 
     @Test
     public void should_return_subscription_with_expands() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
             .api(API)
@@ -143,21 +139,19 @@ public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsRe
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(argument -> List.of(APPLICATION).containsAll(argument))
             )
-        )
-            .thenReturn(Set.of(ApplicationFixtures.anApplicationListItem().toBuilder().id(APPLICATION).build()));
+        ).thenReturn(Set.of(ApplicationFixtures.anApplicationListItem().toBuilder().id(APPLICATION).build()));
 
         when(
             userService.findByIds(
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(argument -> List.of(SUBSCRIBED_BY).containsAll(argument))
             )
-        )
-            .thenReturn(
-                Set.of(
-                    UserFixtures.aUserEntity().toBuilder().id("first-user").build(),
-                    UserFixtures.aUserEntity().toBuilder().id("second-user").build()
-                )
-            );
+        ).thenReturn(
+            Set.of(
+                UserFixtures.aUserEntity().toBuilder().id("first-user").build(),
+                UserFixtures.aUserEntity().toBuilder().id("second-user").build()
+            )
+        );
 
         final Response response = rootTarget().queryParam("expands", "plan,application,subscribedBy").request().get();
 

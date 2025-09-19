@@ -77,8 +77,7 @@ class ApiDeployerTest {
         @Test
         void should_do_post_action() {
             ReactableApi reactableApi = mock(ReactableApi.class);
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
-                .builder()
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
                 .apiId("apiId")
                 .subscribablePlans(Set.of("plan"))
                 .reactableApi(reactableApi)

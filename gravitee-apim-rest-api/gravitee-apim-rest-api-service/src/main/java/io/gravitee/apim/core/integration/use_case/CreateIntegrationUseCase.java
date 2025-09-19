@@ -49,8 +49,7 @@ public class CreateIntegrationUseCase {
 
         var now = TimeProvider.now();
 
-        var integrationToCreate = Integration
-            .builder()
+        var integrationToCreate = Integration.builder()
             .id(UuidString.generateRandom())
             .name(input.integration.getName())
             .description(input.integration.getDescription())

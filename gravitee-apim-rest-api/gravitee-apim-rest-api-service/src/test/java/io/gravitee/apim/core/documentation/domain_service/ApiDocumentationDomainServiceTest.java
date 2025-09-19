@@ -103,8 +103,7 @@ class ApiDocumentationDomainServiceTest {
                     Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
                     Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("not-root").build(),
                     Page.builder().id("page#3").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("parent-id").build(),
-                    Page
-                        .builder()
+                    Page.builder()
                         .id("page#4")
                         .referenceType(Page.ReferenceType.API)
                         .referenceId("bad-api-id")

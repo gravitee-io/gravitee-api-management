@@ -382,28 +382,27 @@ class DefaultApiReactorTest {
     private DefaultApiReactor buildApiReactor() {
         DefaultApiReactor defaultApiReactor = null;
         try {
-            defaultApiReactor =
-                new DefaultApiReactor(
-                    api,
-                    new DefaultDeploymentContext(),
-                    apiComponentProvider,
-                    new ArrayList<>(),
-                    policyManager,
-                    entrypointConnectorPluginManager,
-                    apiServicePluginManager,
-                    endpointManager,
-                    resourceLifecycleManager,
-                    apiProcessorChainFactory,
-                    flowChainFactory,
-                    v4FlowChainFactory,
-                    configuration,
-                    node,
-                    requestTimeoutConfiguration,
-                    reporterService,
-                    accessPointManager,
-                    eventManager,
-                    tracingContext
-                );
+            defaultApiReactor = new DefaultApiReactor(
+                api,
+                new DefaultDeploymentContext(),
+                apiComponentProvider,
+                new ArrayList<>(),
+                policyManager,
+                entrypointConnectorPluginManager,
+                apiServicePluginManager,
+                endpointManager,
+                resourceLifecycleManager,
+                apiProcessorChainFactory,
+                flowChainFactory,
+                v4FlowChainFactory,
+                configuration,
+                node,
+                requestTimeoutConfiguration,
+                reporterService,
+                accessPointManager,
+                eventManager,
+                tracingContext
+            );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);
             defaultApiReactor.doStart();
@@ -833,15 +832,15 @@ class DefaultApiReactorTest {
 
         final ArgumentCaptor<Handler<ProxyConnection>> handlerArgumentCaptor = ArgumentCaptor.forClass(Handler.class);
         doAnswer(invocation -> {
-                ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
-                final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
-                    ConnectionHandlerAdapter.class,
-                    "nextEmitter",
-                    connectionHandlerAdapter
-                );
-                ((CompletableEmitter) nextEmitter.get()).onComplete();
-                return null;
-            })
+            ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
+            final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
+                ConnectionHandlerAdapter.class,
+                "nextEmitter",
+                connectionHandlerAdapter
+            );
+            ((CompletableEmitter) nextEmitter.get()).onComplete();
+            return null;
+        })
             .when(endpointInvoker)
             .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
         cut.handle(ctx).test().assertComplete();
@@ -901,13 +900,12 @@ class DefaultApiReactorTest {
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         subscriptionListener.setEntrypoints(new ArrayList<>());
         when(apiDefinition.getListeners()).thenReturn(List.of(httpListener, subscriptionListener));
-        when(accessPointManager.getByEnvironmentId(ENVIRONMENT_ID))
-            .thenReturn(
-                List.of(
-                    ReactableAccessPoint.builder().environmentId(ENVIRONMENT_ID).host("host1").build(),
-                    ReactableAccessPoint.builder().environmentId(ENVIRONMENT_ID).host("host2").build()
-                )
-            );
+        when(accessPointManager.getByEnvironmentId(ENVIRONMENT_ID)).thenReturn(
+            List.of(
+                ReactableAccessPoint.builder().environmentId(ENVIRONMENT_ID).host("host1").build(),
+                ReactableAccessPoint.builder().environmentId(ENVIRONMENT_ID).host("host2").build()
+            )
+        );
 
         cut = buildApiReactor();
         List<Acceptor<?>> acceptors = cut.acceptors();

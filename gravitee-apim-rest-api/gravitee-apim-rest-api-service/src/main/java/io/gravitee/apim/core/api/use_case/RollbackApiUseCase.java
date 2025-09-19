@@ -150,25 +150,29 @@ public class RollbackApiUseCase {
         existingPlans
             .values()
             .stream()
-            .filter(existingPlan ->
-                existingPlan.getPlanStatus() != PlanStatus.CLOSED &&
-                !plansToUpdate.stream().map(io.gravitee.apim.core.plan.model.Plan::getId).collect(toSet()).contains(existingPlan.getId())
+            .filter(
+                existingPlan ->
+                    existingPlan.getPlanStatus() != PlanStatus.CLOSED &&
+                    !plansToUpdate
+                        .stream()
+                        .map(io.gravitee.apim.core.plan.model.Plan::getId)
+                        .collect(toSet())
+                        .contains(existingPlan.getId())
             )
             .forEach(existingPlan -> closePlanDomainService.close(existingPlan.getId(), auditInfo));
     }
 
     private void createAuditLog(AuditInfo auditInfo, String apiId, ZonedDateTime auditCreatedAt) {
         this.auditService.createApiAuditLog(
-                ApiAuditLogEntity
-                    .builder()
-                    .organizationId(auditInfo.organizationId())
-                    .environmentId(auditInfo.environmentId())
-                    .apiId(apiId)
-                    .event(ApiAuditEvent.API_ROLLBACKED)
-                    .actor(auditInfo.actor())
-                    .createdAt(auditCreatedAt)
-                    .properties(Collections.emptyMap())
-                    .build()
-            );
+            ApiAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiId(apiId)
+                .event(ApiAuditEvent.API_ROLLBACKED)
+                .actor(auditInfo.actor())
+                .createdAt(auditCreatedAt)
+                .properties(Collections.emptyMap())
+                .build()
+        );
     }
 }

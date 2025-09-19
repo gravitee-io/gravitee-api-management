@@ -71,8 +71,9 @@ class ApplicationQueryServiceImplTest {
         void should_throw_when_technical_exception_occurs() {
             // Given
             var envId = "different-env";
-            when(applicationRepository.findAllByEnvironment("different-env", ApplicationStatus.values()))
-                .thenThrow(TechnicalException.class);
+            when(applicationRepository.findAllByEnvironment("different-env", ApplicationStatus.values())).thenThrow(
+                TechnicalException.class
+            );
 
             // When
             Throwable throwable = catchThrowable(() -> service.findByEnvironment(envId));

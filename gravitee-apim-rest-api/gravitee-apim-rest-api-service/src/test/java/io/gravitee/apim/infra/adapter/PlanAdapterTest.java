@@ -148,8 +148,7 @@ class PlanAdapterTest {
                 soft
                     .assertThat(plan.getFederatedPlanDefinition())
                     .isEqualTo(
-                        FederatedPlan
-                            .builder()
+                        FederatedPlan.builder()
                             .id("my-id")
                             .providerId("provider-id")
                             .security(PlanSecurity.builder().type("api-key").build())
@@ -198,8 +197,7 @@ class PlanAdapterTest {
 
         @Test
         void should_convert_v4_plan_to_repository() {
-            var model = PlanFixtures
-                .aPlanHttpV4()
+            var model = PlanFixtures.aPlanHttpV4()
                 .toBuilder()
                 .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
@@ -208,8 +206,7 @@ class PlanAdapterTest {
                 .commentMessage("Comment message")
                 .generalConditions("General conditions")
                 .planDefinitionHttpV4(
-                    io.gravitee.definition.model.v4.plan.Plan
-                        .builder()
+                    io.gravitee.definition.model.v4.plan.Plan.builder()
                         .security(PlanSecurity.builder().type("key-less").configuration("{\"nice\": \"config\"}").build())
                         .mode(PlanMode.STANDARD)
                         .status(PlanStatus.PUBLISHED)
@@ -252,12 +249,10 @@ class PlanAdapterTest {
 
         @Test
         void should_convert_v2_plan_to_repository() {
-            var model = PlanFixtures
-                .aPlanV2()
+            var model = PlanFixtures.aPlanV2()
                 .toBuilder()
                 .planDefinitionV2(
-                    io.gravitee.definition.model.Plan
-                        .builder()
+                    io.gravitee.definition.model.Plan.builder()
                         .security("key-less")
                         .securityDefinition("{\"nice\": \"config\"}")
                         .selectionRule("{#request.attribute['selectionRule'] != null}")
@@ -308,8 +303,7 @@ class PlanAdapterTest {
 
         @Test
         void should_convert_federated_plan_to_repository() {
-            var model = PlanFixtures
-                .aFederatedPlan()
+            var model = PlanFixtures.aFederatedPlan()
                 .toBuilder()
                 .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC))
@@ -351,8 +345,7 @@ class PlanAdapterTest {
         }
 
         private Plan.PlanBuilder planHttpV4() {
-            return Plan
-                .builder()
+            return Plan.builder()
                 .id("my-id")
                 .api("my-api")
                 .crossId("cross-id")
@@ -382,8 +375,7 @@ class PlanAdapterTest {
         }
 
         private Plan.PlanBuilder planNativeV4() {
-            return Plan
-                .builder()
+            return Plan.builder()
                 .id("my-id")
                 .api("my-api")
                 .crossId("cross-id")
@@ -413,8 +405,7 @@ class PlanAdapterTest {
         }
 
         private Plan.PlanBuilder federatedPlan() {
-            return Plan
-                .builder()
+            return Plan.builder()
                 .id("my-id")
                 .api("my-api")
                 .name("plan-name")
@@ -439,8 +430,7 @@ class PlanAdapterTest {
         }
 
         private Plan.PlanBuilder planV2() {
-            return Plan
-                .builder()
+            return Plan.builder()
                 .id("my-id")
                 .api("my-api")
                 .crossId("cross-id")
@@ -474,12 +464,10 @@ class PlanAdapterTest {
 
         @Test
         public void should_convert_plan_to_plan_entity() {
-            var plan = PlanFixtures.HttpV4
-                .anApiKey()
+            var plan = PlanFixtures.HttpV4.anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures.HttpV4Definition
-                        .anApiKeyV4()
+                    fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
                         .toBuilder()
                         .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).configuration("{}").build())
                         .build()
@@ -498,8 +486,9 @@ class PlanAdapterTest {
             assertThat(planEntity.getTags()).isEqualTo(plan.getPlanDefinitionHttpV4().getTags());
             assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getPlanDefinitionV4().getSelectionRule());
             assertThat(planEntity.getPlanSecurity().getType()).isEqualTo(PlanSecurityType.API_KEY.getLabel());
-            assertThat(planEntity.getPlanSecurity().getConfiguration())
-                .isEqualTo(plan.getPlanDefinitionV4().getSecurity().getConfiguration());
+            assertThat(planEntity.getPlanSecurity().getConfiguration()).isEqualTo(
+                plan.getPlanDefinitionV4().getSecurity().getConfiguration()
+            );
         }
 
         @Test
@@ -527,12 +516,10 @@ class PlanAdapterTest {
 
         @Test
         public void should_convert_plan_to_crd() {
-            var plan = PlanFixtures.HttpV4
-                .anApiKey()
+            var plan = PlanFixtures.HttpV4.anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures.HttpV4Definition
-                        .anApiKeyV4()
+                    fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
                         .toBuilder()
                         .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).configuration("{}").build())
                         .build()

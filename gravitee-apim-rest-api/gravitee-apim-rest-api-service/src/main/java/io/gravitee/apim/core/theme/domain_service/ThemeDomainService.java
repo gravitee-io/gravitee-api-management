@@ -33,8 +33,7 @@ public class ThemeDomainService {
     public Theme create(NewTheme newTheme) {
         var currentTime = ZonedDateTime.now();
 
-        var themeToBeCreated = Theme
-            .builder()
+        var themeToBeCreated = Theme.builder()
             .name(newTheme.getName())
             .referenceId(newTheme.getReferenceId())
             .referenceType(newTheme.getReferenceType())

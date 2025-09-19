@@ -317,8 +317,7 @@ public class MetricsAdapter extends Metrics {
     public void setLog(final Log log) {
         if (log != null) {
             metrics.setLog(
-                io.gravitee.reporter.api.v4.log.Log
-                    .builder()
+                io.gravitee.reporter.api.v4.log.Log.builder()
                     .timestamp(log.getTimestamp())
                     .entrypointRequest(log.getClientRequest())
                     .entrypointResponse(log.getClientResponse())

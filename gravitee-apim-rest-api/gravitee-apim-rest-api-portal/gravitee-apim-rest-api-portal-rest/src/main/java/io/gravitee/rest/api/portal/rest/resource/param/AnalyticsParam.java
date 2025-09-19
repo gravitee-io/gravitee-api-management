@@ -187,7 +187,8 @@ public class AnalyticsParam {
         if (
             (type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY || type.getValue() == AnalyticsTypeParam.AnalyticsType.STATS) &&
             (field == null || field.trim().isEmpty())
-        ) { // we need a field and, optionally, a list of ranges
+        ) {
+            // we need a field and, optionally, a list of ranges
             throw new BadRequestException("'field' query parameter is required for '" + type.getValue().name().toLowerCase() + "' request");
         }
     }

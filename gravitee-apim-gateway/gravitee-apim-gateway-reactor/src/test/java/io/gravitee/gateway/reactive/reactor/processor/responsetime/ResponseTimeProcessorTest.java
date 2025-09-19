@@ -40,9 +40,11 @@ class ResponseTimeProcessorTest extends AbstractProcessorTest {
         ResponseTimeProcessor responseTimeProcessor = new ResponseTimeProcessor();
         ctx.metrics().setEndpointResponseTimeMs(100);
         responseTimeProcessor.execute(ctx).test().assertResult();
-        assertThat(ctx.metrics().getGatewayResponseTimeMs())
-            .isLessThanOrEqualTo(System.currentTimeMillis() - ctx.metrics().getEndpointResponseTimeMs());
-        assertThat(ctx.metrics().getGatewayLatencyMs())
-            .isEqualTo(ctx.metrics().getGatewayResponseTimeMs() - ctx.metrics().getEndpointResponseTimeMs());
+        assertThat(ctx.metrics().getGatewayResponseTimeMs()).isLessThanOrEqualTo(
+            System.currentTimeMillis() - ctx.metrics().getEndpointResponseTimeMs()
+        );
+        assertThat(ctx.metrics().getGatewayLatencyMs()).isEqualTo(
+            ctx.metrics().getGatewayResponseTimeMs() - ctx.metrics().getEndpointResponseTimeMs()
+        );
     }
 }

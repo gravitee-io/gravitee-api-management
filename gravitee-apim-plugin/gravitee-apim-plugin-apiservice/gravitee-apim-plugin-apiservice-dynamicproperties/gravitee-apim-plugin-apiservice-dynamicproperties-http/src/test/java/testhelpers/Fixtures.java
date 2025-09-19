@@ -44,8 +44,7 @@ public class Fixtures {
     public static final String MY_API = "my-api";
 
     public static Api apiWithDynamicPropertiesEnabled() {
-        return Api
-            .builder()
+        return Api.builder()
             .id(MY_API)
             .services(
                 ApiServices.builder().dynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build()).build()
@@ -54,12 +53,10 @@ public class Fixtures {
     }
 
     public static NativeApi nativeApiWithDynamicPropertiesEnabled() {
-        return NativeApi
-            .builder()
+        return NativeApi.builder()
             .id(MY_API)
             .services(
-                NativeApiServices
-                    .builder()
+                NativeApiServices.builder()
                     .dynamicProperty(Service.builder().enabled(true).type(HTTP_DYNAMIC_PROPERTIES_TYPE).build())
                     .build()
             )
@@ -110,13 +107,13 @@ public class Fixtures {
 
     public static String backendResponse() {
         return """
-               {
-                    "props": {
-                         "key1": "initial val 1",
-                         "key2": "initial val 2"
-                    }
-               }
-               """;
+        {
+             "props": {
+                  "key1": "initial val 1",
+                  "key2": "initial val 2"
+             }
+        }
+        """;
     }
 
     @SneakyThrows

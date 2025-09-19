@@ -77,11 +77,10 @@ class SearchAverageConnectionDurationResponseAdapterTest {
                 .toList()
         );
 
-        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse))
-            .hasValueSatisfying(countAggregate -> {
-                assertThat(countAggregate.getAverage()).isEqualTo(expectedCount);
-                assertThat(countAggregate.getAverageBy()).containsAllEntriesOf(buckets);
-            });
+        assertThat(SearchAverageConnectionDurationResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate -> {
+            assertThat(countAggregate.getAverage()).isEqualTo(expectedCount);
+            assertThat(countAggregate.getAverageBy()).containsAllEntriesOf(buckets);
+        });
     }
 
     @Test

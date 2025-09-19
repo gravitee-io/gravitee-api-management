@@ -53,8 +53,7 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         final List<AccessPoint> accessPoints
     ) {
         try {
-            AccessPointCriteria accessPointCriteria = AccessPointCriteria
-                .builder()
+            AccessPointCriteria accessPointCriteria = AccessPointCriteria.builder()
                 .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
                 .referenceIds(Set.of(referenceId))
                 .status(AccessPointStatus.CREATED)
@@ -115,8 +114,7 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
     @Override
     public void deleteAccessPoints(final AccessPoint.ReferenceType referenceType, final String referenceId) {
         try {
-            var accessPointCriteria = AccessPointCriteria
-                .builder()
+            var accessPointCriteria = AccessPointCriteria.builder()
                 .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
                 .referenceIds(Set.of(referenceId))
                 .status(AccessPointStatus.CREATED)

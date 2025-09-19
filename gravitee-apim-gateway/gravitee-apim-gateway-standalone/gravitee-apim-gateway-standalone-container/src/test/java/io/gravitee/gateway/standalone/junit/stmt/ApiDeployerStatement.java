@@ -86,9 +86,8 @@ public class ApiDeployerStatement extends Statement {
         applicationContext = container.applicationContext();
         final Environment environment = applicationContext.getBean(Environment.class);
 
-        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
-            (ConfigurableApplicationContext) applicationContext
-        ).getBeanFactory();
+        DefaultListableBeanFactory beanFactory =
+            (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
 
         FakeReporter fakeReporter = (FakeReporter) applicationContext.getBean("fakeReporter");
         ReporterManager reporterManager = applicationContext.getBean(ReporterManager.class);

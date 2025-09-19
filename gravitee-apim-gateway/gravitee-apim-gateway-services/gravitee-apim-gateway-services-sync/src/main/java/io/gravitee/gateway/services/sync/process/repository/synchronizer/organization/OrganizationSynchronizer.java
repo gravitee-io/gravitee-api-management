@@ -59,7 +59,11 @@ public class OrganizationSynchronizer implements RepositorySynchronizer {
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
             // fetch per page
-            .flatMap(events -> Flowable.just(events).flatMapIterable(e -> e).compose(this::prepareForDeployment))
+            .flatMap(events ->
+                Flowable.just(events)
+                    .flatMapIterable(e -> e)
+                    .compose(this::prepareForDeployment)
+            )
             // per deployable
             .compose(upstream -> {
                 OrganizationDeployer organizationDeployer = deployerFactory.createOrganizationDeployer();

@@ -123,28 +123,28 @@ public class ProxyEndpointResolverTest {
     @CsvSource(
         delimiterString = "|",
         textBlock = """
-                    http://endpoint:8080/test/myendpoint|/myendpoint|endpoint|http://endpoint:8080/test
-                    http://endpoint:8080/test/myendpoint|/myendpoint|endpoint|http://endpoint:8080/test/
-                    http://host:8080/test|local:|local|http://host:8080/test
-                    http://host:8080/test/|local:|local|http://host:8080/test/
-                    http://host:8080/test|lo/cal:|lo/cal|http://host:8080/test
-                    http://host:8080/test|lo(cal:|lo(cal|http://host:8080/test
-                    http://host:8080/test/|http://host:8080/test/|endpoint|http://endpoint:8080/test/
-                    http://host:8080/test|http://host:8080/test|endpoint|http://endpoint:8080/test
-                    http://host:8080/test(q=1)|local:(q=1)|local|http://host:8080/test
-                    http://host:8080/test/(q=1)|local:/(q=1)|local|http://host:8080/test
-                    http://host:8080/test|lo cal:|lo cal|http://host:8080/test
-                    http://host:8080/test|lo-cal:|lo-cal|http://host:8080/test
-                    http://host:8080/method|local:/method|local|http://host:8080/
-                    http://host:8080/method/|local:/method/|local|http://host:8080/
-                    http://host:8080/test toto  tété/titi|local:test toto  tété/titi|local|http://host:8080/
-                    http://host:8080/test|consul#endpoint_id:|consul#endpoint_id|http://host:8080/test
-                    http://host:8080/foo%2f%3fbar|http://host:8080/foo%2f%3fbar|endpoint|http://host:8080/test
-                    http://host:8080/foo:|endpoint:/foo:|endpoint|http://host:8080/
-                    wss://host:8080/test/|wss://host:8080/test/|endpoint|wss://endpoint:8080/test/
-                    http://host:8080/test toto  tété/titi|http://host:8080/test toto  tété/titi|endpoint|http://host:8080/test
-                    http://host:8080/test/ toto  tété/titi|http://host:8080/test/ toto  tété/titi|endpoint|http://host:8080/test
-                    """
+        http://endpoint:8080/test/myendpoint|/myendpoint|endpoint|http://endpoint:8080/test
+        http://endpoint:8080/test/myendpoint|/myendpoint|endpoint|http://endpoint:8080/test/
+        http://host:8080/test|local:|local|http://host:8080/test
+        http://host:8080/test/|local:|local|http://host:8080/test/
+        http://host:8080/test|lo/cal:|lo/cal|http://host:8080/test
+        http://host:8080/test|lo(cal:|lo(cal|http://host:8080/test
+        http://host:8080/test/|http://host:8080/test/|endpoint|http://endpoint:8080/test/
+        http://host:8080/test|http://host:8080/test|endpoint|http://endpoint:8080/test
+        http://host:8080/test(q=1)|local:(q=1)|local|http://host:8080/test
+        http://host:8080/test/(q=1)|local:/(q=1)|local|http://host:8080/test
+        http://host:8080/test|lo cal:|lo cal|http://host:8080/test
+        http://host:8080/test|lo-cal:|lo-cal|http://host:8080/test
+        http://host:8080/method|local:/method|local|http://host:8080/
+        http://host:8080/method/|local:/method/|local|http://host:8080/
+        http://host:8080/test toto  tété/titi|local:test toto  tété/titi|local|http://host:8080/
+        http://host:8080/test|consul#endpoint_id:|consul#endpoint_id|http://host:8080/test
+        http://host:8080/foo%2f%3fbar|http://host:8080/foo%2f%3fbar|endpoint|http://host:8080/test
+        http://host:8080/foo:|endpoint:/foo:|endpoint|http://host:8080/
+        wss://host:8080/test/|wss://host:8080/test/|endpoint|wss://endpoint:8080/test/
+        http://host:8080/test toto  tété/titi|http://host:8080/test toto  tété/titi|endpoint|http://host:8080/test
+        http://host:8080/test/ toto  tété/titi|http://host:8080/test/ toto  tété/titi|endpoint|http://host:8080/test
+        """
     )
     void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
         Endpoint endpoint = mock(Endpoint.class);

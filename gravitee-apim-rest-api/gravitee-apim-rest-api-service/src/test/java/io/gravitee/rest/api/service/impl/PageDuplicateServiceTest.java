@@ -68,33 +68,31 @@ public class PageDuplicateServiceTest {
         GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
 
-        when(pageService.createPage(any(), any(String.class), any(NewPageEntity.class), any(String.class)))
-            .thenAnswer(invocation -> {
-                NewPageEntity newPage = invocation.getArgument(2);
-                String newId = invocation.getArgument(3);
+        when(pageService.createPage(any(), any(String.class), any(NewPageEntity.class), any(String.class))).thenAnswer(invocation -> {
+            NewPageEntity newPage = invocation.getArgument(2);
+            String newId = invocation.getArgument(3);
 
-                return PageEntity
-                    .builder()
-                    .id(newId)
-                    .crossId(newPage.getCrossId())
-                    .name(newPage.getName())
-                    .content(newPage.getContent())
-                    .type(newPage.getType().name())
-                    .order(newPage.getOrder())
-                    .published(newPage.isPublished())
-                    .visibility(newPage.getVisibility())
-                    .lastContributor(newPage.getLastContributor())
-                    .source(newPage.getSource())
-                    .configuration(newPage.getConfiguration())
-                    .homepage(newPage.isHomepage())
-                    .excludedGroups(newPage.getExcludedGroups())
-                    .accessControls(newPage.getAccessControls())
-                    .attachedMedia(newPage.getAttachedMedia())
-                    .parentId(newPage.getParentId())
-                    .referenceType("API")
-                    .referenceId(invocation.getArgument(1))
-                    .build();
-            });
+            return PageEntity.builder()
+                .id(newId)
+                .crossId(newPage.getCrossId())
+                .name(newPage.getName())
+                .content(newPage.getContent())
+                .type(newPage.getType().name())
+                .order(newPage.getOrder())
+                .published(newPage.isPublished())
+                .visibility(newPage.getVisibility())
+                .lastContributor(newPage.getLastContributor())
+                .source(newPage.getSource())
+                .configuration(newPage.getConfiguration())
+                .homepage(newPage.isHomepage())
+                .excludedGroups(newPage.getExcludedGroups())
+                .accessControls(newPage.getAccessControls())
+                .attachedMedia(newPage.getAttachedMedia())
+                .parentId(newPage.getParentId())
+                .referenceType("API")
+                .referenceId(invocation.getArgument(1))
+                .build();
+        });
     }
 
     @AfterEach
@@ -108,8 +106,9 @@ public class PageDuplicateServiceTest {
         PageEntity page2 = aModelPage().toBuilder().id("page-2-id").name("Page 2").type("MARKDOWN").build();
         PageEntity page3 = aModelPage().toBuilder().id("page-3-id").name("Sub Page 3").type("ASCIIDOC").parentId(page2.getId()).build();
 
-        when(pageService.search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(API_ID).build(), true))
-            .thenReturn(List.of(page1, page2, page3));
+        when(pageService.search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(API_ID).build(), true)).thenReturn(
+            List.of(page1, page2, page3)
+        );
 
         pageDuplicateService.duplicatePages(GraviteeContext.getExecutionContext(), API_ID, DUPLICATE_API_ID, USER_ID);
 
@@ -136,8 +135,9 @@ public class PageDuplicateServiceTest {
         PageEntity page2 = aModelPage().toBuilder().id("page-2-id").name("Page 2").type("MARKDOWN").build();
         PageEntity page3 = aModelPage().toBuilder().id("page-3-id").name("Sub Page 3").type("ASCIIDOC").parentId(page2.getId()).build();
 
-        when(pageService.search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(API_ID).build(), true))
-            .thenReturn(List.of(page1, page2, page3));
+        when(pageService.search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(API_ID).build(), true)).thenReturn(
+            List.of(page1, page2, page3)
+        );
 
         Map<String, String> pagesIds = pageDuplicateService.duplicatePages(
             GraviteeContext.getExecutionContext(),

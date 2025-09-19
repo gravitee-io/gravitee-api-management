@@ -50,8 +50,7 @@ public class EmailRecipientsServiceImpl implements EmailRecipientsService {
         return templatedRecipientsEmail
             .stream()
             .flatMap(splittableRecipientsStr ->
-                Arrays
-                    .stream(SPLIT_PATTERN.split(splittableRecipientsStr))
+                Arrays.stream(SPLIT_PATTERN.split(splittableRecipientsStr))
                     .filter(not(String::isEmpty))
                     .map(recipient -> {
                         if (recipient.contains("$")) {

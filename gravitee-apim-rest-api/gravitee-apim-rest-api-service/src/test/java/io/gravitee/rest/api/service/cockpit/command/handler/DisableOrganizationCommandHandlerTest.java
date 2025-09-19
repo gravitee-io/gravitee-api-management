@@ -81,16 +81,10 @@ class DisableOrganizationCommandHandlerTest {
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, ORG_APIM_ID);
-        verify(idpActivationService)
-            .removeAllIdpsFromTarget(
-                eq(new ExecutionContext(ORG_APIM_ID)),
-                eq(
-                    new IdentityProviderActivationService.ActivationTarget(
-                        ORG_APIM_ID,
-                        IdentityProviderActivationReferenceType.ORGANIZATION
-                    )
-                )
-            );
+        verify(idpActivationService).removeAllIdpsFromTarget(
+            eq(new ExecutionContext(ORG_APIM_ID)),
+            eq(new IdentityProviderActivationService.ActivationTarget(ORG_APIM_ID, IdentityProviderActivationReferenceType.ORGANIZATION))
+        );
     }
 
     @Test

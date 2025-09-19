@@ -54,16 +54,13 @@ public class JdbcHelper {
         @Override
         public void processRow(ResultSet rs) throws SQLException {
             Comparable<?> currentId = (Comparable<?>) rs.getObject(idColumn);
-            T current = rows.computeIfAbsent(
-                currentId,
-                id -> {
-                    try {
-                        return mapper.mapRow(rs, rows.size() + 1);
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
+            T current = rows.computeIfAbsent(currentId, id -> {
+                try {
+                    return mapper.mapRow(rs, rows.size() + 1);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
-            );
+            });
             childAdder.addChild(current, rs);
         }
 

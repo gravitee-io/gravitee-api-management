@@ -49,8 +49,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
 
     @Override
     protected JdbcObjectMapper<Installation> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Installation.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Installation.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
@@ -104,9 +103,9 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
             );
             jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " i left join " +
-                INSTALLATION_INFORMATIONS +
-                " ii on i.id = ii.installation_id where i.id = ?",
+                    " i left join " +
+                    INSTALLATION_INFORMATIONS +
+                    " ii on i.id = ii.installation_id where i.id = ?",
                 rowMapper,
                 id
             );
@@ -137,8 +136,9 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(installation, installation.getId()));
             storeInstallationInformations(installation, true);
-            return findById(installation.getId())
-                .orElseThrow(() -> new IllegalStateException(format("No installation found with id [%s]", installation.getId())));
+            return findById(installation.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No installation found with id [%s]", installation.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {

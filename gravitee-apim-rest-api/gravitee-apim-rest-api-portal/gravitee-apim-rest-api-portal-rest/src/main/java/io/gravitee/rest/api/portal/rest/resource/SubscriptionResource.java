@@ -131,13 +131,11 @@ public class SubscriptionResource extends AbstractResource {
             closeSubscriptionUsecase.execute(
                 new CloseSubscriptionUseCase.Input(
                     subscriptionId,
-                    AuditInfo
-                        .builder()
+                    AuditInfo.builder()
                         .organizationId(executionContext.getOrganizationId())
                         .environmentId(executionContext.getEnvironmentId())
                         .actor(
-                            AuditActor
-                                .builder()
+                            AuditActor.builder()
                                 .userId(user.getUsername())
                                 .userSource(user.getSource())
                                 .userSourceId(user.getSourceId())
@@ -206,16 +204,14 @@ public class SubscriptionResource extends AbstractResource {
         }
 
         switch (subscriptionConsumerStatus) {
-            case STARTED:
-                {
-                    SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeConsumer(executionContext, subscriptionId);
-                    return Response.ok(updatedSubscriptionEntity).build();
-                }
-            case STOPPED:
-                {
-                    SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pauseConsumer(executionContext, subscriptionId);
-                    return Response.ok(updatedSubscriptionEntity).build();
-                }
+            case STARTED: {
+                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeConsumer(executionContext, subscriptionId);
+                return Response.ok(updatedSubscriptionEntity).build();
+            }
+            case STOPPED: {
+                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pauseConsumer(executionContext, subscriptionId);
+                return Response.ok(updatedSubscriptionEntity).build();
+            }
             default:
                 return Response.status(Response.Status.BAD_REQUEST).build();
         }

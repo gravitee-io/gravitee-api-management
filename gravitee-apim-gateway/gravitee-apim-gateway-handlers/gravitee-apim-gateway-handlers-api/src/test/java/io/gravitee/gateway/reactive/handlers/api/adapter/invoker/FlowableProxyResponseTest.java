@@ -216,10 +216,10 @@ class FlowableProxyResponseTest {
     private void setupChunkProducer(Runnable runnable) {
         // Generated one chunk, mark the context interrupted then generate another chunk (the second one should not be propagated).
         doAnswer(invocation -> {
-                runnable.run();
+            runnable.run();
 
-                return null;
-            })
+            return null;
+        })
             .when(proxyResponse)
             .resume();
     }

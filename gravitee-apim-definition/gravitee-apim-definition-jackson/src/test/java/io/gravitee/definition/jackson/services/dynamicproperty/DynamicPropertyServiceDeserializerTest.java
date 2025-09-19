@@ -66,17 +66,15 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
 
     @Test
     public void definition_withDynamicProperty_badUnit() throws Exception {
-        assertThrows(
-            JsonMappingException.class,
-            () -> load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class)
+        assertThrows(JsonMappingException.class, () ->
+            load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class)
         );
     }
 
     @Test
     public void definition_withDynamicProperty_noProvider() throws Exception {
-        assertThrows(
-            JsonMappingException.class,
-            () -> load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class)
+        assertThrows(JsonMappingException.class, () ->
+            load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class)
         );
     }
 
@@ -94,21 +92,15 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
 
     @Test
     public void definition_withDynamicProperty_httpProvider_noUrl() throws Exception {
-        assertThrows(
-            JsonMappingException.class,
-            () -> load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noUrl.json", Api.class)
+        assertThrows(JsonMappingException.class, () ->
+            load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noUrl.json", Api.class)
         );
     }
 
     @Test
     public void definition_withDynamicProperty_httpProvider_noSpecification() throws Exception {
-        assertThrows(
-            JsonMappingException.class,
-            () ->
-                load(
-                    "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noSpecification.json",
-                    Api.class
-                )
+        assertThrows(JsonMappingException.class, () ->
+            load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noSpecification.json", Api.class)
         );
     }
 }

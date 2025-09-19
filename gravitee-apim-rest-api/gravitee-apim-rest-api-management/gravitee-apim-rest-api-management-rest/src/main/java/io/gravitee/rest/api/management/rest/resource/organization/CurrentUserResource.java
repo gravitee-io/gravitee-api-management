@@ -375,8 +375,7 @@ public class CurrentUserResource extends AbstractResource {
                 .toInstant()
                 .plus(Duration.ofSeconds(environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
 
-            final String token = JWT
-                .create()
+            final String token = JWT.create()
                 .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
                 .withIssuedAt(issueAt)
                 .withExpiresAt(Date.from(expireAt))
@@ -444,8 +443,9 @@ public class CurrentUserResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserShardingTags() {
-        return ok(tagService.findByUser(getAuthenticatedUser(), GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION))
-            .build();
+        return ok(
+            tagService.findByUser(getAuthenticatedUser(), GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION)
+        ).build();
     }
 
     @Path("/notifications")

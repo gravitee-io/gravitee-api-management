@@ -70,26 +70,22 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             );
             List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate;
             if (environmentPayload.accessPoints() != null) {
-                accessPointsToCreate =
-                    environmentPayload
-                        .accessPoints()
-                        .stream()
-                        .map(cockpitAccessPoint ->
-                            io.gravitee.apim.core.access_point.model.AccessPoint
-                                .builder()
-                                .referenceType(io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT)
-                                .referenceId(environment.getId())
-                                .target(
-                                    io.gravitee.apim.core.access_point.model.AccessPoint.Target.valueOf(
-                                        cockpitAccessPoint.getTarget().name()
-                                    )
-                                )
-                                .host(cockpitAccessPoint.getHost())
-                                .secured(cockpitAccessPoint.isSecured())
-                                .overriding(cockpitAccessPoint.isOverriding())
-                                .build()
-                        )
-                        .toList();
+                accessPointsToCreate = environmentPayload
+                    .accessPoints()
+                    .stream()
+                    .map(cockpitAccessPoint ->
+                        io.gravitee.apim.core.access_point.model.AccessPoint.builder()
+                            .referenceType(io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT)
+                            .referenceId(environment.getId())
+                            .target(
+                                io.gravitee.apim.core.access_point.model.AccessPoint.Target.valueOf(cockpitAccessPoint.getTarget().name())
+                            )
+                            .host(cockpitAccessPoint.getHost())
+                            .secured(cockpitAccessPoint.isSecured())
+                            .overriding(cockpitAccessPoint.isOverriding())
+                            .build()
+                    )
+                    .toList();
             } else {
                 accessPointsToCreate = new ArrayList<>();
             }
@@ -101,8 +97,10 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
             return Single.just(new EnvironmentReply(command.getId()));
         } catch (Exception e) {
-            String errorDetails =
-                "Error occurred when handling environment [%s] with id [%s]".formatted(environmentPayload.name(), environmentPayload.id());
+            String errorDetails = "Error occurred when handling environment [%s] with id [%s]".formatted(
+                environmentPayload.name(),
+                environmentPayload.id()
+            );
             log.error(errorDetails, e);
             return Single.just(new EnvironmentReply(command.getId(), errorDetails));
         }
