@@ -78,7 +78,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         @Test
         void should_return_homepage_portal_page() {
             setupPermission(true);
-            setupHomepage();
+            setupHomepage(true);
             Response response = target.path("/_homepage").request().get();
             assertThat(response)
                 .hasStatus(OK_200)
@@ -98,12 +98,12 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         }
     }
 
-    private PortalPageWithViewDetails setupHomepage() {
+    private PortalPageWithViewDetails setupHomepage(boolean published) {
         PortalPage page = PortalPage.create(new GraviteeMarkdown("Welcome!"));
-        PortalPageView view = new PortalPageView(PortalViewContext.HOMEPAGE, true);
+        PortalPageView view = new PortalPageView(PortalViewContext.HOMEPAGE, published);
         PortalPageWithViewDetails details = new PortalPageWithViewDetails(page, view);
         portalPageContextCrudService.initWith(
-            List.of(new PortalPageContext("x", page.getId().toString(), PortalPageContextType.HOMEPAGE, ENVIRONMENT, true))
+            List.of(new PortalPageContext("x", page.getId().toString(), PortalPageContextType.HOMEPAGE, ENVIRONMENT, published))
         );
         portalPageQueryService.initWith(List.of(details));
         portalPageCrudService.initWith(List.of(page));
@@ -142,7 +142,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             String updatedContent = "Updated homepage!";
             var patchPortalPage = new PatchPortalPage();
             patchPortalPage.setContent(updatedContent);
-            var existingHomepage = setupHomepage();
+            var existingHomepage = setupHomepage(true);
             Response response = target
                 .path("/" + existingHomepage.page().getId())
                 .request()
@@ -163,6 +163,60 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             var patchPortalPage = new PatchPortalPage();
             patchPortalPage.setContent("Updated homepage!");
             Response response = target.path("/_homepage").request().method("PATCH", jakarta.ws.rs.client.Entity.json(patchPortalPage));
+            assertThat(response).hasStatus(403);
+        }
+    }
+
+    @Nested
+    class PublishPortalPageTest {
+
+        @Test
+        void should_publish_homepage_portal_page() {
+            setupPermissionForUpdate(true);
+            var existingHomepage = setupHomepage(false);
+            Response response = target.path("/" + existingHomepage.page().getId() + "/_publish").request().post(null);
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PortalPageResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getContent()).isEqualTo("Welcome!");
+                    assertThat(r.getContext()).isEqualTo(PortalPageResponse.ContextEnum.HOMEPAGE);
+                    assertThat(r.getType()).isEqualTo(PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
+                });
+            assertThat(portalPageContextCrudService.storage().getFirst().isPublished()).isTrue();
+        }
+
+        @Test
+        void should_return_403_for_unauthorized_user() {
+            setupPermissionForUpdate(false);
+            Response response = target.path("/_homepage/_publish").request().post(null);
+            assertThat(response).hasStatus(403);
+        }
+    }
+
+    @Nested
+    class UnpublishPortalPageTest {
+
+        @Test
+        void should_unpublish_homepage_portal_page() {
+            setupPermissionForUpdate(true);
+            var existingHomepage = setupHomepage(true);
+            Response response = target.path("/" + existingHomepage.page().getId() + "/_unpublish").request().post(null);
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PortalPageResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getContent()).isEqualTo("Welcome!");
+                    assertThat(r.getContext()).isEqualTo(PortalPageResponse.ContextEnum.HOMEPAGE);
+                    assertThat(r.getType()).isEqualTo(PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
+                });
+            assertThat(portalPageContextCrudService.storage().getFirst().isPublished()).isFalse();
+        }
+
+        @Test
+        void should_return_403_for_unauthorized_user() {
+            setupPermissionForUpdate(false);
+            Response response = target.path("/_homepage/_unpublish").request().post(null);
             assertThat(response).hasStatus(403);
         }
     }

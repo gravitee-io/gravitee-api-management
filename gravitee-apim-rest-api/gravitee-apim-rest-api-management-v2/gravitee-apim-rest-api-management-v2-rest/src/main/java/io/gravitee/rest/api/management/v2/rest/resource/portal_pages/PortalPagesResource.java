@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.portal_pages;
 
+import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.use_case.GetHomepageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageViewPublicationStatusUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalPagesMapper;
 import io.gravitee.rest.api.management.v2.rest.model.PatchPortalPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse;
@@ -29,6 +31,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -40,6 +43,9 @@ public class PortalPagesResource extends AbstractResource {
 
     @Inject
     private UpdatePortalPageUseCase updatePortalPageUseCase;
+
+    @Inject
+    UpdatePortalPageViewPublicationStatusUseCase updatePortalPageViewPublicationStatusUseCase;
 
     @PathParam("envId")
     private String envId;
@@ -64,6 +70,29 @@ public class PortalPagesResource extends AbstractResource {
         var input = new UpdatePortalPageUseCase.Input(envId, pageId, patchPortalPage.getContent());
         var updatedHomepage = updatePortalPageUseCase.execute(input);
 
+        return PortalPagesMapper.INSTANCE.map(updatedHomepage.portalPage());
+    }
+
+    @POST
+    @Produces("application/json")
+    @Consumes("application/json")
+    @Path("/{pageId}/_publish")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public PortalPageResponse publishPortalPage(@PathParam("pageId") String pageId) {
+        var input = new UpdatePortalPageViewPublicationStatusUseCase.Input(PageId.of(pageId), true);
+        var updatedHomepage = updatePortalPageViewPublicationStatusUseCase.execute(input);
+
+        return PortalPagesMapper.INSTANCE.map(updatedHomepage.portalPage());
+    }
+
+    @POST
+    @Produces("application/json")
+    @Consumes("application/json")
+    @Path("/{pageId}/_unpublish")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public PortalPageResponse unpublishPortalPage(@PathParam("pageId") String pageId) {
+        var input = new UpdatePortalPageViewPublicationStatusUseCase.Input(PageId.of(pageId), false);
+        var updatedHomepage = updatePortalPageViewPublicationStatusUseCase.execute(input);
         return PortalPagesMapper.INSTANCE.map(updatedHomepage.portalPage());
     }
 }

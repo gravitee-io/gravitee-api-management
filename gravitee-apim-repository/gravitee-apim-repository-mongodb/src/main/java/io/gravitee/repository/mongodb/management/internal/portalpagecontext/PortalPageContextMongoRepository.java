@@ -27,7 +27,8 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface PortalPageContextMongoRepository extends MongoRepository<PortalPageContextMongo, String> {
+public interface PortalPageContextMongoRepository
+    extends MongoRepository<PortalPageContextMongo, String>, PortalPageContextMongoRepositoryCustom {
     /**
      * Find all portal page contexts by context type and environment ID.
      */

@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.crud_service;
+package io.gravitee.repository.mongodb.management.internal.portalpagecontext;
 
-import io.gravitee.apim.core.portal_page.model.PageId;
-import io.gravitee.apim.core.portal_page.model.PortalPageView;
-import io.gravitee.apim.core.portal_page.model.PortalViewContext;
-import java.util.List;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.mongodb.management.internal.model.PortalPageContextMongo;
 
-public interface PortalPageContextCrudService {
-    List<PageId> findAllIdsByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId);
-
-    PortalPageView findByPageId(PageId pageId);
-
-    void update(PageId pageId, PortalPageView toUpdate);
+public interface PortalPageContextMongoRepositoryCustom {
+    void updateByPageId(PortalPageContextMongo item) throws TechnicalException;
 }

@@ -65,8 +65,7 @@ public class JdbcPortalPageContextRepository
     }
 
     @Override
-    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId)
-        throws TechnicalException {
+    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId) {
         LOGGER.debug("JdbcPortalPageContextRepository.findAllByContextTypeAndEnvironmentId({}, {})", contextType, environmentId);
 
         try {
@@ -106,6 +105,27 @@ public class JdbcPortalPageContextRepository
         } catch (final Exception ex) {
             LOGGER.error("Failed to find PortalPageContext by pageId [{}]", string, ex);
             return null;
+        }
+    }
+
+    @Override
+    public void updateByPageId(PortalPageContext item) throws TechnicalException {
+        LOGGER.debug("JdbcPortalPageContextRepository.updateByPageId({})", item);
+
+        try {
+            final int rows = jdbcTemplate.update(
+                "update " + this.tableName + " set context_type = ?, published = ? where page_id = ?",
+                item.getContextType().name(),
+                item.isPublished(),
+                item.getPageId()
+            );
+            if (rows == 0) {
+                throw new TechnicalException("Failed to update portal page context, no rows affected");
+            }
+            LOGGER.debug("JdbcPortalPageContextRepository.updateByPageId({}) - Done", item);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to update PortalPageContext by pageId [{}]", item.getPageId(), ex);
+            throw new TechnicalException("Failed to update portal page context", ex);
         }
     }
 
