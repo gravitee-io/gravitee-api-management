@@ -45,7 +45,12 @@ public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InM
 
     @Override
     public List<PortalPage> findByIds(List<PageId> pageIds) {
-        return storage.entrySet().stream().filter(entry -> pageIds.contains(entry.getKey())).map(Map.Entry::getValue).toList();
+        return storage
+            .entrySet()
+            .stream()
+            .filter(entry -> pageIds.contains(entry.getKey()))
+            .map(Map.Entry::getValue)
+            .toList();
     }
 
     @Override

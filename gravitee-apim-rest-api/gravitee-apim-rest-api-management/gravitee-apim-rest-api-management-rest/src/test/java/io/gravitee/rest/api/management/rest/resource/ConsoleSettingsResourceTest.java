@@ -64,8 +64,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
@@ -91,8 +90,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
@@ -114,8 +112,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
@@ -134,8 +131,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         final Response response = orgTarget().request().post(Entity.json(config));
 

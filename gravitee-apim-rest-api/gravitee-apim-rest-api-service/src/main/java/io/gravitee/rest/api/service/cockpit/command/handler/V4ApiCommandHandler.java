@@ -60,8 +60,7 @@ public class V4ApiCommandHandler implements CommandHandler<V4ApiCommand, V4ApiRe
             return v4ApiServiceCockpit
                 .createPublishApi(payload.organizationId(), payload.environmentId(), user.getId(), payload.apiDefinition())
                 .flatMap(apiEntity -> {
-                    final V4ApiReplyPayload v4ApiReplyPayload = V4ApiReplyPayload
-                        .builder()
+                    final V4ApiReplyPayload v4ApiReplyPayload = V4ApiReplyPayload.builder()
                         .apiId(apiEntity.getId())
                         .apiName(apiEntity.getName())
                         .apiVersion(apiEntity.getApiVersion())

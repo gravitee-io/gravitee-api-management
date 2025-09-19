@@ -41,8 +41,7 @@ public class VertxDebugConfiguration {
         Environment environment
     ) {
         final VertxHttpServerOptions options = debugServer.options();
-        return VertxDebugHttpClientConfiguration
-            .builder()
+        return VertxDebugHttpClientConfiguration.builder()
             .port(options.getPort())
             .host(options.getHost())
             .secured(options.isSecured())

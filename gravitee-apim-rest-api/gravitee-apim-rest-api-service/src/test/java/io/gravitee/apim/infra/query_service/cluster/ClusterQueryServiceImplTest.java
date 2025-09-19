@@ -62,8 +62,7 @@ class ClusterQueryServiceImplTest {
                     argThat(pageable -> pageable.pageNumber() == 0 && pageable.pageSize() == 10),
                     argThat(Optional::isEmpty)
                 )
-            )
-                .thenReturn(new Page<>(List.of(), 0, 0, 0));
+            ).thenReturn(new Page<>(List.of(), 0, 0, 0));
 
             // When
             Pageable pageable = new PageableImpl(1, 10);
@@ -82,22 +81,22 @@ class ClusterQueryServiceImplTest {
                 repository.search(
                     argThat(criteria -> criteria.getEnvironmentId().equals(environmentId)),
                     argThat(pageable -> pageable.pageNumber() == 0 && pageable.pageSize() == 10),
-                    argThat(sortable ->
-                        sortable.isPresent() && sortable.get().field().equals("name") && sortable.get().order().name().equals("ASC")
+                    argThat(
+                        sortable ->
+                            sortable.isPresent() && sortable.get().field().equals("name") && sortable.get().order().name().equals("ASC")
                     )
                 )
-            )
-                .thenReturn(
-                    new Page<>(
-                        List.of(
-                            Cluster.builder().id("cluster1").name("Cluster 1").environmentId(environmentId).build(),
-                            Cluster.builder().id("cluster2").name("Cluster 2").environmentId(environmentId).build()
-                        ),
-                        2,
-                        0,
-                        2
-                    )
-                );
+            ).thenReturn(
+                new Page<>(
+                    List.of(
+                        Cluster.builder().id("cluster1").name("Cluster 1").environmentId(environmentId).build(),
+                        Cluster.builder().id("cluster2").name("Cluster 2").environmentId(environmentId).build()
+                    ),
+                    2,
+                    0,
+                    2
+                )
+            );
 
             // When
             Pageable pageable = new PageableImpl(1, 10);

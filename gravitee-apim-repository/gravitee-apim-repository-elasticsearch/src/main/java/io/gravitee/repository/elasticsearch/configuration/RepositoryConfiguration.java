@@ -398,9 +398,10 @@ public class RepositoryConfiguration {
     }
 
     public boolean isProxyConfigured() {
-        return !EnvironmentUtils
-            .getPropertiesStartingWith((ConfigurableEnvironment) environment, "analytics.elasticsearch.http.proxy")
-            .isEmpty();
+        return !EnvironmentUtils.getPropertiesStartingWith(
+            (ConfigurableEnvironment) environment,
+            "analytics.elasticsearch.http.proxy"
+        ).isEmpty();
     }
 
     public boolean isCrossClusterInitialized() {

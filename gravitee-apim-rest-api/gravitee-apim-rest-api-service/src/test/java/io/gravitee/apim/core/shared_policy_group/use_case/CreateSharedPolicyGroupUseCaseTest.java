@@ -60,8 +60,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
     private final String ORG_ID = "org-id";
     private final String ENV_ID = "env-id";
     private final String USER_ID = "user-id";
-    private final AuditInfo AUDIT_INFO = AuditInfo
-        .builder()
+    private final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .organizationId(ORG_ID)
         .environmentId(ENV_ID)
         .actor(AuditActor.builder().userId(USER_ID).build())
@@ -91,8 +90,11 @@ public class CreateSharedPolicyGroupUseCaseTest {
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
-        createSharedPolicyGroupUseCase =
-            new CreateSharedPolicyGroupUseCase(sharedPolicyGroupCrudService, validateCreateSharedPolicyGroupDomainService, auditService);
+        createSharedPolicyGroupUseCase = new CreateSharedPolicyGroupUseCase(
+            sharedPolicyGroupCrudService,
+            validateCreateSharedPolicyGroupDomainService,
+            auditService
+        );
     }
 
     @Test
@@ -106,8 +108,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         );
 
         // Then
-        var expected = SharedPolicyGroup
-            .from(toCreate)
+        var expected = SharedPolicyGroup.from(toCreate)
             .toBuilder()
             .id("generated-id")
             .organizationId(ORG_ID)
@@ -133,8 +134,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         );
 
         // Then
-        var expected = SharedPolicyGroup
-            .from(toCreate)
+        var expected = SharedPolicyGroup.from(toCreate)
             .toBuilder()
             .id("generated-id")
             .organizationId(ORG_ID)
@@ -163,8 +163,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORG_ID)
                     .environmentId(ENV_ID)
@@ -237,8 +236,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         );
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(SharedPolicyGroupDuplicateCrossIdException.class)
             .hasMessage("SharedPolicyGroup with crossId [crossId] already exists for environment [env-id].");
     }
@@ -267,8 +265,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         );
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(InvalidDataException.class)
             .hasMessage("Invalid configuration for policy policy_throw_invalid_data_exception");
     }
@@ -287,8 +284,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         );
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(UnexpectedPoliciesException.class)
             .hasMessage("Unexpected policies [policy_throw_unexpected_policy_exception] for API type MESSAGE and phase REQUEST");
     }
@@ -306,8 +302,7 @@ public class CreateSharedPolicyGroupUseCaseTest {
         );
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(SharedPolicyGroupInvalidPhaseException.class)
             .hasMessage("Invalid phase SUBSCRIBE for API type PROXY");
     }

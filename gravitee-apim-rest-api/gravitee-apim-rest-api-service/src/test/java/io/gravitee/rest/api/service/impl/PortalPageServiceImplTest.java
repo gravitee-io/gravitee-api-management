@@ -62,8 +62,9 @@ class PortalPageServiceImplTest {
         @Test
         @SneakyThrows
         void should_do_nothing_when_default_page_is_already_created() {
-            when(portalPageContextRepository.findAllByContextTypeAndEnvironmentId(eq(PortalPageContextType.HOMEPAGE), anyString()))
-                .thenReturn(List.of(PortalPageContext.builder().build()));
+            when(
+                portalPageContextRepository.findAllByContextTypeAndEnvironmentId(eq(PortalPageContextType.HOMEPAGE), anyString())
+            ).thenReturn(List.of(PortalPageContext.builder().build()));
 
             cut.createDefaultPortalHomePage("envId");
 
@@ -76,8 +77,9 @@ class PortalPageServiceImplTest {
         void should_create_context_and_page_when_no_default_page_is_created() {
             String envId = "envId";
             String portalPageId = "portalPageId";
-            when(portalPageContextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, envId))
-                .thenReturn(Collections.emptyList());
+            when(portalPageContextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, envId)).thenReturn(
+                Collections.emptyList()
+            );
             when(portalPageRepository.create(any(PortalPage.class))).thenReturn(PortalPage.builder().id(portalPageId).build());
 
             cut.createDefaultPortalHomePage(envId);

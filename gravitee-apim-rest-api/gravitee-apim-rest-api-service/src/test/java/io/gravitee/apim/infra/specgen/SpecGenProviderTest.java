@@ -106,8 +106,9 @@ class SpecGenProviderTest {
         when(installationEntity.getAdditionalInformation()).thenReturn(additionalInformation);
         when(installationService.get()).thenReturn(installationEntity);
 
-        when(cockpitConnector.sendCommand(any()))
-            .thenReturn(Single.error(new IllegalArgumentException("An unexpected error has occurred")));
+        when(cockpitConnector.sendCommand(any())).thenReturn(
+            Single.error(new IllegalArgumentException("An unexpected error has occurred"))
+        );
 
         specGenProvider
             .performRequest(generateRandom(), operation, generateRandom())
@@ -141,10 +142,9 @@ class SpecGenProviderTest {
         when(installationEntity.getAdditionalInformation()).thenReturn(additionalInformation);
         when(installationService.get()).thenReturn(installationEntity);
 
-        when(cockpitConnector.sendCommand(any()))
-            .thenReturn(
-                Single.just(new SpecGenRequestReply(UuidString.generateRandom(), SUCCEEDED, SpecGenRequestState.valueOf(state.name())))
-            );
+        when(cockpitConnector.sendCommand(any())).thenReturn(
+            Single.just(new SpecGenRequestReply(UuidString.generateRandom(), SUCCEEDED, SpecGenRequestState.valueOf(state.name())))
+        );
 
         specGenProvider
             .performRequest(generateRandom(), operation, generateRandom())

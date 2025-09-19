@@ -100,9 +100,8 @@ class PaginationFilteringTest {
         initList = initIntegerList(totalItems);
         Map<String, Object> paginatedMetadata = new HashMap<>();
 
-        assertThrows(
-            PaginationInvalidException.class,
-            () -> paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata)
+        assertThrows(PaginationInvalidException.class, () ->
+            paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata)
         );
     }
 
@@ -115,9 +114,8 @@ class PaginationFilteringTest {
         initList = initIntegerList(totalItems);
         Map<String, Object> paginatedMetadata = new HashMap<>();
 
-        assertThrows(
-            PaginationInvalidException.class,
-            () -> paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata)
+        assertThrows(PaginationInvalidException.class, () ->
+            paginatedResourceForTest.paginateResultList(initList, totalItems, page, size, paginatedMetadata)
         );
     }
 

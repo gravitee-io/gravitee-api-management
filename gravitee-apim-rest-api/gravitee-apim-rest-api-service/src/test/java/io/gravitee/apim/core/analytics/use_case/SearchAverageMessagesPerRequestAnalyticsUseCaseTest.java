@@ -69,46 +69,39 @@ class SearchAverageMessagesPerRequestAnalyticsUseCaseTest {
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         assertThatThrownBy(() ->
-                cut.execute(
-                    GraviteeContext.getExecutionContext(),
-                    new Input(MY_API, "another-environment", Optional.of(FROM), Optional.of(TO))
-                )
-            )
-            .isInstanceOf(ApiNotFoundException.class);
+            cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment", Optional.of(FROM), Optional.of(TO)))
+        ).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_no_api_found() {
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
-            )
-            .isInstanceOf(ApiNotFoundException.class);
+            cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+        ).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
-            )
-            .isInstanceOf(ApiInvalidDefinitionVersionException.class);
+            cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+        ).isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
 
     @Test
     void should_throw_if_api_is_not_message() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4()));
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
-            )
-            .isInstanceOf(ApiInvalidTypeException.class);
+            cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+        ).isInstanceOf(ApiInvalidTypeException.class);
     }
 
     @Test
     void should_throw_if_api_is_tcp() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
-            )
+            cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+        )
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Analytics are not supported for TCP Proxy APIs");
     }
@@ -121,30 +114,26 @@ class SearchAverageMessagesPerRequestAnalyticsUseCaseTest {
             GraviteeContext.getExecutionContext(),
             new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO))
         );
-        assertThat(result.averageMessagesPerRequest())
-            .hasValueSatisfying(averageMessagesPerRequest -> {
-                assertThat(averageMessagesPerRequest.getAveragesByEntrypoint()).isNull();
-                assertThat(averageMessagesPerRequest.getGlobalAverage()).isNull();
-            });
+        assertThat(result.averageMessagesPerRequest()).hasValueSatisfying(averageMessagesPerRequest -> {
+            assertThat(averageMessagesPerRequest.getAveragesByEntrypoint()).isNull();
+            assertThat(averageMessagesPerRequest.getGlobalAverage()).isNull();
+        });
     }
 
     @Test
     void should_get_average_messages_per_request_for_a_v4_api() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        analyticsQueryService.averageMessagesPerRequest =
-            AverageMessagesPerRequest
-                .builder()
-                .globalAverage(250.0)
-                .averagesByEntrypoint(Map.of("http-get", 499.0, "http-post", 1.0))
-                .build();
+        analyticsQueryService.averageMessagesPerRequest = AverageMessagesPerRequest.builder()
+            .globalAverage(250.0)
+            .averagesByEntrypoint(Map.of("http-get", 499.0, "http-post", 1.0))
+            .build();
         final Output result = cut.execute(
             GraviteeContext.getExecutionContext(),
             new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO))
         );
-        assertThat(result.averageMessagesPerRequest())
-            .hasValueSatisfying(averageMessagesPerRequest -> {
-                assertThat(averageMessagesPerRequest.getGlobalAverage()).isEqualTo(250.0);
-                assertThat(averageMessagesPerRequest.getAveragesByEntrypoint()).isEqualTo(Map.of("http-get", 499.0, "http-post", 1.0));
-            });
+        assertThat(result.averageMessagesPerRequest()).hasValueSatisfying(averageMessagesPerRequest -> {
+            assertThat(averageMessagesPerRequest.getGlobalAverage()).isEqualTo(250.0);
+            assertThat(averageMessagesPerRequest.getAveragesByEntrypoint()).isEqualTo(Map.of("http-get", 499.0, "http-post", 1.0));
+        });
     }
 }

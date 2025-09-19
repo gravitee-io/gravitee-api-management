@@ -65,18 +65,16 @@ public class NativeApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRe
             .flatMap(p -> safeStream(p.getFlows()))
             .collect(Collectors.toCollection(ArrayList::new));
         flows.addAll(safeList(definition.getFlows()));
-        Stream
-            .concat(
-                Stream.concat(
-                    flows.stream().flatMap(flow -> safeStream(flow.getPublish())),
-                    flows.stream().flatMap(flow -> safeStream(flow.getSubscribe()))
-                ),
-                Stream.concat(
-                    flows.stream().flatMap(flow -> safeStream(flow.getConnect())),
-                    flows.stream().flatMap(flow -> safeStream(flow.getInteract()))
-                )
+        Stream.concat(
+            Stream.concat(
+                flows.stream().flatMap(flow -> safeStream(flow.getPublish())),
+                flows.stream().flatMap(flow -> safeStream(flow.getSubscribe()))
+            ),
+            Stream.concat(
+                flows.stream().flatMap(flow -> safeStream(flow.getConnect())),
+                flows.stream().flatMap(flow -> safeStream(flow.getInteract()))
             )
-            .forEach(step -> processStep(listener, step));
+        ).forEach(step -> processStep(listener, step));
 
         safeStream(definition.getPlans()).forEach(plan -> processPlanConfiguration(listener, plan));
 
@@ -86,8 +84,7 @@ public class NativeApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRe
             .forEach(endpoint -> processEndpoint(listener, endpoint));
 
         // services
-        Optional
-            .ofNullable(definition.getServices())
+        Optional.ofNullable(definition.getServices())
             .map(NativeApiServices::getDynamicProperty)
             .ifPresent(dynamicProperty -> processService(listener, dynamicProperty));
     }

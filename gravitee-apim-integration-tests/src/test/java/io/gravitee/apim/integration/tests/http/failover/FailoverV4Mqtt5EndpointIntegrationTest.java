@@ -88,12 +88,11 @@ class FailoverV4Mqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegr
                 assertThat(message.isRetain()).isFalse();
                 assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
 
-                assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                    .containsAnyOf(
-                        "(content-length, " + requestBody.toString().length() + ")",
-                        "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                        "(X-Test-Header, header-value)"
-                    );
+                assertThat(message.getUserProperties().asList().stream().map(Object::toString)).containsAnyOf(
+                    "(content-length, " + requestBody.toString().length() + ")",
+                    "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                    "(X-Test-Header, header-value)"
+                );
                 return true;
             });
 
@@ -128,8 +127,9 @@ class FailoverV4Mqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegr
             })
             .doOnSuccess(response -> readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(response))));
 
-        final TestSubscriber<JsonObject> obs = Flowable
-            .fromSingle(get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200)))
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(
+            get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+        )
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC, MqttQos.EXACTLY_ONCE))
             .flatMap(response -> response.rxBody().flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
             .take(messageCount)
@@ -147,23 +147,19 @@ class FailoverV4Mqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegr
         final Map<String, AtomicInteger> counters = new ConcurrentHashMap<>();
 
         for (int i = 0; i < messageCount; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final Integer messageCounter = jsonObject.getInteger("counter");
-                    final AtomicInteger requestCounter = counters.computeIfAbsent(
-                        jsonObject.getString("transactionId"),
-                        s -> new AtomicInteger(messageCounter)
-                    );
+            obs.assertValueAt(i, jsonObject -> {
+                final Integer messageCounter = jsonObject.getInteger("counter");
+                final AtomicInteger requestCounter = counters.computeIfAbsent(jsonObject.getString("transactionId"), s ->
+                    new AtomicInteger(messageCounter)
+                );
 
-                    // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
-                    assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
-                    requestCounter.set(messageCounter);
-                    assertThat(jsonObject.getString("content")).matches("message-" + messageCounter);
+                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
+                assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
+                requestCounter.set(messageCounter);
+                assertThat(jsonObject.getString("content")).matches("message-" + messageCounter);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 
@@ -171,16 +167,13 @@ class FailoverV4Mqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegr
         final HashSet<String> messages = new HashSet<>();
 
         for (int i = 0; i < messageCount; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final String content = jsonObject.getString("content");
-                    assertThat(messages.contains(content)).isFalse();
-                    messages.add(content);
+            obs.assertValueAt(i, jsonObject -> {
+                final String content = jsonObject.getString("content");
+                assertThat(messages.contains(content)).isFalse();
+                messages.add(content);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 
@@ -188,18 +181,15 @@ class FailoverV4Mqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegr
         final HashSet<Integer> messages = new HashSet<>();
 
         for (int i = 0; i < end - start; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final Integer messageCounter = jsonObject.getInteger("counter");
+            obs.assertValueAt(i, jsonObject -> {
+                final Integer messageCounter = jsonObject.getInteger("counter");
 
-                    assertThat(messageCounter).isGreaterThanOrEqualTo(start);
-                    assertThat(messageCounter).isLessThan(end);
-                    messages.add(messageCounter);
+                assertThat(messageCounter).isGreaterThanOrEqualTo(start);
+                assertThat(messageCounter).isLessThan(end);
+                messages.add(messageCounter);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
 
         assertThat(messages.size()).isEqualTo(end - start);

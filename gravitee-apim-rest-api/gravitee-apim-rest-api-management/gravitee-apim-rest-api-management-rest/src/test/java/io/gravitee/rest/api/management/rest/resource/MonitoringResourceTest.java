@@ -59,8 +59,7 @@ public class MonitoringResourceTest extends AbstractResourceTest {
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         final Response response = envTarget().request().get();
         assertEquals(HttpStatusCode.SERVICE_UNAVAILABLE_503, response.getStatus());
@@ -79,8 +78,7 @@ public class MonitoringResourceTest extends AbstractResourceTest {
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         InstanceEntity mockInstance = new InstanceEntity();
         mockInstance.setEnvironments(Set.of("DEFAULT"));

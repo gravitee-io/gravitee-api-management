@@ -91,19 +91,17 @@ public class AsyncJobCrudServiceImplTest {
         @SneakyThrows
         void should_return_the_found_job() {
             //Given
-            when(repository.findById(any()))
-                .thenAnswer(invocation ->
-                    Optional.of(fixtures.repository.AsyncJobFixture.anAsyncJob().toBuilder().id(invocation.getArgument(0)).build())
-                );
+            when(repository.findById(any())).thenAnswer(invocation ->
+                Optional.of(fixtures.repository.AsyncJobFixture.anAsyncJob().toBuilder().id(invocation.getArgument(0)).build())
+            );
 
             //When
             var result = service.findById("my-id");
 
             //Then
-            assertThat(result)
-                .contains(
-                    AsyncJobFixture.aPendingFederatedApiIngestionJob().toBuilder().id("my-id").environmentId("environment-id").build()
-                );
+            assertThat(result).contains(
+                AsyncJobFixture.aPendingFederatedApiIngestionJob().toBuilder().id("my-id").environmentId("environment-id").build()
+            );
         }
 
         @Test
@@ -140,8 +138,7 @@ public class AsyncJobCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_integration() {
-            var job = AsyncJobFixture
-                .aSuccessFederatedApiIngestionJob()
+            var job = AsyncJobFixture.aSuccessFederatedApiIngestionJob()
                 .toBuilder()
                 .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .build();
@@ -155,8 +152,7 @@ public class AsyncJobCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    AsyncJob
-                        .builder()
+                    AsyncJob.builder()
                         .id("job-id")
                         .sourceId("integration-id")
                         .initiatorId("initiator-id")

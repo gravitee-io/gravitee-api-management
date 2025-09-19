@@ -46,13 +46,16 @@ public class SearchConnectionLogResponseAdapter {
 
         return new LogResponse<>(
             (int) hits.getTotal().getValue(),
-            hits.getHits().stream().map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource())).toList()
+            hits
+                .getHits()
+                .stream()
+                .map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource()))
+                .toList()
         );
     }
 
     private static ConnectionLog buildFromSource(String index, String id, JsonNode json) {
-        var connectionLog = ConnectionLog
-            .builder()
+        var connectionLog = ConnectionLog.builder()
             .timestamp(asTextOrNull(json.get(ConnectionLogField.TIMESTAMP)))
             .status(asIntOr(json.get(ConnectionLogField.STATUS), 0))
             .gateway(asTextOrNull(json.get(ConnectionLogField.GATEWAY)))
@@ -100,8 +103,7 @@ public class SearchConnectionLogResponseAdapter {
         if (json == null || json.isNull() || !json.isArray()) {
             return null;
         }
-        return StreamSupport
-            .stream(json.spliterator(), false)
+        return StreamSupport.stream(json.spliterator(), false)
             .map(SearchConnectionLogResponseAdapter::buildDiagnostic)
             .filter(Objects::nonNull)
             .toList();
@@ -111,8 +113,7 @@ public class SearchConnectionLogResponseAdapter {
         if (json == null || json.isNull()) {
             return null;
         }
-        return ConnectionDiagnostic
-            .builder()
+        return ConnectionDiagnostic.builder()
             .componentType(asTextOrNull(json.get("component-type")))
             .componentName(asTextOrNull(json.get("component-name")))
             .key(asTextOrNull(json.get("key")))

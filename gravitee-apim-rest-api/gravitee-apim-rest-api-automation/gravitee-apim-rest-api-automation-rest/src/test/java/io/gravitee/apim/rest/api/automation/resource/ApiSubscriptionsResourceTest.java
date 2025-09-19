@@ -52,18 +52,16 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_hrid() {
-            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class)))
-                .thenReturn(
-                    new ImportSubscriptionSpecUseCase.Output(
-                        SubscriptionCRDStatus
-                            .builder()
-                            .startingAt(Instant.now().atZone(ZoneOffset.UTC))
-                            .status(ACCEPTED.name())
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .build()
-                    )
-                );
+            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class))).thenReturn(
+                new ImportSubscriptionSpecUseCase.Output(
+                    SubscriptionCRDStatus.builder()
+                        .startingAt(Instant.now().atZone(ZoneOffset.UTC))
+                        .status(ACCEPTED.name())
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                )
+            );
 
             var state = expectEntity("subscription-with-hrid.json");
             SoftAssertions.assertSoftly(soft -> {
@@ -78,19 +76,17 @@ class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_legacy_id() {
-            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class)))
-                .thenReturn(
-                    new ImportSubscriptionSpecUseCase.Output(
-                        SubscriptionCRDStatus
-                            .builder()
-                            .id("subscription_id")
-                            .startingAt(Instant.now().atZone(ZoneOffset.UTC))
-                            .status(ACCEPTED.name())
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .build()
-                    )
-                );
+            when(importSubscriptionSpecUseCase.execute(any(ImportSubscriptionSpecUseCase.Input.class))).thenReturn(
+                new ImportSubscriptionSpecUseCase.Output(
+                    SubscriptionCRDStatus.builder()
+                        .id("subscription_id")
+                        .startingAt(Instant.now().atZone(ZoneOffset.UTC))
+                        .status(ACCEPTED.name())
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                )
+            );
 
             var state = expectEntity("subscription-with-id.json", true);
             SoftAssertions.assertSoftly(soft -> {

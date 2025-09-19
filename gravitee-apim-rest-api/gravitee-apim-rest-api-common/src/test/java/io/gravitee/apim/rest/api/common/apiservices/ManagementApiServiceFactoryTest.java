@@ -37,21 +37,20 @@ class ManagementApiServiceFactoryTest {
     @Test
     void should_throw_when_creating_service_with_DeploymentContext() {
         assertThatThrownBy(() ->
-                new TestingManagementApiServiceFactory()
-                    .createService(
-                        new DeploymentContext() {
-                            @Override
-                            public <T> T getComponent(Class<T> componentClass) {
-                                return null;
-                            }
+            new TestingManagementApiServiceFactory().createService(
+                new DeploymentContext() {
+                    @Override
+                    public <T> T getComponent(Class<T> componentClass) {
+                        return null;
+                    }
 
-                            @Override
-                            public TemplateEngine getTemplateEngine() {
-                                return null;
-                            }
-                        }
-                    )
+                    @Override
+                    public TemplateEngine getTemplateEngine() {
+                        return null;
+                    }
+                }
             )
+        )
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessage(DEPLOYMENT_CONTEXT_MESSAGE);
     }

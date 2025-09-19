@@ -90,7 +90,12 @@ public class ApplicationApiKeyModeUpgrader implements Upgrader {
     }
 
     private List<String> findAllApiKeyPlansId() throws TechnicalException {
-        return planRepository.findAll().stream().filter(p -> p.getSecurity() == API_KEY).map(Plan::getId).collect(toList());
+        return planRepository
+            .findAll()
+            .stream()
+            .filter(p -> p.getSecurity() == API_KEY)
+            .map(Plan::getId)
+            .collect(toList());
     }
 
     private Map<String, Long> countApiKeySubscriptionsByApplication(List<String> apiKeyPlansIds) throws TechnicalException {

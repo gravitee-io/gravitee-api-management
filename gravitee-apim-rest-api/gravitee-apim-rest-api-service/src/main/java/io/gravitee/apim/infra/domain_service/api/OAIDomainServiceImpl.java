@@ -67,9 +67,10 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         return policyOperationVisitorManager
             .getPolicyVisitors()
             .stream()
-            .filter(operationVisitor ->
-                importSwaggerDescriptor.getWithPolicies() != null &&
-                importSwaggerDescriptor.getWithPolicies().contains(operationVisitor.getId())
+            .filter(
+                operationVisitor ->
+                    importSwaggerDescriptor.getWithPolicies() != null &&
+                    importSwaggerDescriptor.getWithPolicies().contains(operationVisitor.getId())
             )
             .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
             .collect(Collectors.toList());

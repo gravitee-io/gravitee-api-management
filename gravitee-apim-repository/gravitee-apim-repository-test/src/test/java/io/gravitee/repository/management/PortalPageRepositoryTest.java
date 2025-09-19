@@ -54,8 +54,9 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         var portalPage = found.get();
         assertThat(portalPage.getId()).isEqualTo("test-portal-page-id");
         assertThat(portalPage.getName()).isEqualTo("Test Portal Page");
-        assertThat(portalPage.getContent())
-            .isEqualTo("This is a test portal page content with some sample text to verify the repository functionality.");
+        assertThat(portalPage.getContent()).isEqualTo(
+            "This is a test portal page content with some sample text to verify the repository functionality."
+        );
         assertThat(portalPage.getCreatedAt()).isEqualTo(new Date(1486771200000L));
         assertThat(portalPage.getUpdatedAt()).isEqualTo(new Date(1486771200000L));
     }
@@ -136,8 +137,9 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         nonExisting.setCreatedAt(new Date());
         nonExisting.setUpdatedAt(new Date());
 
-        assertThatThrownBy(() -> portalPageRepository.update(nonExisting))
-            .matches(th -> th instanceof IllegalStateException || th instanceof TechnicalException);
+        assertThatThrownBy(() -> portalPageRepository.update(nonExisting)).matches(
+            th -> th instanceof IllegalStateException || th instanceof TechnicalException
+        );
     }
 
     @Test

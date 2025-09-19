@@ -120,7 +120,11 @@ public class MongoLicenseRepository implements LicenseRepository {
     @Override
     public Set<License> findAll() throws TechnicalException {
         try {
-            return internalLicenseRepo.findAll().stream().map(organization -> mapper.map(organization)).collect(Collectors.toSet());
+            return internalLicenseRepo
+                .findAll()
+                .stream()
+                .map(organization -> mapper.map(organization))
+                .collect(Collectors.toSet());
         } catch (Exception e) {
             LOGGER.error("An error occurred when finding all licenses", e);
             throw new TechnicalException("An error occurred when finding all licenses");

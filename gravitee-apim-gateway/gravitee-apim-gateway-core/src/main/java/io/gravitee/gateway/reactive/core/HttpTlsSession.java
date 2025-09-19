@@ -166,8 +166,7 @@ public class HttpTlsSession implements TlsSession {
     }
 
     private Certificate[] extractPeerCertificatesFromHeader() {
-        return CertificateUtils
-            .extractCertificate(headers, clientAuthCertHeaderName)
+        return CertificateUtils.extractCertificate(headers, clientAuthCertHeaderName)
             .map(certificate -> new Certificate[] { certificate })
             .orElse(new Certificate[0]);
     }

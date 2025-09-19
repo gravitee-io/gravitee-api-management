@@ -70,11 +70,10 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
          * a cross ID
          */
         if (!apiJsonNode.hasId() || !apiJsonNode.getId().equals(urlApiId)) {
-            findApiByEnvironmentAndCrossId(executionContext.getEnvironmentId(), apiJsonNode.getCrossId())
-                .ifPresentOrElse(
-                    api -> recalculateIdsFromCrossId(executionContext, apiJsonNode, api),
-                    () -> recalculateIdsFromDefinitionIds(executionContext.getEnvironmentId(), apiJsonNode, urlApiId)
-                );
+            findApiByEnvironmentAndCrossId(executionContext.getEnvironmentId(), apiJsonNode.getCrossId()).ifPresentOrElse(
+                api -> recalculateIdsFromCrossId(executionContext, apiJsonNode, api),
+                () -> recalculateIdsFromDefinitionIds(executionContext.getEnvironmentId(), apiJsonNode, urlApiId)
+            );
         }
         return generateEmptyIds(apiJsonNode);
     }
@@ -217,7 +216,10 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
     }
 
     private void updatePagesHierarchy(List<ImportJsonNodeWithIds> pagesNodes, String parentId, String newParentId) {
-        pagesNodes.stream().filter(child -> isChildPageOf(child, parentId)).forEach(child -> child.setParentId(newParentId));
+        pagesNodes
+            .stream()
+            .filter(child -> isChildPageOf(child, parentId))
+            .forEach(child -> child.setParentId(newParentId));
     }
 
     private boolean isChildPageOf(ImportJsonNodeWithIds pageNode, String parentPageId) {
@@ -225,8 +227,7 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
     }
 
     private ImportApiJsonNode generateEmptyIds(ImportApiJsonNode apiJsonNode) {
-        Stream
-            .concat(apiJsonNode.getPlans().stream(), apiJsonNode.getPages().stream())
+        Stream.concat(apiJsonNode.getPlans().stream(), apiJsonNode.getPages().stream())
             .filter(node -> !node.hasId())
             .forEach(node -> node.setId(UuidString.generateRandom()));
         return apiJsonNode;

@@ -96,8 +96,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
 
     private static final String API_1_ID = "api-1";
     private static final String API_2_ID = "api-2";
-    private static final Api API_1 = Api
-        .builder()
+    private static final Api API_1 = Api.builder()
         .id(API_1_ID)
         .name("API 1")
         .version("1.1")
@@ -159,15 +158,13 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
 
     @AfterEach
     public void cleanUp() {
-        Stream
-            .of(
-                applicationCrudServiceInMemory,
-                apiCrudServiceInMemory,
-                planCrudServiceInMemory,
-                connectionLogsCrudServiceInMemory,
-                messageLogCrudServiceInMemory
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            applicationCrudServiceInMemory,
+            apiCrudServiceInMemory,
+            planCrudServiceInMemory,
+            connectionLogsCrudServiceInMemory,
+            messageLogCrudServiceInMemory
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -186,9 +183,11 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<LogQuery> logQueryCaptor = ArgumentCaptor.forClass(LogQuery.class);
-        Mockito
-            .verify(logsService)
-            .findByApplication(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID), logQueryCaptor.capture());
+        Mockito.verify(logsService).findByApplication(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(APPLICATION_ID),
+            logQueryCaptor.capture()
+        );
         final LogQuery logQuery = logQueryCaptor.getValue();
         assertEquals(APPLICATION_ID, logQuery.getField());
         assertEquals(0, logQuery.getFrom());
@@ -568,8 +567,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         );
 
         // When
-        var body = SearchApplicationLogsParam
-            .builder()
+        var body = SearchApplicationLogsParam.builder()
             .to(SECOND_FEBRUARY_2020)
             .from(FIRST_FEBRUARY_2020)
             .apiIds(Set.of(API_1_ID, API_2_ID))
@@ -621,8 +619,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         );
 
         // When
-        var body = SearchApplicationLogsParam
-            .builder()
+        var body = SearchApplicationLogsParam.builder()
             .to(SECOND_FEBRUARY_2020)
             .from(FIRST_FEBRUARY_2020)
             .responseTimeRanges(
@@ -688,8 +685,7 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
         );
 
         // When
-        var body = SearchApplicationLogsParam
-            .builder()
+        var body = SearchApplicationLogsParam.builder()
             .to(SECOND_FEBRUARY_2020)
             .from(FIRST_FEBRUARY_2020)
             .apiIds(Set.of(API_1_ID, API_2_ID))
@@ -796,12 +792,10 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
 
         messageLogCrudServiceInMemory.initWith(
             List.of(
-                MessageLogFixtures
-                    .aMessageLog(API_1_ID, LOG)
+                MessageLogFixtures.aMessageLog(API_1_ID, LOG)
                     .toBuilder()
                     .endpoint(
-                        MessageLogFixtures
-                            .aMessageLog()
+                        MessageLogFixtures.aMessageLog()
                             .getEndpoint()
                             .toBuilder()
                             .connectorId("connector-endpoint")
@@ -809,12 +803,10 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
                             .build()
                     )
                     .build(),
-                MessageLogFixtures
-                    .aMessageLog(API_1_ID, LOG)
+                MessageLogFixtures.aMessageLog(API_1_ID, LOG)
                     .toBuilder()
                     .entrypoint(
-                        MessageLogFixtures
-                            .aMessageLog()
+                        MessageLogFixtures.aMessageLog()
                             .getEntrypoint()
                             .toBuilder()
                             .connectorId("connector-entrypoint")

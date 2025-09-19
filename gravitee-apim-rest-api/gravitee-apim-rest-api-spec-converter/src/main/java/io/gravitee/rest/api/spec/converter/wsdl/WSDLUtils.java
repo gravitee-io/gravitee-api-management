@@ -35,11 +35,18 @@ import javax.xml.namespace.QName;
 public class WSDLUtils {
 
     public static <T> Optional<T> extractFirstElement(List<Object> elements, Class<T> type) {
-        return elements.stream().filter(elt -> type.isAssignableFrom(elt.getClass())).map(e -> (T) e).findFirst();
+        return elements
+            .stream()
+            .filter(elt -> type.isAssignableFrom(elt.getClass()))
+            .map(e -> (T) e)
+            .findFirst();
     }
 
     public static <T> Stream<T> extractAllElements(List<Object> elements, Class<T> type) {
-        return elements.stream().filter(elt -> type.isAssignableFrom(elt.getClass())).map(e -> (T) e);
+        return elements
+            .stream()
+            .filter(elt -> type.isAssignableFrom(elt.getClass()))
+            .map(e -> (T) e);
     }
 
     public static Optional<SoapVersion> detectSoapVersion(List<Object> elements) {

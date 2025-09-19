@@ -27,8 +27,7 @@ public class FilesApiHashIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("media.files")
             .name("a1h1")
             .key("metadata.api", ascending())

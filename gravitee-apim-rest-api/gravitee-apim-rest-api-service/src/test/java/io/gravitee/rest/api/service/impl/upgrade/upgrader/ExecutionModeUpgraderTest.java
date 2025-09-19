@@ -96,18 +96,17 @@ public class ExecutionModeUpgraderTest {
 
         cut.upgrade();
 
-        verify(apiRepository, times(1))
-            .update(
-                argThat(argument -> {
-                    String apiDef = argument.getDefinition();
-                    try {
-                        JsonNode jsonNode = graviteeMapper.readTree(apiDef);
-                        assertThat(jsonNode.get("execution_mode").asText()).isEqualTo(ExecutionMode.V4_EMULATION_ENGINE.getLabel());
-                    } catch (JsonProcessingException e) {
-                        return false;
-                    }
-                    return true;
-                })
-            );
+        verify(apiRepository, times(1)).update(
+            argThat(argument -> {
+                String apiDef = argument.getDefinition();
+                try {
+                    JsonNode jsonNode = graviteeMapper.readTree(apiDef);
+                    assertThat(jsonNode.get("execution_mode").asText()).isEqualTo(ExecutionMode.V4_EMULATION_ENGINE.getLabel());
+                } catch (JsonProcessingException e) {
+                    return false;
+                }
+                return true;
+            })
+        );
     }
 }

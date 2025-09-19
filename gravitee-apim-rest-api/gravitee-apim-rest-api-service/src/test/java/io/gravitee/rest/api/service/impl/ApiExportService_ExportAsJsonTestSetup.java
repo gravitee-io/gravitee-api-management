@@ -212,10 +212,9 @@ public class ApiExportService_ExportAsJsonTestSetup {
         asciidocPage.setType(PageType.ASCIIDOC.toString());
         asciidocPage.setContent("Read the asciidoc");
         asciidocPage.setVisibility(Visibility.PUBLIC);
-        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true)))
-            .thenReturn(
-                Arrays.asList(folder, markdownPage, swaggerPage, asideFolder, linkPage, translationPage, markdownTemplatePage, asciidocPage)
-            );
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true))).thenReturn(
+            Arrays.asList(folder, markdownPage, swaggerPage, asideFolder, linkPage, translationPage, markdownTemplatePage, asciidocPage)
+        );
 
         RoleEntity poRole = new RoleEntity();
         poRole.setName("PRIMARY_OWNER");
@@ -231,8 +230,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         memberEntity.setRoles(Collections.singletonList(poRole));
         when(
             membershipService.getMembersByReference(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID))
-        )
-            .thenReturn(Collections.singleton(memberEntity));
+        ).thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
         userEntity.setId(memberEntity.getId());
         userEntity.setSource(userEntity.getId() + "-source");
@@ -271,18 +269,18 @@ public class ApiExportService_ExportAsJsonTestSetup {
         String ls = System.lineSeparator();
         policy.setConfiguration(
             "{" +
-            ls +
-            "          \"rate\": {" +
-            ls +
-            "            \"limit\": 1," +
-            ls +
-            "            \"periodTime\": 1," +
-            ls +
-            "            \"periodTimeUnit\": \"SECONDS\"" +
-            ls +
-            "          }" +
-            ls +
-            "        }"
+                ls +
+                "          \"rate\": {" +
+                ls +
+                "            \"limit\": 1," +
+                ls +
+                "            \"periodTime\": 1," +
+                ls +
+                "            \"periodTimeUnit\": \"SECONDS\"" +
+                ls +
+                "          }" +
+                ls +
+                "        }"
         );
         rule.setPolicy(policy);
         paths.put("/", Collections.singletonList(rule));
@@ -308,8 +306,9 @@ public class ApiExportService_ExportAsJsonTestSetup {
         apiMetadataEntity.setValue("metadata-value");
         apiMetadataEntity.setDefaultValue("metadata-default-value");
         apiMetadataEntity.setFormat(MetadataFormat.STRING);
-        when(apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), API_ID))
-            .thenReturn(Collections.singletonList(apiMetadataEntity));
+        when(apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(
+            Collections.singletonList(apiMetadataEntity)
+        );
     }
 
     @After
@@ -348,8 +347,8 @@ public class ApiExportService_ExportAsJsonTestSetup {
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithExecutionMode" +
-            (executionMode != null ? "-" + executionMode.getLabel() : "") +
-            ".json"
+                (executionMode != null ? "-" + executionMode.getLabel() : "") +
+                ".json"
         );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
@@ -368,8 +367,8 @@ public class ApiExportService_ExportAsJsonTestSetup {
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMembers" +
-            (filename != null ? "-" + filename : "") +
-            ".json"
+                (filename != null ? "-" + filename : "") +
+                ".json"
         );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
@@ -388,8 +387,8 @@ public class ApiExportService_ExportAsJsonTestSetup {
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPages" +
-            (filename != null ? "-" + filename : "") +
-            ".json"
+                (filename != null ? "-" + filename : "") +
+                ".json"
         );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
@@ -408,8 +407,8 @@ public class ApiExportService_ExportAsJsonTestSetup {
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPlans" +
-            (filename != null ? "-" + filename : "") +
-            ".json"
+                (filename != null ? "-" + filename : "") +
+                ".json"
         );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
@@ -428,8 +427,8 @@ public class ApiExportService_ExportAsJsonTestSetup {
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMetadata" +
-            (filename != null ? "-" + filename : "") +
-            ".json"
+                (filename != null ? "-" + filename : "") +
+                ".json"
         );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 

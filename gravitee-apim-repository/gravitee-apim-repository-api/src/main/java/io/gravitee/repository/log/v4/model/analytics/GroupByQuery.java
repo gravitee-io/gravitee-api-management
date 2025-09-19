@@ -27,5 +27,6 @@ public record GroupByQuery(
     Optional<String> query
 ) {
     public record Group(long from, long to) {}
+
     public record Order(String field, boolean order, String type) {}
 }

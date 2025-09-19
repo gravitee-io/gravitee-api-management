@@ -65,8 +65,10 @@ class PortalPageViewCrudServiceImplTest {
         ctx2.setId("ctx2");
         ctx2.setPageId(pid2.toString());
         when(contextRepository.findAllByContextTypeAndEnvironmentId(any(), any())).thenReturn(List.of(ctx1, ctx2));
-        assertThat(service.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, "env1"))
-            .containsExactlyInAnyOrder(pid1, pid2);
+        assertThat(service.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, "env1")).containsExactlyInAnyOrder(
+            pid1,
+            pid2
+        );
     }
 
     @Test

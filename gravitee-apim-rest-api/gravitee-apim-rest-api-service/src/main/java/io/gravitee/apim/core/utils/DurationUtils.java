@@ -27,8 +27,7 @@ public class DurationUtils {
 
     public static Duration buildIntervalFromTimePeriod(Instant from, Instant to) {
         Duration duration = Duration.between(from, to);
-        return INTERVAL
-            .stream()
+        return INTERVAL.stream()
             .filter(id -> id.dataDuration().compareTo(duration) <= 0)
             .max(Comparator.comparing(IntervalData::dataDuration))
             .map(IntervalData::interval)

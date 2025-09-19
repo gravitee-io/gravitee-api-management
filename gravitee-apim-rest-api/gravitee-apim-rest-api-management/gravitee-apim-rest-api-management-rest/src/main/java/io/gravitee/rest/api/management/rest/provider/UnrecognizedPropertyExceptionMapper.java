@@ -31,8 +31,7 @@ public class UnrecognizedPropertyExceptionMapper implements ExceptionMapper<Unre
 
     @Override
     public Response toResponse(UnrecognizedPropertyException e) {
-        return Response
-            .status(Response.Status.BAD_REQUEST)
+        return Response.status(Response.Status.BAD_REQUEST)
             .type(MediaType.APPLICATION_JSON_TYPE)
             .entity(
                 new ErrorEntity(

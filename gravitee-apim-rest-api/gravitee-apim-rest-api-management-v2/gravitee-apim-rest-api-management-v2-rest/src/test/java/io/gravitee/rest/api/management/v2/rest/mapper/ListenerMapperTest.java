@@ -62,10 +62,12 @@ public class ListenerMapperTest {
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0)).isNotNull();
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getHost()).isEqualTo(httpListener.getPaths().get(0).getHost());
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getPath()).isEqualTo(httpListener.getPaths().get(0).getPath());
-        assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).isOverrideAccess())
-            .isEqualTo(httpListener.getPaths().get(0).getOverrideAccess());
-        assertThat(((HttpListener) httpListenerEntityV4).getPathMappings())
-            .isEqualTo(new HashSet<>(Objects.requireNonNull(httpListener.getPathMappings())));
+        assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).isOverrideAccess()).isEqualTo(
+            httpListener.getPaths().get(0).getOverrideAccess()
+        );
+        assertThat(((HttpListener) httpListenerEntityV4).getPathMappings()).isEqualTo(
+            new HashSet<>(Objects.requireNonNull(httpListener.getPathMappings()))
+        );
         assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern()).isNotNull();
         assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern().get("/test")).isNotNull().isInstanceOf(Pattern.class);
         assertThat(((HttpListener) httpListenerEntityV4).getCors()).isNotNull(); // Tested in CorsMapperTest
@@ -113,8 +115,9 @@ public class ListenerMapperTest {
         assertThat(httpListenerV4.getPaths().get(0)).isNotNull();
         assertThat(httpListenerV4.getPaths().get(0).getHost()).isEqualTo(httpListenerEntityV4.getPaths().get(0).getHost());
         assertThat(httpListenerV4.getPaths().get(0).getPath()).isEqualTo(httpListenerEntityV4.getPaths().get(0).getPath());
-        assertThat(httpListenerV4.getPaths().get(0).getOverrideAccess())
-            .isEqualTo(httpListenerEntityV4.getPaths().get(0).isOverrideAccess());
+        assertThat(httpListenerV4.getPaths().get(0).getOverrideAccess()).isEqualTo(
+            httpListenerEntityV4.getPaths().get(0).isOverrideAccess()
+        );
         assertThat(httpListenerV4.getPathMappings()).isEqualTo(new ArrayList<>(httpListenerEntityV4.getPathMappings()));
         assertThat(httpListenerV4.getCors()).isNotNull(); // Tested in CorsMapperTest
 

@@ -57,8 +57,7 @@ public class HttpClientFactory {
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
-        return VertxHttpClientFactory
-            .builder()
+        return VertxHttpClientFactory.builder()
             .vertx(ctx.getComponent(Vertx.class))
             .nodeConfiguration(ctx.getComponent(Configuration.class))
             .defaultTarget(configuration.getTarget())

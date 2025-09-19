@@ -62,8 +62,7 @@ class A2aAgentFetcherImplTest {
     @Test
     void should_successfully_fetch_agent_card() {
         // Given
-        String agentCardJson =
-            """
+        String agentCardJson = """
             {
                 "name": "Test Agent",
                 "description": "A test A2A agent",
@@ -108,8 +107,9 @@ class A2aAgentFetcherImplTest {
             """;
 
         wireMockServer.stubFor(
-            get(urlEqualTo("/.well-known/agent.json"))
-                .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(agentCardJson))
+            get(urlEqualTo("/.well-known/agent.json")).willReturn(
+                aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(agentCardJson)
+            )
         );
 
         // When
@@ -132,18 +132,17 @@ class A2aAgentFetcherImplTest {
             .containsEntry("pushNotifications", false)
             .containsEntry("stateTransitionHistory", true);
 
-        assertThat(agent.getSkills())
-            .containsOnly(
-                new FederatedAgent.Skill(
-                    "skill-1",
-                    "Test Skill",
-                    "Skill Description",
-                    List.of("test", "example"),
-                    List.of("example command"),
-                    List.of("text"),
-                    List.of("text", "json")
-                )
-            );
+        assertThat(agent.getSkills()).containsOnly(
+            new FederatedAgent.Skill(
+                "skill-1",
+                "Test Skill",
+                "Skill Description",
+                List.of("test", "example"),
+                List.of("example command"),
+                List.of("text"),
+                List.of("text", "json")
+            )
+        );
 
         assertThat(agent.getDefaultInputModes()).containsExactly("text");
         assertThat(agent.getDefaultOutputModes()).containsExactly("text");
@@ -158,8 +157,7 @@ class A2aAgentFetcherImplTest {
     @Test
     void should_successfully_fetch_minimal_agent_card() {
         // Given
-        String minimalAgentCardJson =
-            """
+        String minimalAgentCardJson = """
             {
                 "name": "Minimal Agent",
                 "description": "A minimal A2A agent",
@@ -173,8 +171,9 @@ class A2aAgentFetcherImplTest {
             """;
 
         wireMockServer.stubFor(
-            get(urlEqualTo("/.well-known/agent.json"))
-                .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(minimalAgentCardJson))
+            get(urlEqualTo("/.well-known/agent.json")).willReturn(
+                aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(minimalAgentCardJson)
+            )
         );
 
         // When
@@ -199,8 +198,7 @@ class A2aAgentFetcherImplTest {
     @Test
     void should_handle_https_url() {
         // Given
-        String agentCardJson =
-            """
+        String agentCardJson = """
             {
                 "name": "HTTPS Agent",
                 "description": "An agent over HTTPS",
@@ -214,8 +212,9 @@ class A2aAgentFetcherImplTest {
             """;
 
         wireMockServer.stubFor(
-            get(urlEqualTo("/.well-known/agent.json"))
-                .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(agentCardJson))
+            get(urlEqualTo("/.well-known/agent.json")).willReturn(
+                aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(agentCardJson)
+            )
         );
 
         // When
@@ -255,8 +254,9 @@ class A2aAgentFetcherImplTest {
     void should_fail_when_response_is_not_valid_json() {
         // Given
         wireMockServer.stubFor(
-            get(urlEqualTo("/.well-known/agent.json"))
-                .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("invalid json content"))
+            get(urlEqualTo("/.well-known/agent.json")).willReturn(
+                aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody("invalid json content")
+            )
         );
 
         // When

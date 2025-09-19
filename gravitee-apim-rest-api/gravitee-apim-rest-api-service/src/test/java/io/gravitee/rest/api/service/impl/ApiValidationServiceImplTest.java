@@ -136,15 +136,13 @@ public class ApiValidationServiceImplTest {
         userDomainService.reset();
         userDomainService.initWith(
             List.of(
-                BaseUserEntity
-                    .builder()
+                BaseUserEntity.builder()
                     .id(USER_NAME)
                     .source(USER_SOURCE)
                     .sourceId(USER_NAME)
                     .organizationId(DEFAULT_ORGANIZATION_ID)
                     .build(),
-                BaseUserEntity
-                    .builder()
+                BaseUserEntity.builder()
                     .id(ACTOR_USER_NAME)
                     .source(USER_SOURCE)
                     .sourceId(ACTOR_USER_NAME)
@@ -155,16 +153,14 @@ public class ApiValidationServiceImplTest {
         roleQueryService.reset();
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .name(PRIMARY_OWNER.name())
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(DEFAULT_ORGANIZATION_ID)
                     .id("primary_owner_id")
                     .scope(Role.Scope.API)
                     .build(),
-                Role
-                    .builder()
+                Role.builder()
                     .name("USER")
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(DEFAULT_ORGANIZATION_ID)
@@ -187,17 +183,16 @@ public class ApiValidationServiceImplTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
-        when(validatePortalNotificationDomainService.validateAndSanitize(any()))
-            .thenReturn(
-                Validator.Result.ofValue(
-                    new ValidatePortalNotificationDomainService.Input(
-                        new PortalNotificationConfigEntity(),
-                        "2.0.0",
-                        Set.of(),
-                        new AuditInfo("mock", "mock", null)
-                    )
+        when(validatePortalNotificationDomainService.validateAndSanitize(any())).thenReturn(
+            Validator.Result.ofValue(
+                new ValidatePortalNotificationDomainService.Input(
+                    new PortalNotificationConfigEntity(),
+                    "2.0.0",
+                    Set.of(),
+                    new AuditInfo("mock", "mock", null)
                 )
-            );
+            )
+        );
     }
 
     @Test
@@ -291,13 +286,11 @@ public class ApiValidationServiceImplTest {
     public void should_return_error_with_conflicting_path() {
         apiQueryService.initWith(
             List.of(
-                Api
-                    .builder()
+                Api.builder()
                     .id("conflicting-api-id")
                     .environmentId(executionContext.getEnvironmentId())
                     .apiDefinition(
-                        io.gravitee.definition.model.Api
-                            .builder()
+                        io.gravitee.definition.model.Api.builder()
                             .id("conflicting-api-id")
                             .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/echo"))).build())
                             .definitionVersion(DefinitionVersion.V2)
@@ -317,8 +310,9 @@ public class ApiValidationServiceImplTest {
 
     @Test
     public void should_return_error_validating_wrong_cron_expression() {
-        when(pagesValidator.validateAndSanitize(any()))
-            .thenReturn(Validator.Result.ofBoth(null, List.of(Validator.Error.severe("cron expression is invalid"))));
+        when(pagesValidator.validateAndSanitize(any())).thenReturn(
+            Validator.Result.ofBoth(null, List.of(Validator.Error.severe("cron expression is invalid")))
+        );
 
         ApiCRDEntity apiCRD = anApiCRDEntity();
         ApiValidationResult<ApiCRDEntity> validationResult = cut.validateAndSanitizeApiDefinitionCRD(executionContext, apiCRD);

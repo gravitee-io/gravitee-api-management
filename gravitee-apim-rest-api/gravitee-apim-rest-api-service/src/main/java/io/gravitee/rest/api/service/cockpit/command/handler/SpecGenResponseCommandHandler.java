@@ -80,8 +80,7 @@ public class SpecGenResponseCommandHandler implements CommandHandler<SpecGenResp
 
     private static AuditInfo getAuditInfo(String userId) {
         var context = getExecutionContext();
-        return AuditInfo
-            .builder()
+        return AuditInfo.builder()
             .environmentId(context.getEnvironmentId())
             .organizationId(context.getOrganizationId())
             .actor(AuditActor.builder().userId(userId).build())

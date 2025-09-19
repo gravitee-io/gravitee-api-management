@@ -24,5 +24,4 @@ import java.lang.annotation.Target;
 @Target({ ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface WithCert {
-}
+public @interface WithCert {}

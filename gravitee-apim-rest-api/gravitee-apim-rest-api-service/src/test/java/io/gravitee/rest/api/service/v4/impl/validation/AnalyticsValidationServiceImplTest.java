@@ -77,8 +77,7 @@ public class AnalyticsValidationServiceImplTest {
                 any(Function.class),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
-        )
-            .thenReturn(singletonList(1L));
+        ).thenReturn(singletonList(1L));
 
         analyticsValidationService = new AnalyticsValidationServiceImpl(parameterService);
     }
@@ -136,8 +135,7 @@ public class AnalyticsValidationServiceImplTest {
                 any(Function.class),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
-        )
-            .thenReturn(singletonList(0L));
+        ).thenReturn(singletonList(0L));
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
@@ -341,8 +339,7 @@ public class AnalyticsValidationServiceImplTest {
                 any(Function.class),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
-        )
-            .thenReturn(singletonList(3L));
+        ).thenReturn(singletonList(3L));
 
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
@@ -518,9 +515,8 @@ public class AnalyticsValidationServiceImplTest {
         messageSampling.setType(SamplingType.COUNT);
         messageSampling.setValue("0");
         analytics.setMessageSampling(messageSampling);
-        assertThrows(
-            AnalyticsMessageSamplingValueInvalidException.class,
-            () -> analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.MESSAGE, analytics)
+        assertThrows(AnalyticsMessageSamplingValueInvalidException.class, () ->
+            analyticsValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), ApiType.MESSAGE, analytics)
         );
     }
 }

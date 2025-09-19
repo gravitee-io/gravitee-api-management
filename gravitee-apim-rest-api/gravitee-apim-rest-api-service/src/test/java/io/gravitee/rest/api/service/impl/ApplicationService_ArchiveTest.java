@@ -100,18 +100,23 @@ public class ApplicationService_ArchiveTest {
     @Test
     public void shouldArchive() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
-        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null))
-            .thenReturn(Collections.singleton(subscription));
+        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null)).thenReturn(
+            Collections.singleton(subscription)
+        );
         when(subscription.getId()).thenReturn("sub");
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), "sub"))
-            .thenReturn(Collections.singletonList(apiKeyEntity));
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), "sub")).thenReturn(
+            Collections.singletonList(apiKeyEntity)
+        );
         when(apiKeyEntity.getKey()).thenReturn("key");
 
         applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
 
         verify(apiKeyService, times(1)).delete("key");
-        verify(membershipService, times(1))
-            .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, APPLICATION_ID);
+        verify(membershipService, times(1)).deleteReference(
+            GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.APPLICATION,
+            APPLICATION_ID
+        );
         verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq("sub"), notNull(AuditInfo.class));
         verify(application, times(1)).setStatus(ApplicationStatus.ARCHIVED);
         verify(applicationRepository, times(1)).update(application);

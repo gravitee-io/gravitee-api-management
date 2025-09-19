@@ -62,41 +62,40 @@ class SearchResponseStatusOverTimeAdapterTest {
             var result = cut.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                                {
-                                   "aggregations": {
-                                     "by_date": {
-                                       "aggregations": { "by_status": { "terms": { "field": "status" } } },
-                                       "date_histogram": {
-                                         "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
-                                         "field": "@timestamp",
-                                         "fixed_interval": "600000ms",
-                                         "min_doc_count": 0
-                                       }
-                                     }
-                                   },
-                                   "query": {
-                                     "bool": {
-                                       "filter": [
-                                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
-                                         {
-                                           "range": {
-                                             "@timestamp": {
-                                               "from": 1697882730000,
-                                               "include_lower": true,
-                                               "include_upper": true,
-                                               "to": 1697970330000
-                                             }
-                                           }
-                                         }
-                                       ]
-                                     }
-                                   },
-                                   "size": 0
-                                 }"""
-                );
+            assertThatJson(result).isEqualTo(
+                """
+                {
+                   "aggregations": {
+                     "by_date": {
+                       "aggregations": { "by_status": { "terms": { "field": "status" } } },
+                       "date_histogram": {
+                         "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
+                         "field": "@timestamp",
+                         "fixed_interval": "600000ms",
+                         "min_doc_count": 0
+                       }
+                     }
+                   },
+                   "query": {
+                     "bool": {
+                       "filter": [
+                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
+                         {
+                           "range": {
+                             "@timestamp": {
+                               "from": 1697882730000,
+                               "include_lower": true,
+                               "include_upper": true,
+                               "to": 1697970330000
+                             }
+                           }
+                         }
+                       ]
+                     }
+                   },
+                   "size": 0
+                 }"""
+            );
         }
 
         @Test
@@ -115,41 +114,40 @@ class SearchResponseStatusOverTimeAdapterTest {
             var result = cut.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                                        {
-                                           "aggregations": {
-                                             "by_date": {
-                                               "aggregations": { "by_status": { "terms": { "field": "status" } } },
-                                               "date_histogram": {
-                                                 "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
-                                                 "field": "@timestamp",
-                                                 "fixed_interval": "600000ms",
-                                                 "min_doc_count": 0
-                                               }
-                                             }
-                                           },
-                                           "query": {
-                                             "bool": {
-                                               "filter": [
-                                                 {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}}]}},
-                                                 {
-                                                   "range": {
-                                                     "@timestamp": {
-                                                       "from": 1697882730000,
-                                                       "include_lower": true,
-                                                       "include_upper": true,
-                                                       "to": 1697970330000
-                                                     }
-                                                   }
-                                                 }
-                                               ]
-                                             }
-                                           },
-                                           "size": 0
-                                         }"""
-                );
+            assertThatJson(result).isEqualTo(
+                """
+                {
+                   "aggregations": {
+                     "by_date": {
+                       "aggregations": { "by_status": { "terms": { "field": "status" } } },
+                       "date_histogram": {
+                         "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
+                         "field": "@timestamp",
+                         "fixed_interval": "600000ms",
+                         "min_doc_count": 0
+                       }
+                     }
+                   },
+                   "query": {
+                     "bool": {
+                       "filter": [
+                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}}]}},
+                         {
+                           "range": {
+                             "@timestamp": {
+                               "from": 1697882730000,
+                               "include_lower": true,
+                               "include_upper": true,
+                               "to": 1697970330000
+                             }
+                           }
+                         }
+                       ]
+                     }
+                   },
+                   "size": 0
+                 }"""
+            );
         }
 
         @Test
@@ -168,41 +166,40 @@ class SearchResponseStatusOverTimeAdapterTest {
             var result = cut.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                                {
-                                   "aggregations": {
-                                     "by_date": {
-                                       "aggregations": { "by_status": { "terms": { "field": "status" } } },
-                                       "date_histogram": {
-                                         "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
-                                         "field": "@timestamp",
-                                         "interval": "600000ms",
-                                         "min_doc_count": 0
-                                       }
-                                     }
-                                   },
-                                   "query": {
-                                     "bool": {
-                                       "filter": [
-                                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
-                                         {
-                                           "range": {
-                                             "@timestamp": {
-                                               "from": 1697882730000,
-                                               "include_lower": true,
-                                               "include_upper": true,
-                                               "to": 1697970330000
-                                             }
-                                           }
-                                         }
-                                       ]
-                                     }
-                                   },
-                                   "size": 0
-                                 }"""
-                );
+            assertThatJson(result).isEqualTo(
+                """
+                {
+                   "aggregations": {
+                     "by_date": {
+                       "aggregations": { "by_status": { "terms": { "field": "status" } } },
+                       "date_histogram": {
+                         "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
+                         "field": "@timestamp",
+                         "interval": "600000ms",
+                         "min_doc_count": 0
+                       }
+                     }
+                   },
+                   "query": {
+                     "bool": {
+                       "filter": [
+                         {"bool":{"minimum_should_match":1,"should":[{"bool":{"must":[{"terms":{"api-id":["my-api-id"]}},{"terms":{"entrypoint-id":["http-post","http-get","http-proxy"]}}]}},{"terms":{"api":["my-api-id"]}}]}},
+                         {
+                           "range": {
+                             "@timestamp": {
+                               "from": 1697882730000,
+                               "include_lower": true,
+                               "include_upper": true,
+                               "to": 1697970330000
+                             }
+                           }
+                         }
+                       ]
+                     }
+                   },
+                   "size": 0
+                 }"""
+            );
         }
     }
 

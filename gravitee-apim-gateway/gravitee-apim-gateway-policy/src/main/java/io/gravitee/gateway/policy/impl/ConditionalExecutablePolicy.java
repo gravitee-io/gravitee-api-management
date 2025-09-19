@@ -47,16 +47,15 @@ public class ConditionalExecutablePolicy implements Policy {
     protected ConditionalExecutablePolicy(ConditionalExecutablePolicy delegate, BiConsumer<String, Boolean> conditionResultConsumer) {
         this.policy = delegate.policy;
         this.condition = delegate.condition;
-        this.evaluationFunction =
-            context -> {
-                Boolean isConditionTruthy = null;
-                try {
-                    isConditionTruthy = delegate.evaluationFunction.apply(context);
-                } finally {
-                    conditionResultConsumer.accept(delegate.condition, isConditionTruthy);
-                }
-                return isConditionTruthy;
-            };
+        this.evaluationFunction = context -> {
+            Boolean isConditionTruthy = null;
+            try {
+                isConditionTruthy = delegate.evaluationFunction.apply(context);
+            } finally {
+                conditionResultConsumer.accept(delegate.condition, isConditionTruthy);
+            }
+            return isConditionTruthy;
+        };
     }
 
     @Override

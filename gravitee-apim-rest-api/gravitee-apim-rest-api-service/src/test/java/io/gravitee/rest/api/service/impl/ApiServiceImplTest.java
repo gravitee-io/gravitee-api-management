@@ -327,12 +327,11 @@ public class ApiServiceImplTest {
         Set<String> defaultGroups;
         // Filter out groups with apiPrimaryOwner if primaryOwner is not null and has a value
         if (primaryOwner != null && !org.apache.commons.lang3.StringUtils.isEmpty(primaryOwner.getId())) {
-            defaultGroups =
-                defaultGroupEntities
-                    .stream()
-                    .filter(group -> org.apache.commons.lang3.StringUtils.isEmpty(group.getApiPrimaryOwner()))
-                    .map(GroupEntity::getId)
-                    .collect(java.util.stream.Collectors.toSet());
+            defaultGroups = defaultGroupEntities
+                .stream()
+                .filter(group -> org.apache.commons.lang3.StringUtils.isEmpty(group.getApiPrimaryOwner()))
+                .map(GroupEntity::getId)
+                .collect(java.util.stream.Collectors.toSet());
         } else {
             defaultGroups = defaultGroupEntities.stream().map(GroupEntity::getId).collect(java.util.stream.Collectors.toSet());
         }

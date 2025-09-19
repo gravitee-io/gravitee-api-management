@@ -55,15 +55,14 @@ public class ApiDefinitionContextServiceTest {
 
         definitionContextService.setDefinitionContext(API_ID, kubernetesContext);
 
-        verify(apiRepository, times(1))
-            .update(
-                argThat(api -> {
-                    assertThat(api.getOrigin()).isEqualTo(ORIGIN_KUBERNETES);
-                    assertThat(api.getMode()).isEqualTo(MODE_FULLY_MANAGED);
-                    assertThat(api.getSyncFrom()).isEqualTo(ORIGIN_KUBERNETES);
-                    return true;
-                })
-            );
+        verify(apiRepository, times(1)).update(
+            argThat(api -> {
+                assertThat(api.getOrigin()).isEqualTo(ORIGIN_KUBERNETES);
+                assertThat(api.getMode()).isEqualTo(MODE_FULLY_MANAGED);
+                assertThat(api.getSyncFrom()).isEqualTo(ORIGIN_KUBERNETES);
+                return true;
+            })
+        );
     }
 
     @Test
@@ -76,15 +75,14 @@ public class ApiDefinitionContextServiceTest {
 
         definitionContextService.setDefinitionContext(API_ID, kubernetesContext);
 
-        verify(apiRepository, times(1))
-            .update(
-                argThat(api -> {
-                    assertThat(api.getOrigin()).isEqualTo(ORIGIN_KUBERNETES);
-                    assertThat(api.getMode()).isEqualTo(MODE_FULLY_MANAGED);
-                    assertThat(api.getSyncFrom()).isEqualTo(ORIGIN_MANAGEMENT);
-                    return true;
-                })
-            );
+        verify(apiRepository, times(1)).update(
+            argThat(api -> {
+                assertThat(api.getOrigin()).isEqualTo(ORIGIN_KUBERNETES);
+                assertThat(api.getMode()).isEqualTo(MODE_FULLY_MANAGED);
+                assertThat(api.getSyncFrom()).isEqualTo(ORIGIN_MANAGEMENT);
+                return true;
+            })
+        );
     }
 
     @Test(expected = ApiNotFoundException.class)

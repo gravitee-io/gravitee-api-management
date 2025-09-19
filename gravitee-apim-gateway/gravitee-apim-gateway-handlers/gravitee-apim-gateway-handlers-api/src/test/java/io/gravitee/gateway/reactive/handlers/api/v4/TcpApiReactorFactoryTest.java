@@ -84,18 +84,17 @@ class TcpApiReactorFactoryTest {
 
     @BeforeEach
     void before() {
-        cut =
-            new TcpApiReactorFactory(
-                configuration,
-                node,
-                entrypoints,
-                endpoints,
-                timeoutConfig,
-                openTelemetryConfiguration,
-                openTelemetryFactory,
-                List.of(),
-                gatewayConfiguration
-            );
+        cut = new TcpApiReactorFactory(
+            configuration,
+            node,
+            entrypoints,
+            endpoints,
+            timeoutConfig,
+            openTelemetryConfiguration,
+            openTelemetryFactory,
+            List.of(),
+            gatewayConfiguration
+        );
     }
 
     static Stream<Arguments> apis() {

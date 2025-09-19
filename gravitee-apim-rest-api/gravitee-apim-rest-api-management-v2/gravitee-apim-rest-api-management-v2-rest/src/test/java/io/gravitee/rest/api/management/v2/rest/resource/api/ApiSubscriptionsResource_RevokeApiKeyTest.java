@@ -81,9 +81,9 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
     @AfterEach
     public void tearDown() {
         super.tearDown();
-        Stream
-            .of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory).forEach(
+            InMemoryAlternative::reset
+        );
 
         GraviteeContext.cleanContext();
     }
@@ -131,8 +131,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
         );
         apiKeyCrudServiceInMemory.initWith(
             List.of(
-                ApiKeyFixtures
-                    .anApiKey()
+                ApiKeyFixtures.anApiKey()
                     .toBuilder()
                     .id(API_KEY_ID)
                     .applicationId(APPLICATION)
@@ -150,8 +149,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
     public void should_return_400_if_application_is_in_shared_api_key_mode() {
         subscriptionCrudServiceInMemory.initWith(
             List.of(
-                fixtures.core.model.SubscriptionFixtures
-                    .aSubscription()
+                fixtures.core.model.SubscriptionFixtures.aSubscription()
                     .toBuilder()
                     .id(SUBSCRIPTION)
                     .apiId(API)
@@ -185,8 +183,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(null));
 
@@ -197,8 +194,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
     public void should_revoke_api_key() {
         subscriptionCrudServiceInMemory.initWith(
             List.of(
-                fixtures.core.model.SubscriptionFixtures
-                    .aSubscription()
+                fixtures.core.model.SubscriptionFixtures.aSubscription()
                     .toBuilder()
                     .id(SUBSCRIPTION)
                     .apiId(API)

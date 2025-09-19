@@ -84,8 +84,7 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
     public void handle(ExecutionContext context) {
         try {
             eventProducer.send(
-                Event
-                    .at(context.request().timestamp())
+                Event.at(context.request().timestamp())
                     .type(REQUEST_TYPE)
                     .context(CONTEXT_NODE_ID, node.id())
                     .context(CONTEXT_NODE_HOSTNAME, node.hostname())

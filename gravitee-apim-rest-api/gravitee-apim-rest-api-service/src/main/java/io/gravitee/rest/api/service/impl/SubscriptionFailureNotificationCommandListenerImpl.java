@@ -61,8 +61,9 @@ public class SubscriptionFailureNotificationCommandListenerImpl implements Subsc
             event.content().getTags().contains(CommandTags.SUBSCRIPTION_FAILURE_NOTIFICATION_RETRY)
         ) {
             LOGGER.debug("Command event: {}", event.content().getContent());
-            getSubscriptionCommand(event)
-                .ifPresent(command -> subscriptionService.notifyError(command.getSubscriptionId(), command.getFailureCause()));
+            getSubscriptionCommand(event).ifPresent(command ->
+                subscriptionService.notifyError(command.getSubscriptionId(), command.getFailureCause())
+            );
         }
     }
 

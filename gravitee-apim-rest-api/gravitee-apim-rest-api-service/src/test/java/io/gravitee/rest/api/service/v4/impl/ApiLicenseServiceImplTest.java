@@ -97,8 +97,9 @@ public class ApiLicenseServiceImplTest {
         when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.Api.class)).thenReturn(apiV2);
 
         when(apiV4.getPlugins()).thenReturn(List.of(new Plugin("apiV4-type", "apiV4-id"), new Plugin("another", "plugin")));
-        when(nativeApiV4.getPlugins())
-            .thenReturn(List.of(new Plugin("apiV4-kafka-type", "apiV4-kafka-id"), new Plugin("another", "plugin")));
+        when(nativeApiV4.getPlugins()).thenReturn(
+            List.of(new Plugin("apiV4-kafka-type", "apiV4-kafka-id"), new Plugin("another", "plugin"))
+        );
         when(apiV2.getPlugins()).thenReturn(List.of(new Plugin("apiV2-type", "apiV2-id"), new Plugin("another", "plugin")));
 
         lenient().when(licenseManager.getPlatformLicense()).thenReturn(license);
@@ -153,8 +154,9 @@ public class ApiLicenseServiceImplTest {
 
     @Test
     public void should_transform_parsing_error_to_technical_management_exception() throws JsonProcessingException {
-        when(objectMapper.readValue(anyString(), any(io.gravitee.definition.model.v4.Api.class.getClass())))
-            .thenThrow(JsonMappingException.class);
+        when(objectMapper.readValue(anyString(), any(io.gravitee.definition.model.v4.Api.class.getClass()))).thenThrow(
+            JsonMappingException.class
+        );
         assertThrows(TechnicalManagementException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 }

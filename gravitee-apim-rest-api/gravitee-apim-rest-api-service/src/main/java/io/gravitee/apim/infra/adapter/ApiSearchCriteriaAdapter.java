@@ -43,11 +43,21 @@ public class ApiSearchCriteriaAdapter {
             }
             if (criteria.getLifecycleStates() != null && !criteria.getLifecycleStates().isEmpty()) {
                 builder.lifecycleStates(
-                    criteria.getLifecycleStates().stream().map(s -> ApiLifecycleState.valueOf(s.name())).collect(Collectors.toList())
+                    criteria
+                        .getLifecycleStates()
+                        .stream()
+                        .map(s -> ApiLifecycleState.valueOf(s.name()))
+                        .collect(Collectors.toList())
                 );
             }
             if (criteria.getDefinitionVersion() != null && !criteria.getDefinitionVersion().isEmpty()) {
-                builder.definitionVersion(criteria.getDefinitionVersion().stream().map(v -> DefinitionVersion.valueOf(v.name())).toList());
+                builder.definitionVersion(
+                    criteria
+                        .getDefinitionVersion()
+                        .stream()
+                        .map(v -> DefinitionVersion.valueOf(v.name()))
+                        .toList()
+                );
             }
             builder
                 .groups(criteria.getGroups())

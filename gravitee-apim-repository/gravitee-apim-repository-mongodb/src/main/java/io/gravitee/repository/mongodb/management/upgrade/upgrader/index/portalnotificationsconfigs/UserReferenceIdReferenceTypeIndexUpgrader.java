@@ -27,8 +27,7 @@ public class UserReferenceIdReferenceTypeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("portalnotificationconfigs")
             .name("iu1iri1irt1")
             .key("_id.user", ascending())

@@ -70,9 +70,10 @@ public interface ThemeAdapter {
     ) {
         if (Objects.nonNull(theme.getDefinition()) && ThemeType.PORTAL_NEXT.equals(theme.getType())) {
             try {
-                return GraviteeJacksonMapper
-                    .getInstance()
-                    .readValue(theme.getDefinition(), io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.class);
+                return GraviteeJacksonMapper.getInstance().readValue(
+                    theme.getDefinition(),
+                    io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.class
+                );
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while deserializing PORTAL_NEXT theme definition", ioe);
             }
@@ -86,8 +87,7 @@ public interface ThemeAdapter {
             ? theme.getDefinitionPortal()
             : theme.getDefinitionPortalNext();
 
-        return Optional
-            .ofNullable(definition)
+        return Optional.ofNullable(definition)
             .map(def -> {
                 try {
                     return GraviteeJacksonMapper.getInstance().writeValueAsString(def);

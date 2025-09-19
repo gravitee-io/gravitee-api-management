@@ -51,13 +51,11 @@ public class LatestEventFetcher {
     ) {
         return Flowable.<List<Event>, EventPageable>generate(
             () ->
-                EventPageable
-                    .builder()
+                EventPageable.builder()
                     .index(0)
                     .size(bulkItems)
                     .criteria(
-                        EventCriteria
-                            .builder()
+                        EventCriteria.builder()
                             .types(eventTypes)
                             .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
                             .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)

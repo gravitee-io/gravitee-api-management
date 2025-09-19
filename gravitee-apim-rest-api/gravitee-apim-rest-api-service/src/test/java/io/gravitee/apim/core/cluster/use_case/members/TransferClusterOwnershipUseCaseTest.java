@@ -56,8 +56,7 @@ class TransferClusterOwnershipUseCaseTest extends AbstractUseCaseTest {
                         .getRoles()
                         .get(0)
                         .getName()
-                )
-                    .isEqualTo("PRIMARY_OWNER"),
+                ).isEqualTo("PRIMARY_OWNER"),
             () ->
                 assertThat(
                     membershipDomainService
@@ -69,8 +68,7 @@ class TransferClusterOwnershipUseCaseTest extends AbstractUseCaseTest {
                         .getRoles()
                         .get(0)
                         .getName()
-                )
-                    .isEqualTo("USER")
+                ).isEqualTo("USER")
         );
 
         transferClusterOwnershipUseCase.execute(
@@ -92,8 +90,7 @@ class TransferClusterOwnershipUseCaseTest extends AbstractUseCaseTest {
                         .getRoles()
                         .get(0)
                         .getName()
-                )
-                    .isEqualTo("USER"),
+                ).isEqualTo("USER"),
             () ->
                 assertThat(
                     membershipDomainService
@@ -105,8 +102,7 @@ class TransferClusterOwnershipUseCaseTest extends AbstractUseCaseTest {
                         .getRoles()
                         .get(0)
                         .getName()
-                )
-                    .isEqualTo("PRIMARY_OWNER")
+                ).isEqualTo("PRIMARY_OWNER")
         );
     }
 
@@ -123,8 +119,7 @@ class TransferClusterOwnershipUseCaseTest extends AbstractUseCaseTest {
                     .getRoles()
                     .get(0)
                     .getName()
-            )
-                .isEqualTo("PRIMARY_OWNER")
+            ).isEqualTo("PRIMARY_OWNER")
         );
 
         transferClusterOwnershipUseCase.execute(
@@ -146,8 +141,7 @@ class TransferClusterOwnershipUseCaseTest extends AbstractUseCaseTest {
                         .getRoles()
                         .get(0)
                         .getName()
-                )
-                    .isEqualTo("USER"),
+                ).isEqualTo("USER"),
             () ->
                 assertThat(
                     membershipDomainService
@@ -159,22 +153,19 @@ class TransferClusterOwnershipUseCaseTest extends AbstractUseCaseTest {
                         .getRoles()
                         .get(0)
                         .getName()
-                )
-                    .isEqualTo("PRIMARY_OWNER")
+                ).isEqualTo("PRIMARY_OWNER")
         );
     }
 
     private void initData() {
         List<MemberEntity> memberEntities = List.of(
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("user-1")
                 .referenceId(CLUSTER_ID)
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .roles(List.of(RoleEntity.builder().name("PRIMARY_OWNER").scope(RoleScope.CLUSTER).build()))
                 .build(),
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("user-2")
                 .referenceId(CLUSTER_ID)
                 .referenceType(MembershipReferenceType.CLUSTER)

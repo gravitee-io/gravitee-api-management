@@ -58,8 +58,7 @@ import org.junit.jupiter.api.Test;
 
 class ApiEventsResourceTest extends ApiResourceTest {
 
-    private static final BaseUserEntity USER = BaseUserEntity
-        .builder()
+    private static final BaseUserEntity USER = BaseUserEntity.builder()
         .id("user-id")
         .firstname("John")
         .lastname("Doe")
@@ -108,8 +107,7 @@ class ApiEventsResourceTest extends ApiResourceTest {
                     eq(API),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().get();
 
@@ -148,22 +146,19 @@ class ApiEventsResourceTest extends ApiResourceTest {
         public void should_return_audits_filtered_by_interval() {
             eventQueryService.initWith(
                 List.of(
-                    EventFixtures
-                        .anApiEvent(API)
+                    EventFixtures.anApiEvent(API)
                         .toBuilder()
                         .id("1")
                         .environments(Set.of(ENVIRONMENT))
                         .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
                         .build(),
-                    EventFixtures
-                        .anApiEvent(API)
+                    EventFixtures.anApiEvent(API)
                         .toBuilder()
                         .id("2")
                         .environments(Set.of(ENVIRONMENT))
                         .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
                         .build(),
-                    EventFixtures
-                        .anApiEvent(API)
+                    EventFixtures.anApiEvent(API)
                         .toBuilder()
                         .id("3")
                         .environments(Set.of(ENVIRONMENT))
@@ -212,8 +207,7 @@ class ApiEventsResourceTest extends ApiResourceTest {
             var total = 20L;
             var pageSize = 5;
             eventQueryService.initWith(
-                LongStream
-                    .range(0, total)
+                LongStream.range(0, total)
                     .mapToObj(i -> EventFixtures.anApiEvent(API).toBuilder().environments(Set.of(ENVIRONMENT)).build())
                     .collect(Collectors.toList())
             );
@@ -237,8 +231,7 @@ class ApiEventsResourceTest extends ApiResourceTest {
             var page = 2;
             var pageSize = 5;
             eventQueryService.initWith(
-                LongStream
-                    .range(0, total)
+                LongStream.range(0, total)
                     .mapToObj(i -> EventFixtures.anApiEvent(API).toBuilder().environments(Set.of(ENVIRONMENT)).build())
                     .collect(Collectors.toList())
             );

@@ -130,32 +130,32 @@ public class FlowMigration {
     }
 
     public MigrationResult<Flow> mapFlow(io.gravitee.definition.model.flow.Flow v2Flow) {
-        var preSteps = stream(v2Flow.getPre()).map(this::migrateV4).map(step -> step.map(MigratedSteps::pre));
-        var postSteps = stream(v2Flow.getPost()).map(this::migrateV4).map(step -> step.map(MigratedSteps::post));
-        var reduce = Stream
-            .concat(preSteps, postSteps)
-            .reduce(MigrationResult.value(new MigratedSteps()), (a, b) -> a.foldLeft(b, MigratedSteps::merge));
+        var preSteps = stream(v2Flow.getPre())
+            .map(this::migrateV4)
+            .map(step -> step.map(MigratedSteps::pre));
+        var postSteps = stream(v2Flow.getPost())
+            .map(this::migrateV4)
+            .map(step -> step.map(MigratedSteps::post));
+        var reduce = Stream.concat(preSteps, postSteps).reduce(MigrationResult.value(new MigratedSteps()), (a, b) ->
+            a.foldLeft(b, MigratedSteps::merge)
+        );
         return reduce.map(e ->
             e != null
-                ? Flow
-                    .builder()
+                ? Flow.builder()
                     .id(v2Flow.getId())
                     .selectors(
-                        Stream
-                            .concat(
-                                nullIfEmpty(v2Flow.getCondition()) == null
-                                    ? Stream.empty()
-                                    : Stream.of(ConditionSelector.builder().condition(v2Flow.getCondition()).build()),
-                                Stream.of(
-                                    HttpSelector
-                                        .builder()
-                                        .methods(v2Flow.getMethods())
-                                        .pathOperator(v2Flow.getOperator())
-                                        .path(v2Flow.getPath())
-                                        .build()
-                                )
+                        Stream.concat(
+                            nullIfEmpty(v2Flow.getCondition()) == null
+                                ? Stream.empty()
+                                : Stream.of(ConditionSelector.builder().condition(v2Flow.getCondition()).build()),
+                            Stream.of(
+                                HttpSelector.builder()
+                                    .methods(v2Flow.getMethods())
+                                    .pathOperator(v2Flow.getOperator())
+                                    .path(v2Flow.getPath())
+                                    .build()
                             )
-                            .toList()
+                        ).toList()
                     )
                     .request(e.pre())
                     .response(e.post())

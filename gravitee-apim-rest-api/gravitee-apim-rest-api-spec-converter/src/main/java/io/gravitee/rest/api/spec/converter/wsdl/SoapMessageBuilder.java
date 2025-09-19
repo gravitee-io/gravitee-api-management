@@ -80,8 +80,11 @@ public class SoapMessageBuilder {
 
     public void compileSchemas() {
         try {
-            schemaTypeSystem =
-                XmlBeans.compileXsd(schemas.toArray(new XmlObject[schemas.size()]), XmlBeans.getBuiltinTypeSystem(), options);
+            schemaTypeSystem = XmlBeans.compileXsd(
+                schemas.toArray(new XmlObject[schemas.size()]),
+                XmlBeans.getBuiltinTypeSystem(),
+                options
+            );
             this.compiled = true;
         } catch (XmlException e) {
             log.warn("Compilation of XSD failed, OpenAPI specification will be generated without SOAP envelope.", e);

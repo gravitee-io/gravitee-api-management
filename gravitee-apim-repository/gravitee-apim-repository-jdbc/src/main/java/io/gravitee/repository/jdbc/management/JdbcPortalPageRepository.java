@@ -41,8 +41,7 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
 
     @Override
     protected JdbcObjectMapper<PortalPage> buildOrm() {
-        return JdbcObjectMapper
-            .builder(PortalPage.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(PortalPage.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)

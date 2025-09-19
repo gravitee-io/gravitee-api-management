@@ -27,8 +27,7 @@ public class HridsIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("environments")
             .name("hi1")
             .key("hrids", ascending())

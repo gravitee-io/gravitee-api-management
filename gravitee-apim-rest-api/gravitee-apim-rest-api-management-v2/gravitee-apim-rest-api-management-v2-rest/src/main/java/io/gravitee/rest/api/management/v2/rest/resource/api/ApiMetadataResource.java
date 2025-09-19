@@ -56,8 +56,7 @@ public class ApiMetadataResource extends AbstractResource {
         );
         List<ApiMetadata> paginationData = computePaginationData(output.metadata(), paginationParam);
 
-        return Response
-            .ok()
+        return Response.ok()
             .entity(
                 new MetadataResponse()
                     .data(MetadataMapper.INSTANCE.mapFromCore(paginationData))

@@ -36,15 +36,15 @@ public class ResourcePluginQueryServiceInMemory implements ResourcePluginQuerySe
         return (
             String.format(
                 """
-                          {
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "type": "string",
-                              "description": "This is a schema for %s resource plugin."
-                            }
-                          }
-                        }""",
+                  {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "This is a schema for %s resource plugin."
+                    }
+                  }
+                }""",
                 resourceId
             )
         );

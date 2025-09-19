@@ -48,8 +48,7 @@ class DefaultAccessPointManagerTest {
 
     @Test
     void should_register_new_access_point() {
-        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
-            .builder()
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
             .id("id")
             .host("host")
             .environmentId("environmentId")
@@ -62,8 +61,7 @@ class DefaultAccessPointManagerTest {
 
     @Test
     void should_not_register_duplicated_access_point() {
-        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
-            .builder()
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
             .id("id")
             .host("host")
             .environmentId("environmentId")
@@ -77,8 +75,7 @@ class DefaultAccessPointManagerTest {
 
     @Test
     void should_unregister_new_access_point() {
-        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
-            .builder()
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
             .id("id")
             .host("host")
             .environmentId("environmentId")
@@ -93,8 +90,7 @@ class DefaultAccessPointManagerTest {
 
     @Test
     void should_not_unregister_unexisting_access_point() {
-        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
-            .builder()
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
             .id("id")
             .host("host")
             .environmentId("environmentId")

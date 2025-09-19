@@ -56,32 +56,9 @@ public class UserCrudServiceImplTest {
         @Test
         void should_find_user_and_adapt_it() throws TechnicalException {
             // Given
-            when(userRepository.findById(any()))
-                .thenReturn(
-                    Optional.of(
-                        User
-                            .builder()
-                            .id("user-id")
-                            .organizationId("organization-id")
-                            .source("source")
-                            .sourceId("source-id")
-                            .email("jane.doe@gravitee.io")
-                            .firstname("Jane")
-                            .lastname("Doe")
-                            .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
-                            .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
-                            .build()
-                    )
-                );
-
-            // When
-            var user = service.findBaseUserById("userId");
-
-            // Then
-            assertThat(user)
-                .contains(
-                    BaseUserEntity
-                        .builder()
+            when(userRepository.findById(any())).thenReturn(
+                Optional.of(
+                    User.builder()
                         .id("user-id")
                         .organizationId("organization-id")
                         .source("source")
@@ -92,7 +69,26 @@ public class UserCrudServiceImplTest {
                         .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
                         .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
                         .build()
-                );
+                )
+            );
+
+            // When
+            var user = service.findBaseUserById("userId");
+
+            // Then
+            assertThat(user).contains(
+                BaseUserEntity.builder()
+                    .id("user-id")
+                    .organizationId("organization-id")
+                    .source("source")
+                    .sourceId("source-id")
+                    .email("jane.doe@gravitee.io")
+                    .firstname("Jane")
+                    .lastname("Doe")
+                    .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
+                    .build()
+            );
         }
 
         @Test
@@ -128,27 +124,25 @@ public class UserCrudServiceImplTest {
         @Test
         void should_find_users_and_adapt_them() throws TechnicalException {
             // Given
-            when(userRepository.findByIds(any(List.class)))
-                .thenAnswer(invocation -> {
-                    List<String> ids = invocation.getArgument(0);
-                    return ids
-                        .stream()
-                        .map(id ->
-                            User
-                                .builder()
-                                .id(id)
-                                .organizationId("organization-id")
-                                .source("source-" + id)
-                                .sourceId("source-id-" + id)
-                                .email(id + "@gravitee.io")
-                                .firstname("Jane " + id)
-                                .lastname("Doe " + id)
-                                .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
-                                .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
-                                .build()
-                        )
-                        .collect(Collectors.toSet());
-                });
+            when(userRepository.findByIds(any(List.class))).thenAnswer(invocation -> {
+                List<String> ids = invocation.getArgument(0);
+                return ids
+                    .stream()
+                    .map(id ->
+                        User.builder()
+                            .id(id)
+                            .organizationId("organization-id")
+                            .source("source-" + id)
+                            .sourceId("source-id-" + id)
+                            .email(id + "@gravitee.io")
+                            .firstname("Jane " + id)
+                            .lastname("Doe " + id)
+                            .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
+                            .build()
+                    )
+                    .collect(Collectors.toSet());
+            });
 
             // When
             var user = service.findBaseUsersByIds(List.of("1", "2"));
@@ -157,8 +151,7 @@ public class UserCrudServiceImplTest {
             assertThat(user)
                 .hasSize(2)
                 .contains(
-                    BaseUserEntity
-                        .builder()
+                    BaseUserEntity.builder()
                         .id("1")
                         .organizationId("organization-id")
                         .source("source-1")
@@ -169,8 +162,7 @@ public class UserCrudServiceImplTest {
                         .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
                         .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
                         .build(),
-                    BaseUserEntity
-                        .builder()
+                    BaseUserEntity.builder()
                         .id("2")
                         .organizationId("organization-id")
                         .source("source-2")
@@ -217,23 +209,21 @@ public class UserCrudServiceImplTest {
         @Test
         void should_find_user_and_adapt_id() throws TechnicalException {
             // Given
-            when(userRepository.findById(any()))
-                .thenReturn(
-                    Optional.of(
-                        User
-                            .builder()
-                            .id("user-id")
-                            .organizationId("organization-id")
-                            .source("source")
-                            .sourceId("source-id")
-                            .email("jane.doe@gravitee.io")
-                            .firstname("Jane")
-                            .lastname("Doe")
-                            .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
-                            .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
-                            .build()
-                    )
-                );
+            when(userRepository.findById(any())).thenReturn(
+                Optional.of(
+                    User.builder()
+                        .id("user-id")
+                        .organizationId("organization-id")
+                        .source("source")
+                        .sourceId("source-id")
+                        .email("jane.doe@gravitee.io")
+                        .firstname("Jane")
+                        .lastname("Doe")
+                        .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
+                        .build()
+                )
+            );
 
             // When
             var user = service.getBaseUser("userId");

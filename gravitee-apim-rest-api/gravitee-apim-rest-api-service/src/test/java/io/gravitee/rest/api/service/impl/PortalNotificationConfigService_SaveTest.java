@@ -151,8 +151,7 @@ public class PortalNotificationConfigService_SaveTest {
 
     @Test
     public void shouldRemoveGroupIds() throws TechnicalException {
-        PortalNotificationConfig config = PortalNotificationConfig
-            .builder()
+        PortalNotificationConfig config = PortalNotificationConfig.builder()
             .groups(new HashSet<>(Set.of("1", "2", "3")))
             .user("po")
             .referenceType(NotificationReferenceType.API)
@@ -163,11 +162,10 @@ public class PortalNotificationConfigService_SaveTest {
         when(portalNotificationConfigRepository.findById("po", NotificationReferenceType.API, "123")).thenReturn(Optional.of(config));
 
         underTest.removeGroupIds("123", Set.of("3"));
-        verify(portalNotificationConfigRepository, times(1))
-            .update(
-                assertArg(c -> {
-                    assertEquals(Set.of("1", "2"), c.getGroups());
-                })
-            );
+        verify(portalNotificationConfigRepository, times(1)).update(
+            assertArg(c -> {
+                assertEquals(Set.of("1", "2"), c.getGroups());
+            })
+        );
     }
 }

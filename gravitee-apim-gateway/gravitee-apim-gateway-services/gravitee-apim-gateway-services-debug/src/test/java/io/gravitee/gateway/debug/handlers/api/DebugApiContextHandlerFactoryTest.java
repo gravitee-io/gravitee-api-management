@@ -63,8 +63,9 @@ public class DebugApiContextHandlerFactoryTest {
     @Test
     public void building_v3ExecutionContextFactory_should_put_ApiTemplateVariableProvider_in_context() {
         ApiTemplateVariableProviderFactory apiTemplateVariableProviderFactory = mock(ApiTemplateVariableProviderFactory.class);
-        when(applicationContext.getBeansOfType(TemplateVariableProviderFactory.class))
-            .thenReturn(Map.of(ApiTemplateVariableProviderFactory.class.getName(), apiTemplateVariableProviderFactory));
+        when(applicationContext.getBeansOfType(TemplateVariableProviderFactory.class)).thenReturn(
+            Map.of(ApiTemplateVariableProviderFactory.class.getName(), apiTemplateVariableProviderFactory)
+        );
         when(dictionaryManager.createTemplateVariableProvider(any())).thenReturn(mock(EnvironmentDictionaryTemplateVariableProvider.class));
 
         V3ExecutionContextFactory executionContextFactory = debugApiContextHandlerFactory.v3ExecutionContextFactory(

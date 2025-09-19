@@ -79,8 +79,7 @@ class EnvironmentInstancesResourceTest extends AbstractResourceTest {
                 ENVIRONMENT_ID,
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         var instanceId = "instance-id";
         var hostname = "foo.example.com";
@@ -91,8 +90,7 @@ class EnvironmentInstancesResourceTest extends AbstractResourceTest {
 
         final Response response = rootTarget().path(instanceId).request().get();
 
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(OK_200)
             .asEntity(InstanceDetailResponse.class)
             .satisfies(instanceDetail -> {

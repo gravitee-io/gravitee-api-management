@@ -134,13 +134,11 @@ class ClusterResourceTest extends AbstractResourceTest {
                     CLUSTER_ID,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -153,8 +151,7 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         void should_update_cluster() {
-            Cluster updatedCluster = Cluster
-                .builder()
+            Cluster updatedCluster = Cluster.builder()
                 .id(CLUSTER_ID)
                 .name("Cluster 1")
                 .createdAt(Instant.now().minus(30, ChronoUnit.MINUTES))
@@ -178,11 +175,13 @@ class ClusterResourceTest extends AbstractResourceTest {
                 () -> assertThat(updatedClusterResponse.getId()).isEqualTo(updatedCluster.getId()),
                 () -> assertThat(updatedClusterResponse.getName()).isEqualTo(updatedCluster.getName()),
                 () ->
-                    assertThat(updatedClusterResponse.getCreatedAt())
-                        .isEqualTo(updatedCluster.getCreatedAt().atZone(TimeProvider.clock().getZone()).toOffsetDateTime()),
+                    assertThat(updatedClusterResponse.getCreatedAt()).isEqualTo(
+                        updatedCluster.getCreatedAt().atZone(TimeProvider.clock().getZone()).toOffsetDateTime()
+                    ),
                 () ->
-                    assertThat(updatedClusterResponse.getUpdatedAt())
-                        .isEqualTo(updatedCluster.getUpdatedAt().atZone(TimeProvider.clock().getZone()).toOffsetDateTime()),
+                    assertThat(updatedClusterResponse.getUpdatedAt()).isEqualTo(
+                        updatedCluster.getUpdatedAt().atZone(TimeProvider.clock().getZone()).toOffsetDateTime()
+                    ),
                 () -> assertThat(updatedClusterResponse.getDescription()).isEqualTo(updatedCluster.getDescription()),
                 () -> assertThat(updatedClusterResponse.getConfiguration()).isEqualTo(updatedCluster.getConfiguration())
             );
@@ -214,11 +213,8 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(
-                RolePermission.CLUSTER_DEFINITION,
-                CLUSTER_ID,
-                RolePermissionAction.UPDATE,
-                () -> rootTarget().request().put(json(""))
+            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.UPDATE, () ->
+                rootTarget().request().put(json(""))
             );
         }
     }
@@ -247,11 +243,8 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(
-                RolePermission.CLUSTER_DEFINITION,
-                CLUSTER_ID,
-                RolePermissionAction.DELETE,
-                () -> rootTarget().request().delete()
+            shouldReturn403(RolePermission.CLUSTER_DEFINITION, CLUSTER_ID, RolePermissionAction.DELETE, () ->
+                rootTarget().request().delete()
             );
         }
     }
@@ -261,11 +254,8 @@ class ClusterResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(
-                RolePermission.CLUSTER_MEMBER,
-                CLUSTER_ID,
-                RolePermissionAction.UPDATE,
-                () -> rootTarget().path("groups").request().put(json(Map.of("groups", Set.of("G1", "G2"))))
+            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, RolePermissionAction.UPDATE, () ->
+                rootTarget().path("groups").request().put(json(Map.of("groups", Set.of("G1", "G2"))))
             );
         }
 

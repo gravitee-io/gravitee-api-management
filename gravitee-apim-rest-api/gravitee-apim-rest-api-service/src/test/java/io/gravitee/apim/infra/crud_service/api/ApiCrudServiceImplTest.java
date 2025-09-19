@@ -69,8 +69,7 @@ public class ApiCrudServiceImplTest {
 
         @Test
         void should_get_an_api() throws TechnicalException {
-            var existingApi = io.gravitee.repository.management.model.Api
-                .builder()
+            var existingApi = io.gravitee.repository.management.model.Api.builder()
                 .id(API_ID)
                 .definitionVersion(DefinitionVersion.V4)
                 .definition(
@@ -84,8 +83,7 @@ public class ApiCrudServiceImplTest {
             when(apiRepository.findById(API_ID)).thenReturn(Optional.of(existingApi));
 
             var result = service.get(API_ID);
-            Assertions
-                .assertThat(result)
+            Assertions.assertThat(result)
                 .extracting(Api::getId, Api::getApiLifecycleState, Api::getLifecycleState, Api::getDefinitionVersion)
                 .containsExactly(
                     API_ID,
@@ -108,8 +106,7 @@ public class ApiCrudServiceImplTest {
 
         @Test
         void should_find_an_api() throws TechnicalException {
-            var existingApi = io.gravitee.repository.management.model.Api
-                .builder()
+            var existingApi = io.gravitee.repository.management.model.Api.builder()
                 .id(API_ID)
                 .definitionVersion(DefinitionVersion.V4)
                 .definition(
@@ -123,8 +120,7 @@ public class ApiCrudServiceImplTest {
             when(apiRepository.findById(API_ID)).thenReturn(Optional.of(existingApi));
 
             var result = service.findById(API_ID);
-            Assertions
-                .assertThat(result)
+            Assertions.assertThat(result)
                 .isPresent()
                 .get()
                 .extracting(Api::getId, Api::getApiLifecycleState, Api::getLifecycleState, Api::getDefinitionVersion)
@@ -172,8 +168,7 @@ public class ApiCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_create_a_v4_api() {
-            var api = ApiFixtures
-                .aProxyApiV4()
+            var api = ApiFixtures.aProxyApiV4()
                 .toBuilder()
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
@@ -186,8 +181,7 @@ public class ApiCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Api
-                        .builder()
+                    io.gravitee.repository.management.model.Api.builder()
                         .id("my-api")
                         .crossId("my-api-crossId")
                         .name("My Api")
@@ -228,8 +222,7 @@ public class ApiCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Api
-                        .builder()
+                    io.gravitee.repository.management.model.Api.builder()
                         .id("my-api")
                         .crossId("my-api-crossId")
                         .name("My Api")
@@ -253,7 +246,7 @@ public class ApiCrudServiceImplTest {
                         .definitionVersion(DefinitionVersion.V2)
                         .definition(
                             """
-                                              {"id":"my-api","name":"api-name","version":"1.0.0","gravitee":"2.0.0","execution_mode":"v3","flow_mode":"DEFAULT","proxy":{"virtual_hosts":[{"path":"/path"}],"strip_context_path":false,"preserve_host":false,"groups":[{"name":"default-group","endpoints":[{"name":"default","target":"https://api.gravitee.io/echo","weight":1,"backup":false,"type":"http1"}],"load_balancing":{"type":"ROUND_ROBIN"},"http":{"connectTimeout":5000,"idleTimeout":60000,"keepAliveTimeout":30000,"keepAlive":true,"readTimeout":10000,"pipelining":false,"maxConcurrentConnections":100,"useCompression":true,"followRedirects":false}}]},"properties":[],"tags":["tag1"]}"""
+                            {"id":"my-api","name":"api-name","version":"1.0.0","gravitee":"2.0.0","execution_mode":"v3","flow_mode":"DEFAULT","proxy":{"virtual_hosts":[{"path":"/path"}],"strip_context_path":false,"preserve_host":false,"groups":[{"name":"default-group","endpoints":[{"name":"default","target":"https://api.gravitee.io/echo","weight":1,"backup":false,"type":"http1"}],"load_balancing":{"type":"ROUND_ROBIN"},"http":{"connectTimeout":5000,"idleTimeout":60000,"keepAliveTimeout":30000,"keepAlive":true,"readTimeout":10000,"pipelining":false,"maxConcurrentConnections":100,"useCompression":true,"followRedirects":false}}]},"properties":[],"tags":["tag1"]}"""
                         )
                         .build()
                 );
@@ -271,8 +264,7 @@ public class ApiCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Api
-                        .builder()
+                    io.gravitee.repository.management.model.Api.builder()
                         .id("my-api")
                         .name("My Api")
                         .description("api-description")
@@ -339,8 +331,7 @@ public class ApiCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_an_existing_v4_api() {
-            var plan = ApiFixtures
-                .aProxyApiV4()
+            var plan = ApiFixtures.aProxyApiV4()
                 .toBuilder()
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
@@ -353,8 +344,7 @@ public class ApiCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Api
-                        .builder()
+                    io.gravitee.repository.management.model.Api.builder()
                         .id("my-api")
                         .crossId("my-api-crossId")
                         .name("My Api")
@@ -395,8 +385,7 @@ public class ApiCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Api
-                        .builder()
+                    io.gravitee.repository.management.model.Api.builder()
                         .id("my-api")
                         .crossId("my-api-crossId")
                         .name("My Api")
@@ -420,7 +409,7 @@ public class ApiCrudServiceImplTest {
                         .definitionVersion(DefinitionVersion.V2)
                         .definition(
                             """
-                              {"id":"my-api","name":"api-name","version":"1.0.0","gravitee":"2.0.0","execution_mode":"v3","flow_mode":"DEFAULT","proxy":{"virtual_hosts":[{"path":"/path"}],"strip_context_path":false,"preserve_host":false,"groups":[{"name":"default-group","endpoints":[{"name":"default","target":"https://api.gravitee.io/echo","weight":1,"backup":false,"type":"http1"}],"load_balancing":{"type":"ROUND_ROBIN"},"http":{"connectTimeout":5000,"idleTimeout":60000,"keepAliveTimeout":30000,"keepAlive":true,"readTimeout":10000,"pipelining":false,"maxConcurrentConnections":100,"useCompression":true,"followRedirects":false}}]},"properties":[],"tags":["tag1"]}"""
+                            {"id":"my-api","name":"api-name","version":"1.0.0","gravitee":"2.0.0","execution_mode":"v3","flow_mode":"DEFAULT","proxy":{"virtual_hosts":[{"path":"/path"}],"strip_context_path":false,"preserve_host":false,"groups":[{"name":"default-group","endpoints":[{"name":"default","target":"https://api.gravitee.io/echo","weight":1,"backup":false,"type":"http1"}],"load_balancing":{"type":"ROUND_ROBIN"},"http":{"connectTimeout":5000,"idleTimeout":60000,"keepAliveTimeout":30000,"keepAlive":true,"readTimeout":10000,"pipelining":false,"maxConcurrentConnections":100,"useCompression":true,"followRedirects":false}}]},"properties":[],"tags":["tag1"]}"""
                         )
                         .build()
                 );

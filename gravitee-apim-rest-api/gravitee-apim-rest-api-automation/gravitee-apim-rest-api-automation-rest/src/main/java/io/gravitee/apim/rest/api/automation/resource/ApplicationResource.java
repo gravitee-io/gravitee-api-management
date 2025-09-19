@@ -90,16 +90,14 @@ public class ApplicationResource extends AbstractResource {
             ApplicationSpec applicationSpec = ApplicationMapper.INSTANCE.applicationEntityToApplicationSpec(applicationEntity);
             addMembers(executionContext, applicationEntity, applicationSpec);
             addMetadata(applicationEntity, applicationSpec);
-            return Response
-                .ok(
-                    ApplicationMapper.INSTANCE.applicationSpecToApplicationState(
-                        applicationSpec,
-                        applicationEntity.getId(),
-                        executionContext.getOrganizationId(),
-                        executionContext.getEnvironmentId()
-                    )
+            return Response.ok(
+                ApplicationMapper.INSTANCE.applicationSpecToApplicationState(
+                    applicationSpec,
+                    applicationEntity.getId(),
+                    executionContext.getOrganizationId(),
+                    executionContext.getEnvironmentId()
                 )
-                .build();
+            ).build();
         } catch (ApplicationNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
         }

@@ -47,10 +47,10 @@ public class PropertiesEntityAsListDeserializerTest {
     public void should_deserialize_properties_list() throws JsonProcessingException {
         List<PropertyEntity> properties = objectMapper.readValue(
             "[" +
-            "{\"key\":\"key1\", \"value\":\"value1\", \"encryptable\":\"true\", \"encrypted\":\"false\"}," +
-            "{\"key\":\"key2\", \"value\":\"value2\", \"encryptable\":\"false\", \"encrypted\":\"false\"}," +
-            "{\"key\":\"key3\", \"value\":\"value3\", \"encryptable\":\"true\", \"encrypted\":\"true\"}" +
-            "]",
+                "{\"key\":\"key1\", \"value\":\"value1\", \"encryptable\":\"true\", \"encrypted\":\"false\"}," +
+                "{\"key\":\"key2\", \"value\":\"value2\", \"encryptable\":\"false\", \"encrypted\":\"false\"}," +
+                "{\"key\":\"key3\", \"value\":\"value3\", \"encryptable\":\"true\", \"encrypted\":\"true\"}" +
+                "]",
             List.class
         );
 

@@ -46,8 +46,7 @@ class ApiCategoryQueryServiceImplTest {
     private static final String CATEGORY_ID_2 = "category2";
     private static final String CATEGORY_ID_1 = "category1";
     private static final String ENVIRONMENT_ID = "environment-id";
-    private static final Api API = ApiFixtures
-        .aProxyApiV4()
+    private static final Api API = ApiFixtures.aProxyApiV4()
         .toBuilder()
         .environmentId(ENVIRONMENT_ID)
         .categories(Set.of(CATEGORY_ID_1, CATEGORY_ID_2))
@@ -91,13 +90,12 @@ class ApiCategoryQueryServiceImplTest {
             //                        .collect(Collectors.toSet());
             //                });
 
-            when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID))
-                .thenAnswer(invocation -> {
-                    return Set.of(
-                        Category.builder().id(CATEGORY_ID_1).key("key-" + CATEGORY_ID_1).build(),
-                        Category.builder().id(CATEGORY_ID_2).key("key-" + CATEGORY_ID_2).build()
-                    );
-                });
+            when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID)).thenAnswer(invocation -> {
+                return Set.of(
+                    Category.builder().id(CATEGORY_ID_1).key("key-" + CATEGORY_ID_1).build(),
+                    Category.builder().id(CATEGORY_ID_2).key("key-" + CATEGORY_ID_2).build()
+                );
+            });
 
             // when
             var categories = service.findApiCategoryKeys(API);
@@ -141,13 +139,12 @@ class ApiCategoryQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_categories() {
-            when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID))
-                .thenReturn(
-                    Set.of(
-                        Category.builder().id(CATEGORY_ID_1).key("key-" + CATEGORY_ID_1).build(),
-                        Category.builder().id(CATEGORY_ID_2).key("key-" + CATEGORY_ID_2).build()
-                    )
-                );
+            when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID)).thenReturn(
+                Set.of(
+                    Category.builder().id(CATEGORY_ID_1).key("key-" + CATEGORY_ID_1).build(),
+                    Category.builder().id(CATEGORY_ID_2).key("key-" + CATEGORY_ID_2).build()
+                )
+            );
 
             assertThat(service.findByEnvironmentId(ENVIRONMENT_ID))
                 .extracting("id")

@@ -70,8 +70,9 @@ public class RoleService_UpdateTest {
         when(updateRoleEntityMock.getId()).thenReturn("updated_mock_role");
         when(updateRoleEntityMock.getName()).thenReturn("update mock role");
         when(updateRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-        when(updateRoleEntityMock.getPermissions())
-            .thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() }));
+        when(updateRoleEntityMock.getPermissions()).thenReturn(
+            Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() })
+        );
         Role roleMock = mock(Role.class);
         when(roleMock.getId()).thenReturn("updated_mock_role");
         when(roleMock.getName()).thenReturn("new mock role");
@@ -81,13 +82,13 @@ public class RoleService_UpdateTest {
         when(roleMock.getReferenceId()).thenReturn(GraviteeContext.getCurrentOrganization());
         when(
             mockRoleRepository.update(
-                argThat(role ->
-                    role.getReferenceId().equals(GraviteeContext.getCurrentOrganization()) &&
-                    role.getReferenceType() == RoleReferenceType.ORGANIZATION
+                argThat(
+                    role ->
+                        role.getReferenceId().equals(GraviteeContext.getCurrentOrganization()) &&
+                        role.getReferenceType() == RoleReferenceType.ORGANIZATION
                 )
             )
-        )
-            .thenReturn(roleMock);
+        ).thenReturn(roleMock);
 
         when(mockRoleRepository.findById("updated_mock_role")).thenReturn(Optional.of(roleMock));
 

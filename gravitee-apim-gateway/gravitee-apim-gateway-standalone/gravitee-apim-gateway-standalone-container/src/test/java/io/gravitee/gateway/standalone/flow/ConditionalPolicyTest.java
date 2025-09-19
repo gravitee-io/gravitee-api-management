@@ -56,8 +56,7 @@ public class ConditionalPolicyTest extends AbstractWiremockGatewayTest {
 
         final HttpResponse response = execute(
             Request.Get("http://localhost:8082/test/my_team").addHeader("conditionHeader", "condition-ok")
-        )
-            .returnResponse();
+        ).returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         assertFalse(response.containsHeader("X-Gravitee-Policy"));
         String responseContent = StringUtils.copy(response.getEntity().getContent());
@@ -75,8 +74,7 @@ public class ConditionalPolicyTest extends AbstractWiremockGatewayTest {
 
         final HttpResponse response = execute(
             Request.Get("http://localhost:8082/test/my_team").addHeader("conditionHeader", "condition-no")
-        )
-            .returnResponse();
+        ).returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         assertFalse(response.containsHeader("X-Gravitee-Policy"));
         String responseContent = StringUtils.copy(response.getEntity().getContent());

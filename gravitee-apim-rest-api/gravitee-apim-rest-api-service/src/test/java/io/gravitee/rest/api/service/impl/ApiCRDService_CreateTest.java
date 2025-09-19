@@ -107,8 +107,9 @@ public class ApiCRDService_CreateTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
-        when(membershipService.getPrimaryOwner(DEFAULT_ORGANIZATION_ID, MembershipReferenceType.API, API_ID))
-            .thenReturn(MembershipEntity.builder().memberId(USER_NAME).build());
+        when(membershipService.getPrimaryOwner(DEFAULT_ORGANIZATION_ID, MembershipReferenceType.API, API_ID)).thenReturn(
+            MembershipEntity.builder().memberId(USER_NAME).build()
+        );
     }
 
     @Test
@@ -117,8 +118,9 @@ public class ApiCRDService_CreateTest {
         ExecutionContext ec = GraviteeContext.getExecutionContext();
         ApiCRDEntity apiCRD = anApiCRDEntity();
 
-        when(apiDuplicatorService.createWithImportedDefinition(ec, objectMapper.writeValueAsString(apiCRD)))
-            .thenReturn(toApiEntity(apiCRD));
+        when(apiDuplicatorService.createWithImportedDefinition(ec, objectMapper.writeValueAsString(apiCRD))).thenReturn(
+            toApiEntity(apiCRD)
+        );
         final ApiCRDStatusEntity apiCRDStatus = apiCRDService.importApiDefinitionCRD(ec, apiCRD);
 
         assertNotNull(apiCRDStatus);
@@ -143,8 +145,9 @@ public class ApiCRDService_CreateTest {
         ApiCRDEntity apiCRD = anApiCRDEntity();
         apiCRD.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_MANAGEMENT));
 
-        when(apiDuplicatorService.createWithImportedDefinition(ec, objectMapper.writeValueAsString(apiCRD)))
-            .thenReturn(toApiEntity(apiCRD));
+        when(apiDuplicatorService.createWithImportedDefinition(ec, objectMapper.writeValueAsString(apiCRD))).thenReturn(
+            toApiEntity(apiCRD)
+        );
         final ApiCRDStatusEntity apiCRDStatus = apiCRDService.importApiDefinitionCRD(ec, apiCRD);
 
         assertNotNull(apiCRDStatus);

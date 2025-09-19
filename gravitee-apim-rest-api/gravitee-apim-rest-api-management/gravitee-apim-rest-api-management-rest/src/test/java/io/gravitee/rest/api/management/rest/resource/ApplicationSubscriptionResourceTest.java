@@ -119,8 +119,9 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
 
-        when(subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class)))
-            .thenReturn(new SubscriptionEntity());
+        when(
+            subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class))
+        ).thenReturn(new SubscriptionEntity());
 
         Response response = envTarget(SUBSCRIPTION_ID).request().put(json(updateSubscriptionConfigurationEntity));
 

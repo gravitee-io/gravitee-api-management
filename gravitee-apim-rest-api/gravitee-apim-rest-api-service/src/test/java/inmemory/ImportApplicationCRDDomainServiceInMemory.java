@@ -42,45 +42,36 @@ public class ImportApplicationCRDDomainServiceInMemory
 
     @Override
     public BaseApplicationEntity create(NewApplicationEntity newApplicationEntity, AuditInfo auditInfo) {
-        storage.computeIfPresent(
-            newApplicationEntity.getName(),
-            (k, application) -> {
-                BaseApplicationEntity bae = toBaseApplicationEntity(newApplicationEntity);
-                bae.setCreatedAt(application.getCreatedAt());
-                bae.setUpdatedAt(application.getUpdatedAt());
-                bae.setId(application.getId());
+        storage.computeIfPresent(newApplicationEntity.getName(), (k, application) -> {
+            BaseApplicationEntity bae = toBaseApplicationEntity(newApplicationEntity);
+            bae.setCreatedAt(application.getCreatedAt());
+            bae.setUpdatedAt(application.getUpdatedAt());
+            bae.setId(application.getId());
 
-                return bae;
-            }
-        );
+            return bae;
+        });
 
-        storage.computeIfAbsent(
-            newApplicationEntity.getName(),
-            k -> {
-                BaseApplicationEntity bae = toBaseApplicationEntity(newApplicationEntity);
-                bae.setId(UuidString.generateRandom());
-                bae.setCreatedAt(new Date());
-                bae.setUpdatedAt(new Date());
-                return bae;
-            }
-        );
+        storage.computeIfAbsent(newApplicationEntity.getName(), k -> {
+            BaseApplicationEntity bae = toBaseApplicationEntity(newApplicationEntity);
+            bae.setId(UuidString.generateRandom());
+            bae.setCreatedAt(new Date());
+            bae.setUpdatedAt(new Date());
+            return bae;
+        });
 
         return storage.get(newApplicationEntity.getName());
     }
 
     @Override
     public BaseApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo) {
-        storage.computeIfPresent(
-            updateApplicationEntity.getName(),
-            (k, application) -> {
-                BaseApplicationEntity bae = toBaseApplicationEntity(updateApplicationEntity);
-                bae.setCreatedAt(application.getCreatedAt());
-                bae.setUpdatedAt(application.getUpdatedAt());
-                bae.setId(application.getId());
+        storage.computeIfPresent(updateApplicationEntity.getName(), (k, application) -> {
+            BaseApplicationEntity bae = toBaseApplicationEntity(updateApplicationEntity);
+            bae.setCreatedAt(application.getCreatedAt());
+            bae.setUpdatedAt(application.getUpdatedAt());
+            bae.setId(application.getId());
 
-                return bae;
-            }
-        );
+            return bae;
+        });
 
         return storage.get(updateApplicationEntity.getName());
     }

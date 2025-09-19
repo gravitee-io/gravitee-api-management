@@ -59,8 +59,7 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
 
     @Override
     protected JdbcObjectMapper<Cluster> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Cluster.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Cluster.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Instant.class)
             .addColumn("updated_at", Types.TIMESTAMP, Instant.class)
@@ -108,8 +107,9 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(cluster, cluster.getId()));
             storeGroups(cluster, true);
-            return findById(cluster.getId())
-                .orElseThrow(() -> new IllegalStateException("No cluster found with id [" + cluster.getId() + "]"));
+            return findById(cluster.getId()).orElseThrow(() ->
+                new IllegalStateException("No cluster found with id [" + cluster.getId() + "]")
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -158,14 +158,14 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
 
         var result = jdbcTemplate.query(
             getOrm().getSelectAllSql() +
-            " WHERE " +
-            andWhere +
-            " ORDER BY " +
-            sortField +
-            " " +
-            sortOrder +
-            " " +
-            createPagingClause(pageable.pageSize(), pageable.from()),
+                " WHERE " +
+                andWhere +
+                " ORDER BY " +
+                sortField +
+                " " +
+                sortOrder +
+                " " +
+                createPagingClause(pageable.pageSize(), pageable.from()),
             getOrm().getRowMapper(),
             andWhereParams.toArray()
         );

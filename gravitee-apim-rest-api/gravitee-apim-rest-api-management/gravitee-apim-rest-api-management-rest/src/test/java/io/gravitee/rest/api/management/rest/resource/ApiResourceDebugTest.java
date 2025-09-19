@@ -106,8 +106,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
             .request()
             .post(
                 Entity.entity(
-                    DebugApiEntity
-                        .builder()
+                    DebugApiEntity.builder()
                         .graviteeDefinitionVersion("2.0.0")
                         .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build())
                         .build(),
@@ -123,8 +122,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().id(API).build()));
         instanceQueryServiceInMemory.initWith(
             List.of(
-                Instance
-                    .builder()
+                Instance.builder()
                     .id("gateway")
                     .startedAt(new Date())
                     .clusterPrimaryNode(true)
@@ -139,8 +137,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
             .request()
             .post(
                 Entity.entity(
-                    DebugApiEntity
-                        .builder()
+                    DebugApiEntity.builder()
                         .id(API)
                         .graviteeDefinitionVersion("2.0.0")
                         .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build())

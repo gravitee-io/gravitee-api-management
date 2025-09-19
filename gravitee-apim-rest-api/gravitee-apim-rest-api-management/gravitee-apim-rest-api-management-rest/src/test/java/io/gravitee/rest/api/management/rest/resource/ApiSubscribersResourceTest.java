@@ -126,8 +126,10 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFilterOnSubscriptionStatus() {
         envTarget(API_ID).path("subscribers").request().get();
-        verify(subscriptionService)
-            .search(eq(GraviteeContext.getExecutionContext()), argThat(query -> CollectionUtils.isEmpty(query.getStatuses())));
+        verify(subscriptionService).search(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(query -> CollectionUtils.isEmpty(query.getStatuses()))
+        );
     }
 
     @Test
@@ -183,7 +185,9 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFilterOnSubscriptionStatusWithPagination() {
         envTarget(API_ID).path("subscribers/_paged").request().get();
-        verify(subscriptionService)
-            .search(eq(GraviteeContext.getExecutionContext()), argThat(query -> CollectionUtils.isEmpty(query.getStatuses())));
+        verify(subscriptionService).search(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(query -> CollectionUtils.isEmpty(query.getStatuses()))
+        );
     }
 }

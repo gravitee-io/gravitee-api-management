@@ -190,8 +190,9 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldHaveNotFoundWhileGettingApiPicture() {
         // init
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false)))
-            .thenReturn(Set.of("1"));
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false))).thenReturn(
+            Set.of("1")
+        );
 
         // test
         final Response response = target(API).path("picture").request().get();
@@ -258,20 +259,19 @@ public class ApiResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), isNull()))
-            .thenAnswer(
-                (Answer<List<PageEntity>>) invocation -> {
-                    PageQuery pq = invocation.getArgument(1);
-                    if (PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
-                        return Collections.singletonList(sysFolder);
-                    } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
-                        return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
-                    } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
-                        return Collections.singletonList(markdownFolderSysFolder);
-                    }
-                    return null;
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), isNull())).thenAnswer(
+            (Answer<List<PageEntity>>) invocation -> {
+                PageQuery pq = invocation.getArgument(1);
+                if (PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
+                    return Collections.singletonList(sysFolder);
+                } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
+                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
+                } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
+                    return Collections.singletonList(markdownFolderSysFolder);
                 }
-            );
+                return null;
+            }
+        );
 
         when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
 

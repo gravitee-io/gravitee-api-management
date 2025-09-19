@@ -23,8 +23,7 @@ public class ConnectionLogDetailFixtures {
 
     public static final String X_HEADER = "X-Header";
     public static final String HEADER_VALUE = "header-value";
-    private static final ConnectionLogDetail.ConnectionLogDetailBuilder<?, ?> BASE = ConnectionLogDetail
-        .builder()
+    private static final ConnectionLogDetail.ConnectionLogDetailBuilder<?, ?> BASE = ConnectionLogDetail.builder()
         .apiId("api-id")
         .requestId("request-id")
         .clientIdentifier("client-identifier")

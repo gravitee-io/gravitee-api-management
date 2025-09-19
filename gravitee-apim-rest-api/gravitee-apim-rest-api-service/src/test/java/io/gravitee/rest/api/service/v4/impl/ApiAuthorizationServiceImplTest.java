@@ -103,18 +103,17 @@ public class ApiAuthorizationServiceImplTest {
     public void setUp() {
         GraviteeContext.cleanContext();
 
-        apiAuthorizationService =
-            new ApiAuthorizationServiceImpl(
-                apiRepository,
-                categoryService,
-                membershipService,
-                roleService,
-                applicationService,
-                groupService,
-                subscriptionService,
-                primaryOwnerService,
-                searchEngineService
-            );
+        apiAuthorizationService = new ApiAuthorizationServiceImpl(
+            apiRepository,
+            categoryService,
+            membershipService,
+            roleService,
+            applicationService,
+            groupService,
+            subscriptionService,
+            primaryOwnerService,
+            searchEngineService
+        );
     }
 
     @Test
@@ -153,8 +152,9 @@ public class ApiAuthorizationServiceImplTest {
         membership.setReferenceType(MembershipReferenceType.API);
         membership.setRoleId(userRoleId);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId(poRoleId);
@@ -194,8 +194,9 @@ public class ApiAuthorizationServiceImplTest {
         membership.setReferenceType(MembershipReferenceType.API);
         membership.setRoleId(userRoleId);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId(poRoleId);
@@ -209,18 +210,19 @@ public class ApiAuthorizationServiceImplTest {
                 MembershipReferenceType.GROUP,
                 poRoleId
             )
-        )
-            .thenReturn(
-                Set.of(MembershipEntity.builder().id("member-id").roleId(poRoleId).memberId(USER_NAME).referenceId(groupName).build())
-            );
+        ).thenReturn(
+            Set.of(MembershipEntity.builder().id("member-id").roleId(poRoleId).memberId(USER_NAME).referenceId(groupName).build())
+        );
 
         when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(Api.builder().id("api-id").build()));
 
-        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "api-id"))
-            .thenReturn(PrimaryOwnerEntity.builder().id(USER_NAME).build());
+        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "api-id")).thenReturn(
+            PrimaryOwnerEntity.builder().id(USER_NAME).build()
+        );
 
-        when(groupService.findByIds(Set.of(groupName)))
-            .thenReturn(Set.of(GroupEntity.builder().name(groupName).roles(Map.of()).id(groupName).build()));
+        when(groupService.findByIds(Set.of(groupName))).thenReturn(
+            Set.of(GroupEntity.builder().name(groupName).roles(Map.of()).id(groupName).build())
+        );
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
@@ -244,8 +246,9 @@ public class ApiAuthorizationServiceImplTest {
         membership.setReferenceType(MembershipReferenceType.API);
         membership.setRoleId(poRoleId);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+        ).thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId(poRoleId);
@@ -275,8 +278,9 @@ public class ApiAuthorizationServiceImplTest {
         membership.setReferenceType(MembershipReferenceType.API);
         membership.setRoleId(userRoleId);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+        ).thenReturn(Collections.singleton(membership));
 
         RoleEntity userRole = new RoleEntity();
         userRole.setId(userRoleId);
@@ -332,8 +336,9 @@ public class ApiAuthorizationServiceImplTest {
         membership.setReferenceType(MembershipReferenceType.API);
         membership.setRoleId(userRoleId);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId(poRoleId);
@@ -346,15 +351,15 @@ public class ApiAuthorizationServiceImplTest {
         final Set<String> apis = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, apiQuery, true);
 
         assertThat(apis).hasSize(1);
-        verify(searchEngineService)
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(query ->
+        verify(searchEngineService).search(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                query ->
                     query.getExcludedFilters().containsKey(FIELD_DEFINITION_VERSION) &&
                     query.getExcludedFilters().get(FIELD_DEFINITION_VERSION).contains(DefinitionVersion.V4.getLabel()) &&
                     query.getQuery().contains("tag\\-1")
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -379,8 +384,9 @@ public class ApiAuthorizationServiceImplTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole));
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(Collections.emptySet());
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(Collections.emptySet());
 
         final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
 
@@ -393,10 +399,16 @@ public class ApiAuthorizationServiceImplTest {
 
         assertThat(apisId).isEmpty();
 
-        verify(membershipService, times(0))
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
-        verify(membershipService, times(0))
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
+        verify(membershipService, times(0)).getMembershipsByMemberAndReference(
+            MembershipMemberType.USER,
+            null,
+            MembershipReferenceType.API
+        );
+        verify(membershipService, times(0)).getMembershipsByMemberAndReference(
+            MembershipMemberType.USER,
+            null,
+            MembershipReferenceType.GROUP
+        );
         verify(applicationService, times(0)).findByUser(GraviteeContext.getExecutionContext(), null);
     }
 
@@ -411,8 +423,9 @@ public class ApiAuthorizationServiceImplTest {
         userRole.setPermissions(userPermissions);
         userRole.setScope(RoleScope.API);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(emptySet());
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(emptySet());
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId(poRoleId);
@@ -460,8 +473,9 @@ public class ApiAuthorizationServiceImplTest {
         membership.setReferenceType(MembershipReferenceType.API);
         membership.setRoleId(userRoleId);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId(poRoleId);
@@ -509,8 +523,9 @@ public class ApiAuthorizationServiceImplTest {
         membership.setReferenceType(MembershipReferenceType.API);
         membership.setRoleId(userRoleId);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId(poRoleId);
@@ -563,8 +578,9 @@ public class ApiAuthorizationServiceImplTest {
         membership.setReferenceType(MembershipReferenceType.API);
         membership.setRoleId(userRoleId);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId(poRoleId);
@@ -628,8 +644,9 @@ public class ApiAuthorizationServiceImplTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
-        when(applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE))
-            .thenReturn(Set.of(applicationId));
+        when(
+            applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE)
+        ).thenReturn(Set.of(applicationId));
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId("subscriptionId");
@@ -674,8 +691,9 @@ public class ApiAuthorizationServiceImplTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
-        when(applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE))
-            .thenReturn(Set.of(applicationId));
+        when(
+            applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE)
+        ).thenReturn(Set.of(applicationId));
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId("subscriptionId");
@@ -723,8 +741,9 @@ public class ApiAuthorizationServiceImplTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
-        when(applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE))
-            .thenReturn(Set.of(applicationId));
+        when(
+            applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE)
+        ).thenReturn(Set.of(applicationId));
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId("subscriptionId");
@@ -740,7 +759,10 @@ public class ApiAuthorizationServiceImplTest {
 
         verify(subscriptionService).search(any(), argThat(argument -> argument.getExcludedApis().contains(apiId)));
         assertThat(result).hasSize(2);
-        var nonNullCategoryResult = result.stream().filter(i -> i.getCategory() != null).count();
+        var nonNullCategoryResult = result
+            .stream()
+            .filter(i -> i.getCategory() != null)
+            .count();
         assertThat(nonNullCategoryResult).isZero();
     }
 
@@ -758,8 +780,9 @@ public class ApiAuthorizationServiceImplTest {
         when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PRIVATE);
         MembershipEntity membership = mock(MembershipEntity.class);
         when(membership.getReferenceId()).thenReturn("api-id");
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)
+        ).thenReturn(Collections.singleton(membership));
         assertThat(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USER_NAME, api)).isTrue();
     }
 
@@ -770,8 +793,9 @@ public class ApiAuthorizationServiceImplTest {
         when(api.getGroups()).thenReturn(Collections.singleton("group-id"));
         MembershipEntity membership = mock(MembershipEntity.class);
         when(membership.getReferenceId()).thenReturn("group-id");
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.GROUP))
-            .thenReturn(Collections.singleton(membership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.GROUP)
+        ).thenReturn(Collections.singleton(membership));
         assertThat(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USER_NAME, api)).isTrue();
     }
 
@@ -782,16 +806,18 @@ public class ApiAuthorizationServiceImplTest {
         when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PRIVATE);
         when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PRIVATE);
 
-        when(applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE))
-            .thenReturn(Collections.singleton("application-id"));
+        when(
+            applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE)
+        ).thenReturn(Collections.singleton("application-id"));
 
         final SubscriptionQuery query = new SubscriptionQuery();
         query.setApplications(Collections.singleton("application-id"));
         query.setApi(api.getId());
         query.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.RESUMED));
 
-        when(subscriptionService.search(any(ExecutionContext.class), eq(query)))
-            .thenReturn(Collections.singletonList(new SubscriptionEntity()));
+        when(subscriptionService.search(any(ExecutionContext.class), eq(query))).thenReturn(
+            Collections.singletonList(new SubscriptionEntity())
+        );
 
         assertThat(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USER_NAME, api)).isTrue();
     }
@@ -802,22 +828,29 @@ public class ApiAuthorizationServiceImplTest {
         String userId = "userA";
         ApiQuery apiQuery = new ApiQuery();
         boolean manageOnly = false;
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API))
-            .thenReturn(Set.of());
-        when(roleService.findByScope(RoleScope.API, executionContext.getOrganizationId()))
-            .thenReturn(List.of(RoleEntity.builder().id("role1").scope(RoleScope.API).name(SystemRole.PRIMARY_OWNER.name()).build()));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+        ).thenReturn(Set.of());
+        when(roleService.findByScope(RoleScope.API, executionContext.getOrganizationId())).thenReturn(
+            List.of(RoleEntity.builder().id("role1").scope(RoleScope.API).name(SystemRole.PRIMARY_OWNER.name()).build())
+        );
         when(applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE)).thenReturn(Set.of(userId));
-        when(subscriptionService.search(eq(executionContext), any()))
-            .thenReturn(
-                List.of(
-                    SubscriptionEntity.builder().api("api1").build(),
-                    SubscriptionEntity.builder().build(),
-                    SubscriptionEntity.builder().api("api2").build()
-                )
-            );
+        when(subscriptionService.search(eq(executionContext), any())).thenReturn(
+            List.of(
+                SubscriptionEntity.builder().api("api1").build(),
+                SubscriptionEntity.builder().build(),
+                SubscriptionEntity.builder().api("api2").build()
+            )
+        );
         List<ApiCriteria> apiCriterias = apiAuthorizationService.computeApiCriteriaForUser(executionContext, userId, apiQuery, manageOnly);
-        assertThat(apiCriterias.stream().filter(apiCriteria -> apiCriteria.getVisibility() != Visibility.PUBLIC).findFirst().get().getIds())
-            .isEqualTo(Set.of("api1", "api2"));
+        assertThat(
+            apiCriterias
+                .stream()
+                .filter(apiCriteria -> apiCriteria.getVisibility() != Visibility.PUBLIC)
+                .findFirst()
+                .get()
+                .getIds()
+        ).isEqualTo(Set.of("api1", "api2"));
     }
 
     @Test
@@ -826,16 +859,22 @@ public class ApiAuthorizationServiceImplTest {
         String userId = "userA";
         ApiQuery apiQuery = new ApiQuery();
         boolean manageOnly = false;
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API))
-            .thenReturn(Set.of());
-        when(roleService.findByScope(RoleScope.API, executionContext.getOrganizationId()))
-            .thenReturn(List.of(RoleEntity.builder().id("role1").scope(RoleScope.API).name(SystemRole.PRIMARY_OWNER.name()).build()));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+        ).thenReturn(Set.of());
+        when(roleService.findByScope(RoleScope.API, executionContext.getOrganizationId())).thenReturn(
+            List.of(RoleEntity.builder().id("role1").scope(RoleScope.API).name(SystemRole.PRIMARY_OWNER.name()).build())
+        );
         when(applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE)).thenReturn(Set.of(userId));
-        when(subscriptionService.search(eq(executionContext), any()))
-            .thenReturn(
-                List.of(SubscriptionEntity.builder().build(), SubscriptionEntity.builder().build(), SubscriptionEntity.builder().build())
-            );
+        when(subscriptionService.search(eq(executionContext), any())).thenReturn(
+            List.of(SubscriptionEntity.builder().build(), SubscriptionEntity.builder().build(), SubscriptionEntity.builder().build())
+        );
         List<ApiCriteria> apiCriterias = apiAuthorizationService.computeApiCriteriaForUser(executionContext, userId, apiQuery, manageOnly);
-        assertThat(apiCriterias.stream().filter(apiCriteria -> apiCriteria.getVisibility() != Visibility.PUBLIC).count()).isEqualTo(0);
+        assertThat(
+            apiCriterias
+                .stream()
+                .filter(apiCriteria -> apiCriteria.getVisibility() != Visibility.PUBLIC)
+                .count()
+        ).isEqualTo(0);
     }
 }

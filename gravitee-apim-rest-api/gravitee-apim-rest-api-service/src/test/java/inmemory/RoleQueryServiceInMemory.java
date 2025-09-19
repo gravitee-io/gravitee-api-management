@@ -87,7 +87,10 @@ public class RoleQueryServiceInMemory implements RoleQueryService, InMemoryAlter
             return Set.of();
         }
 
-        return storage.stream().filter(role -> ids.contains(role.getId())).collect(Collectors.toSet());
+        return storage
+            .stream()
+            .filter(role -> ids.contains(role.getId()))
+            .collect(Collectors.toSet());
     }
 
     @Override

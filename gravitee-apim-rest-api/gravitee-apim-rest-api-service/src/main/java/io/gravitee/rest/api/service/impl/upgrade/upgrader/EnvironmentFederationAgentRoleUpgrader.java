@@ -45,15 +45,15 @@ public class EnvironmentFederationAgentRoleUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-                organizationRepository
-                    .findAll()
-                    .stream()
-                    .filter(organization -> shouldCreateEnvironmentFederationAgentRole(organization.getId()))
-                    .forEach(organization -> {
-                        roleService.create(new ExecutionContext(organization.getId()), ROLE_ENVIRONMENT_FEDERATION_AGENT);
-                    });
-                return true;
-            });
+            organizationRepository
+                .findAll()
+                .stream()
+                .filter(organization -> shouldCreateEnvironmentFederationAgentRole(organization.getId()))
+                .forEach(organization -> {
+                    roleService.create(new ExecutionContext(organization.getId()), ROLE_ENVIRONMENT_FEDERATION_AGENT);
+                });
+            return true;
+        });
     }
 
     private boolean shouldCreateEnvironmentFederationAgentRole(String organizationId) {

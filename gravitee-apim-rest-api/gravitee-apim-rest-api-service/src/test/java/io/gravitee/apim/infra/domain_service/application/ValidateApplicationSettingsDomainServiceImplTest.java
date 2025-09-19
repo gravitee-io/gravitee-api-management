@@ -56,8 +56,7 @@ public class ValidateApplicationSettingsDomainServiceImplTest {
 
     @Test
     void should_replace_null_redirect_uris_with_empty_list() {
-        var givenOauthSettings = OAuthClientSettings
-            .builder()
+        var givenOauthSettings = OAuthClientSettings.builder()
             .applicationType("BACKEND_TO_BACKEND")
             .redirectUris(null)
             .grantTypes(List.of("client_credentials"))
@@ -82,8 +81,7 @@ public class ValidateApplicationSettingsDomainServiceImplTest {
 
     @Test
     void should_set_response_types() {
-        var givenOauthSettings = OAuthClientSettings
-            .builder()
+        var givenOauthSettings = OAuthClientSettings.builder()
             .applicationType("BROWSER")
             .redirectUris(List.of("https://app.example.com"))
             .grantTypes(List.of("authorization_code"))

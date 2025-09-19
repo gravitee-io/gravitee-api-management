@@ -28,8 +28,7 @@ public class EventFixtures {
     private EventFixtures() {}
 
     private static final Supplier<Event.EventBuilder> BASE = () ->
-        Event
-            .builder()
+        Event.builder()
             .id("event-id")
             .payload("event-payload")
             .environments(Set.of("environment-id"))

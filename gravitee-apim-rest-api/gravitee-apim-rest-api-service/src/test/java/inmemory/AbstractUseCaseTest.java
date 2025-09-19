@@ -32,8 +32,7 @@ public abstract class AbstractUseCaseTest {
     protected final String ORG_ID = "org-id";
     protected final String ENV_ID = "env-id";
     protected final String USER_ID = "user-id";
-    protected final AuditInfo AUDIT_INFO = AuditInfo
-        .builder()
+    protected final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .organizationId(ORG_ID)
         .environmentId(ENV_ID)
         .actor(AuditActor.builder().userId(USER_ID).build())

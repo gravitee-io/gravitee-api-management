@@ -27,8 +27,7 @@ public class ReferenceIdReferenceTypeTypeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("workflows")
             .name("ri1rt1t1")
             .key("type", ascending())

@@ -52,8 +52,7 @@ class SharedPolicyGroupResourceGetTest extends AbstractResourceTest {
         IdBuilder builder = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID);
         sharedPolicyGroupCrudService.initWith(
             List.of(
-                SharedPolicyGroup
-                    .builder()
+                SharedPolicyGroup.builder()
                     .id(builder.buildId())
                     .crossId(builder.buildCrossId())
                     .hrid(HRID)

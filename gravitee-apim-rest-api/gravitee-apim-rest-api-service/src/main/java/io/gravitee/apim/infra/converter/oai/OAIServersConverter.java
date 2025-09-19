@@ -64,7 +64,10 @@ public class OAIServersConverter {
                     if (CollectionUtils.isEmpty(serverVar.getEnum()) && serverVar.getDefault() != null) {
                         return Stream.of(templateUrl.replace(matcher.group(0), serverVar.getDefault()));
                     } else {
-                        return serverVar.getEnum().stream().map(enumValue -> templateUrl.replace(matcher.group(0), enumValue));
+                        return serverVar
+                            .getEnum()
+                            .stream()
+                            .map(enumValue -> templateUrl.replace(matcher.group(0), enumValue));
                     }
                 } else {
                     return Stream.of(templateUrl);

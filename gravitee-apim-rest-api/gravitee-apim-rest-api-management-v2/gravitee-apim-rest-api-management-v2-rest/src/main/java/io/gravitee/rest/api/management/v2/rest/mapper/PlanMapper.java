@@ -167,7 +167,10 @@ public interface PlanMapper {
         if (apiType == io.gravitee.rest.api.management.v2.rest.model.ApiType.NATIVE) {
             return plans.stream().map(INSTANCE::toNativePlanWithFlows).collect(Collectors.toSet());
         }
-        return plans.stream().map(p -> INSTANCE.toHttpPlanWithFlows(p, apiType)).collect(Collectors.toSet());
+        return plans
+            .stream()
+            .map(p -> INSTANCE.toHttpPlanWithFlows(p, apiType))
+            .collect(Collectors.toSet());
     }
 
     @Mapping(target = "validation", defaultValue = "MANUAL")

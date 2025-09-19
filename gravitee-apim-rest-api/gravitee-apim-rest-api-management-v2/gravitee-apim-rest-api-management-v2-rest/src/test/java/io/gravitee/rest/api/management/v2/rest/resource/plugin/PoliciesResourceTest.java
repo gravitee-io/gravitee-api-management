@@ -77,22 +77,19 @@ class PoliciesResourceTest extends AbstractResourceTest {
     void should_return_sorted_policies() {
         policyPluginQueryServiceInMemory.initWith(
             List.of(
-                io.gravitee.apim.core.plugin.model.PolicyPlugin
-                    .builder()
+                io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
                     .id("policy-1")
                     .name("policy-1")
                     .feature("feature-1")
                     .deployed(false)
                     .build(),
-                io.gravitee.apim.core.plugin.model.PolicyPlugin
-                    .builder()
+                io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
                     .id("policy-2")
                     .name("policy-2")
                     .feature("feature-2")
                     .deployed(true)
                     .build(),
-                io.gravitee.apim.core.plugin.model.PolicyPlugin
-                    .builder()
+                io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
                     .id("policy-3")
                     .name("policy-3")
                     .feature("feature-3")
@@ -123,32 +120,31 @@ class PoliciesResourceTest extends AbstractResourceTest {
         // Check response content
         final Set<PolicyPlugin> policyPlugins = response.readEntity(new GenericType<>() {});
 
-        assertThat(policyPlugins)
-            .containsExactlyInAnyOrder(
-                new PolicyPlugin().id("policy-2").name("policy-2").deployed(false),
-                new PolicyPlugin()
-                    .id("policy-3")
-                    .name("policy-3")
-                    .deployed(true)
-                    .flowPhaseCompatibility(
-                        new PolicyPluginAllOfFlowPhaseCompatibility()
-                            .HTTP_PROXY(
-                                Set.of(
-                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
-                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE
-                                )
+        assertThat(policyPlugins).containsExactlyInAnyOrder(
+            new PolicyPlugin().id("policy-2").name("policy-2").deployed(false),
+            new PolicyPlugin()
+                .id("policy-3")
+                .name("policy-3")
+                .deployed(true)
+                .flowPhaseCompatibility(
+                    new PolicyPluginAllOfFlowPhaseCompatibility()
+                        .HTTP_PROXY(
+                            Set.of(
+                                io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
+                                io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE
                             )
-                            .HTTP_MESSAGE(Set.of(io.gravitee.rest.api.management.v2.rest.model.FlowPhase.PUBLISH))
-                            .NATIVE_KAFKA(
-                                Set.of(
-                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
-                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE,
-                                    io.gravitee.rest.api.management.v2.rest.model.FlowPhase.PUBLISH
-                                )
+                        )
+                        .HTTP_MESSAGE(Set.of(io.gravitee.rest.api.management.v2.rest.model.FlowPhase.PUBLISH))
+                        .NATIVE_KAFKA(
+                            Set.of(
+                                io.gravitee.rest.api.management.v2.rest.model.FlowPhase.REQUEST,
+                                io.gravitee.rest.api.management.v2.rest.model.FlowPhase.RESPONSE,
+                                io.gravitee.rest.api.management.v2.rest.model.FlowPhase.PUBLISH
                             )
-                    ),
-                new PolicyPlugin().id("policy-1").name("policy-1").deployed(false)
-            );
+                        )
+                ),
+            new PolicyPlugin().id("policy-1").name("policy-1").deployed(false)
+        );
     }
 
     @Test
@@ -237,8 +233,9 @@ class PoliciesResourceTest extends AbstractResourceTest {
         policyPlugin.setCategory("my-category");
         policyPlugin.setDescription("my-description");
         when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
-        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, null))
-            .thenReturn(new PluginDocumentation("documentationResponse", PluginDocumentation.Language.ASCIIDOC));
+        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, null)).thenReturn(
+            new PluginDocumentation("documentationResponse", PluginDocumentation.Language.ASCIIDOC)
+        );
 
         final Response response = rootTarget(FAKE_POLICY_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -250,8 +247,9 @@ class PoliciesResourceTest extends AbstractResourceTest {
     void should_get_policy_documentation_with_api_protocol_type() {
         PolicyPluginEntity policyPlugin = getPolicyPluginEntity();
         when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
-        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY))
-            .thenReturn(new PluginDocumentation("documentationResponse", PluginDocumentation.Language.ASCIIDOC));
+        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY)).thenReturn(
+            new PluginDocumentation("documentationResponse", PluginDocumentation.Language.ASCIIDOC)
+        );
 
         final Response response = rootTarget(FAKE_POLICY_ID)
             .path("documentation")
@@ -267,8 +265,9 @@ class PoliciesResourceTest extends AbstractResourceTest {
     void should_get_policy_documentation_ext_with_api_protocol_type() {
         PolicyPluginEntity policyPlugin = getPolicyPluginEntity();
         when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
-        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY))
-            .thenReturn(new PluginDocumentation("documentationResponse", PluginDocumentation.Language.MARKDOWN));
+        when(policyPluginService.getDocumentation(FAKE_POLICY_ID, ApiProtocolType.HTTP_PROXY)).thenReturn(
+            new PluginDocumentation("documentationResponse", PluginDocumentation.Language.MARKDOWN)
+        );
 
         final Response response = rootTarget(FAKE_POLICY_ID)
             .path("documentation-ext")

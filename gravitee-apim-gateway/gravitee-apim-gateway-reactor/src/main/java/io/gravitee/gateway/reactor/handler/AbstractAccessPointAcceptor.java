@@ -45,12 +45,11 @@ public abstract class AbstractAccessPointAcceptor<T extends Acceptor<T>>
     }
 
     protected void initializeAcceptors(final List<ReactableAccessPoint> initialReactableAccessPoints) {
-        this.acceptors =
-            initialReactableAccessPoints
-                .stream()
-                .filter(reactableAccessPoint -> reactableAccessPoint.getTarget() == getTarget())
-                .map((ReactableAccessPoint reactableAccessPoint) -> createAcceptor(reactableAccessPoint.getHost()))
-                .collect(toCollection(CopyOnWriteArrayList::new));
+        this.acceptors = initialReactableAccessPoints
+            .stream()
+            .filter(reactableAccessPoint -> reactableAccessPoint.getTarget() == getTarget())
+            .map((ReactableAccessPoint reactableAccessPoint) -> createAcceptor(reactableAccessPoint.getHost()))
+            .collect(toCollection(CopyOnWriteArrayList::new));
     }
 
     protected abstract T createAcceptor(String accessPointHost);

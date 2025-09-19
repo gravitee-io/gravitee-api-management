@@ -106,31 +106,30 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        membershipService =
-            new MembershipServiceImpl(
-                null,
-                userService,
-                null,
-                null,
-                null,
-                emailService,
-                membershipRepository,
-                roleService,
-                null,
-                null,
-                null,
-                null,
-                null,
-                groupService,
-                auditService,
-                parameterService,
-                null,
-                node,
-                objectMapper,
-                commandRepository,
-                null,
-                null
-            );
+        membershipService = new MembershipServiceImpl(
+            null,
+            userService,
+            null,
+            null,
+            null,
+            emailService,
+            membershipRepository,
+            roleService,
+            null,
+            null,
+            null,
+            null,
+            null,
+            groupService,
+            auditService,
+            parameterService,
+            null,
+            node,
+            objectMapper,
+            commandRepository,
+            null,
+            null
+        );
     }
 
     @Test
@@ -139,8 +138,9 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(role.getScope()).thenReturn(RoleScope.API);
         when(role.getName()).thenReturn("OWNER");
         when(role.getId()).thenReturn("API_OWNER");
-        when(roleService.findByScopeAndName(RoleScope.API, "OWNER", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(role));
+        when(roleService.findByScopeAndName(RoleScope.API, "OWNER", GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.of(role)
+        );
 
         UserEntity userEntity = new UserEntity();
         userEntity.setId("my name");
@@ -161,8 +161,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
                 GROUP_ID
             )
-        )
-            .thenReturn(Set.of(newMembership), Collections.emptySet());
+        ).thenReturn(Set.of(newMembership), Collections.emptySet());
         when(membershipRepository.create(any())).thenReturn(newMembership);
         when(node.id()).thenReturn("60d06d90-500b-4894-906d-90500b48947f");
 
@@ -174,13 +173,12 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         );
 
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), userEntity.getId());
-        verify(membershipRepository, times(2))
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                userEntity.getId(),
-                io.gravitee.repository.management.model.MembershipMemberType.USER,
-                io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
-                GROUP_ID
-            );
+        verify(membershipRepository, times(2)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            userEntity.getId(),
+            io.gravitee.repository.management.model.MembershipMemberType.USER,
+            io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
+            GROUP_ID
+        );
         verify(membershipRepository, times(1)).create(any());
         verify(membershipRepository, never()).update(any());
         verify(emailService, times(1)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
@@ -206,8 +204,9 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(role.getScope()).thenReturn(RoleScope.API);
         when(role.getName()).thenReturn("PRIMARY_OWNER");
         when(role.getId()).thenReturn("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(RoleScope.API, "PRIMARY_OWNER", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(role));
+        when(roleService.findByScopeAndName(RoleScope.API, "PRIMARY_OWNER", GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.of(role)
+        );
 
         UserEntity userEntity = new UserEntity();
         userEntity.setId("my name");
@@ -228,8 +227,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
                 GROUP_ID
             )
-        )
-            .thenReturn(Set.of(newMembership), Collections.emptySet());
+        ).thenReturn(Set.of(newMembership), Collections.emptySet());
         when(membershipRepository.create(any())).thenReturn(newMembership);
         when(parameterService.findAsBoolean(any(), eq(Key.TRIAL_INSTANCE), eq(ParameterReferenceType.SYSTEM))).thenReturn(false);
 
@@ -241,13 +239,12 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         );
 
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), userEntity.getId());
-        verify(membershipRepository, times(2))
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                userEntity.getId(),
-                io.gravitee.repository.management.model.MembershipMemberType.USER,
-                io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
-                GROUP_ID
-            );
+        verify(membershipRepository, times(2)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            userEntity.getId(),
+            io.gravitee.repository.management.model.MembershipMemberType.USER,
+            io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
+            GROUP_ID
+        );
         verify(membershipRepository, times(1)).create(any());
         verify(membershipRepository, never()).update(any());
         verify(emailService, times(1)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
@@ -259,8 +256,9 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(role.getScope()).thenReturn(RoleScope.API);
         when(role.getName()).thenReturn("PRIMARY_OWNER");
         when(role.getId()).thenReturn("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(RoleScope.API, "PRIMARY_OWNER", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(role));
+        when(roleService.findByScopeAndName(RoleScope.API, "PRIMARY_OWNER", GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.of(role)
+        );
 
         UserEntity userEntity = new UserEntity();
         userEntity.setId("my name");
@@ -281,8 +279,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
                 GROUP_ID
             )
-        )
-            .thenReturn(Set.of(newMembership), Collections.emptySet());
+        ).thenReturn(Set.of(newMembership), Collections.emptySet());
         when(membershipRepository.create(any())).thenReturn(newMembership);
         when(parameterService.findAsBoolean(any(), eq(Key.TRIAL_INSTANCE), eq(ParameterReferenceType.SYSTEM))).thenReturn(true);
 
@@ -294,13 +291,12 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         );
 
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), userEntity.getId());
-        verify(membershipRepository, times(2))
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                userEntity.getId(),
-                io.gravitee.repository.management.model.MembershipMemberType.USER,
-                io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
-                GROUP_ID
-            );
+        verify(membershipRepository, times(2)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            userEntity.getId(),
+            io.gravitee.repository.management.model.MembershipMemberType.USER,
+            io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
+            GROUP_ID
+        );
         verify(membershipRepository, times(1)).create(any());
         verify(membershipRepository, never()).update(any());
         verify(emailService, times(0)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
@@ -311,14 +307,13 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-                membershipService.addRoleToMemberOnReference(
-                    GraviteeContext.getExecutionContext(),
-                    new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
-                )
+            membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+                new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
             )
-            .isInstanceOf(RoleNotFoundException.class);
+        ).isInstanceOf(RoleNotFoundException.class);
     }
 
     @Test
@@ -326,14 +321,13 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-                membershipService.addRoleToMemberOnReference(
-                    GraviteeContext.getExecutionContext(),
-                    new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, APPLICATION_ID),
-                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
-                )
+            membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, APPLICATION_ID),
+                new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
             )
-            .isInstanceOf(RoleNotFoundException.class);
+        ).isInstanceOf(RoleNotFoundException.class);
     }
 
     @Test
@@ -343,14 +337,13 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.of(role));
 
         assertThatThrownBy(() ->
-                membershipService.addRoleToMemberOnReference(
-                    GraviteeContext.getExecutionContext(),
-                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
-                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
-                )
+            membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
             )
-            .isInstanceOf(NotAuthorizedMembershipException.class);
+        ).isInstanceOf(NotAuthorizedMembershipException.class);
     }
 
     @Test
@@ -366,18 +359,16 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 GROUP_ID,
                 "API_PRIMARY_OWNER"
             )
-        )
-            .thenReturn(Collections.singleton(mock(Membership.class)));
+        ).thenReturn(Collections.singleton(mock(Membership.class)));
 
         assertThatThrownBy(() ->
-                membershipService.addRoleToMemberOnReference(
-                    GraviteeContext.getExecutionContext(),
-                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
-                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER")
-                )
+            membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER")
             )
-            .isInstanceOf(NotAuthorizedMembershipException.class);
+        ).isInstanceOf(NotAuthorizedMembershipException.class);
     }
 
     @Test
@@ -388,13 +379,12 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.of(role));
 
         assertThatThrownBy(() ->
-                membershipService.addRoleToMemberOnReference(
-                    GraviteeContext.getExecutionContext(),
-                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
-                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER")
-                )
+            membershipService.addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER")
             )
-            .isInstanceOf(NotAuthorizedMembershipException.class);
+        ).isInstanceOf(NotAuthorizedMembershipException.class);
     }
 }

@@ -54,9 +54,8 @@ public class ClusterCrudServiceImplTest {
         public void findById_throws_not_found_exception() throws TechnicalException {
             String clusterId = "cluster-id";
             when(clusterRepository.findById(clusterId)).thenReturn(Optional.empty());
-            var exception = assertThrows(
-                DbEntityNotFoundException.class,
-                () -> clusterCrudService.findByIdAndEnvironmentId(clusterId, "env-1")
+            var exception = assertThrows(DbEntityNotFoundException.class, () ->
+                clusterCrudService.findByIdAndEnvironmentId(clusterId, "env-1")
             );
             assertThat(exception.getMessage()).isEqualTo(String.format("Cluster with id %s cannot be found", clusterId));
         }
@@ -65,12 +64,12 @@ public class ClusterCrudServiceImplTest {
         public void findById_throws_technical_exception() throws TechnicalException {
             String clusterId = "cluster-id";
             when(clusterRepository.findById(clusterId)).thenThrow(new TechnicalException());
-            var exception = assertThrows(
-                TechnicalManagementException.class,
-                () -> clusterCrudService.findByIdAndEnvironmentId(clusterId, "env-1")
+            var exception = assertThrows(TechnicalManagementException.class, () ->
+                clusterCrudService.findByIdAndEnvironmentId(clusterId, "env-1")
             );
-            assertThat(exception.getMessage())
-                .isEqualTo(String.format("An error occurred while trying to find a Cluster with id %s", clusterId));
+            assertThat(exception.getMessage()).isEqualTo(
+                String.format("An error occurred while trying to find a Cluster with id %s", clusterId)
+            );
         }
     }
 
@@ -83,8 +82,9 @@ public class ClusterCrudServiceImplTest {
             cluster.setId("cluster-id");
             when(clusterRepository.create(any())).thenThrow(new TechnicalException());
             var exception = assertThrows(TechnicalManagementException.class, () -> clusterCrudService.create(cluster));
-            assertThat(exception.getMessage())
-                .isEqualTo(String.format("An error occurred while trying to create a Cluster with id %s", cluster.getId()));
+            assertThat(exception.getMessage()).isEqualTo(
+                String.format("An error occurred while trying to create a Cluster with id %s", cluster.getId())
+            );
         }
 
         @Test

@@ -25,8 +25,7 @@ import lombok.experimental.UtilityClass;
 public class AsyncJobFixture {
 
     public static final Supplier<AsyncJob.AsyncJobBuilder> BASE = () ->
-        AsyncJob
-            .builder()
+        AsyncJob.builder()
             .id("job-id")
             .sourceId("integration-id")
             .initiatorId("initiator-id")

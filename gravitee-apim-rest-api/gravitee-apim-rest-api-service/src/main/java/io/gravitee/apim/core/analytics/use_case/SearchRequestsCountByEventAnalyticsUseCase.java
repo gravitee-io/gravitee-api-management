@@ -36,9 +36,12 @@ public class SearchRequestsCountByEventAnalyticsUseCase {
     private final ApiCrudService apiCrudService;
 
     public SearchRequestsCountByEventAnalyticsUseCase.Output execute(ExecutionContext executionContext, Input input) {
-        ApiAnalyticsSpecification
-            .forRequestsCountAnalytics()
-            .throwIfNotSatisfied(apiCrudService.get(input.apiId()), executionContext, input.from(), input.to());
+        ApiAnalyticsSpecification.forRequestsCountAnalytics().throwIfNotSatisfied(
+            apiCrudService.get(input.apiId()),
+            executionContext,
+            input.from(),
+            input.to()
+        );
 
         var countQuery = new AnalyticsQueryService.CountQuery(
             AnalyticsQueryService.SearchTermId.forApi(input.apiId),

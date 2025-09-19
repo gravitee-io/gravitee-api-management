@@ -44,12 +44,12 @@ public class DiagnosticReportHelper {
         String legacyErrorMessage,
         ExecutionFailure executionFailure
     ) {
-        String key = Optional
-            .ofNullable(executionFailure.key())
-            .orElseGet(() -> Optional.ofNullable(legacyErrorKey).orElse(INTERNAL_ERROR));
-        String message = Optional
-            .ofNullable(executionFailure.message())
-            .orElseGet(() -> Optional.ofNullable(legacyErrorMessage).orElse(UNKNOWN_TECHNICAL_ERROR_MESSAGE));
+        String key = Optional.ofNullable(executionFailure.key()).orElseGet(() ->
+            Optional.ofNullable(legacyErrorKey).orElse(INTERNAL_ERROR)
+        );
+        String message = Optional.ofNullable(executionFailure.message()).orElseGet(() ->
+            Optional.ofNullable(legacyErrorMessage).orElse(UNKNOWN_TECHNICAL_ERROR_MESSAGE)
+        );
         Throwable cause = executionFailure.cause();
 
         if (cause != null) {
@@ -82,8 +82,7 @@ public class DiagnosticReportHelper {
     }
 
     private static String prettifyThrowableName(Throwable t) {
-        return Optional
-            .ofNullable(t.getMessage())
+        return Optional.ofNullable(t.getMessage())
             .filter(s -> !s.isBlank())
             .orElseGet(() -> {
                 String name = t.getClass().getSimpleName();

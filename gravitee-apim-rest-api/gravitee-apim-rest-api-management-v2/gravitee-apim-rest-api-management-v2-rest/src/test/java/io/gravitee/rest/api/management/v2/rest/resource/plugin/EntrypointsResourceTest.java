@@ -227,8 +227,9 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
-        when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT_ID, SchemaDisplayFormat.GV_SCHEMA_FORM))
-            .thenReturn("subscriptionSchemaResponse");
+        when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT_ID, SchemaDisplayFormat.GV_SCHEMA_FORM)).thenReturn(
+            "subscriptionSchemaResponse"
+        );
 
         final Response response = rootTarget(FAKE_ENTRYPOINT_ID)
             .path("subscription-schema")

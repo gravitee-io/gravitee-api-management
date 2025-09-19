@@ -47,28 +47,25 @@ public class ApiKeyMapper {
     }
 
     public Flowable<DistributedEvent> to(final ApiKeyDeployable deployable) {
-        return Flowable
-            .fromIterable(deployable.apiKeys())
-            .flatMapMaybe(apiKey ->
-                Maybe.fromCallable(() -> {
-                    try {
-                        DistributedEvent.DistributedEventBuilder builder = DistributedEvent
-                            .builder()
-                            .id(apiKey.getId())
-                            .type(DistributedEventType.API_KEY)
-                            .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                            .updatedAt(new Date())
-                            .refType(DistributedEventType.API)
-                            .refId(deployable.apiId());
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            builder.payload(objectMapper.writeValueAsString(apiKey));
-                        }
-                        return builder.build();
-                    } catch (Exception e) {
-                        log.warn("Error while building distributed event from apikey", e);
-                        return null;
+        return Flowable.fromIterable(deployable.apiKeys()).flatMapMaybe(apiKey ->
+            Maybe.fromCallable(() -> {
+                try {
+                    DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
+                        .id(apiKey.getId())
+                        .type(DistributedEventType.API_KEY)
+                        .syncAction(SyncActionMapper.to(deployable.syncAction()))
+                        .updatedAt(new Date())
+                        .refType(DistributedEventType.API)
+                        .refId(deployable.apiId());
+                    if (deployable.syncAction() == SyncAction.DEPLOY) {
+                        builder.payload(objectMapper.writeValueAsString(apiKey));
                     }
-                })
-            );
+                    return builder.build();
+                } catch (Exception e) {
+                    log.warn("Error while building distributed event from apikey", e);
+                    return null;
+                }
+            })
+        );
     }
 }

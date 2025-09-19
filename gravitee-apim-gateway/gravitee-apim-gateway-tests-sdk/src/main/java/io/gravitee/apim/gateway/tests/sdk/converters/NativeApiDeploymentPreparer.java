@@ -65,7 +65,11 @@ public class NativeApiDeploymentPreparer implements ApiDeploymentPreparer<Native
 
             api.setPlans(Collections.singletonList(plan));
         } else {
-            api.getPlans().stream().filter(plan -> plan.getStatus() == null).forEach(plan -> plan.setStatus(PlanStatus.PUBLISHED));
+            api
+                .getPlans()
+                .stream()
+                .filter(plan -> plan.getStatus() == null)
+                .forEach(plan -> plan.setStatus(PlanStatus.PUBLISHED));
         }
     }
 }

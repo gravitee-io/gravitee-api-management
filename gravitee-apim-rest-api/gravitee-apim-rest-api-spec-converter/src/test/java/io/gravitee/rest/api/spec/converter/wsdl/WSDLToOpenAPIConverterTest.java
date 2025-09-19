@@ -81,13 +81,12 @@ public class WSDLToOpenAPIConverterTest {
         assertEquals("Not enough paths", expectedPaths, paths.size());
         int soapEnvelopes = 0;
         for (PathItem path : paths.values()) {
-            Optional<State> optState = Arrays
-                .asList(
-                    checkOperation(path.getPost()),
-                    checkOperation(path.getGet()),
-                    checkOperation(path.getPut()),
-                    checkOperation(path.getDelete())
-                )
+            Optional<State> optState = Arrays.asList(
+                checkOperation(path.getPost()),
+                checkOperation(path.getGet()),
+                checkOperation(path.getPut()),
+                checkOperation(path.getDelete())
+            )
                 .stream()
                 .filter(state -> state != State.NO_OP)
                 .findFirst();

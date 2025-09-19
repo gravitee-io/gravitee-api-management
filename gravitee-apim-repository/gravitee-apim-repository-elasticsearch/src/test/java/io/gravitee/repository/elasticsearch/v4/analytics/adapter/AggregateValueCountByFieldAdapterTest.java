@@ -71,162 +71,159 @@ class AggregateValueCountByFieldAdapterTest {
                 assertThatJson(result).isEqualTo(TOP_APPS_QUERY_WITH_EMPTY_APP_ID_LIST);
             }
 
-            private static final String TOP_APPS_QUERY_WITH_API_IDS_AND_TIME_RANGES =
-                """
-                     {
-                         "size": 0,
-                         "query": {
-                             "bool": {
-                                 "filter": [
-                                     {
-                                       "bool": {
-                                         "should": [
-                                           { "terms": { "api-id": ["api-id-1", "api-id-2"] } },
-                                           { "terms": { "api": ["api-id-1", "api-id-2"] } }
-                                         ]
-                                       }
-                                     },
-                                     {
-                                         "range": {
-                                             "@timestamp": {
-                                                 "gte": 1728992401566,
-                                                 "lte" : 1729078801566
-                                             }
+            private static final String TOP_APPS_QUERY_WITH_API_IDS_AND_TIME_RANGES = """
+                 {
+                     "size": 0,
+                     "query": {
+                         "bool": {
+                             "filter": [
+                                 {
+                                   "bool": {
+                                     "should": [
+                                       { "terms": { "api-id": ["api-id-1", "api-id-2"] } },
+                                       { "terms": { "api": ["api-id-1", "api-id-2"] } }
+                                     ]
+                                   }
+                                 },
+                                 {
+                                     "range": {
+                                         "@timestamp": {
+                                             "gte": 1728992401566,
+                                             "lte" : 1729078801566
                                          }
                                      }
-                                 ]
-                             }
-                         },
-                         "aggs": {
-                              "top_hits_count_application-id": {
-                                  "terms": {
-                                      "field": "application-id"
-                                  },
-                                  "aggs": {
-                                      "hits_count": {
-                                          "value_count": {
-                                              "field": "application-id"
-                                          }
+                                 }
+                             ]
+                         }
+                     },
+                     "aggs": {
+                          "top_hits_count_application-id": {
+                              "terms": {
+                                  "field": "application-id"
+                              },
+                              "aggs": {
+                                  "hits_count": {
+                                      "value_count": {
+                                          "field": "application-id"
                                       }
                                   }
+                              }
+                          },
+                          "top_hits_count_application": {
+                              "terms": {
+                                  "field": "application"
                               },
-                              "top_hits_count_application": {
-                                  "terms": {
-                                      "field": "application"
-                                  },
-                                  "aggs": {
-                                      "hits_count": {
-                                          "value_count": {
-                                              "field": "application"
-                                          }
+                              "aggs": {
+                                  "hits_count": {
+                                      "value_count": {
+                                          "field": "application"
                                       }
                                   }
                               }
                           }
-                     }\s
-                    \s""";
+                      }
+                 }\s
+                \s""";
 
-            private static final String TOP_APPS_QUERY_WITH_NULL_TIME_RANGE_PARAMS =
-                """
-                     {
-                         "size": 0,
-                         "query": {
-                             "bool": {
-                                 "filter": [
-                                     {
-                                       "bool": {
-                                         "should": [
-                                           { "terms": { "api-id": [] } },
-                                           { "terms": { "api": [] } }
-                                         ]
-                                       }
-                                     }
-                                 ]
-                             }
-                         },
-                         "aggs": {
-                              "top_hits_count_application-id": {
-                                  "terms": {
-                                      "field": "application-id"
-                                  },
-                                  "aggs": {
-                                      "hits_count": {
-                                          "value_count": {
-                                              "field": "application-id"
-                                          }
+            private static final String TOP_APPS_QUERY_WITH_NULL_TIME_RANGE_PARAMS = """
+                 {
+                     "size": 0,
+                     "query": {
+                         "bool": {
+                             "filter": [
+                                 {
+                                   "bool": {
+                                     "should": [
+                                       { "terms": { "api-id": [] } },
+                                       { "terms": { "api": [] } }
+                                     ]
+                                   }
+                                 }
+                             ]
+                         }
+                     },
+                     "aggs": {
+                          "top_hits_count_application-id": {
+                              "terms": {
+                                  "field": "application-id"
+                              },
+                              "aggs": {
+                                  "hits_count": {
+                                      "value_count": {
+                                          "field": "application-id"
                                       }
                                   }
+                              }
+                          },
+                          "top_hits_count_application": {
+                              "terms": {
+                                  "field": "application"
                               },
-                              "top_hits_count_application": {
-                                  "terms": {
-                                      "field": "application"
-                                  },
-                                  "aggs": {
-                                      "hits_count": {
-                                          "value_count": {
-                                              "field": "application"
-                                          }
+                              "aggs": {
+                                  "hits_count": {
+                                      "value_count": {
+                                          "field": "application"
                                       }
                                   }
                               }
                           }
-                     }\s
-                    \s""";
+                      }
+                 }\s
+                \s""";
 
-            private static final String TOP_APPS_QUERY_WITH_EMPTY_APP_ID_LIST =
-                """
-                     {
-                         "size": 0,
-                         "query": {
-                             "bool": {
-                                 "filter": [
-                                     {
-                                       "bool": {
-                                         "should": [
-                                           { "terms": { "api-id": [] } },
-                                           { "terms": { "api": [] } }
-                                         ]
-                                       }
-                                     },
-                                     {
-                                         "range": {
-                                             "@timestamp": {
-                                                 "gte": 1728992401566,
-                                                 "lte" : 1729078801566
-                                             }
+            private static final String TOP_APPS_QUERY_WITH_EMPTY_APP_ID_LIST = """
+                 {
+                     "size": 0,
+                     "query": {
+                         "bool": {
+                             "filter": [
+                                 {
+                                   "bool": {
+                                     "should": [
+                                       { "terms": { "api-id": [] } },
+                                       { "terms": { "api": [] } }
+                                     ]
+                                   }
+                                 },
+                                 {
+                                     "range": {
+                                         "@timestamp": {
+                                             "gte": 1728992401566,
+                                             "lte" : 1729078801566
                                          }
                                      }
-                                 ]
-                             }
-                         },
-                         "aggs": {
-                              "top_hits_count_application-id": {
-                                  "terms": {
-                                      "field": "application-id"
-                                  },
-                                  "aggs": {
-                                      "hits_count": {
-                                          "value_count": {
-                                              "field": "application-id"
-                                          }
+                                 }
+                             ]
+                         }
+                     },
+                     "aggs": {
+                          "top_hits_count_application-id": {
+                              "terms": {
+                                  "field": "application-id"
+                              },
+                              "aggs": {
+                                  "hits_count": {
+                                      "value_count": {
+                                          "field": "application-id"
                                       }
                                   }
+                              }
+                          },
+                          "top_hits_count_application": {
+                              "terms": {
+                                  "field": "application"
                               },
-                              "top_hits_count_application": {
-                                  "terms": {
-                                      "field": "application"
-                                  },
-                                  "aggs": {
-                                      "hits_count": {
-                                          "value_count": {
-                                              "field": "application"
-                                          }
+                              "aggs": {
+                                  "hits_count": {
+                                      "value_count": {
+                                          "field": "application"
                                       }
                                   }
                               }
                           }
-                     }\s
-                    \s""";
+                      }
+                 }\s
+                \s""";
         }
 
         @Nested
@@ -263,12 +260,9 @@ class AggregateValueCountByFieldAdapterTest {
 
                 var result = AggregateValueCountByFieldAdapter.adaptResponse(searchResponse);
 
-                assertThat(result)
-                    .hasValueSatisfying(topHits ->
-                        assertThat(topHits.getTopHitsCounts())
-                            .containsEntry(APP_ID_1, APP_ID_1_COUNT)
-                            .containsEntry(APP_ID_2, APP_ID_2_COUNT)
-                    );
+                assertThat(result).hasValueSatisfying(topHits ->
+                    assertThat(topHits.getTopHitsCounts()).containsEntry(APP_ID_1, APP_ID_1_COUNT).containsEntry(APP_ID_2, APP_ID_2_COUNT)
+                );
             }
 
             JsonNode createTopHitsBucket(String apiId, long topHitsCount) {
@@ -315,165 +309,162 @@ class AggregateValueCountByFieldAdapterTest {
                 assertThatJson(result).isEqualTo(TOP_HIT_QUERY_WITH_EMPTY_ID_LIST);
             }
 
-            private static final String TOP_HIT_QUERY_WITH_API_IDS_AND_TIME_RANGES =
-                """
-                     {
-                         "size": 0,
-                         "query": {
-                             "bool": {
-                                 "filter": [
-                                     {
-                                       "bool": {
-                                         "should": [
-                                           { "terms": { "api-id": ["api-id-1", "api-id-2"] } },
-                                           { "terms": { "api": ["api-id-1", "api-id-2"] } }
-                                         ]
-                                       }
-                                     },
-                                     {
-                                         "range": {
-                                             "@timestamp": {
-                                                 "gte": 1728992401566,
-                                                 "lte" : 1729078801566
-                                             }
+            private static final String TOP_HIT_QUERY_WITH_API_IDS_AND_TIME_RANGES = """
+                 {
+                     "size": 0,
+                     "query": {
+                         "bool": {
+                             "filter": [
+                                 {
+                                   "bool": {
+                                     "should": [
+                                       { "terms": { "api-id": ["api-id-1", "api-id-2"] } },
+                                       { "terms": { "api": ["api-id-1", "api-id-2"] } }
+                                     ]
+                                   }
+                                 },
+                                 {
+                                     "range": {
+                                         "@timestamp": {
+                                             "gte": 1728992401566,
+                                             "lte" : 1729078801566
                                          }
                                      }
-                                 ]
-                             }
-                         },
-                         "aggs": {
-                                  "top_hits_count_api-id": {
-                                      "terms": {
-                                          "field": "api-id"
-                                      },
-                                      "aggs": {
-                                          "hits_count": {
-                                              "value_count": {
-                                                  "field": "api-id"
-                                              }
+                                 }
+                             ]
+                         }
+                     },
+                     "aggs": {
+                              "top_hits_count_api-id": {
+                                  "terms": {
+                                      "field": "api-id"
+                                  },
+                                  "aggs": {
+                                      "hits_count": {
+                                          "value_count": {
+                                              "field": "api-id"
                                           }
                                       }
+                                  }
+                              },
+                              "top_hits_count_api": {
+                                  "terms": {
+                                      "field": "api"
                                   },
-                                  "top_hits_count_api": {
-                                      "terms": {
-                                          "field": "api"
-                                      },
-                                      "aggs": {
-                                          "hits_count": {
-                                              "value_count": {
-                                                  "field": "api"
-                                              }
+                                  "aggs": {
+                                      "hits_count": {
+                                          "value_count": {
+                                              "field": "api"
                                           }
                                       }
                                   }
                               }
                           }
-                     }\s
-                    \s""";
+                      }
+                 }\s
+                \s""";
 
-            private static final String TOP_HIT_QUERY_WITH_NULL_QUERY_PARAMS =
-                """
-                     {
-                         "size": 0,
-                         "query": {
-                             "bool": {
-                                 "filter": [
-                                     {
-                                     "bool": {
-                                            "should": [
-                                             { "terms": { "api-id": [] } },
-                                             { "terms": { "api": [] } }
-                                           ]
-                                         }
+            private static final String TOP_HIT_QUERY_WITH_NULL_QUERY_PARAMS = """
+                 {
+                     "size": 0,
+                     "query": {
+                         "bool": {
+                             "filter": [
+                                 {
+                                 "bool": {
+                                        "should": [
+                                         { "terms": { "api-id": [] } },
+                                         { "terms": { "api": [] } }
+                                       ]
                                      }
-                                 ]
-                             }
-                         },
-                         "aggs": {
-                                  "top_hits_count_api-id": {
-                                      "terms": {
-                                          "field": "api-id"
-                                      },
-                                      "aggs": {
-                                          "hits_count": {
-                                              "value_count": {
-                                                  "field": "api-id"
-                                              }
+                                 }
+                             ]
+                         }
+                     },
+                     "aggs": {
+                              "top_hits_count_api-id": {
+                                  "terms": {
+                                      "field": "api-id"
+                                  },
+                                  "aggs": {
+                                      "hits_count": {
+                                          "value_count": {
+                                              "field": "api-id"
                                           }
                                       }
+                                  }
+                              },
+                              "top_hits_count_api": {
+                                  "terms": {
+                                      "field": "api"
                                   },
-                                  "top_hits_count_api": {
-                                      "terms": {
-                                          "field": "api"
-                                      },
-                                      "aggs": {
-                                          "hits_count": {
-                                              "value_count": {
-                                                  "field": "api"
-                                              }
+                                  "aggs": {
+                                      "hits_count": {
+                                          "value_count": {
+                                              "field": "api"
                                           }
                                       }
                                   }
                               }
-                         }
-                     }\s
-                    \s""";
+                          }
+                     }
+                 }\s
+                \s""";
 
-            private static final String TOP_HIT_QUERY_WITH_EMPTY_ID_LIST =
-                """
-                     {
-                         "size": 0,
-                         "query": {
-                             "bool": {
-                                 "filter": [
-                                     {
-                                        "bool": {
-                                            "should": [
-                                             { "terms": { "api-id": [] } },
-                                             { "terms": { "api": [] } }
-                                             ]
-                                        }
-                                     },
-                                     {
-                                         "range": {
-                                             "@timestamp": {
-                                                 "gte": 1728992401566,
-                                                 "lte" : 1729078801566
-                                             }
+            private static final String TOP_HIT_QUERY_WITH_EMPTY_ID_LIST = """
+                 {
+                     "size": 0,
+                     "query": {
+                         "bool": {
+                             "filter": [
+                                 {
+                                    "bool": {
+                                        "should": [
+                                         { "terms": { "api-id": [] } },
+                                         { "terms": { "api": [] } }
+                                         ]
+                                    }
+                                 },
+                                 {
+                                     "range": {
+                                         "@timestamp": {
+                                             "gte": 1728992401566,
+                                             "lte" : 1729078801566
                                          }
                                      }
-                                 ]
-                             }
-                         },
-                         "aggs": {
-                                  "top_hits_count_api-id": {
-                                      "terms": {
-                                          "field": "api-id"
-                                      },
-                                      "aggs": {
-                                          "hits_count": {
-                                              "value_count": {
-                                                  "field": "api-id"
-                                              }
+                                 }
+                             ]
+                         }
+                     },
+                     "aggs": {
+                              "top_hits_count_api-id": {
+                                  "terms": {
+                                      "field": "api-id"
+                                  },
+                                  "aggs": {
+                                      "hits_count": {
+                                          "value_count": {
+                                              "field": "api-id"
                                           }
                                       }
+                                  }
+                              },
+                              "top_hits_count_api": {
+                                  "terms": {
+                                      "field": "api"
                                   },
-                                  "top_hits_count_api": {
-                                      "terms": {
-                                          "field": "api"
-                                      },
-                                      "aggs": {
-                                          "hits_count": {
-                                              "value_count": {
-                                                  "field": "api"
-                                              }
+                                  "aggs": {
+                                      "hits_count": {
+                                          "value_count": {
+                                              "field": "api"
                                           }
                                       }
                                   }
                               }
-                         }
-                     }\s
-                    \s""";
+                          }
+                     }
+                 }\s
+                \s""";
         }
 
         @Nested
@@ -505,10 +496,9 @@ class AggregateValueCountByFieldAdapterTest {
 
                 var result = SearchTopFailedApisAdapter.adaptResponse(searchResponse);
 
-                assertThat(result)
-                    .hasValueSatisfying(topHits ->
-                        assertThat(topHits.failedApis()).containsEntry(API_ID_1, new TopFailedAggregate.FailedApiInfo(10, 0.5))
-                    );
+                assertThat(result).hasValueSatisfying(topHits ->
+                    assertThat(topHits.failedApis()).containsEntry(API_ID_1, new TopFailedAggregate.FailedApiInfo(10, 0.5))
+                );
             }
 
             JsonNode createFailedApiBucket(String apiId) {

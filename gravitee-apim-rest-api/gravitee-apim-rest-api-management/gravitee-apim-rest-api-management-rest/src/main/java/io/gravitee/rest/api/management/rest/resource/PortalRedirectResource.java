@@ -67,8 +67,7 @@ public class PortalRedirectResource extends AbstractAuthenticationResource {
             String url = installationAccessQueryService.getPortalAPIUrl(environmentId);
             if (url == null) {
                 ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
-                UriComponents uriComponents = UriComponentsBuilder
-                    .fromHttpRequest(request)
+                UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request)
                     .replacePath(getPortalProxyPath())
                     .replaceQuery(null)
                     .build();

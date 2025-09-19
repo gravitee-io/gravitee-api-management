@@ -91,11 +91,10 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
 
     private void validateMemberRole(Input input, Set<MemberCRD> sanitized, ArrayList<Error> errors) {
         for (var member : sanitized) {
-            findRole(input.auditInfo.organizationId(), input.referenceType, member.getRole())
-                .ifPresentOrElse(
-                    role -> log.debug("Role {} found for scope {}", member.getRole(), input.referenceType),
-                    () -> errors.add(Error.warning("member role [%s] doesn't exist", member.getRole()))
-                );
+            findRole(input.auditInfo.organizationId(), input.referenceType, member.getRole()).ifPresentOrElse(
+                role -> log.debug("Role {} found for scope {}", member.getRole(), input.referenceType),
+                () -> errors.add(Error.warning("member role [%s] doesn't exist", member.getRole()))
+            );
         }
     }
 

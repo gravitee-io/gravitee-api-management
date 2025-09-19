@@ -99,17 +99,16 @@ class SearchAverageHealthCheckResponseTimeOvertimeUseCaseTest {
 
         var queryCaptor = ArgumentCaptor.forClass(ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery.class);
         verify(apiHealthQueryService).averageResponseTimeOvertime(queryCaptor.capture());
-        assertThat(queryCaptor.getValue())
-            .satisfies(query -> {
-                assertSoftly(softly -> {
-                    softly.assertThat(query.organizationId()).isEqualTo(ORGANIZATION_ID);
-                    softly.assertThat(query.environmentId()).isEqualTo(ENV_ID);
-                    softly.assertThat(query.apiId()).isEqualTo(MY_API);
-                    softly.assertThat(query.from()).isEqualTo(FROM);
-                    softly.assertThat(query.to()).isEqualTo(TO);
-                    softly.assertThat(query.interval()).isEqualTo(INTERVAL);
-                });
+        assertThat(queryCaptor.getValue()).satisfies(query -> {
+            assertSoftly(softly -> {
+                softly.assertThat(query.organizationId()).isEqualTo(ORGANIZATION_ID);
+                softly.assertThat(query.environmentId()).isEqualTo(ENV_ID);
+                softly.assertThat(query.apiId()).isEqualTo(MY_API);
+                softly.assertThat(query.from()).isEqualTo(FROM);
+                softly.assertThat(query.to()).isEqualTo(TO);
+                softly.assertThat(query.interval()).isEqualTo(INTERVAL);
             });
+        });
     }
 
     @Test

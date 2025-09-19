@@ -50,8 +50,7 @@ public class NewNativeApi extends AbstractNewApi {
      */
     public NativeApi.NativeApiBuilder<?, ?> toNativeApiDefinitionBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return NativeApi
-            .builder()
+        return NativeApi.builder()
             .name(name)
             .type(type)
             .apiVersion(apiVersion)

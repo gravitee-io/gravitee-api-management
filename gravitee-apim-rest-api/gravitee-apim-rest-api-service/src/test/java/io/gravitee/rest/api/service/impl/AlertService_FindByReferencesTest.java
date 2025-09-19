@@ -64,8 +64,9 @@ public class AlertService_FindByReferencesTest extends AlertServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void findByReferences_should_throw_TechnicalManagementException_when_technicalException() throws TechnicalException {
-        when(alertTriggerRepository.findByReferenceAndReferenceIds(REFERENCE_TYPE.name(), REFERENCES_ID))
-            .thenThrow(TechnicalException.class);
+        when(alertTriggerRepository.findByReferenceAndReferenceIds(REFERENCE_TYPE.name(), REFERENCES_ID)).thenThrow(
+            TechnicalException.class
+        );
 
         alertService.findByReferences(REFERENCE_TYPE, REFERENCES_ID);
     }
@@ -75,8 +76,9 @@ public class AlertService_FindByReferencesTest extends AlertServiceTest {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
         final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
 
-        when(alertTriggerRepository.findByReferenceAndReferenceIds(alert.getReferenceType().name(), List.of(alertTrigger.getReferenceId())))
-            .thenReturn(List.of(alertTrigger));
+        when(
+            alertTriggerRepository.findByReferenceAndReferenceIds(alert.getReferenceType().name(), List.of(alertTrigger.getReferenceId()))
+        ).thenReturn(List.of(alertTrigger));
 
         assertEquals(1, alertService.findByReferences(alert.getReferenceType(), List.of(alert.getReferenceId())).size());
     }
@@ -94,8 +96,9 @@ public class AlertService_FindByReferencesTest extends AlertServiceTest {
     public void must_TechnicalManagementException_when_find_alert_trigger_entity_by_reference_and_ids() throws TechnicalException {
         final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        when(alertTriggerRepository.findByReferenceAndReferenceIds(any(), any()))
-            .thenThrow(new TechnicalException("An unexpected error has occurred"));
+        when(alertTriggerRepository.findByReferenceAndReferenceIds(any(), any())).thenThrow(
+            new TechnicalException("An unexpected error has occurred")
+        );
 
         assertEquals(0, alertService.findByReferences(alert.getReferenceType(), List.of(alert.getReferenceId())).size());
     }

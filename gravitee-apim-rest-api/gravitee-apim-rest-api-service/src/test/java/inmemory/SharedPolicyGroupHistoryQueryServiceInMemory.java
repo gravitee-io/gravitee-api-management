@@ -51,12 +51,11 @@ public class SharedPolicyGroupHistoryQueryServiceInMemory
             .filter(spg -> spg.getEnvironmentId().equals(environmentId))
             .filter(spg -> sharedPolicyGroupId == null || spg.getId().equals(sharedPolicyGroupId));
 
-        stream =
-            switch (sortableField) {
-                case "version" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getVersion));
-                case "deployedAt" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getDeployedAt));
-                default -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getUpdatedAt));
-            };
+        stream = switch (sortableField) {
+            case "version" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getVersion));
+            case "deployedAt" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getDeployedAt));
+            default -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getUpdatedAt));
+        };
 
         var matches = stream.collect(Collectors.toList());
 

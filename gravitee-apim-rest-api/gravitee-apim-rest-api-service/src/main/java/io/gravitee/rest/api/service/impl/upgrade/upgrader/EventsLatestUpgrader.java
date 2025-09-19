@@ -87,11 +87,11 @@ public class EventsLatestUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-                migrateApiEvents();
-                migrateDictionaryEvents();
-                migrateOrganizationEvents();
-                return true;
-            });
+            migrateApiEvents();
+            migrateDictionaryEvents();
+            migrateOrganizationEvents();
+            return true;
+        });
     }
 
     private void migrateApiEvents() throws TechnicalException {
@@ -99,8 +99,11 @@ public class EventsLatestUpgrader implements Upgrader {
         modelCounter = 0;
         eventsForModelCounter = 0;
         List<ApiCriteria> emptyCriteria = List.of();
-        Page<String> firstPage =
-            this.apiRepository.searchIds(emptyCriteria, new PageableBuilder().pageNumber(0).pageSize(BULK_SIZE).build(), null);
+        Page<String> firstPage = this.apiRepository.searchIds(
+            emptyCriteria,
+            new PageableBuilder().pageNumber(0).pageSize(BULK_SIZE).build(),
+            null
+        );
         if (firstPage != null && firstPage.getContent() != null) {
             migrateEvents(Event.EventProperties.API_ID.getValue(), firstPage.getContent());
 
@@ -108,12 +111,11 @@ public class EventsLatestUpgrader implements Upgrader {
             if (firstPage.getTotalElements() > firstPage.getPageElements()) {
                 long pageNumber = (int) Math.ceil((double) firstPage.getTotalElements() / BULK_SIZE);
                 for (int pageIdx = 1; pageIdx < pageNumber; pageIdx++) {
-                    Page<String> nextPage =
-                        this.apiRepository.searchIds(
-                                emptyCriteria,
-                                new PageableBuilder().pageNumber(pageIdx).pageSize(BULK_SIZE).build(),
-                                null
-                            );
+                    Page<String> nextPage = this.apiRepository.searchIds(
+                        emptyCriteria,
+                        new PageableBuilder().pageNumber(pageIdx).pageSize(BULK_SIZE).build(),
+                        null
+                    );
                     migrateEvents(Event.EventProperties.API_ID.getValue(), nextPage.getContent());
                 }
             }
@@ -168,12 +170,11 @@ public class EventsLatestUpgrader implements Upgrader {
         }
 
         if (DictionaryType.DYNAMIC.equals(dictionary.getType())) {
-            eventPage =
-                searchEvents(
-                    Event.EventProperties.DICTIONARY_ID.getValue(),
-                    dictionary.getId(),
-                    Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY)
-                );
+            eventPage = searchEvents(
+                Event.EventProperties.DICTIONARY_ID.getValue(),
+                dictionary.getId(),
+                Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY)
+            );
             if (eventPage.getPageElements() > 0) {
                 Event event = eventPage.getContent().get(0);
                 processEvent(event, dictionary.getId() + EventService.EVENT_LATEST_DYNAMIC_SUFFIX);

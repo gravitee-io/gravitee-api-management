@@ -259,9 +259,10 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         try {
             Optional<Theme> themeOptional = themeRepository
                 .findById(themeId)
-                .filter(t ->
-                    ENVIRONMENT.name().equalsIgnoreCase(t.getReferenceType()) &&
-                    t.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                .filter(
+                    t ->
+                        ENVIRONMENT.name().equalsIgnoreCase(t.getReferenceType()) &&
+                        t.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
                 );
             if (themeOptional.isPresent()) {
                 themeRepository.delete(themeId);
@@ -577,8 +578,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         try {
             var portalNextDefinition = MAPPER.readPortalNextDefinition(theme.getDefinition());
 
-            return io.gravitee.rest.api.model.theme.portalnext.ThemeEntity
-                .builder()
+            return io.gravitee.rest.api.model.theme.portalnext.ThemeEntity.builder()
                 .id(theme.getId())
                 .name(theme.getName())
                 .definition(portalNextDefinition)
@@ -663,7 +663,12 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         public ThemeCssDefinition getThemeCssDefinition(ThemeDefinition themeDefinition, String name, String cssName) {
             ThemeComponentDefinition componentDefinition = getThemeComponentDefinition(themeDefinition, name);
             if (componentDefinition != null) {
-                return componentDefinition.getCss().stream().filter(css -> cssName.equals(css.getName())).findFirst().orElse(null);
+                return componentDefinition
+                    .getCss()
+                    .stream()
+                    .filter(css -> cssName.equals(css.getName()))
+                    .findFirst()
+                    .orElse(null);
             }
             return null;
         }

@@ -34,8 +34,7 @@ public class EntrypointPluginQueryServiceInMemory implements EntrypointPluginQue
     public static final String SSE_CONNECTOR_ID = "sse";
     public static final String MOCK_CONNECTOR_ID = "mock";
     private static final List<ConnectorPlugin> DEFAULT_LIST = List.of(
-        ConnectorPlugin
-            .builder()
+        ConnectorPlugin.builder()
             .id(HTTP_PROXY_CONNECTOR_ID)
             .name("HTTP Proxy")
             .version("1.0.0")
@@ -45,8 +44,7 @@ public class EntrypointPluginQueryServiceInMemory implements EntrypointPluginQue
             .feature("apim-proxy")
             .deployed(true)
             .build(),
-        ConnectorPlugin
-            .builder()
+        ConnectorPlugin.builder()
             .id(SSE_CONNECTOR_ID)
             .name("SSE Entrypoint")
             .version("1.0.0")
@@ -57,8 +55,7 @@ public class EntrypointPluginQueryServiceInMemory implements EntrypointPluginQue
             .feature("apim-en-connector-sse")
             .deployed(true)
             .build(),
-        ConnectorPlugin
-            .builder()
+        ConnectorPlugin.builder()
             .id(MOCK_CONNECTOR_ID)
             .name("Mock Endpoint")
             .version("1.0.0")
@@ -75,7 +72,10 @@ public class EntrypointPluginQueryServiceInMemory implements EntrypointPluginQue
 
     @Override
     public Set<ConnectorPlugin> findBySupportedApi(ApiType apiType) {
-        return storage.stream().filter(connectorPlugin -> connectorPlugin.getSupportedApiType().equals(apiType)).collect(toSet());
+        return storage
+            .stream()
+            .filter(connectorPlugin -> connectorPlugin.getSupportedApiType().equals(apiType))
+            .collect(toSet());
     }
 
     @Override

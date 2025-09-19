@@ -124,8 +124,9 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
     }
 
     @Container
-    protected static final HiveMQContainer mqtt5 = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce").withTag("2024.4"))
-        .withTmpFs(null);
+    protected static final HiveMQContainer mqtt5 = new HiveMQContainer(
+        DockerImageName.parse("hivemq/hivemq-ce").withTag("2024.4")
+    ).withTmpFs(null);
 
     @Override
     public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
@@ -160,39 +161,36 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
     protected Flowable<Mqtt5PublishResult> publishToMqtt5(String topic, String payload, MqttQos publishQos) {
         final AtomicInteger i = new AtomicInteger(0);
 
-        return connectToMqtt5()
-            .flatMapPublisher(mqtt5RxClient ->
-                RxJavaBridge
-                    .toV3Flowable(
-                        mqtt5RxClient.publish(
-                            io.reactivex.Flowable
-                                .fromCallable(() ->
-                                    Mqtt5Publish
-                                        .builder()
-                                        .topic(topic)
-                                        .payload(payload != null ? Buffer.buffer(payload + "-" + i.getAndIncrement()).getBytes() : null)
-                                        .qos(publishQos)
-                                        .noMessageExpiry()
-                                        .retain(true)
-                                        .build()
-                                )
-                                .delay(5, TimeUnit.MILLISECONDS)
-                                .repeat()
-                        )
+        return connectToMqtt5().flatMapPublisher(mqtt5RxClient ->
+            RxJavaBridge.toV3Flowable(
+                mqtt5RxClient.publish(
+                    io.reactivex.Flowable.fromCallable(() ->
+                        Mqtt5Publish.builder()
+                            .topic(topic)
+                            .payload(payload != null ? Buffer.buffer(payload + "-" + i.getAndIncrement()).getBytes() : null)
+                            .qos(publishQos)
+                            .noMessageExpiry()
+                            .retain(true)
+                            .build()
                     )
-                    .doFinally(() -> {
-                        log.info("Stopping publish messages");
-                        mqtt5RxClient.disconnect().blockingAwait();
-                    })
-                    .doOnSubscribe(s -> log.info("Starting publish messages"))
-            );
+                        .delay(5, TimeUnit.MILLISECONDS)
+                        .repeat()
+                )
+            )
+                .doFinally(() -> {
+                    log.info("Stopping publish messages");
+                    mqtt5RxClient.disconnect().blockingAwait();
+                })
+                .doOnSubscribe(s -> log.info("Starting publish messages"))
+        );
     }
 
     protected Flowable<Mqtt5Publish> subscribeToMqtt5(String topic, Subject<Void> readyObs) {
         return connectToMqtt5()
             .flatMapPublisher(mqtt5RxClient ->
-                RxJavaBridge
-                    .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
+                RxJavaBridge.toV3Flowable(
+                    mqtt5RxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe()
+                )
                     .doOnSubscribe(subscription -> readyObs.onComplete())
                     .doFinally(() -> mqtt5RxClient.disconnect().subscribe())
             )
@@ -219,8 +217,7 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
     }
 
     protected Mqtt5RxClient prepareMqtt5Client() {
-        return Mqtt5Client
-            .builder()
+        return Mqtt5Client.builder()
             .serverHost(mqtt5.getHost())
             .serverPort(mqtt5.getMqttPort())
             .automaticReconnectWithDefaultConfig()

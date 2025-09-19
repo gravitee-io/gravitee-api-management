@@ -37,10 +37,11 @@ public class HttpHealthCheckHelper {
                 // Http health check is enabled if enabled on at least one endpoint.
                 return (
                     (!isNull(endpointGroup.getServices()) && isServiceEnabled(endpointGroup.getServices().getHealthCheck())) ||
-                    (
-                        !isNull(endpointGroup.getEndpoints()) &&
-                        endpointGroup.getEndpoints().stream().anyMatch(endpoint -> isEnabledAtEndpointLevel(endpoint, tenant))
-                    )
+                    (!isNull(endpointGroup.getEndpoints()) &&
+                        endpointGroup
+                            .getEndpoints()
+                            .stream()
+                            .anyMatch(endpoint -> isEnabledAtEndpointLevel(endpoint, tenant)))
                 );
             });
     }
@@ -50,17 +51,11 @@ public class HttpHealthCheckHelper {
             // Health check enabled on the endpoint.
             isEnabledAtEndpointLevel(endpoint.getDefinition(), tenant) ||
             // Or health check enabled at group level and not explicitly disable at endpoint level.
-            (
-                (
-                    isNull(endpoint.getDefinition().getServices()) ||
+            ((isNull(endpoint.getDefinition().getServices()) ||
                     endpoint.getDefinition().getServices().getHealthCheck() == null ||
-                    !endpoint.getDefinition().getServices().getHealthCheck().isEnabled()
-                ) &&
-                (
-                    !isNull(endpoint.getGroup().getDefinition().getServices()) &&
-                    isServiceEnabled(endpoint.getGroup().getDefinition().getServices().getHealthCheck())
-                )
-            )
+                    !endpoint.getDefinition().getServices().getHealthCheck().isEnabled()) &&
+                (!isNull(endpoint.getGroup().getDefinition().getServices()) &&
+                    isServiceEnabled(endpoint.getGroup().getDefinition().getServices().getHealthCheck())))
         );
     }
 

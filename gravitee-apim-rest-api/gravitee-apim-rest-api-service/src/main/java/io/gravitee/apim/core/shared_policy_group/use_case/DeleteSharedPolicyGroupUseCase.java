@@ -47,8 +47,10 @@ public class DeleteSharedPolicyGroupUseCase {
     private final EventLatestCrudService eventLatestCrudService;
 
     public Output execute(Input input) {
-        var sharedPolicyGroupToDelete =
-            this.sharedPolicyGroupCrudService.getByEnvironmentId(input.auditInfo().environmentId(), input.sharedPolicyGroupId());
+        var sharedPolicyGroupToDelete = this.sharedPolicyGroupCrudService.getByEnvironmentId(
+            input.auditInfo().environmentId(),
+            input.sharedPolicyGroupId()
+        );
 
         publishUndeployEvent(input, sharedPolicyGroupToDelete);
 
@@ -66,8 +68,7 @@ public class DeleteSharedPolicyGroupUseCase {
 
     private void createAuditLog(SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
         auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity
-                .builder()
+            EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_DELETED)

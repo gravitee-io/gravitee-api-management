@@ -69,8 +69,7 @@ public class UserCommandHandlerTest {
         HashMap<String, Object> additionalInformation = new HashMap<>();
         additionalInformation.put("info1", "value1");
         additionalInformation.put("info2", "value2");
-        UserCommandPayload userPayload = UserCommandPayload
-            .builder()
+        UserCommandPayload userPayload = UserCommandPayload.builder()
             .id(sourceId)
             .organizationId("orga#1")
             .username("Username")
@@ -88,22 +87,22 @@ public class UserCommandHandlerTest {
         when(
             userService.create(
                 any(),
-                argThat(newUser ->
-                    newUser.getSourceId().equals(userPayload.id()) &&
-                    newUser.getSource().equals("cockpit") &&
-                    newUser.getFirstname().equals(userPayload.firstName()) &&
-                    newUser.getLastname().equals(userPayload.lastName()) &&
-                    newUser.getEmail().equals(userPayload.email()) &&
-                    newUser.getPicture().equals(userPayload.picture()) &&
-                    newUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
-                    newUser.getCustomFields().get("info2").equals(additionalInformation.get("info2")) &&
-                    newUser.getCustomFields().get(PICTURE).equals(userPayload.picture()) &&
-                    newUser.getCustomFields().get(SUB).equals(userPayload.username())
+                argThat(
+                    newUser ->
+                        newUser.getSourceId().equals(userPayload.id()) &&
+                        newUser.getSource().equals("cockpit") &&
+                        newUser.getFirstname().equals(userPayload.firstName()) &&
+                        newUser.getLastname().equals(userPayload.lastName()) &&
+                        newUser.getEmail().equals(userPayload.email()) &&
+                        newUser.getPicture().equals(userPayload.picture()) &&
+                        newUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
+                        newUser.getCustomFields().get("info2").equals(additionalInformation.get("info2")) &&
+                        newUser.getCustomFields().get(PICTURE).equals(userPayload.picture()) &&
+                        newUser.getCustomFields().get(SUB).equals(userPayload.username())
                 ),
                 eq(false)
             )
-        )
-            .thenReturn(new UserEntity());
+        ).thenReturn(new UserEntity());
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 
@@ -117,8 +116,7 @@ public class UserCommandHandlerTest {
         HashMap<String, Object> additionalInformation = new HashMap<>();
         additionalInformation.put("info1", "new_value1");
         additionalInformation.put("new_info3", "new_value3");
-        UserCommandPayload userPayload = UserCommandPayload
-            .builder()
+        UserCommandPayload userPayload = UserCommandPayload.builder()
             .id(sourceId)
             .organizationId("orga#1")
             .username("New Username")
@@ -149,19 +147,19 @@ public class UserCommandHandlerTest {
             userService.update(
                 any(),
                 eq("apim_user#1"),
-                argThat(updatedUser ->
-                    updatedUser.getFirstname().equals(userPayload.firstName()) &&
-                    updatedUser.getLastname().equals(userPayload.lastName()) &&
-                    updatedUser.getEmail().equals(userPayload.email()) &&
-                    updatedUser.getPicture().equals(userPayload.picture()) &&
-                    updatedUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
-                    updatedUser.getCustomFields().get("new_info3").equals(additionalInformation.get("new_info3")) &&
-                    updatedUser.getCustomFields().get(PICTURE).equals(userPayload.picture()) &&
-                    updatedUser.getCustomFields().get(SUB).equals(userPayload.username())
+                argThat(
+                    updatedUser ->
+                        updatedUser.getFirstname().equals(userPayload.firstName()) &&
+                        updatedUser.getLastname().equals(userPayload.lastName()) &&
+                        updatedUser.getEmail().equals(userPayload.email()) &&
+                        updatedUser.getPicture().equals(userPayload.picture()) &&
+                        updatedUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
+                        updatedUser.getCustomFields().get("new_info3").equals(additionalInformation.get("new_info3")) &&
+                        updatedUser.getCustomFields().get(PICTURE).equals(userPayload.picture()) &&
+                        updatedUser.getCustomFields().get(SUB).equals(userPayload.username())
                 )
             )
-        )
-            .thenReturn(new UserEntity());
+        ).thenReturn(new UserEntity());
 
         TestObserver<UserReply> obs = cut.handle(command).test();
 

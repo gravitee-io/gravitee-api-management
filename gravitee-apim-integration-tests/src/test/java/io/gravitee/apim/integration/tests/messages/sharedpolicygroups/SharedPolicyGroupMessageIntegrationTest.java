@@ -119,17 +119,14 @@ class SharedPolicyGroupMessageIntegrationTest {
 
             for (int i = 0; i < messageCount; i++) {
                 final int counter = i;
-                obs.assertValueAt(
-                    i,
-                    jsonObject -> {
-                        final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
-                        assertThat(messageCounter).isEqualTo(counter);
-                        assertThat(jsonObject.getString("content")).matches("message");
-                        assertThat(jsonObject.getJsonObject("headers").getJsonArray("X-Response-Header-Dev-0")).contains("Header Dev 0");
+                obs.assertValueAt(i, jsonObject -> {
+                    final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
+                    assertThat(messageCounter).isEqualTo(counter);
+                    assertThat(jsonObject.getString("content")).matches("message");
+                    assertThat(jsonObject.getJsonObject("headers").getJsonArray("X-Response-Header-Dev-0")).contains("Header Dev 0");
 
-                        return true;
-                    }
-                );
+                    return true;
+                });
             }
         }
     }
@@ -160,17 +157,14 @@ class SharedPolicyGroupMessageIntegrationTest {
 
             for (int i = 0; i < messageCount; i++) {
                 final int counter = i;
-                obs.assertValueAt(
-                    i,
-                    jsonObject -> {
-                        final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
-                        assertThat(messageCounter).isEqualTo(counter);
-                        assertThat(jsonObject.getString("content")).matches("message");
-                        assertThat(jsonObject.getString("headers")).doesNotContain("X-Response-Header-Dev");
+                obs.assertValueAt(i, jsonObject -> {
+                    final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
+                    assertThat(messageCounter).isEqualTo(counter);
+                    assertThat(jsonObject.getString("content")).matches("message");
+                    assertThat(jsonObject.getString("headers")).doesNotContain("X-Response-Header-Dev");
 
-                        return true;
-                    }
-                );
+                    return true;
+                });
             }
         }
 
@@ -196,25 +190,21 @@ class SharedPolicyGroupMessageIntegrationTest {
 
             for (int i = 0; i < messageCount; i++) {
                 final int counter = i;
-                obs.assertValueAt(
-                    i,
-                    jsonObject -> {
-                        final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
-                        assertThat(messageCounter).isEqualTo(counter);
-                        assertThat(jsonObject.getString("content")).matches("message");
-                        // Because of the condition, we expect only messages with even id to have the X-Response-Header-Dev-0 added
-                        final JsonObject headers = jsonObject.getJsonObject("headers");
-                        if (counter % 2 == 0) {
-                            assertThat(headers.getJsonArray("X-Response-Header-Dev-0").getList())
-                                .isEqualTo(List.of("I'm an even message!"));
-                        } else {
-                            assertThat(headers.getJsonArray("X-Response-Header-Dev-0")).isNull();
-                        }
-                        assertThat(headers.getJsonArray("X-Response-Header-Dev-1").getList()).isEqualTo(List.of("Header Dev 1"));
-
-                        return true;
+                obs.assertValueAt(i, jsonObject -> {
+                    final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
+                    assertThat(messageCounter).isEqualTo(counter);
+                    assertThat(jsonObject.getString("content")).matches("message");
+                    // Because of the condition, we expect only messages with even id to have the X-Response-Header-Dev-0 added
+                    final JsonObject headers = jsonObject.getJsonObject("headers");
+                    if (counter % 2 == 0) {
+                        assertThat(headers.getJsonArray("X-Response-Header-Dev-0").getList()).isEqualTo(List.of("I'm an even message!"));
+                    } else {
+                        assertThat(headers.getJsonArray("X-Response-Header-Dev-0")).isNull();
                     }
-                );
+                    assertThat(headers.getJsonArray("X-Response-Header-Dev-1").getList()).isEqualTo(List.of("Header Dev 1"));
+
+                    return true;
+                });
             }
         }
     }

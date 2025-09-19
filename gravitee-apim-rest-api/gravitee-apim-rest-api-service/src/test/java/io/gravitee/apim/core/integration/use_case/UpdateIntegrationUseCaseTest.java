@@ -84,12 +84,11 @@ class UpdateIntegrationUseCaseTest {
 
         var validateGroupDomainService = new ValidateGroupsDomainService(queryServiceInMemory);
 
-        usecase =
-            new UpdateIntegrationUseCase(
-                integrationCrudService,
-                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-                validateGroupDomainService
-            );
+        usecase = new UpdateIntegrationUseCase(
+            integrationCrudService,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            validateGroupDomainService
+        );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }

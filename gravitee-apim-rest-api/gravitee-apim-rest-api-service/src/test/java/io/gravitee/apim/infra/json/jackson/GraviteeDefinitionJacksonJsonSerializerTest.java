@@ -38,7 +38,8 @@ class GraviteeDefinitionJacksonJsonSerializerTest {
         var result = serializer.serialize(importDefinition);
 
         // Then
-        assertThatJson(result)
-            .isEqualTo(IOUtils.toString(new FileInputStream("src/test/resources/export/export_proxy.json"), StandardCharsets.UTF_8));
+        assertThatJson(result).isEqualTo(
+            IOUtils.toString(new FileInputStream("src/test/resources/export/export_proxy.json"), StandardCharsets.UTF_8)
+        );
     }
 }

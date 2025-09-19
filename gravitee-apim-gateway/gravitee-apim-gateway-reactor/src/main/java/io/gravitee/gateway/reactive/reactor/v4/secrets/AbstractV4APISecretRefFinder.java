@@ -59,15 +59,13 @@ public abstract class AbstractV4APISecretRefFinder<D> implements DefinitionSecre
     }
 
     protected void processPlanConfiguration(DefinitionSecretRefsListener listener, AbstractPlan plan) {
-        Optional
-            .ofNullable(plan.getSecurity())
-            .ifPresent(security ->
-                listener.onCandidate(
-                    security.getConfiguration(),
-                    new SecretRefsLocation(PLUGIN_KIND, security.getType()),
-                    security::setConfiguration
-                )
-            );
+        Optional.ofNullable(plan.getSecurity()).ifPresent(security ->
+            listener.onCandidate(
+                security.getConfiguration(),
+                new SecretRefsLocation(PLUGIN_KIND, security.getType()),
+                security::setConfiguration
+            )
+        );
     }
 
     protected void processStep(DefinitionSecretRefsListener listener, Step step) {
@@ -78,15 +76,13 @@ public abstract class AbstractV4APISecretRefFinder<D> implements DefinitionSecre
         DefinitionSecretRefsListener listener,
         AbstractEndpointGroup<T> endpointGroup
     ) {
-        Optional
-            .ofNullable(endpointGroup.getSharedConfiguration())
-            .ifPresent(payload ->
-                listener.onCandidate(
-                    payload,
-                    new SecretRefsLocation(PLUGIN_KIND, endpointGroup.getType()),
-                    endpointGroup::setSharedConfiguration
-                )
-            );
+        Optional.ofNullable(endpointGroup.getSharedConfiguration()).ifPresent(payload ->
+            listener.onCandidate(
+                payload,
+                new SecretRefsLocation(PLUGIN_KIND, endpointGroup.getType()),
+                endpointGroup::setSharedConfiguration
+            )
+        );
         return safeStream(endpointGroup.getEndpoints());
     }
 

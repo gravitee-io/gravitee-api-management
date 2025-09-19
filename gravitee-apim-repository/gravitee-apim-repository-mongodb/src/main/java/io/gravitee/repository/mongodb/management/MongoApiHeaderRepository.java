@@ -103,13 +103,19 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
     @Override
     public Set<ApiHeader> findAll() throws TechnicalException {
         final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findAll();
-        return apiHeaders.stream().map(apiHeaderMongo -> mapper.map(apiHeaderMongo)).collect(Collectors.toSet());
+        return apiHeaders
+            .stream()
+            .map(apiHeaderMongo -> mapper.map(apiHeaderMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override
     public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
         final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findByEnvironmentId(environmentId);
-        return apiHeaders.stream().map(apiHeaderMongo -> mapper.map(apiHeaderMongo)).collect(Collectors.toSet());
+        return apiHeaders
+            .stream()
+            .map(apiHeaderMongo -> mapper.map(apiHeaderMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override

@@ -66,8 +66,7 @@ public class CloseExpiredSubscriptionsUseCase {
             .map(subscription -> {
                 var environment = environmentCrudService.get(apis.get(subscription.getApiId()).getEnvironmentId());
 
-                var auditInfo = AuditInfo
-                    .builder()
+                var auditInfo = AuditInfo.builder()
                     .organizationId(environment.getOrganizationId())
                     .environmentId(environment.getId())
                     .actor(input.auditActor)

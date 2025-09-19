@@ -51,8 +51,7 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
 
     @Override
     protected JdbcObjectMapper<AlertEvent> buildOrm() {
-        return JdbcObjectMapper
-            .builder(AlertEvent.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(AlertEvent.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("alert", Types.NVARCHAR, String.class)
             .addColumn("message", Types.NVARCHAR, String.class)

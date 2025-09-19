@@ -62,14 +62,13 @@ public class ApiDefinitionContextResourceTest extends AbstractResourceTest {
     public void shouldReturn200AndSetDefinitionContext() {
         Response response = envTarget(API_ID).path(DEFINITION_CONTEXT_PATH).request().put(json(newKubernetesContext()));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        verify(definitionContextService)
-            .setDefinitionContext(
-                eq(API_ID),
-                argThat(context -> {
-                    assertThat(context).usingRecursiveComparison().isEqualTo(newKubernetesContext());
-                    return true;
-                })
-            );
+        verify(definitionContextService).setDefinitionContext(
+            eq(API_ID),
+            argThat(context -> {
+                assertThat(context).usingRecursiveComparison().isEqualTo(newKubernetesContext());
+                return true;
+            })
+        );
     }
 
     @Test

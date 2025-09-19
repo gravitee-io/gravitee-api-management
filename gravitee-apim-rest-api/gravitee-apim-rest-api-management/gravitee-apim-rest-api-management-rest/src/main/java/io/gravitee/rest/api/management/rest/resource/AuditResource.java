@@ -122,8 +122,9 @@ public class AuditResource extends AbstractResource {
     )
     public Response getAuditEvents() {
         if (events.isEmpty()) {
-            Set<Class<? extends Audit.AuditEvent>> subTypesOf = new Reflections("io.gravitee.repository.management.model")
-                .getSubTypesOf(Audit.AuditEvent.class);
+            Set<Class<? extends Audit.AuditEvent>> subTypesOf = new Reflections("io.gravitee.repository.management.model").getSubTypesOf(
+                Audit.AuditEvent.class
+            );
             for (Class<? extends Audit.AuditEvent> clazz : subTypesOf) {
                 if (clazz.isEnum()) {
                     events.addAll(Arrays.asList(clazz.getEnumConstants()));

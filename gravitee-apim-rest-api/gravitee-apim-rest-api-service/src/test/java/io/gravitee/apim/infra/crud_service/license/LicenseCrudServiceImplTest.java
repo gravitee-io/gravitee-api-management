@@ -86,8 +86,7 @@ class LicenseCrudServiceImplTest {
         assertThat(captor.getValue())
             .usingRecursiveComparison()
             .isEqualTo(
-                io.gravitee.repository.management.model.License
-                    .builder()
+                io.gravitee.repository.management.model.License.builder()
                     .referenceId("new")
                     .referenceType(io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
                     .license("new license")
@@ -110,8 +109,7 @@ class LicenseCrudServiceImplTest {
         assertThat(captor.getValue())
             .usingRecursiveComparison()
             .isEqualTo(
-                io.gravitee.repository.management.model.License
-                    .builder()
+                io.gravitee.repository.management.model.License.builder()
                     .referenceId(license.getReferenceId())
                     .referenceType(io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
                     .license("updated license")
@@ -125,13 +123,11 @@ class LicenseCrudServiceImplTest {
     private void givenOrganizationLicense(License license) {
         when(
             licenseRepository.findById(license.getReferenceId(), io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
-        )
-            .thenReturn(Optional.of(LicenseAdapter.INSTANCE.toRepository(license)));
+        ).thenReturn(Optional.of(LicenseAdapter.INSTANCE.toRepository(license)));
     }
 
     private License anOrganizationLicense() {
-        return License
-            .builder()
+        return License.builder()
             .referenceType(License.ReferenceType.ORGANIZATION)
             .referenceId("organization-id")
             .license("fakeLicenseFileAsBase64")

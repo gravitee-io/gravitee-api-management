@@ -137,7 +137,8 @@ public class Plan implements GenericPlanEntity {
 
     @Override
     public PlanStatus getPlanStatus() {
-        return switch (definitionVersion) { // null
+        return switch (definitionVersion) {
+            // null
             case V4 -> getPlanDefinitionV4().getStatus();
             case V1, V2 -> PlanStatus.valueOf(planDefinitionV2.getStatus());
             case FEDERATED, FEDERATED_AGENT -> federatedPlanDefinition.getStatus();

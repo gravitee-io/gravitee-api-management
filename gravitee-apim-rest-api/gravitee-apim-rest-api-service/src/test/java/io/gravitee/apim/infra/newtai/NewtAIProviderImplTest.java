@@ -48,8 +48,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class NewtAIProviderImplTest {
 
-    public static final InstallationEntity INSTALLATION_ENTITY = InstallationEntity
-        .builder()
+    public static final InstallationEntity INSTALLATION_ENTITY = InstallationEntity.builder()
         .additionalInformation(Map.of(InstallationService.COCKPIT_INSTALLATION_ID, "installationId"))
         .build();
 

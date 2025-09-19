@@ -91,44 +91,41 @@ public class SearchResponseStatusRangesAdapter {
                     .<ObjectNode>set("terms", json().put(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword"))
                     .<ObjectNode>set(
                         "aggs",
-                        json()
-                            .set(
-                                STATUS_RANGES,
+                        json().set(
+                            STATUS_RANGES,
+                            json().set(
+                                "range",
                                 json()
+                                    .put(FIELD, "status")
                                     .set(
-                                        "range",
-                                        json()
-                                            .put(FIELD, "status")
-                                            .set(
-                                                "ranges",
-                                                array()
-                                                    .add(json().put("from", 100.0).put("to", 200.0))
-                                                    .add(json().put("from", 200.0).put("to", 300.0))
-                                                    .add(json().put("from", 300.0).put("to", 400.0))
-                                                    .add(json().put("from", 400.0).put("to", 500.0))
-                                                    .add(json().put("from", 500.0).put("to", 600.0))
-                                            )
+                                        "ranges",
+                                        array()
+                                            .add(json().put("from", 100.0).put("to", 200.0))
+                                            .add(json().put("from", 200.0).put("to", 300.0))
+                                            .add(json().put("from", 300.0).put("to", 400.0))
+                                            .add(json().put("from", 400.0).put("to", 500.0))
+                                            .add(json().put("from", 500.0).put("to", 600.0))
                                     )
                             )
+                        )
                     )
             )
             .set(
                 ALL_APIS_STATUS_RANGES,
-                json()
-                    .set(
-                        "range",
-                        json()
-                            .put(FIELD, "status")
-                            .set(
-                                "ranges",
-                                array()
-                                    .add(json().put("from", 100.0).put("to", 200.0))
-                                    .add(json().put("from", 200.0).put("to", 300.0))
-                                    .add(json().put("from", 300.0).put("to", 400.0))
-                                    .add(json().put("from", 400.0).put("to", 500.0))
-                                    .add(json().put("from", 500.0).put("to", 600.0))
-                            )
-                    )
+                json().set(
+                    "range",
+                    json()
+                        .put(FIELD, "status")
+                        .set(
+                            "ranges",
+                            array()
+                                .add(json().put("from", 100.0).put("to", 200.0))
+                                .add(json().put("from", 200.0).put("to", 300.0))
+                                .add(json().put("from", 300.0).put("to", 400.0))
+                                .add(json().put("from", 400.0).put("to", 500.0))
+                                .add(json().put("from", 500.0).put("to", 600.0))
+                        )
+                )
             );
     }
 
@@ -160,8 +157,7 @@ public class SearchResponseStatusRangesAdapter {
             .collect(Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> jsonNode.get("doc_count").asLong()));
 
         return Optional.of(
-            ResponseStatusRangesAggregate
-                .builder()
+            ResponseStatusRangesAggregate.builder()
                 .statusRangesCountByEntrypoint(statusRangesByEntrypoints)
                 .ranges(allApisStatusRanges)
                 .build()

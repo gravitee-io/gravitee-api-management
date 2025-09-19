@@ -128,8 +128,7 @@ public class ApiKeyEntity {
             throw new SubscriptionClosedException(subscription.getId());
         }
 
-        return ApiKeyEntity
-            .builder()
+        return ApiKeyEntity.builder()
             .id(UuidString.generateRandom())
             .applicationId(subscription.getApplicationId())
             .createdAt(now)

@@ -67,11 +67,10 @@ class DeprecatePlanDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-            new DeprecatePlanDomainService(
-                planCrudService,
-                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
-            );
+        service = new DeprecatePlanDomainService(
+            planCrudService,
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
+        );
     }
 
     @AfterEach
@@ -91,8 +90,7 @@ class DeprecatePlanDomainServiceTest {
         assertThat(planCrudService.storage().get(0))
             .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
             .isEqualTo(
-                PlanFixtures.HttpV4
-                    .anApiKey()
+                PlanFixtures.HttpV4.anApiKey()
                     .toBuilder()
                     .planDefinitionHttpV4(
                         PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.DEPRECATED).build()
@@ -114,8 +112,7 @@ class DeprecatePlanDomainServiceTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
@@ -133,12 +130,10 @@ class DeprecatePlanDomainServiceTest {
     void should_throw_when_plan_already_closed() {
         // Given
         var plan = givenExistingPlan(
-            PlanFixtures.HttpV4
-                .anApiKey()
+            PlanFixtures.HttpV4.anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
-                    PlanFixtures.HttpV4
-                        .anApiKey()
+                    PlanFixtures.HttpV4.anApiKey()
                         .getPlanDefinitionHttpV4()
                         .toBuilder()
                         .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
@@ -160,8 +155,7 @@ class DeprecatePlanDomainServiceTest {
     void should_throw_when_plan_already_deprecated() {
         // Given
         var plan = givenExistingPlan(
-            PlanFixtures.HttpV4
-                .anApiKey()
+            PlanFixtures.HttpV4.anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
                     PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.DEPRECATED).build()
@@ -182,8 +176,7 @@ class DeprecatePlanDomainServiceTest {
     void should_throw_when_plan_in_staging_and_staging_not_allowed() {
         // Given
         var plan = givenExistingPlan(
-            PlanFixtures.HttpV4
-                .anApiKey()
+            PlanFixtures.HttpV4.anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
                     PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.STAGING).build()
@@ -204,8 +197,7 @@ class DeprecatePlanDomainServiceTest {
     void should_deprecate_a_plan_in_staging_with_staging_allowed() {
         // Given
         var plan = givenExistingPlan(
-            PlanFixtures.HttpV4
-                .anApiKey()
+            PlanFixtures.HttpV4.anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
                     PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.STAGING).build()
@@ -220,8 +212,7 @@ class DeprecatePlanDomainServiceTest {
         assertThat(planCrudService.storage().get(0))
             .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
             .isEqualTo(
-                PlanFixtures.HttpV4
-                    .anApiKey()
+                PlanFixtures.HttpV4.anApiKey()
                     .toBuilder()
                     .planDefinitionHttpV4(
                         PlanFixtures.HttpV4.anApiKey().getPlanDefinitionHttpV4().toBuilder().status(PlanStatus.DEPRECATED).build()
