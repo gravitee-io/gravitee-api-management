@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.rest.api.portal.rest.model;
 
-import io.gravitee.repository.management.model.PortalPage;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
- * @author GraviteeSource Team
+ * Simple response payload for Portal Homepage endpoint.
  */
-public interface PortalPageRepository extends CrudRepository<PortalPage, String> {
-    List<PortalPage> findByIds(List<String> ids);
+@Getter
+@Setter
+@Accessors(chain = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class PortalHomepage {
 
-    /**
-     * Returns pages with the expand field for the given ids.
-     */
-    List<PortalPage> findByIdsWithExpand(List<String> ids, List<String> expand);
+    private String id;
+    private String name;
+    private Date createdAt;
+    private Date updatedAt;
+    private String content;
+    private String type;
 }

@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
+package io.gravitee.repository.mongodb.management.internal.portalpage;
 
-import io.gravitee.repository.management.model.PortalPage;
+import io.gravitee.repository.mongodb.management.internal.model.PortalPageMongo;
 import java.util.List;
 
-/**
- * @author GraviteeSource Team
- */
-public interface PortalPageRepository extends CrudRepository<PortalPage, String> {
-    List<PortalPage> findByIds(List<String> ids);
-
-    /**
-     * Returns pages with the expand field for the given ids.
-     */
-    List<PortalPage> findByIdsWithExpand(List<String> ids, List<String> expand);
+public interface PortalPageMongoRepositoryCustom {
+    List<PortalPageMongo> findPortalPagesByIdWithExpand(List<String> ids, List<String> expand);
 }

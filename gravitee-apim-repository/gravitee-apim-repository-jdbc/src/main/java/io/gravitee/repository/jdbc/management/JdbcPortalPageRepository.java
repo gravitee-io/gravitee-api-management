@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.repository.management.model.PortalPage;
 import java.sql.Types;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +75,40 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
             return jdbcTemplate.query(sql.toString(), getOrm().getRowMapper(), ids.toArray());
         } catch (Exception ex) {
             LOGGER.error("Failed to find PortalPages by ids {}", ids, ex);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<PortalPage> findByIdsWithExpand(List<String> ids, List<String> expand) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        try {
+            var selected = new LinkedHashSet<String>();
+            selected.add("id");
+            if (expand != null) {
+                for (String e : expand) {
+                    if (e != null) {
+                        var col = e.trim();
+                        if (!col.isEmpty()) {
+                            selected.add(col);
+                        }
+                    }
+                }
+            }
+
+            String columns = String.join(", ", selected);
+            var sql = new StringBuilder("SELECT " + columns + " FROM " + this.tableName);
+            getOrm().buildInCondition(true, sql, "id", ids);
+            var results = jdbcTemplate.query(sql.toString(), getOrm().getRowMapper(), ids.toArray());
+
+            if (!selected.contains("content")) {
+                results.forEach(p -> p.setContent(null));
+            }
+            return results;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to find PortalPages by ids {} with expand {}", ids, expand, ex);
             return List.of();
         }
     }

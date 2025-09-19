@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.annotation.Nonnull;
 import java.util.UUID;
 
@@ -37,6 +38,11 @@ public class PageId {
 
     public UUID id() {
         return id;
+    }
+
+    @JsonValue
+    public String json() {
+        return this.toString();
     }
 
     @Override

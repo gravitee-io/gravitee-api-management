@@ -119,4 +119,26 @@ public class MongoPortalPageRepository implements PortalPageRepository {
         List<PortalPageMongo> portalPages = internalRepo.findAllById(ids);
         return portalPages.stream().map(this::map).collect(Collectors.toList());
     }
+
+    @Override
+    public List<PortalPage> findByIdsWithExpand(List<String> ids, List<String> expand) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        var projections = internalRepo.findPortalPagesByIdWithExpand(ids, expand);
+        return projections
+            .stream()
+            .map(p -> {
+                var builder = PortalPage
+                    .builder()
+                    .id(p.getId())
+                    .environmentId(p.getEnvironmentId())
+                    .name(p.getName())
+                    .createdAt(p.getCreatedAt())
+                    .updatedAt(p.getUpdatedAt())
+                    .content(p.getContent());
+                return builder.build();
+            })
+            .collect(Collectors.toList());
+    }
 }

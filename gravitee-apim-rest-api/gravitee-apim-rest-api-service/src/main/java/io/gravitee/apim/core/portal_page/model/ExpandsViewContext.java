@@ -15,16 +15,32 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import javax.annotation.Nonnull;
 
-public record GraviteeMarkdown(@Nonnull String content) {
-    public boolean isEmpty() {
-        return content.isBlank();
+public enum ExpandsViewContext {
+    CONTENT("content"),
+    CREATED_AT("createdAt"),
+    UPDATED_AT("updatedAt");
+
+    private final String value;
+
+    ExpandsViewContext(String value) {
+        this.value = value;
     }
 
     @JsonValue
-    public String asString() {
-        return content();
+    public String getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static ExpandsViewContext fromValue(String value) {
+        for (ExpandsViewContext e : values()) {
+            if (e.value.equalsIgnoreCase(value)) {
+                return e;
+            }
+        }
+        throw new IllegalArgumentException("Unknown expand: " + value);
     }
 }

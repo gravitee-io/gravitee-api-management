@@ -32,7 +32,10 @@ public interface PortalPageAdapter {
             return null;
         }
 
-        return new io.gravitee.apim.core.portal_page.model.PortalPage(mapId(portalPage.getId()), mapContent(portalPage.getContent()));
+        var core = new io.gravitee.apim.core.portal_page.model.PortalPage(mapId(portalPage.getId()), mapContent(portalPage.getContent()));
+        core.setCreatedAt(portalPage.getCreatedAt());
+        core.setUpdatedAt(portalPage.getUpdatedAt());
+        return core;
     }
 
     @Mapping(target = "content", source = "pageContent.content")
@@ -64,6 +67,9 @@ public interface PortalPageAdapter {
         if (value == null) {
             return null;
         }
-        return new io.gravitee.apim.core.portal_page.model.PortalPage(mapId(value.getId()), mapContent(value.getContent()));
+        var core = new io.gravitee.apim.core.portal_page.model.PortalPage(mapId(value.getId()), mapContent(value.getContent()));
+        core.setCreatedAt(value.getCreatedAt());
+        core.setUpdatedAt(value.getUpdatedAt());
+        return core;
     }
 }

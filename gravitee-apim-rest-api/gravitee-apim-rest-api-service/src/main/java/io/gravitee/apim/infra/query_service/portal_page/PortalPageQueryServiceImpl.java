@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.query_service.portal_page;
 
+import io.gravitee.apim.core.portal_page.model.ExpandsViewContext;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
@@ -48,17 +49,20 @@ public class PortalPageQueryServiceImpl implements PortalPageQueryService {
     }
 
     @Override
-    public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
+    public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(
+        String environmentId,
+        PortalViewContext context,
+        List<ExpandsViewContext> expand
+    ) {
         try {
             var pagesContext = contextRepository
                 .findAllByContextTypeAndEnvironmentId(PortalPageContextType.valueOf(context.name()), environmentId)
                 .stream()
                 .collect(Collectors.toMap(PortalPageContext::getPageId, Function.identity()));
-            var pages = pageRepository
-                .findByIds(pagesContext.keySet().stream().toList())
-                .stream()
-                .collect(Collectors.toMap(PortalPage::getId, p -> p));
-            return pages
+            var ids = pagesContext.keySet().stream().toList();
+            List<PortalPage> pages = pageRepository.findByIdsWithExpand(ids, expand.stream().map(ExpandsViewContext::getValue).toList());
+            var pagesById = pages.stream().collect(Collectors.toMap(PortalPage::getId, p -> p));
+            return pagesById
                 .entrySet()
                 .stream()
                 .map(e -> new PortalPageWithViewDetails(pageAdapter.map(e.getValue()), pageAdapter.map(pagesContext.get(e.getKey()))))

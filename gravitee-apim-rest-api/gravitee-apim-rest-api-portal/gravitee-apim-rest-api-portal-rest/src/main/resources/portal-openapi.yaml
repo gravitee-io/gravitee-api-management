@@ -43,6 +43,69 @@ security:
     - CookieAuth: []
 
 paths:
+    /portal-pages:
+        get:
+            tags:
+                - Portal
+            summary: Get Portal page
+            description: Returns a Portal page based on the provided type. Use expands=content to include the page content.
+            operationId: getPortalHomepage
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - in: query
+                  name: type
+                  description: Type of portal page to retrieve (e.g., HOMEPAGE)
+                  required: true
+                  schema:
+                      type: string
+                - in: query
+                  name: expands
+                  description: Expand options. Use "content" to include the page content.
+                  required: false
+                  schema:
+                      type: string
+                      enum: [content]
+            responses:
+                200:
+                    description: Portal page found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    id:
+                                        type: string
+                                        description: ID of the portal page
+                                    name:
+                                        type: string
+                                        description: Name of the portal page
+                                        nullable: true
+                                    createdAt:
+                                        type: string
+                                        format: date-time
+                                        description: Creation date of the portal page
+                                        nullable: true
+                                    updatedAt:
+                                        type: string
+                                        format: date-time
+                                        description: Last update date of the portal page
+                                        nullable: true
+                                    content:
+                                        type: string
+                                        description: Markdown content of the portal page (present only if expands=content)
+                                        nullable: true
+                                    type:
+                                        type: string
+                                        description: Content type
+                                        enum: [GRAVITEE_MARKDOWN]
+                                required: [id, type]
+                404:
+                    description: Portal page not found or not published/accessible
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /apis:
         get:
             tags:
