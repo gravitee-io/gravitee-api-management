@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input } from "@angular/core";
-import { MatTooltip } from "@angular/material/tooltip";
-import { MatIcon } from "@angular/material/icon";
-import { DecimalPipe } from "@angular/common";
+import { Component, computed, input, inject } from '@angular/core';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatIcon } from '@angular/material/icon';
+import { formatNumber } from '@angular/common';
 
-import { FormatDurationPipe } from "../../pipes/format-duration.pipe";
-import { FormatNumberPipe } from "../../pipes/format-number.pipe";
+import { FormatDurationPipe } from '../../pipes/format-duration.pipe';
+import { FormatNumberPipe } from '../../pipes/format-number.pipe';
 
 export type StatsUnitType = 'ms';
 
@@ -27,10 +27,46 @@ export type StatsWidgetData = { stats: number; statsUnit: StatsUnitType };
 
 @Component({
   selector: 'analytics-stats',
-  imports: [FormatDurationPipe, FormatNumberPipe, MatTooltip, MatIcon, DecimalPipe],
+  imports: [MatTooltip, MatIcon],
+  providers: [FormatDurationPipe, FormatNumberPipe],
   templateUrl: './analytics-stats.component.html',
   styleUrl: './analytics-stats.component.scss',
 })
 export class AnalyticsStatsComponent {
   input = input<StatsWidgetData>();
+
+  private readonly formatDurationPipe = inject(FormatDurationPipe);
+  private readonly formatNumberPipe = inject(FormatNumberPipe);
+
+  public statsFormatted = computed(() => {
+    const { stats, statsUnit } = this.input();
+
+    if (stats == null) {
+      return '-';
+    }
+
+    return statsUnit === 'ms' ? this.formatDurationPipe.transform(stats) : this.formatNumberPipe.transform(stats);
+  });
+
+  public tooltipText = computed(() => {
+    const { stats, statsUnit } = this.input();
+
+    if (stats == null) {
+      return '';
+    }
+
+    const formattedStats = formatNumber(stats, 'en-US');
+
+    return statsUnit === 'ms' ? `${formattedStats} ${statsUnit}` : formattedStats;
+  });
+
+  public isTooltipShown = computed(() => {
+    const { stats } = this.input();
+
+    if (stats == null) {
+      return false;
+    }
+
+    return stats.toString().length > 3;
+  });
 }
