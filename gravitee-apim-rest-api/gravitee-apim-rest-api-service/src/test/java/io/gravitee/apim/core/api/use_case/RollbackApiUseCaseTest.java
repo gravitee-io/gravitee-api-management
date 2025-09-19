@@ -160,15 +160,14 @@ class RollbackApiUseCaseTest {
     void setUp() {
         var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var closePlanDomainService = new ClosePlanDomainService(planCrudService, subscriptionCrudService, auditDomainService);
-        this.apiPrimaryOwnerDomainService =
-            new ApiPrimaryOwnerDomainService(
-                auditDomainService,
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            );
+        this.apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
+            auditDomainService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
         var apiIndexerDomainService = new ApiIndexerDomainService(
             new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
             this.apiPrimaryOwnerDomainService,
@@ -176,22 +175,21 @@ class RollbackApiUseCaseTest {
             indexer
         );
 
-        useCase =
-            new RollbackApiUseCase(
-                eventQueryService,
-                apiCrudService,
-                updateApiDomainService,
-                planQueryService,
-                createPlanDomainService,
-                updatePlanDomainService,
-                closePlanDomainService,
-                planCrudService,
-                auditDomainService,
-                flowCrudService,
-                apiIndexerDomainService,
-                this.apiPrimaryOwnerDomainService,
-                apiStateDomainService
-            );
+        useCase = new RollbackApiUseCase(
+            eventQueryService,
+            apiCrudService,
+            updateApiDomainService,
+            planQueryService,
+            createPlanDomainService,
+            updatePlanDomainService,
+            closePlanDomainService,
+            planCrudService,
+            auditDomainService,
+            flowCrudService,
+            apiIndexerDomainService,
+            this.apiPrimaryOwnerDomainService,
+            apiStateDomainService
+        );
 
         this.initializePrimaryOwnerData();
 
@@ -202,20 +200,18 @@ class RollbackApiUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                auditCrudService,
-                eventCrudService,
-                eventQueryService,
-                planCrudService,
-                planQueryService,
-                userCrudService,
-                subscriptionCrudService,
-                apiCrudService,
-                subscriptionQueryService,
-                flowCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            auditCrudService,
+            eventCrudService,
+            eventQueryService,
+            planCrudService,
+            planQueryService,
+            userCrudService,
+            subscriptionCrudService,
+            apiCrudService,
+            subscriptionQueryService,
+            flowCrudService
+        ).forEach(InMemoryAlternative::reset);
         reset(delegateApiService);
     }
 
@@ -275,8 +271,7 @@ class RollbackApiUseCaseTest {
     @Test
     void should_not_rollback_api_when_api_definition_version_is_federated() {
         // Given
-        var event = Event
-            .builder()
+        var event = Event.builder()
             .id("event-id")
             .type(EventType.PUBLISH_API)
             .environments(Set.of(ENVIRONMENT_ID))
@@ -294,8 +289,7 @@ class RollbackApiUseCaseTest {
     @Test
     void should_not_rollback_api_when_api_definition_version_is_not_v4() {
         // Given
-        var event = Event
-            .builder()
+        var event = Event.builder()
             .id("event-id")
             .type(EventType.PUBLISH_API)
             .environments(Set.of(ENVIRONMENT_ID))
@@ -315,15 +309,13 @@ class RollbackApiUseCaseTest {
         // Given
 
         // Api definition contained in the Api repository
-        var eventApiDefinition = io.gravitee.definition.model.v4.Api
-            .builder()
+        var eventApiDefinition = io.gravitee.definition.model.v4.Api.builder()
             .id(existingApi.getId())
             .name("api-previous-name")
             .apiVersion("api-previous-version")
             .listeners(
                 List.of(
-                    io.gravitee.definition.model.v4.listener.http.HttpListener
-                        .builder()
+                    io.gravitee.definition.model.v4.listener.http.HttpListener.builder()
                         .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path("/api-previous-path").build()))
                         .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                         .build()
@@ -333,8 +325,7 @@ class RollbackApiUseCaseTest {
             .build();
 
         // Api repository contained in the Event payload
-        var apiRepositoryModel = io.gravitee.repository.management.model.Api
-            .builder()
+        var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
             .id(eventApiDefinition.getId())
             .name(eventApiDefinition.getName())
             .version(eventApiDefinition.getApiVersion())
@@ -345,8 +336,7 @@ class RollbackApiUseCaseTest {
             .build();
 
         // Event
-        var event = Event
-            .builder()
+        var event = Event.builder()
             .id("event-id")
             .type(EventType.PUBLISH_API)
             .environments(Set.of(ENVIRONMENT_ID))
@@ -363,49 +353,46 @@ class RollbackApiUseCaseTest {
                 eq(false),
                 eq(USER_ID)
             )
-        )
-            .thenAnswer(invocation -> {
-                var api = apiCrudService.get(existingApi.getId());
-                api.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
-                apiCrudService.update(api);
-                return ApiModelFixtures
-                    .aModelHttpApiV4()
-                    .toBuilder()
-                    .id(existingApi.getId())
-                    .updatedAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))
-                    .build();
-            });
+        ).thenAnswer(invocation -> {
+            var api = apiCrudService.get(existingApi.getId());
+            api.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+            apiCrudService.update(api);
+            return ApiModelFixtures.aModelHttpApiV4()
+                .toBuilder()
+                .id(existingApi.getId())
+                .updatedAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))
+                .build();
+        });
 
         // When
         useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
 
         // Then
-        verify(delegateApiService)
-            .update(
-                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                eq(existingApi.getId()),
-                argThat(updateApiEntity -> {
-                    // Rollbacked with previous values
-                    assertThat(updateApiEntity.getName()).isEqualTo("api-previous-name");
-                    assertThat(updateApiEntity.getApiVersion()).isEqualTo("api-previous-version");
-                    assertThat(updateApiEntity.getListeners().getFirst().getEntrypoints().getFirst())
-                        .isEqualTo(Entrypoint.builder().type("http-proxy").configuration("{}").build());
-                    assertThat(
-                        ((io.gravitee.definition.model.v4.listener.http.HttpListener) updateApiEntity.getListeners().getFirst()).getPaths()
-                            .getFirst()
-                            .getPath()
-                    )
-                        .isEqualTo("/api-previous-path");
-                    assertThat(updateApiEntity.getFlows()).map(AbstractFlow::getName).first().isEqualTo("api-previous-flow-name");
+        verify(delegateApiService).update(
+            eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+            eq(existingApi.getId()),
+            argThat(updateApiEntity -> {
+                // Rollbacked with previous values
+                assertThat(updateApiEntity.getName()).isEqualTo("api-previous-name");
+                assertThat(updateApiEntity.getApiVersion()).isEqualTo("api-previous-version");
+                assertThat(updateApiEntity.getListeners().getFirst().getEntrypoints().getFirst()).isEqualTo(
+                    Entrypoint.builder().type("http-proxy").configuration("{}").build()
+                );
+                assertThat(
+                    ((io.gravitee.definition.model.v4.listener.http.HttpListener) updateApiEntity.getListeners().getFirst()).getPaths()
+                        .getFirst()
+                        .getPath()
+                ).isEqualTo("/api-previous-path");
+                assertThat(updateApiEntity.getFlows()).map(AbstractFlow::getName).first().isEqualTo("api-previous-flow-name");
 
-                    // Not rollbacked
-                    assertThat(updateApiEntity.getDescription()).isEqualTo("api-previous-api-description");
-                    assertThat(updateApiEntity.getVisibility().name()).isEqualTo(existingApi.getVisibility().name());
-                    return true;
-                }),
-                eq(false),
-                eq(USER_ID)
-            );
+                // Not rollbacked
+                assertThat(updateApiEntity.getDescription()).isEqualTo("api-previous-api-description");
+                assertThat(updateApiEntity.getVisibility().name()).isEqualTo(existingApi.getVisibility().name());
+                return true;
+            }),
+            eq(false),
+            eq(USER_ID)
+        );
 
         assertRollbackAuditHasBeenCreated();
     }
@@ -416,8 +403,7 @@ class RollbackApiUseCaseTest {
 
         // Existing plan
         Plan existingPlanToUpdate = givenExistingPlan(
-            PlanFixtures
-                .aPlanHttpV4()
+            PlanFixtures.aPlanHttpV4()
                 .toBuilder()
                 .id("plan-to-update")
                 .apiId(existingApi.getId())
@@ -430,8 +416,7 @@ class RollbackApiUseCaseTest {
             PlanFixtures.aPlanHttpV4().toBuilder().id("plan-to-close").apiId(existingApi.getId()).name("plan-to-close-name").build()
         );
         Plan existingPlanToRepublish = givenExistingPlan(
-            PlanFixtures
-                .aPlanHttpV4()
+            PlanFixtures.aPlanHttpV4()
                 .toBuilder()
                 .id("plan-to-republish")
                 .apiId(existingApi.getId())
@@ -441,16 +426,14 @@ class RollbackApiUseCaseTest {
         );
 
         // Api definition contained in the Api repository
-        var eventApiDefinition = io.gravitee.definition.model.v4.Api
-            .builder()
+        var eventApiDefinition = io.gravitee.definition.model.v4.Api.builder()
             .id(existingApi.getId())
             .name("api-name")
             .apiVersion("1.0.0")
             .plans(
                 Map.of(
                     "plan-to-add",
-                    io.gravitee.definition.model.v4.plan.Plan
-                        .builder()
+                    io.gravitee.definition.model.v4.plan.Plan.builder()
                         .id("plan-to-add")
                         .name("plan-to-add-name")
                         .status(PlanStatus.PUBLISHED)
@@ -460,16 +443,14 @@ class RollbackApiUseCaseTest {
                         .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("KEY_LESS").build())
                         .build(),
                     "plan-to-update",
-                    io.gravitee.definition.model.v4.plan.Plan
-                        .builder()
+                    io.gravitee.definition.model.v4.plan.Plan.builder()
                         .id(existingPlanToUpdate.getId())
                         .name("plan-to-update-name-UPDATED")
                         .status(PlanStatus.PUBLISHED)
                         .flows(List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("plan-to-update-new-flow").build()))
                         .build(),
                     "plan-to-republish",
-                    io.gravitee.definition.model.v4.plan.Plan
-                        .builder()
+                    io.gravitee.definition.model.v4.plan.Plan.builder()
                         .id(existingPlanToRepublish.getId())
                         .status(PlanStatus.PUBLISHED)
                         .name("plan-to-republish-name")
@@ -479,8 +460,7 @@ class RollbackApiUseCaseTest {
             .build();
 
         // Api repository contained in the Event payload
-        var apiRepositoryModel = io.gravitee.repository.management.model.Api
-            .builder()
+        var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
             .id(eventApiDefinition.getId())
             .name(eventApiDefinition.getName())
             .version(eventApiDefinition.getApiVersion())
@@ -489,8 +469,7 @@ class RollbackApiUseCaseTest {
             .build();
 
         // Event
-        var event = Event
-            .builder()
+        var event = Event.builder()
             .id("event-id")
             .type(EventType.PUBLISH_API)
             .environments(Set.of(ENVIRONMENT_ID))
@@ -507,49 +486,44 @@ class RollbackApiUseCaseTest {
                 eq(false),
                 eq(USER_ID)
             )
-        )
-            .thenAnswer(invocation -> {
-                var api = apiCrudService.get(existingApi.getId());
-                api.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
-                apiCrudService.update(api);
+        ).thenAnswer(invocation -> {
+            var api = apiCrudService.get(existingApi.getId());
+            api.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+            apiCrudService.update(api);
 
-                return ApiModelFixtures
-                    .aModelHttpApiV4()
-                    .toBuilder()
-                    .id(existingApi.getId())
-                    .updatedAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))
-                    .build();
-            });
+            return ApiModelFixtures.aModelHttpApiV4()
+                .toBuilder()
+                .id(existingApi.getId())
+                .updatedAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))
+                .build();
+        });
         // Simulate Plan creation
-        when(createPlanDomainService.create(any(Plan.class), any(), any(), any()))
-            .thenAnswer(invocation -> {
-                planCrudService.create(invocation.getArgument(0));
-                return null;
-            });
+        when(createPlanDomainService.create(any(Plan.class), any(), any(), any())).thenAnswer(invocation -> {
+            planCrudService.create(invocation.getArgument(0));
+            return null;
+        });
 
         // Simulate Plan update
-        when(updatePlanDomainService.update(any(Plan.class), any(), eq(Map.of()), any(), any()))
-            .thenAnswer(invocation -> {
-                planCrudService.update(invocation.getArgument(0));
-                return null;
-            });
+        when(updatePlanDomainService.update(any(Plan.class), any(), eq(Map.of()), any(), any())).thenAnswer(invocation -> {
+            planCrudService.update(invocation.getArgument(0));
+            return null;
+        });
 
         // When
         useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
 
         // Then
-        verify(delegateApiService)
-            .update(
-                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                eq(existingApi.getId()),
-                argThat(updateApiEntity -> {
-                    assertThat(updateApiEntity.getName()).isEqualTo("api-name");
-                    assertThat(updateApiEntity.getApiVersion()).isEqualTo("1.0.0");
-                    return true;
-                }),
-                eq(false),
-                eq(USER_ID)
-            );
+        verify(delegateApiService).update(
+            eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+            eq(existingApi.getId()),
+            argThat(updateApiEntity -> {
+                assertThat(updateApiEntity.getName()).isEqualTo("api-name");
+                assertThat(updateApiEntity.getApiVersion()).isEqualTo("1.0.0");
+                return true;
+            }),
+            eq(false),
+            eq(USER_ID)
+        );
         assertThat(planCrudService.storage()).hasSize(4);
         assertThat(planCrudService.storage())
             .extracting(Plan::getId, Plan::getPlanStatus)
@@ -593,8 +567,7 @@ class RollbackApiUseCaseTest {
             apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
 
             givenExistingPlan(
-                PlanFixtures
-                    .aPlanHttpV4()
+                PlanFixtures.aPlanHttpV4()
                     .toBuilder()
                     .id("plan-to-rollback")
                     .apiId(existingV4Api.getId())
@@ -620,20 +593,17 @@ class RollbackApiUseCaseTest {
             var services = new io.gravitee.definition.model.services.Services();
             services.setDiscoveryService(consulDiscoveryService);
 
-            var eventV2ApiDefinition = io.gravitee.definition.model.Api
-                .builder()
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api.builder()
                 .id(existingV4Api.getId())
                 .name("api-previous-name")
                 .version("api-previous-version")
                 .definitionVersion(DefinitionVersion.V2)
                 .proxy(
-                    io.gravitee.definition.model.Proxy
-                        .builder()
+                    io.gravitee.definition.model.Proxy.builder()
                         .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
                         .groups(
                             Set.of(
-                                EndpointGroup
-                                    .builder()
+                                EndpointGroup.builder()
                                     .name("default-endpoint")
                                     .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
                                     .services(services)
@@ -648,8 +618,7 @@ class RollbackApiUseCaseTest {
                 .plans(
                     Map.of(
                         "plan-to-rollback",
-                        io.gravitee.definition.model.Plan
-                            .builder()
+                        io.gravitee.definition.model.Plan.builder()
                             .id("plan-to-rollback")
                             .name("plan-previous-name")
                             .status("PUBLISHED")
@@ -660,8 +629,7 @@ class RollbackApiUseCaseTest {
                 .flowMode(FlowMode.BEST_MATCH)
                 .build();
 
-            var apiRepositoryModel = io.gravitee.repository.management.model.Api
-                .builder()
+            var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
                 .id(eventV2ApiDefinition.getId())
                 .name(eventV2ApiDefinition.getName())
                 .version(eventV2ApiDefinition.getVersion())
@@ -670,8 +638,7 @@ class RollbackApiUseCaseTest {
                 .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
                 .build();
 
-            var event = Event
-                .builder()
+            var event = Event.builder()
                 .id("rollback-event-id")
                 .type(EventType.PUBLISH_API)
                 .environments(Set.of(ENVIRONMENT_ID))
@@ -741,31 +708,26 @@ class RollbackApiUseCaseTest {
             apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
 
             givenExistingPlan(
-                PlanFixtures
-                    .aPlanHttpV4()
+                PlanFixtures.aPlanHttpV4()
                     .toBuilder()
                     .id("plan-to-rollback")
                     .apiId(existingV4Api.getId())
                     .name("plan-current-name")
                     .description("Current plan description")
                     .build()
-            )
-                .setPlanStatus(PlanStatus.CLOSED);
+            ).setPlanStatus(PlanStatus.CLOSED);
 
-            var eventV2ApiDefinition = io.gravitee.definition.model.Api
-                .builder()
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api.builder()
                 .id(existingV4Api.getId())
                 .name("api-previous-name")
                 .version("api-previous-version")
                 .definitionVersion(DefinitionVersion.V2)
                 .proxy(
-                    io.gravitee.definition.model.Proxy
-                        .builder()
+                    io.gravitee.definition.model.Proxy.builder()
                         .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
                         .groups(
                             Set.of(
-                                EndpointGroup
-                                    .builder()
+                                EndpointGroup.builder()
                                     .name("default-endpoint")
                                     .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
                                     .build()
@@ -777,8 +739,7 @@ class RollbackApiUseCaseTest {
                 .plans(
                     Map.of(
                         "plan-to-rollback",
-                        io.gravitee.definition.model.Plan
-                            .builder()
+                        io.gravitee.definition.model.Plan.builder()
                             .id("plan-to-rollback-old")
                             .name("plan-previous-name")
                             .status("PUBLISHED")
@@ -788,8 +749,7 @@ class RollbackApiUseCaseTest {
                 )
                 .build();
 
-            var apiRepositoryModel = io.gravitee.repository.management.model.Api
-                .builder()
+            var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
                 .id(eventV2ApiDefinition.getId())
                 .name(eventV2ApiDefinition.getName())
                 .version(eventV2ApiDefinition.getVersion())
@@ -798,8 +758,7 @@ class RollbackApiUseCaseTest {
                 .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
                 .build();
 
-            var event = Event
-                .builder()
+            var event = Event.builder()
                 .id("rollback-event-id")
                 .type(EventType.PUBLISH_API)
                 .environments(Set.of(ENVIRONMENT_ID))
@@ -850,31 +809,26 @@ class RollbackApiUseCaseTest {
             apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
 
             givenExistingPlan(
-                PlanFixtures
-                    .aPlanHttpV4()
+                PlanFixtures.aPlanHttpV4()
                     .toBuilder()
                     .id("plan-to-rollback")
                     .apiId(existingV4Api.getId())
                     .name("plan-current-name")
                     .description("Current plan description")
                     .build()
-            )
-                .setPlanStatus(PlanStatus.CLOSED);
+            ).setPlanStatus(PlanStatus.CLOSED);
 
-            var eventV2ApiDefinition = io.gravitee.definition.model.Api
-                .builder()
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api.builder()
                 .id(existingV4Api.getId())
                 .name("api-previous-name")
                 .version("api-previous-version")
                 .definitionVersion(DefinitionVersion.V2)
                 .proxy(
-                    io.gravitee.definition.model.Proxy
-                        .builder()
+                    io.gravitee.definition.model.Proxy.builder()
                         .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
                         .groups(
                             Set.of(
-                                EndpointGroup
-                                    .builder()
+                                EndpointGroup.builder()
                                     .name("default-endpoint")
                                     .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
                                     .build()
@@ -886,8 +840,7 @@ class RollbackApiUseCaseTest {
                 .plans(
                     Map.of(
                         "plan-to-rollback",
-                        io.gravitee.definition.model.Plan
-                            .builder()
+                        io.gravitee.definition.model.Plan.builder()
                             .id("plan-to-rollback")
                             .name("plan-previous-name")
                             .status("PUBLISHED")
@@ -897,8 +850,7 @@ class RollbackApiUseCaseTest {
                 )
                 .build();
 
-            var apiRepositoryModel = io.gravitee.repository.management.model.Api
-                .builder()
+            var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
                 .id(eventV2ApiDefinition.getId())
                 .name(eventV2ApiDefinition.getName())
                 .version(eventV2ApiDefinition.getVersion())
@@ -907,8 +859,7 @@ class RollbackApiUseCaseTest {
                 .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
                 .build();
 
-            var event = Event
-                .builder()
+            var event = Event.builder()
                 .id("rollback-event-id")
                 .type(EventType.PUBLISH_API)
                 .environments(Set.of(ENVIRONMENT_ID))
@@ -958,8 +909,8 @@ class RollbackApiUseCaseTest {
             var existingV4Api = apiV4()
                 .definition(
                     """
-                            {"id": "my-id", "name": "api-name", "type": "proxy", "apiVersion": "1.0.0", "definitionVersion": "4.0.0", "listeners": [{"type": "http", "entrypoints": [{ "type": "http-proxy", "configuration": {} }], "paths": [{ "path": "/http_proxy" }]}], "endpointGroups": [{"name": "default-group", "type": "http-proxy", "endpoints": [{"name": "default-endpoint", "type": "http-proxy", "configuration": { "target": "https://api.gravitee.io/echo" }}]}], "flows": [{"name": "v4-api-flow", "enabled": true, "selectors": [ { "type": "HTTP", "path": "/", "pathOperator": "STARTS_WITH" } ], "request": [], "response": [], "subscribe": [], "publish": []}]}
-                            """
+                    {"id": "my-id", "name": "api-name", "type": "proxy", "apiVersion": "1.0.0", "definitionVersion": "4.0.0", "listeners": [{"type": "http", "entrypoints": [{ "type": "http-proxy", "configuration": {} }], "paths": [{ "path": "/http_proxy" }]}], "endpointGroups": [{"name": "default-group", "type": "http-proxy", "endpoints": [{"name": "default-endpoint", "type": "http-proxy", "configuration": { "target": "https://api.gravitee.io/echo" }}]}], "flows": [{"name": "v4-api-flow", "enabled": true, "selectors": [ { "type": "HTTP", "path": "/", "pathOperator": "STARTS_WITH" } ], "request": [], "response": [], "subscribe": [], "publish": []}]}
+                    """
                 )
                 .build();
             apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
@@ -969,16 +920,14 @@ class RollbackApiUseCaseTest {
             );
 
             givenExistingPlan(
-                PlanFixtures
-                    .aPlanHttpV4()
+                PlanFixtures.aPlanHttpV4()
                     .toBuilder()
                     .id("plan-to-rollback")
                     .apiId(existingV4Api.getId())
                     .name("plan-current-name")
                     .description("Current plan description")
                     .planDefinitionHttpV4(
-                        PlanFixtures
-                            .aPlanHttpV4()
+                        PlanFixtures.aPlanHttpV4()
                             .getPlanDefinitionHttpV4()
                             .toBuilder()
                             .flows(List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("v4-plan-flow").build()))
@@ -991,20 +940,17 @@ class RollbackApiUseCaseTest {
                 List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("v4-plan-flow").build())
             );
 
-            var eventV2ApiDefinition = io.gravitee.definition.model.Api
-                .builder()
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api.builder()
                 .id(existingV4Api.getId())
                 .name("api-previous-name")
                 .version("api-previous-version")
                 .definitionVersion(DefinitionVersion.V2)
                 .proxy(
-                    Proxy
-                        .builder()
+                    Proxy.builder()
                         .virtualHosts(List.of(new VirtualHost("/api-previous-path")))
                         .groups(
                             Set.of(
-                                EndpointGroup
-                                    .builder()
+                                EndpointGroup.builder()
                                     .name("default-endpoint")
                                     .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
                                     .build()
@@ -1018,8 +964,7 @@ class RollbackApiUseCaseTest {
                 .plans(
                     Map.of(
                         "plan-to-rollback",
-                        io.gravitee.definition.model.Plan
-                            .builder()
+                        io.gravitee.definition.model.Plan.builder()
                             .id("plan-to-rollback")
                             .name("plan-previous-name")
                             .status("PUBLISHED")
@@ -1030,8 +975,7 @@ class RollbackApiUseCaseTest {
                 )
                 .build();
 
-            var apiRepositoryModel = Api
-                .builder()
+            var apiRepositoryModel = Api.builder()
                 .id(eventV2ApiDefinition.getId())
                 .name(eventV2ApiDefinition.getName())
                 .version(eventV2ApiDefinition.getVersion())
@@ -1040,8 +984,7 @@ class RollbackApiUseCaseTest {
                 .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
                 .build();
 
-            var event = Event
-                .builder()
+            var event = Event.builder()
                 .id("rollback-event-id")
                 .type(EventType.PUBLISH_API)
                 .environments(Set.of(ENVIRONMENT_ID))
@@ -1096,28 +1039,24 @@ class RollbackApiUseCaseTest {
             var existingV4Api = apiV4().build();
             apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
 
-            var v4IndexableApi = IndexableApi
-                .builder()
+            var v4IndexableApi = IndexableApi.builder()
                 .api(ApiAdapter.INSTANCE.toCoreModel(existingV4Api))
                 .primaryOwner(apiPrimaryOwnerDomainService.getApiPrimaryOwner(ORGANIZATION_ID, existingV4Api.getId()))
                 .build();
 
             indexer.initWith(List.of(v4IndexableApi));
 
-            var eventV2ApiDefinition = io.gravitee.definition.model.Api
-                .builder()
+            var eventV2ApiDefinition = io.gravitee.definition.model.Api.builder()
                 .id(existingV4Api.getId())
                 .name("api-previous-name")
                 .version("api-previous-version")
                 .definitionVersion(DefinitionVersion.V2)
                 .proxy(
-                    io.gravitee.definition.model.Proxy
-                        .builder()
+                    io.gravitee.definition.model.Proxy.builder()
                         .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
                         .groups(
                             Set.of(
-                                EndpointGroup
-                                    .builder()
+                                EndpointGroup.builder()
                                     .name("default-endpoint")
                                     .endpoints(Set.of(Endpoint.builder().target("https://api.gravitee.io/echo-v2").build()))
                                     .build()
@@ -1127,8 +1066,7 @@ class RollbackApiUseCaseTest {
                 )
                 .build();
 
-            var apiRepositoryModel = io.gravitee.repository.management.model.Api
-                .builder()
+            var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
                 .id(eventV2ApiDefinition.getId())
                 .name(eventV2ApiDefinition.getName())
                 .version(eventV2ApiDefinition.getVersion())
@@ -1137,8 +1075,7 @@ class RollbackApiUseCaseTest {
                 .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
                 .build();
 
-            var event = Event
-                .builder()
+            var event = Event.builder()
                 .id("rollback-event-id")
                 .type(EventType.PUBLISH_API)
                 .environments(Set.of(ENVIRONMENT_ID))
@@ -1208,8 +1145,7 @@ class RollbackApiUseCaseTest {
     }
 
     private Api.ApiBuilder apiV4() {
-        return Api
-            .builder()
+        return Api.builder()
             .id("my-id")
             .environmentId("env-id")
             .crossId("cross-id")
@@ -1221,8 +1157,8 @@ class RollbackApiUseCaseTest {
             .definitionVersion(DefinitionVersion.V4)
             .definition(
                 """
-                        {"id": "my-id", "name": "api-name", "type": "proxy", "apiVersion": "1.0.0", "definitionVersion": "4.0.0", "tags": ["tag1"], "listeners": [{"type": "http", "entrypoints": [{ "type": "http-proxy", "qos": "auto", "configuration": {} }], "paths": [{ "path": "/http_proxy" }]}], "endpointGroups": [{"name": "default-group", "type": "http-proxy", "loadBalancer": { "type": "round-robin" }, "sharedConfiguration": {}, "endpoints": [{"name": "default-endpoint", "type": "http-proxy", "secondary": false, "weight": 1, "inheritConfiguration": true, "configuration": { "target": "https://api.gravitee.io/echo" }, "services": {}}], "services": {}}], "analytics": { "enabled": false }, "failover": { "enabled": true, "maxRetries": 7, "slowCallDuration": 500, "openStateDuration": 11000, "maxFailures": 3, "perSubscription": false }, "flowExecution": { "mode": "default", "matchRequired": false }, "flows": []}
-                        """
+                {"id": "my-id", "name": "api-name", "type": "proxy", "apiVersion": "1.0.0", "definitionVersion": "4.0.0", "tags": ["tag1"], "listeners": [{"type": "http", "entrypoints": [{ "type": "http-proxy", "qos": "auto", "configuration": {} }], "paths": [{ "path": "/http_proxy" }]}], "endpointGroups": [{"name": "default-group", "type": "http-proxy", "loadBalancer": { "type": "round-robin" }, "sharedConfiguration": {}, "endpoints": [{"name": "default-endpoint", "type": "http-proxy", "secondary": false, "weight": 1, "inheritConfiguration": true, "configuration": { "target": "https://api.gravitee.io/echo" }, "services": {}}], "services": {}}], "analytics": { "enabled": false }, "failover": { "enabled": true, "maxRetries": 7, "slowCallDuration": 500, "openStateDuration": 11000, "maxFailures": 3, "perSubscription": false }, "flowExecution": { "mode": "default", "matchRequired": false }, "flows": []}
+                """
             )
             .type(ApiType.PROXY)
             .createdAt(java.util.Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
@@ -1242,8 +1178,7 @@ class RollbackApiUseCaseTest {
     private void initializePrimaryOwnerData() {
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .id("role-id")
                     .scope(Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
@@ -1254,8 +1189,7 @@ class RollbackApiUseCaseTest {
         );
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)

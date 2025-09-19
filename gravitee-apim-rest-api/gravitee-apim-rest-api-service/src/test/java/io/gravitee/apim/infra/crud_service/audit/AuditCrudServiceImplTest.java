@@ -74,8 +74,7 @@ public class AuditCrudServiceImplTest {
 
             // When
             service.create(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("audit-id")
                     .organizationId("organization-id")
                     .environmentId("environment-id")
@@ -90,8 +89,7 @@ public class AuditCrudServiceImplTest {
             );
 
             // Then
-            var expectedAudit = Audit
-                .builder()
+            var expectedAudit = Audit.builder()
                 .id("audit-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -116,8 +114,7 @@ public class AuditCrudServiceImplTest {
             // When
             Throwable throwable = catchThrowable(() ->
                 service.create(
-                    AuditEntity
-                        .builder()
+                    AuditEntity.builder()
                         .referenceType(AuditEntity.AuditReferenceType.API)
                         .createdAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
                         .build()

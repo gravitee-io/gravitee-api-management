@@ -40,8 +40,7 @@ class RollbackApiEntityDeserializerTest {
 
     @Test
     void should_deserialize_v2_payload_and_map_gravitee_and_snake_case_fields() throws Exception {
-        String json =
-            """
+        String json = """
             {
               "id": "api-123",
               "name": "Test API",
@@ -96,8 +95,7 @@ class RollbackApiEntityDeserializerTest {
 
     @Test
     void should_throw_on_v4_definitionVersion() {
-        String json =
-            """
+        String json = """
             {
               "id": "api-456",
               "name": "v4 API",
@@ -134,8 +132,7 @@ class RollbackApiEntityDeserializerTest {
 
     @Test
     void should_ignore_unknown_fields_and_allow_non_v4_definitionVersion() throws Exception {
-        String json =
-            """
+        String json = """
             {
               "id": "api-789",
               "name": "Unknowns API",

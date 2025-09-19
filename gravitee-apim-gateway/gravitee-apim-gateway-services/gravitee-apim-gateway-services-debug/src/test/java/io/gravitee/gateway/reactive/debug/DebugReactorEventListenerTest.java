@@ -129,37 +129,35 @@ class DebugReactorEventListenerTest {
     @BeforeEach
     public void beforeEach() {
         debugHttpClientConfiguration = VertxDebugHttpClientConfiguration.builder().build();
-        debugReactorEventListener =
-            spy(
-                new DebugReactorEventListener(
-                    vertx,
-                    eventManager,
-                    eventRepository,
-                    objectMapper,
-                    debugHttpClientConfiguration,
-                    reactorHandlerRegistry,
-                    accessPointManager,
-                    dataEncryptor
-                )
-            );
+        debugReactorEventListener = spy(
+            new DebugReactorEventListener(
+                vertx,
+                eventManager,
+                eventRepository,
+                objectMapper,
+                debugHttpClientConfiguration,
+                reactorHandlerRegistry,
+                accessPointManager,
+                dataEncryptor
+            )
+        );
     }
 
     @Test
     void should_register_reactor_event_listener() throws Exception {
         eventManager = new EventManagerImpl();
-        debugReactorEventListener =
-            spy(
-                new DebugReactorEventListener(
-                    vertx,
-                    eventManager,
-                    eventRepository,
-                    objectMapper,
-                    debugHttpClientConfiguration,
-                    reactorHandlerRegistry,
-                    accessPointManager,
-                    dataEncryptor
-                )
-            );
+        debugReactorEventListener = spy(
+            new DebugReactorEventListener(
+                vertx,
+                eventManager,
+                eventRepository,
+                objectMapper,
+                debugHttpClientConfiguration,
+                reactorHandlerRegistry,
+                accessPointManager,
+                dataEncryptor
+            )
+        );
 
         debugReactorEventListener.start();
 
@@ -481,12 +479,14 @@ class DebugReactorEventListenerTest {
 
             debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-            verify(reactorHandlerRegistry, times(1))
-                .contains(
-                    argThat(debugApi ->
-                        ((DebugApiV2) debugApi).getDefinition().getPlans().stream().noneMatch(plan -> plan.getStatus().equals("CLOSED"))
-                    )
-                );
+            verify(reactorHandlerRegistry, times(1)).contains(
+                argThat(debugApi ->
+                    ((DebugApiV2) debugApi).getDefinition()
+                        .getPlans()
+                        .stream()
+                        .noneMatch(plan -> plan.getStatus().equals("CLOSED"))
+                )
+            );
         }
     }
 
@@ -628,14 +628,12 @@ class DebugReactorEventListenerTest {
                 .getApiDefinition()
                 .setPlans(
                     List.of(
-                        io.gravitee.definition.model.v4.plan.Plan
-                            .builder()
+                        io.gravitee.definition.model.v4.plan.Plan.builder()
                             .id("plan1")
                             .security(PlanSecurity.builder().type("KEYLESS").build())
                             .status(PlanStatus.PUBLISHED)
                             .build(),
-                        io.gravitee.definition.model.v4.plan.Plan
-                            .builder()
+                        io.gravitee.definition.model.v4.plan.Plan.builder()
                             .id("closed-plan")
                             .security(PlanSecurity.builder().type("KEYLESS").build())
                             .status(PlanStatus.CLOSED)
@@ -659,15 +657,14 @@ class DebugReactorEventListenerTest {
 
             debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-            verify(reactorHandlerRegistry, times(1))
-                .contains(
-                    argThat(debugApi ->
-                        ((io.gravitee.gateway.debug.definition.DebugApiV4) debugApi).getDefinition()
-                            .getPlans()
-                            .stream()
-                            .noneMatch(plan -> plan.getStatus().equals(PlanStatus.CLOSED))
-                    )
-                );
+            verify(reactorHandlerRegistry, times(1)).contains(
+                argThat(debugApi ->
+                    ((io.gravitee.gateway.debug.definition.DebugApiV4) debugApi).getDefinition()
+                        .getPlans()
+                        .stream()
+                        .noneMatch(plan -> plan.getStatus().equals(PlanStatus.CLOSED))
+                )
+            );
         }
     }
 
@@ -715,8 +712,9 @@ class DebugReactorEventListenerTest {
         @Test
         void should_enforce_host_headers_from_access_points() {
             io.gravitee.definition.model.debug.DebugApiV2 debugApiModel = getADebugApiDefinition();
-            when(accessPointManager.getByEnvironmentId(any()))
-                .thenReturn(List.of(ReactableAccessPoint.builder().host("custom_host").build()));
+            when(accessPointManager.getByEnvironmentId(any())).thenReturn(
+                List.of(ReactableAccessPoint.builder().host("custom_host").build())
+            );
             final HttpRequest httpRequest = new HttpRequest("/path1", "GET", "request body");
             debugApiModel.setRequest(httpRequest);
             final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApiV2("eventId", debugApiModel), httpRequest);

@@ -52,8 +52,7 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
             .flatMap(accessPoints ->
-                Flowable
-                    .just(accessPoints)
+                Flowable.just(accessPoints)
                     .flatMapIterable(e -> e)
                     .groupBy(AccessPoint::getStatus)
                     .flatMap(accessPointsByStatus -> {

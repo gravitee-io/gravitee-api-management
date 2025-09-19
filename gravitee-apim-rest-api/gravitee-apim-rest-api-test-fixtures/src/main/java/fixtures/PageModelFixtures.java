@@ -29,16 +29,14 @@ public class PageModelFixtures {
 
     private PageModelFixtures() {}
 
-    private static final PageEntity.PageEntityBuilder BASE_MODEL_PAGE = PageEntity
-        .builder()
+    private static final PageEntity.PageEntityBuilder BASE_MODEL_PAGE = PageEntity.builder()
         .id("page-id")
         .homepage(true)
         .crossId("page-cross-id")
         .accessControls(Set.of(AccessControlEntity.builder().referenceId("ref-id").referenceType("ref-type").build()))
         .attachedMedia(
             List.of(
-                PageMediaEntity
-                    .builder()
+                PageMediaEntity.builder()
                     .mediaName("media-name")
                     .mediaHash("media-hash")
                     .attachedAt(Date.from(Instant.parse("2020-01-01T00:00:00.00Z")))

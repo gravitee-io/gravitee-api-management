@@ -51,7 +51,10 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
         List<Plugin> plugins = getPlugins(repositoryApi);
 
         try {
-            var licensePlugins = plugins.stream().map(p -> new LicenseManager.Plugin(p.type(), p.id())).toList();
+            var licensePlugins = plugins
+                .stream()
+                .map(p -> new LicenseManager.Plugin(p.type(), p.id()))
+                .toList();
             licenseManager.validatePluginFeatures(executionContext.getOrganizationId(), licensePlugins);
         } catch (io.gravitee.node.api.license.ForbiddenFeatureException ffe) {
             throw new ForbiddenFeatureException(ffe.getFeatures().stream().map(LicenseManager.ForbiddenFeature::plugin).toList());

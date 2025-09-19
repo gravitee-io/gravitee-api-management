@@ -47,8 +47,7 @@ public class AuditDomainService {
 
     public void createApiAuditLog(ApiAuditLogEntity audit) {
         try {
-            var entity = AuditEntity
-                .builder()
+            var entity = AuditEntity.builder()
                 .id(UuidString.generateRandom())
                 .organizationId(audit.organizationId())
                 .environmentId(audit.environmentId())
@@ -69,8 +68,7 @@ public class AuditDomainService {
 
     public void createApplicationAuditLog(ApplicationAuditLogEntity audit) {
         try {
-            var entity = AuditEntity
-                .builder()
+            var entity = AuditEntity.builder()
                 .id(UuidString.generateRandom())
                 .organizationId(audit.organizationId())
                 .environmentId(audit.environmentId())
@@ -91,8 +89,7 @@ public class AuditDomainService {
 
     public void createEnvironmentAuditLog(EnvironmentAuditLogEntity audit) {
         try {
-            var entity = AuditEntity
-                .builder()
+            var entity = AuditEntity.builder()
                 .id(UuidString.generateRandom())
                 .organizationId(audit.organizationId())
                 .environmentId(audit.environmentId())

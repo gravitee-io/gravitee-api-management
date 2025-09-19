@@ -53,6 +53,7 @@ public class FindApiMetricsDetailUseCase {
         Output(ApiMetricsDetail apiMetricsDetail) {
             this(Optional.of(apiMetricsDetail));
         }
+
         Output() {
             this(Optional.empty());
         }
@@ -62,8 +63,7 @@ public class FindApiMetricsDetailUseCase {
         ExecutionContext executionContext,
         io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail apiMetricsDetail
     ) {
-        var result = ApiMetricsDetail
-            .builder()
+        var result = ApiMetricsDetail.builder()
             .timestamp(apiMetricsDetail.getTimestamp())
             .apiId(apiMetricsDetail.getApiId())
             .requestId(apiMetricsDetail.getRequestId())

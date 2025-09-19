@@ -34,8 +34,7 @@ class ConnectionLogAdapterTest {
 
     @Test
     public void should_convert_connection_log_to_connection_log_entity() {
-        final ConnectionLog toConvert = ConnectionLog
-            .builder()
+        final ConnectionLog toConvert = ConnectionLog.builder()
             .apiId("api-id")
             .requestId("request-id")
             .timestamp("timestamp")
@@ -64,8 +63,7 @@ class ConnectionLogAdapterTest {
 
     @Test
     public void should_convert_connection_logs_to_connection_log_entities() {
-        final ConnectionLog toConvert = ConnectionLog
-            .builder()
+        final ConnectionLog toConvert = ConnectionLog.builder()
             .apiId("api-id")
             .requestId("request-id")
             .timestamp("timestamp")
@@ -83,8 +81,7 @@ class ConnectionLogAdapterTest {
         assertThat(result)
             .hasSize(1)
             .containsExactly(
-                BaseConnectionLog
-                    .builder()
+                BaseConnectionLog.builder()
                     .apiId("api-id")
                     .requestId("request-id")
                     .timestamp("timestamp")

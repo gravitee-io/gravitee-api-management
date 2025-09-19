@@ -126,31 +126,30 @@ public class MembershipService_TransferOwnershipTest {
 
     @BeforeEach
     public void setUp() throws TechnicalException {
-        membershipService =
-            new MembershipServiceImpl(
-                null,
-                userService,
-                null,
-                null,
-                null,
-                null,
-                membershipRepository,
-                roleService,
-                null,
-                null,
-                apiSearchService,
-                apiGroupService,
-                apiRepository,
-                groupService,
-                auditService,
-                null,
-                null,
-                node,
-                objectMapper,
-                commandRepository,
-                apiMetadataService,
-                searchEngineService
-            );
+        membershipService = new MembershipServiceImpl(
+            null,
+            userService,
+            null,
+            null,
+            null,
+            null,
+            membershipRepository,
+            roleService,
+            null,
+            null,
+            apiSearchService,
+            apiGroupService,
+            apiRepository,
+            groupService,
+            auditService,
+            null,
+            null,
+            node,
+            objectMapper,
+            commandRepository,
+            apiMetadataService,
+            searchEngineService
+        );
         newPrimaryOwnerRole.setId(USER_ROLE_ID);
         newPrimaryOwnerRole.setName(USER_ROLE_NAME);
         newPrimaryOwnerRole.setScope(RoleScope.API);
@@ -182,17 +181,18 @@ public class MembershipService_TransferOwnershipTest {
         ownerMembership.setReferenceId(API_ID);
         ownerMembership.setMemberId(USER_ID);
         ownerMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
-        when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null))
-            .thenReturn(Collections.singleton(ownerMembership));
+        when(
+            membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null)
+        ).thenReturn(Collections.singleton(ownerMembership));
 
         assertThatThrownBy(() ->
-                this.membershipService.transferApiOwnership(
-                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-                        API_ID,
-                        new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
-                        Collections.singletonList(newPrimaryOwnerRole)
-                    )
+            this.membershipService.transferApiOwnership(
+                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                API_ID,
+                new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
+                Collections.singletonList(newPrimaryOwnerRole)
             )
+        )
             .isInstanceOf(ApiOwnershipTransferException.class)
             .hasMessage("Api [api-id-1] transfer not allowed.");
     }
@@ -211,17 +211,18 @@ public class MembershipService_TransferOwnershipTest {
         poMembership.setReferenceId(API_ID);
         poMembership.setMemberId(USER_ID);
         poMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
-        when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null))
-            .thenReturn(Collections.singleton(poMembership));
+        when(
+            membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null)
+        ).thenReturn(Collections.singleton(poMembership));
 
         assertThatThrownBy(() ->
-                this.membershipService.transferApiOwnership(
-                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-                        API_ID,
-                        new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
-                        Collections.singletonList(newPrimaryOwnerRole)
-                    )
+            this.membershipService.transferApiOwnership(
+                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                API_ID,
+                new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
+                Collections.singletonList(newPrimaryOwnerRole)
             )
+        )
             .isInstanceOf(RoleNotFoundException.class)
             .hasMessage("Role [API_PRIMARY_OWNER] cannot be found.");
     }
@@ -240,17 +241,18 @@ public class MembershipService_TransferOwnershipTest {
         poMembership.setReferenceId(API_ID);
         poMembership.setMemberId(USER_ID);
         poMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
-        when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null))
-            .thenReturn(Collections.singleton(poMembership));
+        when(
+            membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null)
+        ).thenReturn(Collections.singleton(poMembership));
 
         assertThatThrownBy(() ->
-                this.membershipService.transferApiOwnership(
-                        new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-                        API_ID,
-                        new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
-                        Collections.singletonList(newPrimaryOwnerRole)
-                    )
+            this.membershipService.transferApiOwnership(
+                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                API_ID,
+                new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
+                Collections.singletonList(newPrimaryOwnerRole)
             )
+        )
             .isInstanceOf(RoleNotFoundException.class)
             .hasMessage("Role [API_PRIMARY_OWNER] cannot be found.");
     }
@@ -264,8 +266,9 @@ public class MembershipService_TransferOwnershipTest {
         when(roleService.findById(API_PRIMARY_OWNER_ROLE_ID)).thenReturn(primaryOwnerRole);
         when(roleService.findScopeByMembershipReferenceType(any())).thenReturn(RoleScope.API);
         when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API)).thenReturn(primaryOwnerRole);
-        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID))
-            .thenReturn(Optional.of(primaryOwnerRole));
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID)).thenReturn(
+            Optional.of(primaryOwnerRole)
+        );
         when(roleService.findByScopeAndName(RoleScope.API, USER_ROLE_NAME, ORGANIZATION_ID)).thenReturn(Optional.of(newPrimaryOwnerRole));
 
         Membership poMembership = new Membership();
@@ -274,10 +277,12 @@ public class MembershipService_TransferOwnershipTest {
         poMembership.setReferenceId(API_ID);
         poMembership.setMemberId(USER_ID);
         poMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
-        when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, List.of(GROUP_ID), null))
-            .thenReturn(Set.of(poMembership));
-        when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID))
-            .thenReturn(Set.of(poMembership));
+        when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, List.of(GROUP_ID), null)).thenReturn(
+            Set.of(poMembership)
+        );
+        when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID)).thenReturn(
+            Set.of(poMembership)
+        );
 
         membershipService.transferApiOwnership(
             EXECUTION_CONTEXT,
@@ -310,8 +315,9 @@ public class MembershipService_TransferOwnershipTest {
         newPrimaryOwnerRole.setId(USER_ROLE_ID);
         newPrimaryOwnerRole.setName(USER_ROLE_NAME);
         newPrimaryOwnerRole.setScope(RoleScope.API);
-        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID))
-            .thenReturn(Optional.of(poRole));
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID)).thenReturn(
+            Optional.of(poRole)
+        );
         when(roleService.findByScopeAndName(RoleScope.API, USER_ROLE_NAME, ORGANIZATION_ID)).thenReturn(Optional.of(newPrimaryOwnerRole));
         when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API)).thenReturn(poRole);
         when(roleService.findScopeByMembershipReferenceType(any())).thenReturn(RoleScope.API);
@@ -324,8 +330,9 @@ public class MembershipService_TransferOwnershipTest {
         userPoMembership.setMemberId(USER_ID);
         userPoMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
 
-        when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID))
-            .thenReturn(Set.of(userPoMembership));
+        when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID)).thenReturn(
+            Set.of(userPoMembership)
+        );
 
         Membership groupPoMembership = new Membership();
         groupPoMembership.setReferenceType(MembershipReferenceType.GROUP);
@@ -334,8 +341,9 @@ public class MembershipService_TransferOwnershipTest {
         groupPoMembership.setMemberId(GROUP_ID);
         groupPoMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.GROUP);
 
-        when(membershipRepository.findByReferencesAndRoleId(eq(MembershipReferenceType.GROUP), eq(List.of(GROUP_ID)), any()))
-            .thenReturn(Set.of(groupPoMembership));
+        when(membershipRepository.findByReferencesAndRoleId(eq(MembershipReferenceType.GROUP), eq(List.of(GROUP_ID)), any())).thenReturn(
+            Set.of(groupPoMembership)
+        );
 
         GenericApiEntity mockApi = mock(GenericApiEntity.class);
         GenericApiEntity mockApiWithMetadata = mock(GenericApiEntity.class);

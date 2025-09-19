@@ -69,36 +69,34 @@ public class GraviteeManagementApplication extends ResourceConfig {
 
     @Inject
     public GraviteeManagementApplication() {
-        ModelConverters
-            .getInstance()
-            .addConverter(
-                new ModelConverter() {
-                    @Override
-                    public Property resolveProperty(
-                        Type type,
-                        ModelConverterContext context,
-                        Annotation[] annotations,
-                        Iterator<ModelConverter> chain
-                    ) {
-                        final JavaType jType = Json.mapper().constructType(type);
-                        if (jType != null) {
-                            final Class<?> cls = jType.getRawClass();
-                            if (Date.class.isAssignableFrom(cls)) {
-                                //DateTimeProperty property =
-                                //        (DateTimeProperty) chain.next().resolveProperty(type, context, annotations, chain);
-                                return new LongProperty();
-                            }
+        ModelConverters.getInstance().addConverter(
+            new ModelConverter() {
+                @Override
+                public Property resolveProperty(
+                    Type type,
+                    ModelConverterContext context,
+                    Annotation[] annotations,
+                    Iterator<ModelConverter> chain
+                ) {
+                    final JavaType jType = Json.mapper().constructType(type);
+                    if (jType != null) {
+                        final Class<?> cls = jType.getRawClass();
+                        if (Date.class.isAssignableFrom(cls)) {
+                            //DateTimeProperty property =
+                            //        (DateTimeProperty) chain.next().resolveProperty(type, context, annotations, chain);
+                            return new LongProperty();
                         }
-
-                        return chain.hasNext() ? chain.next().resolveProperty(type, context, annotations, chain) : null;
                     }
 
-                    @Override
-                    public Model resolve(Type type, ModelConverterContext context, Iterator<ModelConverter> chain) {
-                        return chain.next().resolve(type, context, chain);
-                    }
+                    return chain.hasNext() ? chain.next().resolveProperty(type, context, annotations, chain) : null;
                 }
-            );
+
+                @Override
+                public Model resolve(Type type, ModelConverterContext context, Iterator<ModelConverter> chain) {
+                    return chain.next().resolve(type, context, chain);
+                }
+            }
+        );
         //Main resource
         register(OrganizationsResource.class);
         register(V1OrganizationsResource.class);

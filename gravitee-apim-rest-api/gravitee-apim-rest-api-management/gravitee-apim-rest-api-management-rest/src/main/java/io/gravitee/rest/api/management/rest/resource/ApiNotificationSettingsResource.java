@@ -190,9 +190,9 @@ public class ApiNotificationSettingsResource extends AbstractResource {
         if (!theAPI.getGroups().containsAll(notificationEntity.getGroups())) {
             throw new InvalidDataException(
                 "One of the groups is not a member of this API, got [%s] expected one of [%s]".formatted(
-                        notificationEntity.getGroups(),
-                        theAPI.getGroups()
-                    )
+                    notificationEntity.getGroups(),
+                    theAPI.getGroups()
+                )
             );
         }
     }

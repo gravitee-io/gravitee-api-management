@@ -160,9 +160,9 @@ public class GroupsResource extends AbstractResource {
     public Map<String, char[]> getPermissions(@PathParam("groupId") String groupId) {
         if (isAdmin()) {
             final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), RolePermissionAction.DELETE.getId() };
-            return Arrays
-                .stream(IntegrationPermission.values())
-                .collect(Collectors.toMap(IntegrationPermission::getName, ignored -> rights));
+            return Arrays.stream(IntegrationPermission.values()).collect(
+                Collectors.toMap(IntegrationPermission::getName, ignored -> rights)
+            );
         } else if (isAuthenticated()) {
             final String username = getAuthenticatedUser();
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -181,13 +181,11 @@ public class GroupsResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
 
         var input = new ImportGroupCRDUseCase.Input(
-            AuditInfo
-                .builder()
+            AuditInfo.builder()
                 .organizationId(executionContext.getOrganizationId())
                 .environmentId(executionContext.getEnvironmentId())
                 .actor(
-                    AuditActor
-                        .builder()
+                    AuditActor.builder()
                         .userId(userDetails.getUsername())
                         .userSource(userDetails.getSource())
                         .userSourceId(userDetails.getSourceId())

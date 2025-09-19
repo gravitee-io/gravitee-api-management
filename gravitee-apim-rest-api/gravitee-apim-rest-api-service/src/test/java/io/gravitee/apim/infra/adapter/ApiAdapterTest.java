@@ -71,8 +71,7 @@ class ApiAdapterTest {
                 soft
                     .assertThat(api.getApiDefinitionHttpV4())
                     .isEqualTo(
-                        io.gravitee.definition.model.v4.Api
-                            .builder()
+                        io.gravitee.definition.model.v4.Api.builder()
                             .id("my-id")
                             .name("api-name")
                             .apiVersion("1.0.0")
@@ -80,8 +79,7 @@ class ApiAdapterTest {
                             .flowExecution(new FlowExecution())
                             .analytics(Analytics.builder().enabled(false).build())
                             .failover(
-                                Failover
-                                    .builder()
+                                Failover.builder()
                                     .enabled(true)
                                     .maxRetries(7)
                                     .slowCallDuration(500)
@@ -94,8 +92,7 @@ class ApiAdapterTest {
                             .tags(Set.of("tag1"))
                             .listeners(
                                 List.of(
-                                    HttpListener
-                                        .builder()
+                                    HttpListener.builder()
                                         .paths(List.of(Path.builder().path("/http_proxy").build()))
                                         .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                                         .build()
@@ -103,15 +100,13 @@ class ApiAdapterTest {
                             )
                             .endpointGroups(
                                 List.of(
-                                    EndpointGroup
-                                        .builder()
+                                    EndpointGroup.builder()
                                         .name("default-group")
                                         .type("http-proxy")
                                         .sharedConfiguration("{}")
                                         .endpoints(
                                             List.of(
-                                                Endpoint
-                                                    .builder()
+                                                Endpoint.builder()
                                                     .name("default-endpoint")
                                                     .type("http-proxy")
                                                     .inheritConfiguration(true)
@@ -244,8 +239,9 @@ class ApiAdapterTest {
             assertThat(apiWithManagementContext).hasOriginContext(new OriginContext.Management());
 
             var apiWithKubernetesContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("kubernetes").mode("fully_managed").build());
-            assertThat(apiWithKubernetesContext)
-                .hasOriginContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED));
+            assertThat(apiWithKubernetesContext).hasOriginContext(
+                new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED)
+            );
         }
     }
 
@@ -258,8 +254,7 @@ class ApiAdapterTest {
             model
                 .getApiDefinitionHttpV4()
                 .setFailover(
-                    Failover
-                        .builder()
+                    Failover.builder()
                         .enabled(true)
                         .maxRetries(7)
                         .slowCallDuration(500)
@@ -350,8 +345,7 @@ class ApiAdapterTest {
             });
 
             var apiWithKubernetesContext = ApiAdapter.INSTANCE.toRepository(
-                ApiFixtures
-                    .aProxyApiV4()
+                ApiFixtures.aProxyApiV4()
                     .toBuilder()
                     .originContext(new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED))
                     .build()
@@ -368,8 +362,7 @@ class ApiAdapterTest {
 
         @Test
         void should_convert_v4_api_to_UpdateApiEntity() {
-            var model = ApiFixtures
-                .aProxyApiV4()
+            var model = ApiFixtures.aProxyApiV4()
                 .toBuilder()
                 .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
                 .build();
@@ -404,8 +397,7 @@ class ApiAdapterTest {
     }
 
     private Api.ApiBuilder apiV4() {
-        return Api
-            .builder()
+        return Api.builder()
             .id("my-id")
             .environmentId("env-id")
             .crossId("cross-id")
@@ -436,8 +428,7 @@ class ApiAdapterTest {
     }
 
     private Api.ApiBuilder apiV2() {
-        return Api
-            .builder()
+        return Api.builder()
             .id("my-id")
             .environmentId("env-id")
             .crossId("cross-id")

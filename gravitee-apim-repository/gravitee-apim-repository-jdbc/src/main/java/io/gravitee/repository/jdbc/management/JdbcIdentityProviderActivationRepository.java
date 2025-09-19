@@ -44,8 +44,7 @@ public class JdbcIdentityProviderActivationRepository
 
     @Override
     protected JdbcObjectMapper<IdentityProviderActivation> buildOrm() {
-        return JdbcObjectMapper
-            .builder(IdentityProviderActivation.class, this.tableName)
+        return JdbcObjectMapper.builder(IdentityProviderActivation.class, this.tableName)
             .addColumn("identity_provider_id", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, IdentityProviderActivationReferenceType.class)
@@ -63,10 +62,10 @@ public class JdbcIdentityProviderActivationRepository
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query(
                 "select" +
-                " identity_provider_id, reference_id, reference_type, created_at " +
-                " from " +
-                this.tableName +
-                " where identity_provider_id = ? and reference_id = ? and reference_type= ?",
+                    " identity_provider_id, reference_id, reference_type, created_at " +
+                    " from " +
+                    this.tableName +
+                    " where identity_provider_id = ? and reference_id = ? and reference_type= ?",
                 getOrm().getRowMapper(),
                 identityProviderId,
                 referenceId,
@@ -102,10 +101,10 @@ public class JdbcIdentityProviderActivationRepository
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query(
                 "select" +
-                " identity_provider_id, reference_id, reference_type, created_at " +
-                " from " +
-                this.tableName +
-                " where identity_provider_id = ?",
+                    " identity_provider_id, reference_id, reference_type, created_at " +
+                    " from " +
+                    this.tableName +
+                    " where identity_provider_id = ?",
                 getOrm().getRowMapper(),
                 identityProviderId
             );
@@ -126,10 +125,10 @@ public class JdbcIdentityProviderActivationRepository
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query(
                 "select" +
-                " identity_provider_id, reference_id, reference_type, created_at " +
-                " from " +
-                this.tableName +
-                " where reference_id = ? and reference_type= ?",
+                    " identity_provider_id, reference_id, reference_type, created_at " +
+                    " from " +
+                    this.tableName +
+                    " where reference_id = ? and reference_type= ?",
                 getOrm().getRowMapper(),
                 referenceId,
                 referenceType.name()
@@ -151,8 +150,7 @@ public class JdbcIdentityProviderActivationRepository
                 identityProviderActivation.getIdentityProviderId(),
                 identityProviderActivation.getReferenceId(),
                 identityProviderActivation.getReferenceType()
-            )
-                .orElse(null);
+            ).orElse(null);
         } catch (final Exception ex) {
             final String error = "Failed to create identityProviderActivation";
             LOGGER.error(error, ex);

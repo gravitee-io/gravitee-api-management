@@ -38,10 +38,11 @@ public class MembershipQueryServiceInMemory implements MembershipQueryService, I
     public Collection<Membership> findByReferenceAndRoleId(Membership.ReferenceType referenceType, String referenceId, String roleId) {
         return storage
             .stream()
-            .filter(membership ->
-                membership.getReferenceType().equals(referenceType) &&
-                membership.getReferenceId().equals(referenceId) &&
-                membership.getRoleId().equals(roleId)
+            .filter(
+                membership ->
+                    membership.getReferenceType().equals(referenceType) &&
+                    membership.getReferenceId().equals(referenceId) &&
+                    membership.getRoleId().equals(roleId)
             )
             .toList();
     }
@@ -54,10 +55,11 @@ public class MembershipQueryServiceInMemory implements MembershipQueryService, I
     ) {
         return storage
             .stream()
-            .filter(membership ->
-                membership.getReferenceType().equals(referenceType) &&
-                referenceIds.contains(membership.getReferenceId()) &&
-                membership.getRoleId().equals(roleId)
+            .filter(
+                membership ->
+                    membership.getReferenceType().equals(referenceType) &&
+                    referenceIds.contains(membership.getReferenceId()) &&
+                    membership.getRoleId().equals(roleId)
             )
             .toList();
     }
@@ -72,7 +74,10 @@ public class MembershipQueryServiceInMemory implements MembershipQueryService, I
 
     @Override
     public Collection<Membership> findGroupsThatUserBelongsTo(String userId) {
-        return storage.stream().filter(membership -> membership.isGroupUser() && membership.getMemberId().equals(userId)).toList();
+        return storage
+            .stream()
+            .filter(membership -> membership.isGroupUser() && membership.getMemberId().equals(userId))
+            .toList();
     }
 
     @Override

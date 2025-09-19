@@ -111,12 +111,11 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("rating4-id", ratingPage.getContent().get(0).getId());
         assertEquals("rating-id", ratingPage.getContent().get(1).getId());
 
-        ratingPage =
-            ratingRepository.findByReferenceIdAndReferenceTypePageable(
-                "api",
-                RatingReferenceType.API,
-                new PageableBuilder().pageNumber(1).pageSize(2).build()
-            );
+        ratingPage = ratingRepository.findByReferenceIdAndReferenceTypePageable(
+            "api",
+            RatingReferenceType.API,
+            new PageableBuilder().pageNumber(1).pageSize(2).build()
+        );
 
         assertEquals(1, ratingPage.getPageNumber());
         assertEquals(1, ratingPage.getPageElements());
@@ -130,9 +129,27 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindByReferenceIdAndReferenceType() throws Exception {
         final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType("api", RatingReferenceType.API);
         assertEquals(3, ratings.size());
-        assertEquals(1, ratings.stream().filter(rating -> "rating-id".equals(rating.getId())).count());
-        assertEquals(1, ratings.stream().filter(rating -> "rating2-id".equals(rating.getId())).count());
-        assertEquals(1, ratings.stream().filter(rating -> "rating4-id".equals(rating.getId())).count());
+        assertEquals(
+            1,
+            ratings
+                .stream()
+                .filter(rating -> "rating-id".equals(rating.getId()))
+                .count()
+        );
+        assertEquals(
+            1,
+            ratings
+                .stream()
+                .filter(rating -> "rating2-id".equals(rating.getId()))
+                .count()
+        );
+        assertEquals(
+            1,
+            ratings
+                .stream()
+                .filter(rating -> "rating4-id".equals(rating.getId()))
+                .count()
+        );
     }
 
     @Test

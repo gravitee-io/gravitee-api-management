@@ -26,8 +26,7 @@ public class SubscriptionFixtures {
     private SubscriptionFixtures() {}
 
     private static final Supplier<SubscriptionEntity.SubscriptionEntityBuilder> BASE = () ->
-        SubscriptionEntity
-            .builder()
+        SubscriptionEntity.builder()
             .id("subscription-id")
             .apiId("api-id")
             .planId("plan-id")

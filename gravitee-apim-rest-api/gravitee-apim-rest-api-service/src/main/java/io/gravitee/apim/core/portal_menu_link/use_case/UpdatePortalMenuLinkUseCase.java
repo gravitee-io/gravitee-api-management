@@ -33,8 +33,10 @@ public class UpdatePortalMenuLinkUseCase {
     private final PortalMenuLinkQueryService portalMenuLinkQueryService;
 
     public Output execute(Input input) {
-        PortalMenuLink existingPortalMenuLink =
-            this.portalMenuLinkCrudService.getByIdAndEnvironmentId(input.portalMenuLinkId(), input.environmentId());
+        PortalMenuLink existingPortalMenuLink = this.portalMenuLinkCrudService.getByIdAndEnvironmentId(
+            input.portalMenuLinkId(),
+            input.environmentId()
+        );
 
         var portalMenuLinkToUpdate = existingPortalMenuLink.update(input.portalMenuLinkToUpdate());
         validatePortalMenuLinkToUpdate(portalMenuLinkToUpdate);

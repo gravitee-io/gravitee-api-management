@@ -78,8 +78,7 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
     @Test
     void should_update_portal_menu_link() {
         // Given
-        io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink portalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id(PORTAL_MENU_LINK_ID)
             .environmentId(ENV_ID)
@@ -111,8 +110,7 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
     @Test
     void should_return_400_if_execute_fails_with_invalid_data_exception() {
         // Given
-        io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink portalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        io.gravitee.apim.core.portal_menu_link.model.PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id(PORTAL_MENU_LINK_ID)
             .environmentId(ENV_ID)
@@ -124,8 +122,7 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
         final Response response = rootTarget().request().put(json(updatePortalMenuLink));
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(BAD_REQUEST_400)
             .asError()
             .hasHttpStatus(BAD_REQUEST_400)
@@ -138,8 +135,7 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
         final Response response = rootTarget().request().put(json(""));
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(BAD_REQUEST_400)
             .asError()
             .hasHttpStatus(BAD_REQUEST_400)
@@ -156,15 +152,13 @@ public class PortalMenuLinkResource_UpdateTest extends AbstractResourceTest {
                 eq(ENV_ID),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         // When
         final Response response = rootTarget().request().put(json(PortalMenuLinkFixtures.anUpdatePortalMenuLink()));
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(FORBIDDEN_403)
             .asError()
             .hasHttpStatus(FORBIDDEN_403)

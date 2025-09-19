@@ -45,126 +45,125 @@ class SearchTopFailedApisAdapterTest {
             assertThatJson(result).isEqualTo(TOP_FAILED_QUERY);
         }
 
-        private static final String TOP_FAILED_QUERY =
-            """
-                {
-                    "size": 0,
-                    "query": {
-                        "bool": {
-                            "filter": [
-                                {
-                                    "bool": {
-                                        "should": [
-                                            {
-                                                "terms": {
-                                                    "api-id": [
-                                                        "api-id-1",
-                                                        "api-id-2"
-                                                    ]
-                                                }
-                                            },
-                                            {
-                                                "terms": {
-                                                    "api": [
-                                                        "api-id-1",
-                                                        "api-id-2"
-                                                    ]
-                                                }
+        private static final String TOP_FAILED_QUERY = """
+            {
+                "size": 0,
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {
+                                "bool": {
+                                    "should": [
+                                        {
+                                            "terms": {
+                                                "api-id": [
+                                                    "api-id-1",
+                                                    "api-id-2"
+                                                ]
                                             }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "range": {
-                                        "@timestamp": {
-                                            "gte": 1728992401566,
-                                            "lte": 1729078801566
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "aggs": {
-                        "failed_apis_agg_api-id": {
-                            "terms": {
-                                "field": "api-id"
-                            },
-                            "aggs": {
-                                "total_requests": {
-                                    "value_count": {
-                                        "field": "api-id"
-                                    }
-                                },
-                                "failed_requests": {
-                                    "filter": {
-                                        "range": {
-                                            "status": {
-                                                "gte": 500,
-                                                "lt": 600
-                                            }
-                                        }
-                                    },
-                                    "aggs": {
-                                        "failed_requests_count": {
-                                            "value_count": {
-                                                "field": "status"
-                                            }
-                                        }
-                                    }
-                                },
-                                "failed_requests_ratio": {
-                                    "bucket_script": {
-                                        "buckets_path": {
-                                            "failed_count": "failed_requests>failed_requests_count",
-                                            "total_count": "total_requests"
                                         },
-                                        "script": "params.failed_count / params.total_count"
+                                        {
+                                            "terms": {
+                                                "api": [
+                                                    "api-id-1",
+                                                    "api-id-2"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "range": {
+                                    "@timestamp": {
+                                        "gte": 1728992401566,
+                                        "lte": 1729078801566
                                     }
                                 }
                             }
+                        ]
+                    }
+                },
+                "aggs": {
+                    "failed_apis_agg_api-id": {
+                        "terms": {
+                            "field": "api-id"
                         },
-                        "failed_apis_agg_api": {
-                            "terms": {
-                                "field": "api"
+                        "aggs": {
+                            "total_requests": {
+                                "value_count": {
+                                    "field": "api-id"
+                                }
                             },
-                            "aggs": {
-                                "total_requests": {
-                                    "value_count": {
-                                        "field": "api"
+                            "failed_requests": {
+                                "filter": {
+                                    "range": {
+                                        "status": {
+                                            "gte": 500,
+                                            "lt": 600
+                                        }
                                     }
                                 },
-                                "failed_requests": {
-                                    "filter": {
-                                        "range": {
-                                            "status": {
-                                                "gte": 500,
-                                                "lt": 600
-                                            }
+                                "aggs": {
+                                    "failed_requests_count": {
+                                        "value_count": {
+                                            "field": "status"
                                         }
+                                    }
+                                }
+                            },
+                            "failed_requests_ratio": {
+                                "bucket_script": {
+                                    "buckets_path": {
+                                        "failed_count": "failed_requests>failed_requests_count",
+                                        "total_count": "total_requests"
                                     },
-                                    "aggs": {
-                                        "failed_requests_count": {
-                                            "value_count": {
-                                                "field": "status"
-                                            }
+                                    "script": "params.failed_count / params.total_count"
+                                }
+                            }
+                        }
+                    },
+                    "failed_apis_agg_api": {
+                        "terms": {
+                            "field": "api"
+                        },
+                        "aggs": {
+                            "total_requests": {
+                                "value_count": {
+                                    "field": "api"
+                                }
+                            },
+                            "failed_requests": {
+                                "filter": {
+                                    "range": {
+                                        "status": {
+                                            "gte": 500,
+                                            "lt": 600
                                         }
                                     }
                                 },
-                                "failed_requests_ratio": {
-                                    "bucket_script": {
-                                        "buckets_path": {
-                                            "failed_count": "failed_requests>failed_requests_count",
-                                            "total_count": "total_requests"
-                                        },
-                                        "script": "params.failed_count / params.total_count"
+                                "aggs": {
+                                    "failed_requests_count": {
+                                        "value_count": {
+                                            "field": "status"
+                                        }
                                     }
+                                }
+                            },
+                            "failed_requests_ratio": {
+                                "bucket_script": {
+                                    "buckets_path": {
+                                        "failed_count": "failed_requests>failed_requests_count",
+                                        "total_count": "total_requests"
+                                    },
+                                    "script": "params.failed_count / params.total_count"
                                 }
                             }
                         }
                     }
                 }
-                """;
+            }
+            """;
     }
 
     @Nested

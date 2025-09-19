@@ -271,8 +271,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 // Get apps allowed to consume the api
                 List<String> applicationIds = subscriptionRepository
                     .search(
-                        SubscriptionCriteria
-                            .builder()
+                        SubscriptionCriteria.builder()
                             .apis(Collections.singleton(api.getId()))
                             .statuses(List.of(Subscription.Status.ACCEPTED.name()))
                             .build()
@@ -407,11 +406,11 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         model.put("api", genericApiModel);
 
         return this.notificationTemplateService.resolveInlineTemplateWithParam(
-                organizationId,
-                new Date().toString(),
-                message.getText(),
-                model
-            );
+            organizationId,
+            new Date().toString(),
+            message.getText(),
+            model
+        );
     }
 
     public enum MessageEvent implements Audit.AuditEvent {

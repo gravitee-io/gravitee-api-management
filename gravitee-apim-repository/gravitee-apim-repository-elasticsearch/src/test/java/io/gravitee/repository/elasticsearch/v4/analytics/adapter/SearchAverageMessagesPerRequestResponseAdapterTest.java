@@ -76,11 +76,10 @@ class SearchAverageMessagesPerRequestResponseAdapterTest {
                 .toList()
         );
 
-        assertThat(SearchAverageMessagesPerRequestResponseAdapter.adapt(searchResponse))
-            .hasValueSatisfying(countAggregate -> {
-                assertThat(countAggregate.getAverage()).isEqualTo(expectedAverage);
-                assertThat(countAggregate.getAverageBy()).containsAllEntriesOf(buckets);
-            });
+        assertThat(SearchAverageMessagesPerRequestResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate -> {
+            assertThat(countAggregate.getAverage()).isEqualTo(expectedAverage);
+            assertThat(countAggregate.getAverageBy()).containsAllEntriesOf(buckets);
+        });
     }
 
     private static Stream<Arguments> provideSearchData() {

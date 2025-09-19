@@ -166,35 +166,30 @@ class EventMongoRepositoryImplTest {
         assertThat(eventsToClean).hasSize(5);
 
         // Verify each event type is grouped correctly
-        assertThat(eventsToClean)
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("PUBLISH_API");
-                assertThat(event.group().referenceId()).isEqualTo("api-1");
-            });
+        assertThat(eventsToClean).anySatisfy(event -> {
+            assertThat(event.group().type()).isEqualTo("PUBLISH_API");
+            assertThat(event.group().referenceId()).isEqualTo("api-1");
+        });
 
-        assertThat(eventsToClean)
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("PUBLISH_DICTIONARY");
-                assertThat(event.group().referenceId()).isEqualTo("dict-1");
-            });
+        assertThat(eventsToClean).anySatisfy(event -> {
+            assertThat(event.group().type()).isEqualTo("PUBLISH_DICTIONARY");
+            assertThat(event.group().referenceId()).isEqualTo("dict-1");
+        });
 
-        assertThat(eventsToClean)
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("PUBLISH_ORGANIZATION");
-                assertThat(event.group().referenceId()).isEqualTo("org-1");
-            });
+        assertThat(eventsToClean).anySatisfy(event -> {
+            assertThat(event.group().type()).isEqualTo("PUBLISH_ORGANIZATION");
+            assertThat(event.group().referenceId()).isEqualTo("org-1");
+        });
 
-        assertThat(eventsToClean)
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("DEPLOY_SHARED_POLICY_GROUP");
-                assertThat(event.group().referenceId()).isEqualTo("spg-1");
-            });
+        assertThat(eventsToClean).anySatisfy(event -> {
+            assertThat(event.group().type()).isEqualTo("DEPLOY_SHARED_POLICY_GROUP");
+            assertThat(event.group().referenceId()).isEqualTo("spg-1");
+        });
 
-        assertThat(eventsToClean)
-            .anySatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("GATEWAY_STARTED");
-                assertThat(event.group().referenceId()).isEqualTo("gw-1");
-            });
+        assertThat(eventsToClean).anySatisfy(event -> {
+            assertThat(event.group().type()).isEqualTo("GATEWAY_STARTED");
+            assertThat(event.group().referenceId()).isEqualTo("gw-1");
+        });
     }
 
     @Test

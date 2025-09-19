@@ -155,7 +155,10 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
     private void checkOrganizations(Set<String> organizationsHrids, Set<Organization> organizations) {
         if (organizationsHrids.size() != organizations.size()) {
             final Set<String> hrids = new HashSet<>(organizationsHrids);
-            final Set<String> returnedHrids = organizations.stream().flatMap(org -> org.getHrids().stream()).collect(Collectors.toSet());
+            final Set<String> returnedHrids = organizations
+                .stream()
+                .flatMap(org -> org.getHrids().stream())
+                .collect(Collectors.toSet());
             hrids.removeAll(returnedHrids);
             log.warn("No organization found for hrids {}", hrids);
         }

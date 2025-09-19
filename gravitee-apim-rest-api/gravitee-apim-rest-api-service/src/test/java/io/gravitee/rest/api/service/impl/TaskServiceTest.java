@@ -148,8 +148,9 @@ public class TaskServiceTest {
         memberships.add(m3);
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(memberships);
 
-        when(userService.search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any()))
-            .thenReturn(new Page<>(emptyList(), 1, 0, 0));
+        when(userService.search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any())).thenReturn(
+            new Page<>(emptyList(), 1, 0, 0)
+        );
     }
 
     @AfterClass
@@ -176,8 +177,10 @@ public class TaskServiceTest {
 
         taskService.findAll(GraviteeContext.getExecutionContext(), "user");
 
-        verify(subscriptionService, times(1))
-            .search(eq(GraviteeContext.getExecutionContext()), argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2));
+        verify(subscriptionService, times(1)).search(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2)
+        );
         verify(promotionTasksService, times(1)).getPromotionTasks(GraviteeContext.getExecutionContext());
         verify(userService, times(0)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
     }
@@ -191,8 +194,10 @@ public class TaskServiceTest {
         taskService.findAll(GraviteeContext.getExecutionContext(), "user");
 
         verify(userService, times(0)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
-        verify(subscriptionService, times(0))
-            .search(eq(GraviteeContext.getExecutionContext()), argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2));
+        verify(subscriptionService, times(0)).search(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2)
+        );
         verify(apiRepository, times(0)).searchIds(any(), any(), any());
     }
 
@@ -215,8 +220,7 @@ public class TaskServiceTest {
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build(),
                 null
             )
-        )
-            .thenReturn(new Page<String>(emptyList(), 1, 0, 0));
+        ).thenReturn(new Page<String>(emptyList(), 1, 0, 0));
 
         taskService.findAll(GraviteeContext.getExecutionContext(), "admin");
 

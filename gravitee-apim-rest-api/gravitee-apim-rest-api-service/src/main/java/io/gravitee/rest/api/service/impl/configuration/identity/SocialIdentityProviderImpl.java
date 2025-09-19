@@ -133,21 +133,21 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
 
             ((OIDCIdentityProviderEntity) provider).setColor((String) identityProvider.getConfiguration().get("color"));
             ((OIDCIdentityProviderEntity) provider).setDiscoveryEndpoint(
-                    (String) identityProvider.getConfiguration().get("discoveryEndpoint")
-                );
+                (String) identityProvider.getConfiguration().get("discoveryEndpoint")
+            );
             ((OIDCIdentityProviderEntity) provider).setTokenEndpoint((String) identityProvider.getConfiguration().get("tokenEndpoint"));
             ((OIDCIdentityProviderEntity) provider).setAuthorizationEndpoint(
-                    (String) identityProvider.getConfiguration().get("authorizeEndpoint")
-                );
+                (String) identityProvider.getConfiguration().get("authorizeEndpoint")
+            );
             ((OIDCIdentityProviderEntity) provider).setTokenIntrospectionEndpoint(
-                    (String) identityProvider.getConfiguration().get("tokenIntrospectionEndpoint")
-                );
+                (String) identityProvider.getConfiguration().get("tokenIntrospectionEndpoint")
+            );
             ((OIDCIdentityProviderEntity) provider).setUserInfoEndpoint(
-                    (String) identityProvider.getConfiguration().get("userInfoEndpoint")
-                );
+                (String) identityProvider.getConfiguration().get("userInfoEndpoint")
+            );
             ((OIDCIdentityProviderEntity) provider).setUserLogoutEndpoint(
-                    (String) identityProvider.getConfiguration().get("userLogoutEndpoint")
-                );
+                (String) identityProvider.getConfiguration().get("userLogoutEndpoint")
+            );
             ((OIDCIdentityProviderEntity) provider).setScopes((List<String>) identityProvider.getConfiguration().get("scopes"));
             ((OIDCIdentityProviderEntity) provider).setUserProfileMapping(identityProvider.getUserProfileMapping());
         } else if (identityProvider.getType() == IdentityProviderType.GRAVITEEIO_AM) {
@@ -163,8 +163,8 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             provider = new AMIdentityProviderEntity(serverUrl);
             ((AMIdentityProviderEntity) provider).setColor((String) identityProvider.getConfiguration().get("color"));
             ((AMIdentityProviderEntity) provider).setDiscoveryEndpoint(
-                    (String) identityProvider.getConfiguration().get("discoveryEndpoint")
-                );
+                (String) identityProvider.getConfiguration().get("discoveryEndpoint")
+            );
             ((AMIdentityProviderEntity) provider).setScopes((List<String>) identityProvider.getConfiguration().get("scopes"));
             ((AMIdentityProviderEntity) provider).setUserProfileMapping(identityProvider.getUserProfileMapping());
         }

@@ -39,10 +39,12 @@ class PortalPagesMapperTest {
         var portalPage = PortalPagesMapper.INSTANCE.map(homepage);
         assertThat(portalPage).isNotNull();
         assertThat(portalPage.getContent()).isEqualTo("Sample Content");
-        assertThat(portalPage.getType())
-            .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
+        assertThat(portalPage.getType()).isEqualTo(
+            io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN
+        );
         assertThat(portalPage.getId()).isEqualTo(page.getId().toString());
-        assertThat(portalPage.getContext())
-            .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse.ContextEnum.HOMEPAGE);
+        assertThat(portalPage.getContext()).isEqualTo(
+            io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse.ContextEnum.HOMEPAGE
+        );
     }
 }

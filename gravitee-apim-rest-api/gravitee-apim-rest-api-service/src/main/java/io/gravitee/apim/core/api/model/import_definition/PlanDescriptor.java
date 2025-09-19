@@ -76,8 +76,7 @@ public sealed interface PlanDescriptor {
         String generalConditions,
 
         Collection<io.gravitee.definition.model.v4.flow.Flow> flows
-    )
-        implements PlanDescriptor {
+    ) implements PlanDescriptor {
         @JsonProperty("tags")
         public Set<String> tags() {
             return tags != null ? tags : Set.of();
@@ -145,8 +144,7 @@ public sealed interface PlanDescriptor {
         String generalConditions,
 
         String providerId
-    )
-        implements PlanDescriptor {}
+    ) implements PlanDescriptor {}
 
     @Builder
     record V2(
@@ -183,8 +181,7 @@ public sealed interface PlanDescriptor {
         String securityDefinition,
         Map<String, List<Rule>> paths,
         Collection<Flow> flows
-    )
-        implements PlanDescriptor {
+    ) implements PlanDescriptor {
         @JsonProperty("tags")
         public Set<String> tags() {
             return tags != null ? tags : Set.of();
@@ -256,8 +253,7 @@ public sealed interface PlanDescriptor {
         String generalConditions,
 
         Collection<NativeFlow> flows
-    )
-        implements PlanDescriptor {
+    ) implements PlanDescriptor {
         @JsonProperty("tags")
         public Set<String> tags() {
             return tags != null ? tags : Set.of();

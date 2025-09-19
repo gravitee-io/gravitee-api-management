@@ -70,34 +70,31 @@ public class ThemeQueryServiceImplTest {
         @Test
         void should_return_page_of_mixed_themes() throws Throwable {
             var criteria = ThemeCriteria.builder().build();
-            when(themeRepository.search(eq(criteria), any()))
-                .thenAnswer(invocation -> new Page<>(List.of(aPortalRepoTheme(), aPortalNextRepoTheme()), 1, 2, 2));
+            when(themeRepository.search(eq(criteria), any())).thenAnswer(invocation ->
+                new Page<>(List.of(aPortalRepoTheme(), aPortalNextRepoTheme()), 1, 2, 2)
+            );
             var result = service.searchByCriteria(ThemeSearchCriteria.builder().build(), new PageableImpl(1, 1));
 
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
-            var portalTheme = io.gravitee.apim.core.theme.model.Theme
-                .builder()
+            var portalTheme = io.gravitee.apim.core.theme.model.Theme.builder()
                 .id(PORTAL_THEME_ID)
                 .name(PORTAL_THEME_ID)
                 .definitionPortal(portalDefinition)
                 .type(io.gravitee.apim.core.theme.model.ThemeType.PORTAL)
                 .build();
 
-            var portalNextDefinition = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
-                .builder()
+            var portalNextDefinition = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
                 .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
                 .build();
-            var portalNextTheme = io.gravitee.apim.core.theme.model.Theme
-                .builder()
+            var portalNextTheme = io.gravitee.apim.core.theme.model.Theme.builder()
                 .id(PORTAL_NEXT_THEME_ID)
                 .name(PORTAL_NEXT_THEME_ID)
                 .definitionPortalNext(portalNextDefinition)
                 .type(io.gravitee.apim.core.theme.model.ThemeType.PORTAL_NEXT)
                 .build();
 
-            Assertions
-                .assertThat(result)
+            Assertions.assertThat(result)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("totalElements", 2L)
                 .hasFieldOrPropertyWithValue("pageNumber", 1)
@@ -113,8 +110,7 @@ public class ThemeQueryServiceImplTest {
 
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
-            var portalTheme = io.gravitee.apim.core.theme.model.Theme
-                .builder()
+            var portalTheme = io.gravitee.apim.core.theme.model.Theme.builder()
                 .id(PORTAL_THEME_ID)
                 .name(PORTAL_THEME_ID)
                 .definitionPortal(portalDefinition)
@@ -135,8 +131,7 @@ public class ThemeQueryServiceImplTest {
 
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
-            var portalTheme = io.gravitee.apim.core.theme.model.Theme
-                .builder()
+            var portalTheme = io.gravitee.apim.core.theme.model.Theme.builder()
                 .id(PORTAL_THEME_ID)
                 .name(PORTAL_THEME_ID)
                 .definitionPortal(portalDefinition)
@@ -154,8 +149,7 @@ public class ThemeQueryServiceImplTest {
 
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
-            var portalTheme = io.gravitee.apim.core.theme.model.Theme
-                .builder()
+            var portalTheme = io.gravitee.apim.core.theme.model.Theme.builder()
                 .id(PORTAL_THEME_ID)
                 .name(PORTAL_THEME_ID)
                 .definitionPortal(portalDefinition)
@@ -173,8 +167,7 @@ public class ThemeQueryServiceImplTest {
 
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
-            var portalTheme = io.gravitee.apim.core.theme.model.Theme
-                .builder()
+            var portalTheme = io.gravitee.apim.core.theme.model.Theme.builder()
                 .id(PORTAL_THEME_ID)
                 .name(PORTAL_THEME_ID)
                 .definitionPortal(portalDefinition)
@@ -190,8 +183,9 @@ public class ThemeQueryServiceImplTest {
 
         @Test
         void should_return_empty_results() throws Throwable {
-            when(themeRepository.findByReferenceIdAndReferenceTypeAndType(eq(ENV_ID), eq("ENVIRONMENT"), eq(ThemeType.PORTAL)))
-                .thenAnswer(invocation -> new HashSet<Theme>());
+            when(themeRepository.findByReferenceIdAndReferenceTypeAndType(eq(ENV_ID), eq("ENVIRONMENT"), eq(ThemeType.PORTAL))).thenAnswer(
+                invocation -> new HashSet<Theme>()
+            );
 
             var result = service.findByThemeTypeAndEnvironmentId(io.gravitee.apim.core.theme.model.ThemeType.PORTAL, ENV_ID);
 
@@ -200,15 +194,15 @@ public class ThemeQueryServiceImplTest {
 
         @Test
         void should_return_portal_theme() throws Throwable {
-            when(themeRepository.findByReferenceIdAndReferenceTypeAndType(eq(ENV_ID), eq("ENVIRONMENT"), eq(ThemeType.PORTAL)))
-                .thenAnswer(invocation -> Set.of(aPortalRepoTheme()));
+            when(themeRepository.findByReferenceIdAndReferenceTypeAndType(eq(ENV_ID), eq("ENVIRONMENT"), eq(ThemeType.PORTAL))).thenAnswer(
+                invocation -> Set.of(aPortalRepoTheme())
+            );
 
             var result = service.findByThemeTypeAndEnvironmentId(io.gravitee.apim.core.theme.model.ThemeType.PORTAL, ENV_ID);
 
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
-            var portalTheme = io.gravitee.apim.core.theme.model.Theme
-                .builder()
+            var portalTheme = io.gravitee.apim.core.theme.model.Theme.builder()
                 .id(PORTAL_THEME_ID)
                 .name(PORTAL_THEME_ID)
                 .definitionPortal(portalDefinition)

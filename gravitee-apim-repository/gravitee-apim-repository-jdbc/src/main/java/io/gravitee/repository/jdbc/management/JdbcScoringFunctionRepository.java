@@ -43,8 +43,7 @@ public class JdbcScoringFunctionRepository
 
     @Override
     protected JdbcObjectMapper<ScoringFunction> buildOrm() {
-        return JdbcObjectMapper
-            .builder(ScoringFunction.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(ScoringFunction.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("payload", Types.NCLOB, String.class)

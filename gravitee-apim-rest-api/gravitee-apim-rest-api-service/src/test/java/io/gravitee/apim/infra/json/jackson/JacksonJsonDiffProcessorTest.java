@@ -38,18 +38,17 @@ class JacksonJsonDiffProcessorTest {
 
     @Test
     void should_process_diff_of_model_using_JsonRawValue_annotation() {
-        var oldPlan = PlanFixtures
-            .aPlanHttpV4()
+        var oldPlan = PlanFixtures.aPlanHttpV4()
             .toBuilder()
             .planDefinitionHttpV4(
-                Plan
-                    .builder()
+                Plan.builder()
                     .security(
-                        PlanSecurity
-                            .builder()
+                        PlanSecurity.builder()
                             .type(PlanSecurityType.OAUTH2.getLabel())
-                            .configuration("""
-                                {"modeStrict": true}""")
+                            .configuration(
+                                """
+                                {"modeStrict": true}"""
+                            )
                             .build()
                     )
                     .build()
@@ -60,8 +59,11 @@ class JacksonJsonDiffProcessorTest {
 
         var diff = processor.diff(oldPlan, newPlan);
 
-        assertEquals("""
-            [{"op":"replace","path":"/name","value":"updated name"}]""", diff);
+        assertEquals(
+            """
+            [{"op":"replace","path":"/name","value":"updated name"}]""",
+            diff
+        );
     }
 
     @Test
@@ -71,8 +73,11 @@ class JacksonJsonDiffProcessorTest {
 
         var diff = processor.diff(oldArray, newArray);
 
-        assertEquals("""
-            [{"op":"replace","path":"/1","value":"value3"},{"op":"add","path":"/-","value":"value4"}]""", diff);
+        assertEquals(
+            """
+            [{"op":"replace","path":"/1","value":"value3"},{"op":"add","path":"/-","value":"value4"}]""",
+            diff
+        );
     }
 
     @Test

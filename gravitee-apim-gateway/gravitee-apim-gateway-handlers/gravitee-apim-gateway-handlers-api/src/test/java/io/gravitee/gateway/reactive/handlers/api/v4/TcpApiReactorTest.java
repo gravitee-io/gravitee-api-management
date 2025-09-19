@@ -175,17 +175,16 @@ class TcpApiReactorTest {
     private TcpApiReactor buildApiReactor() {
         TcpApiReactor tcpApiReactor = null;
         try {
-            tcpApiReactor =
-                new TcpApiReactor(
-                    api,
-                    node,
-                    configuration,
-                    new DefaultDeploymentContext(),
-                    entrypointConnectorPluginManager,
-                    endpointManager,
-                    requestTimeoutConfiguration,
-                    tracingContext
-                );
+            tcpApiReactor = new TcpApiReactor(
+                api,
+                node,
+                configuration,
+                new DefaultDeploymentContext(),
+                entrypointConnectorPluginManager,
+                endpointManager,
+                requestTimeoutConfiguration,
+                tracingContext
+            );
             ReflectionTestUtils.setField(tcpApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(tcpApiReactor, "defaultInvoker", defaultInvoker);
             tcpApiReactor.doStart();

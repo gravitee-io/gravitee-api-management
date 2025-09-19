@@ -49,20 +49,18 @@ public class PolicyCrudServiceImplTest {
         void should_return_policy_and_adapt_it() {
             // Given
             var policyId = "policy-id";
-            when(policyService.findById(policyId))
-                .thenAnswer(invocation ->
-                    PolicyPluginEntity
-                        .builder()
-                        .id(invocation.getArgument(0))
-                        .name("name")
-                        .description("description")
-                        .icon("icon")
-                        .feature("feature")
-                        .deployed(true)
-                        .category("category")
-                        .version("1")
-                        .build()
-                );
+            when(policyService.findById(policyId)).thenAnswer(invocation ->
+                PolicyPluginEntity.builder()
+                    .id(invocation.getArgument(0))
+                    .name("name")
+                    .description("description")
+                    .icon("icon")
+                    .feature("feature")
+                    .deployed(true)
+                    .category("category")
+                    .version("1")
+                    .build()
+            );
 
             // When
             var policy = service.get(policyId);

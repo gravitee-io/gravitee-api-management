@@ -58,13 +58,12 @@ class DiscoveryUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        usecase =
-            new DiscoveryUseCase(
-                integrationAgent,
-                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-                apiQueryService,
-                integrationCrudService
-            );
+        usecase = new DiscoveryUseCase(
+            integrationAgent,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            apiQueryService,
+            integrationCrudService
+        );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
@@ -117,7 +116,8 @@ class DiscoveryUseCaseTest {
         var result = usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).blockingGet();
 
         //Then
-        assertThat(result.apis())
-            .containsExactlyInAnyOrder(new DiscoveryUseCase.Output.PreviewApi(api, DiscoveryUseCase.Output.State.UPDATE));
+        assertThat(result.apis()).containsExactlyInAnyOrder(
+            new DiscoveryUseCase.Output.PreviewApi(api, DiscoveryUseCase.Output.State.UPDATE)
+        );
     }
 }

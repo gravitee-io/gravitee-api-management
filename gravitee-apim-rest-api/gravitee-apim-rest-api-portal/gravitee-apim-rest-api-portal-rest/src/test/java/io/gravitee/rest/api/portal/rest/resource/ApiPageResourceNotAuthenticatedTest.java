@@ -85,16 +85,16 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     @Test
     public void shouldHaveMetadataCleared() {
         when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(mock(GenericApiEntity.class));
-        when(accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
-            .thenReturn(true);
+        when(
+            accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))
+        ).thenReturn(true);
         when(
             accessControlService.canAccessApiPageFromPortal(
                 eq(GraviteeContext.getExecutionContext()),
                 any(GenericApiEntity.class),
                 any(PageEntity.class)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());

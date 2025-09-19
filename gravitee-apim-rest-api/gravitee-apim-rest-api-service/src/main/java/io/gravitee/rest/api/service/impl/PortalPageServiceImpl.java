@@ -53,8 +53,7 @@ public class PortalPageServiceImpl implements PortalPageService {
         var homePages = portalPageContextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId);
         if (homePages.isEmpty()) {
             var createPortalPage = portalPageRepository.create(
-                PortalPage
-                    .builder()
+                PortalPage.builder()
                     .id(UuidString.generateRandom())
                     .environmentId(environmentId)
                     .name(DEFAULT_PORTAL_PAGE_NAME)
@@ -64,8 +63,7 @@ public class PortalPageServiceImpl implements PortalPageService {
                     .build()
             );
             portalPageContextRepository.create(
-                PortalPageContext
-                    .builder()
+                PortalPageContext.builder()
                     .id(UuidString.generateRandom())
                     .pageId(createPortalPage.getId())
                     .contextType(PortalPageContextType.HOMEPAGE)

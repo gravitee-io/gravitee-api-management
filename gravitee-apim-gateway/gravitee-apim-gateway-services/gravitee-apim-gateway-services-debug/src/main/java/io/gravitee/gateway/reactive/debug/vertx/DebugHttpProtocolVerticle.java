@@ -59,16 +59,15 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
         final HttpServer rxHttpServer = debugServer.newInstance();
 
         // Listen and dispatch http requests.
-        requestDisposable =
-            rxHttpServer
-                .connectionHandler(connection -> {
-                    HttpServerConnection delegate = (HttpServerConnection) connection.getDelegate();
-                    delegate.channel().attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME)).set(System.currentTimeMillis());
-                })
-                .requestStream()
-                .toFlowable()
-                .flatMapCompletable(this::dispatchRequest)
-                .subscribe();
+        requestDisposable = rxHttpServer
+            .connectionHandler(connection -> {
+                HttpServerConnection delegate = (HttpServerConnection) connection.getDelegate();
+                delegate.channel().attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME)).set(System.currentTimeMillis());
+            })
+            .requestStream()
+            .toFlowable()
+            .flatMapCompletable(this::dispatchRequest)
+            .subscribe();
 
         return rxHttpServer
             .rxListen()
@@ -147,8 +146,7 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStop() {
-        return Completable
-            .fromRunnable(requestDisposable::dispose)
+        return Completable.fromRunnable(requestDisposable::dispose)
             .andThen(
                 debugServer
                     .instances()

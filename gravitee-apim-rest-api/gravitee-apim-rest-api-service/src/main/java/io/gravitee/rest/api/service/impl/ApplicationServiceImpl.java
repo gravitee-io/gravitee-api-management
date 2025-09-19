@@ -240,8 +240,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Optional<Application> applicationOptional = applicationRepository.findById(applicationId);
 
             if (executionContext.hasEnvironmentId()) {
-                applicationOptional =
-                    applicationOptional.filter(result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
+                applicationOptional = applicationOptional.filter(result ->
+                    result.getEnvironmentId().equals(executionContext.getEnvironmentId())
+                );
             }
 
             if (applicationOptional.isPresent()) {
@@ -273,9 +274,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return Collections.emptySet();
             }
 
-            ApplicationCriteria.ApplicationCriteriaBuilder criteriaBuilder = ApplicationCriteria
-                .builder()
-                .restrictedToIds(new HashSet<>(applicationIds));
+            ApplicationCriteria.ApplicationCriteriaBuilder criteriaBuilder = ApplicationCriteria.builder().restrictedToIds(
+                new HashSet<>(applicationIds)
+            );
 
             if (applicationStatus != null) {
                 criteriaBuilder.status(applicationStatus);
@@ -610,11 +611,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             );
             throw new TechnicalManagementException(
                 "An error occurs while trying create " +
-                application +
-                " for user " +
-                userId +
-                " in environment " +
-                executionContext.getEnvironmentId(),
+                    application +
+                    " for user " +
+                    userId +
+                    " in environment " +
+                    executionContext.getEnvironmentId(),
                 ex
             );
         }
@@ -710,8 +711,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 String existingCertificate = applicationToUpdate.getMetadata().get(METADATA_CLIENT_CERTIFICATE);
                 metadata.put(METADATA_CLIENT_CERTIFICATE, existingCertificate);
                 String newCertificate = updateApplicationEntity.getSettings().getTls().getClientCertificate();
-                existingCertificate =
-                    existingCertificate != null ? new String(Base64.getDecoder().decode(existingCertificate)).trim() : null;
+                existingCertificate = existingCertificate != null
+                    ? new String(Base64.getDecoder().decode(existingCertificate)).trim()
+                    : null;
                 if (newCertificate != null && !newCertificate.trim().equals(existingCertificate)) {
                     throw new ClientCertificateChangeNotAllowedException();
                 }
@@ -817,16 +819,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         subscriptionModifier = clientIdSubscriptionModifier;
                     }
                     if (areNotEmptyAndDifferent(clientCertificate, subscriptionEntity.getClientCertificate())) {
-                        subscriptionModifier =
-                            subscriptionModifier == null
-                                ? clientCertificateSubscriptionModifier
-                                : subscriptionModifier.andThen(clientCertificateSubscriptionModifier);
+                        subscriptionModifier = subscriptionModifier == null
+                            ? clientCertificateSubscriptionModifier
+                            : subscriptionModifier.andThen(clientCertificateSubscriptionModifier);
                     }
                     if (areNotEmptyAndDifferent(application.getName(), subscriptionEntity.getApplicationName())) {
-                        subscriptionModifier =
-                            subscriptionModifier == null
-                                ? applicationNameSubscriptionModifier
-                                : subscriptionModifier.andThen(applicationNameSubscriptionModifier);
+                        subscriptionModifier = subscriptionModifier == null
+                            ? applicationNameSubscriptionModifier
+                            : subscriptionModifier.andThen(applicationNameSubscriptionModifier);
                     }
                     if (subscriptionModifier != null) {
                         UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
@@ -923,23 +923,22 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 .findByApplicationAndPlan(executionContext, applicationId, null)
                 .stream()
                 .filter(subscriptionEntity ->
-                    Set
-                        .of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING)
-                        .contains(subscriptionEntity.getStatus())
+                    Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING).contains(
+                        subscriptionEntity.getStatus()
+                    )
                 )
                 .map(SubscriptionEntity::getPlan)
                 .collect(Collectors.toSet());
 
             if (!planIds.isEmpty()) {
-                Set<GenericPlanEntity> plans =
-                    this.planSearchService.findByIdIn(executionContext, planIds)
-                        .stream()
-                        .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
-                        .filter(planEntity -> {
-                            PlanSecurityType security = PlanSecurityType.valueOfLabel(planEntity.getPlanSecurity().getType());
-                            return security == PlanSecurityType.JWT || security == PlanSecurityType.OAUTH2;
-                        })
-                        .collect(toSet());
+                Set<GenericPlanEntity> plans = this.planSearchService.findByIdIn(executionContext, planIds)
+                    .stream()
+                    .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
+                    .filter(planEntity -> {
+                        PlanSecurityType security = PlanSecurityType.valueOfLabel(planEntity.getPlanSecurity().getType());
+                        return security == PlanSecurityType.JWT || security == PlanSecurityType.OAUTH2;
+                    })
+                    .collect(toSet());
 
                 if (!plans.isEmpty()) {
                     throw new ApplicationClientIdException(
@@ -1137,8 +1136,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 try {
                     closeSubscriptionDomainService.closeSubscription(
                         subscription.getId(),
-                        AuditInfo
-                            .builder()
+                        AuditInfo.builder()
                             .organizationId(executionContext.getOrganizationId())
                             .environmentId(executionContext.getEnvironmentId())
                             .actor(getAuthenticatedUserAsAuditActor())

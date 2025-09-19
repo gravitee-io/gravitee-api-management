@@ -323,33 +323,27 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     private void verifyMessagesAreOrdered(int messageCount, TestSubscriber<JsonObject> obs) {
         for (int i = 0; i < messageCount; i++) {
             final int counter = i;
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
-                    assertThat(messageCounter).isEqualTo(counter);
-                    assertThat(jsonObject.getString("content")).matches("message");
+            obs.assertValueAt(i, jsonObject -> {
+                final Integer messageCounter = Integer.parseInt(jsonObject.getString("id"));
+                assertThat(messageCounter).isEqualTo(counter);
+                assertThat(jsonObject.getString("content")).matches("message");
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 
     private void verifyMessageHeadersAndMetadata(int messageCount, TestSubscriber<JsonObject> obs) {
         for (int i = 0; i < messageCount; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final JsonObject headers = jsonObject.getJsonObject("headers");
-                    assertThat(headers.getJsonArray("header1").getList()).isEqualTo(List.of("headerValue1"));
+            obs.assertValueAt(i, jsonObject -> {
+                final JsonObject headers = jsonObject.getJsonObject("headers");
+                assertThat(headers.getJsonArray("header1").getList()).isEqualTo(List.of("headerValue1"));
 
-                    final JsonObject metadata = jsonObject.getJsonObject("metadata");
-                    assertThat(metadata.getString("metadata1")).isEqualTo("metadataValue1");
+                final JsonObject metadata = jsonObject.getJsonObject("metadata");
+                assertThat(metadata.getString("metadata1")).isEqualTo("metadataValue1");
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 }

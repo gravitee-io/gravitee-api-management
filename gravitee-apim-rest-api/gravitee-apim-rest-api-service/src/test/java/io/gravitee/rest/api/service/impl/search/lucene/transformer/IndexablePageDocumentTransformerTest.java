@@ -45,8 +45,7 @@ public class IndexablePageDocumentTransformerTest {
 
     private static IndexablePage given() {
         return new IndexablePage(
-            Page
-                .builder()
+            Page.builder()
                 .id(PAGE_ID)
                 .type(Page.Type.MARKDOWN)
                 .referenceId(API_ID)

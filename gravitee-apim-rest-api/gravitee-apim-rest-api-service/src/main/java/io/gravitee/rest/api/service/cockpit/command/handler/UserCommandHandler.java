@@ -100,20 +100,18 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
                 log.info("User [{}] created with APIM id [{}].", userPayload.username(), cockpitUserEntity.getId());
                 return Single.just(new UserReply(command.getId()));
             } catch (Exception e) {
-                String errorDetails =
-                    "Error occurred when creating user [%s] for organization [%s].".formatted(
-                            userPayload.username(),
-                            userPayload.organizationId()
-                        );
+                String errorDetails = "Error occurred when creating user [%s] for organization [%s].".formatted(
+                    userPayload.username(),
+                    userPayload.organizationId()
+                );
                 log.error(errorDetails, e);
                 return Single.just(new UserReply(command.getId(), errorDetails));
             }
         } catch (Exception e) {
-            String errorDetails =
-                "Error occurred when updating user [%s] for organization [%s].".formatted(
-                        userPayload.username(),
-                        userPayload.organizationId()
-                    );
+            String errorDetails = "Error occurred when updating user [%s] for organization [%s].".formatted(
+                userPayload.username(),
+                userPayload.organizationId()
+            );
             log.error(errorDetails, e);
             return Single.just(new UserReply(command.getId(), errorDetails));
         }

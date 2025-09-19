@@ -88,7 +88,10 @@ public class ApiMetadataProvider implements AnalyticsMetadataProvider {
             .forEach(key -> metaMap.put(key, UNKNOWN_API));
 
         // Batch for real API ids
-        List<String> apiIds = keys.stream().filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key)).toList();
+        List<String> apiIds = keys
+            .stream()
+            .filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key))
+            .toList();
 
         if (!apiIds.isEmpty()) {
             Map<String, Api> apis = apiCrudService.findByIds(apiIds).stream().collect(Collectors.toMap(Api::getId, Function.identity()));
@@ -97,7 +100,10 @@ public class ApiMetadataProvider implements AnalyticsMetadataProvider {
             apis.forEach((id, api) -> metaMap.put(id, ofApi(api)));
 
             // Not found APIs
-            apiIds.stream().filter(id -> !apis.containsKey(id)).forEach(id -> metaMap.put(id, NOT_FOUND));
+            apiIds
+                .stream()
+                .filter(id -> !apis.containsKey(id))
+                .forEach(id -> metaMap.put(id, NOT_FOUND));
         }
 
         // Build output Map<String, Map<String, String>>

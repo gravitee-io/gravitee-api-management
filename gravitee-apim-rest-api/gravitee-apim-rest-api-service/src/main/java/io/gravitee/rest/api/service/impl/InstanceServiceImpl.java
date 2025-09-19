@@ -182,7 +182,11 @@ public class InstanceServiceImpl implements InstanceService {
 
         Collection<EventEntity> events = eventService.search(executionContext, query);
 
-        return events.stream().map(this::convert).filter(instanceEntity -> instanceEntity.getState() == InstanceState.STARTED).toList();
+        return events
+            .stream()
+            .map(this::convert)
+            .filter(instanceEntity -> instanceEntity.getState() == InstanceState.STARTED)
+            .toList();
     }
 
     private InstanceEntity convert(EventEntity event) {

@@ -145,8 +145,7 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
     }
 
     private static GroupCRDSpec.Member initGroupMember(RoleScope roleScope, MemberCRD member) {
-        return GroupCRDSpec.Member
-            .builder()
+        return GroupCRDSpec.Member.builder()
             .id(member.getId())
             .source(member.getSource())
             .sourceId(member.getSourceId())

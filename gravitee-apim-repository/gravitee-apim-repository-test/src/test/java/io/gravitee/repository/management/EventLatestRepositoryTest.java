@@ -107,8 +107,16 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         List<Event> events = eventLatestRepository.search(EventCriteria.builder().build(), Event.EventProperties.API_ID, null, null);
 
         assertEquals(8L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsExactly("api-1", "api-2", "api-3", "api-4", "api-5", "api-6", "api-7", "api-8");
+        assertThat(events.stream().map(Event::getId)).containsExactly(
+            "api-1",
+            "api-2",
+            "api-3",
+            "api-4",
+            "api-5",
+            "api-6",
+            "api-7",
+            "api-8"
+        );
     }
 
     @Test
@@ -216,8 +224,7 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldReturnApiEventsWhenSearchingWithTime() {
         List<Event> events = eventLatestRepository.search(
-            EventCriteria
-                .builder()
+            EventCriteria.builder()
                 .from(1451606400000L)
                 .to(1470157767000L)
                 .property(Event.EventProperties.API_ID.getValue(), "api-3")
@@ -236,8 +243,7 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldReturnApiEventsWhenSearching() {
         List<Event> events = eventLatestRepository.search(
-            EventCriteria
-                .builder()
+            EventCriteria.builder()
                 .property(Event.EventProperties.API_ID.getValue(), "api-1")
                 .types(Set.of(EventType.START_API, EventType.PUBLISH_API))
                 .build(),
@@ -286,8 +292,16 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         );
 
         assertEquals(8L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsExactly("api-1", "api-2", "api-3", "api-4", "api-5", "dictionary-1", "api-6", "api-8");
+        assertThat(events.stream().map(Event::getId)).containsExactly(
+            "api-1",
+            "api-2",
+            "api-3",
+            "api-4",
+            "api-5",
+            "dictionary-1",
+            "api-6",
+            "api-8"
+        );
     }
 
     @Test
@@ -338,7 +352,15 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         List<Event> events = eventLatestRepository.findByOrganizationId("DEFAULT");
 
         assertEquals(8L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsOnly("api-1", "api-2", "api-3", "dictionary-1", "api-4", "api-5", "api-7", "api-8");
+        assertThat(events.stream().map(Event::getId)).containsOnly(
+            "api-1",
+            "api-2",
+            "api-3",
+            "dictionary-1",
+            "api-4",
+            "api-5",
+            "api-7",
+            "api-8"
+        );
     }
 }

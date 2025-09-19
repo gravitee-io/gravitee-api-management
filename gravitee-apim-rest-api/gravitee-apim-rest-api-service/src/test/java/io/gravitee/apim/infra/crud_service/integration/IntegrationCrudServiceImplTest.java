@@ -90,28 +90,26 @@ class IntegrationCrudServiceImplTest {
         @SneakyThrows
         void should_return_the_found_integration() {
             //Given
-            when(integrationRepository.findByIntegrationId(any()))
-                .thenAnswer(invocation ->
-                    Optional.of(fixtures.repository.IntegrationFixture.anIntegration().toBuilder().id(invocation.getArgument(0)).build())
-                );
+            when(integrationRepository.findByIntegrationId(any())).thenAnswer(invocation ->
+                Optional.of(fixtures.repository.IntegrationFixture.anIntegration().toBuilder().id(invocation.getArgument(0)).build())
+            );
 
             //When
             var result = service.findById("my-id");
 
             //Then
-            assertThat(result)
-                .contains(
-                    new Integration.ApiIntegration(
-                        "my-id",
-                        "An integration",
-                        "A description",
-                        "amazon",
-                        "environment-id",
-                        Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-                        Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-                        Set.of()
-                    )
-                );
+            assertThat(result).contains(
+                new Integration.ApiIntegration(
+                    "my-id",
+                    "An integration",
+                    "A description",
+                    "amazon",
+                    "environment-id",
+                    Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                    Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                    Set.of()
+                )
+            );
         }
 
         @Test
@@ -161,8 +159,7 @@ class IntegrationCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Integration
-                        .builder()
+                    io.gravitee.repository.management.model.Integration.builder()
                         .id("integration-id")
                         .name("test-name")
                         .description("integration-description")

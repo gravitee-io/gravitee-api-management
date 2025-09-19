@@ -86,8 +86,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void create_should_create_federated_apiKey() throws Exception {
         String id = "id-of-new-apikey";
 
-        ApiKey apiKey = ApiKey
-            .builder()
+        ApiKey apiKey = ApiKey.builder()
             .id(id)
             .key("apiKey")
             .environmentId("DEFAULT")

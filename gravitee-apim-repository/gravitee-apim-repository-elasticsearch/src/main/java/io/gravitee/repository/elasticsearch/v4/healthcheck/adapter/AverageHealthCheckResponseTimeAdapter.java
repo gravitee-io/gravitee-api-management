@@ -69,28 +69,23 @@ public class AverageHealthCheckResponseTimeAdapter implements QueryResponseAdapt
     }
 
     private ObjectNode aggregations(ApiFieldPeriod query) {
-        var aggregations = json()
-            .set(
-                "ranges",
-                json()
-                    .<ObjectNode>set("aggregations", json().set("results", json().set("avg", json().put("field", "response-time"))))
-                    .<ObjectNode>set(
-                        "date_range",
-                        json()
-                            .put("field", TIME_FIELD)
-                            .put("keyed", false)
-                            .set(
-                                "ranges",
-                                array()
-                                    .add(
-                                        json()
-                                            .put("from", query.from().toEpochMilli())
-                                            .put("to", query.to().toEpochMilli())
-                                            .put("key", PERIOD)
-                                    )
+        var aggregations = json().set(
+            "ranges",
+            json()
+                .<ObjectNode>set("aggregations", json().set("results", json().set("avg", json().put("field", "response-time"))))
+                .<ObjectNode>set(
+                    "date_range",
+                    json()
+                        .put("field", TIME_FIELD)
+                        .put("keyed", false)
+                        .set(
+                            "ranges",
+                            array().add(
+                                json().put("from", query.from().toEpochMilli()).put("to", query.to().toEpochMilli()).put("key", PERIOD)
                             )
-                    )
-            );
+                        )
+                )
+        );
         var terms = json()
             .put("field", query.field())
             .put("size", 100)

@@ -66,27 +66,24 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
                 ApiFixtures.aProxyApiV2().toBuilder().id("proxy-api-v2-id").name("Proxy Api v2").build()
             )
         );
-        var input = SearchEnvironmentTopFailedApisUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopFailedApisUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchTopFailedApis(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    TopFailedApis
-                        .builder()
-                        .data(
-                            List.of(
-                                TopFailedApis.TopFailedApi.builder().id("message-api-v4-id").failedCalls(7).failedCallsRatio(0.3).build(),
-                                TopFailedApis.TopFailedApi.builder().id("proxy-api-v4-id").failedCalls(12).failedCallsRatio(0.2).build(),
-                                TopFailedApis.TopFailedApi.builder().id("proxy-api-v2-id").failedCalls(3).failedCallsRatio(0.1).build()
-                            )
+        when(analyticsQueryService.searchTopFailedApis(any(), any())).thenReturn(
+            Optional.of(
+                TopFailedApis.builder()
+                    .data(
+                        List.of(
+                            TopFailedApis.TopFailedApi.builder().id("message-api-v4-id").failedCalls(7).failedCallsRatio(0.3).build(),
+                            TopFailedApis.TopFailedApi.builder().id("proxy-api-v4-id").failedCalls(12).failedCallsRatio(0.2).build(),
+                            TopFailedApis.TopFailedApi.builder().id("proxy-api-v2-id").failedCalls(3).failedCallsRatio(0.1).build()
                         )
-                        .build()
-                )
-            );
+                    )
+                    .build()
+            )
+        );
 
         var result = cut.execute(input).topFailedApis();
 
@@ -94,24 +91,21 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
             .extracting(TopFailedApis::getData)
             .isEqualTo(
                 List.of(
-                    TopFailedApis.TopFailedApi
-                        .builder()
+                    TopFailedApis.TopFailedApi.builder()
                         .id("proxy-api-v4-id")
                         .name("Proxy Api v4")
                         .definitionVersion(DefinitionVersion.V4)
                         .failedCalls(12L)
                         .failedCallsRatio(0.2)
                         .build(),
-                    TopFailedApis.TopFailedApi
-                        .builder()
+                    TopFailedApis.TopFailedApi.builder()
                         .id("message-api-v4-id")
                         .name("Message Api v4")
                         .definitionVersion(DefinitionVersion.V4)
                         .failedCalls(7L)
                         .failedCallsRatio(0.3)
                         .build(),
-                    TopFailedApis.TopFailedApi
-                        .builder()
+                    TopFailedApis.TopFailedApi.builder()
                         .id("proxy-api-v2-id")
                         .name("Proxy Api v2")
                         .definitionVersion(DefinitionVersion.V2)
@@ -131,25 +125,20 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
                 ApiFixtures.aProxyApiV4().toBuilder().id("proxy-api-v4-id").environmentId(otherEnvId).name("Proxy Api v4").build()
             )
         );
-        var input = SearchEnvironmentTopFailedApisUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopFailedApisUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchTopFailedApis(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    TopFailedApis
-                        .builder()
-                        .data(
-                            List.of(
-                                TopFailedApis.TopFailedApi.builder().id("message-api-v4-id").failedCalls(7).failedCallsRatio(0.3).build()
-                            )
-                        )
-                        .build()
-                )
-            );
+        when(analyticsQueryService.searchTopFailedApis(any(), any())).thenReturn(
+            Optional.of(
+                TopFailedApis.builder()
+                    .data(
+                        List.of(TopFailedApis.TopFailedApi.builder().id("message-api-v4-id").failedCalls(7).failedCallsRatio(0.3).build())
+                    )
+                    .build()
+            )
+        );
 
         var result = cut.execute(input).topFailedApis();
 
@@ -157,8 +146,7 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
             .extracting(TopFailedApis::getData)
             .isEqualTo(
                 List.of(
-                    TopFailedApis.TopFailedApi
-                        .builder()
+                    TopFailedApis.TopFailedApi.builder()
                         .id("message-api-v4-id")
                         .name("Message Api v4")
                         .definitionVersion(DefinitionVersion.V4)
@@ -179,28 +167,25 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
                 ApiFixtures.aProxyApiV4().toBuilder().id("proxy-api-v4-id-2").name("Proxy Api v4 2").build()
             )
         );
-        var input = SearchEnvironmentTopFailedApisUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopFailedApisUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchTopFailedApis(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    TopFailedApis
-                        .builder()
-                        .data(
-                            List.of(
-                                TopFailedApis.TopFailedApi.builder().id("message-api-v4-id").failedCalls(5L).build(),
-                                TopFailedApis.TopFailedApi.builder().id("message-api-v4-id-2").failedCalls(3L).build(),
-                                TopFailedApis.TopFailedApi.builder().id("proxy-api-v4-id").failedCalls(17L).build(),
-                                TopFailedApis.TopFailedApi.builder().id("proxy-api-v4-id-2").failedCalls(2L).build()
-                            )
+        when(analyticsQueryService.searchTopFailedApis(any(), any())).thenReturn(
+            Optional.of(
+                TopFailedApis.builder()
+                    .data(
+                        List.of(
+                            TopFailedApis.TopFailedApi.builder().id("message-api-v4-id").failedCalls(5L).build(),
+                            TopFailedApis.TopFailedApi.builder().id("message-api-v4-id-2").failedCalls(3L).build(),
+                            TopFailedApis.TopFailedApi.builder().id("proxy-api-v4-id").failedCalls(17L).build(),
+                            TopFailedApis.TopFailedApi.builder().id("proxy-api-v4-id-2").failedCalls(2L).build()
                         )
-                        .build()
-                )
-            );
+                    )
+                    .build()
+            )
+        );
 
         var result = cut.execute(input).topFailedApis();
 
@@ -209,8 +194,7 @@ class SearchEnvironmentTopFailedApisUseCaseTest {
 
     @Test
     void should_get_empty_top_failed_list_in_case_of_no_records_found() {
-        var input = SearchEnvironmentTopFailedApisUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopFailedApisUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();

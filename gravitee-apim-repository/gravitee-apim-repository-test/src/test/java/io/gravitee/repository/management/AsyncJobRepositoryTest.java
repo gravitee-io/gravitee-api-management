@@ -103,21 +103,19 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_return_pending_job_for_source_id() throws TechnicalException {
         var result = asyncJobRepository.findPendingJobFor("source-id");
 
-        assertThat(result)
-            .hasValue(
-                AsyncJob
-                    .builder()
-                    .id("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3")
-                    .sourceId("source-id")
-                    .status("PENDING")
-                    .type("FEDERATED_API_INGESTION")
-                    .initiatorId("initiator-id")
-                    .upperLimit(100L)
-                    .environmentId("my-env")
-                    .createdAt(new Date(1470157767009L))
-                    .updatedAt(new Date(1470157767009L))
-                    .build()
-            );
+        assertThat(result).hasValue(
+            AsyncJob.builder()
+                .id("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3")
+                .sourceId("source-id")
+                .status("PENDING")
+                .type("FEDERATED_API_INGESTION")
+                .initiatorId("initiator-id")
+                .upperLimit(100L)
+                .environmentId("my-env")
+                .createdAt(new Date(1470157767009L))
+                .updatedAt(new Date(1470157767009L))
+                .build()
+        );
     }
 
     @Test
@@ -131,10 +129,9 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_search_with_1_criteria() throws TechnicalException {
         Page<AsyncJob> result;
 
-        result =
-            asyncJobRepository.search(
-                new SearchCriteria("my-env", Optional.of("user-id"), Optional.empty(), Optional.empty(), Optional.empty())
-            );
+        result = asyncJobRepository.search(
+            new SearchCriteria("my-env", Optional.of("user-id"), Optional.empty(), Optional.empty(), Optional.empty())
+        );
         assertThat(result.getContent())
             .extracting(AsyncJob::getId)
             .containsExactly(
@@ -145,10 +142,9 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
                 "1e4ace08-0658-46c4-8b79-42aaf026db63"
             );
 
-        result =
-            asyncJobRepository.search(
-                new SearchCriteria("my-env", Optional.empty(), Optional.of("SCORING_REQUEST"), Optional.empty(), Optional.empty())
-            );
+        result = asyncJobRepository.search(
+            new SearchCriteria("my-env", Optional.empty(), Optional.of("SCORING_REQUEST"), Optional.empty(), Optional.empty())
+        );
         assertThat(result.getContent())
             .extracting(AsyncJob::getId)
             .containsExactly(
@@ -158,10 +154,9 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
                 "345ec3c1-bce7-4ad9-a2a0-e06dc86ab5fb"
             );
 
-        result =
-            asyncJobRepository.search(
-                new SearchCriteria("my-env", Optional.empty(), Optional.empty(), Optional.of("PENDING"), Optional.empty())
-            );
+        result = asyncJobRepository.search(
+            new SearchCriteria("my-env", Optional.empty(), Optional.empty(), Optional.of("PENDING"), Optional.empty())
+        );
         assertThat(result.getContent())
             .extracting(AsyncJob::getId)
             .containsExactly(
@@ -171,10 +166,9 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
                 "0aa8629b-739c-4a69-bcc8-4b34d8fc5ae0",
                 "345ec3c1-bce7-4ad9-a2a0-e06dc86ab5fb"
             );
-        result =
-            asyncJobRepository.search(
-                new SearchCriteria("my-env", Optional.empty(), Optional.empty(), Optional.empty(), Optional.of("api1"))
-            );
+        result = asyncJobRepository.search(
+            new SearchCriteria("my-env", Optional.empty(), Optional.empty(), Optional.empty(), Optional.of("api1"))
+        );
         assertThat(result.getContent())
             .extracting(AsyncJob::getId)
             .containsExactly(
@@ -188,10 +182,9 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_search_with_2_criteria() throws TechnicalException {
         Page<AsyncJob> result;
 
-        result =
-            asyncJobRepository.search(
-                new SearchCriteria("my-env", Optional.of("user-id"), Optional.of("SCORING_REQUEST"), Optional.empty(), Optional.empty())
-            );
+        result = asyncJobRepository.search(
+            new SearchCriteria("my-env", Optional.of("user-id"), Optional.of("SCORING_REQUEST"), Optional.empty(), Optional.empty())
+        );
         assertThat(result.getContent())
             .extracting(AsyncJob::getId)
             .containsExactly(
@@ -200,10 +193,9 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
                 "1e4ace08-0658-46c4-8b79-42aaf026db63"
             );
 
-        result =
-            asyncJobRepository.search(
-                new SearchCriteria("my-env", Optional.empty(), Optional.of("SCORING_REQUEST"), Optional.of("PENDING"), Optional.empty())
-            );
+        result = asyncJobRepository.search(
+            new SearchCriteria("my-env", Optional.empty(), Optional.of("SCORING_REQUEST"), Optional.of("PENDING"), Optional.empty())
+        );
         assertThat(result.getContent())
             .extracting(AsyncJob::getId)
             .containsExactly(
@@ -212,10 +204,9 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
                 "345ec3c1-bce7-4ad9-a2a0-e06dc86ab5fb"
             );
 
-        result =
-            asyncJobRepository.search(
-                new SearchCriteria("my-env", Optional.empty(), Optional.empty(), Optional.of("PENDING"), Optional.of("source-id"))
-            );
+        result = asyncJobRepository.search(
+            new SearchCriteria("my-env", Optional.empty(), Optional.empty(), Optional.of("PENDING"), Optional.of("source-id"))
+        );
         assertThat(result.getContent()).extracting(AsyncJob::getId).containsExactly("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3");
     }
 
@@ -223,24 +214,31 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
     public void should_search_with_all_criteria() throws TechnicalException {
         Page<AsyncJob> result;
 
-        result =
-            asyncJobRepository.search(
-                new SearchCriteria(
-                    "my-env",
-                    Optional.of("user-id"),
-                    Optional.of("SCORING_REQUEST"),
-                    Optional.of("PENDING"),
-                    Optional.of("api1")
-                )
-            );
+        result = asyncJobRepository.search(
+            new SearchCriteria(
+                "my-env",
+                Optional.of("user-id"),
+                Optional.of("SCORING_REQUEST"),
+                Optional.of("PENDING"),
+                Optional.of("api1")
+            )
+        );
         assertThat(result.getContent()).extracting(AsyncJob::getId).containsExactly("0d9a5a6e-b384-4037-b285-54b4d9716e77");
     }
 
     @Test
     public void should_delete_by_environment_id() throws TechnicalException {
-        long nbBeforeDeletion = asyncJobRepository.findAll().stream().filter(job -> "ToBeDeleted".equals(job.getEnvironmentId())).count();
+        long nbBeforeDeletion = asyncJobRepository
+            .findAll()
+            .stream()
+            .filter(job -> "ToBeDeleted".equals(job.getEnvironmentId()))
+            .count();
         int deleted = asyncJobRepository.deleteByEnvironmentId("ToBeDeleted").size();
-        long nbAfterDeletion = asyncJobRepository.findAll().stream().filter(job -> "ToBeDeleted".equals(job.getEnvironmentId())).count();
+        long nbAfterDeletion = asyncJobRepository
+            .findAll()
+            .stream()
+            .filter(job -> "ToBeDeleted".equals(job.getEnvironmentId()))
+            .count();
 
         assertThat(nbBeforeDeletion).isEqualTo(2L);
         assertThat(deleted).isEqualTo(2);
@@ -269,8 +267,7 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     private static AsyncJob aJob(String uuid, Date date) {
-        return AsyncJob
-            .builder()
+        return AsyncJob.builder()
             .id(uuid)
             .sourceId("source-id")
             .status("PENDING")

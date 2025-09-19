@@ -51,20 +51,22 @@ class GetCategoryApisUseCaseTest {
     @BeforeEach
     void setUp() {
         validateCategoryDomainService = new ValidateCategoryDomainService(categoryQueryService);
-        useCase =
-            new GetCategoryApisUseCase(
-                validateCategoryDomainService,
-                apiAuthorizationDomainService,
-                apiCategoryOrderQueryService,
-                apiQueryServiceInMemory
-            );
+        useCase = new GetCategoryApisUseCase(
+            validateCategoryDomainService,
+            apiAuthorizationDomainService,
+            apiCategoryOrderQueryService,
+            apiQueryServiceInMemory
+        );
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(apiAuthorizationDomainService, apiCategoryOrderQueryService, apiQueryServiceInMemory, apiCategoryOrderQueryService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiAuthorizationDomainService,
+            apiCategoryOrderQueryService,
+            apiQueryServiceInMemory,
+            apiCategoryOrderQueryService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -110,8 +112,7 @@ class GetCategoryApisUseCaseTest {
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, false));
 
-        Assertions
-            .assertThat(result)
+        Assertions.assertThat(result)
             .extracting("results")
             .isEqualTo(
                 List.of(
@@ -142,8 +143,7 @@ class GetCategoryApisUseCaseTest {
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, true));
 
-        Assertions
-            .assertThat(result)
+        Assertions.assertThat(result)
             .extracting("results")
             .isEqualTo(List.of(resultForApi("api-1", 0, Api.Visibility.PRIVATE), resultForApi("api-2", 0, Api.Visibility.PRIVATE)));
     }
@@ -209,8 +209,7 @@ class GetCategoryApisUseCaseTest {
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, true));
 
-        Assertions
-            .assertThat(result)
+        Assertions.assertThat(result)
             .extracting("results")
             .isEqualTo(
                 List.of(
@@ -253,8 +252,7 @@ class GetCategoryApisUseCaseTest {
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, false, true));
 
-        Assertions
-            .assertThat(result)
+        Assertions.assertThat(result)
             .extracting("results")
             .isEqualTo(List.of(resultForApi("api-1", 0, Api.ApiLifecycleState.PUBLISHED, Api.Visibility.PRIVATE)));
     }
@@ -283,8 +281,7 @@ class GetCategoryApisUseCaseTest {
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, USER_ID, true, true));
 
-        Assertions
-            .assertThat(result)
+        Assertions.assertThat(result)
             .extracting("results")
             .isEqualTo(
                 List.of(
@@ -317,8 +314,7 @@ class GetCategoryApisUseCaseTest {
 
         var result = useCase.execute(new GetCategoryApisUseCase.Input(EXECUTION_CONTEXT, CAT_ID, null, true));
 
-        Assertions
-            .assertThat(result)
+        Assertions.assertThat(result)
             .extracting("results")
             .isEqualTo(
                 List.of(

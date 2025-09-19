@@ -44,8 +44,12 @@ public class CountQueryCommand extends AbstractElasticsearchQueryCommand<CountRe
         final String sQuery = this.createQuery(TEMPLATE, query);
 
         try {
-            io.gravitee.elasticsearch.model.CountResponse response = executeCount(queryContext, countQuery, Type.REQUEST, sQuery)
-                .blockingGet();
+            io.gravitee.elasticsearch.model.CountResponse response = executeCount(
+                queryContext,
+                countQuery,
+                Type.REQUEST,
+                sQuery
+            ).blockingGet();
             return this.toCountResponse(response);
         } catch (final Exception eex) {
             logger.error("Impossible to perform CountQuery", eex);

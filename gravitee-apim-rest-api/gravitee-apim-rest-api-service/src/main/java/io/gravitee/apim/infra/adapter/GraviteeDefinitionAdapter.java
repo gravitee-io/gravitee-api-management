@@ -217,8 +217,7 @@ public interface GraviteeDefinitionAdapter {
         if (source == null) {
             return null;
         }
-        return PlanSecurity
-            .builder()
+        return PlanSecurity.builder()
             .type(PlanSecurityType.valueOfLabel(source.getType()).name())
             .configuration(source.getConfiguration())
             .build();

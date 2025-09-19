@@ -313,9 +313,8 @@ class UpdatePlanUseCaseTest {
         );
 
         // When
-        var exception = org.junit.jupiter.api.Assertions.assertThrows(
-            ValidationDomainException.class,
-            () -> updatePlanUseCase.execute(input)
+        var exception = org.junit.jupiter.api.Assertions.assertThrows(ValidationDomainException.class, () ->
+            updatePlanUseCase.execute(input)
         );
 
         // Then
@@ -325,8 +324,9 @@ class UpdatePlanUseCaseTest {
     @Test
     void should_reject_with_invalid_security() {
         // Given
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-            .thenThrow(new InvalidDataException("Invalid configuration for policy " + "api-key"));
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenThrow(
+            new InvalidDataException("Invalid configuration for policy " + "api-key")
+        );
         var input = new UpdatePlanUseCase.Input(
             planMinimal().toBuilder().securityConfiguration("anything").build(),
             _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
@@ -406,9 +406,8 @@ class UpdatePlanUseCaseTest {
             );
 
             // When
-            var exception = org.junit.jupiter.api.Assertions.assertThrows(
-                ValidationDomainException.class,
-                () -> updatePlanUseCase.execute(input)
+            var exception = org.junit.jupiter.api.Assertions.assertThrows(ValidationDomainException.class, () ->
+                updatePlanUseCase.execute(input)
             );
 
             // Then
@@ -429,9 +428,8 @@ class UpdatePlanUseCaseTest {
             );
 
             // When
-            var exception = org.junit.jupiter.api.Assertions.assertThrows(
-                ValidationDomainException.class,
-                () -> updatePlanUseCase.execute(input)
+            var exception = org.junit.jupiter.api.Assertions.assertThrows(ValidationDomainException.class, () ->
+                updatePlanUseCase.execute(input)
             );
 
             // Then
@@ -445,8 +443,9 @@ class UpdatePlanUseCaseTest {
         @Test
         void should_update_with_flow() {
             // Given
-            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-                .thenAnswer(invocation -> invocation.getArgument(1));
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
+                invocation.getArgument(1)
+            );
             var input = new UpdatePlanUseCase.Input(
                 planMinimal(),
                 _api -> Collections.singletonList(FlowFixtures.aProxyFlowV4()),
@@ -510,8 +509,7 @@ class UpdatePlanUseCaseTest {
     }
 
     private static @NotNull PlanUpdates planMinimal() {
-        return PlanUpdates
-            .builder()
+        return PlanUpdates.builder()
             .id(PLAN_ID)
             .crossId("my-plan-crossId")
             .name("plan-name-changed")
@@ -522,8 +520,7 @@ class UpdatePlanUseCaseTest {
 
     @Test
     void should_use_existing_validation_when_null_is_passed() {
-        var existingPlan = PlanFixtures
-            .aPlanHttpV4()
+        var existingPlan = PlanFixtures.aPlanHttpV4()
             .toBuilder()
             .id(PLAN_ID)
             .apiId(API_ID)

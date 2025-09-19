@@ -139,16 +139,14 @@ public class PermissionsFilterTest {
                     eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
                     eq(READ)
                 )
-            )
-                .thenReturn(true);
+            ).thenReturn(true);
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-            verify(permissionService, times(1))
-                .hasPermission(
-                    any(),
-                    eq(API_DEFINITION),
-                    eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
-                    eq(READ)
-                );
+            verify(permissionService, times(1)).hasPermission(
+                any(),
+                eq(API_DEFINITION),
+                eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
+                eq(READ)
+            );
         }
     }
 
@@ -201,16 +199,14 @@ public class PermissionsFilterTest {
                     eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), API_HRID).buildId()),
                     eq(READ)
                 )
-            )
-                .thenReturn(true);
+            ).thenReturn(true);
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-            verify(permissionService, times(1))
-                .hasPermission(
-                    any(),
-                    eq(API_SUBSCRIPTION),
-                    eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), API_HRID).buildId()),
-                    eq(READ)
-                );
+            verify(permissionService, times(1)).hasPermission(
+                any(),
+                eq(API_SUBSCRIPTION),
+                eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), API_HRID).buildId()),
+                eq(READ)
+            );
         }
     }
 
@@ -264,18 +260,16 @@ public class PermissionsFilterTest {
                     eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
                     eq(READ)
                 )
-            )
-                .thenReturn(true);
+            ).thenReturn(true);
 
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
 
-            verify(permissionService, times(1))
-                .hasPermission(
-                    any(),
-                    eq(APPLICATION_DEFINITION),
-                    eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
-                    eq(READ)
-                );
+            verify(permissionService, times(1)).hasPermission(
+                any(),
+                eq(APPLICATION_DEFINITION),
+                eq(IdBuilder.builder(GraviteeContext.getExecutionContext(), HRID).buildId()),
+                eq(READ)
+            );
         }
     }
 
@@ -339,8 +333,9 @@ public class PermissionsFilterTest {
 
         @Test
         void shouldBeAuthorizedWhenEnvironmentPermissions() {
-            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_SHARED_POLICY_GROUP), eq(ENVIRONMENT_ID), eq(CREATE)))
-                .thenReturn(true);
+            when(permissionService.hasPermission(any(), eq(ENVIRONMENT_SHARED_POLICY_GROUP), eq(ENVIRONMENT_ID), eq(CREATE))).thenReturn(
+                true
+            );
 
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
 

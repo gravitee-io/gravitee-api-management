@@ -46,7 +46,10 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
     @Override
     public List<ApplicationMetadataEntity> findAllByApplication(final String applicationId) {
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(APPLICATION, applicationId);
-        return allMetadata.stream().map(m -> convert(m, applicationId)).collect(toList());
+        return allMetadata
+            .stream()
+            .map(m -> convert(m, applicationId))
+            .collect(toList());
     }
 
     @Override

@@ -278,62 +278,59 @@ class StartIngestIntegrationApisUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase =
-            new StartIngestIntegrationApisUseCase(
-                integrationCrudService,
-                asyncJobCrudService,
-                integrationAgent,
-                new LicenseDomainService(licenseCrudService, licenseManager),
-                createApiDomainService,
-                updateFederatedApiDomainService,
-                apiIndexerDomainService,
-                a2aAgentFetcher,
-                apiPrimaryOwnerFactory,
-                validateFederatedApi,
-                createPlanDomainService,
-                updatePlanDomainService,
-                planCrudService,
-                apiCrudService
-            );
+        useCase = new StartIngestIntegrationApisUseCase(
+            integrationCrudService,
+            asyncJobCrudService,
+            integrationAgent,
+            new LicenseDomainService(licenseCrudService, licenseManager),
+            createApiDomainService,
+            updateFederatedApiDomainService,
+            apiIndexerDomainService,
+            a2aAgentFetcher,
+            apiPrimaryOwnerFactory,
+            validateFederatedApi,
+            createPlanDomainService,
+            updatePlanDomainService,
+            planCrudService,
+            apiCrudService
+        );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                integrationCrudService,
-                asyncJobCrudService,
-                licenseCrudService,
-                integrationAgent,
-                metadataCrudService,
-                indexer,
-                auditCrudService,
-                userCrudService,
-                roleQueryService,
-                groupQueryService,
-                membershipCrudService,
-                apiCrudService,
-                planCrudService,
-                apiCategoryQueryService1,
-                flowCrudService,
-                parametersQueryService,
-                pageCrudService,
-                entrypointConnectorPluginService,
-                planQueryService,
-                apiCategoryQueryService2,
-                workflowCrudService,
-                createCategoryApiDomainService,
-                apiCategoryQueryService,
-                notificationConfigCrudService,
-                metadataQueryService1,
-                apiMetadataQueryService,
-                metadataQueryService,
-                membershipQueryService,
-                a2aAgentFetcher
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            integrationCrudService,
+            asyncJobCrudService,
+            licenseCrudService,
+            integrationAgent,
+            metadataCrudService,
+            indexer,
+            auditCrudService,
+            userCrudService,
+            roleQueryService,
+            groupQueryService,
+            membershipCrudService,
+            apiCrudService,
+            planCrudService,
+            apiCategoryQueryService1,
+            flowCrudService,
+            parametersQueryService,
+            pageCrudService,
+            entrypointConnectorPluginService,
+            planQueryService,
+            apiCategoryQueryService2,
+            workflowCrudService,
+            createCategoryApiDomainService,
+            apiCategoryQueryService,
+            notificationConfigCrudService,
+            metadataQueryService1,
+            apiMetadataQueryService,
+            metadataQueryService,
+            membershipQueryService,
+            a2aAgentFetcher
+        ).forEach(InMemoryAlternative::reset);
         reset(licenseManager);
     }
 
@@ -355,22 +352,20 @@ class StartIngestIntegrationApisUseCaseTest {
 
             // Then
             assertThat(result).containsExactly(AsyncJob.Status.PENDING);
-            assertThat(asyncJobCrudService.storage())
-                .contains(
-                    AsyncJob
-                        .builder()
-                        .id("generated-id")
-                        .sourceId(INTEGRATION_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .initiatorId(USER_ID)
-                        .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
-                        .status(AsyncJob.Status.PENDING)
-                        .upperLimit(10L)
-                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(5)))
-                        .build()
-                );
+            assertThat(asyncJobCrudService.storage()).contains(
+                AsyncJob.builder()
+                    .id("generated-id")
+                    .sourceId(INTEGRATION_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .initiatorId(USER_ID)
+                    .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
+                    .status(AsyncJob.Status.PENDING)
+                    .upperLimit(10L)
+                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(5)))
+                    .build()
+            );
         }
 
         @Test
@@ -419,8 +414,7 @@ class StartIngestIntegrationApisUseCaseTest {
     class A2aDiscovery {
 
         private FederatedAgent createFederatedAgent(String name, String version, String url) {
-            return FederatedAgent
-                .builder()
+            return FederatedAgent.builder()
                 .name(name)
                 .description("Test agent description")
                 .version(version)
@@ -456,8 +450,7 @@ class StartIngestIntegrationApisUseCaseTest {
             assertThat(apiCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
                 .containsOnly(
-                    Api
-                        .builder()
+                    Api.builder()
                         .id(
                             "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.json"
                         )
@@ -475,8 +468,7 @@ class StartIngestIntegrationApisUseCaseTest {
             assertThat(planCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
                 .containsOnly(
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id(
                             "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.jsonkey-less"
                         )
@@ -494,8 +486,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .excludedGroups(List.of())
                         .commentRequired(false)
                         .federatedPlanDefinition(
-                            FederatedPlan
-                                .builder()
+                            FederatedPlan.builder()
                                 .id(
                                     "environment-ida2a-integration-idhttps://example.com/.well-known/agent.jsonhttps://example.com/.well-known/agent.jsonkey-less"
                                 )
@@ -545,8 +536,7 @@ class StartIngestIntegrationApisUseCaseTest {
             assertThat(apiCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
                 .containsExactlyInAnyOrder(
-                    Api
-                        .builder()
+                    Api.builder()
                         .id(
                             "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.json"
                         )
@@ -562,8 +552,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .federatedAgent(federatedAgent1)
                         .lifecycleState(null)
                         .build(),
-                    Api
-                        .builder()
+                    Api.builder()
                         .id(
                             "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.json"
                         )
@@ -581,8 +570,7 @@ class StartIngestIntegrationApisUseCaseTest {
             assertThat(planCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "updatedAt")
                 .containsExactlyInAnyOrder(
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id(
                             "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.jsonkey-less"
                         )
@@ -600,8 +588,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .excludedGroups(List.of())
                         .commentRequired(false)
                         .federatedPlanDefinition(
-                            FederatedPlan
-                                .builder()
+                            FederatedPlan.builder()
                                 .id(
                                     "environment-ida2a-integration-idhttps://example1.com/.well-known/agent.jsonhttps://example1.com/.well-known/agent.jsonkey-less"
                                 )
@@ -612,8 +599,7 @@ class StartIngestIntegrationApisUseCaseTest {
                                 .build()
                         )
                         .build(),
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id(
                             "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.jsonkey-less"
                         )
@@ -631,8 +617,7 @@ class StartIngestIntegrationApisUseCaseTest {
                         .excludedGroups(List.of())
                         .commentRequired(false)
                         .federatedPlanDefinition(
-                            FederatedPlan
-                                .builder()
+                            FederatedPlan.builder()
                                 .id(
                                     "environment-ida2a-integration-idhttps://example2.com/.well-known/agent.jsonhttps://example2.com/.well-known/agent.jsonkey-less"
                                 )

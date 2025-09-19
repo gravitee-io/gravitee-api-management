@@ -101,11 +101,10 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
     @BeforeAll
     void beforeAll() {
         consulContainer.start();
-        client =
-            ConsulClient.create(
-                vertx,
-                new ConsulClientOptions().setHost(consulContainer.getHost()).setPort(consulContainer.getFirstMappedPort())
-            );
+        client = ConsulClient.create(
+            vertx,
+            new ConsulClientOptions().setHost(consulContainer.getHost()).setPort(consulContainer.getFirstMappedPort())
+        );
     }
 
     @AfterAll
@@ -140,14 +139,12 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
             api = anApiWithDefaultGroup(HTTP_PROXY);
             when(deploymentContext.getComponent(Api.class)).thenReturn(api);
 
-            endpointManager =
-                new DefaultEndpointManager(
-                    api.getDefinition(),
-                    endpointConnectorPluginManager(EndpointBuilder.build(HTTP_PROXY, HttpProxyEndpointConnectorFactory.class)),
-                    deploymentContext,
-                    gatewayConfiguration
-                )
-                    .start();
+            endpointManager = new DefaultEndpointManager(
+                api.getDefinition(),
+                endpointConnectorPluginManager(EndpointBuilder.build(HTTP_PROXY, HttpProxyEndpointConnectorFactory.class)),
+                deploymentContext,
+                gatewayConfiguration
+            ).start();
             when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
         }
 
@@ -174,8 +171,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
                 .extracting(ManagedEndpoint::getDefinition)
                 .hasSize(1)
                 .contains(
-                    Endpoint
-                        .builder()
+                    Endpoint.builder()
                         .name("consul#id1")
                         .type(HTTP_PROXY)
                         .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048/")).toString())
@@ -211,8 +207,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
                 .extracting(ManagedEndpoint::getDefinition)
                 .hasSize(1)
                 .contains(
-                    Endpoint
-                        .builder()
+                    Endpoint.builder()
                         .name("consul#id1")
                         .type(HTTP_PROXY)
                         .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048/")).toString())
@@ -262,8 +257,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
                 .extracting(ManagedEndpoint::getDefinition)
                 .hasSize(1)
                 .contains(
-                    Endpoint
-                        .builder()
+                    Endpoint.builder()
                         .name("consul#id1")
                         .type(HTTP_PROXY)
                         .weight(2)
@@ -345,8 +339,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
                 .extracting(ManagedEndpoint::getDefinition)
                 .hasSize(1)
                 .contains(
-                    Endpoint
-                        .builder()
+                    Endpoint.builder()
                         .name("consul#id1")
                         .type(HTTP_PROXY)
                         .configuration(new JsonObject(Map.of("target", "http://10.0.0.2:8048/")).toString())

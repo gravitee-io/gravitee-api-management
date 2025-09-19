@@ -31,8 +31,7 @@ public class LicenseMapper {
 
     public Maybe<LicenseDeployable> to(final DistributedEvent event) {
         return Maybe.just(
-            LicenseDeployable
-                .builder()
+            LicenseDeployable.builder()
                 .id(event.getId())
                 .license(event.getPayload())
                 .syncAction(SyncActionMapper.to(event.getSyncAction()))
@@ -42,8 +41,7 @@ public class LicenseMapper {
 
     public Maybe<DistributedEvent> to(final LicenseDeployable deployable) {
         return Maybe.just(
-            DistributedEvent
-                .builder()
+            DistributedEvent.builder()
                 .payload(deployable.license())
                 .id(deployable.id())
                 .type(DistributedEventType.LICENSE)

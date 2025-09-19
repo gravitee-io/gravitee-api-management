@@ -272,11 +272,8 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(
-                RolePermission.CLUSTER_MEMBER,
-                CLUSTER_ID,
-                UPDATE,
-                () -> target.request().post(json(new ClusterTransferOwnership()))
+            shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, UPDATE, () ->
+                target.request().post(json(new ClusterTransferOwnership()))
             );
         }
     }

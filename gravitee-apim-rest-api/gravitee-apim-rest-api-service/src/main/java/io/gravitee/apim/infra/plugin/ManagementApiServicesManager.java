@@ -81,8 +81,7 @@ public class ManagementApiServicesManager extends AbstractService {
             )
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-        Completable
-            .concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
+        Completable.concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
             .doOnError(throwable -> log.error("Unable to start management-api-service: {}", throwable.getMessage(), throwable))
             .blockingAwait();
         if (!services.isEmpty()) {
@@ -117,8 +116,7 @@ public class ManagementApiServicesManager extends AbstractService {
             .filter(service -> "http-dynamic-properties".equals(service.id()))
             .collect(Collectors.toList());
 
-        Completable
-            .concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
+        Completable.concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
             .doOnError(throwable -> log.error("Unable to start dynamic-api-service for api {}", api.getId(), throwable))
             .blockingAwait();
         if (!services.isEmpty()) {
@@ -133,14 +131,12 @@ public class ManagementApiServicesManager extends AbstractService {
         log.debug("Restarting services for api: {}", api.getId());
         final List<ManagementApiService> managedApi = servicesByApi.get(api.getId());
         if (managedApi != null && !managedApi.isEmpty()) {
-            Completable
-                .concat(
-                    managedApi
-                        .stream()
-                        .map(managementApiService -> managementApiService.update(api.getApiDefinitionHttpV4()))
-                        .collect(Collectors.toList())
-                )
-                .blockingAwait();
+            Completable.concat(
+                managedApi
+                    .stream()
+                    .map(managementApiService -> managementApiService.update(api.getApiDefinitionHttpV4()))
+                    .collect(Collectors.toList())
+            ).blockingAwait();
             return;
         }
         deployServices(api);
@@ -151,9 +147,13 @@ public class ManagementApiServicesManager extends AbstractService {
     }
 
     public void stopDynamicProperties(Api api) {
-        Optional
-            .ofNullable(servicesByApi.get(api.getId()))
-            .flatMap(services -> services.stream().filter(service -> "http-dynamic-properties".equals(service.id())).findFirst())
+        Optional.ofNullable(servicesByApi.get(api.getId()))
+            .flatMap(services ->
+                services
+                    .stream()
+                    .filter(service -> "http-dynamic-properties".equals(service.id()))
+                    .findFirst()
+            )
             .ifPresent(service -> service.stop().blockingAwait());
         if (servicesByApi.get(api.getId()) != null) {
             servicesByApi.get(api.getId()).removeIf(service -> "http-dynamic-properties".equals(service.id()));

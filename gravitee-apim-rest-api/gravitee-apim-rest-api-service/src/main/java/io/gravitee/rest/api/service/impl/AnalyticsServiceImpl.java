@@ -126,8 +126,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         try {
             final StatsResponse response = analyticsRepository.query(
                 executionContext.getQueryContext(),
-                QueryBuilders
-                    .stats()
+                QueryBuilders.stats()
                     .query(query.getQuery())
                     .terms(query.getTerms())
                     .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
@@ -148,8 +147,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         try {
             CountResponse response = analyticsRepository.query(
                 executionContext.getQueryContext(),
-                QueryBuilders
-                    .count()
+                QueryBuilders.count()
                     .query(query.getQuery())
                     .terms(query.getTerms())
                     .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
@@ -167,8 +165,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public HistogramAnalytics execute(ExecutionContext executionContext, DateHistogramQuery query) {
         try {
-            DateHistogramQueryBuilder queryBuilder = QueryBuilders
-                .dateHistogram()
+            DateHistogramQueryBuilder queryBuilder = QueryBuilders.dateHistogram()
                 .query(query.getQuery())
                 .terms(query.getTerms())
                 .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
@@ -194,8 +191,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public TopHitsAnalytics execute(ExecutionContext executionContext, GroupByQuery query) {
         try {
-            GroupByQueryBuilder queryBuilder = QueryBuilders
-                .groupBy()
+            GroupByQueryBuilder queryBuilder = QueryBuilders.groupBy()
                 .query(query.getQuery())
                 .terms(query.getTerms())
                 .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
@@ -265,19 +261,28 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (FIELD_APPLICATION.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().forEach(app -> metadata.put(app, getApplicationMetadata(executionContext, app)));
+            bucket
+                .data()
+                .keySet()
+                .forEach(app -> metadata.put(app, getApplicationMetadata(executionContext, app)));
 
             analyticsBucket.setMetadata(metadata);
         } else if (FIELD_API.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().forEach(api -> metadata.put(api, getAPIMetadata(executionContext, api)));
+            bucket
+                .data()
+                .keySet()
+                .forEach(api -> metadata.put(api, getAPIMetadata(executionContext, api)));
 
             analyticsBucket.setMetadata(metadata);
         } else if (FIELD_TENANT.equals(analyticsBucket.getField())) {
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
-            bucket.data().keySet().forEach(tenant -> metadata.put(tenant, getTenantMetadata(executionContext.getOrganizationId(), tenant)));
+            bucket
+                .data()
+                .keySet()
+                .forEach(tenant -> metadata.put(tenant, getTenantMetadata(executionContext.getOrganizationId(), tenant)));
 
             analyticsBucket.setMetadata(metadata);
         }
@@ -312,8 +317,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (statsResponse.getCount() != null) {
             final long numberOfSeconds = (query.getTo() - query.getFrom()) / 1000;
             statsAnalytics.setRps(statsResponse.getCount() / numberOfSeconds);
-            statsAnalytics.setRpm(statsResponse.getCount() / numberOfSeconds * 60);
-            statsAnalytics.setRph(statsResponse.getCount() / numberOfSeconds * 3600);
+            statsAnalytics.setRpm((statsResponse.getCount() / numberOfSeconds) * 60);
+            statsAnalytics.setRph((statsResponse.getCount() / numberOfSeconds) * 3600);
         }
         return statsAnalytics;
     }

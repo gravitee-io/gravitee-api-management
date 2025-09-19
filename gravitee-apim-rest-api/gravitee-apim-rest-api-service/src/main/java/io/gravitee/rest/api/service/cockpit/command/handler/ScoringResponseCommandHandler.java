@@ -78,7 +78,11 @@ public class ScoringResponseCommandHandler implements CommandHandler<ScoringResp
                             );
                         })
                         .toList(),
-                    a.errors().stream().map(e -> new ScoringReport.ScoringError(e.code(), e.path())).toList()
+                    a
+                        .errors()
+                        .stream()
+                        .map(e -> new ScoringReport.ScoringError(e.code(), e.path()))
+                        .toList()
                 )
             )
             .toList();

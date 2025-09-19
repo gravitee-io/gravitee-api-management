@@ -103,8 +103,9 @@ class SecurityChainDiagnosticTest {
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage())
-                .isEqualTo("The request did not include an authentication token for the following plans: plan1, plan2");
+            assertThat(cause.getMessage()).isEqualTo(
+                "The request did not include an authentication token for the following plans: plan1, plan2"
+            );
         }
 
         @Test

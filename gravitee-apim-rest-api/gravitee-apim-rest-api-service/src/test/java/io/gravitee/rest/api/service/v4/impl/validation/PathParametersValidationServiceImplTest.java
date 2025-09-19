@@ -111,6 +111,9 @@ class PathParametersValidationServiceImplTest {
 
     @NotNull
     private static Stream<Flow> getPlanFlows(Api api) {
-        return api.getPlans().stream().flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
+        return api
+            .getPlans()
+            .stream()
+            .flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
     }
 }

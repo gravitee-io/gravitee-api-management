@@ -46,8 +46,9 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
     public SharedPolicyGroup getByEnvironmentId(String environmentId, String sharedPolicyGroupId) {
         return storage
             .stream()
-            .filter(sharedPolicyGroup ->
-                sharedPolicyGroupId.equals(sharedPolicyGroup.getId()) && environmentId.equals(sharedPolicyGroup.getEnvironmentId())
+            .filter(
+                sharedPolicyGroup ->
+                    sharedPolicyGroupId.equals(sharedPolicyGroup.getId()) && environmentId.equals(sharedPolicyGroup.getEnvironmentId())
             )
             .findFirst()
             .orElseThrow(() -> new SharedPolicyGroupNotFoundException(sharedPolicyGroupId));
@@ -55,8 +56,9 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
 
     @Override
     public SharedPolicyGroup update(SharedPolicyGroup sharedPolicyGroupEntity) {
-        OptionalInt index =
-            this.findIndex(this.storage, sharedPolicyGroup -> sharedPolicyGroup.getId().equals(sharedPolicyGroupEntity.getId()));
+        OptionalInt index = this.findIndex(this.storage, sharedPolicyGroup ->
+            sharedPolicyGroup.getId().equals(sharedPolicyGroupEntity.getId())
+        );
         if (index.isPresent()) {
             storage.set(index.getAsInt(), sharedPolicyGroupEntity);
             return sharedPolicyGroupEntity;
@@ -74,8 +76,9 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
     public Optional<SharedPolicyGroup> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
         return storage
             .stream()
-            .filter(sharedPolicyGroup ->
-                environmentId.equals(sharedPolicyGroup.getEnvironmentId()) && crossId.equals(sharedPolicyGroup.getCrossId())
+            .filter(
+                sharedPolicyGroup ->
+                    environmentId.equals(sharedPolicyGroup.getEnvironmentId()) && crossId.equals(sharedPolicyGroup.getCrossId())
             )
             .findFirst();
     }
@@ -83,10 +86,11 @@ public class SharedPolicyGroupCrudServiceInMemory implements SharedPolicyGroupCr
     public Optional<SharedPolicyGroup> getLastDeployedByEnvironmentIdAndCrossId(String environmentId, String crossId) {
         return storage
             .stream()
-            .filter(sharedPolicyGroup ->
-                environmentId.equals(sharedPolicyGroup.getEnvironmentId()) &&
-                crossId.equals(sharedPolicyGroup.getCrossId()) &&
-                sharedPolicyGroup.isDeployed()
+            .filter(
+                sharedPolicyGroup ->
+                    environmentId.equals(sharedPolicyGroup.getEnvironmentId()) &&
+                    crossId.equals(sharedPolicyGroup.getCrossId()) &&
+                    sharedPolicyGroup.isDeployed()
             )
             .findFirst();
     }

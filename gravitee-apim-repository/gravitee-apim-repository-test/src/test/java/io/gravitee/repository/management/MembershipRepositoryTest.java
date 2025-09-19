@@ -121,10 +121,9 @@ public class MembershipRepositoryTest extends AbstractManagementRepositoryTest {
         // When
         List<Membership> memberships = membershipRepository.findByReferenceIdAndReferenceType("api1", MembershipReferenceType.API);
         // Then
-        assertThat(memberships)
-            .containsOnly(
-                new Membership("api1_user1", "user1", MembershipMemberType.USER, "api1", MembershipReferenceType.API, "API_OWNER")
-            );
+        assertThat(memberships).containsOnly(
+            new Membership("api1_user1", "user1", MembershipMemberType.USER, "api1", MembershipReferenceType.API, "API_OWNER")
+        );
     }
 
     @Test

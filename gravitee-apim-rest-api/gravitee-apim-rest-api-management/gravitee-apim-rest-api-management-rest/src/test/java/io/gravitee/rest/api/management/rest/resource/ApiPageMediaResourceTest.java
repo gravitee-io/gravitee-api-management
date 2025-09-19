@@ -150,8 +150,9 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
             .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
         assertThat(response.getStatus()).isEqualTo(CREATED_201);
-        assertThat(response.getHeaders().getFirst(HttpHeaders.LOCATION))
-            .isEqualTo(envTarget().path(API).path("pages").path(PAGE).path("media").getUri().toString());
+        assertThat(response.getHeaders().getFirst(HttpHeaders.LOCATION)).isEqualTo(
+            envTarget().path(API).path("pages").path(PAGE).path("media").getUri().toString()
+        );
 
         final MediaEntity result = response.readEntity(MediaEntity.class);
         assertThat(result.getHash()).isEqualTo(mediaHash);

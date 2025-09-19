@@ -109,10 +109,12 @@ public interface ImportExportApiMapper {
     default BaseOriginContext map(OriginContext src) {
         return switch (src) {
             case null -> null;
-            case OriginContext.Management management -> new io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext()
-                .origin(BaseOriginContext.OriginEnum.MANAGEMENT);
-            case OriginContext.Kubernetes k8s -> new io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext()
-                .origin(BaseOriginContext.OriginEnum.KUBERNETES);
+            case OriginContext.Management management -> new io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext().origin(
+                BaseOriginContext.OriginEnum.MANAGEMENT
+            );
+            case OriginContext.Kubernetes k8s -> new io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext().origin(
+                BaseOriginContext.OriginEnum.KUBERNETES
+            );
             case OriginContext.Integration integration -> new io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext()
                 .integrationId(integration.integrationId())
                 .integrationName(integration.integrationName())

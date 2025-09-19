@@ -119,8 +119,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
                 any(),
                 eq(RolePermissionAction.READ)
             )
-        )
-            .thenReturn(hasPermission);
+        ).thenReturn(hasPermission);
     }
 
     private void setupPermissionForUpdate(boolean hasPermission) {
@@ -131,8 +130,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
                 any(),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(hasPermission);
+        ).thenReturn(hasPermission);
     }
 
     @Nested

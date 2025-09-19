@@ -81,8 +81,7 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
         userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_NAME).build()));
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .name(PRIMARY_OWNER.name())
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORGANIZATION)
@@ -105,13 +104,11 @@ public class ApplicationsResource_UpdateApplicationFromCRD extends AbstractResou
                     ENVIRONMENT_ID,
                     RolePermissionAction.CREATE
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().request().put(Entity.json(ApplicationFixtures.anApplicationCRDSpec()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)

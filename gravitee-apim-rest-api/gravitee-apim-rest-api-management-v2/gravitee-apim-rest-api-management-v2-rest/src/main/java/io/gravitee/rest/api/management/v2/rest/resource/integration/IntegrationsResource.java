@@ -69,8 +69,7 @@ public class IntegrationsResource extends AbstractResource {
             .execute(new CreateIntegrationUseCase.Input(newIntegrationEntity, auditInfo))
             .createdIntegration();
 
-        return Response
-            .created(this.getLocationHeader(createdIntegration.id()))
+        return Response.created(this.getLocationHeader(createdIntegration.id()))
             .entity(IntegrationMapper.INSTANCE.map(createdIntegration))
             .build();
     }

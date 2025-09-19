@@ -215,24 +215,23 @@ public class SampleXmlUtil {
                     case SchemaType.BTC_DECIMAL:
                         return formatDecimal("1000.00", sType);
                 }
-            case SchemaType.BTC_STRING:
-                {
-                    String result;
-                    switch (closestBuiltin(sType).getBuiltinTypeCode()) {
-                        case SchemaType.BTC_STRING:
-                        case SchemaType.BTC_NORMALIZED_STRING:
-                            result = "string";
-                            break;
-                        case SchemaType.BTC_TOKEN:
-                            result = "token";
-                            break;
-                        default:
-                            result = "string";
-                            break;
-                    }
-
-                    return formatToLength(result, sType);
+            case SchemaType.BTC_STRING: {
+                String result;
+                switch (closestBuiltin(sType).getBuiltinTypeCode()) {
+                    case SchemaType.BTC_STRING:
+                    case SchemaType.BTC_NORMALIZED_STRING:
+                        result = "string";
+                        break;
+                    case SchemaType.BTC_TOKEN:
+                        result = "token";
+                        break;
+                    default:
+                        result = "string";
+                        break;
                 }
+
+                return formatToLength(result, sType);
+            }
             case SchemaType.BTC_DURATION:
                 return formatDuration(sType);
             case SchemaType.BTC_DATE_TIME:
@@ -431,8 +430,10 @@ public class SampleXmlUtil {
         XmlInteger min = (XmlInteger) sType.getFacet(SchemaType.FACET_MIN_LENGTH);
         XmlInteger max = (XmlInteger) sType.getFacet(SchemaType.FACET_MAX_LENGTH);
         int minInt, maxInt;
-        if (min == null) minInt = 0; else minInt = min.getBigIntegerValue().intValue();
-        if (max == null) maxInt = Integer.MAX_VALUE; else maxInt = max.getBigIntegerValue().intValue();
+        if (min == null) minInt = 0;
+        else minInt = min.getBigIntegerValue().intValue();
+        if (max == null) maxInt = Integer.MAX_VALUE;
+        else maxInt = max.getBigIntegerValue().intValue();
         // We try to keep the length of the array within reasonable limits,
         // at least 1 item and at most 3 if possible
         if (minInt == 0 && maxInt >= 1) minInt = 1;
@@ -475,7 +476,8 @@ public class SampleXmlUtil {
         BigDecimal min = xmlD != null ? xmlD.getBigDecimalValue() : null;
         xmlD = (XmlDecimal) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
         BigDecimal max = xmlD != null ? xmlD.getBigDecimalValue() : null;
-        boolean minInclusive = true, maxInclusive = true;
+        boolean minInclusive = true,
+            maxInclusive = true;
         xmlD = (XmlDecimal) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
         if (xmlD != null) {
             BigDecimal minExcl = xmlD.getBigDecimalValue();
@@ -513,14 +515,15 @@ public class SampleXmlUtil {
 
         int sigMin = min == null ? 1 : result.compareTo(min);
         int sigMax = max == null ? -1 : result.compareTo(max);
-        boolean minOk = sigMin > 0 || sigMin == 0 && minInclusive;
-        boolean maxOk = sigMax < 0 || sigMax == 0 && maxInclusive;
+        boolean minOk = sigMin > 0 || (sigMin == 0 && minInclusive);
+        boolean maxOk = sigMax < 0 || (sigMax == 0 && maxInclusive);
 
         // Compute the minimum increment
         xmlD = (XmlDecimal) sType.getFacet(SchemaType.FACET_FRACTION_DIGITS);
         int fractionDigits = -1;
         BigDecimal increment;
-        if (xmlD == null) increment = new BigDecimal(1); else {
+        if (xmlD == null) increment = new BigDecimal(1);
+        else {
             fractionDigits = xmlD.getBigDecimalValue().intValue();
             if (fractionDigits > 0) {
                 StringBuilder sb = new StringBuilder("0.");
@@ -534,10 +537,12 @@ public class SampleXmlUtil {
             // OK
         } else if (minOk && !maxOk) {
             // TOO BIG
-            if (maxInclusive) result = max; else result = max.subtract(increment);
+            if (maxInclusive) result = max;
+            else result = max.subtract(increment);
         } else if (!minOk && maxOk) {
             // TOO SMALL
-            if (minInclusive) result = min; else result = min.add(increment);
+            if (minInclusive) result = min;
+            else result = min.add(increment);
         } else {
             // MIN > MAX!!
         }
@@ -548,10 +553,9 @@ public class SampleXmlUtil {
         BigDecimal ONE = new BigDecimal(BigInteger.ONE);
         for (BigDecimal n = result; n.abs().compareTo(ONE) >= 0; digits++) n = n.movePointLeft(1);
 
-        if (fractionDigits > 0) if (totalDigits >= 0) result =
-            result.setScale(Math.max(fractionDigits, totalDigits - digits)); else result = result.setScale(fractionDigits); else if (
-            fractionDigits == 0
-        ) result = result.setScale(0);
+        if (fractionDigits > 0) if (totalDigits >= 0) result = result.setScale(Math.max(fractionDigits, totalDigits - digits));
+        else result = result.setScale(fractionDigits);
+        else if (fractionDigits == 0) result = result.setScale(0);
 
         return result.toString();
     }
@@ -634,115 +638,108 @@ public class SampleXmlUtil {
 
     private String formatDate(SchemaType sType) {
         GDateBuilder gdateb = new GDateBuilder(new Date(1000L * pick(365 * 24 * 60 * 60) + (30L + pick(20)) * 365 * 24 * 60 * 60 * 1000));
-        GDate min = null, max = null;
+        GDate min = null,
+            max = null;
         GDate temp;
 
         // Find the min and the max according to the type
         switch (sType.getPrimitiveType().getBuiltinTypeCode()) {
-            case SchemaType.BTC_DATE_TIME:
-                {
-                    XmlDateTime x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                    if (x != null) min = x.getGDateValue();
-                    x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                    if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
+            case SchemaType.BTC_DATE_TIME: {
+                XmlDateTime x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
+                if (x != null) min = x.getGDateValue();
+                x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
+                if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
 
-                    x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                    if (x != null) max = x.getGDateValue();
-                    x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                    if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
-                    break;
-                }
-            case SchemaType.BTC_TIME:
-                {
-                    XmlTime x = (XmlTime) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                    if (x != null) min = x.getGDateValue();
-                    x = (XmlTime) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                    if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
+                x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
+                if (x != null) max = x.getGDateValue();
+                x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
+                if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
+                break;
+            }
+            case SchemaType.BTC_TIME: {
+                XmlTime x = (XmlTime) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
+                if (x != null) min = x.getGDateValue();
+                x = (XmlTime) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
+                if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
 
-                    x = (XmlTime) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                    if (x != null) max = x.getGDateValue();
-                    x = (XmlTime) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                    if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
-                    break;
-                }
-            case SchemaType.BTC_DATE:
-                {
-                    XmlDate x = (XmlDate) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                    if (x != null) min = x.getGDateValue();
-                    x = (XmlDate) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                    if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
+                x = (XmlTime) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
+                if (x != null) max = x.getGDateValue();
+                x = (XmlTime) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
+                if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
+                break;
+            }
+            case SchemaType.BTC_DATE: {
+                XmlDate x = (XmlDate) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
+                if (x != null) min = x.getGDateValue();
+                x = (XmlDate) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
+                if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
 
-                    x = (XmlDate) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                    if (x != null) max = x.getGDateValue();
-                    x = (XmlDate) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                    if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
-                    break;
-                }
-            case SchemaType.BTC_G_YEAR_MONTH:
-                {
-                    XmlGYearMonth x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                    if (x != null) min = x.getGDateValue();
-                    x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                    if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
+                x = (XmlDate) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
+                if (x != null) max = x.getGDateValue();
+                x = (XmlDate) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
+                if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
+                break;
+            }
+            case SchemaType.BTC_G_YEAR_MONTH: {
+                XmlGYearMonth x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
+                if (x != null) min = x.getGDateValue();
+                x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
+                if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
 
-                    x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                    if (x != null) max = x.getGDateValue();
-                    x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                    if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
-                    break;
-                }
-            case SchemaType.BTC_G_YEAR:
-                {
-                    XmlGYear x = (XmlGYear) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                    if (x != null) min = x.getGDateValue();
-                    x = (XmlGYear) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                    if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
+                x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
+                if (x != null) max = x.getGDateValue();
+                x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
+                if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
+                break;
+            }
+            case SchemaType.BTC_G_YEAR: {
+                XmlGYear x = (XmlGYear) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
+                if (x != null) min = x.getGDateValue();
+                x = (XmlGYear) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
+                if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
 
-                    x = (XmlGYear) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                    if (x != null) max = x.getGDateValue();
-                    x = (XmlGYear) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                    if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
-                    break;
-                }
-            case SchemaType.BTC_G_MONTH_DAY:
-                {
-                    XmlGMonthDay x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                    if (x != null) min = x.getGDateValue();
-                    x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                    if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
+                x = (XmlGYear) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
+                if (x != null) max = x.getGDateValue();
+                x = (XmlGYear) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
+                if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
+                break;
+            }
+            case SchemaType.BTC_G_MONTH_DAY: {
+                XmlGMonthDay x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
+                if (x != null) min = x.getGDateValue();
+                x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
+                if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
 
-                    x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                    if (x != null) max = x.getGDateValue();
-                    x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                    if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
-                    break;
-                }
-            case SchemaType.BTC_G_DAY:
-                {
-                    XmlGDay x = (XmlGDay) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                    if (x != null) min = x.getGDateValue();
-                    x = (XmlGDay) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                    if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
+                x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
+                if (x != null) max = x.getGDateValue();
+                x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
+                if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
+                break;
+            }
+            case SchemaType.BTC_G_DAY: {
+                XmlGDay x = (XmlGDay) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
+                if (x != null) min = x.getGDateValue();
+                x = (XmlGDay) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
+                if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
 
-                    x = (XmlGDay) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                    if (x != null) max = x.getGDateValue();
-                    x = (XmlGDay) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                    if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
-                    break;
-                }
-            case SchemaType.BTC_G_MONTH:
-                {
-                    XmlGMonth x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                    if (x != null) min = x.getGDateValue();
-                    x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                    if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
+                x = (XmlGDay) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
+                if (x != null) max = x.getGDateValue();
+                x = (XmlGDay) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
+                if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
+                break;
+            }
+            case SchemaType.BTC_G_MONTH: {
+                XmlGMonth x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
+                if (x != null) min = x.getGDateValue();
+                x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
+                if (x != null) if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) min = x.getGDateValue();
 
-                    x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                    if (x != null) max = x.getGDateValue();
-                    x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                    if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
-                    break;
-                }
+                x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
+                if (x != null) max = x.getGDateValue();
+                x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
+                if (x != null) if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) max = x.getGDateValue();
+                break;
+            }
         }
 
         if (min != null && max == null) {
@@ -859,9 +856,8 @@ public class SampleXmlUtil {
 
         if (sp.getMaxOccurs() == null) {
             // xmlc.insertComment("The next " + getItemNameOrType(sp, xmlc) + " may be repeated " + minOccurs + " or more times");
-            if (minOccurs == 0) xmlc.insertComment("Zero or more repetitions:"); else xmlc.insertComment(
-                minOccurs + " or more repetitions:"
-            );
+            if (minOccurs == 0) xmlc.insertComment("Zero or more repetitions:");
+            else xmlc.insertComment(minOccurs + " or more repetitions:");
         } else if (sp.getIntMaxOccurs() > 1) {
             xmlc.insertComment(minOccurs + " to " + String.valueOf(sp.getMaxOccurs()) + " repetitions:");
         } else {
@@ -887,7 +883,8 @@ public class SampleXmlUtil {
         // cast as schema local element
         SchemaLocalElement element = (SchemaLocalElement) sp;
         /// ^  -> <elemenname></elem>^
-        if (_soapEnc) xmlc.insertElement(element.getName().getLocalPart()); // soap encoded? drop namespaces.
+        if (_soapEnc) xmlc.insertElement(element.getName().getLocalPart());
+        // soap encoded? drop namespaces.
         else xmlc.insertElement(element.getName().getLocalPart(), element.getName().getNamespaceURI());
         _nElements++;
         /// -> <elem>^</elem>
@@ -915,7 +912,8 @@ public class SampleXmlUtil {
         String prefix = parent.prefixForNamespace(qName.getNamespaceURI());
         parent.dispose();
         String name;
-        if (prefix == null || prefix.length() == 0) name = qName.getLocalPart(); else name = prefix + ":" + qName.getLocalPart();
+        if (prefix == null || prefix.length() == 0) name = qName.getLocalPart();
+        else name = prefix + ":" + qName.getLocalPart();
         return name;
     }
 
@@ -941,8 +939,9 @@ public class SampleXmlUtil {
             if (_soapEnc) {
                 if (SKIPPED_SOAP_ATTRS.contains(attr.getName())) continue;
                 if (ENC_ARRAYTYPE.equals(attr.getName())) {
-                    SOAPArrayType arrayType =
-                        ((SchemaWSDLArrayType) stype.getAttributeModel().getAttribute(attr.getName())).getWSDLArrayType();
+                    SOAPArrayType arrayType = ((SchemaWSDLArrayType) stype
+                            .getAttributeModel()
+                            .getAttribute(attr.getName())).getWSDLArrayType();
                     if (arrayType != null) xmlc.insertAttributeWithValue(
                         attr.getName(),
                         formatQName(xmlc, arrayType.getQName()) + arrayType.soap11DimensionString()

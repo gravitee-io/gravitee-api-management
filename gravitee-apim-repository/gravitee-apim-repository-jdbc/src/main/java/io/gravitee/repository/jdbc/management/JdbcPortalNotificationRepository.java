@@ -46,8 +46,7 @@ public class JdbcPortalNotificationRepository
 
     @Override
     protected JdbcObjectMapper<PortalNotification> buildOrm() {
-        return JdbcObjectMapper
-            .builder(PortalNotification.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(PortalNotification.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("title", Types.NVARCHAR, String.class)
             .addColumn("message", Types.NVARCHAR, String.class)

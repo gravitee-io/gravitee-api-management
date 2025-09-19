@@ -114,8 +114,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchAverageMessagesPerRequest(executionContext.getQueryContext(), new AverageMessagesPerRequestQuery(apiId, from, to))
             .map(averageAggregate ->
-                AverageMessagesPerRequest
-                    .builder()
+                AverageMessagesPerRequest.builder()
                     .globalAverage(averageAggregate.getAverage())
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
@@ -134,8 +133,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             responseStatusQueryParameters
         );
         return queryResult.map(analytics ->
-            ResponseStatusRanges
-                .builder()
+            ResponseStatusRanges.builder()
                 .ranges(analytics.getRanges())
                 .statusRangesCountByEntrypoint(analytics.getStatusRangesCountByEntrypoint())
                 .build()
@@ -170,8 +168,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchAverageConnectionDuration(executionContext.getQueryContext(), new AverageConnectionDurationQuery(apiId, from, to))
             .map(averageAggregate ->
-                AverageConnectionDuration
-                    .builder()
+                AverageConnectionDuration.builder()
                     .globalAverage(averageAggregate.getAverage())
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
@@ -207,8 +204,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 query.versions()
             )
         );
-        return ResponseStatusOvertime
-            .builder()
+        return ResponseStatusOvertime.builder()
             .data(result.getStatusCount())
             .timeRange(new ResponseStatusOvertime.TimeRange(query.from(), query.to(), query.interval()))
             .build();
@@ -244,8 +240,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             )
         );
 
-        return RequestResponseTime
-            .builder()
+        return RequestResponseTime.builder()
             .requestsPerSecond(result.getRequestsPerSecond())
             .requestsTotal(result.getRequestsTotal())
             .responseMinTime(result.getResponseMinTime())
@@ -267,8 +262,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .entrySet()
                     .stream()
                     .map(entry ->
-                        TopFailedApis.TopFailedApi
-                            .builder()
+                        TopFailedApis.TopFailedApi.builder()
                             .id(entry.getKey())
                             .failedCalls(entry.getValue().failedCalls())
                             .failedCallsRatio(entry.getValue().failedCallsRatio())
@@ -283,12 +277,11 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     public Optional<HistogramAnalytics> searchHistogramAnalytics(ExecutionContext executionContext, HistogramQuery histogramParameters) {
         List<Aggregation> repoAggregations = null;
         if (histogramParameters.aggregations() != null) {
-            repoAggregations =
-                histogramParameters
-                    .aggregations()
-                    .stream()
-                    .map(agg -> new Aggregation(agg.getField(), AggregationType.valueOf(agg.getAggregationType().name())))
-                    .collect(Collectors.toList());
+            repoAggregations = histogramParameters
+                .aggregations()
+                .stream()
+                .map(agg -> new Aggregation(agg.getField(), AggregationType.valueOf(agg.getAggregationType().name())))
+                .collect(Collectors.toList());
         }
 
         List<HistogramAggregate> repoResult = analyticsRepository.searchHistogram(
@@ -423,15 +416,19 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     private static @NotNull List<Term> mapTerms(HistogramQuery query) {
         List<io.gravitee.apim.core.analytics.model.Term> terms = query.terms();
 
-        return (terms != null && !terms.isEmpty()) ? terms.stream().map(t -> new Term(t.key(), t.value())).toList() : List.of();
+        return (terms != null && !terms.isEmpty())
+            ? terms
+                .stream()
+                .map(t -> new Term(t.key(), t.value()))
+                .toList()
+            : List.of();
     }
 
     private static void mapAggregations(HistogramQuery query, List<Aggregation> aggregations) {
         query
             .aggregations()
             .forEach(aggregation ->
-                Arrays
-                    .stream(AggregationType.values())
+                Arrays.stream(AggregationType.values())
                     .filter(value -> value.name().equals(aggregation.getAggregationType().name()))
                     .findFirst()
                     .ifPresent(type -> aggregations.add(new Aggregation(aggregation.getField(), type)))

@@ -128,27 +128,22 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
                 throw new IllegalStateException("Resource [" + resource.getType() + "] cannot be found in plugin registry");
             }
 
-            PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
-                resourcePlugin.id(),
-                s -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
+            PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(resourcePlugin.id(), s ->
+                resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
             );
 
             logger.debug("Loading resource {} for {}", resource.getName(), reactable);
 
             try {
-                Class<? extends io.gravitee.resource.api.Resource> resourceClass =
-                    (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
-                        resourcePlugin.resource().getName(),
-                        resourceClassLoader
-                    );
+                Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<
+                    ? extends io.gravitee.resource.api.Resource
+                >) ClassUtils.forName(resourcePlugin.resource().getName(), resourceClassLoader);
                 Map<Class<?>, Object> injectables = new HashMap<>();
 
                 if (resourcePlugin.configuration() != null) {
-                    Class<? extends ResourceConfiguration> resourceConfigurationClass =
-                        (Class<? extends ResourceConfiguration>) ClassUtils.forName(
-                            resourcePlugin.configuration().getName(),
-                            resourceClassLoader
-                        );
+                    Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<
+                        ? extends ResourceConfiguration
+                    >) ClassUtils.forName(resourcePlugin.configuration().getName(), resourceClassLoader);
                     injectables.put(
                         resourceConfigurationClass,
                         resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())

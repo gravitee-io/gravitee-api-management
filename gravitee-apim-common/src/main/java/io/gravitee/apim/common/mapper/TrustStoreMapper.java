@@ -67,8 +67,10 @@ public interface TrustStoreMapper {
         private static final Map<String, TrustStoreMapper.TrustStoreImplementation> ENUM_MAP;
 
         static {
-            Map<String, TrustStoreMapper.TrustStoreImplementation> map =
-                new ConcurrentHashMap<String, TrustStoreMapper.TrustStoreImplementation>();
+            Map<String, TrustStoreMapper.TrustStoreImplementation> map = new ConcurrentHashMap<
+                String,
+                TrustStoreMapper.TrustStoreImplementation
+            >();
             for (TrustStoreMapper.TrustStoreImplementation instance : TrustStoreMapper.TrustStoreImplementation.values()) {
                 map.put(instance.className, instance);
             }

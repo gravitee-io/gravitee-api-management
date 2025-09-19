@@ -47,36 +47,33 @@ public class ApiMapper {
         this.subscriptionMapper = subscriptionMapper;
         this.apiKeyMapper = apiKeyMapper;
 
-        parsers =
-            List.of(
-                payload ->
-                    parseAndAssert(
-                        payload,
-                        Api.class,
-                        reactableApi ->
-                            reactableApi.getDefinitionVersion() == DefinitionVersion.V1 ||
-                            reactableApi.getDefinitionVersion() == DefinitionVersion.V2
-                    ),
-                payload ->
-                    parseAndAssert(
-                        payload,
-                        io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
-                        reactableApi ->
-                            reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
-                            (
-                                ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.PROXY ||
-                                ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.MESSAGE
-                            )
-                    ),
-                payload ->
-                    parseAndAssert(
-                        payload,
-                        io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
-                        reactableApi ->
-                            reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
-                            ((NativeApi) reactableApi.getDefinition()).getType() == ApiType.NATIVE
-                    )
-            );
+        parsers = List.of(
+            payload ->
+                parseAndAssert(
+                    payload,
+                    Api.class,
+                    reactableApi ->
+                        reactableApi.getDefinitionVersion() == DefinitionVersion.V1 ||
+                        reactableApi.getDefinitionVersion() == DefinitionVersion.V2
+                ),
+            payload ->
+                parseAndAssert(
+                    payload,
+                    io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
+                    reactableApi ->
+                        reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
+                        (((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.PROXY ||
+                            ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.MESSAGE)
+                ),
+            payload ->
+                parseAndAssert(
+                    payload,
+                    io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
+                    reactableApi ->
+                        reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
+                        ((NativeApi) reactableApi.getDefinition()).getType() == ApiType.NATIVE
+                )
+        );
     }
 
     public Maybe<ApiReactorDeployable> to(final DistributedEvent event) {
@@ -84,8 +81,7 @@ public class ApiMapper {
             try {
                 ReactableApi<?> reactableApi = toReactable(event.getPayload());
 
-                return ApiReactorDeployable
-                    .builder()
+                return ApiReactorDeployable.builder()
                     .apiId(event.getId())
                     .reactableApi(reactableApi)
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
@@ -121,8 +117,7 @@ public class ApiMapper {
     private Flowable<DistributedEvent> toApiDistributedEvent(final ApiReactorDeployable deployable) {
         return Flowable.fromCallable(() -> {
             try {
-                DistributedEvent.DistributedEventBuilder builder = DistributedEvent
-                    .builder()
+                DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
                     .id(deployable.id())
                     .type(DistributedEventType.API)
                     .syncAction(SyncActionMapper.to(deployable.syncAction()))

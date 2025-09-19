@@ -81,8 +81,7 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
 
             Optional<Media> checkMedia = mediaRepository.findByHash(
                 hashString,
-                MediaCriteria
-                    .builder()
+                MediaCriteria.builder()
                     .organization(context.getOrganizationId())
                     .environment(context.getEnvironmentId())
                     .api(api)
@@ -118,8 +117,7 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
             return mediaRepository
                 .findByHash(
                     hash,
-                    MediaCriteria
-                        .builder()
+                    MediaCriteria.builder()
                         .organization(context.getOrganizationId())
                         .environment(context.getEnvironmentId())
                         .mediaType(MEDIA_TYPE_IMAGE)
@@ -152,8 +150,7 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
             return mediaRepository
                 .findByHash(
                     hash,
-                    MediaCriteria
-                        .builder()
+                    MediaCriteria.builder()
                         .organization(context.getOrganizationId())
                         .environment(context.getEnvironmentId())
                         .mediaType(ignoreType ? null : MEDIA_TYPE_IMAGE)
@@ -183,9 +180,9 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     @Override
     public List<MediaEntity> findAllWithoutContent(ExecutionContext context, List<PageMediaEntity> pageMediaEntities) {
         return this.findAllWithoutContent(
-                pageMediaEntities,
-                MediaCriteria.builder().organization(context.getOrganizationId()).environment(context.getEnvironmentId()).build()
-            );
+            pageMediaEntities,
+            MediaCriteria.builder().organization(context.getOrganizationId()).environment(context.getEnvironmentId()).build()
+        );
     }
 
     @Override
@@ -265,8 +262,7 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     @Override
     public void deletePortalMediaByHash(ExecutionContext executionContext, String hash) {
         try {
-            final MediaCriteria mediaCriteria = MediaCriteria
-                .builder()
+            final MediaCriteria mediaCriteria = MediaCriteria.builder()
                 .organization(executionContext.getOrganizationId())
                 .environment(executionContext.getEnvironmentId())
                 .build();

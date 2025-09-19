@@ -40,19 +40,14 @@ public class CsrfRequestMatcher implements RequestMatcher {
     public boolean matches(HttpServletRequest request) {
         return (
             !allowedMethods.contains(request.getMethod()) &&
-            !(
-                request.getPathInfo() != null && allowedPaths.stream().anyMatch(pattern -> pattern.matcher(request.getPathInfo()).matches())
-            ) &&
-            (
-                request.getHeader(HttpHeaders.REFERER) != null ||
+            !(request.getPathInfo() != null &&
+                allowedPaths.stream().anyMatch(pattern -> pattern.matcher(request.getPathInfo()).matches())) &&
+            (request.getHeader(HttpHeaders.REFERER) != null ||
                 request.getHeader(HttpHeaders.ORIGIN) != null ||
-                (
-                    request.getCookies() != null &&
-                    Arrays
-                        .stream(request.getCookies())
-                        .anyMatch(cookie -> TokenAuthenticationFilter.AUTH_COOKIE_NAME.equals(cookie.getName()))
-                )
-            )
+                (request.getCookies() != null &&
+                    Arrays.stream(request.getCookies()).anyMatch(cookie ->
+                        TokenAuthenticationFilter.AUTH_COOKIE_NAME.equals(cookie.getName())
+                    )))
         );
     }
 }

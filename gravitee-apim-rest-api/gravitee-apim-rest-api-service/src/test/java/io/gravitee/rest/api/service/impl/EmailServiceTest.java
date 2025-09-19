@@ -74,13 +74,12 @@ public class EmailServiceTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        service =
-            new EmailServiceImpl(
-                mailManager,
-                notificationTemplateService,
-                parameterService,
-                new File("src/test/resources/template").getCanonicalPath()
-            );
+        service = new EmailServiceImpl(
+            mailManager,
+            notificationTemplateService,
+            parameterService,
+            new File("src/test/resources/template").getCanonicalPath()
+        );
 
         lenient()
             .when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class), any(ExecutionContext.class)))
@@ -99,16 +98,14 @@ public class EmailServiceTest {
                 eq("API.API_STARTED.EMAIL.TITLE"),
                 anyMap()
             )
-        )
-            .thenReturn("Test email title");
+        ).thenReturn("Test email title");
         when(
             notificationTemplateService.resolveTemplateWithParam(
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq("API.API_STARTED.EMAIL"),
                 anyMap()
             )
-        )
-            .thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
+        ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
 
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().build());
 
@@ -134,16 +131,14 @@ public class EmailServiceTest {
                 eq("API.API_STARTED.EMAIL.TITLE"),
                 anyMap()
             )
-        )
-            .thenReturn("Test email title");
+        ).thenReturn("Test email title");
         when(
             notificationTemplateService.resolveTemplateWithParam(
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq("API.API_STARTED.EMAIL"),
                 anyMap()
             )
-        )
-            .thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
+        ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
 
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().to((String[]) null).build());
 
@@ -163,16 +158,14 @@ public class EmailServiceTest {
                 eq("API.API_STARTED.EMAIL.TITLE"),
                 anyMap()
             )
-        )
-            .thenReturn("Test email title");
+        ).thenReturn("Test email title");
         when(
             notificationTemplateService.resolveTemplateWithParam(
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq("API.API_STARTED.EMAIL"),
                 anyMap()
             )
-        )
-            .thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
+        ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
 
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().copyToSender(true).build());
 
@@ -181,8 +174,10 @@ public class EmailServiceTest {
 
         MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessageCaptor.getValue()).parse();
         assertThat(mimeMessageParser.getTo()).containsExactly(new InternetAddress("test@gravitee.io"));
-        assertThat(mimeMessageParser.getBcc())
-            .containsExactly(new InternetAddress("copy@gravitee.io"), new InternetAddress("sender@gravitee.io"));
+        assertThat(mimeMessageParser.getBcc()).containsExactly(
+            new InternetAddress("copy@gravitee.io"),
+            new InternetAddress("sender@gravitee.io")
+        );
     }
 
     @Test
@@ -193,16 +188,14 @@ public class EmailServiceTest {
                 eq("API.API_STARTED.EMAIL.TITLE"),
                 anyMap()
             )
-        )
-            .thenReturn("Test email title");
+        ).thenReturn("Test email title");
         when(
             notificationTemplateService.resolveTemplateWithParam(
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq("API.API_STARTED.EMAIL"),
                 anyMap()
             )
-        )
-            .thenReturn(buildEmailTemplateWithImage("../../images/image_user_shouldnt_access.png"));
+        ).thenReturn(buildEmailTemplateWithImage("../../images/image_user_shouldnt_access.png"));
 
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().build());
 
@@ -223,16 +216,14 @@ public class EmailServiceTest {
                 eq("API.API_STARTED.EMAIL.TITLE"),
                 anyMap()
             )
-        )
-            .thenReturn("Test email title");
+        ).thenReturn("Test email title");
         when(
             notificationTemplateService.resolveTemplateWithParam(
                 eq(EXECUTION_CONTEXT.getOrganizationId()),
                 eq("API.API_STARTED.EMAIL"),
                 anyMap()
             )
-        )
-            .thenReturn(buildEmailTemplateWithImage(graviteeLogoInBase64));
+        ).thenReturn(buildEmailTemplateWithImage(graviteeLogoInBase64));
 
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().build());
 
@@ -249,8 +240,9 @@ public class EmailServiceTest {
 
     @Test
     public void should_not_send_email_notification_when_email_is_disabled() {
-        when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class), any(ExecutionContext.class)))
-            .thenReturn(Map.of("email.enabled", List.of("false")));
+        when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class), any(ExecutionContext.class))).thenReturn(
+            Map.of("email.enabled", List.of("false"))
+        );
 
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().build());
 

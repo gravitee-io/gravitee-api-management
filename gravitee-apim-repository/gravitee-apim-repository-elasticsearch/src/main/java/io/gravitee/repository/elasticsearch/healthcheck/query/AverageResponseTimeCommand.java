@@ -74,18 +74,16 @@ public class AverageResponseTimeCommand extends AbstractElasticsearchQueryComman
 
         try {
             final long now = System.currentTimeMillis();
-            final long from = ZonedDateTime
-                .ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
+            final long from = ZonedDateTime.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
                 .minus(1, ChronoUnit.MONTHS)
                 .toInstant()
                 .toEpochMilli();
 
-            final Single<SearchResponse> result =
-                this.client.search(
-                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, now, clusters),
-                        !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
-                        sQuery
-                    );
+            final Single<SearchResponse> result = this.client.search(
+                this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, now, clusters),
+                !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
+                sQuery
+            );
             return this.toAverageResponseTimeResponse(result.blockingGet());
         } catch (Exception eex) {
             logger.error("Impossible to perform AverageResponseTimeQuery", eex);

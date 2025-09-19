@@ -36,12 +36,12 @@ public class DefaultOrganizationUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-                if (organizationService.count().equals(0L)) {
-                    log.info("    No organization found. Add default one.");
-                    organizationService.initialize();
-                }
-                return true;
-            });
+            if (organizationService.count().equals(0L)) {
+                log.info("    No organization found. Add default one.");
+                organizationService.initialize();
+            }
+            return true;
+        });
     }
 
     @Override

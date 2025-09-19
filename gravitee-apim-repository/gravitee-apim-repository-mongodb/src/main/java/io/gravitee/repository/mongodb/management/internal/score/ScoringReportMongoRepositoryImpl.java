@@ -93,27 +93,25 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
         long total = 0;
 
         if (result != null) {
-            data =
-                result
-                    .getList("data", Document.class)
-                    .stream()
-                    .map(document -> {
-                        var summary = Optional.ofNullable(document.get("summary", Document.class));
-                        return ScoringEnvironmentApi
-                            .builder()
-                            .apiId(document.getString("apiId"))
-                            .apiName(document.getString("name"))
-                            .apiUpdatedAt(document.getDate("updatedAt"))
-                            .reportId(document.getString("_id"))
-                            .reportCreatedAt(document.getDate("createdAt"))
-                            .score(summary.map(s -> s.getDouble("score")).orElse(null))
-                            .errors(summary.map(s -> s.getLong("errors")).orElse(null))
-                            .warnings(summary.map(s -> s.getLong("warnings")).orElse(null))
-                            .infos(summary.map(s -> s.getLong("infos")).orElse(null))
-                            .hints(summary.map(s -> s.getLong("hints")).orElse(null))
-                            .build();
-                    })
-                    .toList();
+            data = result
+                .getList("data", Document.class)
+                .stream()
+                .map(document -> {
+                    var summary = Optional.ofNullable(document.get("summary", Document.class));
+                    return ScoringEnvironmentApi.builder()
+                        .apiId(document.getString("apiId"))
+                        .apiName(document.getString("name"))
+                        .apiUpdatedAt(document.getDate("updatedAt"))
+                        .reportId(document.getString("_id"))
+                        .reportCreatedAt(document.getDate("createdAt"))
+                        .score(summary.map(s -> s.getDouble("score")).orElse(null))
+                        .errors(summary.map(s -> s.getLong("errors")).orElse(null))
+                        .warnings(summary.map(s -> s.getLong("warnings")).orElse(null))
+                        .infos(summary.map(s -> s.getLong("infos")).orElse(null))
+                        .hints(summary.map(s -> s.getLong("hints")).orElse(null))
+                        .build();
+                })
+                .toList();
 
             List<Document> totalCount = result.getList("totalCount", Document.class, Collections.emptyList());
             total = totalCount.isEmpty() ? 0L : ((Number) totalCount.get(0).getOrDefault("count", 0)).longValue();
@@ -144,8 +142,7 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
             return ScoringEnvironmentSummary.builder().environmentId(environmentId).build();
         }
 
-        return ScoringEnvironmentSummary
-            .builder()
+        return ScoringEnvironmentSummary.builder()
             .environmentId(environmentId)
             .score(BigDecimal.valueOf(result.getDouble("score")).setScale(2, RoundingMode.HALF_EVEN).doubleValue())
             .errors(result.getLong("errors"))

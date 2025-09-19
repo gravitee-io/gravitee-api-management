@@ -155,11 +155,13 @@ public class TicketServiceTest {
                 REFERENCE_ID,
                 REFERENCE_TYPE
             )
-        )
-            .thenReturn(Boolean.FALSE);
+        ).thenReturn(Boolean.FALSE);
         ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
-        verify(mockNotifierService, never())
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        verify(mockNotifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(PortalHook.NEW_SUPPORT_TICKET),
+            anyMap()
+        );
     }
 
     @Test(expected = SupportUnavailableException.class)
@@ -171,8 +173,7 @@ public class TicketServiceTest {
                 REFERENCE_ID,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Boolean.FALSE);
+        ).thenReturn(Boolean.FALSE);
         ticketService.create(
             GraviteeContext.getExecutionContext(),
             USERNAME,
@@ -180,8 +181,11 @@ public class TicketServiceTest {
             REFERENCE_ID,
             ParameterReferenceType.ENVIRONMENT
         );
-        verify(mockNotifierService, never())
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        verify(mockNotifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(PortalHook.NEW_SUPPORT_TICKET),
+            anyMap()
+        );
     }
 
     @Test(expected = EmailRequiredException.class)
@@ -193,13 +197,15 @@ public class TicketServiceTest {
                 REFERENCE_ID,
                 REFERENCE_TYPE
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
         when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
 
         ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
-        verify(mockNotifierService, never())
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        verify(mockNotifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(PortalHook.NEW_SUPPORT_TICKET),
+            anyMap()
+        );
     }
 
     @Test(expected = IllegalStateException.class)
@@ -211,16 +217,18 @@ public class TicketServiceTest {
                 REFERENCE_ID,
                 REFERENCE_TYPE
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
         when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID, true)).thenReturn(api);
 
         ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
-        verify(mockNotifierService, never())
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        verify(mockNotifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(PortalHook.NEW_SUPPORT_TICKET),
+            anyMap()
+        );
     }
 
     @Test(expected = IllegalStateException.class)
@@ -232,8 +240,7 @@ public class TicketServiceTest {
                 REFERENCE_ID,
                 REFERENCE_TYPE
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
 
         when(userService.findById(GraviteeContext.getExecutionContext(), USERNAME)).thenReturn(user);
@@ -245,8 +252,11 @@ public class TicketServiceTest {
         when(api.getMetadata()).thenReturn(metadata);
 
         ticketService.create(GraviteeContext.getExecutionContext(), USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
-        verify(mockNotifierService, never())
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+        verify(mockNotifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(PortalHook.NEW_SUPPORT_TICKET),
+            anyMap()
+        );
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -258,8 +268,7 @@ public class TicketServiceTest {
                 REFERENCE_ID,
                 REFERENCE_TYPE
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
@@ -291,8 +300,7 @@ public class TicketServiceTest {
                 REFERENCE_ID,
                 REFERENCE_TYPE
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
@@ -328,33 +336,35 @@ public class TicketServiceTest {
             REFERENCE_TYPE
         );
 
-        verify(emailService)
-            .sendEmailNotification(
-                GraviteeContext.getExecutionContext(),
-                new EmailNotificationBuilder()
-                    .replyTo(USER_EMAIL)
-                    .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
-                    .to(EMAIL_SUPPORT)
-                    .copyToSender(EMAIL_COPY_TO_SENDER)
-                    .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
-                    .params(
-                        ImmutableMap.of(
-                            "user",
-                            user,
-                            "api",
-                            api,
-                            "content",
-                            "Email<br />Content",
-                            "application",
-                            application,
-                            "ticketSubject",
-                            EMAIL_SUBJECT
-                        )
+        verify(emailService).sendEmailNotification(
+            GraviteeContext.getExecutionContext(),
+            new EmailNotificationBuilder()
+                .replyTo(USER_EMAIL)
+                .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
+                .to(EMAIL_SUPPORT)
+                .copyToSender(EMAIL_COPY_TO_SENDER)
+                .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
+                .params(
+                    ImmutableMap.of(
+                        "user",
+                        user,
+                        "api",
+                        api,
+                        "content",
+                        "Email<br />Content",
+                        "application",
+                        application,
+                        "ticketSubject",
+                        EMAIL_SUBJECT
                     )
-                    .build()
-            );
-        verify(mockNotifierService, times(1))
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+                )
+                .build()
+        );
+        verify(mockNotifierService, times(1)).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(PortalHook.NEW_SUPPORT_TICKET),
+            anyMap()
+        );
 
         assertEquals("Invalid saved ticket id", createdTicket.getId(), ticketToCreate.getId());
         assertEquals("Invalid saved ticket api", createdTicket.getApi(), ticketToCreate.getApi());
@@ -386,8 +396,9 @@ public class TicketServiceTest {
             ticketList.add(t);
         }
 
-        when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class)))
-            .thenReturn(new Page<>(ticketList, 0, 20, 20));
+        when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class))).thenReturn(
+            new Page<>(ticketList, 0, 20, 20)
+        );
         when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(appEntity);
 
@@ -424,8 +435,9 @@ public class TicketServiceTest {
             ticketList.add(t);
         }
 
-        when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class)))
-            .thenThrow(new TechnicalException());
+        when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class))).thenThrow(
+            new TechnicalException()
+        );
 
         TicketQuery query = new TicketQuery();
         query.setFromUser("fromUser");
@@ -553,8 +565,9 @@ public class TicketServiceTest {
         appEntity.setName("appName");
 
         when(ticketRepository.findById("ticket1")).thenReturn(Optional.of(ticket));
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID))
-            .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenThrow(
+            new ApplicationNotFoundException(APPLICATION_ID)
+        );
 
         TicketEntity ticketEntity = ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
 
@@ -570,8 +583,7 @@ public class TicketServiceTest {
                 REFERENCE_ID,
                 REFERENCE_TYPE
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
@@ -607,33 +619,35 @@ public class TicketServiceTest {
             REFERENCE_TYPE
         );
 
-        verify(emailService)
-            .sendEmailNotification(
-                GraviteeContext.getExecutionContext(),
-                new EmailNotificationBuilder()
-                    .replyTo(USER_EMAIL)
-                    .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
-                    .to(EMAIL_SUPPORT)
-                    .copyToSender(EMAIL_COPY_TO_SENDER)
-                    .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
-                    .params(
-                        ImmutableMap.of(
-                            "user",
-                            user,
-                            "api",
-                            api,
-                            "content",
-                            "Email<br />Content",
-                            "application",
-                            application,
-                            "ticketSubject",
-                            EMAIL_SUBJECT
-                        )
+        verify(emailService).sendEmailNotification(
+            GraviteeContext.getExecutionContext(),
+            new EmailNotificationBuilder()
+                .replyTo(USER_EMAIL)
+                .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
+                .to(EMAIL_SUPPORT)
+                .copyToSender(EMAIL_COPY_TO_SENDER)
+                .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
+                .params(
+                    ImmutableMap.of(
+                        "user",
+                        user,
+                        "api",
+                        api,
+                        "content",
+                        "Email<br />Content",
+                        "application",
+                        application,
+                        "ticketSubject",
+                        EMAIL_SUBJECT
                     )
-                    .build()
-            );
-        verify(mockNotifierService, times(1))
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+                )
+                .build()
+        );
+        verify(mockNotifierService, times(1)).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(PortalHook.NEW_SUPPORT_TICKET),
+            anyMap()
+        );
 
         assertEquals("Invalid saved ticket id", createdTicket.getId(), ticketToCreate.getId());
         assertEquals("Invalid saved ticket api", createdTicket.getApi(), ticketToCreate.getApi());

@@ -49,8 +49,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     @Override
     protected JdbcObjectMapper<User> buildOrm() {
-        return JdbcObjectMapper
-            .builder(User.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(User.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -173,21 +172,20 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
                 query.append(" order by id ");
 
-                result =
-                    jdbcTemplate.query(
-                        query.toString(),
-                        (PreparedStatement ps) -> {
-                            int idx = 1;
-                            if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
-                                List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
-                                idx = getOrm().setArguments(ps, statuses, idx);
-                            }
-                            if (criteria.getOrganizationId() != null) {
-                                idx = getOrm().setArguments(ps, Arrays.asList(criteria.getOrganizationId()), idx);
-                            }
-                        },
-                        getOrm().getRowMapper()
-                    );
+                result = jdbcTemplate.query(
+                    query.toString(),
+                    (PreparedStatement ps) -> {
+                        int idx = 1;
+                        if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
+                            List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
+                            idx = getOrm().setArguments(ps, statuses, idx);
+                        }
+                        if (criteria.getOrganizationId() != null) {
+                            idx = getOrm().setArguments(ps, Arrays.asList(criteria.getOrganizationId()), idx);
+                        }
+                    },
+                    getOrm().getRowMapper()
+                );
             }
             return getResultAsPage(pageable, result);
         } catch (final Exception ex) {

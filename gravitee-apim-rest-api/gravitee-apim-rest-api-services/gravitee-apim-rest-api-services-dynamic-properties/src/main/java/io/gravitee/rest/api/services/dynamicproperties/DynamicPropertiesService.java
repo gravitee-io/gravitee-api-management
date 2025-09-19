@@ -106,7 +106,12 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     }
 
     private void update(ApiEntity api) {
-        final ApiEntity currentApi = schedulers.keySet().stream().filter(entity -> entity.equals(api)).findFirst().orElse(null);
+        final ApiEntity currentApi = schedulers
+            .keySet()
+            .stream()
+            .filter(entity -> entity.equals(api))
+            .findFirst()
+            .orElse(null);
 
         if (currentApi == null) {
             // There is no dynamic properties handler for this api, start the dynamic properties.
@@ -143,8 +148,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
         EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
-        DynamicPropertyScheduler scheduler = DynamicPropertyScheduler
-            .builder()
+        DynamicPropertyScheduler scheduler = DynamicPropertyScheduler.builder()
             .clusterManager(clusterManager)
             .schedule(dynamicPropertyService.getSchedule())
             .api(api)

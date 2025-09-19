@@ -111,8 +111,9 @@ public class GroupService_IsUserAuthorizedToAccessTest {
     @Test
     public void shouldBeAuthorizedForPrivateApiWithDirectMember() throws TechnicalException {
         when(api.getId()).thenReturn("apiId");
-        when(membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, "user"))
-            .thenReturn(new HashSet<>(Arrays.asList(new RoleEntity())));
+        when(membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, "user")).thenReturn(
+            new HashSet<>(Arrays.asList(new RoleEntity()))
+        );
 
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
@@ -127,12 +128,14 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getId()).thenReturn("apiId");
         when(api.getGroups()).thenReturn(new HashSet<>(Arrays.asList("grp1", "grp2")));
-        when(membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, "user"))
-            .thenReturn(Collections.emptySet());
+        when(membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, "user")).thenReturn(
+            Collections.emptySet()
+        );
         RoleEntity apiRoleEntity = new RoleEntity();
         apiRoleEntity.setScope(RoleScope.API);
-        when(membershipService.getRoles(MembershipReferenceType.GROUP, "grp2", MembershipMemberType.USER, "user"))
-            .thenReturn(new HashSet<>(Arrays.asList(apiRoleEntity)));
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, "grp2", MembershipMemberType.USER, "user")).thenReturn(
+            new HashSet<>(Arrays.asList(apiRoleEntity))
+        );
 
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
@@ -149,10 +152,12 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getId()).thenReturn("apiId");
         when(api.getGroups()).thenReturn(new HashSet<>(Arrays.asList("grp1", "grp2")));
-        when(membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, "user"))
-            .thenReturn(Collections.emptySet());
-        when(membershipService.getRoles(MembershipReferenceType.GROUP, "grp2", MembershipMemberType.USER, "user"))
-            .thenReturn(Collections.emptySet());
+        when(membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, "user")).thenReturn(
+            Collections.emptySet()
+        );
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, "grp2", MembershipMemberType.USER, "user")).thenReturn(
+            Collections.emptySet()
+        );
 
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
@@ -172,10 +177,12 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         excludedGroup.setId("excludedGroup");
         RoleEntity apiRole = new RoleEntity();
         apiRole.setScope(RoleScope.API);
-        when(membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, "user"))
-            .thenReturn(Collections.emptySet());
-        when(membershipService.getRoles(MembershipReferenceType.GROUP, "excludedGroup", MembershipMemberType.USER, "user"))
-            .thenReturn(Collections.singleton(apiRole));
+        when(membershipService.getRoles(MembershipReferenceType.API, api.getId(), MembershipMemberType.USER, "user")).thenReturn(
+            Collections.emptySet()
+        );
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, "excludedGroup", MembershipMemberType.USER, "user")).thenReturn(
+            Collections.singleton(apiRole)
+        );
 
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(
             api,

@@ -59,8 +59,7 @@ class SharedPolicyGroupHRIDUpgraderTest {
                 any(Pageable.class),
                 any()
             )
-        )
-            .thenReturn(new Page<>(List.of(SharedPolicyGroup.builder().crossId("spg-cross-id").build()), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(SharedPolicyGroup.builder().crossId("spg-cross-id").build()), 0, 1, 1));
     }
 
     @Test

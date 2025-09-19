@@ -98,8 +98,7 @@ class ClustersResourceTest extends AbstractResourceTest {
             createCluster.setDescription("Cluster 1 description");
             createCluster.setConfiguration(Map.of("bootstrapServers", "localhost:9092"));
 
-            Cluster output = Cluster
-                .builder()
+            Cluster output = Cluster.builder()
                 .createdAt(Instant.now())
                 .id("cl-id-1")
                 .name(createCluster.getName())
@@ -120,8 +119,9 @@ class ClustersResourceTest extends AbstractResourceTest {
             assertAll(
                 () -> assertThat(createdCluster.getId()).isEqualTo(output.getId()),
                 () ->
-                    assertThat(createdCluster.getCreatedAt())
-                        .isEqualTo(output.getCreatedAt().atZone(TimeProvider.clock().getZone()).toOffsetDateTime()),
+                    assertThat(createdCluster.getCreatedAt()).isEqualTo(
+                        output.getCreatedAt().atZone(TimeProvider.clock().getZone()).toOffsetDateTime()
+                    ),
                 () -> assertThat(createdCluster.getUpdatedAt()).isNull(),
                 () -> assertThat(createdCluster.getName()).isEqualTo(createCluster.getName()),
                 () -> assertThat(createdCluster.getDescription()).isEqualTo(createCluster.getDescription()),
@@ -164,11 +164,8 @@ class ClustersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            shouldReturn403(
-                RolePermission.ENVIRONMENT_CLUSTER,
-                ENV_ID,
-                RolePermissionAction.CREATE,
-                () -> rootTarget().request().post(json(new CreateCluster()))
+            shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.CREATE, () ->
+                rootTarget().request().post(json(new CreateCluster()))
             );
         }
     }
@@ -204,8 +201,7 @@ class ClustersResourceTest extends AbstractResourceTest {
                 () ->
                     assertThat(
                         clustersResponse.getData().stream().map(io.gravitee.rest.api.management.v2.rest.model.Cluster::getName).toList()
-                    )
-                        .isEqualTo(outputClusters.stream().map(Cluster::getName).toList()),
+                    ).isEqualTo(outputClusters.stream().map(Cluster::getName).toList()),
                 () -> assertThat(clustersResponse.getPagination().getPage()).isEqualTo(1),
                 () -> assertThat(clustersResponse.getPagination().getPerPage()).isEqualTo(10),
                 () -> assertThat(clustersResponse.getPagination().getPageCount()).isEqualTo(3),

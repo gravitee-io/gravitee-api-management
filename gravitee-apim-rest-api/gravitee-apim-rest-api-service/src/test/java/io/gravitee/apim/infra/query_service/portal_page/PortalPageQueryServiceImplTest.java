@@ -53,17 +53,16 @@ class PortalPageQueryServiceImplTest {
         String environmentId = "env-1";
         String uuid = "123e4567-e89b-12d3-a456-426614174000";
         PortalPage repoPage = PortalPage.builder().id(uuid).content("content").environmentId(environmentId).build();
-        PortalPageContext repoContext = PortalPageContext
-            .builder()
+        PortalPageContext repoContext = PortalPageContext.builder()
             .id(uuid)
             .pageId(uuid)
             .contextType(PortalPageContextType.HOMEPAGE)
             .environmentId(environmentId)
             .published(true)
             .build();
-        Mockito
-            .when(contextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId))
-            .thenReturn(List.of(repoContext));
+        Mockito.when(contextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId)).thenReturn(
+            List.of(repoContext)
+        );
         Mockito.when(pageRepository.findByIds(List.of(uuid))).thenReturn(List.of(repoPage));
         var result = queryService.findByEnvironmentIdAndContext(environmentId, PortalViewContext.HOMEPAGE);
         assertThat(result).hasSize(1);
@@ -80,8 +79,7 @@ class PortalPageQueryServiceImplTest {
         String environmentId = "env-1";
         String uuid = "123e4567-e89b-12d3-a456-426614174000";
         PortalPage repoPage = PortalPage.builder().id(uuid).content("content").environmentId(environmentId).build();
-        PortalPageContext repoContext = PortalPageContext
-            .builder()
+        PortalPageContext repoContext = PortalPageContext.builder()
             .id(uuid)
             .pageId(uuid)
             .contextType(PortalPageContextType.HOMEPAGE)

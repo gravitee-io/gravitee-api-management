@@ -67,8 +67,9 @@ public class RoleService_CreateTest {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("new mock role");
         when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-        when(newRoleEntityMock.getPermissions())
-            .thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() }));
+        when(newRoleEntityMock.getPermissions()).thenReturn(
+            Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() })
+        );
         Role roleMock = mock(Role.class);
         when(roleMock.getId()).thenReturn("new_mock_role");
         when(roleMock.getName()).thenReturn("new mock role");
@@ -135,8 +136,9 @@ public class RoleService_CreateTest {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("admin");
         when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-        when(newRoleEntityMock.getPermissions())
-            .thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() }));
+        when(newRoleEntityMock.getPermissions()).thenReturn(
+            Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() })
+        );
         Role roleMock = mock(Role.class);
         when(roleMock.getId()).thenReturn("new-role");
         when(roleMock.getName()).thenReturn("admin");

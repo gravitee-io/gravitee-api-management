@@ -45,8 +45,7 @@ class RoundRobinLoadBalancerTest {
     @Test
     void shouldReturnTheNextEndpointInTheListAtEachCall() {
         int totalEndpoints = 5;
-        List<ManagedEndpoint> endpoints = IntStream
-            .range(0, totalEndpoints)
+        List<ManagedEndpoint> endpoints = IntStream.range(0, totalEndpoints)
             .mapToObj(i ->
                 new DefaultManagedEndpoint(
                     new Endpoint(),

@@ -28,11 +28,9 @@ public class InstallationIdFetcher {
     private final InstallationRepository installationRepository;
 
     public Maybe<String> fetch() {
-        return Maybe
-            .defer(() -> {
-                Optional<Installation> optionalInstallation = installationRepository.find();
-                return Maybe.fromOptional(optionalInstallation);
-            })
-            .map(Installation::getId);
+        return Maybe.defer(() -> {
+            Optional<Installation> optionalInstallation = installationRepository.find();
+            return Maybe.fromOptional(optionalInstallation);
+        }).map(Installation::getId);
     }
 }

@@ -158,7 +158,7 @@ public class UpdatePlanDomainService {
         Plan existingPlan = planCrudService.getById(planToUpdate.getId());
         Plan updatePlan = existingPlan.update(planToUpdate);
 
-        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, List.of()/*sanitizedFlows TODO */)) {
+        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, List.of() /*sanitizedFlows TODO */)) {
             updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
         }
 
@@ -248,8 +248,7 @@ public class UpdatePlanDomainService {
 
     private void createAuditLog(Plan oldPlan, Plan newPlan, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(newPlan.getApiId())

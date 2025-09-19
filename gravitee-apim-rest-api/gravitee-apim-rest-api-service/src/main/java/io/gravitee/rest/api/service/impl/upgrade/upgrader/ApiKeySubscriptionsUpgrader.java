@@ -53,11 +53,11 @@ public class ApiKeySubscriptionsUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-                for (ApiKey apiKey : apiKeyRepository.findAll()) {
-                    updateApiKeySubscriptions(apiKey);
-                }
-                return true;
-            });
+            for (ApiKey apiKey : apiKeyRepository.findAll()) {
+                updateApiKeySubscriptions(apiKey);
+            }
+            return true;
+        });
     }
 
     @SuppressWarnings("removal")

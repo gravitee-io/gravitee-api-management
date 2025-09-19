@@ -150,8 +150,7 @@ class VertxDebugConfigurationTest {
 
     @Test
     void should_create_debug_client_configuration_from_debug_server_options_and_default_timeouts() {
-        final VertxHttpServerOptions debugServerOptions = VertxHttpServerOptions
-            .builder()
+        final VertxHttpServerOptions debugServerOptions = VertxHttpServerOptions.builder()
             .port(1234)
             .host("somewhere.com")
             .secured(true)

@@ -113,50 +113,48 @@ public class MockEndpointConnector extends HttpEndpointAsyncConnector {
     ) {
         final long stateInitValue = getStateInitValue(lastId);
 
-        Flowable<Message> messageFlow = Flowable
-            .<Message, Long>generate(
-                () -> stateInitValue,
-                (state, emitter) -> {
-                    if (
-                        // If we have no published message limit or state is before the limit
-                        (maximumPublishedMessages == null || state < maximumPublishedMessages) &&
-                        // And the entrypoint has no limit or state minus lastId is less than limit, then emit a message
-                        (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)
-                    ) {
-                        DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage
-                            .builder()
-                            .content(configuration.getMessageContent())
-                            .id(Long.toString(state));
-                        // handle optional params
-                        if (configuration.getHeaders() != null) {
-                            HttpHeaders headers = HttpHeaders.create();
-                            configuration.getHeaders().forEach(h -> headers.add(h.getName(), h.getValue()));
-                            messageBuilder.headers(headers);
-                        }
-                        if (configuration.getMetadata() != null) {
-                            messageBuilder.metadata(
-                                configuration.getMetadata().stream().collect(Collectors.toMap(HttpHeader::getName, HttpHeader::getValue))
-                            );
-                        }
-                        messageBuilder.tracingAttributes(
-                            Map.of(
-                                TracingMessageAttribute.MESSAGING_OPERATION_NAME.key(),
-                                "receive",
-                                TracingMessageAttribute.MESSAGING_OPERATION_TYPE.key(),
-                                TracingMessageOperationType.RECEIVE.value(),
-                                TracingMessageAttribute.MESSAGING_SYSTEM.key(),
-                                "mock",
-                                TracingMessageAttribute.MESSAGING_MESSAGE_BODY_SIZE.key(),
-                                messageBuilder.content() != null ? String.valueOf(messageBuilder.content().length()) : "0"
-                            )
-                        );
-                        emitter.onNext(messageBuilder.build());
-                    } else {
-                        emitter.onComplete();
+        Flowable<Message> messageFlow = Flowable.<Message, Long>generate(
+            () -> stateInitValue,
+            (state, emitter) -> {
+                if (
+                    // If we have no published message limit or state is before the limit
+                    (maximumPublishedMessages == null || state < maximumPublishedMessages) &&
+                    // And the entrypoint has no limit or state minus lastId is less than limit, then emit a message
+                    (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)
+                ) {
+                    DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage.builder()
+                        .content(configuration.getMessageContent())
+                        .id(Long.toString(state));
+                    // handle optional params
+                    if (configuration.getHeaders() != null) {
+                        HttpHeaders headers = HttpHeaders.create();
+                        configuration.getHeaders().forEach(h -> headers.add(h.getName(), h.getValue()));
+                        messageBuilder.headers(headers);
                     }
-                    return state + 1;
+                    if (configuration.getMetadata() != null) {
+                        messageBuilder.metadata(
+                            configuration.getMetadata().stream().collect(Collectors.toMap(HttpHeader::getName, HttpHeader::getValue))
+                        );
+                    }
+                    messageBuilder.tracingAttributes(
+                        Map.of(
+                            TracingMessageAttribute.MESSAGING_OPERATION_NAME.key(),
+                            "receive",
+                            TracingMessageAttribute.MESSAGING_OPERATION_TYPE.key(),
+                            TracingMessageOperationType.RECEIVE.value(),
+                            TracingMessageAttribute.MESSAGING_SYSTEM.key(),
+                            "mock",
+                            TracingMessageAttribute.MESSAGING_MESSAGE_BODY_SIZE.key(),
+                            messageBuilder.content() != null ? String.valueOf(messageBuilder.content().length()) : "0"
+                        )
+                    );
+                    emitter.onNext(messageBuilder.build());
+                } else {
+                    emitter.onComplete();
                 }
-            )
+                return state + 1;
+            }
+        )
             .delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
             .rebatchRequests(1);
 

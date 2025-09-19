@@ -32,8 +32,7 @@ public interface ApiSpecGenQueryService {
     Optional<ApiSpecGen> findByIdAndType(ExecutionContext context, String id, ApiType type);
 
     default Maybe<ApiSpecGen> rxFindByIdAndType(ExecutionContext context, String id, ApiType type) {
-        return Maybe
-            .defer(() -> Maybe.just(findByIdAndType(context, id, type)))
+        return Maybe.defer(() -> Maybe.just(findByIdAndType(context, id, type)))
             .flatMap(api -> api.map(Maybe::just).orElseGet(Maybe::empty))
             .subscribeOn(Schedulers.io());
     }

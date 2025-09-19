@@ -42,8 +42,7 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 
     @Override
     public List<SubscriptionEntity> findExpiredSubscriptions() {
-        SubscriptionCriteria criteria = SubscriptionCriteria
-            .builder()
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder()
             .statuses(List.of(SubscriptionStatus.ACCEPTED.name()))
             .endingAtBefore(new Date().getTime())
             .build();
@@ -68,8 +67,7 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 
     @Override
     public List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId) {
-        SubscriptionCriteria criteria = SubscriptionCriteria
-            .builder()
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder()
             .plans(List.of(planId))
             .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
             .build();
@@ -83,8 +81,7 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
 
     @Override
     public List<SubscriptionEntity> findActiveByApplicationIdAndApiId(String applicationId, String apiId) {
-        var criteria = SubscriptionCriteria
-            .builder()
+        var criteria = SubscriptionCriteria.builder()
             .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
             .apis(List.of(apiId))
             .applications(List.of(applicationId))

@@ -79,25 +79,26 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
             log.info("User identifier is based on the [{}] attribute", identifierAttribute);
 
-            userAttributes =
-                new String[] {
-                    identifierAttribute,
-                    LDAP_ATTRIBUTE_GIVENNAME,
-                    LDAP_ATTRIBUTE_SURNAME,
-                    LDAP_ATTRIBUTE_MAIL,
-                    LDAP_ATTRIBUTE_DISPLAYNAME,
-                };
+            userAttributes = new String[] {
+                identifierAttribute,
+                LDAP_ATTRIBUTE_GIVENNAME,
+                LDAP_ATTRIBUTE_SURNAME,
+                LDAP_ATTRIBUTE_MAIL,
+                LDAP_ATTRIBUTE_DISPLAYNAME,
+            };
         } else {
-            userAttributes =
-                new String[] { LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME, LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME };
+            userAttributes = new String[] {
+                LDAP_ATTRIBUTE_GIVENNAME,
+                LDAP_ATTRIBUTE_SURNAME,
+                LDAP_ATTRIBUTE_MAIL,
+                LDAP_ATTRIBUTE_DISPLAYNAME,
+            };
         }
 
         // Base DN to search for users
-        baseDn =
-            LdapNameBuilder
-                .newInstance(environment.getProperty("context.base"))
-                .add(environment.getProperty("lookup.user.base", ""))
-                .build();
+        baseDn = LdapNameBuilder.newInstance(environment.getProperty("context.base"))
+            .add(environment.getProperty("lookup.user.base", ""))
+            .build();
 
         log.info("User search is based on DN [{}]", baseDn);
     }
@@ -110,8 +111,7 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             String usersSearchFilter = environment.getProperty("lookup.user.filter", LDAP_DEFAULT_LOOKUP_FILTER);
             String hardcodedFilter = usersSearchFilter.replaceAll("\\{0}", LdapUtils.addWhitespaceWildcards(query));
 
-            LdapQuery ldapQuery = LdapQueryBuilder
-                .query()
+            LdapQuery ldapQuery = LdapQueryBuilder.query()
                 .base(baseDn)
                 .countLimit(20)
                 .timeLimit(5000)

@@ -67,7 +67,11 @@ public class ResourceFactory {
                 boolean accessible = field.isAccessible();
 
                 Class<?> type = field.getType();
-                Optional<?> value = injectables.values().stream().filter(o -> type.isAssignableFrom(o.getClass())).findFirst();
+                Optional<?> value = injectables
+                    .values()
+                    .stream()
+                    .filter(o -> type.isAssignableFrom(o.getClass()))
+                    .findFirst();
 
                 if (value.isPresent()) {
                     LOGGER.debug("Inject value into field {} [{}] in {}", field.getName(), type.getName(), resourceClass);
@@ -146,7 +150,9 @@ public class ResourceFactory {
         return member != null
             ? member.getClass() == Method.class
                 ? ((Method) member).getParameterTypes()
-                : member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null
+                : member.getClass() == Constructor.class
+                    ? ((Constructor) member).getParameterTypes()
+                    : null
             : null;
     }
 }

@@ -104,8 +104,8 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
                 return param
                     .getAggregations()
                     .stream()
-                    .allMatch(agg ->
-                        agg.getField() != null && !agg.getField().isBlank() && agg.getType() != null && !agg.getType().isBlank()
+                    .allMatch(
+                        agg -> agg.getField() != null && !agg.getField().isBlank() && agg.getType() != null && !agg.getType().isBlank()
                     );
             }
 
@@ -158,7 +158,11 @@ public interface ApiAnalyticsParamSpecification extends Predicate<ApiAnalyticsPa
             }
 
             public String getErrorMessage() {
-                return specs.stream().map(ApiAnalyticsParamSpecification::getErrorMessage).reduce("", (a, b) -> a + " " + b).trim();
+                return specs
+                    .stream()
+                    .map(ApiAnalyticsParamSpecification::getErrorMessage)
+                    .reduce("", (a, b) -> a + " " + b)
+                    .trim();
             }
         };
     }

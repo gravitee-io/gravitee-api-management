@@ -81,9 +81,9 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
             );
             throw new TechnicalManagementException(
                 "An error occurs while trying to Activate identity provider " +
-                identityProviderId +
-                " on targets " +
-                Arrays.toString(targetsToAdd),
+                    identityProviderId +
+                    " on targets " +
+                    Arrays.toString(targetsToAdd),
                 ex
             );
         }
@@ -112,9 +112,9 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
             LOGGER.error("An error occurs while trying to add identity providers {} on target {}", identityProviderIdsToAdd, target, ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to add identity providers " +
-                Arrays.toString(identityProviderIdsToAdd) +
-                " on target " +
-                target,
+                    Arrays.toString(identityProviderIdsToAdd) +
+                    " on target " +
+                    target,
                 ex
             );
         }
@@ -172,9 +172,9 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
             );
             throw new TechnicalManagementException(
                 "An error occurs while trying to deactivate identity provider " +
-                identityProviderId +
-                " on targets " +
-                Arrays.toString(targetsToRemove),
+                    identityProviderId +
+                    " on targets " +
+                    Arrays.toString(targetsToRemove),
                 ex
             );
         }
@@ -197,9 +197,9 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
             );
             throw new TechnicalManagementException(
                 "An error occurs while trying to remove identity providers " +
-                Arrays.toString(identityProviderIdsToRemove) +
-                " from target " +
-                target,
+                    Arrays.toString(identityProviderIdsToRemove) +
+                    " from target " +
+                    target,
                 ex
             );
         }

@@ -24,8 +24,7 @@ public class ReferenceIdReferenceTypeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("scoring_functions")
             .name("ri1rt1")
             .key("referenceId", ascending())

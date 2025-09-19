@@ -56,8 +56,9 @@ public class ProcessPromotionOperationHandler implements BridgeOperationHandler 
         try {
             promotionEntity = objectMapper.readValue(bridgeCommand.getPayload().content(), PromotionEntity.class);
         } catch (JsonProcessingException e) {
-            String errorDetails =
-                "Problem while deserializing promotion for environment [%s]".formatted(bridgeCommand.getPayload().environmentId());
+            String errorDetails = "Problem while deserializing promotion for environment [%s]".formatted(
+                bridgeCommand.getPayload().environmentId()
+            );
             log.warn(errorDetails, e);
             return Single.just(new BridgeReply(bridgeCommand.getId(), errorDetails));
         }
@@ -71,8 +72,7 @@ public class ProcessPromotionOperationHandler implements BridgeOperationHandler 
                     new BridgeReplyPayload(
                         true,
                         List.of(
-                            BridgeReplyPayload.BridgeReplyContent
-                                .builder()
+                            BridgeReplyPayload.BridgeReplyContent.builder()
                                 .environmentId(commandPayload.target().environmentId())
                                 .organizationId(commandPayload.organizationId())
                                 .installationId(installationService.get().getId())
@@ -83,8 +83,9 @@ public class ProcessPromotionOperationHandler implements BridgeOperationHandler 
                 )
             );
         } catch (JsonProcessingException e) {
-            String errorDetails =
-                "Problem while serializing promotion for environment [%s]".formatted(bridgeCommand.getPayload().environmentId());
+            String errorDetails = "Problem while serializing promotion for environment [%s]".formatted(
+                bridgeCommand.getPayload().environmentId()
+            );
             log.warn(errorDetails);
             return Single.just(new BridgeReply(bridgeCommand.getId(), errorDetails));
         }

@@ -61,8 +61,9 @@ public class DefaultEndpointConnectorPluginManager
         // Create endpoint
         PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
         try {
-            final Class<BaseEndpointConnectorFactory<?>> connectorFactoryClass =
-                (Class<BaseEndpointConnectorFactory<?>>) pluginClassLoader.loadClass(plugin.clazz());
+            final Class<BaseEndpointConnectorFactory<?>> connectorFactoryClass = (Class<
+                BaseEndpointConnectorFactory<?>
+            >) pluginClassLoader.loadClass(plugin.clazz());
             BaseEndpointConnectorFactory<?> factory = createFactory(connectorFactoryClass);
             if (plugin.deployed()) {
                 factories.put(plugin.id(), factory);

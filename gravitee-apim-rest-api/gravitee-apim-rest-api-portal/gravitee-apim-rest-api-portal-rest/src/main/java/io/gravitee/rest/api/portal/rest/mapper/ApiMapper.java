@@ -137,8 +137,11 @@ public class ApiMapper {
         apiItem.setVersion(api.getApiVersion());
         apiItem.setMcp(computeMcp(api));
 
-        boolean isCategoryModeEnabled =
-            this.parameterService.findAsBoolean(executionContext, Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        boolean isCategoryModeEnabled = this.parameterService.findAsBoolean(
+            executionContext,
+            Key.PORTAL_APIS_CATEGORY_ENABLED,
+            ParameterReferenceType.ENVIRONMENT
+        );
         if (isCategoryModeEnabled && api.getCategories() != null) {
             apiItem.setCategories(
                 api

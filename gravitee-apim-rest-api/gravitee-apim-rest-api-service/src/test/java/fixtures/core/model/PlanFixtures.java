@@ -27,8 +27,7 @@ public class PlanFixtures {
     private PlanFixtures() {}
 
     private static final Supplier<Plan.PlanBuilder> BASE = () ->
-        Plan
-            .builder()
+        Plan.builder()
             .id("my-plan")
             .apiId("my-api")
             .name("My plan")
@@ -41,8 +40,7 @@ public class PlanFixtures {
             .validation(Plan.PlanValidationType.AUTO);
 
     public static Plan aPlanHttpV4() {
-        return BASE
-            .get()
+        return BASE.get()
             .definitionVersion(DefinitionVersion.V4)
             .apiType(ApiType.PROXY)
             .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4().toBuilder().id("my-plan").build())
@@ -50,8 +48,7 @@ public class PlanFixtures {
     }
 
     public static Plan aPlanNativeV4() {
-        return BASE
-            .get()
+        return BASE.get()
             .definitionVersion(DefinitionVersion.V4)
             .apiType(ApiType.NATIVE)
             .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.aKeylessV4().toBuilder().id("my-plan").build())
@@ -59,8 +56,7 @@ public class PlanFixtures {
     }
 
     public static Plan aPlanV2() {
-        return BASE
-            .get()
+        return BASE.get()
             .definitionVersion(DefinitionVersion.V2)
             .planDefinitionV2(fixtures.definition.PlanFixtures.aKeylessV2().toBuilder().id("my-plan").build())
             .build();
@@ -71,8 +67,7 @@ public class PlanFixtures {
         private HttpV4() {}
 
         public static Plan aKeyless() {
-            return BASE
-                .get()
+            return BASE.get()
                 .id("keyless")
                 .name("Keyless")
                 .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4())
@@ -80,8 +75,7 @@ public class PlanFixtures {
         }
 
         public static Plan anApiKey() {
-            return BASE
-                .get()
+            return BASE.get()
                 .id("apikey")
                 .name("API Key")
                 .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4())
@@ -90,8 +84,7 @@ public class PlanFixtures {
         }
 
         public static Plan aPushPlan() {
-            return BASE
-                .get()
+            return BASE.get()
                 .id("push")
                 .name("Push Plan")
                 .planDefinitionHttpV4(fixtures.definition.PlanFixtures.HttpV4Definition.aPushPlan())
@@ -100,8 +93,7 @@ public class PlanFixtures {
         }
 
         public static Plan anMtlsPlan() {
-            return BASE
-                .get()
+            return BASE.get()
                 .id("mtls")
                 .name("mTLS Plan")
                 .definitionVersion(DefinitionVersion.V4)
@@ -116,8 +108,7 @@ public class PlanFixtures {
         private NativeV4() {}
 
         public static Plan aKeyless() {
-            return BASE
-                .get()
+            return BASE.get()
                 .id("keyless")
                 .name("Keyless")
                 .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.aKeylessV4())
@@ -127,8 +118,7 @@ public class PlanFixtures {
         }
 
         public static Plan anApiKey() {
-            return BASE
-                .get()
+            return BASE.get()
                 .id("apikey")
                 .name("API Key")
                 .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.anApiKeyV4())
@@ -138,8 +128,7 @@ public class PlanFixtures {
         }
 
         public static Plan aPushPlan() {
-            return BASE
-                .get()
+            return BASE.get()
                 .id("push")
                 .name("Push Plan")
                 .planDefinitionNativeV4(fixtures.definition.PlanFixtures.NativeV4Definition.aPushPlan())
@@ -149,8 +138,7 @@ public class PlanFixtures {
         }
 
         public static Plan anMtlsPlan() {
-            return BASE
-                .get()
+            return BASE.get()
                 .id("mtls")
                 .name("mTLS Plan")
                 .definitionVersion(DefinitionVersion.V4)
@@ -162,8 +150,7 @@ public class PlanFixtures {
     }
 
     public static Plan aFederatedPlan() {
-        return BASE
-            .get()
+        return BASE.get()
             .id("federated")
             .name("Federated Plan")
             .federatedPlanDefinition(fixtures.definition.PlanFixtures.aFederatedPlan())

@@ -54,7 +54,12 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
     public static void configureApi(Api api) {
         configurePlans(api, Set.of("KEY_LESS", "JWT"));
         if (api.getId().endsWith("-selection-rule")) {
-            Plan jwtPlan = api.getPlans().stream().filter(plan -> plan.getSecurity().equals("JWT")).findFirst().get();
+            Plan jwtPlan = api
+                .getPlans()
+                .stream()
+                .filter(plan -> plan.getSecurity().equals("JWT"))
+                .findFirst()
+                .get();
             jwtPlan.setSelectionRule("#context.attributes['jwt'].claims['aud'][0] != '" + CUSTOM_AUDIENCE + "'");
         }
     }
@@ -77,15 +82,14 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
         }
 
         protected Stream<Arguments> provideWrongSecurityHeaders() {
-            return provideApis()
-                .flatMap(arguments -> {
-                    String apiId = (String) arguments.get()[0];
-                    return Stream.of(
-                        Arguments.of(apiId, "Authorization", "Bearer"),
-                        Arguments.of(apiId, "Authorization", "Bearer "),
-                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                    );
-                });
+            return provideApis().flatMap(arguments -> {
+                String apiId = (String) arguments.get()[0];
+                return Stream.of(
+                    Arguments.of(apiId, "Authorization", "Bearer"),
+                    Arguments.of(apiId, "Authorization", "Bearer "),
+                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
+                );
+            });
         }
     }
 
@@ -107,24 +111,22 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
         }
 
         protected Stream<Arguments> provideSecurityHeaders() {
-            return provideApis()
-                .flatMap(arguments -> {
-                    String path = (String) arguments.get()[0];
-                    boolean requireWiremock = (boolean) arguments.get()[1];
-                    return Stream.of(
-                        Arguments.of(path, requireWiremock, "X-Gravitee-Api-Key", "an-api-key"),
-                        Arguments.of(path, requireWiremock, "Authorization", ""),
-                        Arguments.of(path, requireWiremock, "Authorization", "Basic 123456789")
-                    );
-                });
+            return provideApis().flatMap(arguments -> {
+                String path = (String) arguments.get()[0];
+                boolean requireWiremock = (boolean) arguments.get()[1];
+                return Stream.of(
+                    Arguments.of(path, requireWiremock, "X-Gravitee-Api-Key", "an-api-key"),
+                    Arguments.of(path, requireWiremock, "Authorization", ""),
+                    Arguments.of(path, requireWiremock, "Authorization", "Basic 123456789")
+                );
+            });
         }
 
         protected Stream<Arguments> provideSelectionRuleApis() {
-            return provideApis()
-                .map(arguments -> {
-                    String apiId = (String) arguments.get()[0];
-                    return Arguments.of(apiId + "-selection-rule");
-                });
+            return provideApis().map(arguments -> {
+                String apiId = (String) arguments.get()[0];
+                return Arguments.of(apiId + "-selection-rule");
+            });
         }
 
         @ParameterizedTest

@@ -45,8 +45,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_v4_deployments() {
-        when(getApiDefinitionUseCase.execute(any()))
-            .thenReturn(new GetApiDefinitionUseCase.Output(DefinitionVersion.V4, ApiDefinitionFixtures.anApiV4(), null, null));
+        when(getApiDefinitionUseCase.execute(any())).thenReturn(
+            new GetApiDefinitionUseCase.Output(DefinitionVersion.V4, ApiDefinitionFixtures.anApiV4(), null, null)
+        );
 
         final Response response = rootTarget(API + "/deployments/current").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -54,8 +55,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
 
     @Test
     public void should_get_native_api_v4_deployments() {
-        when(getApiDefinitionUseCase.execute(any()))
-            .thenReturn(new GetApiDefinitionUseCase.Output(DefinitionVersion.V4, null, ApiDefinitionFixtures.aNativeApiV4(), null));
+        when(getApiDefinitionUseCase.execute(any())).thenReturn(
+            new GetApiDefinitionUseCase.Output(DefinitionVersion.V4, null, ApiDefinitionFixtures.aNativeApiV4(), null)
+        );
 
         final Response response = rootTarget(API + "/deployments/current").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -63,8 +65,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_v2_deployments() {
-        when(getApiDefinitionUseCase.execute(any()))
-            .thenReturn(new GetApiDefinitionUseCase.Output(DefinitionVersion.V2, null, null, ApiDefinitionFixtures.anApiV2()));
+        when(getApiDefinitionUseCase.execute(any())).thenReturn(
+            new GetApiDefinitionUseCase.Output(DefinitionVersion.V2, null, null, ApiDefinitionFixtures.anApiV2())
+        );
 
         final Response response = rootTarget(API + "/deployments/current").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -72,8 +75,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
 
     @Test
     public void should_throw_with_insufficient_rights() {
-        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
-            .thenReturn(false);
+        when(
+            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any())
+        ).thenReturn(false);
         final Response response = rootTarget(API + "/deployments/current").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }

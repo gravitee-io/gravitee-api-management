@@ -311,12 +311,13 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
                 .getProxy()
                 .getGroups()
                 .stream()
-                .anyMatch(group ->
-                    group.getEndpoints() != null &&
-                    group
-                        .getEndpoints()
-                        .stream()
-                        .anyMatch(endpoint -> endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled())
+                .anyMatch(
+                    group ->
+                        group.getEndpoints() != null &&
+                        group
+                            .getEndpoints()
+                            .stream()
+                            .anyMatch(endpoint -> endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled())
                 );
         }
 

@@ -54,17 +54,15 @@ class UpdateClusterMemberUseCaseTest {
 
     @Test
     void should_throw_validation_error_when_role_is_primary_owner() {
-        assertThrows(
-            SinglePrimaryOwnerException.class,
-            () -> updateClusterMemberUseCase.execute(new UpdateClusterMemberUseCase.Input("PRIMARY_OWNER", "member-1", "cluster-1"))
+        assertThrows(SinglePrimaryOwnerException.class, () ->
+            updateClusterMemberUseCase.execute(new UpdateClusterMemberUseCase.Input("PRIMARY_OWNER", "member-1", "cluster-1"))
         );
     }
 
     private void initMembers() {
         Member.Role role = Member.Role.builder().name("OWNER").build();
         List<Member> members = List.of(
-            Member
-                .builder()
+            Member.builder()
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-1")
                 .type(MembershipMemberType.USER)

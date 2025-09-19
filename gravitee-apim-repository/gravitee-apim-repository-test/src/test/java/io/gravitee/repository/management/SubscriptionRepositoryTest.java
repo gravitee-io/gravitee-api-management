@@ -54,8 +54,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindByPlan() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().plans(singleton("plan1")).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().plans(singleton("plan1")).build()
+        );
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -97,8 +98,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldNotFindByPlan() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().plans(singleton("unknown-plan")).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().plans(singleton("unknown-plan")).build()
+        );
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -106,8 +108,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindByApplication() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().applications(singleton("app1")).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().applications(singleton("app1")).build()
+        );
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -120,8 +123,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shoulNotFindByApplication() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().applications(singleton("unknown-app")).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().applications(singleton("unknown-app")).build()
+        );
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -129,8 +133,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindByEnvironment() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().environments(singleton("DEFAULT")).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().environments(singleton("DEFAULT")).build()
+        );
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -143,8 +148,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shoulNotFindByEnvironment() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().applications(singleton("unknown-env")).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().applications(singleton("unknown-env")).build()
+        );
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -152,8 +158,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindByIds() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().ids(List.of("sub1", "sub3", "sub4")).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().ids(List.of("sub1", "sub3", "sub4")).build()
+        );
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -166,8 +173,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shoulNotFindByIds() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().ids(singleton("unknown-subscription")).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().ids(singleton("unknown-subscription")).build()
+        );
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -258,8 +266,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBetweenDates() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().from(1469022010883L).to(1569022010883L).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().from(1469022010883L).to(1569022010883L).build()
+        );
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -301,12 +310,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals("sub3", subscriptionPage.getContent().get(0).getId());
         assertEquals("sub1", subscriptionPage.getContent().get(1).getId());
 
-        subscriptionPage =
-            subscriptionRepository.search(
-                SubscriptionCriteria.builder().from(1339022010883L).to(1839022010883L).build(),
-                null,
-                new PageableBuilder().pageNumber(1).pageSize(2).build()
-            );
+        subscriptionPage = subscriptionRepository.search(
+            SubscriptionCriteria.builder().from(1339022010883L).to(1839022010883L).build(),
+            null,
+            new PageableBuilder().pageNumber(1).pageSize(2).build()
+        );
 
         assertEquals(1, subscriptionPage.getPageNumber());
         assertEquals(0, subscriptionPage.getPageElements());
@@ -317,10 +325,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBetweenEndingAtDates() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(
-                    SubscriptionCriteria.builder().endingAtAfter(1449022010880L).endingAtBefore(1569022010883L).build()
-                );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().endingAtAfter(1449022010880L).endingAtBefore(1569022010883L).build()
+        );
 
         assertEquals("Subscriptions size", 1, subscriptions.size());
         assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
@@ -328,8 +335,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindAfterEndingAtDate() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().endingAtAfter(1449022010880L).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().endingAtAfter(1449022010880L).build()
+        );
 
         assertEquals("Subscriptions size", 1, subscriptions.size());
         assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
@@ -337,24 +345,24 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindAfterEndingAtDateWithoutEndingAt() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(
-                    SubscriptionCriteria.builder().endingAtAfter(1449022010880L).includeWithoutEnd(true).build()
-                );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().endingAtAfter(1449022010880L).includeWithoutEnd(true).build()
+        );
 
         assertEquals("Subscriptions size", 8, subscriptions.size());
         assertTrue(
             "Subscription id",
-            List
-                .of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8")
-                .containsAll(subscriptions.stream().map(Subscription::getId).toList())
+            List.of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8").containsAll(
+                subscriptions.stream().map(Subscription::getId).toList()
+            )
         );
     }
 
     @Test
     public void shouldFindBeforeEndingAtDate() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(SubscriptionCriteria.builder().endingAtBefore(1569022010883L).build());
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().endingAtBefore(1569022010883L).build()
+        );
 
         assertEquals("Subscriptions size", 1, subscriptions.size());
         assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
@@ -362,27 +370,25 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBeforeEndingAtDateIncludingWithoutEndingAt() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(
-                    SubscriptionCriteria.builder().endingAtBefore(1569022010883L).includeWithoutEnd(true).build()
-                );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().endingAtBefore(1569022010883L).includeWithoutEnd(true).build()
+        );
 
         assertEquals("Subscriptions size", 8, subscriptions.size());
         assertTrue(
             "Subscription id",
-            List
-                .of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8")
-                .containsAll(subscriptions.stream().map(Subscription::getId).toList())
+            List.of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8").containsAll(
+                subscriptions.stream().map(Subscription::getId).toList()
+            )
         );
     }
 
     @Test
     public void shouldFindReferenceIdsOrderByNumberOfSubscriptionsDesc() throws TechnicalException {
-        Set<String> ranking =
-            this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-                    SubscriptionCriteria.builder().statuses(List.of(PENDING.name())).build(),
-                    Order.DESC
-                );
+        Set<String> ranking = this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
+            SubscriptionCriteria.builder().statuses(List.of(PENDING.name())).build(),
+            Order.DESC
+        );
 
         assertEquals("Ranking size", 1, ranking.size());
         assertEquals("Ranking", "api1", ranking.iterator().next());
@@ -390,11 +396,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldComputeRankingByApplications() throws TechnicalException {
-        Set<String> ranking =
-            this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
-                    SubscriptionCriteria.builder().applications(Arrays.asList("app1", "app2")).build(),
-                    Order.DESC
-                );
+        Set<String> ranking = this.subscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(
+            SubscriptionCriteria.builder().applications(Arrays.asList("app1", "app2")).build(),
+            Order.DESC
+        );
 
         assertEquals("Ranking size", 2, ranking.size());
         Iterator<String> iterator = ranking.iterator();
@@ -404,10 +409,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBySecurityType() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(
-                    SubscriptionCriteria.builder().planSecurityTypes(List.of(API_KEY.name(), OAUTH2.name())).build()
-                );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().planSecurityTypes(List.of(API_KEY.name(), OAUTH2.name())).build()
+        );
 
         assertNotNull(subscriptions);
         assertEquals(3, subscriptions.size());
@@ -421,14 +425,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldFindBySecurityTypeAndStatus() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(
-                    SubscriptionCriteria
-                        .builder()
-                        .planSecurityTypes(List.of(API_KEY.name(), OAUTH2.name()))
-                        .statuses(List.of(PENDING.name()))
-                        .build()
-                );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder()
+                .planSecurityTypes(List.of(API_KEY.name(), OAUTH2.name()))
+                .statuses(List.of(PENDING.name()))
+                .build()
+        );
 
         assertNotNull(subscriptions);
         assertEquals(2, subscriptions.size());
@@ -438,11 +440,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldSearchByIdsSortedById() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(
-                    SubscriptionCriteria.builder().ids(List.of("sub4", "sub3", "sub1")).build(),
-                    new SortableBuilder().order(Order.ASC).field("id").build()
-                );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().ids(List.of("sub4", "sub3", "sub1")).build(),
+            new SortableBuilder().order(Order.ASC).field("id").build()
+        );
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -455,11 +456,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
     @Test
     public void shouldSearchByIdsSortedByCreated() throws TechnicalException {
-        List<Subscription> subscriptions =
-            this.subscriptionRepository.search(
-                    SubscriptionCriteria.builder().ids(List.of("sub4", "sub3", "sub1")).build(),
-                    new SortableBuilder().order(Order.ASC).field("createdAt").build()
-                );
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder().ids(List.of("sub4", "sub3", "sub1")).build(),
+            new SortableBuilder().order(Order.ASC).field("createdAt").build()
+        );
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -484,7 +484,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals(3, subscriptionsIdsDeleted.size());
         assertEquals(
             0,
-            subscriptionRepository.findAll().stream().filter(apiKey -> "ToBeDeleted".equals(apiKey.getEnvironmentId())).count()
+            subscriptionRepository
+                .findAll()
+                .stream()
+                .filter(apiKey -> "ToBeDeleted".equals(apiKey.getEnvironmentId()))
+                .count()
         );
     }
 }
