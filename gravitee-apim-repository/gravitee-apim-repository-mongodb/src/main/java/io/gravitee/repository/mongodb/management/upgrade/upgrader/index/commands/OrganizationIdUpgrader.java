@@ -27,8 +27,7 @@ public class OrganizationIdUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("commands")
             .name("oi1")
             .key("organizationId", ascending())

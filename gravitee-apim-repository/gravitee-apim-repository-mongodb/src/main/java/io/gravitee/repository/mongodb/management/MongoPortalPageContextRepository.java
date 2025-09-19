@@ -125,8 +125,7 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
     }
 
     private PortalPageContext map(PortalPageContextMongo portalPageContextMongo) {
-        return PortalPageContext
-            .builder()
+        return PortalPageContext.builder()
             .id(portalPageContextMongo.getId())
             .pageId(portalPageContextMongo.getPageId())
             .contextType(portalPageContextMongo.getContextType())

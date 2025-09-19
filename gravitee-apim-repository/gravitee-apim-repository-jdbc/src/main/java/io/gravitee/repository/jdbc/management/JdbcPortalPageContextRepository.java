@@ -43,8 +43,7 @@ public class JdbcPortalPageContextRepository
 
     @Override
     protected JdbcObjectMapper<PortalPageContext> buildOrm() {
-        return JdbcObjectMapper
-            .builder(PortalPageContext.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(PortalPageContext.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("page_id", Types.NVARCHAR, String.class)
             .addColumn("context_type", Types.NVARCHAR, PortalPageContextType.class)
@@ -73,8 +72,8 @@ public class JdbcPortalPageContextRepository
         try {
             final List<PortalPageContext> portalPageContexts = jdbcTemplate.query(
                 "select id, page_id, context_type, environment_id, published from " +
-                this.tableName +
-                " where context_type = ? and environment_id = ?",
+                    this.tableName +
+                    " where context_type = ? and environment_id = ?",
                 getOrm().getRowMapper(),
                 contextType.name(),
                 environmentId

@@ -109,13 +109,19 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
     @Override
     public Set<Environment> findAll() throws TechnicalException {
         final List<EnvironmentMongo> environments = internalEnvironmentRepo.findAll();
-        return environments.stream().map(environmentMongo -> mapper.map(environmentMongo)).collect(Collectors.toSet());
+        return environments
+            .stream()
+            .map(environmentMongo -> mapper.map(environmentMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override
     public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
         final Set<EnvironmentMongo> environments = internalEnvironmentRepo.findByOrganizationId(organizationId);
-        return environments.stream().map(environmentMongo -> mapper.map(environmentMongo)).collect(Collectors.toSet());
+        return environments
+            .stream()
+            .map(environmentMongo -> mapper.map(environmentMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -130,7 +136,10 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
             environments = internalEnvironmentRepo.findByHrids(hrids);
         }
 
-        return environments.stream().map(environmentMongo -> mapper.map(environmentMongo)).collect(Collectors.toSet());
+        return environments
+            .stream()
+            .map(environmentMongo -> mapper.map(environmentMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override

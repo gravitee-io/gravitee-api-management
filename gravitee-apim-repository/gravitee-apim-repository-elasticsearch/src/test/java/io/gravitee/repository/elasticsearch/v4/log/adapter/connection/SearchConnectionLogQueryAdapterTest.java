@@ -36,18 +36,17 @@ class SearchConnectionLogQueryAdapterTest {
     void should_build_query_without_filter(ConnectionLogQuery.Filter filter) {
         var result = SearchConnectionLogQueryAdapter.adapt(ConnectionLogQuery.builder().page(1).size(20).filter(filter).build());
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
-                             {
-                               "from": 0,
-                               "size": 20,
-                               "sort": {
-                                 "@timestamp": { "order": "desc" }
-                               }
-                             }
-                             """
-            );
+        assertThatJson(result).isEqualTo(
+            """
+            {
+              "from": 0,
+              "size": 20,
+              "sort": {
+                "@timestamp": { "order": "desc" }
+              }
+            }
+            """
+        );
     }
 
     @ParameterizedTest
@@ -62,18 +61,17 @@ class SearchConnectionLogQueryAdapterTest {
     void should_build_query_asking_another_page() {
         var result = SearchConnectionLogQueryAdapter.adapt(ConnectionLogQuery.builder().page(3).size(10).build());
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
-                             {
-                               "from": 20,
-                               "size": 10,
-                               "sort": {
-                                 "@timestamp": { "order": "desc" }
-                               }
-                             }
-                             """
-            );
+        assertThatJson(result).isEqualTo(
+            """
+            {
+              "from": 20,
+              "size": 10,
+              "sort": {
+                "@timestamp": { "order": "desc" }
+              }
+            }
+            """
+        );
     }
 
     private static Stream<Arguments> noFilter() {
@@ -85,518 +83,512 @@ class SearchConnectionLogQueryAdapterTest {
             Arguments.of(
                 ConnectionLogQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).build(),
                 """
-                             {
-                                 "from": 0,
-                                 "size": 20,
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                         {
-                                             "bool": {
-                                                "should": [
-                                                    {
-                                                         "terms": {
-                                                             "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                         }
-                                                    }, {
-                                                         "terms": {
-                                                             "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                         }
-                                                    }
-                                                ]
-                                             }
-                                         }]
-                                     }
-                                 },
-                                 "sort": {
-                                     "@timestamp": {
-                                         "order": "desc"
-                                     }
-                                 }
-                              }
-                             """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                            {
+                                "bool": {
+                                   "should": [
+                                       {
+                                            "terms": {
+                                                "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                            }
+                                       }, {
+                                            "terms": {
+                                                "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                            }
+                                       }
+                                   ]
+                                }
+                            }]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
-                ConnectionLogQuery.Filter
-                    .builder()
+                ConnectionLogQuery.Filter.builder()
                     .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
                     .from(1695081660000L)
                     .to(1695167999000L)
                     .build(),
                 """
-                             {
-                                 "from": 0,
-                                 "size": 20,
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                             {
-                                                 "bool": {
-                                                    "should": [
-                                                        {
-                                                             "terms": {
-                                                                 "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                             }
-                                                        }, {
-                                                             "terms": {
-                                                                 "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                             }
-                                                        }
-                                                    ]
-                                                 }
-                                             },
-                                             {
-                                                 "range": {
-                                                     "@timestamp": {
-                                                         "gte": 1695081660000,
-                                                         "lte": 1695167999000
-                                                     }
-                                                 }
-                                             }
-                                         ]
-                                     }
-                                 },
-                                 "sort": {
-                                     "@timestamp": {
-                                         "order": "desc"
-                                     }
-                                 }
-                              }
-                             """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "bool": {
+                                       "should": [
+                                           {
+                                                "terms": {
+                                                    "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                }
+                                           }, {
+                                                "terms": {
+                                                    "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                }
+                                           }
+                                       ]
+                                    }
+                                },
+                                {
+                                    "range": {
+                                        "@timestamp": {
+                                            "gte": 1695081660000,
+                                            "lte": 1695167999000
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
                 ConnectionLogQuery.Filter.builder().from(1695081660000L).to(1695167999000L).build(),
                 """
-                             {
-                                 "from": 0,
-                                 "size": 20,
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                             {
-                                                 "range": {
-                                                     "@timestamp": {
-                                                         "gte": 1695081660000,
-                                                         "lte": 1695167999000
-                                                     }
-                                                 }
-                                             }
-                                         ]
-                                     }
-                                 },
-                                 "sort": {
-                                     "@timestamp": {
-                                         "order": "desc"
-                                     }
-                                 }
-                              }
-                             """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "range": {
+                                        "@timestamp": {
+                                            "gte": 1695081660000,
+                                            "lte": 1695167999000
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
                 ConnectionLogQuery.Filter.builder().to(1695167999000L).build(),
                 """
-                             {
-                                 "from": 0,
-                                 "size": 20,
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                             {
-                                                 "range": {
-                                                     "@timestamp": {
-                                                         "lte": 1695167999000
-                                                     }
-                                                 }
-                                             }
-                                         ]
-                                     }
-                                 },
-                                 "sort": {
-                                     "@timestamp": {
-                                         "order": "desc"
-                                     }
-                                 }
-                              }
-                             """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "range": {
+                                        "@timestamp": {
+                                            "lte": 1695167999000
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
                 ConnectionLogQuery.Filter.builder().from(1695081660000L).build(),
                 """
-                             {
-                                 "from": 0,
-                                 "size": 20,
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                             {
-                                                 "range": {
-                                                     "@timestamp": {
-                                                         "gte": 1695081660000
-                                                     }
-                                                 }
-                                             }
-                                         ]
-                                     }
-                                 },
-                                 "sort": {
-                                     "@timestamp": {
-                                         "order": "desc"
-                                     }
-                                 }
-                              }
-                             """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "range": {
+                                        "@timestamp": {
+                                            "gte": 1695081660000
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
                 ConnectionLogQuery.Filter.builder().apiIds(Set.of("1")).applicationIds(Set.of("2", "3")).build(),
                 """
-                             {
-                                 "from": 0,
-                                 "size": 20,
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                             {
-                                                 "bool": {
-                                                    "should": [
-                                                        {
-                                                             "terms": {
-                                                                 "api-id": [ "1" ]
-                                                             }
-                                                        }, {
-                                                             "terms": {
-                                                                 "api": [ "1" ]
-                                                             }
-                                                        }
-                                                    ]
-                                                 }
-                                             },{
-                                                 "bool": {
-                                                    "should": [
-                                                        {
-                                                             "terms": {
-                                                                 "application-id": ["2", "3"]
-                                                             }
-                                                        }, {
-                                                             "terms": {
-                                                                 "application": ["2", "3"]
-                                                             }
-                                                        }
-                                                    ]
-                                                 }
-                                             }
-                                         ]
-                                     }
-                                 },
-                                 "sort": {
-                                     "@timestamp": {
-                                         "order": "desc"
-                                     }
-                                 }
-                             }
-                             """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "bool": {
+                                       "should": [
+                                           {
+                                                "terms": {
+                                                    "api-id": [ "1" ]
+                                                }
+                                           }, {
+                                                "terms": {
+                                                    "api": [ "1" ]
+                                                }
+                                           }
+                                       ]
+                                    }
+                                },{
+                                    "bool": {
+                                       "should": [
+                                           {
+                                                "terms": {
+                                                    "application-id": ["2", "3"]
+                                                }
+                                           }, {
+                                                "terms": {
+                                                    "application": ["2", "3"]
+                                                }
+                                           }
+                                       ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                }
+                """
             ),
             Arguments.of(
-                ConnectionLogQuery.Filter
-                    .builder()
+                ConnectionLogQuery.Filter.builder()
                     .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
                     .planIds(Set.of("plan-1", "plan-2"))
                     .build(),
                 """
-                             {
-                                 "from": 0,
-                                 "size": 20,
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                         {
-                                                 "bool": {
-                                                    "should": [
-                                                        {
-                                                             "terms": {
-                                                                 "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                             }
-                                                        }, {
-                                                             "terms": {
-                                                                 "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                             }
-                                                        }
-                                                    ]
-                                                 }
-                                             },{
-                                                 "bool": {
-                                                    "should": [
-                                                        {
-                                                             "terms": {
-                                                                 "plan-id": ["plan-1", "plan-2"]
-                                                             }
-                                                        }, {
-                                                             "terms": {
-                                                                 "plan": ["plan-1", "plan-2"]
-                                                             }
-                                                        }
-                                                    ]
-                                                 }
-                                             }
-                                         ]
-                                     }
-                                 },
-                                 "sort": {
-                                     "@timestamp": {
-                                         "order": "desc"
-                                     }
-                                 }
-                              }
-                             """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                            {
+                                    "bool": {
+                                       "should": [
+                                           {
+                                                "terms": {
+                                                    "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                }
+                                           }, {
+                                                "terms": {
+                                                    "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                }
+                                           }
+                                       ]
+                                    }
+                                },{
+                                    "bool": {
+                                       "should": [
+                                           {
+                                                "terms": {
+                                                    "plan-id": ["plan-1", "plan-2"]
+                                                }
+                                           }, {
+                                                "terms": {
+                                                    "plan": ["plan-1", "plan-2"]
+                                                }
+                                           }
+                                       ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
-                ConnectionLogQuery.Filter
-                    .builder()
+                ConnectionLogQuery.Filter.builder()
                     .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
                     .planIds(Set.of("plan-1", "plan-2"))
                     .applicationIds(Set.of("app-1", "app-2", "app-3"))
                     .build(),
                 """
-                             {
-                                 "from": 0,
-                                 "size": 20,
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                            {
-                                                 "bool": {
-                                                    "should": [
-                                                        {
-                                                             "terms": {
-                                                                 "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                             }
-                                                        }, {
-                                                             "terms": {
-                                                                 "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                             }
-                                                        }
-                                                    ]
-                                                 }
-                                             },{
-                                                 "bool": {
-                                                    "should": [
-                                                        {
-                                                             "terms": {
-                                                                 "plan-id": ["plan-1", "plan-2"]
-                                                             }
-                                                        }, {
-                                                             "terms": {
-                                                                 "plan": ["plan-1", "plan-2"]
-                                                             }
-                                                        }
-                                                    ]
-                                                 }
-                                             },{
-                                                 "bool": {
-                                                    "should": [
-                                                        {
-                                                             "terms": {
-                                                                 "application-id": ["app-1", "app-2", "app-3"]
-                                                             }
-                                                        }, {
-                                                             "terms": {
-                                                                 "application": ["app-1", "app-2", "app-3"]
-                                                             }
-                                                        }
-                                                    ]
-                                                 }
-                                             }
-                                         ]
-                                     }
-                                 },
-                                 "sort": {
-                                     "@timestamp": {
-                                         "order": "desc"
-                                     }
-                                 }
-                              }
-                             """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                               {
+                                    "bool": {
+                                       "should": [
+                                           {
+                                                "terms": {
+                                                    "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                }
+                                           }, {
+                                                "terms": {
+                                                    "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                                }
+                                           }
+                                       ]
+                                    }
+                                },{
+                                    "bool": {
+                                       "should": [
+                                           {
+                                                "terms": {
+                                                    "plan-id": ["plan-1", "plan-2"]
+                                                }
+                                           }, {
+                                                "terms": {
+                                                    "plan": ["plan-1", "plan-2"]
+                                                }
+                                           }
+                                       ]
+                                    }
+                                },{
+                                    "bool": {
+                                       "should": [
+                                           {
+                                                "terms": {
+                                                    "application-id": ["app-1", "app-2", "app-3"]
+                                                }
+                                           }, {
+                                                "terms": {
+                                                    "application": ["app-1", "app-2", "app-3"]
+                                                }
+                                           }
+                                       ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
                 ConnectionLogQuery.Filter.builder().apiIds(Set.of("1")).methods(Set.of(HttpMethod.GET, HttpMethod.CONNECT)).build(),
                 """
-                                     {
-                                         "from": 0,
-                                         "size": 20,
-                                         "query": {
-                                             "bool": {
-                                                 "must": [
-                                                 {
-                                                     "bool": {
-                                                        "should": [
-                                                            {
-                                                                 "terms": {
-                                                                     "api-id": [ "1" ]
-                                                                 }
-                                                            }, {
-                                                                 "terms": {
-                                                                     "api": [ "1" ]
-                                                                 }
-                                                            }
-                                                        ]
-                                                     }
-                                                 },{
-                                                     "bool": {
-                                                        "should": [
-                                                            {
-                                                                 "terms": {
-                                                                     "http-method": [3, 1]
-                                                                 }
-                                                            }, {
-                                                                 "terms": {
-                                                                     "method": [3, 1]
-                                                                 }
-                                                            }
-                                                        ]
-                                                     }
-                                                 }
-                                                 ]
-                                             }
-                                         },
-                                         "sort": {
-                                             "@timestamp": {
-                                                 "order": "desc"
-                                             }
-                                         }
-                                     }
-                                     """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                            {
+                                "bool": {
+                                   "should": [
+                                       {
+                                            "terms": {
+                                                "api-id": [ "1" ]
+                                            }
+                                       }, {
+                                            "terms": {
+                                                "api": [ "1" ]
+                                            }
+                                       }
+                                   ]
+                                }
+                            },{
+                                "bool": {
+                                   "should": [
+                                       {
+                                            "terms": {
+                                                "http-method": [3, 1]
+                                            }
+                                       }, {
+                                            "terms": {
+                                                "method": [3, 1]
+                                            }
+                                       }
+                                   ]
+                                }
+                            }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                }
+                """
             ),
             Arguments.of(
-                ConnectionLogQuery.Filter
-                    .builder()
+                ConnectionLogQuery.Filter.builder()
                     .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
                     .statuses(Set.of(200, 202))
                     .build(),
                 """
-                                     {
-                                         "from": 0,
-                                         "size": 20,
-                                         "query": {
-                                             "bool": {
-                                                 "must": [
-                                                     {
-                                                     "bool": {
-                                                        "should": [
-                                                            {
-                                                                 "terms": {
-                                                                     "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                                 }
-                                                            }, {
-                                                                 "terms": {
-                                                                     "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
-                                                                 }
-                                                            }
-                                                        ]
-                                                     }
-                                                 },
-                                                     {
-                                                         "terms": {
-                                                             "status": [200, 202]
-                                                         }
-                                                    }
-                                                 ]
-                                             }
-                                         },
-                                         "sort": {
-                                             "@timestamp": {
-                                                 "order": "desc"
-                                             }
-                                         }
-                                      }
-                                     """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                "bool": {
+                                   "should": [
+                                       {
+                                            "terms": {
+                                                "api-id": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                            }
+                                       }, {
+                                            "terms": {
+                                                "api": [ "f1608475-dd77-4603-a084-75dd775603e9" ]
+                                            }
+                                       }
+                                   ]
+                                }
+                            },
+                                {
+                                    "terms": {
+                                        "status": [200, 202]
+                                    }
+                               }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
                 ConnectionLogQuery.Filter.builder().entrypointIds(Set.of("http-post", "http-get")).build(),
                 """
-                                     {
-                                         "from": 0,
-                                         "size": 20,
-                                         "query": {
-                                             "bool": {
-                                                 "must": [
-                                                     {
-                                                         "terms": {
-                                                             "entrypoint-id": ["http-post", "http-get"]
+                                         {
+                                             "from": 0,
+                                             "size": 20,
+                                             "query": {
+                                                 "bool": {
+                                                     "must": [
+                                                         {
+                                                             "terms": {
+                                                                 "entrypoint-id": ["http-post", "http-get"]
+                                                             }
                                                          }
-                                                     }
-                                                 ]
+                                                     ]
+                                                 }
+                                             },
+                                             "sort": {
+                                                 "@timestamp": {
+                                                     "order": "desc"
+                                                 }
                                              }
-                                         },
-                                         "sort": {
-                                             "@timestamp": {
-                                                 "order": "desc"
-                                             }
-                                         }
-                                      }
-            """
+                                          }
+                """
             ),
             Arguments.of(
-                ConnectionLogQuery.Filter
-                    .builder()
+                ConnectionLogQuery.Filter.builder()
                     .requestIds(Set.of("req-1", "req-2"))
                     .transactionIds(Set.of("t-1"))
                     .uri("my-path")
                     .build(),
                 """
-                                     {
-                                         "from": 0,
-                                         "size": 20,
-                                         "query": {
-                                             "bool": {
-                                                 "must": [
-                                                     {
-                                                         "bool": {
-                                                            "should": [
-                                                                {
-                                                                     "terms": {
-                                                                         "_id": [ "req-1", "req-2" ]
-                                                                     }
-                                                                }, {
-                                                                     "terms": {
-                                                                         "request-id": [ "req-1", "req-2" ]
-                                                                     }
-                                                                }
-                                                            ]
+                                         {
+                                             "from": 0,
+                                             "size": 20,
+                                             "query": {
+                                                 "bool": {
+                                                     "must": [
+                                                         {
+                                                             "bool": {
+                                                                "should": [
+                                                                    {
+                                                                         "terms": {
+                                                                             "_id": [ "req-1", "req-2" ]
+                                                                         }
+                                                                    }, {
+                                                                         "terms": {
+                                                                             "request-id": [ "req-1", "req-2" ]
+                                                                         }
+                                                                    }
+                                                                ]
+                                                             }
+                                                         },
+                                                         {
+                                                             "bool": {
+                                                                "should": [
+                                                                    {
+                                                                         "terms": {
+                                                                             "transaction": [ "t-1" ]
+                                                                         }
+                                                                    }, {
+                                                                         "terms": {
+                                                                             "transaction-id": [ "t-1" ]
+                                                                         }
+                                                                    }
+                                                                ]
+                                                             }
+                                                         },
+                                                         {
+                                                             "wildcard": {
+                                                                 "uri": "/my-path*"
+                                                             }
                                                          }
-                                                     },
-                                                     {
-                                                         "bool": {
-                                                            "should": [
-                                                                {
-                                                                     "terms": {
-                                                                         "transaction": [ "t-1" ]
-                                                                     }
-                                                                }, {
-                                                                     "terms": {
-                                                                         "transaction-id": [ "t-1" ]
-                                                                     }
-                                                                }
-                                                            ]
-                                                         }
-                                                     },
-                                                     {
-                                                         "wildcard": {
-                                                             "uri": "/my-path*"
-                                                         }
-                                                     }
-                                                 ]
+                                                     ]
+                                                 }
+                                             },
+                                             "sort": {
+                                                 "@timestamp": {
+                                                     "order": "desc"
+                                                 }
                                              }
-                                         },
-                                         "sort": {
-                                             "@timestamp": {
-                                                 "order": "desc"
-                                             }
-                                         }
-                                      }
-            """
+                                          }
+                """
             ),
             Arguments.of(
-                ConnectionLogQuery.Filter
-                    .builder()
+                ConnectionLogQuery.Filter.builder()
                     .responseTimeRanges(
                         List.of(
                             ConnectionLogQuery.Filter.ResponseTimeRange.builder().to(10L).build(),
@@ -605,55 +597,55 @@ class SearchConnectionLogQueryAdapterTest {
                     )
                     .build(),
                 """
-                                     {
-                                         "from": 0,
-                                         "size": 20,
-                                         "query": {
-                                             "bool": {
-                                                 "must": [
-                                                     {
-                                                         "bool": {
-                                                            "should": [
-                                                                {
-                                                                     "range": {
-                                                                         "response-time": {
-                                                                            "lte": 10
+                                         {
+                                             "from": 0,
+                                             "size": 20,
+                                             "query": {
+                                                 "bool": {
+                                                     "must": [
+                                                         {
+                                                             "bool": {
+                                                                "should": [
+                                                                    {
+                                                                         "range": {
+                                                                             "response-time": {
+                                                                                "lte": 10
+                                                                             }
                                                                          }
-                                                                     }
-                                                                }, {
-                                                                     "range": {
-                                                                         "gateway-response-time-ms": {
-                                                                            "lte": 10
+                                                                    }, {
+                                                                         "range": {
+                                                                             "gateway-response-time-ms": {
+                                                                                "lte": 10
+                                                                             }
                                                                          }
-                                                                     }
-                                                                }, {
-                                                                     "range": {
-                                                                         "response-time": {
-                                                                            "lte": 500,
-                                                                            "gte": 400
+                                                                    }, {
+                                                                         "range": {
+                                                                             "response-time": {
+                                                                                "lte": 500,
+                                                                                "gte": 400
+                                                                             }
                                                                          }
-                                                                     }
-                                                                }, {
-                                                                     "range": {
-                                                                         "gateway-response-time-ms": {
-                                                                            "lte": 500,
-                                                                            "gte": 400
+                                                                    }, {
+                                                                         "range": {
+                                                                             "gateway-response-time-ms": {
+                                                                                "lte": 500,
+                                                                                "gte": 400
+                                                                             }
                                                                          }
-                                                                     }
-                                                                }
-                                                            ]
+                                                                    }
+                                                                ]
+                                                             }
                                                          }
-                                                     }
-                                                 ]
+                                                     ]
+                                                 }
+                                             },
+                                             "sort": {
+                                                 "@timestamp": {
+                                                     "order": "desc"
+                                                 }
                                              }
-                                         },
-                                         "sort": {
-                                             "@timestamp": {
-                                                 "order": "desc"
-                                             }
-                                         }
-                                      }
-            """
+                                          }
+                """
             )
         );
     }

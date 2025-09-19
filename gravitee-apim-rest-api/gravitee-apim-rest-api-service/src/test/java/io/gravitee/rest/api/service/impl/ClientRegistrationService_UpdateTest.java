@@ -104,8 +104,9 @@ public class ClientRegistrationService_UpdateTest {
         when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
         wireMockServer.stubFor(
-            get(urlEqualTo("/am"))
-                .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
+            )
         );
 
         ClientRegistrationProvider providerUpdatedMock = new ClientRegistrationProvider();
@@ -113,15 +114,15 @@ public class ClientRegistrationService_UpdateTest {
         providerUpdatedMock.setName(existingPayload.getName());
         when(
             mockClientRegistrationProviderRepository.update(
-                argThat(p ->
-                    Objects.equals(p.getId(), existingPayload.getId()) &&
-                    Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
-                    Objects.equals(p.getName(), providerPayload.getName()) &&
-                    p.getUpdatedAt() != null
+                argThat(
+                    p ->
+                        Objects.equals(p.getId(), existingPayload.getId()) &&
+                        Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
+                        Objects.equals(p.getName(), providerPayload.getName()) &&
+                        p.getUpdatedAt() != null
                 )
             )
-        )
-            .thenReturn(providerUpdatedMock);
+        ).thenReturn(providerUpdatedMock);
 
         ClientRegistrationProviderEntity providerUpdated = clientRegistrationService.update(
             GraviteeContext.getExecutionContext(),
@@ -130,15 +131,14 @@ public class ClientRegistrationService_UpdateTest {
         );
         assertNotNull("Result is null", providerUpdated);
 
-        verify(mockAuditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
-                any(),
-                any(),
-                any()
-            );
+        verify(mockAuditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
+            any(),
+            any(),
+            any()
+        );
         verify(mockClientRegistrationProviderRepository, times(1)).update(any());
     }
 
@@ -156,15 +156,14 @@ public class ClientRegistrationService_UpdateTest {
 
         clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload);
 
-        verify(mockAuditService, never())
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
-                any(),
-                any(),
-                any()
-            );
+        verify(mockAuditService, never()).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
+            any(),
+            any(),
+            any()
+        );
         verify(mockClientRegistrationProviderRepository, never()).update(any());
     }
 
@@ -200,13 +199,11 @@ public class ClientRegistrationService_UpdateTest {
         existingPayload.setRegistrationClientUri("http://localhost:" + wireMockServer.port() + "/registration");
 
         wireMockServer.stubFor(
-            put(urlEqualTo("/registration"))
-                .willReturn(
-                    aResponse()
-                        .withBody(
-                            "{\"client_id\": \"clientId\",\"client_secret\": \"clientSecret\", \"policy_uri\": \"https://example.com/policy\"}"
-                        )
+            put(urlEqualTo("/registration")).willReturn(
+                aResponse().withBody(
+                    "{\"client_id\": \"clientId\",\"client_secret\": \"clientSecret\", \"policy_uri\": \"https://example.com/policy\"}"
                 )
+            )
         );
 
         ClientRegistrationProvider provider = new ClientRegistrationProvider();
@@ -214,12 +211,14 @@ public class ClientRegistrationService_UpdateTest {
         provider.setName("name");
         provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
 
-        when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
-            .thenReturn(newSet(provider));
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenReturn(newSet(provider));
 
         wireMockServer.stubFor(
-            get(urlEqualTo("/am"))
-                .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
+            )
         );
 
         ObjectMapper mapper = new ObjectMapper();
@@ -254,8 +253,9 @@ public class ClientRegistrationService_UpdateTest {
         when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
         wireMockServer.stubFor(
-            get(urlEqualTo("/am"))
-                .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
+            )
         );
 
         ClientRegistrationProvider providerUpdatedMock = new ClientRegistrationProvider();
@@ -263,15 +263,15 @@ public class ClientRegistrationService_UpdateTest {
         providerUpdatedMock.setName(existingPayload.getName());
         when(
             mockClientRegistrationProviderRepository.update(
-                argThat(p ->
-                    Objects.equals(p.getId(), existingPayload.getId()) &&
-                    Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
-                    Objects.equals(p.getName(), providerPayload.getName()) &&
-                    p.getUpdatedAt() != null
+                argThat(
+                    p ->
+                        Objects.equals(p.getId(), existingPayload.getId()) &&
+                        Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
+                        Objects.equals(p.getName(), providerPayload.getName()) &&
+                        p.getUpdatedAt() != null
                 )
             )
-        )
-            .thenReturn(providerUpdatedMock);
+        ).thenReturn(providerUpdatedMock);
 
         ClientRegistrationProviderEntity providerUpdated = clientRegistrationService.update(
             GraviteeContext.getExecutionContext(),
@@ -280,15 +280,14 @@ public class ClientRegistrationService_UpdateTest {
         );
         assertNotNull("Result is null", providerUpdated);
 
-        verify(mockAuditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
-                any(),
-                any(),
-                any()
-            );
+        verify(mockAuditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
+            any(),
+            any(),
+            any()
+        );
         verify(mockClientRegistrationProviderRepository, times(1)).update(any());
     }
 }

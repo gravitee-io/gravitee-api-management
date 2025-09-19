@@ -97,7 +97,12 @@ public class SearchRequestsCountByEventQueryAdapterTest {
         var mustArray = boolQuery.getJsonArray("must");
 
         assertEquals(3, mustArray.size());
-        JsonObject termEntry = mustArray.stream().map(JsonObject.class::cast).filter(o -> o.containsKey("term")).findFirst().orElseThrow();
+        JsonObject termEntry = mustArray
+            .stream()
+            .map(JsonObject.class::cast)
+            .filter(o -> o.containsKey("term"))
+            .findFirst()
+            .orElseThrow();
         JsonObject queryEntry = mustArray
             .stream()
             .map(JsonObject.class::cast)

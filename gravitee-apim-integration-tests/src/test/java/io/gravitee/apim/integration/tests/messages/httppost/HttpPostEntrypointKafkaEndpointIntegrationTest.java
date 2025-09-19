@@ -91,15 +91,12 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
             .take(1)
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(
-                0,
-                message -> {
-                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                    assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                    return true;
-                }
-            )
+            .assertValueAt(0, message -> {
+                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
+                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
+                return true;
+            })
             .assertComplete();
 
         kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
@@ -136,15 +133,12 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
             .take(1)
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(
-                0,
-                message -> {
-                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                    assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                    return true;
-                }
-            )
+            .assertValueAt(0, message -> {
+                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
+                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
+                return true;
+            })
             .assertComplete();
 
         subscribeToKafka(kafkaConsumer, "another-topic-override")
@@ -152,15 +146,12 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
             .take(1)
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(
-                0,
-                message -> {
-                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                    assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                    return true;
-                }
-            )
+            .assertValueAt(0, message -> {
+                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
+                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
+                return true;
+            })
             .assertComplete();
 
         kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
@@ -199,15 +190,12 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
             .take(1)
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(
-                0,
-                message -> {
-                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                    assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                    return true;
-                }
-            )
+            .assertValueAt(0, message -> {
+                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
+                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
+                return true;
+            })
             .assertComplete();
 
         subscribeToKafka(kafkaConsumer, "another-topic-override")
@@ -215,15 +203,12 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
             .take(1)
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(
-                0,
-                message -> {
-                    assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
-                    final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
-                    assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
-                    return true;
-                }
-            )
+            .assertValueAt(0, message -> {
+                assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
+                assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
+                return true;
+            })
             .assertComplete();
 
         kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);

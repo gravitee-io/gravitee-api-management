@@ -75,10 +75,10 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
         .withVaultToken(VAULT_TOKEN)
         .withInitCommand(
             "kv put secret/test" +
-            " value1='initial value1'" +
-            " value2='initial value2'" +
-            " value3='initial value3'" +
-            " value4='initial value4'"
+                " value1='initial value1'" +
+                " value2='initial value2'" +
+                " value3='initial value3'" +
+                " value4='initial value4'"
         );
 
     @Override

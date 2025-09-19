@@ -33,8 +33,7 @@ public class OAIToPropertiesConverter {
         return properties
             .stream()
             .map(oaiProperty ->
-                Property
-                    .builder()
+                Property.builder()
                     .key(oaiProperty.getKey())
                     .value(oaiProperty.getValue())
                     .encrypted(Boolean.parseBoolean(String.valueOf(oaiProperty.getAdditionalProperties().get("encrypted"))))

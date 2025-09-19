@@ -74,11 +74,10 @@ public class CommandOrganizationUpgraderTest {
         final Command cmd1 = new Command();
         final Command cmd2 = new Command();
 
-        when(commandRepository.search(any()))
-            .thenAnswer(answer -> {
-                CommandCriteria criteria = answer.getArgument(0);
-                return "env-1".equals(criteria.getEnvironmentId()) ? List.of(cmd1) : List.of(cmd2);
-            });
+        when(commandRepository.search(any())).thenAnswer(answer -> {
+            CommandCriteria criteria = answer.getArgument(0);
+            return "env-1".equals(criteria.getEnvironmentId()) ? List.of(cmd1) : List.of(cmd2);
+        });
 
         upgrader.upgrade();
 

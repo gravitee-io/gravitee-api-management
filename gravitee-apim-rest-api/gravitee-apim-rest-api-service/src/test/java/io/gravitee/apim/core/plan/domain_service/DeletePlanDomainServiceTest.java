@@ -79,12 +79,11 @@ class DeletePlanDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-            new DeletePlanDomainService(
-                planCrudService,
-                subscriptionQueryService,
-                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
-            );
+        service = new DeletePlanDomainService(
+            planCrudService,
+            subscriptionQueryService,
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
+        );
     }
 
     @AfterEach
@@ -116,8 +115,7 @@ class DeletePlanDomainServiceTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)

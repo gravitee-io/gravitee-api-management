@@ -83,24 +83,21 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         FLOW_SELECTOR_CHANNEL_ENTRYPOINTS = getTableNameFor("flow_selector_channel_entrypoints");
         FLOW_TAGS = getTableNameFor("flow_tags");
         FLOW_CONSUMERS = getTableNameFor("flow_consumers");
-        this.stepsOrm =
-            JdbcObjectMapper
-                .builder(FlowStep.class, FLOW_STEPS)
-                .addColumn("policy", Types.NVARCHAR, String.class)
-                .addColumn("description", Types.NVARCHAR, String.class)
-                .addColumn("enabled", Types.BOOLEAN, boolean.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("configuration", Types.NVARCHAR, String.class)
-                .addColumn("order", Types.INTEGER, int.class)
-                .addColumn("condition", Types.NVARCHAR, String.class)
-                .addColumn("message_condition", Types.NVARCHAR, String.class)
-                .build();
+        this.stepsOrm = JdbcObjectMapper.builder(FlowStep.class, FLOW_STEPS)
+            .addColumn("policy", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("enabled", Types.BOOLEAN, boolean.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("configuration", Types.NVARCHAR, String.class)
+            .addColumn("order", Types.INTEGER, int.class)
+            .addColumn("condition", Types.NVARCHAR, String.class)
+            .addColumn("message_condition", Types.NVARCHAR, String.class)
+            .build();
     }
 
     @Override
     protected JdbcObjectMapper<Flow> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Flow.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Flow.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("condition", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -276,92 +273,86 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
             if (flowId == null || flowId.isEmpty()) {
                 return null;
             }
-            Flow flow = flowsById.computeIfAbsent(
-                flowId,
-                key -> {
-                    Flow newFlow = new Flow();
-                    newFlow.setId(key);
-                    newFlow.setCondition(rs.getString("flows.condition"));
-                    newFlow.setCreatedAt(rs.getDate("flows.createdAt"));
-                    newFlow.setEnabled(rs.getBoolean("flows.enabled"));
-                    newFlow.setName(rs.getString("flows.name"));
-                    newFlow.setPath(rs.getString("flows.path"));
-                    String operator = rs.getString("flows.operator");
-                    if (operator != null) {
-                        newFlow.setOperator(FlowOperator.valueOf(operator));
-                    }
-                    newFlow.setReferenceId(rs.getString("flows.referenceId"));
-                    newFlow.setReferenceType(FlowReferenceType.valueOf(rs.getString("flows.referenceType")));
-                    newFlow.setUpdatedAt(rs.getDate("flows.updatedAt"));
-                    newFlow.setOrder(rs.getInt("flows.order"));
-                    newFlow.setConsumers(new ArrayList<>());
-                    newFlow.setPre(new ArrayList<>());
-                    newFlow.setPost(new ArrayList<>());
-                    newFlow.setRequest(new ArrayList<>());
-                    newFlow.setResponse(new ArrayList<>());
-                    newFlow.setPublish(new ArrayList<>());
-                    newFlow.setSubscribe(new ArrayList<>());
-                    newFlow.setInteract(new ArrayList<>());
-                    newFlow.setConnect(new ArrayList<>());
-                    newFlow.setMethods(new HashSet<>());
-                    newFlow.setTags(new HashSet<>());
-                    newFlow.setSelectors(new ArrayList<>());
-                    return newFlow;
+            Flow flow = flowsById.computeIfAbsent(flowId, key -> {
+                Flow newFlow = new Flow();
+                newFlow.setId(key);
+                newFlow.setCondition(rs.getString("flows.condition"));
+                newFlow.setCreatedAt(rs.getDate("flows.createdAt"));
+                newFlow.setEnabled(rs.getBoolean("flows.enabled"));
+                newFlow.setName(rs.getString("flows.name"));
+                newFlow.setPath(rs.getString("flows.path"));
+                String operator = rs.getString("flows.operator");
+                if (operator != null) {
+                    newFlow.setOperator(FlowOperator.valueOf(operator));
                 }
-            );
+                newFlow.setReferenceId(rs.getString("flows.referenceId"));
+                newFlow.setReferenceType(FlowReferenceType.valueOf(rs.getString("flows.referenceType")));
+                newFlow.setUpdatedAt(rs.getDate("flows.updatedAt"));
+                newFlow.setOrder(rs.getInt("flows.order"));
+                newFlow.setConsumers(new ArrayList<>());
+                newFlow.setPre(new ArrayList<>());
+                newFlow.setPost(new ArrayList<>());
+                newFlow.setRequest(new ArrayList<>());
+                newFlow.setResponse(new ArrayList<>());
+                newFlow.setPublish(new ArrayList<>());
+                newFlow.setSubscribe(new ArrayList<>());
+                newFlow.setInteract(new ArrayList<>());
+                newFlow.setConnect(new ArrayList<>());
+                newFlow.setMethods(new HashSet<>());
+                newFlow.setTags(new HashSet<>());
+                newFlow.setSelectors(new ArrayList<>());
+                return newFlow;
+            });
 
             // create step and add it to right phase if not already added
             String flowStepId = rs.getString("flowSteps.id");
             if (flowStepId != null && !flowStepId.isEmpty()) {
-                flowStepsById.computeIfAbsent(
-                    flowStepId,
-                    key -> {
-                        FlowStep newFlowStep = new FlowStep();
-                        newFlowStep.setPolicy(rs.getString("flowSteps.policy"));
-                        newFlowStep.setDescription(rs.getString("flowSteps.description"));
-                        newFlowStep.setEnabled(rs.getBoolean("flowSteps.enabled"));
-                        newFlowStep.setName(rs.getString("flowSteps.name"));
-                        newFlowStep.setConfiguration(rs.getString("flowSteps.configuration"));
-                        newFlowStep.setOrder(rs.getInt("flowSteps.order"));
-                        newFlowStep.setCondition(rs.getString("flowSteps.condition"));
-                        newFlowStep.setMessageCondition(rs.getString("flowSteps.messageCondition"));
+                flowStepsById.computeIfAbsent(flowStepId, key -> {
+                    FlowStep newFlowStep = new FlowStep();
+                    newFlowStep.setPolicy(rs.getString("flowSteps.policy"));
+                    newFlowStep.setDescription(rs.getString("flowSteps.description"));
+                    newFlowStep.setEnabled(rs.getBoolean("flowSteps.enabled"));
+                    newFlowStep.setName(rs.getString("flowSteps.name"));
+                    newFlowStep.setConfiguration(rs.getString("flowSteps.configuration"));
+                    newFlowStep.setOrder(rs.getInt("flowSteps.order"));
+                    newFlowStep.setCondition(rs.getString("flowSteps.condition"));
+                    newFlowStep.setMessageCondition(rs.getString("flowSteps.messageCondition"));
 
-                        FlowStepPhase phase = FlowStepPhase.valueOf(rs.getString("flowSteps.phase"));
-                        List<FlowStep> steps;
-                        switch (phase) {
-                            case REQUEST:
-                                steps = flow.getRequest();
-                                break;
-                            case RESPONSE:
-                                steps = flow.getResponse();
-                                break;
-                            case SUBSCRIBE:
-                                steps = flow.getSubscribe();
-                                break;
-                            case PUBLISH:
-                                steps = flow.getPublish();
-                                break;
-                            // deprecated data
-                            case PRE:
-                                steps = flow.getPre();
-                                break;
-                            case POST:
-                                steps = flow.getPost();
-                                break;
-                            case INTERACT:
-                                steps = flow.getInteract();
-                                break;
-                            case CONNECT:
-                                steps = flow.getConnect();
-                                break;
-                            default:
-                                throw new IllegalStateException("Unexpected value: " + phase);
-                        }
-
-                        steps.add(newFlowStep);
-                        return newFlowStep;
+                    FlowStepPhase phase = FlowStepPhase.valueOf(rs.getString("flowSteps.phase"));
+                    List<FlowStep> steps;
+                    switch (phase) {
+                        case REQUEST:
+                            steps = flow.getRequest();
+                            break;
+                        case RESPONSE:
+                            steps = flow.getResponse();
+                            break;
+                        case SUBSCRIBE:
+                            steps = flow.getSubscribe();
+                            break;
+                        case PUBLISH:
+                            steps = flow.getPublish();
+                            break;
+                        // deprecated data
+                        case PRE:
+                            steps = flow.getPre();
+                            break;
+                        case POST:
+                            steps = flow.getPost();
+                            break;
+                        case INTERACT:
+                            steps = flow.getInteract();
+                            break;
+                        case CONNECT:
+                            steps = flow.getConnect();
+                            break;
+                        default:
+                            throw new IllegalStateException("Unexpected value: " + phase);
                     }
-                );
+
+                    steps.add(newFlowStep);
+                    return newFlowStep;
+                });
             }
 
             // add method to flow if not already added
@@ -396,36 +387,33 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
             // get or create selector
             String flowSelectorType = rs.getString("flowSelectors.type");
             if (flowSelectorType != null && !flowSelectorType.isEmpty()) {
-                FlowSelector flowSelector = flowSelectorsByFlowId.computeIfAbsent(
-                    flowId + flowSelectorType,
-                    key -> {
-                        FlowSelectorType selectorType = FlowSelectorType.valueOf(flowSelectorType);
-                        switch (selectorType) {
-                            case HTTP:
-                                FlowHttpSelector flowHttpSelector = new FlowHttpSelector();
-                                flowHttpSelector.setPath(rs.getString("flowSelectors.path"));
-                                flowHttpSelector.setPathOperator(FlowOperator.valueOf(rs.getString("flowSelectors.pathOperator")));
-                                flowHttpSelector.setMethods(new HashSet<>());
-                                flow.getSelectors().add(flowHttpSelector);
-                                return flowHttpSelector;
-                            case CONDITION:
-                                FlowConditionSelector flowConditionSelector = new FlowConditionSelector();
-                                flowConditionSelector.setCondition(rs.getString("flowSelectors.condition"));
-                                flow.getSelectors().add(flowConditionSelector);
-                                return flowConditionSelector;
-                            case CHANNEL:
-                                FlowChannelSelector flowChannelSelector = new FlowChannelSelector();
-                                flowChannelSelector.setChannel(rs.getString("flowSelectors.channel"));
-                                flowChannelSelector.setChannelOperator(FlowOperator.valueOf(rs.getString("flowSelectors.channelOperator")));
-                                flowChannelSelector.setEntrypoints(new HashSet<>());
-                                flowChannelSelector.setOperations(new HashSet<>());
-                                flow.getSelectors().add(flowChannelSelector);
-                                return flowChannelSelector;
-                            default:
-                                return null;
-                        }
+                FlowSelector flowSelector = flowSelectorsByFlowId.computeIfAbsent(flowId + flowSelectorType, key -> {
+                    FlowSelectorType selectorType = FlowSelectorType.valueOf(flowSelectorType);
+                    switch (selectorType) {
+                        case HTTP:
+                            FlowHttpSelector flowHttpSelector = new FlowHttpSelector();
+                            flowHttpSelector.setPath(rs.getString("flowSelectors.path"));
+                            flowHttpSelector.setPathOperator(FlowOperator.valueOf(rs.getString("flowSelectors.pathOperator")));
+                            flowHttpSelector.setMethods(new HashSet<>());
+                            flow.getSelectors().add(flowHttpSelector);
+                            return flowHttpSelector;
+                        case CONDITION:
+                            FlowConditionSelector flowConditionSelector = new FlowConditionSelector();
+                            flowConditionSelector.setCondition(rs.getString("flowSelectors.condition"));
+                            flow.getSelectors().add(flowConditionSelector);
+                            return flowConditionSelector;
+                        case CHANNEL:
+                            FlowChannelSelector flowChannelSelector = new FlowChannelSelector();
+                            flowChannelSelector.setChannel(rs.getString("flowSelectors.channel"));
+                            flowChannelSelector.setChannelOperator(FlowOperator.valueOf(rs.getString("flowSelectors.channelOperator")));
+                            flowChannelSelector.setEntrypoints(new HashSet<>());
+                            flowChannelSelector.setOperations(new HashSet<>());
+                            flow.getSelectors().add(flowChannelSelector);
+                            return flowChannelSelector;
+                        default:
+                            return null;
                     }
-                );
+                });
                 if (flowSelector != null && flowSelector.getType() == FlowSelectorType.CHANNEL) {
                     FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
                     Set<FlowChannelSelector.Operation> operations = flowChannelSelector.getOperations();
@@ -527,10 +515,10 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     private List<FlowSelector> getSelectors(final String flowId) {
         List<FlowSelector> flowSelectors = jdbcTemplate.query(
             "select type, path, path_operator, " +
-            escapeReservedWord("condition") +
-            ", channel, channel_operator from " +
-            FLOW_SELECTORS +
-            " where flow_id = ?",
+                escapeReservedWord("condition") +
+                ", channel, channel_operator from " +
+                FLOW_SELECTORS +
+                " where flow_id = ?",
             (resultSet, i) -> {
                 String type = resultSet.getString(1);
                 FlowSelectorType flowSelectorType = FlowSelectorType.valueOf(type);
@@ -734,12 +722,12 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         if (steps != null && !steps.isEmpty()) {
             jdbcTemplate.batchUpdate(
                 "insert into " +
-                FLOW_STEPS +
-                " ( flow_id, name, policy, description, configuration, enabled, " +
-                escapeReservedWord("order") +
-                ", " +
-                escapeReservedWord("condition") +
-                ", phase, message_condition ) values ( ?, ?, ?, ?, ? , ?, ?, ?, ?, ?)",
+                    FLOW_STEPS +
+                    " ( flow_id, name, policy, description, configuration, enabled, " +
+                    escapeReservedWord("order") +
+                    ", " +
+                    escapeReservedWord("condition") +
+                    ", phase, message_condition ) values ( ?, ?, ?, ?, ? , ?, ?, ?, ?, ?)",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -773,10 +761,10 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
             jdbcTemplate.batchUpdate(
                 "insert into " +
-                FLOW_SELECTORS +
-                " ( flow_id, type, path, path_operator, " +
-                escapeReservedWord("condition") +
-                ", channel,channel_operator ) values ( ? ,? ,? ,? ,? ,? ,?)",
+                    FLOW_SELECTORS +
+                    " ( flow_id, type, path, path_operator, " +
+                    escapeReservedWord("condition") +
+                    ", channel,channel_operator ) values ( ? ,? ,? ,? ,? ,? ,?)",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {

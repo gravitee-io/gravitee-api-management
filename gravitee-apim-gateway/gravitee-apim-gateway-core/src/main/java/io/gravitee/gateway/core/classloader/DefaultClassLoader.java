@@ -61,16 +61,13 @@ public class DefaultClassLoader extends ClassLoader {
     }
 
     public void addClassLoader(String id, Supplier<ClassLoader> childClassLoader) {
-        delegates.computeIfAbsent(
-            id,
-            key -> {
-                final ClassLoader classLoader = childClassLoader.get();
-                if (classLoader != null) {
-                    orderedDelegates.add(classLoader);
-                }
-                return classLoader;
+        delegates.computeIfAbsent(id, key -> {
+            final ClassLoader classLoader = childClassLoader.get();
+            if (classLoader != null) {
+                orderedDelegates.add(classLoader);
             }
-        );
+            return classLoader;
+        });
     }
 
     public void removeClassLoader(String id) throws IOException {

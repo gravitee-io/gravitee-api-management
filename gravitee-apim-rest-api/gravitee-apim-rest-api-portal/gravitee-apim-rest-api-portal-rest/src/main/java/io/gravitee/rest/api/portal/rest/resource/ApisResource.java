@@ -128,8 +128,10 @@ public class ApisResource extends AbstractResource<Api, String> {
             if (apisParam.isCategoryMode()) {
                 // If apis are searched in a category, looks for the category highlighted API (HL API) and if this HL API is in the searchResult.
                 // If it is, then the HL API becomes the promoted API
-                String highlightedApiId =
-                    this.categoryService.findById(apisParam.getCategory(), GraviteeContext.getCurrentEnvironment()).getHighlightApi();
+                String highlightedApiId = this.categoryService.findById(
+                    apisParam.getCategory(),
+                    GraviteeContext.getCurrentEnvironment()
+                ).getHighlightApi();
                 if (highlightedApiId != null && filteredApis.contains(highlightedApiId)) {
                     promotedApiId = highlightedApiId;
                 }

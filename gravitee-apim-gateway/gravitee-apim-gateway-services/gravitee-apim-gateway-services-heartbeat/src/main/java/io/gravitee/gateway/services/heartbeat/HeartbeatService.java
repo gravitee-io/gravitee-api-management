@@ -61,14 +61,13 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
     @Override
     protected void doStart() throws Exception {
         if (heartbeatStrategyConfiguration.enabled()) {
-            heartbeatStrategyScheduler =
-                new HeartbeatEventScheduler(
-                    heartbeatStrategyConfiguration.clusterManager(),
-                    heartbeatStrategyConfiguration.eventRepository(),
-                    heartbeatStrategyConfiguration.delay(),
-                    heartbeatStrategyConfiguration.unit(),
-                    prepareEvent()
-                );
+            heartbeatStrategyScheduler = new HeartbeatEventScheduler(
+                heartbeatStrategyConfiguration.clusterManager(),
+                heartbeatStrategyConfiguration.eventRepository(),
+                heartbeatStrategyConfiguration.delay(),
+                heartbeatStrategyConfiguration.unit(),
+                prepareEvent()
+            );
             heartbeatStrategyScheduler.start();
         }
     }
@@ -172,8 +171,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
 
     private Map<String, String> getSystemProperties() {
         if (heartbeatStrategyConfiguration.storeSystemProperties()) {
-            return System
-                .getProperties()
+            return System.getProperties()
                 .entrySet()
                 .stream()
                 .filter(entry -> !entry.getKey().toString().toUpperCase().startsWith("GRAVITEE"))

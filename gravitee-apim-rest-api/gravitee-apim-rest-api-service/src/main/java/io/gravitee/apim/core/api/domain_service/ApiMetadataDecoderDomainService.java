@@ -72,8 +72,7 @@ public class ApiMetadataDecoderDomainService {
         try {
             var decodedValue = templateProcessor.processInlineTemplate(metadata.toString(), Collections.singletonMap("api", context));
 
-            return Arrays
-                .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+            return Arrays.stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
                 .map(entry -> entry.split("=", 2))
                 .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
         } catch (TemplateProcessorException e) {

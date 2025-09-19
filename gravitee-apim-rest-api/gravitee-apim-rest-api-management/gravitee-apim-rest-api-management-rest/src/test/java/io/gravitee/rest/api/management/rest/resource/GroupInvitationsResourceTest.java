@@ -74,8 +74,7 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
                 RolePermissionAction.UPDATE,
                 RolePermissionAction.DELETE
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         when(groupService.getNumberOfMembers(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab")).thenReturn(5);
 
         final Response response = envTarget().request().post(Entity.json(newInvitation));
@@ -101,8 +100,7 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
                 RolePermissionAction.UPDATE,
                 RolePermissionAction.DELETE
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         when(groupService.getNumberOfMembers(GraviteeContext.getExecutionContext(), "b72c4ad7-10aa-4331-ac4a-d710aad331ab")).thenReturn(2);
 
         final Response response = envTarget().request().post(Entity.json(newInvitation));
@@ -136,8 +134,7 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
                 RolePermissionAction.UPDATE,
                 RolePermissionAction.DELETE
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         when(userService.findByEmail(GraviteeContext.getExecutionContext(), "test@test.com")).thenReturn(List.of(user1, user2));
 
         final Response response = envTarget().request().post(Entity.json(newInvitation));
@@ -170,8 +167,7 @@ public class GroupInvitationsResourceTest extends AbstractResourceTest {
                 RolePermissionAction.UPDATE,
                 RolePermissionAction.DELETE
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         when(userService.findByEmail(GraviteeContext.getExecutionContext(), "test@test.com")).thenReturn(List.of(user));
         when(invitationService.create(GraviteeContext.getExecutionContext(), newInvitation)).thenReturn(invitationEntity);
         final Response response = envTarget().request().post(Entity.json(newInvitation));

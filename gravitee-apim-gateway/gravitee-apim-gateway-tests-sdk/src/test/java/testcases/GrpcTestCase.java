@@ -48,16 +48,13 @@ public class GrpcTestCase extends AbstractGrpcGatewayTest {
     void should_request_and_get_response(GatewayDynamicConfig.HttpConfig httpConfig) {
         // configure gRPC server
         GrpcServer grpcServer = GrpcServer.server(vertx);
-        grpcServer.callHandler(
-            GreeterGrpc.getSayHelloMethod(),
-            request -> {
-                request.handler(hello -> {
-                    GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
-                    HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + hello.getName()).build();
-                    response.end(reply);
-                });
-            }
-        );
+        grpcServer.callHandler(GreeterGrpc.getSayHelloMethod(), request -> {
+            request.handler(hello -> {
+                GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
+                HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + hello.getName()).build();
+                response.end(reply);
+            });
+        });
 
         // prep for test
         CountDownLatch latch = new CountDownLatch(1);

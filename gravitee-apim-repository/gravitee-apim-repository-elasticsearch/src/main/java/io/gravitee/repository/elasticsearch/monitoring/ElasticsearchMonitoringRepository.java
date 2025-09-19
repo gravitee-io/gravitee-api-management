@@ -72,12 +72,11 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
         String[] clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
 
         try {
-            final Single<SearchResponse> result =
-                this.client.search(
-                        this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), Type.MONITOR, clusters),
-                        !info.getVersion().canUseTypeRequests() ? null : Type.MONITOR.getType(),
-                        sQuery
-                    );
+            final Single<SearchResponse> result = this.client.search(
+                this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), Type.MONITOR, clusters),
+                !info.getVersion().canUseTypeRequests() ? null : Type.MONITOR.getType(),
+                sQuery
+            );
 
             final SearchHits hits = result.blockingGet().getSearchHits();
             if (hits != null && hits.getHits().size() > 0) {

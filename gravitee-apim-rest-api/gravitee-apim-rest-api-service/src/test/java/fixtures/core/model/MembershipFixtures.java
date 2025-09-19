@@ -26,8 +26,7 @@ import java.util.function.Supplier;
 public class MembershipFixtures {
 
     private static final Supplier<Membership.MembershipBuilder> BASE = () ->
-        Membership
-            .builder()
+        Membership.builder()
             .id("membership-id")
             .source("system")
             .memberId("user-id")
@@ -45,8 +44,7 @@ public class MembershipFixtures {
     }
 
     public static Membership anApiPrimaryOwnerUserMembership(String apiId, String userId, String organizationId) {
-        return BASE
-            .get()
+        return BASE.get()
             .referenceType(Membership.ReferenceType.API)
             .referenceId(apiId)
             .memberId(userId)
@@ -55,8 +53,7 @@ public class MembershipFixtures {
     }
 
     public static Membership anApplicationPrimaryOwnerUserMembership(String applicationId, String userId, String organizationId) {
-        return BASE
-            .get()
+        return BASE.get()
             .referenceType(Membership.ReferenceType.APPLICATION)
             .referenceId(applicationId)
             .memberId(userId)

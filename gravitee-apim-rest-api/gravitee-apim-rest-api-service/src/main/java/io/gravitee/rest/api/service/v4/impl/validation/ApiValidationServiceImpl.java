@@ -278,8 +278,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         return planSearchService
             .findByApi(executionContext, apiId)
             .stream()
-            .anyMatch(planEntity ->
-                PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())
+            .anyMatch(
+                planEntity ->
+                    PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())
             );
     }
 
@@ -332,15 +333,15 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // if lifecycle state not provided, return the existing one
         if (updateApiEntity.getLifecycleState() == null) {
             return existingApiEntity.getLifecycleState();
-        } else if (DEPRECATED == existingApiEntity.getLifecycleState()) { //  Otherwise, we should first check that existingAPI and updateApi have the same lifecycleState and THEN check for deprecation status of the exiting API //  if we don't want a deprecated API to be updated, then we should have a specific check // TODO FCY: because of this, you can't update a deprecated API but the reason is not clear.
+        } else if (DEPRECATED == existingApiEntity.getLifecycleState()) {
+            //  Otherwise, we should first check that existingAPI and updateApi have the same lifecycleState and THEN check for deprecation status of the exiting API //  if we don't want a deprecated API to be updated, then we should have a specific check // TODO FCY: because of this, you can't update a deprecated API but the reason is not clear.
             throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
         } else if (existingApiEntity.getLifecycleState() == updateApiEntity.getLifecycleState()) {
             return existingApiEntity.getLifecycleState();
         } else if (
             (ARCHIVED == existingApiEntity.getLifecycleState() && (ARCHIVED != updateApiEntity.getLifecycleState())) ||
             ((UNPUBLISHED == existingApiEntity.getLifecycleState()) && (CREATED == updateApiEntity.getLifecycleState())) ||
-            (CREATED == existingApiEntity.getLifecycleState()) &&
-            (WorkflowState.IN_REVIEW == existingApiEntity.getWorkflowState())
+            ((CREATED == existingApiEntity.getLifecycleState()) && (WorkflowState.IN_REVIEW == existingApiEntity.getWorkflowState()))
         ) {
             throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
         }

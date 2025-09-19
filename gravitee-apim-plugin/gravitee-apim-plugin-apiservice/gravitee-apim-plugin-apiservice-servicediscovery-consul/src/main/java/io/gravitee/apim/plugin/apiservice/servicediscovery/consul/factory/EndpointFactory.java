@@ -46,18 +46,13 @@ public class EndpointFactory {
             endpoint.setType(type);
             endpoint.setConfiguration(
                 factories
-                    .computeIfAbsent(
-                        type,
-                        t -> {
-                            try {
-                                return configurationFactoryClasses.get(t).getDeclaredConstructor().newInstance();
-                            } catch (Exception e) {
-                                throw new IllegalStateException(
-                                    "Unexpected error while instantiating Endpoint Configuration Factory class"
-                                );
-                            }
+                    .computeIfAbsent(type, t -> {
+                        try {
+                            return configurationFactoryClasses.get(t).getDeclaredConstructor().newInstance();
+                        } catch (Exception e) {
+                            throw new IllegalStateException("Unexpected error while instantiating Endpoint Configuration Factory class");
                         }
-                    )
+                    })
                     .buildConfiguration(service)
             );
 
@@ -66,13 +61,11 @@ public class EndpointFactory {
             }
 
             if (service.getMeta() != null) {
-                Optional
-                    .ofNullable(service.getMeta().get(EndpointConfigurationFactory.CONSUL_METADATA_WEIGHT))
+                Optional.ofNullable(service.getMeta().get(EndpointConfigurationFactory.CONSUL_METADATA_WEIGHT))
                     .map(Integer::parseInt)
                     .ifPresent(endpoint::setWeight);
 
-                Optional
-                    .ofNullable(service.getMeta().get(EndpointConfigurationFactory.CONSUL_METADATA_TENANT))
+                Optional.ofNullable(service.getMeta().get(EndpointConfigurationFactory.CONSUL_METADATA_TENANT))
                     .map(v -> Arrays.stream(v.split(",")).map(String::trim).collect(Collectors.toList()))
                     .ifPresent(endpoint::setTenants);
             }

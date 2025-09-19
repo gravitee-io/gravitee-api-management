@@ -156,9 +156,8 @@ class DefaultExecutionContextTest {
         cut.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
         assertThatThrownBy(() -> {
-                final Float value = cut.getAttribute(ATTRIBUTE_KEY);
-            })
-            .isInstanceOf(ClassCastException.class);
+            final Float value = cut.getAttribute(ATTRIBUTE_KEY);
+        }).isInstanceOf(ClassCastException.class);
     }
 
     @Test
@@ -220,9 +219,8 @@ class DefaultExecutionContextTest {
         cut.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
         assertThatThrownBy(() -> {
-                final Float value = cut.getInternalAttribute(ATTRIBUTE_KEY);
-            })
-            .isInstanceOf(ClassCastException.class);
+            final Float value = cut.getInternalAttribute(ATTRIBUTE_KEY);
+        }).isInstanceOf(ClassCastException.class);
     }
 
     @Test
@@ -235,9 +233,9 @@ class DefaultExecutionContextTest {
         final TemplateEngine templateEngine = cut.getTemplateEngine();
         final TemplateContext templateContext = templateEngine.getTemplateContext();
 
-        Stream
-            .of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_RESPONSE)
-            .forEach(attribute -> assertThat(templateContext.lookupVariable(attribute)).isNotNull());
+        Stream.of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_RESPONSE).forEach(attribute ->
+            assertThat(templateContext.lookupVariable(attribute)).isNotNull()
+        );
     }
 
     @Test
@@ -348,9 +346,9 @@ class DefaultExecutionContextTest {
             assertThat(templateContext).isNotSameAs(otherTemplateContext);
 
             // But evaluable request/response/context are common.
-            Stream
-                .of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_CONTEXT)
-                .forEach(key -> assertThat(otherTemplateContext.lookupVariable(key)).isSameAs(otherTemplateContext.lookupVariable(key)));
+            Stream.of(TEMPLATE_ATTRIBUTE_REQUEST, TEMPLATE_ATTRIBUTE_RESPONSE, TEMPLATE_ATTRIBUTE_CONTEXT).forEach(key ->
+                assertThat(otherTemplateContext.lookupVariable(key)).isSameAs(otherTemplateContext.lookupVariable(key))
+            );
         }
     }
 
@@ -423,8 +421,10 @@ class DefaultExecutionContextTest {
         assertThat(actual).hasSize(3);
         assertThat(actual.get(0)).isEqualTo("a");
         assertThat(actual.get(2)).isEqualTo("c");
-        assertThat(parseDouble(actual.get(1).toString()))
-            .isEqualTo(123_456_789_123_456_789.123_456_789_123_456_789, offset(0.000_000_000_000_000_1d));
+        assertThat(parseDouble(actual.get(1).toString())).isEqualTo(
+            123_456_789_123_456_789.123_456_789_123_456_789,
+            offset(0.000_000_000_000_000_1d)
+        );
         assertThatCode(() -> actual.add(new Object())).isOfAnyClassIn(UnsupportedOperationException.class);
     }
 

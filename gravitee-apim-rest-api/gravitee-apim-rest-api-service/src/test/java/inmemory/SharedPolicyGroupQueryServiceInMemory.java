@@ -43,13 +43,12 @@ public class SharedPolicyGroupQueryServiceInMemory implements SharedPolicyGroupQ
             .filter(spg -> spg.getEnvironmentId().equals(environmentId))
             .filter(spg -> q == null || spg.getName().contains(q));
 
-        stream =
-            switch (sortableField) {
-                case "name" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getName));
-                case "apiType" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getApiType));
-                case "deployedAt" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getDeployedAt));
-                default -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getUpdatedAt));
-            };
+        stream = switch (sortableField) {
+            case "name" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getName));
+            case "apiType" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getApiType));
+            case "deployedAt" -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getDeployedAt));
+            default -> stream.sorted(Comparator.comparing(SharedPolicyGroup::getUpdatedAt));
+        };
 
         var matches = stream.collect(Collectors.toList());
 

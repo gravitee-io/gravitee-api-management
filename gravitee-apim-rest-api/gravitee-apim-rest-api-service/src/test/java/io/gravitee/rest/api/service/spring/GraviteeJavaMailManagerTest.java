@@ -81,27 +81,47 @@ public class GraviteeJavaMailManagerTest {
         );
         assertSame(mailSender, mailSender2);
 
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_HOST, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PORT, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_USERNAME, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PASSWORD, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PROTOCOL, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        verify(parameterService, times(1))
-            .findAll(
-                argThat((List<Key> o) ->
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.EMAIL_HOST,
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.EMAIL_PORT,
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.EMAIL_USERNAME,
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.EMAIL_PASSWORD,
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.EMAIL_PROTOCOL,
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(parameterService, times(1)).findAll(
+            argThat(
+                (List<Key> o) ->
                     o.contains(Key.EMAIL_PROPERTIES_AUTH_ENABLED) &&
                     o.contains(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE) &&
                     o.contains(Key.EMAIL_PROPERTIES_SSL_TRUST)
-                ),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT),
-                eq(GraviteeContext.getExecutionContext())
-            );
+            ),
+            eq("DEFAULT"),
+            eq(ParameterReferenceType.ENVIRONMENT),
+            eq(GraviteeContext.getExecutionContext())
+        );
     }
 
     @Test

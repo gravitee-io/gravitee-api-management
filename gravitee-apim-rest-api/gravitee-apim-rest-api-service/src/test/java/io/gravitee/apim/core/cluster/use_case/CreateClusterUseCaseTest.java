@@ -60,8 +60,13 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        createClusterUseCase =
-            new CreateClusterUseCase(clusterCrudService, validateClusterService, auditService, membershipCrudService, roleQueryService);
+        createClusterUseCase = new CreateClusterUseCase(
+            clusterCrudService,
+            validateClusterService,
+            auditService,
+            membershipCrudService,
+            roleQueryService
+        );
         initRoles();
     }
 
@@ -76,8 +81,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(toCreate, AUDIT_INFO));
 
         // Then
-        var expected = Cluster
-            .builder()
+        var expected = Cluster.builder()
             .id(GENERATED_UUID)
             .name(name)
             .createdAt(INSTANT_NOW)
@@ -104,8 +108,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id(GENERATED_UUID)
                     .organizationId(ORG_ID)
                     .environmentId(ENV_ID)
@@ -171,8 +174,7 @@ class CreateClusterUseCaseTest extends AbstractUseCaseTest {
 
     private void initRoles() {
         List<Role> roles = List.of(
-            Role
-                .builder()
+            Role.builder()
                 .id(ROLE_ID)
                 .scope(Role.Scope.CLUSTER)
                 .name("PRIMARY_OWNER")

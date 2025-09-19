@@ -61,8 +61,7 @@ class ApiUpdateFetchedPageContentUseCaseTest {
     private static final String ROLE_ID = "role-id";
     private static final String GROUP_ID = "group-id";
 
-    private static final Page PARENT_FOLDER = Page
-        .builder()
+    private static final Page PARENT_FOLDER = Page.builder()
         .id(PARENT_ID)
         .referenceType(Page.ReferenceType.API)
         .referenceId(API_ID)
@@ -70,8 +69,7 @@ class ApiUpdateFetchedPageContentUseCaseTest {
         .name("parent")
         .type(Page.Type.FOLDER)
         .build();
-    private static final Page MARKDOWN_WITH_SOURCE = Page
-        .builder()
+    private static final Page MARKDOWN_WITH_SOURCE = Page.builder()
         .id(PAGE_ID)
         .referenceType(Page.ReferenceType.API)
         .referenceId(API_ID)
@@ -88,8 +86,7 @@ class ApiUpdateFetchedPageContentUseCaseTest {
         .visibility(Page.Visibility.PUBLIC)
         .source(PageSource.builder().type("http-fetcher").configuration("{}").build())
         .build();
-    private static final Page MARKDOWN_WITH_SOURCE_NO_UPDATE = Page
-        .builder()
+    private static final Page MARKDOWN_WITH_SOURCE_NO_UPDATE = Page.builder()
         .id("markdown-with-no-source-no-update")
         .referenceType(Page.ReferenceType.API)
         .referenceId(API_ID)
@@ -106,8 +103,7 @@ class ApiUpdateFetchedPageContentUseCaseTest {
         .visibility(Page.Visibility.PUBLIC)
         .source(PageSource.builder().type("http-fetcher").configuration("{}").build())
         .build();
-    private static final Page MARKDOWN_WITH_NO_SOURCE = Page
-        .builder()
+    private static final Page MARKDOWN_WITH_NO_SOURCE = Page.builder()
         .id("no-source")
         .referenceType(Page.ReferenceType.API)
         .referenceId(API_ID)
@@ -124,8 +120,7 @@ class ApiUpdateFetchedPageContentUseCaseTest {
         .visibility(Page.Visibility.PUBLIC)
         .source(null)
         .build();
-    private static final Page MARKDOWN_TO_OTHER_API = Page
-        .builder()
+    private static final Page MARKDOWN_TO_OTHER_API = Page.builder()
         .id("markdown-to-other-api")
         .referenceType(Page.ReferenceType.API)
         .referenceId("another-api")
@@ -152,48 +147,44 @@ class ApiUpdateFetchedPageContentUseCaseTest {
     @BeforeEach
     void setUp() {
         var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
-        documentationValidationDomainService =
-            new DocumentationValidationDomainService(
-                new HtmlSanitizerImpl(htmlSanitizer),
-                new NoopTemplateResolverDomainService(),
-                apiCrudService,
-                new NoopSwaggerOpenApiResolver(),
-                new ApiMetadataQueryServiceInMemory(),
-                new ApiPrimaryOwnerDomainService(
-                    new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                    groupQueryService,
-                    membershipCrudService,
-                    membershipQueryService,
-                    roleQueryService,
-                    userCrudService
-                ),
-                new ApiDocumentationDomainService(pageQueryService, planQueryService),
-                pageCrudService,
-                pageSourceDomainService,
-                groupQueryService,
-                roleQueryService
-            );
-
-        updateApiDocumentationDomainService =
-            new UpdateApiDocumentationDomainService(
-                pageCrudService,
-                pageRevisionCrudService,
+        documentationValidationDomainService = new DocumentationValidationDomainService(
+            new HtmlSanitizerImpl(htmlSanitizer),
+            new NoopTemplateResolverDomainService(),
+            apiCrudService,
+            new NoopSwaggerOpenApiResolver(),
+            new ApiMetadataQueryServiceInMemory(),
+            new ApiPrimaryOwnerDomainService(
                 new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                indexer
-            );
-        apiUpdateFetchedPageContentUseCase =
-            new ApiUpdateFetchedPageContentUseCase(
-                new ApiDocumentationDomainService(pageQueryService, planQueryService),
-                apiCrudService,
-                pageCrudService,
-                documentationValidationDomainService,
-                updateApiDocumentationDomainService
-            );
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService
+            ),
+            new ApiDocumentationDomainService(pageQueryService, planQueryService),
+            pageCrudService,
+            pageSourceDomainService,
+            groupQueryService,
+            roleQueryService
+        );
+
+        updateApiDocumentationDomainService = new UpdateApiDocumentationDomainService(
+            pageCrudService,
+            pageRevisionCrudService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            indexer
+        );
+        apiUpdateFetchedPageContentUseCase = new ApiUpdateFetchedPageContentUseCase(
+            new ApiDocumentationDomainService(pageQueryService, planQueryService),
+            apiCrudService,
+            pageCrudService,
+            documentationValidationDomainService,
+            updateApiDocumentationDomainService
+        );
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build()));
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .id(ROLE_ID)
                     .scope(Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
@@ -205,8 +196,7 @@ class ApiUpdateFetchedPageContentUseCaseTest {
         groupQueryService.initWith(List.of(Group.builder().id(GROUP_ID).build()));
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)
@@ -226,25 +216,22 @@ class ApiUpdateFetchedPageContentUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                pageQueryService,
-                pageCrudService,
-                pageRevisionCrudService,
-                auditCrudService,
-                userCrudService,
-                roleQueryService,
-                membershipQueryService,
-                groupQueryService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            pageQueryService,
+            pageCrudService,
+            pageRevisionCrudService,
+            auditCrudService,
+            userCrudService,
+            roleQueryService,
+            membershipQueryService,
+            groupQueryService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_update_markdown() {
         var res = apiUpdateFetchedPageContentUseCase.execute(
-            ApiUpdateFetchedPageContentUseCase.Input
-                .builder()
+            ApiUpdateFetchedPageContentUseCase.Input.builder()
                 .apiId(API_ID)
                 .pageId(MARKDOWN_WITH_SOURCE.getId())
                 .auditInfo(AUDIT_INFO)
@@ -260,8 +247,7 @@ class ApiUpdateFetchedPageContentUseCaseTest {
     @Test
     void should_create_audit() {
         apiUpdateFetchedPageContentUseCase.execute(
-            ApiUpdateFetchedPageContentUseCase.Input
-                .builder()
+            ApiUpdateFetchedPageContentUseCase.Input.builder()
                 .apiId(API_ID)
                 .pageId(MARKDOWN_WITH_SOURCE.getId())
                 .auditInfo(AUDIT_INFO)
@@ -278,8 +264,7 @@ class ApiUpdateFetchedPageContentUseCaseTest {
     @Test
     void should_create_a_page_revision_if_content_fetched() {
         apiUpdateFetchedPageContentUseCase.execute(
-            ApiUpdateFetchedPageContentUseCase.Input
-                .builder()
+            ApiUpdateFetchedPageContentUseCase.Input.builder()
                 .apiId(API_ID)
                 .pageId(MARKDOWN_WITH_SOURCE.getId())
                 .auditInfo(AUDIT_INFO)
@@ -298,8 +283,7 @@ class ApiUpdateFetchedPageContentUseCaseTest {
     @Test
     void should_not_create_a_page_revision_if_content_the_same() {
         apiUpdateFetchedPageContentUseCase.execute(
-            ApiUpdateFetchedPageContentUseCase.Input
-                .builder()
+            ApiUpdateFetchedPageContentUseCase.Input.builder()
                 .apiId(API_ID)
                 .pageId(MARKDOWN_WITH_SOURCE_NO_UPDATE.getId())
                 .auditInfo(AUDIT_INFO)
@@ -312,56 +296,49 @@ class ApiUpdateFetchedPageContentUseCaseTest {
     @Test
     void should_throw_error_if_no_source() {
         assertThatThrownBy(() ->
-                apiUpdateFetchedPageContentUseCase.execute(
-                    ApiUpdateFetchedPageContentUseCase.Input
-                        .builder()
-                        .apiId(API_ID)
-                        .pageId(MARKDOWN_WITH_NO_SOURCE.getId())
-                        .auditInfo(AUDIT_INFO)
-                        .build()
-                )
+            apiUpdateFetchedPageContentUseCase.execute(
+                ApiUpdateFetchedPageContentUseCase.Input.builder()
+                    .apiId(API_ID)
+                    .pageId(MARKDOWN_WITH_NO_SOURCE.getId())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
             )
-            .isInstanceOf(ApiPageSourceNotDefinedException.class);
+        ).isInstanceOf(ApiPageSourceNotDefinedException.class);
     }
 
     @Test
     void should_throw_error_if_api_not_found() {
         assertThatThrownBy(() ->
-                apiUpdateFetchedPageContentUseCase.execute(
-                    ApiUpdateFetchedPageContentUseCase.Input
-                        .builder()
-                        .apiId("unknown-api-id")
-                        .pageId(MARKDOWN_WITH_SOURCE.getId())
-                        .auditInfo(AUDIT_INFO)
-                        .build()
-                )
+            apiUpdateFetchedPageContentUseCase.execute(
+                ApiUpdateFetchedPageContentUseCase.Input.builder()
+                    .apiId("unknown-api-id")
+                    .pageId(MARKDOWN_WITH_SOURCE.getId())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
             )
-            .isInstanceOf(ApiNotFoundException.class);
+        ).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_error_if_page_not_found() {
         assertThatThrownBy(() ->
-                apiUpdateFetchedPageContentUseCase.execute(
-                    ApiUpdateFetchedPageContentUseCase.Input.builder().apiId(API_ID).pageId("unknown").auditInfo(AUDIT_INFO).build()
-                )
+            apiUpdateFetchedPageContentUseCase.execute(
+                ApiUpdateFetchedPageContentUseCase.Input.builder().apiId(API_ID).pageId("unknown").auditInfo(AUDIT_INFO).build()
             )
-            .isInstanceOf(PageNotFoundException.class);
+        ).isInstanceOf(PageNotFoundException.class);
     }
 
     @Test
     void should_throw_error_if_page_not_associated_to_api() {
         assertThatThrownBy(() ->
-                apiUpdateFetchedPageContentUseCase.execute(
-                    ApiUpdateFetchedPageContentUseCase.Input
-                        .builder()
-                        .apiId(API_ID)
-                        .pageId(MARKDOWN_TO_OTHER_API.getId())
-                        .auditInfo(AUDIT_INFO)
-                        .build()
-                )
+            apiUpdateFetchedPageContentUseCase.execute(
+                ApiUpdateFetchedPageContentUseCase.Input.builder()
+                    .apiId(API_ID)
+                    .pageId(MARKDOWN_TO_OTHER_API.getId())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
             )
-            .isInstanceOf(ValidationDomainException.class);
+        ).isInstanceOf(ValidationDomainException.class);
     }
 
     private void initPageServices(List<Page> pages) {

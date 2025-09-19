@@ -67,8 +67,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     @Override
     protected JdbcObjectMapper<Page> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Page.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Page.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("hrid", Types.NVARCHAR, String.class)
@@ -370,18 +369,18 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
                 "select p.*, " +
-                "pm.k as pm_k, pm.v as pm_v, " +
-                "pc.k as pc_k, pc.v as pc_v " +
-                "from " +
-                this.tableName +
-                " p " +
-                "left join " +
-                PAGE_CONFIGURATION +
-                " pc on p.id = pc.page_id " +
-                "left join " +
-                PAGE_METADATA +
-                " pm on p.id = pm.page_id " +
-                "where p.id = ?",
+                    "pm.k as pm_k, pm.v as pm_v, " +
+                    "pc.k as pc_k, pc.v as pc_v " +
+                    "from " +
+                    this.tableName +
+                    " p " +
+                    "left join " +
+                    PAGE_CONFIGURATION +
+                    " pc on p.id = pc.page_id " +
+                    "left join " +
+                    PAGE_METADATA +
+                    " pm on p.id = pm.page_id " +
+                    "where p.id = ?",
                 rowMapper,
                 id
             );
@@ -406,19 +405,19 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             Integer totalPages = jdbcTemplate.queryForObject("select count(*) from " + this.tableName + " p", Integer.class);
             jdbcTemplate.query(
                 "select p.*, " +
-                "pm.k as pm_k, pm.v as pm_v, " +
-                "pc.k as pc_k, pc.v as pc_v " +
-                "from ( " +
-                getOrm().getSelectAllSql() +
-                " ORDER BY id " +
-                createPagingClause(pageable.pageSize(), pageable.from()) +
-                ") as p " +
-                "left join " +
-                PAGE_CONFIGURATION +
-                " pc on p.id = pc.page_id " +
-                "left join " +
-                PAGE_METADATA +
-                " pm on p.id = pm.page_id",
+                    "pm.k as pm_k, pm.v as pm_v, " +
+                    "pc.k as pc_k, pc.v as pc_v " +
+                    "from ( " +
+                    getOrm().getSelectAllSql() +
+                    " ORDER BY id " +
+                    createPagingClause(pageable.pageSize(), pageable.from()) +
+                    ") as p " +
+                    "left join " +
+                    PAGE_CONFIGURATION +
+                    " pc on p.id = pc.page_id " +
+                    "left join " +
+                    PAGE_METADATA +
+                    " pm on p.id = pm.page_id",
                 rowMapper
             );
             List<Page> result = rowMapper

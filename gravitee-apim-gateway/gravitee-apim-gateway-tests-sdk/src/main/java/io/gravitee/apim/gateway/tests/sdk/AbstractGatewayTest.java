@@ -409,27 +409,24 @@ public abstract class AbstractGatewayTest
      * @param port is the port to reach.
      */
     protected void updateEndpointsPort(io.gravitee.definition.model.v4.Api api, int port) {
-        updateEndpoints(
-            api,
-            endpoint -> {
-                try {
-                    ObjectNode configuration = (ObjectNode) objectMapper.readTree(endpoint.getConfiguration());
-                    JsonNode targetNode = configuration.get("target");
-                    if (targetNode != null) {
-                        if (targetNode.isTextual()) {
-                            String target = targetNode.asText();
-                            String exchangePort = exchangePort(target, port);
-                            configuration.put("target", exchangePort);
-                        } else {
-                            ((ObjectNode) targetNode).put("port", port);
-                        }
+        updateEndpoints(api, endpoint -> {
+            try {
+                ObjectNode configuration = (ObjectNode) objectMapper.readTree(endpoint.getConfiguration());
+                JsonNode targetNode = configuration.get("target");
+                if (targetNode != null) {
+                    if (targetNode.isTextual()) {
+                        String target = targetNode.asText();
+                        String exchangePort = exchangePort(target, port);
+                        configuration.put("target", exchangePort);
+                    } else {
+                        ((ObjectNode) targetNode).put("port", port);
                     }
-                    endpoint.setConfiguration(configuration);
-                } catch (Exception e) {
-                    log.error("Unable to parse endpoint configuration", e);
                 }
+                endpoint.setConfiguration(configuration);
+            } catch (Exception e) {
+                log.error("Unable to parse endpoint configuration", e);
             }
-        );
+        });
     }
 
     /**
@@ -442,7 +439,11 @@ public abstract class AbstractGatewayTest
         Consumer<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointConsumer
     ) {
         if (api.getEndpointGroups() != null) {
-            api.getEndpointGroups().stream().flatMap(endpointGroup -> endpointGroup.getEndpoints().stream()).forEach(endpointConsumer);
+            api
+                .getEndpointGroups()
+                .stream()
+                .flatMap(endpointGroup -> endpointGroup.getEndpoints().stream())
+                .forEach(endpointConsumer);
         }
     }
 

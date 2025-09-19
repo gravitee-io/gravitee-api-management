@@ -164,17 +164,16 @@ public class ApiSearchServiceImplTest {
         );
 
         var apiMapper = new ApiMapper(new ObjectMapper(), planServiceV4, flowServiceV4, parameterService, workflowService, categoryMapper);
-        apiSearchService =
-            new ApiSearchServiceImpl(
-                apiRepository,
-                apiMapper,
-                new GenericApiMapper(apiMapper, apiConverter),
-                primaryOwnerService,
-                categoryService,
-                searchEngineService,
-                apiAuthorizationService,
-                integrationRepository
-            );
+        apiSearchService = new ApiSearchServiceImpl(
+            apiRepository,
+            apiMapper,
+            new GenericApiMapper(apiMapper, apiConverter),
+            primaryOwnerService,
+            categoryService,
+            searchEngineService,
+            apiAuthorizationService,
+            integrationRepository
+        );
 
         reset(searchEngineService);
 
@@ -192,10 +191,10 @@ public class ApiSearchServiceImplTest {
         api.setType(ApiType.MESSAGE);
         api.setDefinition(
             "{\"definitionVersion\" : \"4.0.0\", " +
-            "\"type\": \"message\", " +
-            "\"listeners\" : " +
-            "   [{ \"type\" : \"http\", \"paths\" : [{ \"path\": \"/context\"}]" +
-            "}] }"
+                "\"type\": \"message\", " +
+                "\"listeners\" : " +
+                "   [{ \"type\" : \"http\", \"paths\" : [{ \"path\": \"/context\"}]" +
+                "}] }"
         );
         api.setEnvironmentId("DEFAULT");
 
@@ -227,10 +226,10 @@ public class ApiSearchServiceImplTest {
         api.setType(ApiType.MESSAGE);
         api.setDefinition(
             "{\"definitionVersion\" : \"4.0.0\", " +
-            "\"type\": \"message\", " +
-            "\"listeners\" : " +
-            "   [{ \"type\" : \"http\", \"paths\" : [{ \"path\": \"/context\"}]" +
-            "}] }"
+                "\"type\": \"message\", " +
+                "\"listeners\" : " +
+                "   [{ \"type\" : \"http\", \"paths\" : [{ \"path\": \"/context\"}]" +
+                "}] }"
         );
         api.setEnvironmentId("DEFAULT");
 
@@ -378,8 +377,9 @@ public class ApiSearchServiceImplTest {
         api2.setId("api2");
         api2.setName("api2");
 
-        when(apiRepository.search(eq(new ApiCriteria.Builder().environmentId("DEFAULT").build()), isNull(), eq(ApiFieldFilter.allFields())))
-            .thenReturn(Stream.of(api1));
+        when(
+            apiRepository.search(eq(new ApiCriteria.Builder().environmentId("DEFAULT").build()), isNull(), eq(ApiFieldFilter.allFields()))
+        ).thenReturn(Stream.of(api1));
 
         UserEntity admin = new UserEntity();
         admin.setId("admin");
@@ -413,8 +413,7 @@ public class ApiSearchServiceImplTest {
                 isNull(),
                 eq(ApiFieldFilter.allFields())
             )
-        )
-            .thenReturn(Stream.of(api1));
+        ).thenReturn(Stream.of(api1));
 
         UserEntity admin = new UserEntity();
         admin.setId("admin");
@@ -466,8 +465,7 @@ public class ApiSearchServiceImplTest {
                 isNull(),
                 eq(ApiFieldFilter.allFields())
             )
-        )
-            .thenReturn(Stream.of(api1));
+        ).thenReturn(Stream.of(api1));
 
         CategoryEntity category = new CategoryEntity();
         category.setId("cat1");

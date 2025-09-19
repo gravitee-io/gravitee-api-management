@@ -27,8 +27,7 @@ public class TypeUpdatedAtPropertyApiIdEnvsIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("events_latest")
             .name("t1u1pai1e1")
             .key("type", ascending())

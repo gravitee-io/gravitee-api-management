@@ -63,9 +63,9 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_2);
         shutdownProcessor.execute(spyCtx).test().assertResult();
         verify(mockRequest).version();
-        AssertionsForClassTypes
-            .assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
-            .isEqualTo(HttpHeadersValues.CONNECTION_GO_AWAY);
+        AssertionsForClassTypes.assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(
+            HttpHeadersValues.CONNECTION_GO_AWAY
+        );
     }
 
     @ParameterizedTest
@@ -75,9 +75,9 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_0);
         shutdownProcessor.execute(spyCtx).test().assertResult();
         verify(mockRequest).version();
-        AssertionsForClassTypes
-            .assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
-            .isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
+        AssertionsForClassTypes.assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(
+            HttpHeadersValues.CONNECTION_CLOSE
+        );
     }
 
     @ParameterizedTest
@@ -87,8 +87,8 @@ class ShutdownProcessorTest extends AbstractProcessorTest {
         when(mockRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
         shutdownProcessor.execute(spyCtx).test().assertResult();
         verify(mockRequest).version();
-        AssertionsForClassTypes
-            .assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION))
-            .isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
+        AssertionsForClassTypes.assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(
+            HttpHeadersValues.CONNECTION_CLOSE
+        );
     }
 }

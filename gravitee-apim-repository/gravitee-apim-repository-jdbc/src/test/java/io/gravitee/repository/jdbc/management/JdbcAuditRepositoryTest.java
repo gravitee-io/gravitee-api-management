@@ -49,11 +49,11 @@ class JdbcAuditRepositoryTest {
         when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(Long.class))).thenReturn(5L);
 
         doAnswer(invocation -> {
-                JdbcHelper.CollatingRowMapper<Audit> rowMapper = invocation.getArgument(1);
-                rowMapper.getRows().add(new Audit());
-                rowMapper.getRows().add(new Audit());
-                return null;
-            })
+            JdbcHelper.CollatingRowMapper<Audit> rowMapper = invocation.getArgument(1);
+            rowMapper.getRows().add(new Audit());
+            rowMapper.getRows().add(new Audit());
+            return null;
+        })
             .when(jdbcTemplate)
             .query(anyString(), any(JdbcHelper.CollatingRowMapper.class), any(Object[].class));
         AuditCriteria criteria = new AuditCriteria.Builder().organizationId("org1").build();

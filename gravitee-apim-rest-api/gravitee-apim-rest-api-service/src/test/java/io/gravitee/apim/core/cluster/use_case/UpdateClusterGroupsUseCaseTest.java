@@ -46,8 +46,7 @@ class UpdateClusterGroupsUseCaseTest {
         useCase = new UpdateClusterGroupsUseCase(clusterCrudService, auditDomainService);
         clusterCrudService.initWith(
             List.of(
-                Cluster
-                    .builder()
+                Cluster.builder()
                     .id("cluster-1")
                     .environmentId("env-1")
                     .organizationId("org-1")
@@ -62,8 +61,7 @@ class UpdateClusterGroupsUseCaseTest {
     @Test
     void should_update_cluster_groups_and_create_audit_log() {
         // Given
-        var auditInfo = AuditInfo
-            .builder()
+        var auditInfo = AuditInfo.builder()
             .organizationId("org-1")
             .environmentId("env-1")
             .actor(AuditActor.builder().userId("system").build())

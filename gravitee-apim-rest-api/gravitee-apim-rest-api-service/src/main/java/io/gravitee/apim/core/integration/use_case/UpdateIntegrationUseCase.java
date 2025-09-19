@@ -51,20 +51,19 @@ public class UpdateIntegrationUseCase {
         var validatedGroups = validateGroups(input);
 
         var integration = integrationCrudService.findById(integrationId).orElseThrow(() -> new IntegrationNotFoundException(integrationId));
-        var integrationToUpdate =
-            switch (integration) {
-                case Integration.ApiIntegration apiIntegration -> apiIntegration.update(
-                    input.updateFields().name(),
-                    input.updateFields().description(),
-                    validatedGroups
-                );
-                case Integration.A2aIntegration a2aIntegration -> a2aIntegration.update(
-                    input.updateFields().name(),
-                    input.updateFields().description(),
-                    validatedGroups,
-                    input.updateFields().wellKnownUrls()
-                );
-            };
+        var integrationToUpdate = switch (integration) {
+            case Integration.ApiIntegration apiIntegration -> apiIntegration.update(
+                input.updateFields().name(),
+                input.updateFields().description(),
+                validatedGroups
+            );
+            case Integration.A2aIntegration a2aIntegration -> a2aIntegration.update(
+                input.updateFields().name(),
+                input.updateFields().description(),
+                validatedGroups,
+                input.updateFields().wellKnownUrls()
+            );
+        };
 
         return new Output(integrationCrudService.update(integrationToUpdate));
     }
@@ -81,7 +80,10 @@ public class UpdateIntegrationUseCase {
         );
 
         if (validationResult.errors().isPresent() && !validationResult.errors().get().isEmpty()) {
-            validationResult.errors().get().forEach(error -> log.error(error.getMessage(), error));
+            validationResult
+                .errors()
+                .get()
+                .forEach(error -> log.error(error.getMessage(), error));
             throw new IntegrationGroupValidationException(input.integrationId());
         }
 

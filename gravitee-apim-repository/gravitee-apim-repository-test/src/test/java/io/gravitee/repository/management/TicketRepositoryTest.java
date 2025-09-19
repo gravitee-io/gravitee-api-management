@@ -138,21 +138,41 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_api_id() throws Exception {
-        var nbBeforeDeletion = ticketRepository.findAll().stream().filter(t -> "api-to-delete".equals(t.getApi())).count();
+        var nbBeforeDeletion = ticketRepository
+            .findAll()
+            .stream()
+            .filter(t -> "api-to-delete".equals(t.getApi()))
+            .count();
         var nbDeleted = ticketRepository.deleteByApiId("api-to-delete").size();
 
         assertThat(nbBeforeDeletion).isEqualTo(2);
         assertThat(nbDeleted).isEqualTo(2);
-        assertThat(ticketRepository.findAll().stream().filter(t -> "api-to-delete".equals(t.getApi())).count()).isEqualTo(0);
+        assertThat(
+            ticketRepository
+                .findAll()
+                .stream()
+                .filter(t -> "api-to-delete".equals(t.getApi()))
+                .count()
+        ).isEqualTo(0);
     }
 
     @Test
     public void should_delete_by_application_id() throws Exception {
-        var nbBeforeDeletion = ticketRepository.findAll().stream().filter(t -> "app-to-delete".equals(t.getApplication())).count();
+        var nbBeforeDeletion = ticketRepository
+            .findAll()
+            .stream()
+            .filter(t -> "app-to-delete".equals(t.getApplication()))
+            .count();
         var nbDeleted = ticketRepository.deleteByApplicationId("app-to-delete").size();
 
         assertThat(nbBeforeDeletion).isEqualTo(2);
         assertThat(nbDeleted).isEqualTo(2);
-        assertThat(ticketRepository.findAll().stream().filter(t -> "app-to-delete".equals(t.getApplication())).count()).isEqualTo(0);
+        assertThat(
+            ticketRepository
+                .findAll()
+                .stream()
+                .filter(t -> "app-to-delete".equals(t.getApplication()))
+                .count()
+        ).isEqualTo(0);
     }
 }

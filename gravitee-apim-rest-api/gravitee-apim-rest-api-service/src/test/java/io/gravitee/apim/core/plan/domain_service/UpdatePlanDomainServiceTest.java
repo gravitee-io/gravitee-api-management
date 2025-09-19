@@ -124,17 +124,16 @@ class UpdatePlanDomainServiceTest {
     void setUp() {
         var auditDomainService = new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor());
 
-        service =
-            new UpdatePlanDomainService(
-                planQueryService,
-                planCrudService,
-                new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
-                new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
-                flowCrudService,
-                auditDomainService,
-                planSynchronizationService,
-                new ReorderPlanDomainService(planQueryService, planCrudService)
-            );
+        service = new UpdatePlanDomainService(
+            planQueryService,
+            planCrudService,
+            new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
+            new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
+            flowCrudService,
+            auditDomainService,
+            planSynchronizationService,
+            new ReorderPlanDomainService(planQueryService, planCrudService)
+        );
 
         parametersQueryService.initWith(
             List.of(
@@ -142,16 +141,17 @@ class UpdatePlanDomainServiceTest {
                 new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
             )
         );
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
+            invocation.getArgument(1)
+        );
         when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(true);
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService).forEach(
+            InMemoryAlternative::reset
+        );
         reset(policyValidationDomainService, planSynchronizationService);
     }
 
@@ -177,8 +177,9 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_security_configuration_is_invalid() {
             // Given
             var plan = PlanFixtures.HttpV4.anApiKey().toBuilder().build();
-            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-                .thenThrow(new InvalidDataException("invalid"));
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenThrow(
+                new InvalidDataException("invalid")
+            );
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), API_PROXY_V4, AUDIT_INFO));
@@ -210,8 +211,9 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_security_configuration_is_invalid_native_api() {
             // Given
             var plan = PlanFixtures.NativeV4.anApiKey().toBuilder().build();
-            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-                .thenThrow(new InvalidDataException("invalid"));
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenThrow(
+                new InvalidDataException("invalid")
+            );
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.update(plan, List.of(), Map.of(), NATIVE_API, AUDIT_INFO));
@@ -247,8 +249,7 @@ class UpdatePlanDomainServiceTest {
             );
 
             // Then
-            CoreAssertions
-                .assertThat(planCrudService.getById(plan.getId()))
+            CoreAssertions.assertThat(planCrudService.getById(plan.getId()))
                 .isEqualTo(result)
                 .extracting(
                     Plan::getName,
@@ -285,8 +286,7 @@ class UpdatePlanDomainServiceTest {
             service.update(toUpdate, List.of(), null, null, AUDIT_INFO);
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
+            Assertions.assertThat(planCrudService.storage())
                 .extracting(Plan::getId, Plan::getOrder)
                 .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
         }
@@ -501,8 +501,7 @@ class UpdatePlanDomainServiceTest {
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
                 .containsExactly(
-                    AuditEntity
-                        .builder()
+                    AuditEntity.builder()
                         .id("generated-id")
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
@@ -530,8 +529,7 @@ class UpdatePlanDomainServiceTest {
             service.update(toUpdate, List.of(), null, API_PROXY_V4, AUDIT_INFO);
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
+            Assertions.assertThat(planCrudService.storage())
                 .extracting(Plan::getId, Plan::getOrder)
                 .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
         }
@@ -550,8 +548,7 @@ class UpdatePlanDomainServiceTest {
             service.update(toUpdate, List.of(), null, NATIVE_API, AUDIT_INFO);
 
             // Then
-            Assertions
-                .assertThat(planCrudService.storage())
+            Assertions.assertThat(planCrudService.storage())
                 .extracting(Plan::getId, Plan::getOrder)
                 .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
         }
@@ -561,13 +558,11 @@ class UpdatePlanDomainServiceTest {
         return Stream.of(
             Arguments.of(
                 API_PROXY_V4,
-                PlanFixtures.HttpV4
-                    .anApiKey()
+                PlanFixtures.HttpV4.anApiKey()
                     .toBuilder()
                     .apiId(API_ID)
                     .planDefinitionHttpV4(
-                        fixtures.definition.PlanFixtures.HttpV4Definition
-                            .anApiKeyV4()
+                        fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
                             .toBuilder()
                             .tags(Set.of(TAG))
                             .status(PlanStatus.STAGING)
@@ -578,13 +573,11 @@ class UpdatePlanDomainServiceTest {
             ),
             Arguments.of(
                 API_MESSAGE_V4,
-                PlanFixtures.HttpV4
-                    .aPushPlan()
+                PlanFixtures.HttpV4.aPushPlan()
                     .toBuilder()
                     .apiId(API_ID)
                     .planDefinitionHttpV4(
-                        fixtures.definition.PlanFixtures.HttpV4Definition
-                            .anApiKeyV4()
+                        fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
                             .toBuilder()
                             .tags(Set.of(TAG))
                             .status(PlanStatus.STAGING)

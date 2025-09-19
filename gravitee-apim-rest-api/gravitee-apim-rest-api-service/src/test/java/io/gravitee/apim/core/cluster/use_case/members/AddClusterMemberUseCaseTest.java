@@ -56,8 +56,7 @@ class AddClusterMemberUseCaseTest extends AbstractUseCaseTest {
             assertThat(membership)
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .id(GENERATED_UUID)
                         .memberId("user-1")
                         .memberType(Membership.Type.USER)
@@ -77,16 +76,14 @@ class AddClusterMemberUseCaseTest extends AbstractUseCaseTest {
         AuditInfo audit = AuditInfo.builder().build();
         AddMember addMember = AddMember.builder().roleName("PRIMARY_OWNER").build();
 
-        assertThrows(
-            SinglePrimaryOwnerException.class,
-            () -> addClusterMemberUseCase.execute(new AddClusterMemberUseCase.Input(audit, addMember, "cluster-1"))
+        assertThrows(SinglePrimaryOwnerException.class, () ->
+            addClusterMemberUseCase.execute(new AddClusterMemberUseCase.Input(audit, addMember, "cluster-1"))
         );
     }
 
     private void initRoles() {
         List<Role> roles = List.of(
-            Role
-                .builder()
+            Role.builder()
                 .id("role-1")
                 .scope(Role.Scope.CLUSTER)
                 .name("USER")

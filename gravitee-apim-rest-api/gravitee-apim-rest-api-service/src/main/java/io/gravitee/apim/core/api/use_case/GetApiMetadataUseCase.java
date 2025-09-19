@@ -54,9 +54,15 @@ public class GetApiMetadataUseCase {
     private List<ApiMetadata> filterApiMetadata(List<ApiMetadata> apiMetadataList, String filterBy) {
         if (filterBy != null) {
             if (filterBy.equals("GLOBAL")) {
-                return apiMetadataList.stream().filter(apiMetadata -> apiMetadata.getDefaultValue() != null).toList();
+                return apiMetadataList
+                    .stream()
+                    .filter(apiMetadata -> apiMetadata.getDefaultValue() != null)
+                    .toList();
             } else if (filterBy.equals("API")) {
-                return apiMetadataList.stream().filter(apiMetadata -> apiMetadata.getDefaultValue() == null).toList();
+                return apiMetadataList
+                    .stream()
+                    .filter(apiMetadata -> apiMetadata.getDefaultValue() == null)
+                    .toList();
             }
         }
         return apiMetadataList;

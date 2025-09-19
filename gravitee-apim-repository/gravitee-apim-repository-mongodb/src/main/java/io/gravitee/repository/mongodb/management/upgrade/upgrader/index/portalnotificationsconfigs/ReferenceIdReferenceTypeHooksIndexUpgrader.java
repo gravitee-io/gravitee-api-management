@@ -27,8 +27,7 @@ public class ReferenceIdReferenceTypeHooksIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("portalnotificationconfigs")
             .name("iri1irt1")
             .key("_id.referenceId", ascending())

@@ -51,10 +51,11 @@ public class ParametersDomainServiceInMemory implements ParametersDomainService,
 
         return parameters
             .stream()
-            .filter(parameter ->
-                keys.contains(Key.findByKey(parameter.getKey())) &&
-                Objects.equals(executionContext.getEnvironmentId(), parameter.getReferenceId()) &&
-                ParameterReferenceType.ENVIRONMENT.equals(parameter.getReferenceType())
+            .filter(
+                parameter ->
+                    keys.contains(Key.findByKey(parameter.getKey())) &&
+                    Objects.equals(executionContext.getEnvironmentId(), parameter.getReferenceId()) &&
+                    ParameterReferenceType.ENVIRONMENT.equals(parameter.getReferenceType())
             )
             .collect(Collectors.toMap(parameter -> Key.findByKey(parameter.getKey()), Parameter::getValue));
     }

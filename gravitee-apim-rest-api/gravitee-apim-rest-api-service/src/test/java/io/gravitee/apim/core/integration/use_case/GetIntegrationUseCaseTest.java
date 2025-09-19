@@ -89,14 +89,13 @@ class GetIntegrationUseCaseTest {
             membershipQueryService,
             userCrudService
         );
-        usecase =
-            new GetIntegrationUseCase(
-                integrationCrudServiceInMemory,
-                asyncJobQueryService,
-                new LicenseDomainService(licenseCrudService, licenseManager),
-                integrationAgent,
-                integrationPrimaryOwnerDomainService
-            );
+        usecase = new GetIntegrationUseCase(
+            integrationCrudServiceInMemory,
+            asyncJobQueryService,
+            new LicenseDomainService(licenseCrudService, licenseManager),
+            integrationAgent,
+            integrationPrimaryOwnerDomainService
+        );
         var integration = List.<Integration>of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID));
         integrationCrudServiceInMemory.initWith(integration);
 
@@ -106,8 +105,7 @@ class GetIntegrationUseCaseTest {
         );
         givenExistingMemberships(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .referenceType(Membership.ReferenceType.INTEGRATION)
                     .referenceId(INTEGRATION_ID)
                     .memberType(Membership.Type.USER)
@@ -122,19 +120,17 @@ class GetIntegrationUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                integrationCrudServiceInMemory,
-                asyncJobQueryService,
-                licenseCrudService,
-                integrationAgent,
-                membershipCrudServiceInMemory,
-                roleQueryServiceInMemory,
-                membershipQueryService,
-                groupQueryService,
-                userCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            integrationCrudServiceInMemory,
+            asyncJobQueryService,
+            licenseCrudService,
+            integrationAgent,
+            membershipCrudServiceInMemory,
+            roleQueryServiceInMemory,
+            membershipQueryService,
+            groupQueryService,
+            userCrudService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Test

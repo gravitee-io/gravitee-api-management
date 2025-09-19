@@ -81,14 +81,13 @@ class GetIntegrationsUseCaseTest {
             membershipQueryService,
             userCrudService
         );
-        usecase =
-            new GetIntegrationsUseCase(
-                integrationQueryServiceInMemory,
-                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-                integrationAgent,
-                integrationPrimaryOwnerDomainService,
-                asyncJobQueryService
-            );
+        usecase = new GetIntegrationsUseCase(
+            integrationQueryServiceInMemory,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            integrationAgent,
+            integrationPrimaryOwnerDomainService,
+            asyncJobQueryService
+        );
 
         roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);
         givenExistingUsers(
@@ -96,8 +95,7 @@ class GetIntegrationsUseCaseTest {
         );
         givenExistingMemberships(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .referenceType(Membership.ReferenceType.INTEGRATION)
                     .referenceId(INTEGRATION_ID)
                     .memberType(Membership.Type.USER)
@@ -124,8 +122,7 @@ class GetIntegrationsUseCaseTest {
         integrationQueryServiceInMemory.initWith(
             List.of(expected, IntegrationFixture.anApiIntegration("falseEnvID"), IntegrationFixture.anApiIntegration("anotherFalseEnvID"))
         );
-        var input = GetIntegrationsUseCase.Input
-            .builder()
+        var input = GetIntegrationsUseCase.Input.builder()
             .context(new ExecutionContext(ORGANIZATION_ID, ENV_ID))
             .isAdmin(false)
             .pageable(of(pageable))

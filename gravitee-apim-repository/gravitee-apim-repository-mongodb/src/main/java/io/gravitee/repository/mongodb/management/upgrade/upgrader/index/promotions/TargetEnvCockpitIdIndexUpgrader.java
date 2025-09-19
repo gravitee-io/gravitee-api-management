@@ -27,8 +27,7 @@ public class TargetEnvCockpitIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("promotions")
             .name("teci1")
             .key("targetEnvCockpitId", ascending())

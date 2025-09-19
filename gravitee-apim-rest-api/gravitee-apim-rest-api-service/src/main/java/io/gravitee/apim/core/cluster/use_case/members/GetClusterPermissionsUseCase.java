@@ -51,13 +51,12 @@ public class GetClusterPermissionsUseCase {
             } else {
                 final String username = input.authenticatedUser;
                 final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-                permissions =
-                    membershipDomainService.getUserMemberPermissions(
-                        executionContext,
-                        MembershipReferenceType.CLUSTER,
-                        input.clusterId,
-                        username
-                    );
+                permissions = membershipDomainService.getUserMemberPermissions(
+                    executionContext,
+                    MembershipReferenceType.CLUSTER,
+                    input.clusterId,
+                    username
+                );
             }
         }
         return new Output(permissions);

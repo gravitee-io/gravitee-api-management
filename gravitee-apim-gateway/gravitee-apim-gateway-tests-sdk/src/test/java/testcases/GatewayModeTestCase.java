@@ -53,7 +53,10 @@ public class GatewayModeTestCase {
         @Test
         void should_enable_emulate_engine() {
             var env = getBean(Environment.class);
-            assertThat(env).isNotNull().extracting(e -> e.getProperty("api.v2.emulateV4Engine.default")).isEqualTo("yes");
+            assertThat(env)
+                .isNotNull()
+                .extracting(e -> e.getProperty("api.v2.emulateV4Engine.default"))
+                .isEqualTo("yes");
         }
     }
 
@@ -80,7 +83,10 @@ public class GatewayModeTestCase {
         @Test
         void should_disable_emulate_engine() {
             var env = getBean(Environment.class);
-            assertThat(env).isNotNull().extracting(e -> e.getProperty("api.v2.emulateV4Engine.default")).isEqualTo("no");
+            assertThat(env)
+                .isNotNull()
+                .extracting(e -> e.getProperty("api.v2.emulateV4Engine.default"))
+                .isEqualTo("no");
         }
     }
 }

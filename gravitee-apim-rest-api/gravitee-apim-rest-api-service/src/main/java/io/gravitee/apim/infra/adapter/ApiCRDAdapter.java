@@ -97,7 +97,11 @@ public interface ApiCRDAdapter {
 
     default Map<String, PlanCRD> mapPlans(ExportApiEntity definition) {
         var plansMap = new HashMap<String, PlanCRD>();
-        var nonClosedPlans = definition.getPlans().stream().filter(plan -> !plan.isClosed()).toList();
+        var nonClosedPlans = definition
+            .getPlans()
+            .stream()
+            .filter(plan -> !plan.isClosed())
+            .toList();
         for (var plan : nonClosedPlans) {
             if (plan.getHrid() == null) {
                 var key = plansMap.containsKey(plan.getName()) ? randomize(plan.getName()) : plan.getName();

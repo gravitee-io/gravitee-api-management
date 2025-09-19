@@ -67,7 +67,10 @@ public class PayloadInputBodyReader implements MessageBodyReader<PayloadInput> {
     }
 
     private String getParam(final List<NameValuePair> params, final String paramName) {
-        final Optional<NameValuePair> optionalParam = params.stream().filter(param -> paramName.equals(param.getName())).findAny();
+        final Optional<NameValuePair> optionalParam = params
+            .stream()
+            .filter(param -> paramName.equals(param.getName()))
+            .findAny();
         return optionalParam.map(NameValuePair::getValue).orElse(null);
     }
 }

@@ -103,9 +103,9 @@ class ValidateApiCRDDomainServiceTest {
                 sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(spec.toBuilder().build()),
                 errors -> {
                     Assertions.assertThat(errors).isNotEmpty();
-                    Assertions
-                        .assertThat(errors.getFirst().getMessage())
-                        .isEqualTo("when no hrid is set in the payload a cross ID should be passed to identify the resource");
+                    Assertions.assertThat(errors.getFirst().getMessage()).isEqualTo(
+                        "when no hrid is set in the payload a cross ID should be passed to identify the resource"
+                    );
                 }
             );
     }
@@ -113,8 +113,7 @@ class ValidateApiCRDDomainServiceTest {
     @Test
     void should_return_input_with_id_cross_id_generated_from_hrid() {
         String hrid = "test-hrid";
-        var spec = ApiCRDFixtures
-            .newBaseSpec()
+        var spec = ApiCRDFixtures.newBaseSpec()
             .id(null)
             .crossId(null)
             .hrid(hrid)
@@ -122,34 +121,37 @@ class ValidateApiCRDDomainServiceTest {
             .build();
         var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).organizationId(ORG_ID).build(), spec);
 
-        when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories()))).thenAnswer(
+            call -> Validator.Result.ofValue(call.getArgument(0))
+        );
 
         when(
             membersValidator.validateAndSanitize(
                 new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, any())
             )
-        )
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, API_CREATE, true)))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, API_CREATE, true))).thenAnswer(
+            call -> Validator.Result.ofValue(call.getArgument(0))
+        );
 
-        when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
-        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
         when(
             portalNotificationValidator.validateAndSanitize(
                 new ValidatePortalNotificationDomainService.Input(consoleNotificationConfiguration, any(), null, AUDIT_INFO)
             )
-        )
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var idBuilder = IdBuilder.builder(input.auditInfo(), input.spec().getHrid());
         var expected = spec.toBuilder().id(idBuilder.buildId()).hrid(hrid).crossId(idBuilder.buildCrossId()).build();
@@ -164,41 +166,43 @@ class ValidateApiCRDDomainServiceTest {
 
     @Test
     void should_return_input_with_categories_and_no_warnings() {
-        var spec = ApiCRDFixtures
-            .newBaseSpec()
+        var spec = ApiCRDFixtures.newBaseSpec()
             .categories(Set.of("key-1", "id-2"))
             .consoleNotificationConfiguration(consoleNotificationConfiguration)
             .build();
         var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).organizationId(ORG_ID).build(), spec);
 
-        when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories())))
-            .thenReturn(Validator.Result.ofValue(new ValidateCategoryIdsDomainService.Input(ENV_ID, Set.of("id-1", "id-2"))));
+        when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories()))).thenReturn(
+            Validator.Result.ofValue(new ValidateCategoryIdsDomainService.Input(ENV_ID, Set.of("id-1", "id-2")))
+        );
 
         when(
             membersValidator.validateAndSanitize(
                 new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, any())
             )
-        )
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, API_CREATE, true)))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, API_CREATE, true))).thenAnswer(
+            call -> Validator.Result.ofValue(call.getArgument(0))
+        );
 
-        when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
-        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
         when(
             portalNotificationValidator.validateAndSanitize(
                 new ValidatePortalNotificationDomainService.Input(consoleNotificationConfiguration, any(), null, AUDIT_INFO)
             )
-        )
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         cut
             .validateAndSanitize(input)
@@ -218,34 +222,37 @@ class ValidateApiCRDDomainServiceTest {
 
         when(apiHostValidator.checkApiHosts(any(), any(), any(), any())).thenReturn(true);
 
-        when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories()))).thenAnswer(
+            call -> Validator.Result.ofValue(call.getArgument(0))
+        );
 
         when(
             membersValidator.validateAndSanitize(
                 new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, any())
             )
-        )
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, API_CREATE, true)))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, API_CREATE, true))).thenAnswer(
+            call -> Validator.Result.ofValue(call.getArgument(0))
+        );
 
-        when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
-        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any())))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
         when(
             portalNotificationValidator.validateAndSanitize(
                 new ValidatePortalNotificationDomainService.Input(consoleNotificationConfiguration, any(), null, AUDIT_INFO)
             )
-        )
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(spec.getCrossId()).build();
 

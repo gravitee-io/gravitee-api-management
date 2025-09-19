@@ -105,8 +105,7 @@ public class UserTokensResource extends AbstractResource {
         // Check that user belongs to current organization
         userService.findById(GraviteeContext.getExecutionContext(), userId);
 
-        return Response
-            .status(Response.Status.CREATED)
+        return Response.status(Response.Status.CREATED)
             .entity(tokenService.create(GraviteeContext.getExecutionContext(), token, userId))
             .build();
     }

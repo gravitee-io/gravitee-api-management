@@ -85,7 +85,10 @@ public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
             .forEach(key -> metaMap.put(key, UNKNOWN_APPLICATION));
 
         // Batch for real application ids
-        List<String> appIds = keys.stream().filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key)).toList();
+        List<String> appIds = keys
+            .stream()
+            .filter(key -> !UNKNOWN_SERVICE.equals(key) && !UNKNOWN_SERVICE_MAPPED.equals(key))
+            .toList();
 
         if (!appIds.isEmpty()) {
             var applications = applicationCrudService
@@ -97,7 +100,10 @@ public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
             applications.forEach((id, app) -> metaMap.put(id, ofApplication(app)));
 
             // Not found applications
-            appIds.stream().filter(id -> !applications.containsKey(id)).forEach(id -> metaMap.put(id, NOT_FOUND));
+            appIds
+                .stream()
+                .filter(id -> !applications.containsKey(id))
+                .forEach(id -> metaMap.put(id, NOT_FOUND));
         }
 
         // Build output Map<String, Map<String, String>>

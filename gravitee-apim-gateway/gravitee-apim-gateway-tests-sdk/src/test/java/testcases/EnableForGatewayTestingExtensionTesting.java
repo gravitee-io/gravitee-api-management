@@ -35,5 +35,4 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
     matches = "true",
     disabledReason = "This test is disabled because it is only run in the context of GatewayTestingExtensionTest"
 )
-public @interface EnableForGatewayTestingExtensionTesting {
-}
+public @interface EnableForGatewayTestingExtensionTesting {}

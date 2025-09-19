@@ -74,8 +74,7 @@ public class UpdateClusterUseCase {
 
     private void createAuditLog(Cluster clusterBeforeUpdate, Cluster updatedCluster, AuditInfo auditInfo) {
         auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity
-                .builder()
+            EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_UPDATED)

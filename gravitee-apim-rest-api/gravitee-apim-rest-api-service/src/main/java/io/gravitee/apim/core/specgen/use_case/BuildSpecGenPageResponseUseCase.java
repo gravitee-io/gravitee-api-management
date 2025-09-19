@@ -62,8 +62,7 @@ public class BuildSpecGenPageResponseUseCase {
 
     private static Page buildPage(ApiSpecGen api, String rawSpec) {
         String now = now().format(ofPattern(DATE_FORMAT_PATTERN));
-        return Page
-            .builder()
+        return Page.builder()
             .referenceId(api.id())
             .referenceType(API)
             .name(api.name() + " by Newt - " + now)

@@ -37,8 +37,10 @@ class GetPolicyPluginsUseCaseTest {
     @BeforeEach
     void setup() {
         licenseManager = mock(LicenseManager.class);
-        getPolicyPluginsUseCase =
-            new GetPolicyPluginsUseCase(policyPluginQueryServiceInMemory, new PluginFilterByLicenseDomainService(licenseManager));
+        getPolicyPluginsUseCase = new GetPolicyPluginsUseCase(
+            policyPluginQueryServiceInMemory,
+            new PluginFilterByLicenseDomainService(licenseManager)
+        );
     }
 
     @Test
@@ -57,11 +59,12 @@ class GetPolicyPluginsUseCaseTest {
         when(license.isFeatureEnabled("feature-policy-2")).thenReturn(true);
         when(license.isFeatureEnabled("feature-policy-3")).thenReturn(true);
 
-        assertThat(getPolicyPluginsUseCase.getPoliciesByOrganization(new GetPolicyPluginsUseCase.Input("org-id")).plugins())
-            .containsExactly(
-                PolicyPlugin.builder().id("policy-1").name("Policy 1").feature("feature-policy-1").deployed(false).build(),
-                PolicyPlugin.builder().id("policy-2").name("Policy 2").feature("feature-policy-2").deployed(true).build(),
-                PolicyPlugin.builder().id("policy-3").name("Policy 3").feature("feature-policy-3").deployed(false).build()
-            );
+        assertThat(
+            getPolicyPluginsUseCase.getPoliciesByOrganization(new GetPolicyPluginsUseCase.Input("org-id")).plugins()
+        ).containsExactly(
+            PolicyPlugin.builder().id("policy-1").name("Policy 1").feature("feature-policy-1").deployed(false).build(),
+            PolicyPlugin.builder().id("policy-2").name("Policy 2").feature("feature-policy-2").deployed(true).build(),
+            PolicyPlugin.builder().id("policy-3").name("Policy 3").feature("feature-policy-3").deployed(false).build()
+        );
     }
 }

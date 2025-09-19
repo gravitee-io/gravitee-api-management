@@ -158,8 +158,9 @@ public class GraviteeContextFilter extends GenericFilterBean {
     private ExecutionContext getFromAccessPoints(final HttpServletRequest httpServletRequest) {
         ExecutionContext accessPointContext = null;
         if (installationTypeDomainService.isMultiTenant()) {
-            Optional<ReferenceContext> optionalReferenceContext = getReferenceContextFromServer(httpServletRequest)
-                .or(() -> getReferenceContextFromReferer(httpServletRequest));
+            Optional<ReferenceContext> optionalReferenceContext = getReferenceContextFromServer(httpServletRequest).or(() ->
+                getReferenceContextFromReferer(httpServletRequest)
+            );
             if (optionalReferenceContext.isPresent()) {
                 ReferenceContext referenceContext = optionalReferenceContext.get();
                 if (referenceContext.getReferenceType() == ReferenceContext.Type.ENVIRONMENT) {

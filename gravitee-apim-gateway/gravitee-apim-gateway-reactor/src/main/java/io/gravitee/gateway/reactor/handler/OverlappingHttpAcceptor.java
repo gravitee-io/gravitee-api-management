@@ -94,19 +94,15 @@ public class OverlappingHttpAcceptor extends AbstractHttpAcceptor implements Htt
         // 3) bar.acme.com
         // 4) .acme.com
         // 5) acme.com
-        final int hostCompare = Objects.compare(
-            toLower(reverse(this.host())),
-            toLower(reverse(o2.host())),
-            (thisHost, otherHost) -> {
-                if (thisHost == null) {
-                    return 1;
-                } else if (otherHost == null) {
-                    return -1;
-                }
-                // allow wildcard to be after any non-wild card for the same name
-                return thisHost.compareTo(otherHost) * -1;
+        final int hostCompare = Objects.compare(toLower(reverse(this.host())), toLower(reverse(o2.host())), (thisHost, otherHost) -> {
+            if (thisHost == null) {
+                return 1;
+            } else if (otherHost == null) {
+                return -1;
             }
-        );
+            // allow wildcard to be after any non-wild card for the same name
+            return thisHost.compareTo(otherHost) * -1;
+        });
 
         if (hostCompare == 0) {
             // allow sub-path to be first /a/b/c is then before /a/b

@@ -66,13 +66,11 @@ public class ClustersResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo
-            .builder()
+        AuditInfo audit = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(userDetails.getUsername())
                     .userSource(userDetails.getSource())
                     .userSourceId(userDetails.getSourceId())
@@ -82,8 +80,7 @@ public class ClustersResource extends AbstractResource {
 
         var output = createClusterUseCase.execute(new CreateClusterUseCase.Input(ClusterMapper.INSTANCE.map(createCluster), audit));
 
-        return Response
-            .created(this.getLocationHeader(output.cluster().getId()))
+        return Response.created(this.getLocationHeader(output.cluster().getId()))
             .entity(ClusterMapper.INSTANCE.map(output.cluster()))
             .build();
     }

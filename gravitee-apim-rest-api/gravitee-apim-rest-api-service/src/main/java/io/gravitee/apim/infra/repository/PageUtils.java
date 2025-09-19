@@ -38,24 +38,22 @@ public class PageUtils {
             return Stream.empty();
         }
 
-        return Stream
-            .iterate(
-                fistPage,
-                p -> !isEmpty(p),
-                p -> {
-                    try {
-                        return hasNext(p) ? pageSupplier.apply(nextPageable(p, pageable)) : null;
-                    } catch (TechnicalException e) {
-                        throw new RuntimeException(e);
-                    }
+        return Stream.iterate(
+            fistPage,
+            p -> !isEmpty(p),
+            p -> {
+                try {
+                    return hasNext(p) ? pageSupplier.apply(nextPageable(p, pageable)) : null;
+                } catch (TechnicalException e) {
+                    throw new RuntimeException(e);
                 }
-            )
-            .flatMap(p -> {
-                if (p != null && p.getContent() != null) {
-                    return p.getContent().stream();
-                }
-                return Stream.empty();
-            });
+            }
+        ).flatMap(p -> {
+            if (p != null && p.getContent() != null) {
+                return p.getContent().stream();
+            }
+            return Stream.empty();
+        });
     }
 
     private static boolean isEmpty(Page page) {

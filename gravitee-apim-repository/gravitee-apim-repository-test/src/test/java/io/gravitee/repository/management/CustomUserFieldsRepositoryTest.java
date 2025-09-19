@@ -57,8 +57,12 @@ public class CustomUserFieldsRepositoryTest extends AbstractManagementRepository
         );
         assertThat(customUserFields).isNotNull();
         assertThat(customUserFields).size().isEqualTo(4);
-        assertThat(customUserFields.stream().map(CustomUserField::getKey).collect(Collectors.toList()))
-            .containsExactlyInAnyOrder("string", "boolean", "updateKey", "deleteKey");
+        assertThat(customUserFields.stream().map(CustomUserField::getKey).collect(Collectors.toList())).containsExactlyInAnyOrder(
+            "string",
+            "boolean",
+            "updateKey",
+            "deleteKey"
+        );
     }
 
     @Test

@@ -51,8 +51,7 @@ public class DeleteClusterUseCase {
 
     private void createAuditLog(String deletedClusterId, AuditInfo auditInfo) {
         auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity
-                .builder()
+            EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_DELETED)

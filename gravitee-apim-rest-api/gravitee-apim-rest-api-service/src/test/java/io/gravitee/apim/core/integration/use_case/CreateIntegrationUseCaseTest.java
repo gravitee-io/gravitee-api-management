@@ -130,30 +130,27 @@ class CreateIntegrationUseCaseTest {
         );
 
         IntegrationCrudService integrationCrudService = integrationCrudServiceInMemory;
-        usecase =
-            new CreateIntegrationUseCase(
-                integrationCrudService,
-                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-                integrationPrimaryOwnerFactory,
-                integrationPrimaryOwnerDomainService
-            );
+        usecase = new CreateIntegrationUseCase(
+            integrationCrudService,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            integrationPrimaryOwnerFactory,
+            integrationPrimaryOwnerDomainService
+        );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                integrationCrudServiceInMemory,
-                membershipCrudServiceInMemory,
-                membershipQueryServiceInMemory,
-                parametersQueryServiceInMemory,
-                roleQueryServiceInMemory,
-                userCrudServiceInMemory,
-                groupQueryServiceInMemory
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            integrationCrudServiceInMemory,
+            membershipCrudServiceInMemory,
+            membershipQueryServiceInMemory,
+            parametersQueryServiceInMemory,
+            roleQueryServiceInMemory,
+            userCrudServiceInMemory,
+            groupQueryServiceInMemory
+        ).forEach(InMemoryAlternative::reset);
         reset(licenseManager);
     }
 
@@ -203,20 +200,18 @@ class CreateIntegrationUseCaseTest {
         usecase.execute(input);
 
         //Then
-        assertThat(membershipCrudServiceInMemory.storage())
-            .containsExactly(
-                Membership
-                    .builder()
-                    .id(INTEGRATION_ID)
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceType(Membership.ReferenceType.INTEGRATION)
-                    .referenceId(INTEGRATION_ID)
-                    .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
-                    .createdAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
-                    .updatedAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(membershipCrudServiceInMemory.storage()).containsExactly(
+            Membership.builder()
+                .id(INTEGRATION_ID)
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.INTEGRATION)
+                .referenceId(INTEGRATION_ID)
+                .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                .createdAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
+                .updatedAt(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test

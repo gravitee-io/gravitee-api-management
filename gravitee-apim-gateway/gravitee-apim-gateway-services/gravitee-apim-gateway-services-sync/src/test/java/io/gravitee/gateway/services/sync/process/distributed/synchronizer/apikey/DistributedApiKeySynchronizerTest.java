@@ -70,14 +70,13 @@ class DistributedApiKeySynchronizerTest {
 
     @BeforeEach
     public void beforeEach() {
-        cut =
-            new DistributedApiKeySynchronizer(
-                eventsFetcher,
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                deployerFactory,
-                new ApiKeyMapper(objectMapper)
-            );
+        cut = new DistributedApiKeySynchronizer(
+            eventsFetcher,
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            deployerFactory,
+            new ApiKeyMapper(objectMapper)
+        );
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createApiKeyDeployer()).thenReturn(apiKeyDeployer);
         lenient().when(apiKeyDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -107,13 +106,12 @@ class DistributedApiKeySynchronizerTest {
         void should_fetch_incremental_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher)
-                .fetchLatest(
-                    any(),
-                    any(),
-                    eq(DistributedEventType.API_KEY),
-                    eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
-                );
+            verify(eventsFetcher).fetchLatest(
+                any(),
+                any(),
+                eq(DistributedEventType.API_KEY),
+                eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
+            );
         }
     }
 
@@ -133,8 +131,7 @@ class DistributedApiKeySynchronizerTest {
 
         @Test
         void should_deploy_api_keys_when_fetching_deployed_events() throws InterruptedException, JsonProcessingException {
-            DistributedEvent distributedEvent = DistributedEvent
-                .builder()
+            DistributedEvent distributedEvent = DistributedEvent.builder()
                 .id("apikey")
                 .payload(objectMapper.writeValueAsString(apiKey))
                 .type(DistributedEventType.API_KEY)
@@ -151,8 +148,7 @@ class DistributedApiKeySynchronizerTest {
 
         @Test
         void should_undeploy_api_keys_when_fetching_undeployed_events() throws InterruptedException, JsonProcessingException {
-            DistributedEvent distributedEvent = DistributedEvent
-                .builder()
+            DistributedEvent distributedEvent = DistributedEvent.builder()
                 .id("apikey")
                 .payload(objectMapper.writeValueAsString(apiKey))
                 .type(DistributedEventType.API_KEY)

@@ -80,8 +80,7 @@ public class ThemeCrudServiceImplTest {
         void should_create_a_portal_theme() {
             var definitionPortal = new ThemeDefinition();
             definitionPortal.setData(List.of());
-            var theme = Theme
-                .builder()
+            var theme = Theme.builder()
                 .id("portal-id")
                 .type(ThemeType.PORTAL)
                 .definitionPortal(definitionPortal)
@@ -98,12 +97,10 @@ public class ThemeCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_create_a_portal_next_theme() {
-            var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
-                .builder()
+            var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
                 .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
                 .build();
-            var theme = Theme
-                .builder()
+            var theme = Theme.builder()
                 .id("portal-id")
                 .type(ThemeType.PORTAL_NEXT)
                 .definitionPortalNext(definitionPortal)
@@ -138,8 +135,7 @@ public class ThemeCrudServiceImplTest {
         void should_update_an_existing_portal_theme() {
             var definitionPortal = new ThemeDefinition();
             definitionPortal.setData(List.of());
-            var theme = Theme
-                .builder()
+            var theme = Theme.builder()
                 .id("portal-id")
                 .type(ThemeType.PORTAL)
                 .definitionPortal(definitionPortal)
@@ -154,8 +150,7 @@ public class ThemeCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Theme
-                        .builder()
+                    io.gravitee.repository.management.model.Theme.builder()
                         .id("portal-id")
                         .type(io.gravitee.repository.management.model.ThemeType.PORTAL)
                         .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(definitionPortal))
@@ -168,12 +163,10 @@ public class ThemeCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_an_existing_portal_next_theme() {
-            var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
-                .builder()
+            var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
                 .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
                 .build();
-            var theme = Theme
-                .builder()
+            var theme = Theme.builder()
                 .id("portal-id")
                 .type(ThemeType.PORTAL_NEXT)
                 .definitionPortalNext(definitionPortal)
@@ -188,8 +181,7 @@ public class ThemeCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Theme
-                        .builder()
+                    io.gravitee.repository.management.model.Theme.builder()
                         .id("portal-id")
                         .type(io.gravitee.repository.management.model.ThemeType.PORTAL_NEXT)
                         .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(definitionPortal))
@@ -218,17 +210,15 @@ public class ThemeCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_get_a_portal_theme() {
-            when(themeRepository.findById("portal-id"))
-                .thenReturn(
-                    Optional.of(
-                        io.gravitee.repository.management.model.Theme
-                            .builder()
-                            .id("portal-id")
-                            .type(io.gravitee.repository.management.model.ThemeType.PORTAL)
-                            .definition("{ \"data\": [] }")
-                            .build()
-                    )
-                );
+            when(themeRepository.findById("portal-id")).thenReturn(
+                Optional.of(
+                    io.gravitee.repository.management.model.Theme.builder()
+                        .id("portal-id")
+                        .type(io.gravitee.repository.management.model.ThemeType.PORTAL)
+                        .definition("{ \"data\": [] }")
+                        .build()
+                )
+            );
 
             var definitionPortal = new ThemeDefinition();
             definitionPortal.setData(List.of());
@@ -243,20 +233,17 @@ public class ThemeCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_get_a_portal_next_theme() {
-            when(themeRepository.findById("portal-id"))
-                .thenReturn(
-                    Optional.of(
-                        io.gravitee.repository.management.model.Theme
-                            .builder()
-                            .id("portal-id")
-                            .type(io.gravitee.repository.management.model.ThemeType.PORTAL_NEXT)
-                            .definition("{ \"color\": { \"primary\": \"#fff\" } }")
-                            .build()
-                    )
-                );
+            when(themeRepository.findById("portal-id")).thenReturn(
+                Optional.of(
+                    io.gravitee.repository.management.model.Theme.builder()
+                        .id("portal-id")
+                        .type(io.gravitee.repository.management.model.ThemeType.PORTAL_NEXT)
+                        .definition("{ \"color\": { \"primary\": \"#fff\" } }")
+                        .build()
+                )
+            );
 
-            var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
-                .builder()
+            var definitionPortal = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
                 .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
                 .build();
 

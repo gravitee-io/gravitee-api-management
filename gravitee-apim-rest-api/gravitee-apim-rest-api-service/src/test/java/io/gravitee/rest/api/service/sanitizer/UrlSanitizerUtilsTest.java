@@ -40,9 +40,8 @@ public class UrlSanitizerUtilsTest {
 
     @Test
     public void checkAllowed_disallowPrivate() {
-        assertThrows(
-            UrlForbiddenException.class,
-            () -> UrlSanitizerUtils.checkAllowed("http://localhost:8080", Collections.emptyList(), false)
+        assertThrows(UrlForbiddenException.class, () ->
+            UrlSanitizerUtils.checkAllowed("http://localhost:8080", Collections.emptyList(), false)
         );
     }
 
@@ -59,17 +58,15 @@ public class UrlSanitizerUtilsTest {
     @Test
     public void checkAllowed_invalidUrl() {
         RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('a', 'z').build();
-        assertThrows(
-            InvalidDataException.class,
-            () -> UrlSanitizerUtils.checkAllowed("https://invalid-url.not-exist" + generator.generate(5), Collections.emptyList(), false)
+        assertThrows(InvalidDataException.class, () ->
+            UrlSanitizerUtils.checkAllowed("https://invalid-url.not-exist" + generator.generate(5), Collections.emptyList(), false)
         );
     }
 
     @Test
     public void checkAllowed_notWhitelisted() {
-        assertThrows(
-            UrlForbiddenException.class,
-            () -> UrlSanitizerUtils.checkAllowed("https://www.gravitee.io/", Collections.singletonList("http://localhost:8080"), false)
+        assertThrows(UrlForbiddenException.class, () ->
+            UrlSanitizerUtils.checkAllowed("https://www.gravitee.io/", Collections.singletonList("http://localhost:8080"), false)
         );
     }
 
@@ -104,14 +101,12 @@ public class UrlSanitizerUtilsTest {
 
     @Test
     public void UriSyntaxNotValid() {
-        assertThrows(
-            UrlForbiddenException.class,
-            () ->
-                UrlSanitizerUtils.checkAllowed(
-                    "http://localhost:8080/user/registration/confirm\"> href=\"http://unsecure.com/token=",
-                    Collections.emptyList(),
-                    true
-                )
+        assertThrows(UrlForbiddenException.class, () ->
+            UrlSanitizerUtils.checkAllowed(
+                "http://localhost:8080/user/registration/confirm\"> href=\"http://unsecure.com/token=",
+                Collections.emptyList(),
+                true
+            )
         );
     }
 

@@ -50,8 +50,7 @@ public abstract class AbstractNewApi {
      */
     public Api.ApiBuilder<?, ?> toApiBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return Api
-            .builder()
+        return Api.builder()
             .name(name)
             .version(apiVersion)
             .type(type)

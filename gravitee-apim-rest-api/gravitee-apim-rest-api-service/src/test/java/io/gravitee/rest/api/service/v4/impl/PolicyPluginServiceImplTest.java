@@ -134,8 +134,9 @@ public class PolicyPluginServiceImplTest {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
-        when(mockPluginManifest.properties())
-            .thenReturn(Map.of("http_proxy", "REQUEST,RESPONSE", "http_message", "PUBLISH", "native_kafka", "PUBLISH, SUBSCRIBE"));
+        when(mockPluginManifest.properties()).thenReturn(
+            Map.of("http_proxy", "REQUEST,RESPONSE", "http_message", "PUBLISH", "native_kafka", "PUBLISH, SUBSCRIBE")
+        );
         Set<PolicyPluginEntity> result = cut.findAll();
 
         assertNotNull(result);
@@ -213,8 +214,9 @@ public class PolicyPluginServiceImplTest {
 
     @Test
     public void should_get_documentation_with_ApiProtocolType() throws IOException {
-        when(pluginManager.getPluginDocumentation("my-policy", "native_kafka.documentation", true, true))
-            .thenReturn(new PluginDocumentation("documentation", PluginDocumentation.Language.ASCIIDOC));
+        when(pluginManager.getPluginDocumentation("my-policy", "native_kafka.documentation", true, true)).thenReturn(
+            new PluginDocumentation("documentation", PluginDocumentation.Language.ASCIIDOC)
+        );
 
         PluginDocumentation documentation = cut.getDocumentation("my-policy", ApiProtocolType.NATIVE_KAFKA);
         assertEquals("documentation", documentation.content());

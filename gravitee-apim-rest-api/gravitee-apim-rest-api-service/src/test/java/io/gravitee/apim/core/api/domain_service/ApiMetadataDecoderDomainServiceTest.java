@@ -35,8 +35,7 @@ class ApiMetadataDecoderDomainServiceTest {
     private static final String ENV_ID = "env#1";
     private static final String API_ID = "api-id";
 
-    private static final ApiMetadataDecodeContext CONTEXT = ApiMetadataDecodeContext
-        .builder()
+    private static final ApiMetadataDecodeContext CONTEXT = ApiMetadataDecodeContext.builder()
         .name("My Api")
         .description("api-description")
         .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
@@ -93,22 +92,19 @@ class ApiMetadataDecoderDomainServiceTest {
         givenExistingApiMetadata(
             List.of(
                 ApiMetadata.builder().apiId(API_ID).key("apiName").value("${(api.name)!''}").format(Metadata.MetadataFormat.STRING).build(),
-                ApiMetadata
-                    .builder()
+                ApiMetadata.builder()
                     .apiId(API_ID)
                     .key("apiDescription")
                     .value("${(api.description)!''}")
                     .format(Metadata.MetadataFormat.STRING)
                     .build(),
-                ApiMetadata
-                    .builder()
+                ApiMetadata.builder()
                     .apiId(API_ID)
                     .key("ownerName")
                     .value("${(api.primaryOwner.displayName)!''}")
                     .format(Metadata.MetadataFormat.STRING)
                     .build(),
-                ApiMetadata
-                    .builder()
+                ApiMetadata.builder()
                     .apiId(API_ID)
                     .key("email-support")
                     .value("${(api.primaryOwner.email)!''}")
@@ -121,15 +117,14 @@ class ApiMetadataDecoderDomainServiceTest {
         var result = service.decodeMetadata(ENV_ID, API_ID, CONTEXT);
 
         // Then
-        assertThat(result)
-            .isEqualTo(
-                Map.ofEntries(
-                    Map.entry("apiName", "My Api"),
-                    Map.entry("apiDescription", "api-description"),
-                    Map.entry("ownerName", "Jane Doe"),
-                    Map.entry("email-support", "jane.doe@gravitee.io")
-                )
-            );
+        assertThat(result).isEqualTo(
+            Map.ofEntries(
+                Map.entry("apiName", "My Api"),
+                Map.entry("apiDescription", "api-description"),
+                Map.entry("ownerName", "Jane Doe"),
+                Map.entry("email-support", "jane.doe@gravitee.io")
+            )
+        );
     }
 
     @Test

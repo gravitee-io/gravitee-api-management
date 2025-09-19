@@ -76,8 +76,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
                 subscriptionCrudService.initWith(
                     List.of(
-                        SubscriptionFixtures
-                            .aSubscription()
+                        SubscriptionFixtures.aSubscription()
                             .toBuilder()
                             .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
                             .apiId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
@@ -88,8 +87,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
                 );
                 applicationCrudService.initWith(
                     List.of(
-                        ApplicationModelFixtures
-                            .anApplicationEntity()
+                        ApplicationModelFixtures.anApplicationEntity()
                             .toBuilder()
                             .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), APPLICATION_HRID).buildId())
                             .hrid(APPLICATION_HRID)
@@ -99,8 +97,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
                 planCrudService.initWith(
                     List.of(
-                        PlanFixtures
-                            .aPlanHttpV4()
+                        PlanFixtures.aPlanHttpV4()
                             .toBuilder()
                             .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), PLAN_HRID).buildId())
                             .hrid(PLAN_HRID)
@@ -127,8 +124,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
                 subscriptionCrudService.initWith(
                     List.of(
-                        SubscriptionFixtures
-                            .aSubscription()
+                        SubscriptionFixtures.aSubscription()
                             .toBuilder()
                             .id(HRID)
                             .apiId(API_HRID)
@@ -186,8 +182,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         void should_delete_subscription_and_return_no_content() {
             subscriptionCrudService.initWith(
                 List.of(
-                    SubscriptionFixtures
-                        .aSubscription()
+                    SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).withExtraId(HRID).buildId())
                         .apiId(IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), API_HRID).buildId())
@@ -204,8 +199,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         void should_delete_subscription_and_return_no_content_known_legacy_id() {
             subscriptionCrudService.initWith(
                 List.of(
-                    SubscriptionFixtures
-                        .aSubscription()
+                    SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(HRID)
                         .apiId(API_HRID)

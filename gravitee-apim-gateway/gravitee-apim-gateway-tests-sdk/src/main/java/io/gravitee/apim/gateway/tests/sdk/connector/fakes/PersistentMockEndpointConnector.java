@@ -36,15 +36,13 @@ public class PersistentMockEndpointConnector extends MockEndpointConnector {
 
     @Override
     public Completable publish(HttpExecutionContext ctx) {
-        return Completable
-            .defer(() ->
-                ctx
-                    .request()
-                    .onMessage(message -> {
-                        messageStorage.subject().onNext(message);
-                        return Maybe.just(message);
-                    })
-            )
-            .andThen(super.publish(ctx));
+        return Completable.defer(() ->
+            ctx
+                .request()
+                .onMessage(message -> {
+                    messageStorage.subject().onNext(message);
+                    return Maybe.just(message);
+                })
+        ).andThen(super.publish(ctx));
     }
 }

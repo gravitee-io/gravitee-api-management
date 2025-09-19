@@ -59,12 +59,11 @@ public class A2aAgentFetcherImpl implements A2aAgentFetcher {
             var uri = new URI(url).toURL();
             int port = uri.getPort();
             if (port < 0) {
-                port =
-                    switch (uri.getProtocol()) {
-                        case "http" -> 80;
-                        case "https" -> 443;
-                        default -> throw new IllegalArgumentException("Invalid port " + uri.getPort());
-                    };
+                port = switch (uri.getProtocol()) {
+                    case "http" -> 80;
+                    case "https" -> 443;
+                    default -> throw new IllegalArgumentException("Invalid port " + uri.getPort());
+                };
             }
             boolean ssl = "https".equalsIgnoreCase(uri.getProtocol());
             return webClient.get(port, uri.getHost(), uri.getFile()).ssl(ssl).rxSend();

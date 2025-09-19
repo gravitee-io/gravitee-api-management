@@ -53,8 +53,9 @@ class GetClusterPermissionsUseCaseTest {
             () -> assertThat(result.permissions().size()).isEqualTo(2),
             () -> assertThat(result.permissions().get(ClusterPermission.MEMBER.getName())).isEqualTo(new char[] { READ.getId() }),
             () ->
-                assertThat(result.permissions().get(ClusterPermission.DEFINITION.getName()))
-                    .isEqualTo(new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+                assertThat(result.permissions().get(ClusterPermission.DEFINITION.getName())).isEqualTo(
+                    new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
+                )
         );
     }
 
@@ -64,12 +65,11 @@ class GetClusterPermissionsUseCaseTest {
         var result = getClusterPermissionsUseCase.execute(new GetClusterPermissionsUseCase.Input(true, true, "admin", "cluster-1"));
         // Then
         assertThat(result.permissions().size()).isEqualTo(ClusterPermission.values().length);
-        Arrays
-            .stream(ClusterPermission.values())
-            .forEach(permission ->
-                assertThat(result.permissions().get(permission.getName()))
-                    .isEqualTo(new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            );
+        Arrays.stream(ClusterPermission.values()).forEach(permission ->
+            assertThat(result.permissions().get(permission.getName())).isEqualTo(
+                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
+            )
+        );
     }
 
     @Test
@@ -82,8 +82,7 @@ class GetClusterPermissionsUseCaseTest {
 
     private void initMembers() {
         List<MemberEntity> members = List.of(
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-5")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-1")
@@ -97,29 +96,25 @@ class GetClusterPermissionsUseCaseTest {
                     )
                 )
                 .build(),
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-2")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-1")
                 .type(MembershipMemberType.USER)
                 .build(),
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-3")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-2")
                 .type(MembershipMemberType.USER)
                 .build(),
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-4")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-2")
                 .type(MembershipMemberType.USER)
                 .build(),
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-1")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-1")

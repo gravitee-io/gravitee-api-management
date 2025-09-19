@@ -103,8 +103,7 @@ public class PlanService_PublishTest {
 
     @Test
     public void shouldPublishWithExistingKeylessPlan() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -124,8 +123,7 @@ public class PlanService_PublishTest {
 
     @Test(expected = KeylessPlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseExistingKeylessPlan() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -143,8 +141,7 @@ public class PlanService_PublishTest {
 
     @Test
     public void shouldPublish() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -161,8 +158,7 @@ public class PlanService_PublishTest {
 
     @Test
     public void shouldPublishAndUpdatePlan() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -180,8 +176,7 @@ public class PlanService_PublishTest {
     @Test
     public void shouldPublish_WithPublishGCPage() throws TechnicalException {
         final String GC_PAGE_ID = "GC_PAGE_ID";
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -205,8 +200,7 @@ public class PlanService_PublishTest {
     @Test(expected = PlanGeneralConditionStatusException.class)
     public void shouldNotPublish_WithNotPublishGCPage() throws TechnicalException {
         final String GC_PAGE_ID = "GC_PAGE_ID";
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)

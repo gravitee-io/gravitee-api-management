@@ -55,12 +55,13 @@ public class ClusterCrudServiceInMemory extends AbstractCrudServiceInMemory<Clus
 
     @Override
     public void updateGroups(String id, String environmentId, Set<String> groups) {
-        OptionalInt index =
-            this.findIndex(this.storage, cluster -> cluster.getId().equals(id) && cluster.getEnvironmentId().equals(environmentId));
+        OptionalInt index = this.findIndex(
+            this.storage,
+            cluster -> cluster.getId().equals(id) && cluster.getEnvironmentId().equals(environmentId)
+        );
         if (index.isPresent()) {
             Cluster cluster = storage.get(index.getAsInt());
-            Cluster updatedCluster = Cluster
-                .builder()
+            Cluster updatedCluster = Cluster.builder()
                 .id(cluster.getId())
                 .name(cluster.getName())
                 .description(cluster.getDescription())

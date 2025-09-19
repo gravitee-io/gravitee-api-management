@@ -124,8 +124,14 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             () -> assertEquals(HttpStatusCode.OK_200, response.getStatus()),
             () -> assertThat(resultRoleScopes.size()).isEqualTo(6),
             () ->
-                assertThat(resultRoleScopes.keySet())
-                    .containsExactlyInAnyOrder("ORGANIZATION", "ENVIRONMENT", "API", "APPLICATION", "INTEGRATION", "CLUSTER"),
+                assertThat(resultRoleScopes.keySet()).containsExactlyInAnyOrder(
+                    "ORGANIZATION",
+                    "ENVIRONMENT",
+                    "API",
+                    "APPLICATION",
+                    "INTEGRATION",
+                    "CLUSTER"
+                ),
             () -> assertThat(resultRoleScopes.get("ORGANIZATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ORGANIZATION")),
             () -> assertThat(resultRoleScopes.get("ENVIRONMENT")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ENVIRONMENT")),
             () -> assertThat(resultRoleScopes.get("API")).isEqualTo(EXPECTED_ROLE_SCOPES.get("API")),

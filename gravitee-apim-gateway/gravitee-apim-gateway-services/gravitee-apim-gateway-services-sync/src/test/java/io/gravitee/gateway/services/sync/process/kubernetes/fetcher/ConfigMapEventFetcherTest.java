@@ -157,8 +157,9 @@ class ConfigMapEventFetcherTest {
         KubernetesConfig.getInstance().setCurrentNamespace("current");
         ConfigMap configMap = createConfigMap("service1", "current");
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+            Flowable.just(createEvent(configMap))
+        );
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
     }
@@ -172,8 +173,9 @@ class ConfigMapEventFetcherTest {
         // If no definition version is present, consider v2 for backward-compatibility.
         configMap.getData().remove(DATA_API_DEFINITION_VERSION);
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+            Flowable.just(createEvent(configMap))
+        );
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
     }
@@ -184,8 +186,9 @@ class ConfigMapEventFetcherTest {
         KubernetesConfig.getInstance().setCurrentNamespace("current");
         ConfigMap configMap = createConfigMap(DefinitionVersion.V4, "apiV4", "current");
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+            Flowable.just(createEvent(configMap))
+        );
 
         cut
             .fetchLatest(API_DEFINITIONS_KIND)
@@ -202,8 +205,9 @@ class ConfigMapEventFetcherTest {
 
         configMap.getData().put(DATA_API_DEFINITION_VERSION, "unknown");
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+            Flowable.just(createEvent(configMap))
+        );
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertNoValues();
     }
@@ -243,44 +247,44 @@ class ConfigMapEventFetcherTest {
 
     private static String definitionV4() {
         return """
-                {
-                          "id": "d56923f4-d2e0-c56e-83cb-6670bf8759f9",
-                          "definitionVersion": "4.0.0",
-                          "type": "proxy",
-                          "listeners": [],
-                          "endpointGroups": [],
-                          "plans": []
-                      }
-            """;
+            {
+                      "id": "d56923f4-d2e0-c56e-83cb-6670bf8759f9",
+                      "definitionVersion": "4.0.0",
+                      "type": "proxy",
+                      "listeners": [],
+                      "endpointGroups": [],
+                      "plans": []
+                  }
+        """;
     }
 
     private static String definitionV2() {
         return """
-                {
-                          "id": "019a5f4e-5802-48d2-890a-dc24570d2e32",
-                          "name": "K8s Basic Example",
-                          "gravitee": "2.0.0",
-                          "flow_mode": "DEFAULT",
-                          "proxy": {
-                              "virtual_hosts": [
-                                  {
-                                      "path": "/k8s-basic"
-                                  }
-                              ],
-                              "groups": [
-                                  {
-                                      "endpoints": [
-                                          {
-                                              "name": "Default",
-                                              "target": "https://api.gravitee.io/echo"
-                                          }
-                                      ],
-                                      "load_balancing": {}
-                                  }
-                              ]
-                          }
+            {
+                      "id": "019a5f4e-5802-48d2-890a-dc24570d2e32",
+                      "name": "K8s Basic Example",
+                      "gravitee": "2.0.0",
+                      "flow_mode": "DEFAULT",
+                      "proxy": {
+                          "virtual_hosts": [
+                              {
+                                  "path": "/k8s-basic"
+                              }
+                          ],
+                          "groups": [
+                              {
+                                  "endpoints": [
+                                      {
+                                          "name": "Default",
+                                          "target": "https://api.gravitee.io/echo"
+                                      }
+                                  ],
+                                  "load_balancing": {}
+                              }
+                          ]
                       }
-            """;
+                  }
+        """;
     }
 
     private static Event<ConfigMap> createEvent(ConfigMap configMap) {

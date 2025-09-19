@@ -79,16 +79,15 @@ class ApiMigration {
     }
 
     MigrationResult<Api> mapApi(Api source) {
-        return apiDefinitionHttpV4(source.getApiDefinition())
-            .map(definition ->
-                source
-                    .toBuilder()
-                    .definitionVersion(DefinitionVersion.V4)
-                    .apiDefinitionHttpV4(definition)
-                    .apiDefinition(null)
-                    .type(ApiType.PROXY)
-                    .build()
-            );
+        return apiDefinitionHttpV4(source.getApiDefinition()).map(definition ->
+            source
+                .toBuilder()
+                .definitionVersion(DefinitionVersion.V4)
+                .apiDefinitionHttpV4(definition)
+                .apiDefinition(null)
+                .type(ApiType.PROXY)
+                .build()
+        );
     }
 
     private MigrationResult<io.gravitee.definition.model.v4.Api> apiDefinitionHttpV4(io.gravitee.definition.model.Api apiDefinitionV2) {
@@ -96,8 +95,7 @@ class ApiMigration {
             return MigrationResult.issue(MigrationWarnings.V2_API_NOT_NULL, MigrationResult.State.IMPOSSIBLE);
         }
         List<Listener> listeners = List.of(
-            HttpListener
-                .builder()
+            HttpListener.builder()
                 .cors(apiDefinitionV2.getProxy().getCors())
                 .servers(apiDefinitionV2.getProxy().getServers())
                 .type(ListenerType.HTTP)
@@ -123,9 +121,9 @@ class ApiMigration {
                     endpointGroupsList,
                     analytics,
                     failover,
-                    null/* plans are managed in another place because is in a different collection */,
+                    null /* plans are managed in another place because is in a different collection */,
                     null,
-                    null/* flows are managed in another place because is in a different collection */,
+                    null /* flows are managed in another place because is in a different collection */,
                     apiDefinitionV2.getResponseTemplates(),
                     apiServices
                 );
@@ -157,8 +155,7 @@ class ApiMigration {
 
     private Failover mapFailOver(Proxy proxy) {
         return proxy.failoverEnabled()
-            ? Failover
-                .builder()
+            ? Failover.builder()
                 .enabled(proxy.failoverEnabled())
                 .slowCallDuration(proxy.getFailover().getRetryTimeout())
                 .maxRetries(proxy.getFailover().getMaxAttempts())
@@ -191,33 +188,24 @@ class ApiMigration {
         }
 
         return endpointGroupMigrationResult
-            .foldLeft(
-                endpointGroupServicesMigrationResult,
-                (egp, egs) -> {
-                    if (egp != null) {
-                        egp.setServices(egs);
-                    }
-                    return egp;
+            .foldLeft(endpointGroupServicesMigrationResult, (egp, egs) -> {
+                if (egp != null) {
+                    egp.setServices(egs);
                 }
-            )
-            .foldLeft(
-                endpoints,
-                (egp, b) -> {
-                    if (egp != null) {
-                        egp.setEndpoints(b);
-                    }
-                    return egp;
+                return egp;
+            })
+            .foldLeft(endpoints, (egp, b) -> {
+                if (egp != null) {
+                    egp.setEndpoints(b);
                 }
-            )
-            .foldLeft(
-                MigrationResult.value(sharedConfiguration),
-                (egp, b) -> {
-                    if (egp != null) {
-                        egp.setSharedConfiguration(b);
-                    }
-                    return egp;
+                return egp;
+            })
+            .foldLeft(MigrationResult.value(sharedConfiguration), (egp, b) -> {
+                if (egp != null) {
+                    egp.setSharedConfiguration(b);
                 }
-            );
+                return egp;
+            });
     }
 
     private MigrationResult<EndpointGroupServices> mapEndpointGroupServices(
@@ -229,8 +217,7 @@ class ApiMigration {
             return MigrationResult.value(new EndpointGroupServices());
         }
 
-        var migratedServices = Stream
-            .of(endpointServices, endpointGroupServices)
+        var migratedServices = Stream.of(endpointServices, endpointGroupServices)
             .filter(Objects::nonNull)
             .flatMap(s -> s.getAll().stream())
             .flatMap(service -> Stream.ofNullable(apiServicesMigration.convert(service, TYPE_ENDPOINTGROUP, name)))
@@ -239,8 +226,9 @@ class ApiMigration {
         return migratedServices.map(services -> {
             var servicesByType = services
                 .stream()
-                .filter(service ->
-                    CONSUL_DISCOVERY_SERVICE_TYPE.equals(service.getType()) || HTTP_HEALTH_CHECK_SERVICE_TYPE.equals(service.getType())
+                .filter(
+                    service ->
+                        CONSUL_DISCOVERY_SERVICE_TYPE.equals(service.getType()) || HTTP_HEALTH_CHECK_SERVICE_TYPE.equals(service.getType())
                 )
                 .collect(Collectors.toMap(Service::getType, svc -> svc, (svc1, svc2) -> svc2));
 
@@ -264,15 +252,12 @@ class ApiMigration {
                 EndpointHealthCheckService epHealthCheckService = jsonMapper.treeToValue(hcNode, EndpointHealthCheckService.class);
                 var serviceMigrationResult = apiServicesMigration.convert(epHealthCheckService, TYPE_ENDPOINT, name);
                 if (serviceMigrationResult != null) {
-                    return migrationResult.foldLeft(
-                        serviceMigrationResult,
-                        (endpointSvc, serviceV4) -> {
-                            if (endpointSvc != null) {
-                                endpointSvc.setHealthCheck(serviceV4);
-                            }
-                            return endpointSvc;
+                    return migrationResult.foldLeft(serviceMigrationResult, (endpointSvc, serviceV4) -> {
+                        if (endpointSvc != null) {
+                            endpointSvc.setHealthCheck(serviceV4);
                         }
-                    );
+                        return endpointSvc;
+                    });
                 }
             }
         } catch (JsonProcessingException e) {
@@ -291,7 +276,9 @@ class ApiMigration {
     private List<Property> mapProperties(@Nullable Properties properties) {
         return properties == null
             ? null
-            : stream(properties.getProperties()).map(a -> new Property(a.getKey(), a.getValue(), a.isEncrypted(), a.isDynamic())).toList();
+            : stream(properties.getProperties())
+                .map(a -> new Property(a.getKey(), a.getValue(), a.isEncrypted(), a.isDynamic()))
+                .toList();
     }
 
     private List<Resource> mapResources(List<io.gravitee.definition.model.plugins.resources.Resource> resources) {
@@ -304,11 +291,10 @@ class ApiMigration {
 
     private FlowExecution mapFlowExecution(FlowMode flowMode) {
         var flowExecution = new FlowExecution();
-        var mode =
-            switch (flowMode) {
-                case DEFAULT -> DEFAULT;
-                case BEST_MATCH -> BEST_MATCH;
-            };
+        var mode = switch (flowMode) {
+            case DEFAULT -> DEFAULT;
+            case BEST_MATCH -> BEST_MATCH;
+        };
         flowExecution.setMode(mode);
         return flowExecution;
     }
@@ -331,8 +317,7 @@ class ApiMigration {
         return endPointServices.flatMap(epServices ->
             sharedConfigurationOverride.flatMap(sharedConfigurationOverride1 ->
                 configuration.map(configuration1 ->
-                    Endpoint
-                        .builder()
+                    Endpoint.builder()
                         .name(lb.getName())
                         .type(HTTP_PROXY)
                         .secondary(lb.isBackup())
@@ -391,8 +376,7 @@ class ApiMigration {
     }
 
     private io.gravitee.definition.model.v4.analytics.logging.Logging mapLogging(Logging v2logging) {
-        return io.gravitee.definition.model.v4.analytics.logging.Logging
-            .builder()
+        return io.gravitee.definition.model.v4.analytics.logging.Logging.builder()
             .condition(v2logging.getCondition())
             .mode(new LoggingMode(v2logging.getMode().isClientMode(), v2logging.getMode().isProxyMode()))
             .content(new LoggingContent(v2logging.getContent().isHeaders(), false, v2logging.getContent().isPayloads(), false, false))

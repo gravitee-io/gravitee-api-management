@@ -35,8 +35,7 @@ public class CreatePortalMenuLinkUseCase {
 
     public Output execute(Input input) {
         var newOrder = this.portalMenuLinkQueryService.findByEnvironmentIdSortByOrder(input.environmentId()).size() + 1;
-        PortalMenuLink portalMenuLinkToCreate = PortalMenuLink
-            .builder()
+        PortalMenuLink portalMenuLinkToCreate = PortalMenuLink.builder()
             .id(UuidString.generateRandom())
             .environmentId(input.environmentId())
             .type(input.portalMenuLinkToCreate().getType())

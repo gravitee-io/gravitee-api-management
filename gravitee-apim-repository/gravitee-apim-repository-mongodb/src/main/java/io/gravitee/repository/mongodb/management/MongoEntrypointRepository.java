@@ -140,7 +140,11 @@ public class MongoEntrypointRepository implements EntrypointRepository {
 
     @Override
     public Set<Entrypoint> findAll() throws TechnicalException {
-        return internalEntryPointRepo.findAll().stream().map(entrypointMongo -> mapper.map(entrypointMongo)).collect(Collectors.toSet());
+        return internalEntryPointRepo
+            .findAll()
+            .stream()
+            .map(entrypointMongo -> mapper.map(entrypointMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override

@@ -55,12 +55,11 @@ class ApplicationsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class)))
-                .thenReturn(
-                    new ImportApplicationCRDUseCase.Output(
-                        ApplicationCRDStatus.builder().id("application-id").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
-                    )
-                );
+            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class))).thenReturn(
+                new ImportApplicationCRDUseCase.Output(
+                    ApplicationCRDStatus.builder().id("application-id").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
+                )
+            );
         }
 
         @Test
@@ -76,18 +75,12 @@ class ApplicationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_legacy_id() {
-            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class)))
-                .thenAnswer(call -> {
-                    ImportApplicationCRDUseCase.Input input = call.getArgument(0, ImportApplicationCRDUseCase.Input.class);
-                    return new ImportApplicationCRDUseCase.Output(
-                        ApplicationCRDStatus
-                            .builder()
-                            .id(input.crd().getHrid())
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .build()
-                    );
-                });
+            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class))).thenAnswer(call -> {
+                ImportApplicationCRDUseCase.Input input = call.getArgument(0, ImportApplicationCRDUseCase.Input.class);
+                return new ImportApplicationCRDUseCase.Output(
+                    ApplicationCRDStatus.builder().id(input.crd().getHrid()).organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
+                );
+            });
 
             var state = expectEntity("application-with-hrid.json", false, true);
             SoftAssertions.assertSoftly(soft -> {
@@ -106,12 +99,13 @@ class ApplicationsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_hrid() {
-            when(validateApplicationCRDDomainService.validateAndSanitize(any(ValidateApplicationCRDDomainService.Input.class)))
-                .thenAnswer(call -> {
+            when(validateApplicationCRDDomainService.validateAndSanitize(any(ValidateApplicationCRDDomainService.Input.class))).thenAnswer(
+                call -> {
                     var input = (ValidateApplicationCRDDomainService.Input) call.getArgument(0);
                     input.spec().setId(IdBuilder.builder(input.auditInfo(), input.spec().getHrid()).buildId());
                     return Validator.Result.ofValue(input);
-                });
+                }
+            );
 
             var state = expectEntity("application-with-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {

@@ -305,8 +305,7 @@ class CreatePlanUseCaseTest {
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(NativeApiWithMultipleFlowsException.class)
             .hasMessage("Native APIs cannot have more than one flow");
     }
@@ -336,8 +335,7 @@ class CreatePlanUseCaseTest {
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(PlanInvalidException.class)
             .hasMessage("Plan mode 'Push' is forbidden for Native APIs");
     }

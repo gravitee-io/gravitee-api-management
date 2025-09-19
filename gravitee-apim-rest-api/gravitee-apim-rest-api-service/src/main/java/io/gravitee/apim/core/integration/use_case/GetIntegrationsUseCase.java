@@ -67,8 +67,7 @@ public class GetIntegrationsUseCase {
             pageable
         );
 
-        var pageContent = Flowable
-            .fromIterable(page.getContent())
+        var pageContent = Flowable.fromIterable(page.getContent())
             .flatMapSingle(integration ->
                 switch (integration) {
                     case Integration.ApiIntegration apiIntegration -> enrichApiIntegration(

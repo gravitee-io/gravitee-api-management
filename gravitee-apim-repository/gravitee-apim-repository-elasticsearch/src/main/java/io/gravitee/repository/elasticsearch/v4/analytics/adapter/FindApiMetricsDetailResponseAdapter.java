@@ -39,12 +39,15 @@ public class FindApiMetricsDetailResponseAdapter {
             return Optional.empty();
         }
 
-        return hits.getHits().stream().findFirst().map(h -> buildFromSource(h.getSource()));
+        return hits
+            .getHits()
+            .stream()
+            .findFirst()
+            .map(h -> buildFromSource(h.getSource()));
     }
 
     private static ApiMetricsDetail buildFromSource(JsonNode json) {
-        return ApiMetricsDetail
-            .builder()
+        return ApiMetricsDetail.builder()
             .timestamp(asTextOrNull(json.get("@timestamp")))
             .apiId(asTextOrNull(json.get("api-id")))
             .requestId(asTextOrNull(json.get("request-id")))
@@ -75,8 +78,7 @@ public class FindApiMetricsDetailResponseAdapter {
         if (json == null || !json.isArray()) {
             return List.of();
         }
-        return StreamSupport
-            .stream(json.spliterator(), false)
+        return StreamSupport.stream(json.spliterator(), false)
             .map(FindApiMetricsDetailResponseAdapter::buildDiagnostic)
             .filter(Objects::nonNull)
             .toList();
@@ -86,8 +88,7 @@ public class FindApiMetricsDetailResponseAdapter {
         if (json == null) {
             return null;
         }
-        return ConnectionDiagnostic
-            .builder()
+        return ConnectionDiagnostic.builder()
             .componentType(asTextOrNull(json.get("component-type")))
             .componentName(asTextOrNull(json.get("component-name")))
             .key(asTextOrNull(json.get("key")))

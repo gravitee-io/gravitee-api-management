@@ -63,10 +63,9 @@ public class VertxHttpServerRequest extends AbstractRequest {
         this.bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer), this::isStreaming);
         this.messageFlow = null;
         this.options = options;
-        this.connectionTimestamp =
-            (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate()).channel()
-                .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
-                .get();
+        this.connectionTimestamp = (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate()).channel()
+            .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
+            .get();
     }
 
     public VertxHttpServerResponse response() {

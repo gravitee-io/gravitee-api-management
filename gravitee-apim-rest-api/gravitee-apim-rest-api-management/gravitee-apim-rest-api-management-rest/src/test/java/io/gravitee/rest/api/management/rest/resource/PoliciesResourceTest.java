@@ -93,8 +93,8 @@ public class PoliciesResourceTest extends AbstractResourceTest {
             .hasSize(3)
             .hasToString(
                 "[{id=policy-2, name=Policy 2, onRequest=true, onResponse=false, deployed=true}, " +
-                "{id=policy-3, name=Policy 3, onRequest=true, onResponse=false, deployed=false}, " +
-                "{id=policy-1, name=Policy 1, onRequest=true, onResponse=false, deployed=false}]"
+                    "{id=policy-3, name=Policy 3, onRequest=true, onResponse=false, deployed=false}, " +
+                    "{id=policy-1, name=Policy 1, onRequest=true, onResponse=false, deployed=false}]"
             );
     }
 

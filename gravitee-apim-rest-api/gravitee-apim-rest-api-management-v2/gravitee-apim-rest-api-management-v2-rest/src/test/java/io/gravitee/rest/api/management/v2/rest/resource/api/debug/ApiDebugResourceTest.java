@@ -95,8 +95,7 @@ class ApiDebugResourceTest extends ApiResourceTest {
                     eq(API),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(null);
 
@@ -128,8 +127,7 @@ class ApiDebugResourceTest extends ApiResourceTest {
     }
 
     private static Instance validInstance() {
-        return Instance
-            .builder()
+        return Instance.builder()
             .id("gateway-instance-id")
             .startedAt(new Date())
             .clusterPrimaryNode(true)

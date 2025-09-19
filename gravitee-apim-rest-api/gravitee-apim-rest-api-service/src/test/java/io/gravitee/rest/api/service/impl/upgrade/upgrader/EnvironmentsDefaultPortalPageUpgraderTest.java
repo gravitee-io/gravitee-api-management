@@ -42,8 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class EnvironmentsDefaultPortalPageUpgraderTest {
 
-    private static final Environment ANOTHER_ENVIRONMENT = Environment
-        .builder()
+    private static final Environment ANOTHER_ENVIRONMENT = Environment.builder()
         .id("ANOTHER_ENVIRONMENT")
         .hrids(List.of("another environment"))
         .name("another environment")

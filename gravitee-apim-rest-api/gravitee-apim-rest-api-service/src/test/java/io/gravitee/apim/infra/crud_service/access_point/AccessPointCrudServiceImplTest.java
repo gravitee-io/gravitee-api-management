@@ -78,15 +78,15 @@ class AccessPointCrudServiceImplTest {
                 io.gravitee.repository.management.model.AccessPoint.builder().id("ap1").build(),
                 io.gravitee.repository.management.model.AccessPoint.builder().id("ap2").build()
             );
-            var accessPointCriteria = AccessPointCriteria
-                .builder()
+            var accessPointCriteria = AccessPointCriteria.builder()
                 .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
                 .referenceIds(Set.of("ref-id"))
                 .status(AccessPointStatus.CREATED)
                 .build();
             when(accessPointRepository.findByCriteria(accessPointCriteria, null, null)).thenReturn(fetchedAccessPoints);
-            when(accessPointRepository.update(any(io.gravitee.repository.management.model.AccessPoint.class)))
-                .thenReturn(io.gravitee.repository.management.model.AccessPoint.builder().build());
+            when(accessPointRepository.update(any(io.gravitee.repository.management.model.AccessPoint.class))).thenReturn(
+                io.gravitee.repository.management.model.AccessPoint.builder().build()
+            );
 
             var dateBeforeDeletion = Instant.now().minusSeconds(1);
             service.deleteAccessPoints(referenceType, "ref-id");
@@ -126,8 +126,7 @@ class AccessPointCrudServiceImplTest {
         @EnumSource(AccessPoint.ReferenceType.class)
         void should_update_existing_access_points_of_the_reference(AccessPoint.ReferenceType referenceType) throws Exception {
             // Given
-            var unmodifiedAccessPoint = io.gravitee.repository.management.model.AccessPoint
-                .builder()
+            var unmodifiedAccessPoint = io.gravitee.repository.management.model.AccessPoint.builder()
                 .id("unmodified-id")
                 .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
                 .referenceId("ref-id")
@@ -137,8 +136,7 @@ class AccessPointCrudServiceImplTest {
                 .secured(true)
                 .status(AccessPointStatus.CREATED)
                 .build();
-            var modifiedAccessPoint = io.gravitee.repository.management.model.AccessPoint
-                .builder()
+            var modifiedAccessPoint = io.gravitee.repository.management.model.AccessPoint.builder()
                 .id("modified-id")
                 .referenceType(AccessPointReferenceType.valueOf(referenceType.name()))
                 .referenceId("ref-id")
@@ -153,8 +151,9 @@ class AccessPointCrudServiceImplTest {
                 AccessPointAdapter.INSTANCE.toEntity(unmodifiedAccessPoint).toBuilder().host("host-1".toUpperCase()).build(),
                 AccessPointAdapter.INSTANCE.toEntity(modifiedAccessPoint).toBuilder().host("modified-host").build()
             );
-            when(accessPointRepository.findByCriteria(any(AccessPointCriteria.class), any(), any()))
-                .thenReturn(List.of(unmodifiedAccessPoint, modifiedAccessPoint));
+            when(accessPointRepository.findByCriteria(any(AccessPointCriteria.class), any(), any())).thenReturn(
+                List.of(unmodifiedAccessPoint, modifiedAccessPoint)
+            );
 
             // When
             var dateBeforeDeletion = Instant.now().minusSeconds(1);
@@ -194,8 +193,7 @@ class AccessPointCrudServiceImplTest {
         @Test
         void should_update_multiple_gateway_access_points() throws Exception {
             // Given
-            var gwOne = io.gravitee.repository.management.model.AccessPoint
-                .builder()
+            var gwOne = io.gravitee.repository.management.model.AccessPoint.builder()
                 .id("gateway-one")
                 .referenceType(AccessPointReferenceType.valueOf(AccessPoint.ReferenceType.ENVIRONMENT.name()))
                 .referenceId("ref-id")
@@ -203,8 +201,7 @@ class AccessPointCrudServiceImplTest {
                 .host("host-gateway-one")
                 .status(AccessPointStatus.CREATED)
                 .build();
-            var gwTwo = io.gravitee.repository.management.model.AccessPoint
-                .builder()
+            var gwTwo = io.gravitee.repository.management.model.AccessPoint.builder()
                 .id("gateway-two")
                 .referenceType(AccessPointReferenceType.valueOf(AccessPoint.ReferenceType.ENVIRONMENT.name()))
                 .referenceId("ref-id")
@@ -258,11 +255,9 @@ class AccessPointCrudServiceImplTest {
             // Given
             when(accessPointRepository.findByCriteria(any(AccessPointCriteria.class), any(), any())).thenReturn(List.of());
 
-            var accessPoints = Arrays
-                .stream(AccessPoint.Target.values())
+            var accessPoints = Arrays.stream(AccessPoint.Target.values())
                 .map(target ->
-                    AccessPoint
-                        .builder()
+                    AccessPoint.builder()
                         .referenceType(referenceType)
                         .referenceId("my-ref")
                         .host("my-host")
@@ -302,22 +297,21 @@ class AccessPointCrudServiceImplTest {
         @EnumSource(AccessPoint.ReferenceType.class)
         void should_not_update_access_points_if_nothing_changed(AccessPoint.ReferenceType referenceType) throws Exception {
             // Given
-            var ap1 = AccessPoint
-                .builder()
+            var ap1 = AccessPoint.builder()
                 .referenceType(referenceType)
                 .referenceId("ref-id")
                 .target(AccessPoint.Target.CONSOLE)
                 .host("host-console")
                 .build();
-            var ap2 = AccessPoint
-                .builder()
+            var ap2 = AccessPoint.builder()
                 .referenceType(referenceType)
                 .referenceId("ref-id")
                 .target(AccessPoint.Target.GATEWAY)
                 .host("host-gateway")
                 .build();
-            when(accessPointRepository.findByCriteria(any(AccessPointCriteria.class), any(), any()))
-                .thenReturn(List.of(AccessPointAdapter.INSTANCE.fromEntity(ap1), AccessPointAdapter.INSTANCE.fromEntity(ap2)));
+            when(accessPointRepository.findByCriteria(any(AccessPointCriteria.class), any(), any())).thenReturn(
+                List.of(AccessPointAdapter.INSTANCE.fromEntity(ap1), AccessPointAdapter.INSTANCE.fromEntity(ap2))
+            );
 
             var accessPoints = List.of(ap1, ap2);
 

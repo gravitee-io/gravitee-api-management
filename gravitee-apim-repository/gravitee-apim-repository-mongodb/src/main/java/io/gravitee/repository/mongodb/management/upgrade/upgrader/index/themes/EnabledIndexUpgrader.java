@@ -27,8 +27,7 @@ public class EnabledIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("themes")
             .name("e1")
             .key("enabled", ascending())

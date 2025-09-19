@@ -114,8 +114,7 @@ public class FederatedApiAgentEntity implements GenericApiEntity {
         @Nullable Collection<String> examples,
         @Nullable Collection<String> inputModes,
         @Nullable Collection<String> outputModes
-    )
-        implements Serializable {}
+    ) implements Serializable {}
 
     @Override
     public Lifecycle.State getState() {

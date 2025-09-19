@@ -119,7 +119,11 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     @Override
     public Set<Organization> findAll() throws TechnicalException {
         try {
-            return internalOrganizationRepo.findAll().stream().map(organization -> mapper.map(organization)).collect(Collectors.toSet());
+            return internalOrganizationRepo
+                .findAll()
+                .stream()
+                .map(organization -> mapper.map(organization))
+                .collect(Collectors.toSet());
         } catch (Exception e) {
             LOGGER.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");
@@ -129,7 +133,10 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     @Override
     public Set<Organization> findByHrids(Set<String> hrids) {
         final Set<OrganizationMongo> organizations = internalOrganizationRepo.findByHrids(hrids);
-        return organizations.stream().map(organizationMongo -> mapper.map(organizationMongo)).collect(Collectors.toSet());
+        return organizations
+            .stream()
+            .map(organizationMongo -> mapper.map(organizationMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override

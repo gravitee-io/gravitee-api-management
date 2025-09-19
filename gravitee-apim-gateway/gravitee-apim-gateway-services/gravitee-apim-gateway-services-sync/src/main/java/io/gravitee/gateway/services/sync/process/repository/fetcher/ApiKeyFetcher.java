@@ -38,8 +38,7 @@ public class ApiKeyFetcher {
     public Flowable<List<ApiKey>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
         // The following doesn't paginate over the result because for now we don't see any value, but it could be implemented same as EventFetcher
         return Flowable.generate(emitter -> {
-            ApiKeyCriteria criteriaBuilder = ApiKeyCriteria
-                .builder()
+            ApiKeyCriteria criteriaBuilder = ApiKeyCriteria.builder()
                 .includeRevoked(true)
                 .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
                 .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)

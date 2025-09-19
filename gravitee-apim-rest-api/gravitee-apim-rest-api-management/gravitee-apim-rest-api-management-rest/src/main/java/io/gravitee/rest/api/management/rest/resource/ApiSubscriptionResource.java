@@ -141,16 +141,14 @@ public class ApiSubscriptionResource extends AbstractResource {
         @Parameter(name = "subscription", required = true) @Valid @NotNull ProcessSubscriptionEntity processSubscriptionEntity
     ) {
         if (processSubscriptionEntity.getId() != null && !subscription.equals(processSubscriptionEntity.getId())) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
+            return Response.status(Response.Status.BAD_REQUEST)
                 .entity("'subscription' parameter does not correspond to the subscription to process")
                 .build();
         }
 
         var executionContext = GraviteeContext.getExecutionContext();
         var user = getAuthenticatedUserDetails();
-        var auditInfo = AuditInfo
-            .builder()
+        var auditInfo = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
@@ -158,29 +156,27 @@ public class ApiSubscriptionResource extends AbstractResource {
         io.gravitee.apim.core.subscription.model.SubscriptionEntity result;
 
         if (processSubscriptionEntity.isAccepted()) {
-            result =
-                acceptSubscriptionUsecase
-                    .execute(
-                        new AcceptSubscriptionUseCase.Input(
-                            api,
-                            subscription,
-                            processSubscriptionEntity.getStartingAt() != null
-                                ? processSubscriptionEntity.getStartingAt().toInstant().atZone(ZoneId.systemDefault())
-                                : null,
-                            processSubscriptionEntity.getEndingAt() != null
-                                ? processSubscriptionEntity.getEndingAt().toInstant().atZone(ZoneId.systemDefault())
-                                : null,
-                            processSubscriptionEntity.getReason(),
-                            processSubscriptionEntity.getCustomApiKey(),
-                            auditInfo
-                        )
+            result = acceptSubscriptionUsecase
+                .execute(
+                    new AcceptSubscriptionUseCase.Input(
+                        api,
+                        subscription,
+                        processSubscriptionEntity.getStartingAt() != null
+                            ? processSubscriptionEntity.getStartingAt().toInstant().atZone(ZoneId.systemDefault())
+                            : null,
+                        processSubscriptionEntity.getEndingAt() != null
+                            ? processSubscriptionEntity.getEndingAt().toInstant().atZone(ZoneId.systemDefault())
+                            : null,
+                        processSubscriptionEntity.getReason(),
+                        processSubscriptionEntity.getCustomApiKey(),
+                        auditInfo
                     )
-                    .subscription();
+                )
+                .subscription();
         } else {
-            result =
-                rejectSubscriptionUsecase
-                    .execute(new RejectSubscriptionUseCase.Input(api, subscription, processSubscriptionEntity.getReason(), auditInfo))
-                    .subscription();
+            result = rejectSubscriptionUsecase
+                .execute(new RejectSubscriptionUseCase.Input(api, subscription, processSubscriptionEntity.getReason(), auditInfo))
+                .subscription();
         }
 
         return Response.ok(convert(executionContext, result)).build();
@@ -203,8 +199,7 @@ public class ApiSubscriptionResource extends AbstractResource {
         @Parameter(name = "subscription", required = true) @Valid @NotNull UpdateSubscriptionEntity updateSubscriptionEntity
     ) {
         if (updateSubscriptionEntity.getId() != null && !subscription.equals(updateSubscriptionEntity.getId())) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
+            return Response.status(Response.Status.BAD_REQUEST)
                 .entity("'subscription' parameter does not correspond to the subscription to update")
                 .build();
         }
@@ -247,18 +242,15 @@ public class ApiSubscriptionResource extends AbstractResource {
 
         if (CLOSED.equals(subscriptionStatus)) {
             var result = closeSubscriptionUsecase.execute(
-                CloseSubscriptionUseCase.Input
-                    .builder()
+                CloseSubscriptionUseCase.Input.builder()
                     .subscriptionId(subscription)
                     .apiId(api)
                     .auditInfo(
-                        AuditInfo
-                            .builder()
+                        AuditInfo.builder()
                             .organizationId(executionContext.getOrganizationId())
                             .environmentId(executionContext.getEnvironmentId())
                             .actor(
-                                AuditActor
-                                    .builder()
+                                AuditActor.builder()
                                     .userId(user.getUsername())
                                     .userSource(user.getSource())
                                     .userSourceId(user.getSourceId())
@@ -300,8 +292,7 @@ public class ApiSubscriptionResource extends AbstractResource {
         @Parameter(name = "subscription", required = true) @Valid @NotNull TransferSubscriptionEntity transferSubscriptionEntity
     ) {
         if (transferSubscriptionEntity.getId() != null && !subscription.equals(transferSubscriptionEntity.getId())) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
+            return Response.status(Response.Status.BAD_REQUEST)
                 .entity("'subscription' parameter does not correspond to the subscription to process")
                 .build();
         }

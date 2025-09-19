@@ -58,8 +58,7 @@ class GetHomepageUseCaseTest {
             List.of(new PortalPageWithViewDetails(homepage, new PortalPageView(PortalViewContext.HOMEPAGE, true)))
         );
         String environmentId = "DEFAULT";
-        var ctx = PortalPageContext
-            .builder()
+        var ctx = PortalPageContext.builder()
             .pageId(pageId.toString())
             .contextType(PortalPageContextType.HOMEPAGE)
             .environmentId(environmentId)

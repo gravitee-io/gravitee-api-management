@@ -103,18 +103,17 @@ public final class Services implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Stream
-            .of(
-                Optional
-                    .ofNullable(this.getDiscoveryService())
-                    .filter(Service::isEnabled)
-                    .map(s -> new Plugin("service_discovery", s.getProvider())),
-                Optional.ofNullable(this.getHealthCheckService()).filter(Service::isEnabled).map(s -> new Plugin("service", "healthcheck")),
-                Optional
-                    .ofNullable(this.getDynamicPropertyService())
-                    .filter(Service::isEnabled)
-                    .map(s -> new Plugin("service", "mgmt-service-dynamicproperties"))
-            )
+        return Stream.of(
+            Optional.ofNullable(this.getDiscoveryService())
+                .filter(Service::isEnabled)
+                .map(s -> new Plugin("service_discovery", s.getProvider())),
+            Optional.ofNullable(this.getHealthCheckService())
+                .filter(Service::isEnabled)
+                .map(s -> new Plugin("service", "healthcheck")),
+            Optional.ofNullable(this.getDynamicPropertyService())
+                .filter(Service::isEnabled)
+                .map(s -> new Plugin("service", "mgmt-service-dynamicproperties"))
+        )
             .filter(Optional::isPresent)
             .flatMap(Optional::stream)
             .collect(Collectors.toList());

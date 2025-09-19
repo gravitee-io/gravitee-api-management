@@ -41,8 +41,9 @@ class ConsulServiceDiscoveryServiceFactoryTest {
 
     @Test
     void should_create_the_service_when_discovery_service_is_enabled_in_group() {
-        when(deploymentContext.getComponent(Api.class))
-            .thenReturn(anApiWithServiceDiscovery(Service.builder().enabled(true).type(CONSUL_SERVICE_DISCOVERY_ID).build()));
+        when(deploymentContext.getComponent(Api.class)).thenReturn(
+            anApiWithServiceDiscovery(Service.builder().enabled(true).type(CONSUL_SERVICE_DISCOVERY_ID).build())
+        );
 
         var result = new ConsulServiceDiscoveryServiceFactory().createService(deploymentContext);
 
@@ -51,8 +52,9 @@ class ConsulServiceDiscoveryServiceFactoryTest {
 
     @Test
     void should_not_create_the_service_when_discovery_service_is_disabled_in_group() {
-        when(deploymentContext.getComponent(Api.class))
-            .thenReturn(anApiWithServiceDiscovery(Service.builder().enabled(false).type(CONSUL_SERVICE_DISCOVERY_ID).build()));
+        when(deploymentContext.getComponent(Api.class)).thenReturn(
+            anApiWithServiceDiscovery(Service.builder().enabled(false).type(CONSUL_SERVICE_DISCOVERY_ID).build())
+        );
 
         var result = new ConsulServiceDiscoveryServiceFactory().createService(deploymentContext);
 
@@ -61,8 +63,9 @@ class ConsulServiceDiscoveryServiceFactoryTest {
 
     @Test
     void should_not_create_the_service_when_discovery_service_not_match() {
-        when(deploymentContext.getComponent(Api.class))
-            .thenReturn(anApiWithServiceDiscovery(Service.builder().enabled(true).type("other").build()));
+        when(deploymentContext.getComponent(Api.class)).thenReturn(
+            anApiWithServiceDiscovery(Service.builder().enabled(true).type("other").build())
+        );
 
         var result = new ConsulServiceDiscoveryServiceFactory().createService(deploymentContext);
 

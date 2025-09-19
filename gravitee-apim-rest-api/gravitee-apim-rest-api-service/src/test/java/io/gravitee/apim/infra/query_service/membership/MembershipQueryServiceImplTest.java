@@ -55,23 +55,21 @@ class MembershipQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_all_memberships_matching() {
-            when(membershipRepository.findByReferenceAndRoleId(any(), any(), any()))
-                .thenAnswer(invocation ->
-                    Set.of(
-                        Membership
-                            .builder()
-                            .referenceType(invocation.getArgument(0))
-                            .referenceId(invocation.getArgument(1))
-                            .roleId(invocation.getArgument(2))
-                            .id("membership-id")
-                            .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
-                            .memberId("user-id")
-                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                            .source("system")
-                            .build()
-                    )
-                );
+            when(membershipRepository.findByReferenceAndRoleId(any(), any(), any())).thenAnswer(invocation ->
+                Set.of(
+                    Membership.builder()
+                        .referenceType(invocation.getArgument(0))
+                        .referenceId(invocation.getArgument(1))
+                        .roleId(invocation.getArgument(2))
+                        .id("membership-id")
+                        .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
+                        .memberId("user-id")
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .source("system")
+                        .build()
+                )
+            );
 
             var result = service.findByReferenceAndRoleId(
                 io.gravitee.apim.core.membership.model.Membership.ReferenceType.API,
@@ -82,8 +80,7 @@ class MembershipQueryServiceImplTest {
             assertThat(result)
                 .hasSize(1)
                 .containsExactly(
-                    io.gravitee.apim.core.membership.model.Membership
-                        .builder()
+                    io.gravitee.apim.core.membership.model.Membership.builder()
                         .id("membership-id")
                         .referenceType(io.gravitee.apim.core.membership.model.Membership.ReferenceType.API)
                         .referenceId("api-id")
@@ -134,27 +131,25 @@ class MembershipQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_all_memberships_matching() {
-            when(membershipRepository.findByReferencesAndRoleId(any(), anyList(), any()))
-                .thenAnswer(invocation -> {
-                    return invocation
-                        .getArgument(1, List.class)
-                        .stream()
-                        .map(referenceId ->
-                            Membership
-                                .builder()
-                                .referenceType(invocation.getArgument(0))
-                                .referenceId((String) referenceId)
-                                .roleId(invocation.getArgument(2))
-                                .id("membership-id-" + referenceId)
-                                .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
-                                .memberId("user-id")
-                                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                                .source("system")
-                                .build()
-                        )
-                        .collect(Collectors.toSet());
-                });
+            when(membershipRepository.findByReferencesAndRoleId(any(), anyList(), any())).thenAnswer(invocation -> {
+                return invocation
+                    .getArgument(1, List.class)
+                    .stream()
+                    .map(referenceId ->
+                        Membership.builder()
+                            .referenceType(invocation.getArgument(0))
+                            .referenceId((String) referenceId)
+                            .roleId(invocation.getArgument(2))
+                            .id("membership-id-" + referenceId)
+                            .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
+                            .memberId("user-id")
+                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                            .source("system")
+                            .build()
+                    )
+                    .collect(Collectors.toSet());
+            });
 
             var result = service.findByReferencesAndRoleId(
                 io.gravitee.apim.core.membership.model.Membership.ReferenceType.API,
@@ -165,8 +160,7 @@ class MembershipQueryServiceImplTest {
             assertThat(result)
                 .hasSize(2)
                 .containsExactlyInAnyOrder(
-                    io.gravitee.apim.core.membership.model.Membership
-                        .builder()
+                    io.gravitee.apim.core.membership.model.Membership.builder()
                         .id("membership-id-api1")
                         .referenceType(io.gravitee.apim.core.membership.model.Membership.ReferenceType.API)
                         .referenceId("api1")
@@ -177,8 +171,7 @@ class MembershipQueryServiceImplTest {
                         .roleId("role-id")
                         .source("system")
                         .build(),
-                    io.gravitee.apim.core.membership.model.Membership
-                        .builder()
+                    io.gravitee.apim.core.membership.model.Membership.builder()
                         .id("membership-id-api2")
                         .referenceType(io.gravitee.apim.core.membership.model.Membership.ReferenceType.API)
                         .referenceId("api2")
@@ -233,31 +226,28 @@ class MembershipQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_all_group_memberships_where_user_is_a_member() {
-            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any()))
-                .thenAnswer(invocation ->
-                    Set.of(
-                        Membership
-                            .builder()
-                            .referenceType(invocation.getArgument(2))
-                            .referenceId("group-1")
-                            .roleId("role-id")
-                            .id("membership-1")
-                            .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
-                            .memberId(invocation.getArgument(0))
-                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                            .source("system")
-                            .build()
-                    )
-                );
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any())).thenAnswer(invocation ->
+                Set.of(
+                    Membership.builder()
+                        .referenceType(invocation.getArgument(2))
+                        .referenceId("group-1")
+                        .roleId("role-id")
+                        .id("membership-1")
+                        .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
+                        .memberId(invocation.getArgument(0))
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .source("system")
+                        .build()
+                )
+            );
 
             var result = service.findGroupsThatUserBelongsTo("user-id");
 
             assertThat(result)
                 .hasSize(1)
                 .containsExactly(
-                    io.gravitee.apim.core.membership.model.Membership
-                        .builder()
+                    io.gravitee.apim.core.membership.model.Membership.builder()
                         .id("membership-1")
                         .referenceType(io.gravitee.apim.core.membership.model.Membership.ReferenceType.GROUP)
                         .referenceId("group-1")
@@ -302,23 +292,21 @@ class MembershipQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_all_cluster_ids_where_user_is_a_member() {
-            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any()))
-                .thenAnswer(invocation ->
-                    Set.of(
-                        Membership
-                            .builder()
-                            .referenceType(invocation.getArgument(2))
-                            .referenceId("cluster-1")
-                            .roleId("role-id")
-                            .id("membership-1")
-                            .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
-                            .memberId(invocation.getArgument(0))
-                            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                            .source("system")
-                            .build()
-                    )
-                );
+            when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(any(), any(), any())).thenAnswer(invocation ->
+                Set.of(
+                    Membership.builder()
+                        .referenceType(invocation.getArgument(2))
+                        .referenceId("cluster-1")
+                        .roleId("role-id")
+                        .id("membership-1")
+                        .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
+                        .memberId(invocation.getArgument(0))
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .source("system")
+                        .build()
+                )
+            );
 
             var result = service.findClustersIdsThatUserBelongsTo("user-id");
 

@@ -31,18 +31,27 @@ public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternati
 
     @Override
     public Api get(String id) {
-        var foundApi = storage.stream().filter(api -> id.equals(api.getId())).findFirst();
+        var foundApi = storage
+            .stream()
+            .filter(api -> id.equals(api.getId()))
+            .findFirst();
         return foundApi.orElseThrow(() -> new ApiNotFoundException(id));
     }
 
     @Override
     public Optional<Api> findById(String id) {
-        return storage.stream().filter(api -> id.equals(api.getId())).findFirst();
+        return storage
+            .stream()
+            .filter(api -> id.equals(api.getId()))
+            .findFirst();
     }
 
     @Override
     public List<Api> findByIds(List<String> apiIds) {
-        return storage.stream().filter(api -> apiIds.contains(api.getId())).collect(Collectors.toList());
+        return storage
+            .stream()
+            .filter(api -> apiIds.contains(api.getId()))
+            .collect(Collectors.toList());
     }
 
     @Override

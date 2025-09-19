@@ -73,7 +73,10 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
     @Override
     public String fetchUserNameMetadata(String userId) {
         try {
-            return userRepository.findById(userId).map(user -> UserAdapter.INSTANCE.fromUser(user).displayName()).orElse(userId);
+            return userRepository
+                .findById(userId)
+                .map(user -> UserAdapter.INSTANCE.fromUser(user).displayName())
+                .orElse(userId);
         } catch (TechnicalException e) {
             log.error("Error finding user audit metadata {}", userId);
             return userId;

@@ -54,8 +54,9 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     @Override
     public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
         var revisions = internalPageRevisionRepo.findAll(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
-        return new Page<>(revisions.getContent(), pageable.pageNumber(), revisions.getNumberOfElements(), revisions.getTotalElements())
-            .map(page -> mapper.map(page));
+        return new Page<>(revisions.getContent(), pageable.pageNumber(), revisions.getNumberOfElements(), revisions.getTotalElements()).map(
+            page -> mapper.map(page)
+        );
     }
 
     @Override
@@ -86,7 +87,11 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     @Override
     public List<PageRevision> findAllByPageId(String pageId) throws TechnicalException {
         try {
-            return internalPageRevisionRepo.findAllByPageId(pageId).stream().map(rev -> mapper.map(rev)).collect(Collectors.toList());
+            return internalPageRevisionRepo
+                .findAllByPageId(pageId)
+                .stream()
+                .map(rev -> mapper.map(rev))
+                .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("An error occurred when querying all revisions for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when querying page revisions");

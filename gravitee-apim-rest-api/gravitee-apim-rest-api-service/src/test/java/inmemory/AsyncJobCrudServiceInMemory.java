@@ -36,7 +36,10 @@ public class AsyncJobCrudServiceInMemory implements AsyncJobCrudService, InMemor
 
     @Override
     public Optional<AsyncJob> findById(String id) {
-        return storage.stream().filter(item -> item.getId().equals(id)).findFirst();
+        return storage
+            .stream()
+            .filter(item -> item.getId().equals(id))
+            .findFirst();
     }
 
     @Override

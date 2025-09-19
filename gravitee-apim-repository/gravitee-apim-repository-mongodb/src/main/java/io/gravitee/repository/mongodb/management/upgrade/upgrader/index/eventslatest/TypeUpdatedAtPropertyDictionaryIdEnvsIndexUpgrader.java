@@ -27,8 +27,7 @@ public class TypeUpdatedAtPropertyDictionaryIdEnvsIndexUpgrader extends IndexUpg
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("events_latest")
             .name("t1u1pdi1e1")
             .key("type", ascending())

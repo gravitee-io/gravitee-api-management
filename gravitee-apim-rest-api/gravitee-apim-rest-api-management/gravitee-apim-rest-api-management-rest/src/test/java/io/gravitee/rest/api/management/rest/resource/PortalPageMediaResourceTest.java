@@ -147,8 +147,9 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
             .post(Entity.entity(multiPart, multiPart.getMediaType()));
 
         assertThat(response.getStatus()).isEqualTo(CREATED_201);
-        assertThat(response.getHeaders().getFirst(HttpHeaders.LOCATION))
-            .isEqualTo(envTarget().path("pages").path(PAGE).path("media").getUri().toString());
+        assertThat(response.getHeaders().getFirst(HttpHeaders.LOCATION)).isEqualTo(
+            envTarget().path("pages").path(PAGE).path("media").getUri().toString()
+        );
 
         final MediaEntity result = response.readEntity(MediaEntity.class);
         assertThat(result.getHash()).isEqualTo(mediaHash);
@@ -231,7 +232,8 @@ public class PortalPageMediaResourceTest extends AbstractResourceTest {
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
-        assertThat(response.readEntity(String.class))
-            .isEqualTo("Media is attached to pages and cannot be deleted. Please detach it from all pages first.");
+        assertThat(response.readEntity(String.class)).isEqualTo(
+            "Media is attached to pages and cannot be deleted. Please detach it from all pages first."
+        );
     }
 }

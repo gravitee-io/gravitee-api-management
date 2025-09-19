@@ -194,7 +194,6 @@ public class EndpointDiscoveryVerticleTest {
             @Override
             public void stop() throws Exception {
                 // Nothing to do
-
             }
         };
     }
@@ -211,16 +210,14 @@ public class EndpointDiscoveryVerticleTest {
             "\"weight\":1," +
             "\"backup\":false," +
             "\"type\":\"http\"," +
-            (
-                withSsl
+            (withSsl
                     ? "\"ssl\":{" +
                     "\"trustAll\":true," +
                     "\"hostnameVerifier\":false," +
                     "\"trustStore\":null," +
                     "\"keyStore\":null" +
                     "},"
-                    : ""
-            ) +
+                    : "") +
             "\"http\":{" +
             "\"idleTimeout\":60000," +
             "\"keepAliveTimeout\":30000," +

@@ -79,67 +79,66 @@ public class RollbackApiUseCase {
         Api api = eventQueryService
             .findApiFromPublishApiEvent(input.eventId)
             .orElseThrow(() -> new IllegalStateException("Cannot rollback an event that is not a publish event!"));
-        var apiUpdated =
-            switch (api.getDefinitionVersion()) {
-                case V4 -> {
-                    var apiDefinition = api.getApiDefinitionHttpV4();
-                    var toRollback = apiCrudService.get(apiDefinition.getId());
+        var apiUpdated = switch (api.getDefinitionVersion()) {
+            case V4 -> {
+                var apiDefinition = api.getApiDefinitionHttpV4();
+                var toRollback = apiCrudService.get(apiDefinition.getId());
 
-                    // Rollback API from API definition without plans
-                    var rollbackedApi = toRollback.rollbackTo(apiDefinition);
+                // Rollback API from API definition without plans
+                var rollbackedApi = toRollback.rollbackTo(apiDefinition);
 
-                    //update the description since the description is not stored in the definition
-                    rollbackedApi.setDescription(api.getDescription());
+                //update the description since the description is not stored in the definition
+                rollbackedApi.setDescription(api.getDescription());
 
-                    var apiUpdatedV4 = updateApiDomainService.updateV4(rollbackedApi, input.auditInfo);
+                var apiUpdatedV4 = updateApiDomainService.updateV4(rollbackedApi, input.auditInfo);
 
-                    // Rollback plans from API definition plans
-                    rollbackPlansV4(apiDefinition.getPlans(), apiUpdatedV4, input.auditInfo);
-                    yield apiUpdatedV4;
+                // Rollback plans from API definition plans
+                rollbackPlansV4(apiDefinition.getPlans(), apiUpdatedV4, input.auditInfo);
+                yield apiUpdatedV4;
+            }
+            case V2 -> {
+                var apiDefinition = api.getApiDefinition();
+                var toRollback = apiCrudService.get(api.getId());
+                if (toRollback.getDefinitionVersion() != io.gravitee.definition.model.DefinitionVersion.V4) {
+                    throw new IllegalStateException("The migration is only built for rollback migration from V2 to V4.");
                 }
-                case V2 -> {
-                    var apiDefinition = api.getApiDefinition();
-                    var toRollback = apiCrudService.get(api.getId());
-                    if (toRollback.getDefinitionVersion() != io.gravitee.definition.model.DefinitionVersion.V4) {
-                        throw new IllegalStateException("The migration is only built for rollback migration from V2 to V4.");
-                    }
-                    if (
-                        apiDefinition.getServices().getDynamicPropertyService() != null &&
-                        apiDefinition.getServices().getDynamicPropertyService().isEnabled()
-                    ) {
-                        apiStateService.stopV4DynamicProperties(api.getId());
-                    }
-                    Api rollbackedApi = ROLLBACK_OPERATOR.rollback(toRollback, apiDefinition);
-
-                    var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), api.getId());
-                    var indexerContext = new ApiIndexerDomainService.Context(input.auditInfo(), false);
-                    apiIndexerDomainService.delete(indexerContext, toRollback);
-                    apiIndexerDomainService.index(indexerContext, rollbackedApi, apiPrimaryOwner);
-
-                    var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
-
-                    // Rollback plans from API definition plans
-                    var plans = rollbackPlansV2(apiDefinition.getPlans(), apiUpdatedV2, input.auditInfo);
-                    flowCrudService.saveApiFlowsV2(apiDefinition.getId(), apiDefinition.getFlows());
-                    for (var plan : apiDefinition.getPlans()) {
-                        flowCrudService.savePlanFlowsV2(plan.getId(), plan.getFlows());
-                    }
-                    for (String planId : plans.closedPlans()) {
-                        flowCrudService.savePlanFlowsV2(planId, List.of());
-                    }
-                    if (
-                        apiDefinition.getServices().getDynamicPropertyService() != null &&
-                        apiDefinition.getServices().getDynamicPropertyService().isEnabled()
-                    ) {
-                        apiStateService.startV2DynamicProperties(rollbackedApi.getId());
-                    }
-                    yield apiUpdatedV2;
+                if (
+                    apiDefinition.getServices().getDynamicPropertyService() != null &&
+                    apiDefinition.getServices().getDynamicPropertyService().isEnabled()
+                ) {
+                    apiStateService.stopV4DynamicProperties(api.getId());
                 }
-                case FEDERATED_AGENT -> throw new IllegalStateException("Cannot rollback a federated Agent");
-                case FEDERATED -> throw new IllegalStateException("Cannot rollback a federated API");
-                case V1 -> throw new IllegalStateException("Cannot rollback an API that is not a V4 API");
-                case null -> throw new IllegalStateException("Cannot determine API definition version from event" + input.eventId());
-            };
+                Api rollbackedApi = ROLLBACK_OPERATOR.rollback(toRollback, apiDefinition);
+
+                var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), api.getId());
+                var indexerContext = new ApiIndexerDomainService.Context(input.auditInfo(), false);
+                apiIndexerDomainService.delete(indexerContext, toRollback);
+                apiIndexerDomainService.index(indexerContext, rollbackedApi, apiPrimaryOwner);
+
+                var apiUpdatedV2 = apiCrudService.update(rollbackedApi);
+
+                // Rollback plans from API definition plans
+                var plans = rollbackPlansV2(apiDefinition.getPlans(), apiUpdatedV2, input.auditInfo);
+                flowCrudService.saveApiFlowsV2(apiDefinition.getId(), apiDefinition.getFlows());
+                for (var plan : apiDefinition.getPlans()) {
+                    flowCrudService.savePlanFlowsV2(plan.getId(), plan.getFlows());
+                }
+                for (String planId : plans.closedPlans()) {
+                    flowCrudService.savePlanFlowsV2(planId, List.of());
+                }
+                if (
+                    apiDefinition.getServices().getDynamicPropertyService() != null &&
+                    apiDefinition.getServices().getDynamicPropertyService().isEnabled()
+                ) {
+                    apiStateService.startV2DynamicProperties(rollbackedApi.getId());
+                }
+                yield apiUpdatedV2;
+            }
+            case FEDERATED_AGENT -> throw new IllegalStateException("Cannot rollback a federated Agent");
+            case FEDERATED -> throw new IllegalStateException("Cannot rollback a federated API");
+            case V1 -> throw new IllegalStateException("Cannot rollback an API that is not a V4 API");
+            case null -> throw new IllegalStateException("Cannot determine API definition version from event" + input.eventId());
+        };
 
         createAuditLog(input.auditInfo, apiUpdated.getId(), apiUpdated.getUpdatedAt());
     }
@@ -199,26 +198,30 @@ public class RollbackApiUseCase {
         existingPlans
             .values()
             .stream()
-            .filter(existingPlan ->
-                existingPlan.getPlanStatus() != PlanStatus.CLOSED &&
-                !plansToUpdate.stream().map(io.gravitee.apim.core.plan.model.Plan::getId).collect(toSet()).contains(existingPlan.getId())
+            .filter(
+                existingPlan ->
+                    existingPlan.getPlanStatus() != PlanStatus.CLOSED &&
+                    !plansToUpdate
+                        .stream()
+                        .map(io.gravitee.apim.core.plan.model.Plan::getId)
+                        .collect(toSet())
+                        .contains(existingPlan.getId())
             )
             .forEach(existingPlan -> closePlanDomainService.close(existingPlan.getId(), auditInfo));
     }
 
     private void createAuditLog(AuditInfo auditInfo, String apiId, ZonedDateTime auditCreatedAt) {
         this.auditService.createApiAuditLog(
-                ApiAuditLogEntity
-                    .builder()
-                    .organizationId(auditInfo.organizationId())
-                    .environmentId(auditInfo.environmentId())
-                    .apiId(apiId)
-                    .event(ApiAuditEvent.API_ROLLBACKED)
-                    .actor(auditInfo.actor())
-                    .createdAt(auditCreatedAt)
-                    .properties(Collections.emptyMap())
-                    .build()
-            );
+            ApiAuditLogEntity.builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiId(apiId)
+                .event(ApiAuditEvent.API_ROLLBACKED)
+                .actor(auditInfo.actor())
+                .createdAt(auditCreatedAt)
+                .properties(Collections.emptyMap())
+                .build()
+        );
     }
 
     private Plans rollbackPlansV2(List<io.gravitee.definition.model.Plan> apiDefinitionPlans, Api api, AuditInfo auditInfo) {
@@ -226,8 +229,9 @@ public class RollbackApiUseCase {
             return new Plans(List.of(), List.of());
         }
 
-        var plansToUpdateById = stream(apiDefinitionPlans)
-            .collect(Collectors.toMap(io.gravitee.definition.model.Plan::getId, Function.identity()));
+        var plansToUpdateById = stream(apiDefinitionPlans).collect(
+            Collectors.toMap(io.gravitee.definition.model.Plan::getId, Function.identity())
+        );
 
         var existingPlansMustBeRollbackOrClose = planQueryService
             .findAllByApiId(api.getId())
@@ -273,11 +277,10 @@ public class RollbackApiUseCase {
 
         // Reopen plans
         existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).forEach(plan -> planCrudService.update(plan));
-        var opens = Stream
-            .concat(
-                existingPlansMustBeRollbackOrClose.getOrDefault(ROLLBACK, List.of()).stream(),
-                existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).stream()
-            )
+        var opens = Stream.concat(
+            existingPlansMustBeRollbackOrClose.getOrDefault(ROLLBACK, List.of()).stream(),
+            existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).stream()
+        )
             .map(io.gravitee.apim.core.plan.model.Plan::getId)
             .toList();
         var closes = existingPlansMustBeRollbackOrClose

@@ -133,8 +133,7 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
         );
 
         if (newClientRegistrationProvider != null) {
-            return Response
-                .created(this.getLocationHeader(newClientRegistrationProvider.getId()))
+            return Response.created(this.getLocationHeader(newClientRegistrationProvider.getId()))
                 .entity(newClientRegistrationProvider)
                 .build();
         }

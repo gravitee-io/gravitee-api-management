@@ -116,13 +116,10 @@ public final class HtmlSanitizer {
 
         InvalidCommentVisitor() {
             super(
-                new VisitHandler<>(
-                    HtmlCommentBlock.class,
-                    htmlBlock -> {
-                        String removedInvalidComments = htmlBlock.getChars().toString().replaceAll("<!-{2,3}>", "");
-                        htmlBlock.setChars(BasedSequence.of(removedInvalidComments));
-                    }
-                )
+                new VisitHandler<>(HtmlCommentBlock.class, htmlBlock -> {
+                    String removedInvalidComments = htmlBlock.getChars().toString().replaceAll("<!-{2,3}>", "");
+                    htmlBlock.setChars(BasedSequence.of(removedInvalidComments));
+                })
             );
         }
     }
@@ -166,8 +163,7 @@ public final class HtmlSanitizer {
          */
         PolicyFactory githubFlavouredMarkdownSanitizer = new HtmlPolicyBuilder().allowElements("summary", "details").toFactory();
 
-        PolicyFactory policyFactory = Sanitizers.BLOCKS
-            .and(Sanitizers.FORMATTING)
+        PolicyFactory policyFactory = Sanitizers.BLOCKS.and(Sanitizers.FORMATTING)
             .and(
                 new HtmlPolicyBuilder()
                     .allowStandardUrlProtocols()

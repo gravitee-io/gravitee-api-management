@@ -127,6 +127,10 @@ public class MongoAlertEventRepository implements AlertEventRepository {
 
     @Override
     public Set<AlertEvent> findAll() throws TechnicalException {
-        return internalAlertEventRepo.findAll().stream().map(alertEventMongo -> mapper.map(alertEventMongo)).collect(Collectors.toSet());
+        return internalAlertEventRepo
+            .findAll()
+            .stream()
+            .map(alertEventMongo -> mapper.map(alertEventMongo))
+            .collect(Collectors.toSet());
     }
 }

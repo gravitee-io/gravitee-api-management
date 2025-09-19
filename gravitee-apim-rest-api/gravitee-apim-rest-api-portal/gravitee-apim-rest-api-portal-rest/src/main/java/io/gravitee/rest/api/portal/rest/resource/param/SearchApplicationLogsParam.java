@@ -58,10 +58,12 @@ public class SearchApplicationLogsParam {
     private Set<HttpMethod> methods;
 
     @Parameter(name = "statuses", description = "Filter by HTTP response statuses")
-    private Set<@Min(value = 100, message = "'statuses' must contain values greater than or equal to 100") @Max(
-        value = 599,
-        message = "'statuses' must contain values lesser than or equal to 599"
-    ) Integer> statuses;
+    private Set<
+        @Min(value = 100, message = "'statuses' must contain values greater than or equal to 100") @Max(
+            value = 599,
+            message = "'statuses' must contain values lesser than or equal to 599"
+        ) Integer
+    > statuses;
 
     @Parameter(name = "apiIds", description = "Filter by API IDs")
     private Set<String> apiIds;

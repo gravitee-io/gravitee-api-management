@@ -90,20 +90,16 @@ public class FailoverV3IntegrationTest {
                 requestSupplier.apply(client),
                 requestSupplier.apply(client)
             );
-            final TestSubscriber<HttpClientResponse> test = Single
-                .merge(listOfParallelCalls)
+            final TestSubscriber<HttpClientResponse> test = Single.merge(listOfParallelCalls)
                 .test()
                 .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete();
             for (int i = 0; i < listOfParallelCalls.size(); i++) {
-                test.assertValueAt(
-                    i,
-                    response -> {
-                        // Then the API response should be 502
-                        assertThat(response.statusCode()).isEqualTo(502);
-                        return true;
-                    }
-                );
+                test.assertValueAt(i, response -> {
+                    // Then the API response should be 502
+                    assertThat(response.statusCode()).isEqualTo(502);
+                    return true;
+                });
             }
             // Then the backend should have been called 4 times (5 request with one initial attempt and two retries)
             wiremock.verify(15, getRequestedFor(urlPathEqualTo("/endpoint")));

@@ -35,6 +35,7 @@ public record IntegrationApi(
     Collection<Metadata> metadata
 ) {
     public record Plan(String id, String name, String description, PlanType type, List<String> characteristics) {}
+
     public enum PlanType {
         API_KEY,
         JWT,
@@ -42,6 +43,7 @@ public record IntegrationApi(
     }
 
     public record Page(PageType pageType, String content, String filename) {}
+
     public enum PageType {
         ASCIIDOC,
         ASYNCAPI,

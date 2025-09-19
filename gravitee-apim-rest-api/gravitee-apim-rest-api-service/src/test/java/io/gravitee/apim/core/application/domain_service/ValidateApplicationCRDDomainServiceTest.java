@@ -65,21 +65,24 @@ class ValidateApplicationCRDDomainServiceTest {
                 sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(crd.toBuilder().build()),
                 errors -> {
                     Assertions.assertThat(errors).isNotEmpty();
-                    Assertions
-                        .assertThat(errors.getFirst().getMessage())
-                        .isEqualTo("when no hrid is set in the payload an ID should be passed to identify the resource");
+                    Assertions.assertThat(errors.getFirst().getMessage()).isEqualTo(
+                        "when no hrid is set in the payload an ID should be passed to identify the resource"
+                    );
                 }
             );
     }
 
     @Test
     void should_set_id_when_application_hrid_but_no_id() {
-        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class)))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
-        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class)))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
-        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class)))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
         ApplicationCRDSpec crd = anApplicationCRD();
         crd.setHrid(HRID);
@@ -89,21 +92,24 @@ class ValidateApplicationCRDDomainServiceTest {
             .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd))
             .peek(
                 sanitized ->
-                    Assertions
-                        .assertThat(sanitized.spec())
-                        .isEqualTo(crd.toBuilder().id(IdBuilder.builder(AUDIT_INFO, HRID).buildId()).build()),
+                    Assertions.assertThat(sanitized.spec()).isEqualTo(
+                        crd.toBuilder().id(IdBuilder.builder(AUDIT_INFO, HRID).buildId()).build()
+                    ),
                 errors -> Assertions.assertThat(errors).isEmpty()
             );
     }
 
     @Test
     void should_set_hrid_when_application_id_is_not_null() {
-        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class)))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
-        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class)))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
-        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class)))
-            .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
 
         ApplicationCRDSpec crd = anApplicationCRD();
         crd.setHrid(null);
@@ -117,8 +123,7 @@ class ValidateApplicationCRDDomainServiceTest {
     }
 
     private static ApplicationCRDSpec anApplicationCRD() {
-        return ApplicationCRDSpec
-            .builder()
+        return ApplicationCRDSpec.builder()
             .id(APP_ID)
             .name(APP_NAME)
             .description(APP_DESCRIPTION)

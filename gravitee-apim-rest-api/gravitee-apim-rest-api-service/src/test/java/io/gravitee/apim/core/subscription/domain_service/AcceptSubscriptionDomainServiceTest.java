@@ -72,20 +72,17 @@ class AcceptSubscriptionDomainServiceTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
 
-    private static final Plan PLAN_CLOSED = PlanFixtures
-        .aPlanHttpV4()
+    private static final Plan PLAN_CLOSED = PlanFixtures.aPlanHttpV4()
         .toBuilder()
         .id("plan-closed")
         .build()
         .setPlanStatus(PlanStatus.CLOSED);
-    private static final Plan PLAN_PUBLISHED = PlanFixtures.HttpV4
-        .anApiKey()
+    private static final Plan PLAN_PUBLISHED = PlanFixtures.HttpV4.anApiKey()
         .toBuilder()
         .id("plan-published")
         .build()
         .setPlanStatus(PlanStatus.PUBLISHED);
-    private static final Plan PUSH_PLAN = PlanFixtures.HttpV4
-        .aPushPlan()
+    private static final Plan PUSH_PLAN = PlanFixtures.HttpV4.aPushPlan()
         .toBuilder()
         .id("plan-push")
         .build()
@@ -140,29 +137,27 @@ class AcceptSubscriptionDomainServiceTest {
             userCrudService
         );
 
-        cut =
-            new AcceptSubscriptionDomainService(
-                subscriptionCrudService,
-                auditDomainService,
-                apiCrudService,
-                applicationCrudService,
-                planCrudService,
-                generateApiKeyDomainService,
-                integrationAgent,
-                triggerNotificationDomainService,
-                userCrudService,
-                applicationPrimaryOwnerDomainService,
-                metadataCrudService,
-                integrationCrudService
-            );
+        cut = new AcceptSubscriptionDomainService(
+            subscriptionCrudService,
+            auditDomainService,
+            apiCrudService,
+            applicationCrudService,
+            planCrudService,
+            generateApiKeyDomainService,
+            integrationAgent,
+            triggerNotificationDomainService,
+            userCrudService,
+            applicationPrimaryOwnerDomainService,
+            metadataCrudService,
+            integrationCrudService
+        );
 
         planCrudService.initWith(List.of(PLAN_CLOSED, PLAN_PUBLISHED, PUSH_PLAN));
 
         membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
         applicationCrudService.initWith(
             List.of(
-                ApplicationModelFixtures
-                    .anApplicationEntity()
+                ApplicationModelFixtures.anApplicationEntity()
                     .toBuilder()
                     .id(APPLICATION_ID)
                     .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
@@ -177,18 +172,16 @@ class AcceptSubscriptionDomainServiceTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                apiCrudService,
-                apiKeyCrudService,
-                applicationCrudService,
-                auditCrudServiceInMemory,
-                integrationAgent,
-                planCrudService,
-                subscriptionCrudService,
-                userCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiCrudService,
+            apiKeyCrudService,
+            applicationCrudService,
+            auditCrudServiceInMemory,
+            integrationAgent,
+            planCrudService,
+            subscriptionCrudService,
+            userCrudService
+        ).forEach(InMemoryAlternative::reset);
         triggerNotificationDomainService.reset();
     }
 
@@ -209,8 +202,7 @@ class AcceptSubscriptionDomainServiceTest {
     void should_accept_subscription() {
         // Given
         SubscriptionEntity subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
                 .planId(PLAN_PUBLISHED.getId())
@@ -262,8 +254,7 @@ class AcceptSubscriptionDomainServiceTest {
     void should_generated_key_for_API_Key_plan() {
         // Given
         SubscriptionEntity subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
                 .planId(PLAN_PUBLISHED.getId())
@@ -276,27 +267,24 @@ class AcceptSubscriptionDomainServiceTest {
         accept(subscription, PLAN_PUBLISHED);
 
         // Then
-        assertThat(apiKeyCrudService.storage())
-            .containsOnly(
-                ApiKeyEntity
-                    .builder()
-                    .id("generated-id")
-                    .applicationId(subscription.getApplicationId())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .key("generated-id")
-                    .subscriptions(List.of(subscription.getId()))
-                    .expireAt(ENDING_AT)
-                    .build()
-            );
+        assertThat(apiKeyCrudService.storage()).containsOnly(
+            ApiKeyEntity.builder()
+                .id("generated-id")
+                .applicationId(subscription.getApplicationId())
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .key("generated-id")
+                .subscriptions(List.of(subscription.getId()))
+                .expireAt(ENDING_AT)
+                .build()
+        );
     }
 
     @Test
     void should_not_generated_key_for_not_API_Key_plan() {
         // Given
         SubscriptionEntity subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
                 .planId(PUSH_PLAN.getId())
@@ -316,8 +304,7 @@ class AcceptSubscriptionDomainServiceTest {
     void should_trigger_notifications_for_API_and_Application_owners() {
         // Given
         SubscriptionEntity subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
                 .planId(PLAN_PUBLISHED.getId())
@@ -329,25 +316,22 @@ class AcceptSubscriptionDomainServiceTest {
         accept(subscription, PLAN_PUBLISHED);
 
         // Then
-        assertThat(triggerNotificationDomainService.getApiNotifications())
-            .containsExactly(
-                new SubscriptionAcceptedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
-            );
+        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+            new SubscriptionAcceptedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
+        );
 
-        assertThat(triggerNotificationDomainService.getApplicationNotifications())
-            .containsExactly(
-                new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                    new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
-                )
-            );
+        assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
+            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
+            )
+        );
     }
 
     @Test
     void should_trigger_notifications_for_subscriber_when_it_has_email() {
         // Given
         SubscriptionEntity subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
                 .planId(PLAN_PUBLISHED.getId())
@@ -360,13 +344,12 @@ class AcceptSubscriptionDomainServiceTest {
         accept(subscription, PLAN_PUBLISHED);
 
         // Then
-        assertThat(triggerNotificationDomainService.getApplicationNotifications())
-            .contains(
-                new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                    new Recipient("EMAIL", "subscriber@mail.fake"),
-                    new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
-                )
-            );
+        assertThat(triggerNotificationDomainService.getApplicationNotifications()).contains(
+            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                new Recipient("EMAIL", "subscriber@mail.fake"),
+                new SubscriptionAcceptedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
+            )
+        );
     }
 
     @Nested
@@ -376,8 +359,7 @@ class AcceptSubscriptionDomainServiceTest {
         @ValueSource(strings = { "api-key", "oauth2" })
         void should_trigger_notifications_for_federated_subscriber_when_it_has_email(String securityType) {
             // Given
-            Plan plan = PlanFixtures.HttpV4
-                .anApiKey()
+            Plan plan = PlanFixtures.HttpV4.anApiKey()
                 .toBuilder()
                 .definitionVersion(DefinitionVersion.FEDERATED)
                 .id("plan-published")
@@ -385,8 +367,7 @@ class AcceptSubscriptionDomainServiceTest {
                 .build()
                 .setPlanStatus(PlanStatus.PUBLISHED);
             SubscriptionEntity subscription = givenExistingSubscription(
-                SubscriptionFixtures
-                    .aSubscription()
+                SubscriptionFixtures.aSubscription()
                     .toBuilder()
                     .subscribedBy("subscriber")
                     .planId(plan.getId())
@@ -403,19 +384,18 @@ class AcceptSubscriptionDomainServiceTest {
             accept(subscription, plan);
 
             // Then
-            assertThat(triggerNotificationDomainService.getApplicationNotifications())
-                .contains(
-                    new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                        new Recipient("EMAIL", "subscriber@mail.fake"),
-                        new SubscriptionAcceptedApplicationHookContext(
-                            "application-id",
-                            subscription.getApiId(),
-                            "plan-published",
-                            "subscription-id",
-                            USER_ID
-                        )
+            assertThat(triggerNotificationDomainService.getApplicationNotifications()).contains(
+                new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                    new Recipient("EMAIL", "subscriber@mail.fake"),
+                    new SubscriptionAcceptedApplicationHookContext(
+                        "application-id",
+                        subscription.getApiId(),
+                        "plan-published",
+                        "subscription-id",
+                        USER_ID
                     )
-                );
+                )
+            );
         }
     }
 

@@ -61,18 +61,17 @@ public class DefaultThemeDomainService {
         if (ThemeType.PORTAL_NEXT.equals(themeType)) {
             var defaultTheme = this.getDefaultTheme(themeType, executionContext);
             return this.themeDomainService.create(
-                    NewTheme
-                        .builder()
-                        .referenceId(defaultTheme.getReferenceId())
-                        .referenceType(defaultTheme.getReferenceType())
-                        .name(defaultTheme.getName())
-                        .definitionPortalNext(defaultTheme.getDefinitionPortalNext())
-                        .type(ThemeType.PORTAL_NEXT)
-                        .enabled(true)
-                        .logo(defaultTheme.getLogo())
-                        .favicon(defaultTheme.getFavicon())
-                        .build()
-                );
+                NewTheme.builder()
+                    .referenceId(defaultTheme.getReferenceId())
+                    .referenceType(defaultTheme.getReferenceType())
+                    .name(defaultTheme.getName())
+                    .definitionPortalNext(defaultTheme.getDefinitionPortalNext())
+                    .type(ThemeType.PORTAL_NEXT)
+                    .enabled(true)
+                    .logo(defaultTheme.getLogo())
+                    .favicon(defaultTheme.getFavicon())
+                    .build()
+            );
         } else if (ThemeType.PORTAL.equals(themeType)) {
             return this.themeServiceLegacyWrapper.getCurrentOrCreateDefaultPortalTheme(executionContext);
         }
@@ -83,8 +82,7 @@ public class DefaultThemeDomainService {
     private Theme getPortalNextDefaultTheme(ExecutionContext executionContext) {
         Map<Key, String> parameters = parametersDomainService.getEnvironmentParameters(executionContext, PORTAL_NEXT_THEME_KEYS);
 
-        return Theme
-            .builder()
+        return Theme.builder()
             .type(ThemeType.PORTAL_NEXT)
             .name("Default Portal Next Theme")
             .referenceId(executionContext.getEnvironmentId())
@@ -92,18 +90,15 @@ public class DefaultThemeDomainService {
             .logo(themePortalNextAssetsDomainService.getPortalNextLogo())
             .favicon(themePortalNextAssetsDomainService.getPortalNextFavicon())
             .definitionPortalNext(
-                ThemeDefinition
-                    .builder()
+                ThemeDefinition.builder()
                     .color(
-                        ThemeDefinition.Color
-                            .builder()
+                        ThemeDefinition.Color.builder()
                             .primary(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY))
                             .secondary(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_SECONDARY))
                             .tertiary(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_TERTIARY))
                             .error(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_ERROR))
                             .background(
-                                ThemeDefinition.Background
-                                    .builder()
+                                ThemeDefinition.Background.builder()
                                     .card(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD))
                                     .page(parameters.get(Key.PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE))
                                     .build()

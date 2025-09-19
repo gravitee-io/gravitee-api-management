@@ -78,26 +78,23 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
                 BaseApplicationEntity.builder().id("app-id-2").name("Application 2").environmentId(ENV_ID).build()
             )
         );
-        var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchTopHitsApps(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    TopHitsApps
-                        .builder()
-                        .data(
-                            List.of(
-                                TopHitsApps.TopHitApp.builder().id("app-id-1").count(5L).build(),
-                                TopHitsApps.TopHitApp.builder().id("app-id-2").count(4L).build()
-                            )
+        when(analyticsQueryService.searchTopHitsApps(any(), any())).thenReturn(
+            Optional.of(
+                TopHitsApps.builder()
+                    .data(
+                        List.of(
+                            TopHitsApps.TopHitApp.builder().id("app-id-1").count(5L).build(),
+                            TopHitsApps.TopHitApp.builder().id("app-id-2").count(4L).build()
                         )
-                        .build()
-                )
-            );
+                    )
+                    .build()
+            )
+        );
 
         var result = cut.execute(input).topHitsApps();
 
@@ -126,16 +123,14 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
                 BaseApplicationEntity.builder().id("app-id-2").name("Application 2").environmentId(otherEnvId).build()
             )
         );
-        var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchTopHitsApps(any(), any()))
-            .thenReturn(
-                Optional.of(TopHitsApps.builder().data(List.of(TopHitsApps.TopHitApp.builder().id("app-id-1").count(17L).build())).build())
-            );
+        when(analyticsQueryService.searchTopHitsApps(any(), any())).thenReturn(
+            Optional.of(TopHitsApps.builder().data(List.of(TopHitsApps.TopHitApp.builder().id("app-id-1").count(17L).build())).build())
+        );
 
         var result = cut.execute(input).topHitsApps();
 
@@ -162,27 +157,24 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
             )
         );
 
-        var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchTopHitsApps(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    TopHitsApps
-                        .builder()
-                        .data(
-                            List.of(
-                                TopHitsApps.TopHitApp.builder().id("app-id-1").count(5L).build(),
-                                TopHitsApps.TopHitApp.builder().id("app-id-2").count(3L).build(),
-                                TopHitsApps.TopHitApp.builder().id("app-id-3").count(17L).build()
-                            )
+        when(analyticsQueryService.searchTopHitsApps(any(), any())).thenReturn(
+            Optional.of(
+                TopHitsApps.builder()
+                    .data(
+                        List.of(
+                            TopHitsApps.TopHitApp.builder().id("app-id-1").count(5L).build(),
+                            TopHitsApps.TopHitApp.builder().id("app-id-2").count(3L).build(),
+                            TopHitsApps.TopHitApp.builder().id("app-id-3").count(17L).build()
                         )
-                        .build()
-                )
-            );
+                    )
+                    .build()
+            )
+        );
 
         var result = cut.execute(input).topHitsApps();
 
@@ -191,8 +183,7 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
 
     @Test
     void should_get_empty_top_apps_list_if_no_records_found() {
-        var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopAppsByRequestCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();

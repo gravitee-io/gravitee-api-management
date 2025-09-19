@@ -48,24 +48,23 @@ public class ListEnvironmentOperationHandler implements BridgeOperationHandler {
     public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
         String organizationId = bridgeCommand.getPayload().organizationId();
         try {
-            List<BridgeReplyPayload.BridgeReplyContent> replyContents =
-                this.environmentService.findByOrganization(organizationId)
-                    .stream()
-                    .map(environmentEntity -> {
-                        BridgeReplyPayload.BridgeReplyContent.BridgeReplyContentBuilder builder = BridgeReplyPayload.BridgeReplyContent
-                            .builder()
+            List<BridgeReplyPayload.BridgeReplyContent> replyContents = this.environmentService.findByOrganization(organizationId)
+                .stream()
+                .map(environmentEntity -> {
+                    BridgeReplyPayload.BridgeReplyContent.BridgeReplyContentBuilder builder =
+                        BridgeReplyPayload.BridgeReplyContent.builder()
                             .environmentId(environmentEntity.getId())
                             .organizationId(environmentEntity.getOrganizationId())
                             .installationId(installationService.get().getId());
-                        try {
-                            return builder.content(objectMapper.writeValueAsString(environmentEntity)).build();
-                        } catch (JsonProcessingException e) {
-                            log.warn("Problem while serializing environment {}", environmentEntity.getId());
-                            return builder.error(true).build();
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .toList();
+                    try {
+                        return builder.content(objectMapper.writeValueAsString(environmentEntity)).build();
+                    } catch (JsonProcessingException e) {
+                        log.warn("Problem while serializing environment {}", environmentEntity.getId());
+                        return builder.error(true).build();
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
             return Single.just(new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(false, replyContents)));
         } catch (TechnicalManagementException ex) {
             return Single.just(new BridgeReply(bridgeCommand.getId(), "No environment available for organization: " + organizationId));

@@ -49,8 +49,7 @@ public class SearchResponseStatusRangesUseCase {
 
         validateDates(start, end);
         validateApiRequirements(input);
-        var queryParameters = AnalyticsQueryParameters
-            .builder()
+        var queryParameters = AnalyticsQueryParameters.builder()
             .apiIds(List.of(input.apiId()))
             .from(start)
             .to(end)

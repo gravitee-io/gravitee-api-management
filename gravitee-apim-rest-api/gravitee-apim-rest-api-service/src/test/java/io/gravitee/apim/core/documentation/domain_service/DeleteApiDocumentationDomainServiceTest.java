@@ -75,29 +75,27 @@ class DeleteApiDocumentationDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        updateApiDocumentationDomainService =
-            new UpdateApiDocumentationDomainService(
-                pageCrudService,
-                pageRevisionCrudService,
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                indexer
-            );
-        cut =
-            new DeleteApiDocumentationDomainService(
-                pageCrudService,
-                pageQueryService,
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                updateApiDocumentationDomainService,
-                planQueryService,
-                indexer
-            );
+        updateApiDocumentationDomainService = new UpdateApiDocumentationDomainService(
+            pageCrudService,
+            pageRevisionCrudService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            indexer
+        );
+        cut = new DeleteApiDocumentationDomainService(
+            pageCrudService,
+            pageQueryService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            updateApiDocumentationDomainService,
+            planQueryService,
+            indexer
+        );
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(pageCrudService, pageRevisionCrudService, pageQueryService, planQueryService, auditCrudService, userCrudService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(pageCrudService, pageRevisionCrudService, pageQueryService, planQueryService, auditCrudService, userCrudService).forEach(
+            InMemoryAlternative::reset
+        );
     }
 
     @Nested
@@ -121,8 +119,7 @@ class DeleteApiDocumentationDomainServiceTest {
             );
             planQueryService.initWith(
                 List.of(
-                    PlanFixtures
-                        .aPlanHttpV4()
+                    PlanFixtures.aPlanHttpV4()
                         .toBuilder()
                         .id("plan-1")
                         .apiId(API.getId())
@@ -136,15 +133,13 @@ class DeleteApiDocumentationDomainServiceTest {
 
         @Test
         void should_throw_if_deleting_non_empty_folder() {
-            final Page folder = Page
-                .builder()
+            final Page folder = Page.builder()
                 .id(FOLDER_ID)
                 .referenceId(API.getId())
                 .referenceType(Page.ReferenceType.API)
                 .type(Page.Type.FOLDER)
                 .build();
-            final Page page = Page
-                .builder()
+            final Page page = Page.builder()
                 .id(PAGE_ID)
                 .referenceId(API.getId())
                 .referenceType(Page.ReferenceType.API)
@@ -155,8 +150,7 @@ class DeleteApiDocumentationDomainServiceTest {
             pageQueryService.initWith(List.of(folder, page));
             planQueryService.initWith(
                 List.of(
-                    PlanFixtures
-                        .aPlanHttpV4()
+                    PlanFixtures.aPlanHttpV4()
                         .toBuilder()
                         .id("plan-1")
                         .apiId(API.getId())
@@ -173,8 +167,7 @@ class DeleteApiDocumentationDomainServiceTest {
     @Nested
     class Deletion {
 
-        static final Page BASE_PAGE = Page
-            .builder()
+        static final Page BASE_PAGE = Page.builder()
             .id(PAGE_ID)
             .referenceId(API.getId())
             .referenceType(Page.ReferenceType.API)
@@ -239,8 +232,7 @@ class DeleteApiDocumentationDomainServiceTest {
                     .stream()
                     .filter(auditEntity -> auditEntity.getEvent().equals(PageAuditEvent.PAGE_DELETED.name()))
                     .toList()
-            )
-                .hasSize(4);
+            ).hasSize(4);
         }
 
         @Test

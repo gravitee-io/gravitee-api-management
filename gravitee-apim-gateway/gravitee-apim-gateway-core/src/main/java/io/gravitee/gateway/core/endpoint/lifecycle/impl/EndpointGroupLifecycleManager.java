@@ -182,8 +182,8 @@ public class EndpointGroupLifecycleManager
             } catch (EndpointException ee) {
                 logger.error(
                     "An endpoint error occurs while configuring or starting endpoint " +
-                    model.getName() +
-                    ". Endpoint will not be available to forward requests.",
+                        model.getName() +
+                        ". Endpoint will not be available to forward requests.",
                     ee
                 );
             }

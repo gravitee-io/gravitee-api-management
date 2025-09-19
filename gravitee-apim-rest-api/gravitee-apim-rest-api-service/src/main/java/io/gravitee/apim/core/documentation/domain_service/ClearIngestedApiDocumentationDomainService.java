@@ -55,8 +55,7 @@ public class ClearIngestedApiDocumentationDomainService {
                 }
                 pageCrudService.delete(page.getId());
                 auditDomainService.createApiAuditLog(
-                    ApiAuditLogEntity
-                        .builder()
+                    ApiAuditLogEntity.builder()
                         .apiId(page.getReferenceId())
                         .event(PageAuditEvent.PAGE_DELETED)
                         .createdAt(page.getUpdatedAt().toInstant().atZone(ZoneId.of("UTC")))

@@ -42,8 +42,7 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
 
     @Override
     protected JdbcObjectMapper<Token> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Token.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Token.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("token", Types.NVARCHAR, String.class)

@@ -32,8 +32,7 @@ import lombok.*;
 @AllArgsConstructor
 public class Environment {
 
-    public static final Environment DEFAULT = Environment
-        .builder()
+    public static final Environment DEFAULT = Environment.builder()
         .id("DEFAULT")
         .hrids(List.of("default"))
         .name("Default")

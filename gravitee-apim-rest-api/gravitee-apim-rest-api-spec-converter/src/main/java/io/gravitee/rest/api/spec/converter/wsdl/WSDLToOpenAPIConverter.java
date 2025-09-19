@@ -158,8 +158,9 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
                 Input input = operation.getInput();
                 if (input != null) {
                     extractSOAPAction(bindingOperation).ifPresent(action -> openApiOperation.addExtension(SOAP_EXTENSION_ACTION, action));
-                    this.soapBuilder.generateSoapEnvelop(wsdlDefinition, binding, bindingOperation)
-                        .ifPresent(envelope -> openApiOperation.addExtension(SOAP_EXTENSION_ENVELOPE, envelope));
+                    this.soapBuilder.generateSoapEnvelop(wsdlDefinition, binding, bindingOperation).ifPresent(envelope ->
+                        openApiOperation.addExtension(SOAP_EXTENSION_ENVELOPE, envelope)
+                    );
                 }
 
                 // create an empty Content definition used by each response description

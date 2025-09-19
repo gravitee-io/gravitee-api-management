@@ -59,8 +59,7 @@ public class UpdateApiDocumentationDomainService {
         }
 
         auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .apiId(page.getReferenceId())
                 .event(PageAuditEvent.PAGE_UPDATED)
                 .createdAt(page.getUpdatedAt().toInstant().atZone(ZoneId.of("UTC")))

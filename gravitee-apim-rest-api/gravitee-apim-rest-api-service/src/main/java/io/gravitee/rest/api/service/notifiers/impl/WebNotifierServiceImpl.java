@@ -142,11 +142,11 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                                 future.completeExceptionally(
                                     new TechnicalManagementException(
                                         " Error on url '" +
-                                        uri +
-                                        "'. Status code: " +
-                                        response.statusCode() +
-                                        ". Message: " +
-                                        response.statusMessage(),
+                                            uri +
+                                            "'. Status code: " +
+                                            response.statusCode() +
+                                            ". Message: " +
+                                            response.statusMessage(),
                                         null
                                     )
                                 );

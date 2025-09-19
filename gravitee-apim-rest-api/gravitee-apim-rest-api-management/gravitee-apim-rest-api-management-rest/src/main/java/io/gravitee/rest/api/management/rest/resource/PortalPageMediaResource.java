@@ -98,10 +98,10 @@ public class PortalPageMediaResource extends AbstractResource {
         if (request.getContentLength() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
             throw new UploadUnauthorized(
                 "Max size is " +
-                this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext()) +
-                "bytes. Actual size is " +
-                request.getContentLength() +
-                "bytes."
+                    this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext()) +
+                    "bytes. Actual size is " +
+                    request.getContentLength() +
+                    "bytes."
             );
         }
         final String originalFileName = fileDetail.getFileName();

@@ -37,49 +37,52 @@ class FindApiMetricsDetailQueryAdapterTest {
             Arguments.of(
                 new ApiMetricsDetailQuery("apiId", "requestId"),
                 """
-                        {
-                          "query": {
-                            "bool": {
-                              "must": [
-                                { "term": { "api-id": "apiId" } },
-                                { "term": { "request-id": "requestId" } }
-                              ]
-                            }
-                          }
-                        }
-                        """
+                {
+                  "query": {
+                    "bool": {
+                      "must": [
+                        { "term": { "api-id": "apiId" } },
+                        { "term": { "request-id": "requestId" } }
+                      ]
+                    }
+                  }
+                }
+                """
             ),
             Arguments.of(
                 new ApiMetricsDetailQuery("apiId", null),
                 """
-                        {
-                          "query": {
-                            "bool": {
-                              "must": [
-                                { "term": { "api-id": "apiId" } }
-                              ]
-                            }
-                          }
-                        }
-                        """
+                {
+                  "query": {
+                    "bool": {
+                      "must": [
+                        { "term": { "api-id": "apiId" } }
+                      ]
+                    }
+                  }
+                }
+                """
             ),
             Arguments.of(
                 new ApiMetricsDetailQuery(null, "requestId"),
                 """
-                        {
-                          "query": {
-                            "bool": {
-                              "must": [
-                                { "term": { "request-id": "requestId" } }
-                              ]
-                            }
-                          }
-                        }
-                        """
+                {
+                  "query": {
+                    "bool": {
+                      "must": [
+                        { "term": { "request-id": "requestId" } }
+                      ]
+                    }
+                  }
+                }
+                """
             ),
-            Arguments.of(new ApiMetricsDetailQuery(null, null), """
-                        {}
-                        """)
+            Arguments.of(
+                new ApiMetricsDetailQuery(null, null),
+                """
+                {}
+                """
+            )
         );
     }
 }

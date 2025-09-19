@@ -20,7 +20,9 @@ import java.util.Map;
 /**
  * @author GraviteeSource Team
  */
-public class ApiMediaNotFoundException extends AbstractNotFoundException { // NOSONAR
+public class ApiMediaNotFoundException extends AbstractNotFoundException {
+
+    // NOSONAR
 
     private final String hash;
     private final String apiId;

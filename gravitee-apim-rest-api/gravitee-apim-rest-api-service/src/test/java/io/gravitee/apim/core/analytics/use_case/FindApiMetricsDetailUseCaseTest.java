@@ -67,22 +67,24 @@ class FindApiMetricsDetailUseCaseTest {
     void should_return_api_analytic_with_unknow_app_and_plan() {
         var applicationId = "unknown-app-id";
         var planId = "unknown-plan-id";
-        fakeAnalyticsQueryService.apiMetricsDetail =
-            ApiMetricsDetail.builder().apiId(API_ID).applicationId(applicationId).planId(planId).build();
+        fakeAnalyticsQueryService.apiMetricsDetail = ApiMetricsDetail.builder()
+            .apiId(API_ID)
+            .applicationId(applicationId)
+            .planId(planId)
+            .build();
 
         var result = useCase.execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isNotNull();
-        assertThat(result.apiMetricsDetail())
-            .hasValueSatisfying(apiMetricsDetail -> {
-                assertThat(apiMetricsDetail.getApplication())
-                    .extracting(BaseApplicationEntity::getId, BaseApplicationEntity::getName)
-                    .containsExactly(applicationId, "Unknown");
+        assertThat(result.apiMetricsDetail()).hasValueSatisfying(apiMetricsDetail -> {
+            assertThat(apiMetricsDetail.getApplication())
+                .extracting(BaseApplicationEntity::getId, BaseApplicationEntity::getName)
+                .containsExactly(applicationId, "Unknown");
 
-                assertThat(apiMetricsDetail.getPlan())
-                    .extracting(GenericPlanEntity::getId, GenericPlanEntity::getName)
-                    .containsExactly(planId, "Unknown");
-            });
+            assertThat(apiMetricsDetail.getPlan())
+                .extracting(GenericPlanEntity::getId, GenericPlanEntity::getName)
+                .containsExactly(planId, "Unknown");
+        });
     }
 
     @Test
@@ -107,56 +109,53 @@ class FindApiMetricsDetailUseCaseTest {
         var endpointResponseTime = 100;
         var remoteAddress = "192.168.1.1";
         var endpoint = "https://endpoint.example.com/foo";
-        fakeAnalyticsQueryService.apiMetricsDetail =
-            ApiMetricsDetail
-                .builder()
-                .apiId(API_ID)
-                .requestId(REQUEST_ID)
-                .applicationId(APP_ID)
-                .planId(PLAN_ID)
-                .transactionId(transactionId)
-                .host(host)
-                .uri(uri)
-                .status(status)
-                .requestContentLength(requestContentLength)
-                .responseContentLength(responseContentLength)
-                .gatewayLatency(gatewayLatency)
-                .gatewayResponseTime(gatewayResponseTime)
-                .gateway(instanceId)
-                .remoteAddress(remoteAddress)
-                .method(HttpMethod.GET)
-                .endpointResponseTime(endpointResponseTime)
-                .endpoint(endpoint)
-                .build();
+        fakeAnalyticsQueryService.apiMetricsDetail = ApiMetricsDetail.builder()
+            .apiId(API_ID)
+            .requestId(REQUEST_ID)
+            .applicationId(APP_ID)
+            .planId(PLAN_ID)
+            .transactionId(transactionId)
+            .host(host)
+            .uri(uri)
+            .status(status)
+            .requestContentLength(requestContentLength)
+            .responseContentLength(responseContentLength)
+            .gatewayLatency(gatewayLatency)
+            .gatewayResponseTime(gatewayResponseTime)
+            .gateway(instanceId)
+            .remoteAddress(remoteAddress)
+            .method(HttpMethod.GET)
+            .endpointResponseTime(endpointResponseTime)
+            .endpoint(endpoint)
+            .build();
 
         var result = useCase.execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(API_ID, REQUEST_ID));
 
         assertThat(result).isNotNull();
-        assertThat(result.apiMetricsDetail())
-            .hasValueSatisfying(apiMetricsDetail -> {
-                assertThat(apiMetricsDetail.getApiId()).isEqualTo(API_ID);
-                assertThat(apiMetricsDetail.getRequestId()).isEqualTo(REQUEST_ID);
-                assertThat(apiMetricsDetail.getTransactionId()).isEqualTo(transactionId);
-                assertThat(apiMetricsDetail.getHost()).isEqualTo(host);
-                assertThat(apiMetricsDetail.getUri()).isEqualTo(uri);
-                assertThat(apiMetricsDetail.getStatus()).isEqualTo(status);
-                assertThat(apiMetricsDetail.getRequestContentLength()).isEqualTo(requestContentLength);
-                assertThat(apiMetricsDetail.getResponseContentLength()).isEqualTo(responseContentLength);
-                assertThat(apiMetricsDetail.getGatewayLatency()).isEqualTo(gatewayLatency);
-                assertThat(apiMetricsDetail.getGatewayResponseTime()).isEqualTo(gatewayResponseTime);
-                assertThat(apiMetricsDetail.getRemoteAddress()).isEqualTo(remoteAddress);
-                assertThat(apiMetricsDetail.getMethod()).isEqualTo(HttpMethod.GET);
-                assertThat(apiMetricsDetail.getEndpointResponseTime()).isEqualTo(endpointResponseTime);
-                assertThat(apiMetricsDetail.getEndpoint()).isEqualTo(endpoint);
-                assertThat(apiMetricsDetail.getGateway()).isEqualTo(instanceId);
+        assertThat(result.apiMetricsDetail()).hasValueSatisfying(apiMetricsDetail -> {
+            assertThat(apiMetricsDetail.getApiId()).isEqualTo(API_ID);
+            assertThat(apiMetricsDetail.getRequestId()).isEqualTo(REQUEST_ID);
+            assertThat(apiMetricsDetail.getTransactionId()).isEqualTo(transactionId);
+            assertThat(apiMetricsDetail.getHost()).isEqualTo(host);
+            assertThat(apiMetricsDetail.getUri()).isEqualTo(uri);
+            assertThat(apiMetricsDetail.getStatus()).isEqualTo(status);
+            assertThat(apiMetricsDetail.getRequestContentLength()).isEqualTo(requestContentLength);
+            assertThat(apiMetricsDetail.getResponseContentLength()).isEqualTo(responseContentLength);
+            assertThat(apiMetricsDetail.getGatewayLatency()).isEqualTo(gatewayLatency);
+            assertThat(apiMetricsDetail.getGatewayResponseTime()).isEqualTo(gatewayResponseTime);
+            assertThat(apiMetricsDetail.getRemoteAddress()).isEqualTo(remoteAddress);
+            assertThat(apiMetricsDetail.getMethod()).isEqualTo(HttpMethod.GET);
+            assertThat(apiMetricsDetail.getEndpointResponseTime()).isEqualTo(endpointResponseTime);
+            assertThat(apiMetricsDetail.getEndpoint()).isEqualTo(endpoint);
+            assertThat(apiMetricsDetail.getGateway()).isEqualTo(instanceId);
 
-                assertThat(apiMetricsDetail.getApplication())
-                    .extracting(BaseApplicationEntity::getId, BaseApplicationEntity::getName)
-                    .containsExactly(APP_ID, appName);
+            assertThat(apiMetricsDetail.getApplication())
+                .extracting(BaseApplicationEntity::getId, BaseApplicationEntity::getName)
+                .containsExactly(APP_ID, appName);
 
-                assertThat(apiMetricsDetail.getPlan())
-                    .extracting(GenericPlanEntity::getId, GenericPlanEntity::getName)
-                    .containsExactly(PLAN_ID, planName);
-            });
+            assertThat(apiMetricsDetail.getPlan())
+                .extracting(GenericPlanEntity::getId, GenericPlanEntity::getName)
+                .containsExactly(PLAN_ID, planName);
+        });
     }
 }

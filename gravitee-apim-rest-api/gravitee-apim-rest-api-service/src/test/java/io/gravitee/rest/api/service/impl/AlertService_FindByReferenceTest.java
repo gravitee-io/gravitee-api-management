@@ -74,8 +74,9 @@ public class AlertService_FindByReferenceTest extends AlertServiceTest {
     public void must_TechnicalManagementException_when_find_alert_trigger_entity_by_reference() throws TechnicalException {
         final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        when(alertTriggerRepository.findByReferenceAndReferenceId(any(), any()))
-            .thenThrow(new TechnicalException("An unexpected error has occurred"));
+        when(alertTriggerRepository.findByReferenceAndReferenceId(any(), any())).thenThrow(
+            new TechnicalException("An unexpected error has occurred")
+        );
 
         alertService.findByReference(alert.getReferenceType(), alert.getReferenceId());
     }

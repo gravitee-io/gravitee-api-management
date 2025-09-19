@@ -83,8 +83,9 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
         String selectionRule = plan.getSelectionRule();
         if (selectionRule != null && !selectionRule.isEmpty()) {
             try {
-                Expression expression = new SpelExpressionParser()
-                    .parseExpression(selectionRule.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
+                Expression expression = new SpelExpressionParser().parseExpression(
+                    selectionRule.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE)
+                );
 
                 StandardEvaluationContext evaluation = new StandardEvaluationContext();
                 evaluation.setVariable("request", new EvaluableRequest(authenticationContext.request()));

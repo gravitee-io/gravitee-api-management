@@ -78,8 +78,7 @@ public class SearchMessageLogResponseAdapter {
     }
 
     private static AggregatedMessageLog aggregateFromEntrypointOnly(JsonNode entrypoint) {
-        return AggregatedMessageLog
-            .builder()
+        return AggregatedMessageLog.builder()
             .apiId(asTextOrNull(entrypoint.get("api-id")))
             .requestId(asTextOrNull(entrypoint.get("request-id")))
             .timestamp(asTextOrNull(entrypoint.get("@timestamp")))
@@ -91,8 +90,7 @@ public class SearchMessageLogResponseAdapter {
     }
 
     private static AggregatedMessageLog aggregateFromEndpointOnly(JsonNode endpoint) {
-        return AggregatedMessageLog
-            .builder()
+        return AggregatedMessageLog.builder()
             .apiId(asTextOrNull(endpoint.get("api-id")))
             .requestId(asTextOrNull(endpoint.get("request-id")))
             .timestamp(asTextOrNull(endpoint.get("@timestamp")))
@@ -110,8 +108,7 @@ public class SearchMessageLogResponseAdapter {
             timestamp = asTextOrNull(endpoint.get("@timestamp"));
         }
 
-        return AggregatedMessageLog
-            .builder()
+        return AggregatedMessageLog.builder()
             .apiId(asTextOrNull(entrypoint.get("api-id")))
             .requestId(asTextOrNull(entrypoint.get("request-id")))
             .timestamp(timestamp)
@@ -132,9 +129,8 @@ public class SearchMessageLogResponseAdapter {
                 .properties()
                 .stream()
                 .collect(
-                    Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
+                    Collectors.toMap(Map.Entry::getKey, entry ->
+                        StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
                     )
                 )
             : null;
@@ -144,8 +140,7 @@ public class SearchMessageLogResponseAdapter {
             ? metadataJson.properties().stream().collect(Collectors.toMap(Map.Entry::getKey, value -> asTextOrNull(value.getValue())))
             : null;
 
-        return AggregatedMessageLog.Message
-            .builder()
+        return AggregatedMessageLog.Message.builder()
             .connectorId(asTextOrNull(json.get("connector-id")))
             .timestamp(asTextOrNull(json.get("@timestamp")))
             .id(asTextOrNull(messageJson.get("id")))

@@ -398,8 +398,7 @@ public class ApiResourceTest extends AbstractResourceTest {
                 eq("Foo"),
                 eq(DefinitionVersion.valueOfLabel("1.0.0"))
             )
-        )
-            .thenReturn(mockApi);
+        ).thenReturn(mockApi);
 
         final Response response = envTarget(API + "/import-path-mappings").queryParam("page", "Foo").request().post(null);
         assertEquals(OK_200, response.getStatus());
@@ -414,8 +413,7 @@ public class ApiResourceTest extends AbstractResourceTest {
                 eq("Foo"),
                 eq(DefinitionVersion.valueOfLabel("2.0.0"))
             )
-        )
-            .thenReturn(mockApi);
+        ).thenReturn(mockApi);
 
         final Response response = envTarget(API + "/import-path-mappings")
             .queryParam("page", "Foo")
@@ -533,23 +531,22 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldRollbackApi_withV2Payload() {
         //given
-        final String v2Payload =
-            """
-        {
-          "id": "my-api",
-          "name": "My Api",
-          "version": "v1.0",
-          "description": "rollback test for v2",
-          "visibility": "PUBLIC",
-          "proxy": {
-            "virtual_hosts": [ { "path": "/test" } ],
-            "groups": []
-          },
-          "plans": [],
-          "flows": [],
-          "paths": {}
-        }
-        """;
+        final String v2Payload = """
+            {
+              "id": "my-api",
+              "name": "My Api",
+              "version": "v1.0",
+              "description": "rollback test for v2",
+              "visibility": "PUBLIC",
+              "proxy": {
+                "virtual_hosts": [ { "path": "/test" } ],
+                "groups": []
+              },
+              "plans": [],
+              "flows": [],
+              "paths": {}
+            }
+            """;
 
         ApiEntity rollbacked = new ApiEntity();
         rollbacked.setId(API);
@@ -571,24 +568,23 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldReturnBadRequest_onV4PayloadForRollback() {
         //given
-        final String v4Payload =
-            """
-        {
-          "id": "my-api",
-          "name": "v4 api",
-          "version": "1.0",
-          "description": "v4 api description",
-          "visibility": "PRIVATE",
-          "definitionVersion": "4.0.0",
-          "proxy": {
-            "virtual_hosts": [ { "path": "/" } ],
-            "groups": []
-          },
-          "plans": [],
-          "flows": [],
-          "paths": {}
-        }
-        """;
+        final String v4Payload = """
+            {
+              "id": "my-api",
+              "name": "v4 api",
+              "version": "1.0",
+              "description": "v4 api description",
+              "visibility": "PRIVATE",
+              "definitionVersion": "4.0.0",
+              "proxy": {
+                "virtual_hosts": [ { "path": "/" } ],
+                "groups": []
+              },
+              "plans": [],
+              "flows": [],
+              "paths": {}
+            }
+            """;
 
         // when
         Response response = envTarget(API + "/rollback").request().post(Entity.json(v4Payload));

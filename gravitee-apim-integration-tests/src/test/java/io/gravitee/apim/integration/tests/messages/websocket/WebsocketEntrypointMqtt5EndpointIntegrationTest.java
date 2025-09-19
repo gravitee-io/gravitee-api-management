@@ -86,8 +86,7 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
 
         final Single<WebSocket> ws = createWSRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), httpClient, readyObs);
 
-        final TestSubscriber<JsonObject> obs = Flowable
-            .fromSingle(ws)
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(ws)
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
             .flatMap(this::extractMessages)
             .take(messageCount)
@@ -176,18 +175,18 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
 
         final Single<WebSocket> ws = createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
 
-        final TestSubscriber<JsonObject> obs = Flowable
-            .fromSingle(ws)
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(ws)
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
             .flatMap(webSocket ->
                 extractMessages(webSocket)
                     .take(10)
                     .concatWith(
-                        Single
-                            .defer(() ->
-                                createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient)
-                                    .delaySubscription(500, TimeUnit.MILLISECONDS)
+                        Single.defer(() ->
+                            createWSRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient).delaySubscription(
+                                500,
+                                TimeUnit.MILLISECONDS
                             )
+                        )
                             .flatMapPublisher(this::extractMessages)
                             .take(10)
                     )
@@ -251,8 +250,9 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
 
     @NonNull
     private Single<WebSocket> createWSRequest(String path, String clientIdentifier, HttpClient httpClient, List<Completable> readyObs) {
-        return createWSRequest(path, clientIdentifier, httpClient)
-            .doOnSuccess(webSocket -> readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(webSocket))));
+        return createWSRequest(path, clientIdentifier, httpClient).doOnSuccess(webSocket ->
+            readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(webSocket)))
+        );
     }
 
     @NonNull
@@ -263,8 +263,7 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
             .toFlowable()
             .map(buffer -> {
                 final String content = buffer.toString();
-                return JsonObject
-                    .of("transactionId", transactionId)
+                return JsonObject.of("transactionId", transactionId)
                     .put("counter", Integer.parseInt(content.replaceFirst(".*message-", "")))
                     .put("content", content);
             });
@@ -274,23 +273,19 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
         final Map<String, AtomicInteger> counters = new ConcurrentHashMap<>();
 
         for (int i = 0; i < messageCount; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final Integer messageCounter = jsonObject.getInteger("counter");
-                    final AtomicInteger requestCounter = counters.computeIfAbsent(
-                        jsonObject.getString("transactionId"),
-                        s -> new AtomicInteger(messageCounter)
-                    );
+            obs.assertValueAt(i, jsonObject -> {
+                final Integer messageCounter = jsonObject.getInteger("counter");
+                final AtomicInteger requestCounter = counters.computeIfAbsent(jsonObject.getString("transactionId"), s ->
+                    new AtomicInteger(messageCounter)
+                );
 
-                    // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
-                    assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
-                    requestCounter.set(messageCounter);
-                    assertThat(jsonObject.getString("content")).matches("message-" + messageCounter);
+                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
+                assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
+                requestCounter.set(messageCounter);
+                assertThat(jsonObject.getString("content")).matches("message-" + messageCounter);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 
@@ -298,16 +293,13 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
         final HashSet<String> messages = new HashSet<>();
 
         for (int i = 0; i < messageCount; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final String content = jsonObject.getString("content");
-                    assertThat(messages.contains(content)).isFalse();
-                    messages.add(content);
+            obs.assertValueAt(i, jsonObject -> {
+                final String content = jsonObject.getString("content");
+                assertThat(messages.contains(content)).isFalse();
+                messages.add(content);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 
@@ -315,18 +307,15 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
         final HashSet<Integer> messages = new HashSet<>();
 
         for (int i = 0; i < end - start; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final Integer messageCounter = jsonObject.getInteger("counter");
+            obs.assertValueAt(i, jsonObject -> {
+                final Integer messageCounter = jsonObject.getInteger("counter");
 
-                    assertThat(messageCounter).isGreaterThanOrEqualTo(start);
-                    assertThat(messageCounter).isLessThan(end);
-                    messages.add(messageCounter);
+                assertThat(messageCounter).isGreaterThanOrEqualTo(start);
+                assertThat(messageCounter).isLessThan(end);
+                messages.add(messageCounter);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
 
         assertThat(messages.size()).isEqualTo(end - start);

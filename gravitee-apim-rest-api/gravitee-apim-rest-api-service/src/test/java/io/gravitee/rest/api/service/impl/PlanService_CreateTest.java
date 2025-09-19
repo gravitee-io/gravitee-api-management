@@ -168,8 +168,15 @@ public class PlanService_CreateTest {
 
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
 
-        verify(auditService, times(1))
-            .createApiAuditLog(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any(), eq(PLAN_CREATED), any(), isNull(), same(plan));
+        verify(auditService, times(1)).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API_ID),
+            any(),
+            eq(PLAN_CREATED),
+            any(),
+            isNull(),
+            same(plan)
+        );
         verifyNoMoreInteractions(auditService);
     }
 

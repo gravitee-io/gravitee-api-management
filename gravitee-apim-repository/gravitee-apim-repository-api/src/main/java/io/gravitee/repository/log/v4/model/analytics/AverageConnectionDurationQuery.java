@@ -25,9 +25,11 @@ public record AverageConnectionDurationQuery(Optional<String> apiId, Optional<In
     public AverageConnectionDurationQuery() {
         this(Optional.empty(), Optional.empty(), Optional.empty());
     }
+
     public AverageConnectionDurationQuery(String apiId) {
         this(Optional.ofNullable(apiId), Optional.empty(), Optional.empty());
     }
+
     public AverageConnectionDurationQuery(String apiId, Instant from, Instant to) {
         this(Optional.ofNullable(apiId), Optional.ofNullable(from), Optional.ofNullable(to));
     }

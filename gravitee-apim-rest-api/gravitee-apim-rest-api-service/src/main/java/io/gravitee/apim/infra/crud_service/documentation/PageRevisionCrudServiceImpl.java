@@ -76,9 +76,17 @@ public class PageRevisionCrudServiceImpl implements PageRevisionCrudService {
 
     private String canonicalRevision(PageRevision pageRevision) {
         StringBuilder builder = new StringBuilder();
-        builder.append(Optional.ofNullable(pageRevision.getName()).map(c -> c.trim()).orElse(""));
+        builder.append(
+            Optional.ofNullable(pageRevision.getName())
+                .map(c -> c.trim())
+                .orElse("")
+        );
         builder.append('\n');
-        builder.append(Optional.ofNullable(pageRevision.getContent()).map(c -> c.trim()).orElse(""));
+        builder.append(
+            Optional.ofNullable(pageRevision.getContent())
+                .map(c -> c.trim())
+                .orElse("")
+        );
         builder.append('\n');
         builder.append(pageRevision.getContributor());
         builder.append('\n');

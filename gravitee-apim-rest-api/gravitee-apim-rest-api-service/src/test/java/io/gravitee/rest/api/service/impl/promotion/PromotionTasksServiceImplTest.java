@@ -86,8 +86,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(CREATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -95,8 +94,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(UPDATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
 
         assertThat(result).isEmpty();
@@ -112,8 +110,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(CREATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -121,8 +118,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).isEmpty();
@@ -137,8 +133,7 @@ public class PromotionTasksServiceImplTest {
                 any(),
                 any()
             )
-        )
-            .thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
+        ).thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
         PromotionEntity previousPromotionEntity = getAPromotionEntity();
@@ -149,8 +144,7 @@ public class PromotionTasksServiceImplTest {
                 any(),
                 any()
             )
-        )
-            .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
+        ).thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -158,8 +152,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(UPDATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -167,8 +160,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(CREATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
@@ -196,8 +188,7 @@ public class PromotionTasksServiceImplTest {
                 any(),
                 any()
             )
-        )
-            .thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
+        ).thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
         when(
@@ -206,8 +197,7 @@ public class PromotionTasksServiceImplTest {
                 any(),
                 any()
             )
-        )
-            .thenReturn(new Page<>(emptyList(), 0, 0, 0));
+        ).thenReturn(new Page<>(emptyList(), 0, 0, 0));
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -215,8 +205,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(CREATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -224,8 +213,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
@@ -251,8 +239,7 @@ public class PromotionTasksServiceImplTest {
                 any(),
                 any()
             )
-        )
-            .thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
+        ).thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
         PromotionEntity previousPromotionEntity = getAPromotionEntity();
@@ -263,8 +250,7 @@ public class PromotionTasksServiceImplTest {
                 any(),
                 any()
             )
-        )
-            .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
+        ).thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -272,8 +258,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(CREATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -281,8 +266,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
 
         when(apiSearchService.exists("api#target")).thenReturn(false);
@@ -309,8 +293,7 @@ public class PromotionTasksServiceImplTest {
                 any(),
                 any()
             )
-        )
-            .thenReturn(new Page<>(List.of(promotionEntity1, promotionEntity2), 0, 0, 0));
+        ).thenReturn(new Page<>(List.of(promotionEntity1, promotionEntity2), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
         PromotionEntity previousPromotionEntity = getAPromotionEntity();
@@ -321,8 +304,7 @@ public class PromotionTasksServiceImplTest {
                 any(),
                 any()
             )
-        )
-            .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
+        ).thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -330,8 +312,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(UPDATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -339,8 +320,7 @@ public class PromotionTasksServiceImplTest {
                 eq("env#1"),
                 eq(CREATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         when(objectMapper.readValue(promotionEntity1.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
         when(objectMapper.readValue(promotionEntity2.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
