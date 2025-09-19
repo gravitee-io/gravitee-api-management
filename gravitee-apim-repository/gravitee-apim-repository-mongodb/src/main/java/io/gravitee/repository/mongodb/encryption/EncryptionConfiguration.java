@@ -140,8 +140,7 @@ public class EncryptionConfiguration {
         // Key Management System (KMS) providers.
         Map<String, Map<String, Object>> kmsProviders = loadKmsProvidersFromConfig();
 
-        ClientEncryptionSettings.Builder builder = ClientEncryptionSettings
-            .builder()
+        ClientEncryptionSettings.Builder builder = ClientEncryptionSettings.builder()
             // The collection in MongoDB where the Data Encryption Keys (DEKs) will be stored.
             .keyVaultNamespace(getDatabaseName() + "." + tablePrefix + keyVaultCollectionName)
             .keyVaultMongoClientSettings(mongoFactory.buildMongoClientSettings(false))

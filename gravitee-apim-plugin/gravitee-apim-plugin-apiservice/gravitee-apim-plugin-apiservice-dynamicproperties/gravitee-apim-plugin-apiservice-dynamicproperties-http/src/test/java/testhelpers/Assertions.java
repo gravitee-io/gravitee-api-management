@@ -68,12 +68,11 @@ public class Assertions {
 
         public void contains(List<Property> expectedProperties) {
             assertThat(propertyEvent.type()).isEqualTo(ManagementApiServiceEvent.DYNAMIC_PROPERTY_UPDATE);
-            assertThat(propertyEvent.content())
-                .satisfies(property -> {
-                    assertThat(property.pluginId()).isEqualTo(HTTP_DYNAMIC_PROPERTIES_TYPE);
-                    assertThat(property.apiId()).isEqualTo(MY_API);
-                    assertThat(property.dynamicProperties()).containsExactlyElementsOf(expectedProperties);
-                });
+            assertThat(propertyEvent.content()).satisfies(property -> {
+                assertThat(property.pluginId()).isEqualTo(HTTP_DYNAMIC_PROPERTIES_TYPE);
+                assertThat(property.apiId()).isEqualTo(MY_API);
+                assertThat(property.dynamicProperties()).containsExactlyElementsOf(expectedProperties);
+            });
         }
     }
 }

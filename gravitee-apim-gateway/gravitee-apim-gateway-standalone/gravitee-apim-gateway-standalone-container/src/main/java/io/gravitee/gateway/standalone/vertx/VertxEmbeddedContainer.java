@@ -81,21 +81,17 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         final DeploymentOptions options = new DeploymentOptions().setInstances(httpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName();
 
-        vertx.deployVerticle(
-            verticleName,
-            options,
-            event -> {
-                if (event.failed()) {
-                    logger.error("Unable to start HTTP server", event.cause());
+        vertx.deployVerticle(verticleName, options, event -> {
+            if (event.failed()) {
+                logger.error("Unable to start HTTP server", event.cause());
 
-                    // HTTP Server is a required component. Shutdown if not available
-                    Runtime.getRuntime().exit(1);
-                }
-
-                httpDeploymentId = event.result();
-                moveToStarted();
+                // HTTP Server is a required component. Shutdown if not available
+                Runtime.getRuntime().exit(1);
             }
-        );
+
+            httpDeploymentId = event.result();
+            moveToStarted();
+        });
     }
 
     private void moveToStarted() {
@@ -110,18 +106,14 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         final DeploymentOptions options = new DeploymentOptions().setInstances(tcpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + TcpProtocolVerticle.class.getName();
 
-        vertx.deployVerticle(
-            verticleName,
-            options,
-            event -> {
-                if (event.failed()) {
-                    logger.error("Unable to start TCP server", event.cause());
-                }
-
-                tcpDeploymentId = event.result();
-                moveToStarted();
+        vertx.deployVerticle(verticleName, options, event -> {
+            if (event.failed()) {
+                logger.error("Unable to start TCP server", event.cause());
             }
-        );
+
+            tcpDeploymentId = event.result();
+            moveToStarted();
+        });
     }
 
     @Override

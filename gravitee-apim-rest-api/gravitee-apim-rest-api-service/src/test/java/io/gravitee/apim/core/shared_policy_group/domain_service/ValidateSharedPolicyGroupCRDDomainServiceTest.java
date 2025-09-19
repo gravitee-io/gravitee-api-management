@@ -47,8 +47,7 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
     static final String USER_SOURCE = "MEMORY";
     static final String ACTOR_USER_ID = "ACTOR";
 
-    static final AuditInfo AUDIT_INFO = AuditInfo
-        .builder()
+    static final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .actor(AuditActor.builder().userSource(USER_SOURCE).userSourceId(ACTOR_USER_ID).userId(ACTOR_USER_ID).build())
         .environmentId(ENV_ID)
         .organizationId(ORG_ID)
@@ -76,8 +75,7 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
             validateCreateSharedPolicyGroupDomainService.validateAndSanitize(
                 new ValidateCreateSharedPolicyGroupDomainService.Input(AUDIT_INFO, aCRD.toSharedPolicyGroup())
             )
-        )
-            .thenReturn(Validator.Result.ofValue(null));
+        ).thenReturn(Validator.Result.ofValue(null));
 
         var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
@@ -94,8 +92,7 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
             validateCreateSharedPolicyGroupDomainService.validateAndSanitize(
                 new ValidateCreateSharedPolicyGroupDomainService.Input(AUDIT_INFO, aCRD.toSharedPolicyGroup())
             )
-        )
-            .thenReturn(Validator.Result.withError(Validator.Error.severe("validation failed")));
+        ).thenReturn(Validator.Result.withError(Validator.Error.severe("validation failed")));
 
         var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
@@ -107,14 +104,14 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
     @Test
     void should_return_no_warning_or_errors_on_update() {
         SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
-        when(sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(ENV_ID, aCRD.getCrossId()))
-            .thenReturn(Optional.of(aCRD.toSharedPolicyGroup()));
+        when(sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(ENV_ID, aCRD.getCrossId())).thenReturn(
+            Optional.of(aCRD.toSharedPolicyGroup())
+        );
         when(
             validateUpdateSharedPolicyGroupDomainService.validateAndSanitize(
                 new ValidateUpdateSharedPolicyGroupDomainService.Input(AUDIT_INFO, aCRD.toSharedPolicyGroup())
             )
-        )
-            .thenReturn(Validator.Result.ofValue(null));
+        ).thenReturn(Validator.Result.ofValue(null));
 
         var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 
@@ -126,14 +123,14 @@ class ValidateSharedPolicyGroupCRDDomainServiceTest {
     @Test
     void should_return_errors_on_update() {
         SharedPolicyGroupCRD aCRD = SharedPolicyGroupFixtures.aSharedPolicyGroupCRD();
-        when(sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(ENV_ID, aCRD.getCrossId()))
-            .thenReturn(Optional.of(aCRD.toSharedPolicyGroup()));
+        when(sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(ENV_ID, aCRD.getCrossId())).thenReturn(
+            Optional.of(aCRD.toSharedPolicyGroup())
+        );
         when(
             validateUpdateSharedPolicyGroupDomainService.validateAndSanitize(
                 new ValidateUpdateSharedPolicyGroupDomainService.Input(AUDIT_INFO, aCRD.toSharedPolicyGroup())
             )
-        )
-            .thenReturn(Validator.Result.withError(Validator.Error.severe("validation failed")));
+        ).thenReturn(Validator.Result.withError(Validator.Error.severe("validation failed")));
 
         var result = cut.validateAndSanitize(new ValidateSharedPolicyGroupCRDDomainService.Input(AUDIT_INFO, aCRD));
 

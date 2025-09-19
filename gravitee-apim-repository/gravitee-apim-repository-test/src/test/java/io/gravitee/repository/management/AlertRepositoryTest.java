@@ -37,7 +37,10 @@ public class AlertRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(alerts);
         assertEquals(4, alerts.size());
-        final Optional<AlertTrigger> optionalAlert = alerts.stream().filter(alert -> "quota90".equals(alert.getId())).findAny();
+        final Optional<AlertTrigger> optionalAlert = alerts
+            .stream()
+            .filter(alert -> "quota90".equals(alert.getId()))
+            .findAny();
         assertTrue(optionalAlert.isPresent());
         assertEquals("Quota90", optionalAlert.get().getName());
         assertEquals("Description for alert API quota 90%", optionalAlert.get().getDescription());

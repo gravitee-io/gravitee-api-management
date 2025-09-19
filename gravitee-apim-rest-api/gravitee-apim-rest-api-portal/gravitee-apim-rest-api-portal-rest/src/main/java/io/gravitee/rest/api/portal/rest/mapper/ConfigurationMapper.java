@@ -142,13 +142,12 @@ public class ConfigurationMapper {
 
         PortalApplicationSettings.ApplicationTypes types = application.getTypes();
         if (
-            !application.getRegistration().getEnabled() &&
-            !types.getSimpleType().isEnabled() ||
-            !types.getSimpleType().isEnabled() &&
-            !types.getWebType().isEnabled() &&
-            !types.getNativeType().isEnabled() &&
-            !types.getBackendToBackendType().isEnabled() &&
-            !types.getBrowserType().isEnabled()
+            (!application.getRegistration().getEnabled() && !types.getSimpleType().isEnabled()) ||
+            (!types.getSimpleType().isEnabled() &&
+                !types.getWebType().isEnabled() &&
+                !types.getNativeType().isEnabled() &&
+                !types.getBackendToBackendType().isEnabled() &&
+                !types.getBrowserType().isEnabled())
         ) {
             configuration.setApplicationCreation(convert(false));
         } else {

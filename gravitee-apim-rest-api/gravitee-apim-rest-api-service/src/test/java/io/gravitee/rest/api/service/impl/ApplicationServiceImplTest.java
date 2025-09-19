@@ -64,8 +64,7 @@ public class ApplicationServiceImplTest {
     @Test
     public void buildSearchCriteria() {
         ExecutionContext executionContext = new ExecutionContext("org1", "env1");
-        ApplicationQuery query = ApplicationQuery
-            .builder()
+        ApplicationQuery query = ApplicationQuery.builder()
             .query("app1")
             .name("name1")
             .groups(Set.of("group1", "group2"))
@@ -73,10 +72,12 @@ public class ApplicationServiceImplTest {
             .user("user1")
             .ids(Set.of("app1", "app2"))
             .build();
-        when(membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION))
-            .thenReturn(Set.of("app1", "app2", "app3"));
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP))
-            .thenReturn(Set.of());
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION)
+        ).thenReturn(Set.of("app1", "app2", "app3"));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP)
+        ).thenReturn(Set.of());
         ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
 
         assertAll(
@@ -96,10 +97,12 @@ public class ApplicationServiceImplTest {
     public void buildSearchCriteria_userAndIds() {
         ExecutionContext executionContext = new ExecutionContext("org1", "env1");
         ApplicationQuery query = ApplicationQuery.builder().user("user1").ids(Set.of("app1")).build();
-        when(membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION))
-            .thenReturn(Set.of("app1", "app2"));
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP))
-            .thenReturn(Set.of());
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION)
+        ).thenReturn(Set.of("app1", "app2"));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP)
+        ).thenReturn(Set.of());
         ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
         assertThat(criteria.getEnvironmentIds().size()).isEqualTo(1);
         assertTrue(criteria.getEnvironmentIds().contains("env1"));
@@ -111,10 +114,12 @@ public class ApplicationServiceImplTest {
     public void buildSearchCriteria_userAndIds_noAuthorizedApps() {
         ExecutionContext executionContext = new ExecutionContext("org1", "env1");
         ApplicationQuery query = ApplicationQuery.builder().user("user1").ids(Set.of("app3")).build();
-        when(membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION))
-            .thenReturn(Set.of("app1", "app2"));
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP))
-            .thenReturn(Set.of());
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION)
+        ).thenReturn(Set.of("app1", "app2"));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP)
+        ).thenReturn(Set.of());
         ApplicationCriteria criteria = applicationService.buildSearchCriteria(executionContext, query);
         assertNull(criteria);
     }
@@ -123,11 +128,13 @@ public class ApplicationServiceImplTest {
     public void buildSearchCriteria_userAndStatus() throws TechnicalException {
         ExecutionContext executionContext = new ExecutionContext("org1", "env1");
         ApplicationQuery query = ApplicationQuery.builder().user("user1").status(ApplicationStatus.ACTIVE.name()).build();
-        when(membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION))
-            .thenReturn(new HashSet<>(Set.of("app1", "app2")));
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.APPLICATION)
+        ).thenReturn(new HashSet<>(Set.of("app1", "app2")));
         MembershipEntity groupMembership = MembershipEntity.builder().referenceId("group1").roleId("role-app").build();
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP))
-            .thenReturn(Set.of(groupMembership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user1", MembershipReferenceType.GROUP)
+        ).thenReturn(Set.of(groupMembership));
         RoleEntity mockedRole = new RoleEntity();
         mockedRole.setScope(RoleScope.APPLICATION);
         when(roleService.findById("role-app")).thenReturn(mockedRole);

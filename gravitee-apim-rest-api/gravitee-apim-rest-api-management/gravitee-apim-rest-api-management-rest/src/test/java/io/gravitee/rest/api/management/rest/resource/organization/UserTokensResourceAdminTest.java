@@ -67,8 +67,7 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
                 anyString(),
                 any(RolePermissionAction[].class)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenReturn(new UserEntity());
     }

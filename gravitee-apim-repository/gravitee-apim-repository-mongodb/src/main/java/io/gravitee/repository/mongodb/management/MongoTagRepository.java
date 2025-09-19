@@ -74,7 +74,10 @@ public class MongoTagRepository implements TagRepository {
         final List<TagMongo> tags = internalTagRepo.findByIdInAndReferenceIdAndReferenceType(tagIds, referenceId, referenceType);
 
         LOGGER.debug("Find tag by IDs and reference[{}, {}, {}] - Done", tagIds, referenceId, referenceType);
-        return tags.stream().map(tagMongo -> mapper.map(tagMongo)).collect(Collectors.toSet());
+        return tags
+            .stream()
+            .map(tagMongo -> mapper.map(tagMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -146,11 +149,18 @@ public class MongoTagRepository implements TagRepository {
     @Override
     public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
         final List<TagMongo> tags = internalTagRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
-        return tags.stream().map(tagMongo -> mapper.map(tagMongo)).collect(Collectors.toSet());
+        return tags
+            .stream()
+            .map(tagMongo -> mapper.map(tagMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override
     public Set<Tag> findAll() throws TechnicalException {
-        return internalTagRepo.findAll().stream().map(tagMongo -> mapper.map(tagMongo)).collect(Collectors.toSet());
+        return internalTagRepo
+            .findAll()
+            .stream()
+            .map(tagMongo -> mapper.map(tagMongo))
+            .collect(Collectors.toSet());
     }
 }

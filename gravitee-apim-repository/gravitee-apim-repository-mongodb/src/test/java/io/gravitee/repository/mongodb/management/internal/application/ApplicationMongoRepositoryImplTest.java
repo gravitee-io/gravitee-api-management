@@ -28,26 +28,23 @@ public class ApplicationMongoRepositoryImplTest {
     @Test
     public void searchQuery_queryAndEnvironmentIdsAndStatus() {
         ApplicationMongoRepositoryImpl repository = new ApplicationMongoRepositoryImpl();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .query("id1")
             .environmentIds(Set.of("env1"))
             .status(ApplicationStatus.ACTIVE)
             .build();
         Query query = repository.buildSearchCriteria(criteria);
-        assertThat(query.toString())
-            .isEqualTo(
-                "Query: { \"$or\" : [{ \"id\" : \"id1\"}, { \"name\" : { \"$regularExpression\" : { \"pattern\" : \"id1\", " +
+        assertThat(query.toString()).isEqualTo(
+            "Query: { \"$or\" : [{ \"id\" : \"id1\"}, { \"name\" : { \"$regularExpression\" : { \"pattern\" : \"id1\", " +
                 "\"options\" : \"i\"}}}], \"environmentId\" : { \"$in\" : [\"env1\"]}, \"status\" : { \"$java\" : ACTIVE } }, " +
                 "Fields: {}, Sort: {}"
-            );
+        );
     }
 
     @Test
     public void searchQuery_queryAndRestrictedIdsAndNameAndEnvironmentIdsAndStatus() {
         ApplicationMongoRepositoryImpl repository = new ApplicationMongoRepositoryImpl();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .query("name1")
             .restrictedToIds(Set.of("id1"))
             .name("name1")
@@ -55,12 +52,11 @@ public class ApplicationMongoRepositoryImplTest {
             .status(ApplicationStatus.ACTIVE)
             .build();
         Query query = repository.buildSearchCriteria(criteria);
-        assertThat(query.toString())
-            .isEqualTo(
-                "Query: { \"$or\" : [{ \"id\" : \"name1\"}, { \"name\" : { \"$regularExpression\" : { \"pattern\" : \"name1\", " +
+        assertThat(query.toString()).isEqualTo(
+            "Query: { \"$or\" : [{ \"id\" : \"name1\"}, { \"name\" : { \"$regularExpression\" : { \"pattern\" : \"name1\", " +
                 "\"options\" : \"i\"}}}], \"id\" : { \"$in\" : [\"id1\"]}, \"name\" : { \"$regularExpression\" : " +
                 "{ \"pattern\" : \"name1\", \"options\" : \"i\"}}, \"environmentId\" : { \"$in\" : [\"env1\"]}, \"status\" : " +
                 "{ \"$java\" : ACTIVE } }, Fields: {}, Sort: {}"
-            );
+        );
     }
 }

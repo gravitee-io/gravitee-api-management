@@ -123,7 +123,11 @@ public class DefaultApiServicePluginManager
     @Override
     public <T extends ApiServiceFactory<?>> List<T> getAllFactories(boolean includeNotDeployed, Class<?> clazz) {
         List<ApiServiceFactory<?>> allFactories = new ArrayList<>(
-            factories.values().stream().filter(f -> clazz.isAssignableFrom(f.getClass())).toList()
+            factories
+                .values()
+                .stream()
+                .filter(f -> clazz.isAssignableFrom(f.getClass()))
+                .toList()
         );
         if (includeNotDeployed) {
             allFactories.addAll(notDeployedPluginFactories.values());

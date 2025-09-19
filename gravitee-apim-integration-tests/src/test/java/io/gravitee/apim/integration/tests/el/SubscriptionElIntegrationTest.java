@@ -98,17 +98,16 @@ class SubscriptionElIntegrationTest extends AbstractGatewayTest {
 
         var jwtToken = generateJWT(5000);
         when(
-            getBean(SubscriptionService.class)
-                .getByApiAndSecurityToken(
-                    eq("api-with-subscription-el"),
-                    argThat(securityToken ->
+            getBean(SubscriptionService.class).getByApiAndSecurityToken(
+                eq("api-with-subscription-el"),
+                argThat(
+                    securityToken ->
                         securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) &&
                         securityToken.getTokenValue().equals(JWT_CLIENT_ID)
-                    ),
-                    eq(PLAN_JWT_ID)
-                )
-        )
-            .thenReturn(Optional.of(createSubscription("api-with-subscription-el", PLAN_JWT_ID, false)));
+                ),
+                eq(PLAN_JWT_ID)
+            )
+        ).thenReturn(Optional.of(createSubscription("api-with-subscription-el", PLAN_JWT_ID, false)));
 
         httpClient
             .rxRequest(HttpMethod.GET, "/test")

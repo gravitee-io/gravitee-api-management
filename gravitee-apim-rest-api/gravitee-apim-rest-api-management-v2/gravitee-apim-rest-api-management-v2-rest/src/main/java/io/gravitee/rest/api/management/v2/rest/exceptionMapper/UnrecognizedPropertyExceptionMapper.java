@@ -30,13 +30,11 @@ public class UnrecognizedPropertyExceptionMapper extends AbstractExceptionMapper
 
     @Override
     public Response toResponse(UnrecognizedPropertyException e) {
-        return Response
-            .status(Response.Status.BAD_REQUEST)
+        return Response.status(Response.Status.BAD_REQUEST)
             .type(MediaType.APPLICATION_JSON_TYPE)
             .entity(
                 Entity.json(
-                    Error
-                        .builder()
+                    Error.builder()
                         .message(String.format("Property [%s] is not recognized as a valid property", e.getPropertyName()))
                         .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
                         .build()

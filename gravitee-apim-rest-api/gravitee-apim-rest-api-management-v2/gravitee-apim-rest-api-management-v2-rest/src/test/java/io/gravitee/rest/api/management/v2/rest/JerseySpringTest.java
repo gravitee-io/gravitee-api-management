@@ -99,31 +99,30 @@ public abstract class JerseySpringTest {
 
     @Autowired
     public void setApplicationContext(final ApplicationContext context) {
-        _jerseyTest =
-            new JerseyTest() {
-                @Override
-                protected Application configure() {
-                    // Find first available port.
-                    forceSet(TestProperties.CONTAINER_PORT, "0");
+        _jerseyTest = new JerseyTest() {
+            @Override
+            protected Application configure() {
+                // Find first available port.
+                forceSet(TestProperties.CONTAINER_PORT, "0");
 
-                    ResourceConfig application = new GraviteeManagementV2Application();
+                ResourceConfig application = new GraviteeManagementV2Application();
 
-                    application.property("contextConfig", context);
-                    application.property("jersey.config.server.wadl.disableWadl", true);
-                    decorate(application);
+                application.property("contextConfig", context);
+                application.property("jersey.config.server.wadl.disableWadl", true);
+                decorate(application);
 
-                    return application;
-                }
+                return application;
+            }
 
-                @Override
-                protected void configureClient(ClientConfig config) {
-                    super.configureClient(config);
+            @Override
+            protected void configureClient(ClientConfig config) {
+                super.configureClient(config);
 
-                    config.register(ObjectMapperResolver.class);
-                    config.register(MultiPartFeature.class);
-                    config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
-                }
-            };
+                config.register(ObjectMapperResolver.class);
+                config.register(MultiPartFeature.class);
+                config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
+            }
+        };
     }
 
     protected void decorate(ResourceConfig resourceConfig) {
@@ -207,7 +206,8 @@ public abstract class JerseySpringTest {
             }
 
             String environmentId = null;
-            if (pathsParams.containsKey("envId")) { // The id or hrid of an environment
+            if (pathsParams.containsKey("envId")) {
+                // The id or hrid of an environment
                 String idOrHrid = pathsParams.getFirst("envId");
                 environmentId = environmentService.findByOrgAndIdOrHrid(organizationId, idOrHrid).getId();
             }

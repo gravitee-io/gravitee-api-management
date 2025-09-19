@@ -109,12 +109,10 @@ class SearchSharedPolicyGroupUseCaseTest {
         sharedPolicyGroupQueryService.initWith(List.of(foxSharedPolicyGroup, wolfSharedPolicyGroup));
 
         // When
-        var throwable = assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                searchSharedPolicyGroupUseCase.execute(
-                    new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "invalid")
-                )
+        var throwable = assertThrows(IllegalArgumentException.class, () ->
+            searchSharedPolicyGroupUseCase.execute(
+                new SearchSharedPolicyGroupUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "invalid")
+            )
         );
 
         // Then

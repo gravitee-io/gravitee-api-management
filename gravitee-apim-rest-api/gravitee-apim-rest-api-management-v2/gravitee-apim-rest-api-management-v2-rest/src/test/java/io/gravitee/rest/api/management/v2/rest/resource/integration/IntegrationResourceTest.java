@@ -130,15 +130,13 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     @AfterEach
     public void tearDown() {
         super.tearDown();
-        Stream
-            .of(
-                apiCrudServiceInMemory,
-                integrationCrudServiceInMemory,
-                asyncJobCrudServiceInMemory,
-                membershipQueryServiceInMemory,
-                integrationAgentInMemory
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiCrudServiceInMemory,
+            integrationCrudServiceInMemory,
+            asyncJobCrudServiceInMemory,
+            membershipQueryServiceInMemory,
+            integrationAgentInMemory
+        ).forEach(InMemoryAlternative::reset);
         GraviteeContext.cleanContext();
         reset(licenseManager);
     }
@@ -150,8 +148,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         void setup() {
             membershipQueryServiceInMemory.initWith(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .memberId(USER_NAME)
                         .referenceId(INTEGRATION_ID)
                         .roleId("int-po-id-fake-org")
@@ -175,8 +172,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    Integration.builder()
                         .id(INTEGRATION_ID)
                         .name(integration.getName())
                         .description(integration.getDescription())
@@ -202,8 +198,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    Integration.builder()
                         .id(INTEGRATION_ID)
                         .name(integration.getName())
                         .description(integration.getDescription())
@@ -211,8 +206,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                         .agentStatus(Integration.AgentStatusEnum.CONNECTED)
                         .primaryOwner(PrimaryOwner.builder().id("UnitTests").email("jane.doe@gravitee.io").displayName("Jane Doe").build())
                         .pendingJob(
-                            io.gravitee.rest.api.management.v2.rest.model.IngestionJob
-                                .builder()
+                            io.gravitee.rest.api.management.v2.rest.model.IngestionJob.builder()
                                 .id(job.getId())
                                 .status(AsyncJobStatus.PENDING)
                                 .build()
@@ -241,8 +235,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                     eq(INTEGRATION_ID),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             Response response = target.request().get();
             assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
@@ -268,8 +261,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                     INTEGRATION_ID,
                     RolePermissionAction.CREATE
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(entity);
 
@@ -317,8 +309,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             var integration = List.of(IntegrationFixture.anIntegration());
             integrationCrudServiceInMemory.initWith(integration);
 
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
-                .builder()
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration.builder()
                 .name(updatedName)
                 .description(updatedDescription)
                 .build();
@@ -331,8 +322,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    Integration.builder()
                         .id(INTEGRATION_ID)
                         .name(updatedName)
                         .description(updatedDescription)
@@ -351,8 +341,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             integrationCrudServiceInMemory.initWith(integration);
             givenExistingGroup(List.of(Group.builder().id(groupId).name("group-name").build()));
 
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
-                .builder()
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration.builder()
                 .name(updatedName)
                 .description(updatedDescription)
                 .groups(List.of(groupId))
@@ -366,8 +355,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    Integration.builder()
                         .id(INTEGRATION_ID)
                         .name(updatedName)
                         .description(updatedDescription)
@@ -383,8 +371,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             var updatedName = "updated-name";
             var updatedDescription = "updated-description";
 
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
-                .builder()
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration.builder()
                 .name(updatedName)
                 .description(updatedDescription)
                 .build();
@@ -405,8 +392,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                     eq(INTEGRATION_ID),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration.builder().build();
 
@@ -419,8 +405,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         public void should_return_400_when_missing_name_to_update() {
             var updatedDescription = "updated-description";
 
-            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
-                .builder()
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration.builder()
                 .description(updatedDescription)
                 .build();
 
@@ -479,8 +464,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                     eq(INTEGRATION_ID),
                     eq(RolePermissionAction.DELETE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             Response response = target.request().delete();
 
@@ -493,7 +477,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            var federatedApis = IntStream.range(0, 15).mapToObj(i -> ApiFixtures.aFederatedApi()).toList();
+            var federatedApis = IntStream.range(0, 15)
+                .mapToObj(i -> ApiFixtures.aFederatedApi())
+                .toList();
             apiCrudServiceInMemory.initWith(federatedApis);
         }
 
@@ -521,8 +507,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_sorted_pages_of_ingested_apis() {
-            var recentlyUpdatedApi = ApiFixtures
-                .aFederatedApi()
+            var recentlyUpdatedApi = ApiFixtures.aFederatedApi()
                 .toBuilder()
                 .updatedAt(ZonedDateTime.parse("2024-02-01T20:22:02.00Z"))
                 .name("recently-updated")
@@ -550,8 +535,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .asEntity(IngestedApisResponse.class)
                 .extracting(IngestedApisResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    Links.builder()
                         .self(webtarget.queryParam("page", 2).queryParam("perPage", 5).getUri().toString())
                         .first(webtarget.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
                         .last(webtarget.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
@@ -570,8 +554,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                     eq(INTEGRATION_ID),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             Response response = target.path("/apis").request().get();
 
@@ -626,11 +609,11 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             delimiterString = "|",
             useHeadersInDisplayName = true,
             textBlock = """
-        INTEGRATION_DEFINITION[DELETE] |  ENVIRONMENT_INTEGRATION[DELETE]
-        false                  |  false
-        true                   |  false
-        false                  |  true
-     """
+               INTEGRATION_DEFINITION[DELETE] |  ENVIRONMENT_INTEGRATION[DELETE]
+               false                  |  false
+               true                   |  false
+               false                  |  true
+            """
         )
         public void should_get_error_if_user_does_not_have_correct_permissions(
             boolean integrationDefinitionDelete,
@@ -643,8 +626,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                     ENVIRONMENT,
                     RolePermissionAction.DELETE
                 )
-            )
-                .thenReturn(integrationDefinitionDelete);
+            ).thenReturn(integrationDefinitionDelete);
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
@@ -652,8 +634,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                     ENVIRONMENT,
                     RolePermissionAction.DELETE
                 )
-            )
-                .thenReturn(environmentIntegrationDelete);
+            ).thenReturn(environmentIntegrationDelete);
 
             final Response response = target.path("/apis").request().delete();
 
@@ -678,8 +659,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                     INTEGRATION_ID,
                     RolePermissionAction.CREATE
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().get();
 
@@ -699,8 +679,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(IngestionPreviewResponse.class)
                 .isEqualTo(
-                    IngestionPreviewResponse
-                        .builder()
+                    IngestionPreviewResponse.builder()
                         .totalCount(1)
                         .newCount(1)
                         .updateCount(0)

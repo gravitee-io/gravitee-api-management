@@ -62,8 +62,7 @@ public class ApiSubscriptionsResource_PauseTest extends AbstractApiSubscriptions
 
     @Test
     public void should_return_404_if_plan_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
             .api("ANOTHER-API")
@@ -90,8 +89,7 @@ public class ApiSubscriptionsResource_PauseTest extends AbstractApiSubscriptions
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(null));
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -105,16 +103,16 @@ public class ApiSubscriptionsResource_PauseTest extends AbstractApiSubscriptions
 
     @Test
     public void should_return_subscription_when_subscription_paused() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
             .api(API)
             .build();
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
-        when(subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION))
-            .thenReturn(subscriptionEntity.toBuilder().status(SubscriptionStatus.PAUSED).build());
+        when(subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION)).thenReturn(
+            subscriptionEntity.toBuilder().status(SubscriptionStatus.PAUSED).build()
+        );
 
         final Response response = rootTarget().request().post(Entity.json(null));
         assertEquals(OK_200, response.getStatus());

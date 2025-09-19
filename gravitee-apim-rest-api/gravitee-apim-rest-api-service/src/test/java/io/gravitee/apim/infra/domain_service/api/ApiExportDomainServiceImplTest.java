@@ -89,15 +89,13 @@ class ApiExportDomainServiceImplTest {
     private static final String API_ID = UUID.randomUUID().toString();
     public static final Media MEDIA = Media.builder().apiId(API_ID).id("media").build();
 
-    private static final Page MARKDOWN_PAGE = Page
-        .builder()
+    private static final Page MARKDOWN_PAGE = Page.builder()
         .id("page")
         .type(Page.Type.MARKDOWN)
         .referenceId(API_ID)
         .referenceType(Page.ReferenceType.API)
         .build();
-    public static final PageExport EXPECTED_MARKDOWN_PAGE = PageExport
-        .builder()
+    public static final PageExport EXPECTED_MARKDOWN_PAGE = PageExport.builder()
         .id("page")
         .type(Page.Type.MARKDOWN)
         .referenceId(API_ID)
@@ -107,8 +105,7 @@ class ApiExportDomainServiceImplTest {
     private static final Metadata METADATA = Metadata.builder().key("hehe").name("haha").value("hoohoo").build();
     public static final Map<String, String> EXPECTED_METADATA = Map.of("haha", "hoohoo");
 
-    private static final Membership MEMBER = Membership
-        .builder()
+    private static final Membership MEMBER = Membership.builder()
         .id("member")
         .memberId("member-id")
         .memberType(Membership.Type.USER)
@@ -182,8 +179,7 @@ class ApiExportDomainServiceImplTest {
         // Given
         String apiId = UUID.randomUUID().toString();
         var definition = new io.gravitee.definition.model.v4.Api();
-        var configuration =
-            """
+        var configuration = """
             {
                 "schedule": "*/1 * * * * *",
                 "headers": [],
@@ -201,8 +197,7 @@ class ApiExportDomainServiceImplTest {
 
         definition.setServices(
             new ApiServices(
-                Service
-                    .builder()
+                Service.builder()
                     .overrideConfiguration(true)
                     .configuration(configuration)
                     .type("http-dynamic-properties")
@@ -210,8 +205,7 @@ class ApiExportDomainServiceImplTest {
                     .build()
             )
         );
-        Api api = Api
-            .builder()
+        Api api = Api.builder()
             .id(apiId)
             .type(ApiType.PROXY)
             .definitionVersion(DefinitionVersion.V4)
@@ -260,8 +254,7 @@ class ApiExportDomainServiceImplTest {
         // Given
         String apiId = UUID.randomUUID().toString();
         var definition = new io.gravitee.definition.model.v4.Api();
-        Api api = Api
-            .builder()
+        Api api = Api.builder()
             .id(apiId)
             .type(ApiType.PROXY)
             .definitionVersion(DefinitionVersion.V4)
@@ -275,8 +268,7 @@ class ApiExportDomainServiceImplTest {
                 anyString(),
                 ArgumentMatchers.<RolePermissionAction>any()
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         // When
         GraviteeDefinition export = sut.export(
@@ -332,8 +324,9 @@ class ApiExportDomainServiceImplTest {
 
         Api api = ApiFixtures.aFederatedApi();
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
-        when(integrationCrudService.findById(anyString()))
-            .thenReturn(Optional.of(Integration.builder().id(apiId).provider("provider").build()));
+        when(integrationCrudService.findById(anyString())).thenReturn(
+            Optional.of(Integration.builder().id(apiId).provider("provider").build())
+        );
 
         // When
         GraviteeDefinition export = sut.export(
@@ -466,8 +459,9 @@ class ApiExportDomainServiceImplTest {
         Api api = ApiFixtures.aFederatedApi().toBuilder().groups(Set.of("group-1")).build();
 
         when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
-        when(integrationCrudService.findById(anyString()))
-            .thenReturn(Optional.of(Integration.builder().id(apiId).provider("provider").build()));
+        when(integrationCrudService.findById(anyString())).thenReturn(
+            Optional.of(Integration.builder().id(apiId).provider("provider").build())
+        );
 
         // When
         GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build(), EnumSet.allOf(Excludable.class));
@@ -489,8 +483,7 @@ class ApiExportDomainServiceImplTest {
     void deep_validation_export() {
         // Given
         String apiId = "apiId";
-        Api api = Api
-            .builder()
+        Api api = Api.builder()
             .id(apiId)
             .description("Gravitee.io")
             .type(ApiType.PROXY)
@@ -515,107 +508,93 @@ class ApiExportDomainServiceImplTest {
         );
 
         // Then
-        assertThat(export.pages())
-            .containsOnly(
-                PageExport.builder().name("My Folder").order(1).type(Page.Type.FOLDER).visibility(Page.Visibility.PUBLIC).build(),
-                PageExport
-                    .builder()
-                    .name("My Title")
-                    .order(1)
-                    .type(Page.Type.MARKDOWN)
-                    .visibility(Page.Visibility.PUBLIC)
-                    .content("Read the doc")
-                    .accessControls(Set.of(AccessControl.builder().referenceId("my-group").referenceType("GROUP").build()))
-                    .build(),
-                PageExport
-                    .builder()
-                    .name("My Swagger")
-                    .order(1)
-                    .type(Page.Type.SWAGGER)
-                    .visibility(Page.Visibility.PUBLIC)
-                    .content("Read the doc")
-                    .build(),
-                PageExport
-                    .builder()
-                    .name("Aside")
-                    .order(1)
-                    .type(Page.Type.SYSTEM_FOLDER)
-                    .visibility(Page.Visibility.PUBLIC)
-                    .published(true)
-                    .build(),
-                PageExport
-                    .builder()
-                    .name("My Link")
-                    .order(1)
-                    .type(Page.Type.LINK)
-                    .visibility(Page.Visibility.PUBLIC)
-                    .content("Read the doc")
-                    .build(),
-                PageExport
-                    .builder()
-                    .name("My Translation")
-                    .order(1)
-                    .type(Page.Type.TRANSLATION)
-                    .visibility(Page.Visibility.PUBLIC)
-                    .content("Lire la documentation")
-                    .build(),
-                PageExport
-                    .builder()
-                    .name("My Template")
-                    .order(1)
-                    .type(Page.Type.MARKDOWN_TEMPLATE)
-                    .visibility(Page.Visibility.PUBLIC)
-                    .content("Read the doc")
-                    .build(),
-                PageExport
-                    .builder()
-                    .name("My asciidoc")
-                    .order(1)
-                    .type(Page.Type.ASCIIDOC)
-                    .visibility(Page.Visibility.PUBLIC)
-                    .content("Read the asciidoc")
-                    .build()
-            );
-        assertThat(export.members())
-            .containsOnly(
-                ApiMember
-                    .builder()
-                    .displayName("Bruce Wayne")
-                    .type(MembershipMemberType.USER)
-                    .roles(List.of(ApiMemberRole.builder().name("PRIMARY_OWNER").scope(RoleScope.APPLICATION).build()))
-                    .build()
-            );
-        assertThat(export.metadata())
-            .containsOnly(
-                NewApiMetadata
-                    .builder()
-                    .key("metadata-key")
-                    .name("metadata-name")
-                    .format(Metadata.MetadataFormat.STRING)
-                    .value("metadata-value")
-                    .defaultValue("metadata-value-env")
-                    .build()
-            );
-        assertThat(((GraviteeDefinition.V4) export).plans())
-            .containsOnly(
-                PlanDescriptor.V4
-                    .builder()
-                    .id("plan-id")
-                    .crossId("test-plan-cross-id")
-                    .definitionVersion(DefinitionVersion.V4)
-                    .description("free plan")
-                    .type(Plan.PlanType.API)
-                    .order(0)
-                    .excludedGroups(List.of("my-group"))
-                    .selectionRule("/**")
-                    .status(PlanStatus.PUBLISHED)
-                    .flows(List.of())
-                    .validation(Plan.PlanValidationType.AUTO)
-                    .apiId(apiId)
-                    .characteristics(List.of())
-                    .security(PlanSecurity.builder().type("API_KEY").build())
-                    .build()
-            );
+        assertThat(export.pages()).containsOnly(
+            PageExport.builder().name("My Folder").order(1).type(Page.Type.FOLDER).visibility(Page.Visibility.PUBLIC).build(),
+            PageExport.builder()
+                .name("My Title")
+                .order(1)
+                .type(Page.Type.MARKDOWN)
+                .visibility(Page.Visibility.PUBLIC)
+                .content("Read the doc")
+                .accessControls(Set.of(AccessControl.builder().referenceId("my-group").referenceType("GROUP").build()))
+                .build(),
+            PageExport.builder()
+                .name("My Swagger")
+                .order(1)
+                .type(Page.Type.SWAGGER)
+                .visibility(Page.Visibility.PUBLIC)
+                .content("Read the doc")
+                .build(),
+            PageExport.builder()
+                .name("Aside")
+                .order(1)
+                .type(Page.Type.SYSTEM_FOLDER)
+                .visibility(Page.Visibility.PUBLIC)
+                .published(true)
+                .build(),
+            PageExport.builder()
+                .name("My Link")
+                .order(1)
+                .type(Page.Type.LINK)
+                .visibility(Page.Visibility.PUBLIC)
+                .content("Read the doc")
+                .build(),
+            PageExport.builder()
+                .name("My Translation")
+                .order(1)
+                .type(Page.Type.TRANSLATION)
+                .visibility(Page.Visibility.PUBLIC)
+                .content("Lire la documentation")
+                .build(),
+            PageExport.builder()
+                .name("My Template")
+                .order(1)
+                .type(Page.Type.MARKDOWN_TEMPLATE)
+                .visibility(Page.Visibility.PUBLIC)
+                .content("Read the doc")
+                .build(),
+            PageExport.builder()
+                .name("My asciidoc")
+                .order(1)
+                .type(Page.Type.ASCIIDOC)
+                .visibility(Page.Visibility.PUBLIC)
+                .content("Read the asciidoc")
+                .build()
+        );
+        assertThat(export.members()).containsOnly(
+            ApiMember.builder()
+                .displayName("Bruce Wayne")
+                .type(MembershipMemberType.USER)
+                .roles(List.of(ApiMemberRole.builder().name("PRIMARY_OWNER").scope(RoleScope.APPLICATION).build()))
+                .build()
+        );
+        assertThat(export.metadata()).containsOnly(
+            NewApiMetadata.builder()
+                .key("metadata-key")
+                .name("metadata-name")
+                .format(Metadata.MetadataFormat.STRING)
+                .value("metadata-value")
+                .defaultValue("metadata-value-env")
+                .build()
+        );
+        assertThat(((GraviteeDefinition.V4) export).plans()).containsOnly(
+            PlanDescriptor.V4.builder()
+                .id("plan-id")
+                .crossId("test-plan-cross-id")
+                .definitionVersion(DefinitionVersion.V4)
+                .description("free plan")
+                .type(Plan.PlanType.API)
+                .order(0)
+                .excludedGroups(List.of("my-group"))
+                .selectionRule("/**")
+                .status(PlanStatus.PUBLISHED)
+                .flows(List.of())
+                .validation(Plan.PlanValidationType.AUTO)
+                .apiId(apiId)
+                .characteristics(List.of())
+                .security(PlanSecurity.builder().type("API_KEY").build())
+                .build()
+        );
     }
 
     private Set<BaseUserEntity> users() {
@@ -624,8 +603,7 @@ class ApiExportDomainServiceImplTest {
 
     List<Page> pages() {
         Page folder = Page.builder().name("My Folder").order(1).type(Page.Type.FOLDER).visibility(Page.Visibility.PUBLIC).build();
-        Page markdownPage = Page
-            .builder()
+        Page markdownPage = Page.builder()
             .name("My Title")
             .order(1)
             .type(Page.Type.MARKDOWN)
@@ -633,8 +611,7 @@ class ApiExportDomainServiceImplTest {
             .visibility(Page.Visibility.PUBLIC)
             .accessControls(Set.of(new AccessControl("my-group", "GROUP")))
             .build();
-        Page asideFolder = Page
-            .builder()
+        Page asideFolder = Page.builder()
             .name("Aside")
             .order(1)
             .published(true)
@@ -642,32 +619,28 @@ class ApiExportDomainServiceImplTest {
             .visibility(Page.Visibility.PUBLIC)
             .build();
 
-        Page swaggerPage = Page
-            .builder()
+        Page swaggerPage = Page.builder()
             .name("My Swagger")
             .order(1)
             .type(Page.Type.SWAGGER)
             .content("Read the doc")
             .visibility(Page.Visibility.PUBLIC)
             .build();
-        Page linkPage = Page
-            .builder()
+        Page linkPage = Page.builder()
             .name("My Link")
             .order(1)
             .type(Page.Type.LINK)
             .content("Read the doc")
             .visibility(Page.Visibility.PUBLIC)
             .build();
-        Page translationPage = Page
-            .builder()
+        Page translationPage = Page.builder()
             .name("My Translation")
             .order(1)
             .type(Page.Type.TRANSLATION)
             .content("Lire la documentation")
             .visibility(Page.Visibility.PUBLIC)
             .build();
-        Page markdownTemplatePage = Page
-            .builder()
+        Page markdownTemplatePage = Page.builder()
             .name("My Template")
             .order(1)
             .type(Page.Type.MARKDOWN_TEMPLATE)
@@ -675,8 +648,7 @@ class ApiExportDomainServiceImplTest {
             .visibility(Page.Visibility.PUBLIC)
             .build();
 
-        Page asciidocPage = Page
-            .builder()
+        Page asciidocPage = Page.builder()
             .name("My asciidoc")
             .order(1)
             .type(Page.Type.ASCIIDOC)
@@ -688,8 +660,7 @@ class ApiExportDomainServiceImplTest {
     }
 
     Set<Plan> plans(String apiId) {
-        Plan publishedPlan = Plan
-            .builder()
+        Plan publishedPlan = Plan.builder()
             .definitionVersion(DefinitionVersion.V4)
             .id("plan-id")
             .crossId("test-plan-cross-id")
@@ -699,8 +670,7 @@ class ApiExportDomainServiceImplTest {
             .validation(Plan.PlanValidationType.AUTO)
             .excludedGroups(List.of("my-group"))
             .planDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan
-                    .builder()
+                io.gravitee.definition.model.v4.plan.Plan.builder()
                     .security(PlanSecurity.builder().type("API_KEY").build())
                     .selectionRule("/**")
                     .build()
@@ -708,8 +678,7 @@ class ApiExportDomainServiceImplTest {
             .build()
             .setPlanStatus(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED);
 
-        var closedPlan = Plan
-            .builder()
+        var closedPlan = Plan.builder()
             .definitionVersion(DefinitionVersion.V4)
             .id("closedPlan-id")
             .crossId("closed-test-plan-cross-id")
@@ -717,8 +686,7 @@ class ApiExportDomainServiceImplTest {
             .description("free closedPlan")
             .type(Plan.PlanType.API)
             .planDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan
-                    .builder()
+                io.gravitee.definition.model.v4.plan.Plan.builder()
                     .security(PlanSecurity.builder().type("API_KEY").build())
                     .selectionRule("/**")
                     .build()
@@ -730,8 +698,7 @@ class ApiExportDomainServiceImplTest {
     }
 
     List<Metadata> metadataApi(String apiId) {
-        Metadata metadata = Metadata
-            .builder()
+        Metadata metadata = Metadata.builder()
             .referenceId(apiId)
             .referenceType(Metadata.ReferenceType.API)
             .key("metadata-key")
@@ -743,8 +710,7 @@ class ApiExportDomainServiceImplTest {
     }
 
     List<Metadata> metadataEnv(String env) {
-        Metadata metadata = Metadata
-            .builder()
+        Metadata metadata = Metadata.builder()
             .referenceId(env)
             .referenceType(Metadata.ReferenceType.ENVIRONMENT)
             .key("metadata-key")

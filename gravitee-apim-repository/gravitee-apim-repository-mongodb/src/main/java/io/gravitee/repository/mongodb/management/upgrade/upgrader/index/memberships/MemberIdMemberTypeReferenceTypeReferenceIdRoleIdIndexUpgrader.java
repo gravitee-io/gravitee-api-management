@@ -28,8 +28,7 @@ public class MemberIdMemberTypeReferenceTypeReferenceIdRoleIdIndexUpgrader
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("memberships")
             .name("mi1mt1rt1ri1ro1")
             .key("memberId", ascending())

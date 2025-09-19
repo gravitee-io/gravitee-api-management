@@ -125,17 +125,16 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
         apiDefaultSerializer.setApplicationContext(applicationContext);
 
-        apiExportService =
-            new ApiExportServiceImpl(
-                objectMapper,
-                pageService,
-                planService,
-                apiService,
-                roleService,
-                apiConverter,
-                planConverter,
-                new CustomResourceDefinitionMapper()
-            );
+        apiExportService = new ApiExportServiceImpl(
+            objectMapper,
+            pageService,
+            planService,
+            apiService,
+            roleService,
+            apiConverter,
+            planConverter,
+            new CustomResourceDefinitionMapper()
+        );
 
         apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer));
         SimpleModule module = new SimpleModule();
@@ -228,8 +227,9 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         httpFetcher.setSource(httpSourceEntity);
         httpFetcher.setContent("SHOULD BE REMOVED");
 
-        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true)))
-            .thenReturn(List.of(folder, githubFetcher, fetcherGithubSwagger, fetcherGithubMarkdown, httpFetcher));
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(), eq(true))).thenReturn(
+            List.of(folder, githubFetcher, fetcherGithubSwagger, fetcherGithubMarkdown, httpFetcher)
+        );
 
         String poRoleId = "9ca07fdb-e143-45be-9c7d-44946a94968e";
         String poRoleName = "PRIMARY_OWNER";
@@ -251,8 +251,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         memberEntity.setRoles(Collections.singletonList(poRole));
         when(
             membershipService.getMembersByReference(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), eq(API_ID))
-        )
-            .thenReturn(Collections.singleton(memberEntity));
+        ).thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
         userEntity.setId(memberEntity.getId());
         userEntity.setSource(userEntity.getId() + "-source");

@@ -173,19 +173,18 @@ public class HttpHealthCheckServiceTest {
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getSuccessThreshold());
 
             doAnswer(invoker -> {
-                    countDownLatch.countDown();
-                    return null;
-                })
+                countDownLatch.countDown();
+                return null;
+            })
                 .when(reporterService)
                 .report(any());
 
-            when(endpointConnector.connect(any()))
-                .thenAnswer(invokable -> {
-                    ExecutionContext ctx = invokable.getArgument(0);
-                    ctx.response().status(200);
-                    ctx.metrics().setEndpoint(hcConfig.getTarget());
-                    return Completable.complete();
-                });
+            when(endpointConnector.connect(any())).thenAnswer(invokable -> {
+                ExecutionContext ctx = invokable.getArgument(0);
+                ctx.response().status(200);
+                ctx.metrics().setEndpoint(hcConfig.getTarget());
+                return Completable.complete();
+            });
 
             startHealthCheckAndValidate(countDownLatch, hcConfig.getSuccessThreshold(), 0, 0);
         }
@@ -209,19 +208,18 @@ public class HttpHealthCheckServiceTest {
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getSuccessThreshold());
 
             doAnswer(invoker -> {
-                    countDownLatch.countDown();
-                    return null;
-                })
+                countDownLatch.countDown();
+                return null;
+            })
                 .when(reporterService)
                 .report(any());
 
-            when(endpointConnector.connect(any()))
-                .thenAnswer(invokable -> {
-                    ExecutionContext ctx = invokable.getArgument(0);
-                    ctx.response().status(200);
-                    ctx.metrics().setEndpoint(hcConfig.getTarget());
-                    return Completable.complete();
-                });
+            when(endpointConnector.connect(any())).thenAnswer(invokable -> {
+                ExecutionContext ctx = invokable.getArgument(0);
+                ctx.response().status(200);
+                ctx.metrics().setEndpoint(hcConfig.getTarget());
+                return Completable.complete();
+            });
 
             startHealthCheckAndValidate(countDownLatch, hcConfig.getSuccessThreshold(), 0, 0);
         }
@@ -247,21 +245,21 @@ public class HttpHealthCheckServiceTest {
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getFailureThreshold() + hcConfig.getSuccessThreshold() + 1);
 
             doAnswer(invoker -> {
-                    EndpointStatus status = invoker.getArgument(0);
-                    if (!status.isTransition()) {
-                        // we do not count down if there is a transition because we want to be
-                        // sure that the alert will be sent
-                        countDownLatch.countDown();
-                    }
-                    return null;
-                })
+                EndpointStatus status = invoker.getArgument(0);
+                if (!status.isTransition()) {
+                    // we do not count down if there is a transition because we want to be
+                    // sure that the alert will be sent
+                    countDownLatch.countDown();
+                }
+                return null;
+            })
                 .when(reporterService)
                 .report(any());
 
             doAnswer(invoker -> {
-                    countDownLatch.countDown();
-                    return null;
-                })
+                countDownLatch.countDown();
+                return null;
+            })
                 .when(alertEventProducer)
                 .send(any());
 
@@ -327,21 +325,21 @@ public class HttpHealthCheckServiceTest {
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getFailureThreshold() + hcConfig.getSuccessThreshold() + 1);
 
             doAnswer(invoker -> {
-                    EndpointStatus status = invoker.getArgument(0);
-                    if (!status.isTransition()) {
-                        // we do not count down if there is a transition because we want to be
-                        // sure that the alert will be sent
-                        countDownLatch.countDown();
-                    }
-                    return null;
-                })
+                EndpointStatus status = invoker.getArgument(0);
+                if (!status.isTransition()) {
+                    // we do not count down if there is a transition because we want to be
+                    // sure that the alert will be sent
+                    countDownLatch.countDown();
+                }
+                return null;
+            })
                 .when(reporterService)
                 .report(any());
 
             doAnswer(invoker -> {
-                    countDownLatch.countDown();
-                    return null;
-                })
+                countDownLatch.countDown();
+                return null;
+            })
                 .when(alertEventProducer)
                 .send(any());
 
@@ -394,27 +392,25 @@ public class HttpHealthCheckServiceTest {
 
             verify(alertEventProducer, times(expectedTransitions)).send(any());
 
-            verify(reporterService, times(expectedSuccess))
-                .report(
-                    argThat((EndpointStatus reportable) ->
+            verify(reporterService, times(expectedSuccess)).report(
+                argThat(
+                    (EndpointStatus reportable) ->
                         reportable.getEndpoint().equals(ENDPOINT_NAME) &&
                         reportable.getSteps().get(0).getRequest().getUri() != null &&
                         reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget()) &&
                         reportable.isSuccess()
-                    )
-                );
+                )
+            );
 
-            verify(reporterService, times(expectedFailure))
-                .report(
-                    argThat((EndpointStatus reportable) ->
+            verify(reporterService, times(expectedFailure)).report(
+                argThat(
+                    (EndpointStatus reportable) ->
                         reportable.getEndpoint().equals(ENDPOINT_NAME) &&
-                        (
-                            reportable.getSteps().get(0).getRequest().getUri() == null ||
-                            reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget())
-                        ) &&
+                        (reportable.getSteps().get(0).getRequest().getUri() == null ||
+                            reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget())) &&
                         !reportable.isSuccess()
-                    )
-                );
+                )
+            );
 
             verify(reporterService, times(expectedTransitions)).report(argThat((EndpointStatus reportable) -> reportable.isTransition()));
         }
@@ -424,8 +420,7 @@ public class HttpHealthCheckServiceTest {
     class NonHttpBasedEndpointConnector {
 
         @RegisterExtension
-        private WireMockExtension wiremock = WireMockExtension
-            .newInstance()
+        private WireMockExtension wiremock = WireMockExtension.newInstance()
             .options(WireMockConfiguration.wireMockConfig().dynamicPort().dynamicHttpsPort())
             .build();
 
@@ -471,9 +466,9 @@ public class HttpHealthCheckServiceTest {
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getSuccessThreshold());
 
             doAnswer(invoker -> {
-                    countDownLatch.countDown();
-                    return null;
-                })
+                countDownLatch.countDown();
+                return null;
+            })
                 .when(reporterService)
                 .report(any());
 
@@ -489,14 +484,14 @@ public class HttpHealthCheckServiceTest {
 
             verify(alertEventProducer, never()).send(any());
 
-            verify(reporterService, times(hcConfig.getSuccessThreshold()))
-                .report(
-                    argThat((EndpointStatus reportable) ->
+            verify(reporterService, times(hcConfig.getSuccessThreshold())).report(
+                argThat(
+                    (EndpointStatus reportable) ->
                         reportable.getEndpoint().equals(ENDPOINT_NAME) &&
                         reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget()) &&
                         reportable.isSuccess()
-                    )
-                );
+                )
+            );
         }
 
         @Test
@@ -536,9 +531,9 @@ public class HttpHealthCheckServiceTest {
             CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getFailureThreshold());
 
             doAnswer(invoker -> {
-                    countDownLatch.countDown();
-                    return null;
-                })
+                countDownLatch.countDown();
+                return null;
+            })
                 .when(reporterService)
                 .report(any());
 
@@ -554,14 +549,14 @@ public class HttpHealthCheckServiceTest {
 
             verify(alertEventProducer, times(2)).send(any());
 
-            verify(reporterService, times(hcConfig.getFailureThreshold()))
-                .report(
-                    argThat((EndpointStatus reportable) ->
+            verify(reporterService, times(hcConfig.getFailureThreshold())).report(
+                argThat(
+                    (EndpointStatus reportable) ->
                         reportable.getEndpoint().equals(ENDPOINT_NAME) &&
                         reportable.getSteps().get(0).getRequest().getUri().endsWith(hcConfig.getTarget()) &&
                         !reportable.isSuccess()
-                    )
-                );
+                )
+            );
         }
     }
 }

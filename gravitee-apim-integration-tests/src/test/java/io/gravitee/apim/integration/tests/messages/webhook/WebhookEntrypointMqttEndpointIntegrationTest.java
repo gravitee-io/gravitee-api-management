@@ -91,11 +91,10 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
 
         final Subscription subscription = webhookActions.createSubscription("mqtt5-endpoint-qos-" + qos.getLabel(), callbackPath, readyObs);
 
-        final TestObserver<Void> obs = Completable
-            .mergeArray(
-                webhookActions.dispatchSubscription(subscription),
-                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
-            )
+        final TestObserver<Void> obs = Completable.mergeArray(
+            webhookActions.dispatchSubscription(subscription),
+            publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
+        )
             .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
             .test();
 
@@ -132,11 +131,10 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
             readyObs
         );
 
-        final TestObserver<Void> obs = Completable
-            .mergeArray(
-                webhookActions.dispatchSubscription(subscription),
-                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
-            )
+        final TestObserver<Void> obs = Completable.mergeArray(
+            webhookActions.dispatchSubscription(subscription),
+            publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
+        )
             .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
             .test();
 
@@ -180,12 +178,11 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
         final Subscription subscriptionInstance1 = webhookActions.createSubscription(apiId, callbackPath, readyObs);
         final Subscription subscriptionInstance2 = webhookActions.createSubscription(apiId, callbackPath, readyObs);
 
-        final TestObserver<Void> obs = Completable
-            .mergeArray(
-                webhookActions.dispatchSubscription(subscriptionInstance1),
-                webhookActions.dispatchSubscription(subscriptionInstance2),
-                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
-            )
+        final TestObserver<Void> obs = Completable.mergeArray(
+            webhookActions.dispatchSubscription(subscriptionInstance1),
+            webhookActions.dispatchSubscription(subscriptionInstance2),
+            publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
+        )
             .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
             .test();
 

@@ -123,9 +123,9 @@ public abstract class AbstractSolaceEndpointIntegrationTest extends AbstractGate
             .withSubscriptions(TopicSubscription.of(topic))
             .build();
 
-        return Completable
-            .fromCompletionStage(receiver.startAsync())
-            .andThen(Flowable.create(emitter -> receiver.receiveAsync(emitter::onNext), BackpressureStrategy.DROP));
+        return Completable.fromCompletionStage(receiver.startAsync()).andThen(
+            Flowable.create(emitter -> receiver.receiveAsync(emitter::onNext), BackpressureStrategy.DROP)
+        );
     }
 
     protected Completable publishToSolace(final String topic, List<OutboundMessage> outboundMessages) {
@@ -134,8 +134,7 @@ public abstract class AbstractSolaceEndpointIntegrationTest extends AbstractGate
 
     protected Completable publishToSolace(final String topic, List<OutboundMessage> outboundMessages, final long delay) {
         final DirectMessagePublisher publisher = messagingService.createDirectMessagePublisherBuilder().build();
-        return Completable
-            .fromCompletionStage(publisher.startAsync())
+        return Completable.fromCompletionStage(publisher.startAsync())
             .delay(delay, TimeUnit.MILLISECONDS)
             .andThen(
                 Completable.fromRunnable(() -> {

@@ -51,15 +51,13 @@ public class DistributedEventFetcher {
     ) {
         AtomicBoolean lastPage = new AtomicBoolean();
         AtomicLong page = new AtomicLong(0L);
-        DistributedEventCriteria distributedEventCriteria = DistributedEventCriteria
-            .builder()
+        DistributedEventCriteria distributedEventCriteria = DistributedEventCriteria.builder()
             .from(from == null ? -1 : from - TIMEFRAME_DELAY)
             .to(to == null ? -1 : to + TIMEFRAME_DELAY)
             .type(type)
             .syncActions(syncActions)
             .build();
-        return Flowable
-            .just(page)
+        return Flowable.just(page)
             .map(AtomicLong::getAndIncrement)
             .flatMap(nextPage -> distributedEventRepository.search(distributedEventCriteria, nextPage, (long) bulkItems))
             .switchIfEmpty(Flowable.fromAction(() -> lastPage.set(true)))

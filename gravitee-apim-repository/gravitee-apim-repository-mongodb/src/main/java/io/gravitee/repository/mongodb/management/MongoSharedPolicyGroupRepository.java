@@ -122,10 +122,9 @@ public class MongoSharedPolicyGroupRepository implements SharedPolicyGroupReposi
             final var sortField = FieldUtils.toCamelCase(sortable.field());
 
             return this.internalSharedPolicyGroupMongoRepo.search(
-                    criteria,
-                    PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
-                )
-                .map(this::mapSharedPolicyGroup);
+                criteria,
+                PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
+            ).map(this::mapSharedPolicyGroup);
         } catch (Exception e) {
             LOGGER.error("An error occurred when searching for shared policy groups", e);
             throw new TechnicalException("An error occurred when searching for shared policy groups", e);

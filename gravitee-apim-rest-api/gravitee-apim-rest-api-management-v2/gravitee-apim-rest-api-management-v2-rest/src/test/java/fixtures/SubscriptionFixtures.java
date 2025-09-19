@@ -38,14 +38,12 @@ public class SubscriptionFixtures {
 
     private SubscriptionFixtures() {}
 
-    private static final CreateSubscription.CreateSubscriptionBuilder BASE_CREATE_SUBSCRIPTION = CreateSubscription
-        .builder()
+    private static final CreateSubscription.CreateSubscriptionBuilder BASE_CREATE_SUBSCRIPTION = CreateSubscription.builder()
         .planId("my-plan")
         .applicationId("my-application")
         .customApiKey("custom")
         .consumerConfiguration(
-            SubscriptionConsumerConfiguration
-                .builder()
+            SubscriptionConsumerConfiguration.builder()
                 .entrypointConfiguration("{\"nice\": \"config\"}")
                 .entrypointId("entrypoint-id")
                 .channel("channel")
@@ -53,13 +51,11 @@ public class SubscriptionFixtures {
         )
         .metadata(Map.of("meta1", "value1", "meta2", "value2"));
 
-    private static final UpdateSubscription.UpdateSubscriptionBuilder BASE_UPDATE_SUBSCRIPTION = UpdateSubscription
-        .builder()
+    private static final UpdateSubscription.UpdateSubscriptionBuilder BASE_UPDATE_SUBSCRIPTION = UpdateSubscription.builder()
         .startingAt(OffsetDateTime.now())
         .endingAt(OffsetDateTime.now())
         .consumerConfiguration(
-            SubscriptionConsumerConfiguration
-                .builder()
+            SubscriptionConsumerConfiguration.builder()
                 .entrypointConfiguration("{\"nice\": \"config\"}")
                 .entrypointId("entrypoint-id")
                 .channel("channel")
@@ -80,8 +76,7 @@ public class SubscriptionFixtures {
     }
 
     public static AcceptSubscription anAcceptSubscription() {
-        return AcceptSubscription
-            .builder()
+        return AcceptSubscription.builder()
             .customApiKey("custom")
             .reason("reason")
             .startingAt(OffsetDateTime.now())
@@ -90,8 +85,7 @@ public class SubscriptionFixtures {
     }
 
     public static AcceptSubscription anAcceptSubscriptionWithRandomKey() {
-        return AcceptSubscription
-            .builder()
+        return AcceptSubscription.builder()
             .customApiKey(UUID.randomUUID().toString()) // Generates a random UUID as the custom API key
             .reason("reason")
             .startingAt(OffsetDateTime.now())

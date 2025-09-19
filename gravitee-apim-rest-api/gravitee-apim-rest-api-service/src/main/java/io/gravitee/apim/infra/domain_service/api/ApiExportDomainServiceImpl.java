@@ -158,10 +158,12 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .filter(memberEntity -> memberEntity.getMemberType() == Membership.Type.USER)
             .toList();
         var userIds = members.stream().map(Membership::getMemberId).distinct().toList();
-        var userByIds = stream(userCrudService.findBaseUsersByIds(userIds))
-            .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity()));
-        var roles = stream(roleQueryService.findByIds(members.stream().map(Membership::getRoleId).collect(Collectors.toSet())))
-            .collect(Collectors.toMap(Role::getId, Function.identity()));
+        var userByIds = stream(userCrudService.findBaseUsersByIds(userIds)).collect(
+            Collectors.toMap(BaseUserEntity::getId, Function.identity())
+        );
+        var roles = stream(roleQueryService.findByIds(members.stream().map(Membership::getRoleId).collect(Collectors.toSet()))).collect(
+            Collectors.toMap(Role::getId, Function.identity())
+        );
 
         return members
             .stream()
@@ -173,18 +175,13 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         if (!permissionService.hasPermission(executionContext, RolePermission.API_METADATA, apiId, READ)) {
             return null;
         }
-        return Stream
-            .concat(stream(metadataCrudService.findByEnvId(envId)), stream(metadataCrudService.findByApiId(apiId)))
+        return Stream.concat(stream(metadataCrudService.findByEnvId(envId)), stream(metadataCrudService.findByApiId(apiId)))
             .map(DEFINITION_ADAPTER::mapMetadata)
             .collect(
-                Collectors.toMap(
-                    NewApiMetadata::getKey,
-                    Function.identity(),
-                    (envMetadata, apiMetadata) -> {
-                        apiMetadata.setDefaultValue(envMetadata.getValue());
-                        return apiMetadata;
-                    }
-                )
+                Collectors.toMap(NewApiMetadata::getKey, Function.identity(), (envMetadata, apiMetadata) -> {
+                    apiMetadata.setDefaultValue(envMetadata.getValue());
+                    return apiMetadata;
+                })
             )
             .values();
     }

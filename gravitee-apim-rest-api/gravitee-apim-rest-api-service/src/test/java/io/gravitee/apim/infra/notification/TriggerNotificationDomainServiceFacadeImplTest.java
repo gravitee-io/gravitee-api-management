@@ -140,33 +140,32 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     void setUp() {
         var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
 
-        service =
-            new TriggerNotificationDomainServiceFacadeImpl(
-                notifierService,
-                new TemplateDataFetcher(
-                    apiRepository,
-                    applicationRepository,
-                    planRepository,
-                    subscriptionRepository,
-                    integrationRepository,
-                    new ApiPrimaryOwnerDomainService(
-                        new AuditDomainService(new AuditCrudServiceInMemory(), userCrudService, new JacksonJsonDiffProcessor()),
-                        new GroupQueryServiceInMemory(),
-                        membershipCrudService,
-                        membershipQueryService,
-                        roleQueryService,
-                        userCrudService
-                    ),
-                    new ApplicationPrimaryOwnerDomainService(
-                        new GroupQueryServiceInMemory(),
-                        membershipQueryService,
-                        roleQueryService,
-                        userCrudService
-                    ),
-                    new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor()),
+        service = new TriggerNotificationDomainServiceFacadeImpl(
+            notifierService,
+            new TemplateDataFetcher(
+                apiRepository,
+                applicationRepository,
+                planRepository,
+                subscriptionRepository,
+                integrationRepository,
+                new ApiPrimaryOwnerDomainService(
+                    new AuditDomainService(new AuditCrudServiceInMemory(), userCrudService, new JacksonJsonDiffProcessor()),
+                    new GroupQueryServiceInMemory(),
+                    membershipCrudService,
+                    membershipQueryService,
+                    roleQueryService,
                     userCrudService
-                )
-            );
+                ),
+                new ApplicationPrimaryOwnerDomainService(
+                    new GroupQueryServiceInMemory(),
+                    membershipQueryService,
+                    roleQueryService,
+                    userCrudService
+                ),
+                new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor()),
+                userCrudService
+            )
+        );
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         userCrudService.initWith(
@@ -195,39 +194,35 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq(API_ID),
-                    paramsCaptor.capture()
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(API_ID),
+                paramsCaptor.capture()
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "api",
-                    ApiNotificationTemplateData
-                        .builder()
-                        .id(API_ID)
-                        .name("api-name")
-                        .description("api-description")
-                        .apiVersion("api-version")
-                        .definitionVersion(DefinitionVersion.V4)
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .primaryOwner(
-                            PrimaryOwnerNotificationTemplateData
-                                .builder()
-                                .id(USER_ID)
-                                .email("jane.doe@gravitee.io")
-                                .displayName("Jane Doe")
-                                .type("USER")
-                                .build()
-                        )
-                        .metadata(Map.of())
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "api",
+                ApiNotificationTemplateData.builder()
+                    .id(API_ID)
+                    .name("api-name")
+                    .description("api-description")
+                    .apiVersion("api-version")
+                    .definitionVersion(DefinitionVersion.V4)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                    .primaryOwner(
+                        PrimaryOwnerNotificationTemplateData.builder()
+                            .id(USER_ID)
+                            .email("jane.doe@gravitee.io")
+                            .displayName("Jane Doe")
+                            .type("USER")
+                            .build()
+                    )
+                    .metadata(Map.of())
+                    .build()
+            );
         }
 
         @Test
@@ -239,8 +234,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 List.of(
                     ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(Metadata.MetadataFormat.STRING).build(),
                     ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(Metadata.MetadataFormat.STRING).build(),
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .apiId(API_ID)
                         .key("email-support")
                         .value("${(api.primaryOwner.email)!''}")
@@ -254,39 +248,35 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq(API_ID),
-                    paramsCaptor.capture()
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(API_ID),
+                paramsCaptor.capture()
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "api",
-                    ApiNotificationTemplateData
-                        .builder()
-                        .id(API_ID)
-                        .name("api-name")
-                        .description("api-description")
-                        .apiVersion("api-version")
-                        .definitionVersion(DefinitionVersion.V4)
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .primaryOwner(
-                            PrimaryOwnerNotificationTemplateData
-                                .builder()
-                                .id(USER_ID)
-                                .email("jane.doe@gravitee.io")
-                                .displayName("Jane Doe")
-                                .type("USER")
-                                .build()
-                        )
-                        .metadata(Map.of("key1", "value1", "email-support", "jane.doe@gravitee.io"))
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "api",
+                ApiNotificationTemplateData.builder()
+                    .id(API_ID)
+                    .name("api-name")
+                    .description("api-description")
+                    .apiVersion("api-version")
+                    .definitionVersion(DefinitionVersion.V4)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                    .primaryOwner(
+                        PrimaryOwnerNotificationTemplateData.builder()
+                            .id(USER_ID)
+                            .email("jane.doe@gravitee.io")
+                            .displayName("Jane Doe")
+                            .type("USER")
+                            .build()
+                    )
+                    .metadata(Map.of("key1", "value1", "email-support", "jane.doe@gravitee.io"))
+                    .build()
+            );
         }
 
         @Test
@@ -294,8 +284,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
             givenExistingApplication(
-                Application
-                    .builder()
+                Application.builder()
                     .id(APPLICATION_ID)
                     .name("application-name")
                     .type(ApplicationType.SIMPLE)
@@ -316,38 +305,34 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq(API_ID),
-                    paramsCaptor.capture()
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(API_ID),
+                paramsCaptor.capture()
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "application",
-                    ApplicationNotificationTemplateData
-                        .builder()
-                        .id("application-id")
-                        .name("application-name")
-                        .type("SIMPLE")
-                        .status("ACTIVE")
-                        .description("application-description")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .primaryOwner(
-                            PrimaryOwnerNotificationTemplateData
-                                .builder()
-                                .id(USER_ID_2)
-                                .email("jen.doe@gravitee.io")
-                                .displayName("Jen Doe")
-                                .type("USER")
-                                .build()
-                        )
-                        .apiKeyMode("SHARED")
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "application",
+                ApplicationNotificationTemplateData.builder()
+                    .id("application-id")
+                    .name("application-name")
+                    .type("SIMPLE")
+                    .status("ACTIVE")
+                    .description("application-description")
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .primaryOwner(
+                        PrimaryOwnerNotificationTemplateData.builder()
+                            .id(USER_ID_2)
+                            .email("jen.doe@gravitee.io")
+                            .displayName("Jen Doe")
+                            .type("USER")
+                            .build()
+                    )
+                    .apiKeyMode("SHARED")
+                    .build()
+            );
         }
 
         @Test
@@ -356,8 +341,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingPlan(
-                Plan
-                    .builder()
+                Plan.builder()
                     .id("plan-id")
                     .api(API_ID)
                     .name("plan")
@@ -381,32 +365,29 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq(API_ID),
-                    paramsCaptor.capture()
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(API_ID),
+                paramsCaptor.capture()
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "plan",
-                    PlanNotificationTemplateData
-                        .builder()
-                        .id("plan-id")
-                        .name("plan")
-                        .description("plan-description")
-                        .order(1)
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
-                        .security("API_KEY")
-                        .validation("MANUAL")
-                        .commentMessage("my-comment-message")
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "plan",
+                PlanNotificationTemplateData.builder()
+                    .id("plan-id")
+                    .name("plan")
+                    .description("plan-description")
+                    .order(1)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                    .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                    .security("API_KEY")
+                    .validation("MANUAL")
+                    .commentMessage("my-comment-message")
+                    .build()
+            );
         }
 
         @Test
@@ -415,8 +396,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingPlan(
-                Plan
-                    .builder()
+                Plan.builder()
                     .id("plan-id")
                     .api(API_ID)
                     .name("plan")
@@ -439,31 +419,28 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq(API_ID),
-                    paramsCaptor.capture()
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(API_ID),
+                paramsCaptor.capture()
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "plan",
-                    PlanNotificationTemplateData
-                        .builder()
-                        .id("plan-id")
-                        .name("plan")
-                        .description("plan-description")
-                        .order(1)
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
-                        .validation("MANUAL")
-                        .commentMessage("my-comment-message")
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "plan",
+                PlanNotificationTemplateData.builder()
+                    .id("plan-id")
+                    .name("plan")
+                    .description("plan-description")
+                    .order(1)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                    .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                    .validation("MANUAL")
+                    .commentMessage("my-comment-message")
+                    .build()
+            );
         }
 
         @Test
@@ -472,8 +449,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingSubscription(
-                Subscription
-                    .builder()
+                Subscription.builder()
                     .id("subscription-id")
                     .request("my-request")
                     .reason("my-reason")
@@ -488,25 +464,22 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq(API_ID),
-                    paramsCaptor.capture()
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApiHook.SUBSCRIPTION_CLOSED),
+                eq(API_ID),
+                paramsCaptor.capture()
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "subscription",
-                    SubscriptionNotificationTemplateData
-                        .builder()
-                        .id("subscription-id")
-                        .request("my-request")
-                        .reason("my-reason")
-                        .status("ACCEPTED")
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "subscription",
+                SubscriptionNotificationTemplateData.builder()
+                    .id("subscription-id")
+                    .request("my-request")
+                    .reason("my-reason")
+                    .status("ACCEPTED")
+                    .build()
+            );
         }
 
         @ParameterizedTest
@@ -525,14 +498,17 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)), eq(hook), eq(API_ID), paramsCaptor.capture());
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(hook),
+                eq(API_ID),
+                paramsCaptor.capture()
+            );
 
-            assertThat(paramsCaptor.getValue())
-                .containsEntry(
-                    "owner",
-                    PrimaryOwnerNotificationTemplateData.builder().id(USER_ID).displayName("Jane Doe").email("jane.doe@gravitee.io").build()
-                );
+            assertThat(paramsCaptor.getValue()).containsEntry(
+                "owner",
+                PrimaryOwnerNotificationTemplateData.builder().id(USER_ID).displayName("Jane Doe").email("jane.doe@gravitee.io").build()
+            );
         }
 
         static class SimpleApiHookContextForTest extends ApiHookContext {
@@ -567,8 +543,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         public void should_fetch_application_notification_data() {
             // Given
             givenExistingApplication(
-                Application
-                    .builder()
+                Application.builder()
                     .id(APPLICATION_ID)
                     .name("application-name")
                     .type(ApplicationType.SIMPLE)
@@ -586,47 +561,42 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq(APPLICATION_ID),
-                    paramsCaptor.capture(),
-                    eq(Collections.emptyList())
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                eq(APPLICATION_ID),
+                paramsCaptor.capture(),
+                eq(Collections.emptyList())
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "application",
-                    ApplicationNotificationTemplateData
-                        .builder()
-                        .id("application-id")
-                        .name("application-name")
-                        .type("SIMPLE")
-                        .status("ACTIVE")
-                        .description("application-description")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .primaryOwner(
-                            PrimaryOwnerNotificationTemplateData
-                                .builder()
-                                .id(USER_ID_2)
-                                .email("jen.doe@gravitee.io")
-                                .displayName("Jen Doe")
-                                .type("USER")
-                                .build()
-                        )
-                        .apiKeyMode("SHARED")
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "application",
+                ApplicationNotificationTemplateData.builder()
+                    .id("application-id")
+                    .name("application-name")
+                    .type("SIMPLE")
+                    .status("ACTIVE")
+                    .description("application-description")
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .primaryOwner(
+                        PrimaryOwnerNotificationTemplateData.builder()
+                            .id(USER_ID_2)
+                            .email("jen.doe@gravitee.io")
+                            .displayName("Jen Doe")
+                            .type("USER")
+                            .build()
+                    )
+                    .apiKeyMode("SHARED")
+                    .build()
+            );
         }
 
         @Test
         public void should_fetch_api_notification_data() {
             // Given
             givenExistingApplication(
-                Application
-                    .builder()
+                Application.builder()
                     .id(APPLICATION_ID)
                     .name("application-name")
                     .description("application-description")
@@ -648,40 +618,36 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq(APPLICATION_ID),
-                    paramsCaptor.capture(),
-                    eq(Collections.emptyList())
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                eq(APPLICATION_ID),
+                paramsCaptor.capture(),
+                eq(Collections.emptyList())
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "api",
-                    ApiNotificationTemplateData
-                        .builder()
-                        .id(API_ID)
-                        .name("api-name")
-                        .description("api-description")
-                        .apiVersion("api-version")
-                        .definitionVersion(DefinitionVersion.V4)
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .primaryOwner(
-                            PrimaryOwnerNotificationTemplateData
-                                .builder()
-                                .id(USER_ID)
-                                .email("jane.doe@gravitee.io")
-                                .displayName("Jane Doe")
-                                .type("USER")
-                                .build()
-                        )
-                        .metadata(Map.of())
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "api",
+                ApiNotificationTemplateData.builder()
+                    .id(API_ID)
+                    .name("api-name")
+                    .description("api-description")
+                    .apiVersion("api-version")
+                    .definitionVersion(DefinitionVersion.V4)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                    .primaryOwner(
+                        PrimaryOwnerNotificationTemplateData.builder()
+                            .id(USER_ID)
+                            .email("jane.doe@gravitee.io")
+                            .displayName("Jane Doe")
+                            .type("USER")
+                            .build()
+                    )
+                    .metadata(Map.of())
+                    .build()
+            );
         }
 
         @Test
@@ -693,8 +659,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 List.of(
                     ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(Metadata.MetadataFormat.STRING).build(),
                     ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(Metadata.MetadataFormat.STRING).build(),
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .apiId(API_ID)
                         .key("email-support")
                         .value("${(api.primaryOwner.email)!''}")
@@ -711,40 +676,36 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq(APPLICATION_ID),
-                    paramsCaptor.capture(),
-                    eq(Collections.emptyList())
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                eq(APPLICATION_ID),
+                paramsCaptor.capture(),
+                eq(Collections.emptyList())
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "api",
-                    ApiNotificationTemplateData
-                        .builder()
-                        .id(API_ID)
-                        .name("api-name")
-                        .description("api-description")
-                        .apiVersion("api-version")
-                        .definitionVersion(DefinitionVersion.V4)
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .primaryOwner(
-                            PrimaryOwnerNotificationTemplateData
-                                .builder()
-                                .id(USER_ID)
-                                .email("jane.doe@gravitee.io")
-                                .displayName("Jane Doe")
-                                .type("USER")
-                                .build()
-                        )
-                        .metadata(Map.of("key1", "value1", "email-support", "jane.doe@gravitee.io"))
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "api",
+                ApiNotificationTemplateData.builder()
+                    .id(API_ID)
+                    .name("api-name")
+                    .description("api-description")
+                    .apiVersion("api-version")
+                    .definitionVersion(DefinitionVersion.V4)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                    .primaryOwner(
+                        PrimaryOwnerNotificationTemplateData.builder()
+                            .id(USER_ID)
+                            .email("jane.doe@gravitee.io")
+                            .displayName("Jane Doe")
+                            .type("USER")
+                            .build()
+                    )
+                    .metadata(Map.of("key1", "value1", "email-support", "jane.doe@gravitee.io"))
+                    .build()
+            );
         }
 
         @Test
@@ -753,8 +714,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingPlan(
-                Plan
-                    .builder()
+                Plan.builder()
                     .id("plan-id")
                     .api(API_ID)
                     .name("plan")
@@ -778,33 +738,30 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq(APPLICATION_ID),
-                    paramsCaptor.capture(),
-                    eq(Collections.emptyList())
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                eq(APPLICATION_ID),
+                paramsCaptor.capture(),
+                eq(Collections.emptyList())
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "plan",
-                    PlanNotificationTemplateData
-                        .builder()
-                        .id("plan-id")
-                        .name("plan")
-                        .description("plan-description")
-                        .order(1)
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
-                        .security("API_KEY")
-                        .validation("MANUAL")
-                        .commentMessage("my-comment-message")
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "plan",
+                PlanNotificationTemplateData.builder()
+                    .id("plan-id")
+                    .name("plan")
+                    .description("plan-description")
+                    .order(1)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                    .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                    .security("API_KEY")
+                    .validation("MANUAL")
+                    .commentMessage("my-comment-message")
+                    .build()
+            );
         }
 
         @Test
@@ -813,8 +770,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingPlan(
-                Plan
-                    .builder()
+                Plan.builder()
                     .id("plan-id")
                     .api(API_ID)
                     .name("plan")
@@ -837,32 +793,29 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq(APPLICATION_ID),
-                    paramsCaptor.capture(),
-                    eq(Collections.emptyList())
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                eq(APPLICATION_ID),
+                paramsCaptor.capture(),
+                eq(Collections.emptyList())
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "plan",
-                    PlanNotificationTemplateData
-                        .builder()
-                        .id("plan-id")
-                        .name("plan")
-                        .description("plan-description")
-                        .order(1)
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-                        .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
-                        .validation("MANUAL")
-                        .commentMessage("my-comment-message")
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "plan",
+                PlanNotificationTemplateData.builder()
+                    .id("plan-id")
+                    .name("plan")
+                    .description("plan-description")
+                    .order(1)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                    .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                    .validation("MANUAL")
+                    .commentMessage("my-comment-message")
+                    .build()
+            );
         }
 
         @Test
@@ -871,8 +824,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingSubscription(
-                Subscription
-                    .builder()
+                Subscription.builder()
                     .id("subscription-id")
                     .request("my-request")
                     .reason("my-reason")
@@ -884,34 +836,30 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, hook);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq(APPLICATION_ID),
-                    paramsCaptor.capture(),
-                    eq(Collections.emptyList())
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                eq(APPLICATION_ID),
+                paramsCaptor.capture(),
+                eq(Collections.emptyList())
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "subscription",
-                    SubscriptionNotificationTemplateData
-                        .builder()
-                        .id("subscription-id")
-                        .request("my-request")
-                        .reason("my-reason")
-                        .status("ACCEPTED")
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "subscription",
+                SubscriptionNotificationTemplateData.builder()
+                    .id("subscription-id")
+                    .request("my-request")
+                    .reason("my-reason")
+                    .status("ACCEPTED")
+                    .build()
+            );
         }
 
         @Test
         public void should_send_notification_to_additional_recipient() {
             // Given
             givenExistingApplication(
-                Application
-                    .builder()
+                Application.builder()
                     .id(APPLICATION_ID)
                     .name("application-name")
                     .type(ApplicationType.SIMPLE)
@@ -930,39 +878,35 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerApplicationNotification(ORGANIZATION_ID, ENVIRONMENT_ID, applicationHookContext, additionalRecipients);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq(APPLICATION_ID),
-                    paramsCaptor.capture(),
-                    same(additionalRecipients)
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                eq(APPLICATION_ID),
+                paramsCaptor.capture(),
+                same(additionalRecipients)
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "application",
-                    ApplicationNotificationTemplateData
-                        .builder()
-                        .id("application-id")
-                        .name("application-name")
-                        .type("SIMPLE")
-                        .status("ACTIVE")
-                        .description("application-description")
-                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .primaryOwner(
-                            PrimaryOwnerNotificationTemplateData
-                                .builder()
-                                .id(USER_ID_2)
-                                .email("jen.doe@gravitee.io")
-                                .displayName("Jen Doe")
-                                .type("USER")
-                                .build()
-                        )
-                        .apiKeyMode("SHARED")
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "application",
+                ApplicationNotificationTemplateData.builder()
+                    .id("application-id")
+                    .name("application-name")
+                    .type("SIMPLE")
+                    .status("ACTIVE")
+                    .description("application-description")
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .primaryOwner(
+                        PrimaryOwnerNotificationTemplateData.builder()
+                            .id(USER_ID_2)
+                            .email("jen.doe@gravitee.io")
+                            .displayName("Jen Doe")
+                            .type("USER")
+                            .build()
+                    )
+                    .apiKeyMode("SHARED")
+                    .build()
+            );
         }
 
         static class SimpleApplicationHookContextForTest extends ApplicationHookContext {
@@ -998,23 +942,20 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             service.triggerPortalNotification(ORGANIZATION_ID, ENVIRONMENT_ID, portalHookContext);
 
             // Then
-            verify(notifierService)
-                .trigger(
-                    eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                    eq(PortalHook.FEDERATED_APIS_INGESTION_COMPLETE),
-                    paramsCaptor.capture()
-                );
+            verify(notifierService).trigger(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(PortalHook.FEDERATED_APIS_INGESTION_COMPLETE),
+                paramsCaptor.capture()
+            );
             var params = paramsCaptor.getValue();
-            assertThat(params)
-                .containsEntry(
-                    "integration",
-                    IntegrationNotificationTemplateData
-                        .builder()
-                        .id(INTEGRATION_ID)
-                        .name(integration.getName())
-                        .provider(integration.getProvider())
-                        .build()
-                );
+            assertThat(params).containsEntry(
+                "integration",
+                IntegrationNotificationTemplateData.builder()
+                    .id(INTEGRATION_ID)
+                    .name(integration.getName())
+                    .provider(integration.getProvider())
+                    .build()
+            );
         }
 
         static class SimplePortalHookContextForTest extends PortalHookContext {

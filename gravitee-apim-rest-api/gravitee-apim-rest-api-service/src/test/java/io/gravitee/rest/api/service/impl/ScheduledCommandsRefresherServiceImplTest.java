@@ -71,12 +71,11 @@ public class ScheduledCommandsRefresherServiceImplTest {
     public void shouldNotFindCommand() {
         when(
             commandService.search(
-                ArgumentMatchers.argThat(query ->
-                    query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) && query.getNotAckBy().equals("node-id")
+                ArgumentMatchers.argThat(
+                    query -> query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) && query.getNotAckBy().equals("node-id")
                 )
             )
-        )
-            .thenReturn(List.of());
+        ).thenReturn(List.of());
         cut.run();
 
         verify(commandService, never()).delete(any());
@@ -98,14 +97,14 @@ public class ScheduledCommandsRefresherServiceImplTest {
 
         when(
             commandService.search(
-                ArgumentMatchers.argThat(query ->
-                    query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) &&
-                    query.getNotAckBy().equals("node-id") &&
-                    !query.getTags().contains(CommandTags.DATA_TO_INDEX)
+                ArgumentMatchers.argThat(
+                    query ->
+                        query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) &&
+                        query.getNotAckBy().equals("node-id") &&
+                        !query.getTags().contains(CommandTags.DATA_TO_INDEX)
                 )
             )
-        )
-            .thenReturn(List.of(dataCommand1, dataCommand2, dataCommand3, subscriptionCommand1, subscriptionCommand2));
+        ).thenReturn(List.of(dataCommand1, dataCommand2, dataCommand3, subscriptionCommand1, subscriptionCommand2));
         cut.run();
 
         ArgumentCaptor<String> deleteCaptor = ArgumentCaptor.forClass(String.class);

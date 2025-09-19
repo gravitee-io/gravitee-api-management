@@ -27,8 +27,7 @@ public class PropertyDictionaryIdEnvsIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("events_latest")
             .name("pdi1e1")
             .key("properties.dictionary_id", ascending())

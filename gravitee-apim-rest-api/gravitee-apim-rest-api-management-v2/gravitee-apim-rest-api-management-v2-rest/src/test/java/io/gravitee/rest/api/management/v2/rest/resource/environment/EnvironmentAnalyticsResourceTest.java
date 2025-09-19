@@ -115,11 +115,9 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             var proxyApiV2 = ApiFixtures.aProxyApiV2();
 
             apiQueryService.initWith(List.of(proxyApiV4, messageApiV4, proxyApiV2));
-            analyticsQueryService.responseStatusRanges =
-                ResponseStatusRanges
-                    .builder()
-                    .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
-                    .build();
+            analyticsQueryService.responseStatusRanges = ResponseStatusRanges.builder()
+                .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
+                .build();
 
             //When
 
@@ -131,8 +129,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsResponseStatusRangesResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsResponseStatusRangesResponse
-                        .builder()
+                    EnvironmentAnalyticsResponseStatusRangesResponse.builder()
                         .ranges(Map.of("100.0-200.0", 1, "200.0-300.0", 17, "300.0-400.0", 0, "400.0-500.0", 0, "500.0-600.0", 0))
                         .build()
                 );
@@ -158,17 +155,15 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             var proxyApiV2 = ApiFixtures.aProxyApiV2().toBuilder().id(topHitApi3Id).name("Top Hit API legacy v2").build();
 
             apiQueryService.initWith(List.of(proxyApiV4, messageApiV4, proxyApiV2));
-            analyticsQueryService.topHitsApis =
-                TopHitsApis
-                    .builder()
-                    .data(
-                        List.of(
-                            TopHitsApis.TopHitApi.builder().id(topHitApi1Id).count(7L).build(),
-                            TopHitsApis.TopHitApi.builder().id(topHitApi2Id).count(13L).build(),
-                            TopHitsApis.TopHitApi.builder().id(topHitApi3Id).count(6L).build()
-                        )
+            analyticsQueryService.topHitsApis = TopHitsApis.builder()
+                .data(
+                    List.of(
+                        TopHitsApis.TopHitApi.builder().id(topHitApi1Id).count(7L).build(),
+                        TopHitsApis.TopHitApi.builder().id(topHitApi2Id).count(13L).build(),
+                        TopHitsApis.TopHitApi.builder().id(topHitApi3Id).count(6L).build()
                     )
-                    .build();
+                )
+                .build();
 
             //When
 
@@ -178,8 +173,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopHitsApisResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsTopHitsApisResponse
-                        .builder()
+                    EnvironmentAnalyticsTopHitsApisResponse.builder()
                         .data(
                             List.of(
                                 TopHitApi.builder().id(topHitApi2Id).name("Top Hit API 2").count(13L).definitionVersion("V4").build(),
@@ -222,15 +216,13 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             var apiV4 = ApiFixtures.aProxyApiV4().toBuilder().id(topHitApi1Id).name("Request Response Time API").build();
 
             apiQueryService.initWith(List.of(apiV4));
-            analyticsQueryService.requestResponseTime =
-                RequestResponseTime
-                    .builder()
-                    .requestsPerSecond(3.7d)
-                    .requestsTotal(25600L)
-                    .responseMinTime(32.5d)
-                    .responseMaxTime(1220.87d)
-                    .responseAvgTime(159.2d)
-                    .build();
+            analyticsQueryService.requestResponseTime = RequestResponseTime.builder()
+                .requestsPerSecond(3.7d)
+                .requestsTotal(25600L)
+                .responseMinTime(32.5d)
+                .responseMaxTime(1220.87d)
+                .responseAvgTime(159.2d)
+                .build();
 
             //When
 
@@ -240,8 +232,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsRequestResponseTimeResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsRequestResponseTimeResponse
-                        .builder()
+                    EnvironmentAnalyticsRequestResponseTimeResponse.builder()
                         .requestsPerSecond(3.7)
                         .requestsTotal(25600)
                         .responseMinTime(32.5)
@@ -303,8 +294,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsOverPeriodResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsOverPeriodResponse
-                        .builder()
+                    EnvironmentAnalyticsOverPeriodResponse.builder()
                         .timeRange(AnalyticTimeRange.builder().from(FROM).to(TO).interval(1000L).build())
                         .data(List.of(1L, 2L))
                         .build()
@@ -327,14 +317,12 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             var api2 = ApiFixtures.aProxyApiV4().toBuilder().id("api-2").build();
 
             apiQueryService.initWith(List.of(api1, api2));
-            analyticsQueryService.responseStatusOvertime =
-                ResponseStatusOvertime
-                    .builder()
-                    .timeRange(
-                        new ResponseStatusOvertime.TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), Duration.ofSeconds(1))
-                    )
-                    .data(Map.of("200", List.of(0L, 0L, 0L, 1L, 4L, 0L, 0L)))
-                    .build();
+            analyticsQueryService.responseStatusOvertime = ResponseStatusOvertime.builder()
+                .timeRange(
+                    new ResponseStatusOvertime.TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO), Duration.ofSeconds(1))
+                )
+                .data(Map.of("200", List.of(0L, 0L, 0L, 1L, 4L, 0L, 0L)))
+                .build();
 
             //When
 
@@ -344,8 +332,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsResponseStatusOvertimeResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsResponseStatusOvertimeResponse
-                        .builder()
+                    EnvironmentAnalyticsResponseStatusOvertimeResponse.builder()
                         .timeRange(AnalyticTimeRange.builder().from(FROM).to(TO).interval(1000L).build())
                         .data(Map.of("200", List.of(0L, 0L, 0L, 1L, 4L, 0L, 0L)))
                         .build()
@@ -364,14 +351,12 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_200_with_valid_top_apps_by_request_count() {
             //Given
-            var topHitApp1 = BaseApplicationEntity
-                .builder()
+            var topHitApp1 = BaseApplicationEntity.builder()
                 .id("top-hit-app-id-1")
                 .name("Top Hit App 1")
                 .environmentId(ENVIRONMENT)
                 .build();
-            var topHitApp2 = BaseApplicationEntity
-                .builder()
+            var topHitApp2 = BaseApplicationEntity.builder()
                 .id("top-hit-app-id-2")
                 .name("Top Hit App 2")
                 .environmentId(ENVIRONMENT)
@@ -382,16 +367,14 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             apiQueryService.initWith(List.of(proxyApiV4, messageApiV4));
             applicationQueryService.initWith(List.of(topHitApp1, topHitApp2));
 
-            analyticsQueryService.topHitsApps =
-                TopHitsApps
-                    .builder()
-                    .data(
-                        List.of(
-                            TopHitsApps.TopHitApp.builder().id(topHitApp1.getId()).count(7L).build(),
-                            TopHitsApps.TopHitApp.builder().id(topHitApp2.getId()).count(13L).build()
-                        )
+            analyticsQueryService.topHitsApps = TopHitsApps.builder()
+                .data(
+                    List.of(
+                        TopHitsApps.TopHitApp.builder().id(topHitApp1.getId()).count(7L).build(),
+                        TopHitsApps.TopHitApp.builder().id(topHitApp2.getId()).count(13L).build()
                     )
-                    .build();
+                )
+                .build();
 
             //When
             Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
@@ -400,8 +383,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopAppsByRequestCountResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsTopAppsByRequestCountResponse
-                        .builder()
+                    EnvironmentAnalyticsTopAppsByRequestCountResponse.builder()
                         .data(
                             List.of(
                                 TopApp.builder().id("top-hit-app-id-2").name("Top Hit App 2").count(13L).build(),
@@ -447,17 +429,15 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
             apiQueryService.initWith(List.of(proxyApiV4, messageApiV4, proxyApiV2));
 
-            analyticsQueryService.topFailedApis =
-                TopFailedApis
-                    .builder()
-                    .data(
-                        List.of(
-                            TopFailedApis.TopFailedApi.builder().id(apiId1).failedCalls(7L).failedCallsRatio(0.1).build(),
-                            TopFailedApis.TopFailedApi.builder().id(apiId2).failedCalls(13L).failedCallsRatio(0.2).build(),
-                            TopFailedApis.TopFailedApi.builder().id(apiId3).failedCalls(3L).failedCallsRatio(0.3).build()
-                        )
+            analyticsQueryService.topFailedApis = TopFailedApis.builder()
+                .data(
+                    List.of(
+                        TopFailedApis.TopFailedApi.builder().id(apiId1).failedCalls(7L).failedCallsRatio(0.1).build(),
+                        TopFailedApis.TopFailedApi.builder().id(apiId2).failedCalls(13L).failedCallsRatio(0.2).build(),
+                        TopFailedApis.TopFailedApi.builder().id(apiId3).failedCalls(3L).failedCallsRatio(0.3).build()
                     )
-                    .build();
+                )
+                .build();
 
             //When
             Response response = target.queryParam("from", FROM).queryParam("to", TO).request().get();
@@ -466,28 +446,24 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopFailedApisResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsTopFailedApisResponse
-                        .builder()
+                    EnvironmentAnalyticsTopFailedApisResponse.builder()
                         .data(
                             List.of(
-                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis
-                                    .builder()
+                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis.builder()
                                     .id(apiId2)
                                     .name("API 2")
                                     .definitionVersion("V4")
                                     .failedCalls(13L)
                                     .failedCallsRatio(0.2)
                                     .build(),
-                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis
-                                    .builder()
+                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis.builder()
                                     .id(apiId1)
                                     .name("API 1")
                                     .definitionVersion("V4")
                                     .failedCalls(7L)
                                     .failedCallsRatio(0.1)
                                     .build(),
-                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis
-                                    .builder()
+                                io.gravitee.rest.api.management.v2.rest.model.TopFailedApis.builder()
                                     .id(apiId3)
                                     .name("API 3")
                                     .definitionVersion("V2")

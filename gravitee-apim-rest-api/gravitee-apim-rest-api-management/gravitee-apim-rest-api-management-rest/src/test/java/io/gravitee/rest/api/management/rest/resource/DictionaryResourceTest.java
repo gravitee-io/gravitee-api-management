@@ -39,8 +39,7 @@ public class DictionaryResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldStartDictionary() {
-        DictionaryEntity dictionary = DictionaryEntity
-            .builder()
+        DictionaryEntity dictionary = DictionaryEntity.builder()
             .id(DICTIONARY_ID)
             .updatedAt(new Date())
             .type(DictionaryType.DYNAMIC)
@@ -56,8 +55,7 @@ public class DictionaryResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldStopDictionary() {
-        DictionaryEntity dictionary = DictionaryEntity
-            .builder()
+        DictionaryEntity dictionary = DictionaryEntity.builder()
             .id(DICTIONARY_ID)
             .updatedAt(new Date())
             .type(DictionaryType.DYNAMIC)
@@ -73,8 +71,7 @@ public class DictionaryResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnBadRequestWithInvalidLifecycleAction() {
-        DictionaryEntity dictionary = DictionaryEntity
-            .builder()
+        DictionaryEntity dictionary = DictionaryEntity.builder()
             .id(DICTIONARY_ID)
             .updatedAt(new Date())
             .type(DictionaryType.DYNAMIC)

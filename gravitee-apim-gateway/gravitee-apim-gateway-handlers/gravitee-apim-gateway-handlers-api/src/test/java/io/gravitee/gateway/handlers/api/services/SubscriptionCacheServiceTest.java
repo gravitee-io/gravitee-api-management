@@ -76,8 +76,10 @@ class SubscriptionCacheServiceTest {
     public void setup() throws Exception {
         subscriptionService = new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager);
         cacheByApiClientId = (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiClientId");
-        cacheByApiClientCertificate =
-            (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiClientCertificate");
+        cacheByApiClientCertificate = (Map<String, Subscription>) ReflectionTestUtils.getField(
+            subscriptionService,
+            "cacheByApiClientCertificate"
+        );
         cacheBySubscriptionId = (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheBySubscriptionId");
         cacheByApiId = (Map<String, Set<String>>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiId");
     }
@@ -441,8 +443,9 @@ class SubscriptionCacheServiceTest {
             Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
             subscriptionService.register(subscription);
             SecurityToken securityToken = SecurityToken.forClientCertificate(CLIENT_CERTIFICATE);
-            when(subscriptionTrustStoreLoaderManager.getByCertificate(API_ID, CLIENT_CERTIFICATE, PLAN_ID))
-                .thenReturn(Optional.of(subscription));
+            when(subscriptionTrustStoreLoaderManager.getByCertificate(API_ID, CLIENT_CERTIFICATE, PLAN_ID)).thenReturn(
+                Optional.of(subscription)
+            );
 
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
             assertThat(subscriptionOpt).contains(subscription);

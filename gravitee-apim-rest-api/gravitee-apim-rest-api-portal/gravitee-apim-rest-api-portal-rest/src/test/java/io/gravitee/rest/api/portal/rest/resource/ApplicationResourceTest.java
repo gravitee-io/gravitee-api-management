@@ -372,19 +372,18 @@ public class ApplicationResourceTest extends AbstractResourceTest {
             .description(APPLICATION_ID)
             .name(APPLICATION_ID)
             .settings(
-                new ApplicationSettings()
-                    .oauth(
-                        new OAuthClientSettings()
-                            .applicationType(APPLICATION_ID)
-                            .clientId(APPLICATION_ID)
-                            .clientSecret(APPLICATION_ID)
-                            .clientUri(APPLICATION_ID)
-                            .logoUri(APPLICATION_ID)
-                            .grantTypes(Arrays.asList(APPLICATION_ID))
-                            .redirectUris(Arrays.asList(APPLICATION_ID))
-                            .responseTypes(Arrays.asList(APPLICATION_ID))
-                            .renewClientSecretSupported(Boolean.TRUE)
-                    )
+                new ApplicationSettings().oauth(
+                    new OAuthClientSettings()
+                        .applicationType(APPLICATION_ID)
+                        .clientId(APPLICATION_ID)
+                        .clientSecret(APPLICATION_ID)
+                        .clientUri(APPLICATION_ID)
+                        .logoUri(APPLICATION_ID)
+                        .grantTypes(Arrays.asList(APPLICATION_ID))
+                        .redirectUris(Arrays.asList(APPLICATION_ID))
+                        .responseTypes(Arrays.asList(APPLICATION_ID))
+                        .renewClientSecretSupported(Boolean.TRUE)
+                )
             );
         appInput.setId(APPLICATION_ID);
 

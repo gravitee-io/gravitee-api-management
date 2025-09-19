@@ -82,13 +82,12 @@ class StartIngestIntegrationApisUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase =
-            new StartIngestIntegrationApisUseCase(
-                integrationCrudService,
-                asyncJobCrudService,
-                integrationAgent,
-                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
-            );
+        useCase = new StartIngestIntegrationApisUseCase(
+            integrationCrudService,
+            asyncJobCrudService,
+            integrationAgent,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
+        );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
@@ -114,22 +113,20 @@ class StartIngestIntegrationApisUseCaseTest {
 
         // Then
         assertThat(result).containsExactly(AsyncJob.Status.PENDING);
-        assertThat(asyncJobCrudService.storage())
-            .contains(
-                AsyncJob
-                    .builder()
-                    .id("generated-id")
-                    .sourceId(INTEGRATION_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .initiatorId(USER_ID)
-                    .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
-                    .status(AsyncJob.Status.PENDING)
-                    .upperLimit(10L)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(5)))
-                    .build()
-            );
+        assertThat(asyncJobCrudService.storage()).contains(
+            AsyncJob.builder()
+                .id("generated-id")
+                .sourceId(INTEGRATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .initiatorId(USER_ID)
+                .type(AsyncJob.Type.FEDERATED_APIS_INGESTION)
+                .status(AsyncJob.Status.PENDING)
+                .upperLimit(10L)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(5)))
+                .build()
+        );
     }
 
     //2023-10-22T12:15:30+02:00[Europe/Paris]

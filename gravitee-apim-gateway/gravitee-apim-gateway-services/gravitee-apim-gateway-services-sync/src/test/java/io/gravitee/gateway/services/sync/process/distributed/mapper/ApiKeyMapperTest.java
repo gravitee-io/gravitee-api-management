@@ -55,15 +55,13 @@ class ApiKeyMapperTest {
         apiKey.setApplication("application");
         apiKey.setApi("api");
 
-        distributedEvent =
-            DistributedEvent
-                .builder()
-                .id("id")
-                .payload(objectMapper.writeValueAsString(apiKey))
-                .updatedAt(new Date())
-                .type(DistributedEventType.API_KEY)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .build();
+        distributedEvent = DistributedEvent.builder()
+            .id("id")
+            .payload(objectMapper.writeValueAsString(apiKey))
+            .updatedAt(new Date())
+            .type(DistributedEventType.API_KEY)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
 
         apiKeyDeployable = SingleApiKeyDeployable.builder().apiKey(apiKey).syncAction(SyncAction.DEPLOY).build();
     }

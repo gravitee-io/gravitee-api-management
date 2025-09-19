@@ -127,7 +127,9 @@ class SearchApiAuditUseCaseTest {
         var pageNumber = 2;
         var pageSize = 5;
         auditQueryService.initWith(
-            IntStream.range(0, expectedTotal).mapToObj(i -> AuditFixtures.anApiAudit().toBuilder().id(String.valueOf(i)).build()).toList()
+            IntStream.range(0, expectedTotal)
+                .mapToObj(i -> AuditFixtures.anApiAudit().toBuilder().id(String.valueOf(i)).build())
+                .toList()
         );
 
         var result = useCase.execute(

@@ -89,29 +89,26 @@ public class IntegrationCrudServiceImplTest {
         @SneakyThrows
         void should_return_the_found_integration() {
             //Given
-            when(integrationRepository.findById(any()))
-                .thenAnswer(invocation ->
-                    Optional.of(fixtures.repository.IntegrationFixture.anIntegration().toBuilder().id(invocation.getArgument(0)).build())
-                );
+            when(integrationRepository.findById(any())).thenAnswer(invocation ->
+                Optional.of(fixtures.repository.IntegrationFixture.anIntegration().toBuilder().id(invocation.getArgument(0)).build())
+            );
 
             //When
             var result = service.findById("my-id");
 
             //Then
-            assertThat(result)
-                .contains(
-                    IntegrationFixture
-                        .anIntegration()
-                        .toBuilder()
-                        .id("my-id")
-                        .name("An integration")
-                        .description("A description")
-                        .provider("amazon")
-                        .environmentId("environment-id")
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .build()
-                );
+            assertThat(result).contains(
+                IntegrationFixture.anIntegration()
+                    .toBuilder()
+                    .id("my-id")
+                    .name("An integration")
+                    .description("A description")
+                    .provider("amazon")
+                    .environmentId("environment-id")
+                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .build()
+            );
         }
 
         @Test
@@ -148,8 +145,7 @@ public class IntegrationCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_integration() {
-            Integration integration = IntegrationFixture
-                .anIntegration()
+            Integration integration = IntegrationFixture.anIntegration()
                 .toBuilder()
                 .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .build();
@@ -163,8 +159,7 @@ public class IntegrationCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Integration
-                        .builder()
+                    io.gravitee.repository.management.model.Integration.builder()
                         .id("integration-id")
                         .name("test-name")
                         .description("integration-description")

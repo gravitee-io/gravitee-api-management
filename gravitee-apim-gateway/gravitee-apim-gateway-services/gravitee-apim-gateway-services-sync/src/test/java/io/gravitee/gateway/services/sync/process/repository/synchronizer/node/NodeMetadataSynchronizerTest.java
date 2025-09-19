@@ -54,14 +54,13 @@ class NodeMetadataSynchronizerTest {
 
     @BeforeEach
     void setUp() {
-        cut =
-            new NodeMetadataSynchronizer(
-                organizationIdsFetcher,
-                installationIdFetcher,
-                deployerFactory,
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-            );
+        cut = new NodeMetadataSynchronizer(
+            organizationIdsFetcher,
+            installationIdFetcher,
+            deployerFactory,
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+        );
 
         lenient().when(deployerFactory.createNodeMetadataDeployer()).thenReturn(nodeMetadataDeployer);
         lenient().when(nodeMetadataDeployer.deploy(any())).thenReturn(Completable.complete());

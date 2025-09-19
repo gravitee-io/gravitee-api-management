@@ -202,16 +202,16 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.responseTimeRanges())) {
-            predicate =
-                predicate.and(connectionLog ->
-                    logsFilters
-                        .responseTimeRanges()
-                        .stream()
-                        .anyMatch(range ->
+            predicate = predicate.and(connectionLog ->
+                logsFilters
+                    .responseTimeRanges()
+                    .stream()
+                    .anyMatch(
+                        range ->
                             (range.to() == null || range.to() >= connectionLog.getGatewayResponseTime()) &&
                             (range.from() == null || range.from() <= connectionLog.getGatewayResponseTime())
-                        )
-                );
+                    )
+            );
         }
 
         return predicate;
@@ -233,51 +233,50 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.methods())) {
-            predicate =
-                predicate.and(connectionLog ->
+            predicate = predicate.and(
+                connectionLog ->
                     connectionLog.getEntrypointRequest() != null &&
                     logsFilters.methods().contains(HttpMethod.valueOf(connectionLog.getEntrypointRequest().getMethod()))
-                );
+            );
         }
 
         if (!CollectionUtils.isEmpty(logsFilters.statuses())) {
-            predicate =
-                predicate.and(connectionLog ->
+            predicate = predicate.and(
+                connectionLog ->
                     connectionLog.getEntrypointResponse() != null &&
                     logsFilters.statuses().contains(connectionLog.getEntrypointResponse().getStatus())
-                );
+            );
         }
 
         if (null != logsFilters.bodyText() && !logsFilters.bodyText().isBlank()) {
-            predicate =
-                predicate.and(connectionLogDetail -> {
-                    if (
-                        connectionLogDetail.getEntrypointRequest() != null &&
-                        connectionLogDetail.getEntrypointRequest().getBody() != null &&
-                        connectionLogDetail.getEntrypointRequest().getBody().contains(logsFilters.bodyText())
-                    ) {
-                        return true;
-                    }
-                    if (
-                        connectionLogDetail.getEntrypointResponse() != null &&
-                        connectionLogDetail.getEntrypointResponse().getBody() != null &&
-                        connectionLogDetail.getEntrypointResponse().getBody().contains(logsFilters.bodyText())
-                    ) {
-                        return true;
-                    }
-                    if (
-                        connectionLogDetail.getEndpointRequest() != null &&
-                        connectionLogDetail.getEndpointRequest().getBody() != null &&
-                        connectionLogDetail.getEndpointRequest().getBody().contains(logsFilters.bodyText())
-                    ) {
-                        return true;
-                    }
-                    return (
-                        connectionLogDetail.getEndpointResponse() != null &&
-                        connectionLogDetail.getEndpointResponse().getBody() != null &&
-                        connectionLogDetail.getEndpointResponse().getBody().contains(logsFilters.bodyText())
-                    );
-                });
+            predicate = predicate.and(connectionLogDetail -> {
+                if (
+                    connectionLogDetail.getEntrypointRequest() != null &&
+                    connectionLogDetail.getEntrypointRequest().getBody() != null &&
+                    connectionLogDetail.getEntrypointRequest().getBody().contains(logsFilters.bodyText())
+                ) {
+                    return true;
+                }
+                if (
+                    connectionLogDetail.getEntrypointResponse() != null &&
+                    connectionLogDetail.getEntrypointResponse().getBody() != null &&
+                    connectionLogDetail.getEntrypointResponse().getBody().contains(logsFilters.bodyText())
+                ) {
+                    return true;
+                }
+                if (
+                    connectionLogDetail.getEndpointRequest() != null &&
+                    connectionLogDetail.getEndpointRequest().getBody() != null &&
+                    connectionLogDetail.getEndpointRequest().getBody().contains(logsFilters.bodyText())
+                ) {
+                    return true;
+                }
+                return (
+                    connectionLogDetail.getEndpointResponse() != null &&
+                    connectionLogDetail.getEndpointResponse().getBody() != null &&
+                    connectionLogDetail.getEndpointResponse().getBody().contains(logsFilters.bodyText())
+                );
+            });
         }
 
         return predicate;

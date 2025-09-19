@@ -68,30 +68,24 @@ public class ApiCategoryOrderUpgrader implements Upgrader {
     }
 
     private void fillApiCategoryOrderTable() throws TechnicalException {
-        this.categoryRepository.findAll()
-            .forEach(category -> {
-                var order = new AtomicInteger(0);
-                this.apiRepository.search(new ApiCriteria.Builder().category(category.getId()).build(), ApiFieldFilter.defaultFields())
-                    .forEach(api -> {
-                        try {
-                            this.apiCategoryOrderRepository.create(
-                                    ApiCategoryOrder
-                                        .builder()
-                                        .apiId(api.getId())
-                                        .categoryId(category.getId())
-                                        .order(order.getAndIncrement())
-                                        .build()
-                                );
-                        } catch (TechnicalException e) {
-                            log.error(
-                                "Unable to create api category order for API [{}] and Category [{}]",
-                                api.getId(),
-                                category.getId(),
-                                e
-                            );
-                            throw new RuntimeException(e);
-                        }
-                    });
-            });
+        this.categoryRepository.findAll().forEach(category -> {
+            var order = new AtomicInteger(0);
+            this.apiRepository.search(new ApiCriteria.Builder().category(category.getId()).build(), ApiFieldFilter.defaultFields()).forEach(
+                api -> {
+                    try {
+                        this.apiCategoryOrderRepository.create(
+                            ApiCategoryOrder.builder()
+                                .apiId(api.getId())
+                                .categoryId(category.getId())
+                                .order(order.getAndIncrement())
+                                .build()
+                        );
+                    } catch (TechnicalException e) {
+                        log.error("Unable to create api category order for API [{}] and Category [{}]", api.getId(), category.getId(), e);
+                        throw new RuntimeException(e);
+                    }
+                }
+            );
+        });
     }
 }

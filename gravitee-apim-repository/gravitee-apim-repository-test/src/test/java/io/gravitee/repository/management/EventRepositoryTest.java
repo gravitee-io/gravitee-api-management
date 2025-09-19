@@ -110,8 +110,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void searchByMultipleEventType() throws Exception {
-        final EventCriteria eventCriteria = EventCriteria
-            .builder()
+        final EventCriteria eventCriteria = EventCriteria.builder()
             .from(1451606400000L)
             .to(1470157767000L)
             .types(Set.of(EventType.START_API, EventType.STOP_API))
@@ -155,8 +154,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchByAPIId() throws Exception {
         Page<Event> eventPage = eventRepository.search(
-            EventCriteria
-                .builder()
+            EventCriteria.builder()
                 .from(1451606400000L)
                 .to(1470157767000L)
                 .property(Event.EventProperties.API_ID.getValue(), "api-1")
@@ -172,8 +170,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchByAPI_EmptyPageable() throws Exception {
         Page<Event> eventPage = eventRepository.search(
-            EventCriteria
-                .builder()
+            EventCriteria.builder()
                 .from(1451606400000L)
                 .to(1470157767000L)
                 .property(Event.EventProperties.API_ID.getValue(), "api-1")
@@ -189,8 +186,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchByMixProperties() throws Exception {
         Page<Event> eventPage = eventRepository.search(
-            EventCriteria
-                .builder()
+            EventCriteria.builder()
                 .from(1451606400000L)
                 .to(1470157767000L)
                 .property(Event.EventProperties.API_ID.getValue(), "api-3")
@@ -207,8 +203,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchByCollectionProperty() throws Exception {
         Page<Event> eventPage = eventRepository.search(
-            EventCriteria
-                .builder()
+            EventCriteria.builder()
                 .from(1451606400000L)
                 .to(1470157767000L)
                 .property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3"))
@@ -224,8 +219,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void searchByCollectionPropertyWithoutPaging() throws Exception {
         List<Event> events = eventRepository.search(
-            EventCriteria
-                .builder()
+            EventCriteria.builder()
                 .from(1452606400000L)
                 .to(1470157767000L)
                 .property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3"))
@@ -255,21 +249,20 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         List<Event> events = eventRepository.search(EventCriteria.builder().environments(singletonList("DEFAULT")).build());
 
         assertEquals(12L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsExactly(
-                "event09",
-                "event08",
-                "event06",
-                "event20",
-                "event19",
-                "event17",
-                "event16",
-                "event05",
-                "event04",
-                "event03",
-                "event02",
-                "event01"
-            );
+        assertThat(events.stream().map(Event::getId)).containsExactly(
+            "event09",
+            "event08",
+            "event06",
+            "event20",
+            "event19",
+            "event17",
+            "event16",
+            "event05",
+            "event04",
+            "event03",
+            "event02",
+            "event01"
+        );
     }
 
     @Test
@@ -279,21 +272,20 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         );
 
         assertEquals(12L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsExactly(
-                "event09",
-                "event08",
-                "event06",
-                "event20",
-                "event19",
-                "event17",
-                "event16",
-                "event05",
-                "event04",
-                "event03",
-                "event02",
-                "event01"
-            );
+        assertThat(events.stream().map(Event::getId)).containsExactly(
+            "event09",
+            "event08",
+            "event06",
+            "event20",
+            "event19",
+            "event17",
+            "event16",
+            "event05",
+            "event04",
+            "event03",
+            "event02",
+            "event01"
+        );
     }
 
     @Test
@@ -301,23 +293,22 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         List<Event> events = eventRepository.search(EventCriteria.builder().environments(Arrays.asList("DEFAULT", "OTHER_ENV")).build());
 
         assertEquals(14L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsExactly(
-                "event09",
-                "event08",
-                "event07",
-                "event06",
-                "event20",
-                "event19",
-                "event18",
-                "event17",
-                "event16",
-                "event05",
-                "event04",
-                "event03",
-                "event02",
-                "event01"
-            );
+        assertThat(events.stream().map(Event::getId)).containsExactly(
+            "event09",
+            "event08",
+            "event07",
+            "event06",
+            "event20",
+            "event19",
+            "event18",
+            "event17",
+            "event16",
+            "event05",
+            "event04",
+            "event03",
+            "event02",
+            "event01"
+        );
     }
 
     @Test
@@ -333,23 +324,22 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         List<Event> events = eventRepository.search(EventCriteria.builder().organizations(List.of("DEFAULT")).build());
 
         assertEquals(14L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsExactly(
-                "event09",
-                "event08",
-                "event07",
-                "event06",
-                "event20",
-                "event19",
-                "event18",
-                "event17",
-                "event16",
-                "event05",
-                "event04",
-                "event03",
-                "event02",
-                "event01"
-            );
+        assertThat(events.stream().map(Event::getId)).containsExactly(
+            "event09",
+            "event08",
+            "event07",
+            "event06",
+            "event20",
+            "event19",
+            "event18",
+            "event17",
+            "event16",
+            "event05",
+            "event04",
+            "event03",
+            "event02",
+            "event01"
+        );
     }
 
     @Test
@@ -403,8 +393,7 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindEventByTypeByApiAndEnvironment() throws Exception {
-        EventCriteria.EventCriteriaBuilder criteria = EventCriteria
-            .builder()
+        EventCriteria.EventCriteriaBuilder criteria = EventCriteria.builder()
             .types(List.of(EventType.PUBLISH_API, EventType.UNPUBLISH_API))
             .property(Event.EventProperties.API_ID.getValue(), "api-1")
             .from(0)
@@ -505,9 +494,9 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(updatedEvent.getUpdatedAt().after(createdEvent.getUpdatedAt()));
         assertNotNull(updatedEvent.getProperties());
         assertTrue(
-            Timestamp
-                .valueOf(updatedEvent.getProperties().get("last_heartbeat_at"))
-                .after(Timestamp.valueOf(createdEvent.getProperties().get("last_heartbeat_at")))
+            Timestamp.valueOf(updatedEvent.getProperties().get("last_heartbeat_at")).after(
+                Timestamp.valueOf(createdEvent.getProperties().get("last_heartbeat_at"))
+            )
         );
         assertEquals(updatedEvent.getProperties().get("to_update"), "updated_property");
         assertEquals(updatedEvent.getType(), EventType.UNPUBLISH_API);
@@ -520,20 +509,19 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         List<Event> events = eventRepository.findByEnvironmentId("DEFAULT");
 
         assertEquals(11L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsOnly(
-                "event09",
-                "event08",
-                "event06",
-                "event20",
-                "event19",
-                "event17",
-                "event05",
-                "event04",
-                "event03",
-                "event02",
-                "event01"
-            );
+        assertThat(events.stream().map(Event::getId)).containsOnly(
+            "event09",
+            "event08",
+            "event06",
+            "event20",
+            "event19",
+            "event17",
+            "event05",
+            "event04",
+            "event03",
+            "event02",
+            "event01"
+        );
     }
 
     @Test
@@ -541,21 +529,20 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         List<Event> events = eventRepository.findByOrganizationId("DEFAULT");
 
         assertEquals(13L, events.size());
-        assertThat(events.stream().map(Event::getId))
-            .containsOnly(
-                "event09",
-                "event08",
-                "event07",
-                "event06",
-                "event20",
-                "event19",
-                "event18",
-                "event17",
-                "event05",
-                "event04",
-                "event03",
-                "event02",
-                "event01"
-            );
+        assertThat(events.stream().map(Event::getId)).containsOnly(
+            "event09",
+            "event08",
+            "event07",
+            "event06",
+            "event20",
+            "event19",
+            "event18",
+            "event17",
+            "event05",
+            "event04",
+            "event03",
+            "event02",
+            "event01"
+        );
     }
 }

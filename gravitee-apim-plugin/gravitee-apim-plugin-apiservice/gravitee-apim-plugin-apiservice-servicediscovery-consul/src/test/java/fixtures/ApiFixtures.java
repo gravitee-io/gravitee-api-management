@@ -34,8 +34,7 @@ public class ApiFixtures {
                 .toBuilder()
                 .endpointGroups(
                     List.of(
-                        EndpointGroup
-                            .builder()
+                        EndpointGroup.builder()
                             .name("default-group")
                             .services(EndpointGroupServices.builder().discovery(discovery).build())
                             .build()

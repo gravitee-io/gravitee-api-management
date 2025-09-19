@@ -155,28 +155,27 @@ class DefaultApiReactorFactoryTest {
     void init() {
         lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
         lenient().when(policyFactoryManager.get(any())).thenReturn(policyFactory);
-        cut =
-            new DefaultApiReactorFactory(
-                applicationContext,
-                configuration,
-                node,
-                policyFactoryManager,
-                entrypointConnectorPluginManager,
-                endpointConnectorPluginManager,
-                apiServicePluginManager,
-                organizationPolicyChainFactoryManager,
-                organizationManager,
-                flowResolverFactory,
-                requestTimeoutConfiguration,
-                reporterService,
-                accessPointManager,
-                eventManager,
-                openTelemetryConfiguration,
-                openTelemetryFactory,
-                List.of(),
-                gatewayConfiguration,
-                dictionaryManager
-            );
+        cut = new DefaultApiReactorFactory(
+            applicationContext,
+            configuration,
+            node,
+            policyFactoryManager,
+            entrypointConnectorPluginManager,
+            endpointConnectorPluginManager,
+            apiServicePluginManager,
+            organizationPolicyChainFactoryManager,
+            organizationManager,
+            flowResolverFactory,
+            requestTimeoutConfiguration,
+            reporterService,
+            accessPointManager,
+            eventManager,
+            openTelemetryConfiguration,
+            openTelemetryFactory,
+            List.of(),
+            gatewayConfiguration,
+            dictionaryManager
+        );
     }
 
     @Nested
@@ -309,8 +308,9 @@ class DefaultApiReactorFactoryTest {
 
         @Test
         void should_create_api_reactor_with_TemplateVariableProviders() {
-            when(dictionaryManager.createTemplateVariableProvider(any()))
-                .thenReturn(mock(EnvironmentDictionaryTemplateVariableProvider.class));
+            when(dictionaryManager.createTemplateVariableProvider(any())).thenReturn(
+                mock(EnvironmentDictionaryTemplateVariableProvider.class)
+            );
             var api = anApi();
             var reactor = cut.create(api);
 
@@ -320,11 +320,30 @@ class DefaultApiReactorFactoryTest {
             assertThat(templateVariableProviders)
                 .hasSize(3 + registeredApiTemplateVariableProvider.size())
                 .satisfies(list -> {
-                    assertThat(list.stream().filter(p -> p instanceof ApiTemplateVariableProvider).findFirst()).isPresent();
-                    assertThat(list.stream().filter(p -> p instanceof EnvironmentDictionaryTemplateVariableProvider).findFirst())
-                        .isPresent();
-                    assertThat(list.stream().filter(p -> registeredApiTemplateVariableProvider.contains(p)).findFirst()).isPresent();
-                    assertThat(list.stream().filter(p -> p instanceof EndpointManager).findFirst()).isPresent();
+                    assertThat(
+                        list
+                            .stream()
+                            .filter(p -> p instanceof ApiTemplateVariableProvider)
+                            .findFirst()
+                    ).isPresent();
+                    assertThat(
+                        list
+                            .stream()
+                            .filter(p -> p instanceof EnvironmentDictionaryTemplateVariableProvider)
+                            .findFirst()
+                    ).isPresent();
+                    assertThat(
+                        list
+                            .stream()
+                            .filter(p -> registeredApiTemplateVariableProvider.contains(p))
+                            .findFirst()
+                    ).isPresent();
+                    assertThat(
+                        list
+                            .stream()
+                            .filter(p -> p instanceof EndpointManager)
+                            .findFirst()
+                    ).isPresent();
                 });
         }
 

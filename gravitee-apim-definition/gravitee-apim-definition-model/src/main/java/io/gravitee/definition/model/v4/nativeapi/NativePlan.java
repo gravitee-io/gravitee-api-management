@@ -49,8 +49,7 @@ public class NativePlan extends AbstractPlan {
     @JsonIgnore
     @Override
     public List<Plugin> getPlugins() {
-        return Optional
-            .ofNullable(this.flows)
+        return Optional.ofNullable(this.flows)
             .map(f -> f.stream().filter(AbstractFlow::isEnabled).map(AbstractFlow::getPlugins).flatMap(List::stream).toList())
             .orElse(List.of());
     }

@@ -81,35 +81,32 @@ public class ParametersDomainServiceImplTest {
         @Test
         void should_find_parameters() {
             var keyList = List.of(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY, Key.PORTAL_NEXT_THEME_COLOR_SECONDARY);
-            when(parameterService.findAll(eq(EXECUTION_CONTEXT), eq(keyList), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-                .thenReturn(
-                    Map.of(
-                        Key.PORTAL_NEXT_THEME_COLOR_PRIMARY.key(),
-                        List.of("primary-color"),
-                        Key.PORTAL_NEXT_THEME_COLOR_SECONDARY.key(),
-                        List.of("secondary-color")
-                    )
-                );
+            when(parameterService.findAll(eq(EXECUTION_CONTEXT), eq(keyList), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+                Map.of(
+                    Key.PORTAL_NEXT_THEME_COLOR_PRIMARY.key(),
+                    List.of("primary-color"),
+                    Key.PORTAL_NEXT_THEME_COLOR_SECONDARY.key(),
+                    List.of("secondary-color")
+                )
+            );
 
             var result = cut.getEnvironmentParameters(EXECUTION_CONTEXT, keyList);
-            assertThat(result)
-                .isEqualTo(
-                    Map.of(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY, "primary-color", Key.PORTAL_NEXT_THEME_COLOR_SECONDARY, "secondary-color")
-                );
+            assertThat(result).isEqualTo(
+                Map.of(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY, "primary-color", Key.PORTAL_NEXT_THEME_COLOR_SECONDARY, "secondary-color")
+            );
         }
 
         @Test
         void should_not_return_parameters_without_value() {
             var keyList = List.of(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY, Key.PORTAL_NEXT_THEME_COLOR_SECONDARY);
-            when(parameterService.findAll(eq(EXECUTION_CONTEXT), eq(keyList), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-                .thenReturn(
-                    Map.of(
-                        Key.PORTAL_NEXT_THEME_COLOR_PRIMARY.key(),
-                        List.of("primary-color"),
-                        Key.PORTAL_NEXT_THEME_COLOR_SECONDARY.key(),
-                        List.of()
-                    )
-                );
+            when(parameterService.findAll(eq(EXECUTION_CONTEXT), eq(keyList), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+                Map.of(
+                    Key.PORTAL_NEXT_THEME_COLOR_PRIMARY.key(),
+                    List.of("primary-color"),
+                    Key.PORTAL_NEXT_THEME_COLOR_SECONDARY.key(),
+                    List.of()
+                )
+            );
 
             var result = cut.getEnvironmentParameters(EXECUTION_CONTEXT, keyList);
             assertThat(result).isEqualTo(Map.of(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY, "primary-color"));
@@ -118,8 +115,9 @@ public class ParametersDomainServiceImplTest {
         @Test
         void should_not_find_any_parameters() {
             var keyList = List.of(Key.PORTAL_NEXT_THEME_COLOR_PRIMARY, Key.PORTAL_NEXT_THEME_COLOR_SECONDARY);
-            when(parameterService.findAll(eq(EXECUTION_CONTEXT), eq(keyList), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-                .thenReturn(Map.of());
+            when(parameterService.findAll(eq(EXECUTION_CONTEXT), eq(keyList), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+                Map.of()
+            );
 
             var result = cut.getEnvironmentParameters(EXECUTION_CONTEXT, keyList);
             assertThat(result).isEqualTo(Map.of());

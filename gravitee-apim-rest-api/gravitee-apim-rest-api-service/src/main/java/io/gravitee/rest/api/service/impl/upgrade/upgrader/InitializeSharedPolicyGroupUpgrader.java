@@ -51,8 +51,7 @@ public class InitializeSharedPolicyGroupUpgrader implements Upgrader {
                         .forEach(environment -> {
                             // Create default shared policy group for each environment
                             initializeSharedPolicyGroupUseCase.execute(
-                                InitializeSharedPolicyGroupUseCase.Input
-                                    .builder()
+                                InitializeSharedPolicyGroupUseCase.Input.builder()
                                     .organizationId(organization.getId())
                                     .environmentId(environment.getId())
                                     .build()

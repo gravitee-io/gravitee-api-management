@@ -146,14 +146,12 @@ public class EndpointGroup implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Stream
-            .of(
-                Optional
-                    .ofNullable(this.endpoints)
-                    .map(e -> e.stream().map(Endpoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-                    .orElse(List.of()),
-                Optional.ofNullable(this.services).map(Services::getPlugins).orElse(List.of())
-            )
+        return Stream.of(
+            Optional.ofNullable(this.endpoints)
+                .map(e -> e.stream().map(Endpoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+                .orElse(List.of()),
+            Optional.ofNullable(this.services).map(Services::getPlugins).orElse(List.of())
+        )
             .flatMap(List::stream)
             .collect(Collectors.toList());
     }

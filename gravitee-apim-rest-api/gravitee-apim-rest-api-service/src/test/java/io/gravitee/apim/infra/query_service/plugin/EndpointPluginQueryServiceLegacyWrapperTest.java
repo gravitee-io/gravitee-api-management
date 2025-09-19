@@ -49,43 +49,41 @@ class EndpointPluginQueryServiceLegacyWrapperTest {
 
         @Test
         void should_return_plugins_list_with_deployed_status_depending_on_license() {
-            when(endpointConnectorPluginService.findAll())
-                .thenAnswer(invocation -> {
-                    var plugin1 = new ConnectorPluginEntity();
-                    plugin1.setId("id1");
-                    plugin1.setName("Plugin 1");
-                    plugin1.setVersion("1.0.0");
-                    plugin1.setDescription("description1");
-                    plugin1.setFeature("apim-feature-plugin1");
-                    plugin1.setDeployed(true);
-                    plugin1.setSupportedApiType(ApiType.MESSAGE);
-                    plugin1.setSupportedListenerType(ListenerType.HTTP);
-                    plugin1.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
-                    plugin1.setSupportedQos(Set.of(Qos.AUTO));
-                    plugin1.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
+            when(endpointConnectorPluginService.findAll()).thenAnswer(invocation -> {
+                var plugin1 = new ConnectorPluginEntity();
+                plugin1.setId("id1");
+                plugin1.setName("Plugin 1");
+                plugin1.setVersion("1.0.0");
+                plugin1.setDescription("description1");
+                plugin1.setFeature("apim-feature-plugin1");
+                plugin1.setDeployed(true);
+                plugin1.setSupportedApiType(ApiType.MESSAGE);
+                plugin1.setSupportedListenerType(ListenerType.HTTP);
+                plugin1.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
+                plugin1.setSupportedQos(Set.of(Qos.AUTO));
+                plugin1.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
 
-                    var plugin2 = new ConnectorPluginEntity();
-                    plugin2.setId("id2");
-                    plugin2.setName("Plugin 2");
-                    plugin2.setVersion("2.0.0");
-                    plugin2.setDescription("description2");
-                    plugin2.setFeature("apim-feature-plugin2");
-                    plugin2.setDeployed(true);
-                    plugin2.setSupportedApiType(ApiType.MESSAGE);
-                    plugin2.setSupportedListenerType(ListenerType.HTTP);
-                    plugin2.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
-                    plugin2.setSupportedQos(Set.of(Qos.AUTO));
-                    plugin2.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
-                    return Set.of(plugin1, plugin2);
-                });
+                var plugin2 = new ConnectorPluginEntity();
+                plugin2.setId("id2");
+                plugin2.setName("Plugin 2");
+                plugin2.setVersion("2.0.0");
+                plugin2.setDescription("description2");
+                plugin2.setFeature("apim-feature-plugin2");
+                plugin2.setDeployed(true);
+                plugin2.setSupportedApiType(ApiType.MESSAGE);
+                plugin2.setSupportedListenerType(ListenerType.HTTP);
+                plugin2.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
+                plugin2.setSupportedQos(Set.of(Qos.AUTO));
+                plugin2.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
+                return Set.of(plugin1, plugin2);
+            });
 
             var result = service.findAll();
 
             assertThat(result)
                 .hasSize(2)
                 .containsExactlyInAnyOrder(
-                    ConnectorPlugin
-                        .builder()
+                    ConnectorPlugin.builder()
                         .id("id1")
                         .name("Plugin 1")
                         .version("1.0.0")
@@ -98,8 +96,7 @@ class EndpointPluginQueryServiceLegacyWrapperTest {
                         .supportedQos(Set.of(Qos.AUTO))
                         .availableFeatures(Set.of(ConnectorFeature.LIMIT))
                         .build(),
-                    ConnectorPlugin
-                        .builder()
+                    ConnectorPlugin.builder()
                         .id("id2")
                         .name("Plugin 2")
                         .version("2.0.0")

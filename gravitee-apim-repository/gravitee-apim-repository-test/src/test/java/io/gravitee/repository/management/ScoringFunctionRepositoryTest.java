@@ -108,8 +108,7 @@ public class ScoringFunctionRepositoryTest extends AbstractManagementRepositoryT
     }
 
     private static ScoringFunction aFunction(String uuid, Date date) {
-        return ScoringFunction
-            .builder()
+        return ScoringFunction.builder()
             .id(uuid)
             .name("function-name")
             .referenceType("ENVIRONMENT")

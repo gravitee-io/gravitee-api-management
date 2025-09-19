@@ -116,20 +116,20 @@ public class EnvironmentResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateEnvironmentIdentities(List<IdentityProviderActivationEntity> identityProviderActivations) {
         this.identityProviderActivationService.updateTargetIdp(
-                GraviteeContext.getExecutionContext(),
-                new IdentityProviderActivationService.ActivationTarget(
-                    GraviteeContext.getCurrentEnvironment(),
-                    IdentityProviderActivationReferenceType.ENVIRONMENT
-                ),
-                identityProviderActivations
-                    .stream()
-                    .filter(ipa -> {
-                        final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
-                        return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
-                    })
-                    .map(IdentityProviderActivationEntity::getIdentityProvider)
-                    .collect(Collectors.toList())
-            );
+            GraviteeContext.getExecutionContext(),
+            new IdentityProviderActivationService.ActivationTarget(
+                GraviteeContext.getCurrentEnvironment(),
+                IdentityProviderActivationReferenceType.ENVIRONMENT
+            ),
+            identityProviderActivations
+                .stream()
+                .filter(ipa -> {
+                    final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
+                    return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
+                })
+                .map(IdentityProviderActivationEntity::getIdentityProvider)
+                .collect(Collectors.toList())
+        );
         return Response.noContent().build();
     }
 

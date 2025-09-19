@@ -105,8 +105,7 @@ class DeleteSubscriptionDomainServiceTest {
         assertThat(auditCrudServiceInMemory.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)

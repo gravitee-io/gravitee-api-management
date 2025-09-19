@@ -94,8 +94,7 @@ class UpdateFederatedApiDomainServiceTest {
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)
@@ -107,8 +106,7 @@ class UpdateFederatedApiDomainServiceTest {
         );
         groupQueryService.initWith(
             List.of(
-                Group
-                    .builder()
+                Group.builder()
                     .id("group-1")
                     .environmentId("environment-id")
                     .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
@@ -127,22 +125,21 @@ class UpdateFederatedApiDomainServiceTest {
             userCrudService
         );
 
-        usecase =
-            new UpdateFederatedApiDomainService(
-                apiCrudService,
-                auditDomainService,
-                new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService), categoryDomainService),
-                categoryDomainService,
-                new ApiIndexerDomainService(
-                    new ApiMetadataDecoderDomainService(
-                        new ApiMetadataQueryServiceInMemory(metadataCrudService),
-                        new FreemarkerTemplateProcessor()
-                    ),
-                    apiPrimaryOwnerService,
-                    new ApiCategoryQueryServiceInMemory(),
-                    indexer
-                )
-            );
+        usecase = new UpdateFederatedApiDomainService(
+            apiCrudService,
+            auditDomainService,
+            new ValidateFederatedApiDomainService(new GroupValidationService(groupQueryService), categoryDomainService),
+            categoryDomainService,
+            new ApiIndexerDomainService(
+                new ApiMetadataDecoderDomainService(
+                    new ApiMetadataQueryServiceInMemory(metadataCrudService),
+                    new FreemarkerTemplateProcessor()
+                ),
+                apiPrimaryOwnerService,
+                new ApiCategoryQueryServiceInMemory(),
+                indexer
+            )
+        );
     }
 
     @BeforeAll
@@ -163,8 +160,7 @@ class UpdateFederatedApiDomainServiceTest {
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         String categoryKey = "categoryKey-1";
-        var apiToUpdate = ApiFixtures
-            .aFederatedApi()
+        var apiToUpdate = ApiFixtures.aFederatedApi()
             .toBuilder()
             .name("updated-name")
             .description("updated-description")
@@ -201,8 +197,7 @@ class UpdateFederatedApiDomainServiceTest {
         //given
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures
-            .aFederatedApi()
+        var apiToUpdate = ApiFixtures.aFederatedApi()
             .toBuilder()
             .name("updated-name")
             .description("updated-description")
@@ -255,8 +250,7 @@ class UpdateFederatedApiDomainServiceTest {
     public void update_throws_an_exception_when_group_not_exist() {
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().build()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-        var apiToUpdate = ApiFixtures
-            .aFederatedApi()
+        var apiToUpdate = ApiFixtures.aFederatedApi()
             .toBuilder()
             .groups(Set.of("not-existing-group"))
             .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
@@ -281,8 +275,7 @@ class UpdateFederatedApiDomainServiceTest {
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .contains(
                 // API Audit
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)

@@ -45,8 +45,7 @@ public class SharedPolicyGroupMapper {
                     ReactableSharedPolicyGroup.class
                 );
 
-                return SharedPolicyGroupReactorDeployable
-                    .builder()
+                return SharedPolicyGroupReactorDeployable.builder()
                     .sharedPolicyGroupId(event.getId())
                     .reactableSharedPolicyGroup(reactableSharedPolicyGroup)
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
@@ -65,8 +64,7 @@ public class SharedPolicyGroupMapper {
     private Flowable<DistributedEvent> toSharedPolicyGroupDistributedEvent(final SharedPolicyGroupReactorDeployable deployable) {
         return Flowable.fromCallable(() -> {
             try {
-                DistributedEvent.DistributedEventBuilder builder = DistributedEvent
-                    .builder()
+                DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
                     .id(deployable.id())
                     .type(DistributedEventType.SHARED_POLICY_GROUP)
                     .syncAction(SyncActionMapper.to(deployable.syncAction()))

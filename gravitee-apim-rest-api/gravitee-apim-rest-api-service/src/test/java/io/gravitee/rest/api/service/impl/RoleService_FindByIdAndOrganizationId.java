@@ -56,8 +56,9 @@ public class RoleService_FindByIdAndOrganizationId {
 
     @Test
     public void should_not_find_role() throws TechnicalException {
-        when(roleRepository.findByIdAndReferenceIdAndReferenceType(ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION))
-            .thenReturn(Optional.empty());
+        when(roleRepository.findByIdAndReferenceIdAndReferenceType(ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION)).thenReturn(
+            Optional.empty()
+        );
 
         assertThat(roleService.findByIdAndOrganizationId(ROLE_ID, ORGANIZATION_ID)).isEmpty();
     }
@@ -67,15 +68,17 @@ public class RoleService_FindByIdAndOrganizationId {
         var role = new Role();
         role.setId(ROLE_ID);
 
-        when(roleRepository.findByIdAndReferenceIdAndReferenceType(ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION))
-            .thenReturn(Optional.of(role));
+        when(roleRepository.findByIdAndReferenceIdAndReferenceType(ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION)).thenReturn(
+            Optional.of(role)
+        );
         assertThat(roleService.findByIdAndOrganizationId(ROLE_ID, ORGANIZATION_ID)).isNotNull();
     }
 
     @Test
     public void should_throw_exception() throws TechnicalException {
-        when(roleRepository.findByIdAndReferenceIdAndReferenceType(ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION))
-            .thenThrow(new TechnicalException());
+        when(roleRepository.findByIdAndReferenceIdAndReferenceType(ROLE_ID, ORGANIZATION_ID, RoleReferenceType.ORGANIZATION)).thenThrow(
+            new TechnicalException()
+        );
 
         assertThrows(TechnicalManagementException.class, () -> roleService.findByIdAndOrganizationId(ROLE_ID, ORGANIZATION_ID));
     }

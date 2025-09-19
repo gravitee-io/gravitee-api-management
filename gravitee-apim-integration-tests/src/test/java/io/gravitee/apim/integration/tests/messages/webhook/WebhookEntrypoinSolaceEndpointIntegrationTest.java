@@ -80,8 +80,7 @@ class WebhookEntrypoinSolaceEndpointIntegrationTest extends AbstractSolaceEndpoi
                 outboundMessageBuilder.build("message3".getBytes())
             ),
             5000
-        )
-            .blockingAwait();
+        ).blockingAwait();
 
         // Wait for the webhook to have received 3 requests (message1, message2 and message3)
         webhookActions.waitForRequestsOnCallbackBlocking(3, callbackPath, disposableSubscription);
@@ -118,8 +117,7 @@ class WebhookEntrypoinSolaceEndpointIntegrationTest extends AbstractSolaceEndpoi
                 outboundMessageBuilder.build("message3".getBytes())
             ),
             5000
-        )
-            .blockingAwait();
+        ).blockingAwait();
 
         // Wait for the webhook to have received 4 requests (message, message1, message2 and message3)
         webhookActions.waitForRequestsOnCallbackBlocking(3, callbackPath, disposableSubscription);

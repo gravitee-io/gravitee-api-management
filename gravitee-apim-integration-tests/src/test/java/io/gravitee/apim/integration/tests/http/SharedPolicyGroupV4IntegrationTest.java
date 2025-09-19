@@ -113,13 +113,12 @@ class SharedPolicyGroupV4IntegrationTest {
                 .assertComplete()
                 .assertValue(response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response))
-                        .contains(
-                            Map.entry("X-Response-Header-Outside-0", "Header Outside 0"),
-                            Map.entry("X-Response-Header-Inside-0", "Header Inside 0"),
-                            Map.entry("X-Response-Header-Inside-1", "Header Inside 1"),
-                            Map.entry("X-Response-Header-Outside-1", "Header Outside 1")
-                        );
+                    assertThat(extractHeaders(response)).contains(
+                        Map.entry("X-Response-Header-Outside-0", "Header Outside 0"),
+                        Map.entry("X-Response-Header-Inside-0", "Header Inside 0"),
+                        Map.entry("X-Response-Header-Inside-1", "Header Inside 1"),
+                        Map.entry("X-Response-Header-Outside-1", "Header Outside 1")
+                    );
                     return true;
                 })
                 .assertNoErrors();
@@ -161,7 +160,10 @@ class SharedPolicyGroupV4IntegrationTest {
 
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
 
-            final List<ILoggingEvent> list = listAppender.list.stream().filter(log -> log.getLevel().equals(Level.WARN)).toList();
+            final List<ILoggingEvent> list = listAppender.list
+                .stream()
+                .filter(log -> log.getLevel().equals(Level.WARN))
+                .toList();
             assertThat(list)
                 .hasSize(1)
                 .element(0)
@@ -205,7 +207,10 @@ class SharedPolicyGroupV4IntegrationTest {
 
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
 
-            final List<ILoggingEvent> list = policyLogs.list.stream().filter(log -> log.getLevel().equals(Level.WARN)).toList();
+            final List<ILoggingEvent> list = policyLogs.list
+                .stream()
+                .filter(log -> log.getLevel().equals(Level.WARN))
+                .toList();
             assertThat(list)
                 .hasSize(1)
                 .element(0)
@@ -248,11 +253,10 @@ class SharedPolicyGroupV4IntegrationTest {
                 .assertComplete()
                 .assertValue(response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response))
-                        .contains(
-                            Map.entry("X-Response-Header-Outside-0", "Header Outside 0"),
-                            Map.entry("X-Response-Header-Outside-1", "Header Outside 1")
-                        );
+                    assertThat(extractHeaders(response)).contains(
+                        Map.entry("X-Response-Header-Outside-0", "Header Outside 0"),
+                        Map.entry("X-Response-Header-Outside-1", "Header Outside 1")
+                    );
                     return true;
                 })
                 .assertNoErrors();
@@ -493,34 +497,31 @@ class SharedPolicyGroupV4IntegrationTest {
         }
 
         private static ReactableSharedPolicyGroup fakeReactableSharedPolicyGroup() {
-            return ReactableSharedPolicyGroup
-                .builder()
+            return ReactableSharedPolicyGroup.builder()
                 .id(SHARED_POLICY_GROUP_ID)
                 .environmentId("DEFAULT")
                 .definition(
-                    SharedPolicyGroup
-                        .builder()
+                    SharedPolicyGroup.builder()
                         .environmentId("DEFAULT")
                         .phase(SharedPolicyGroup.Phase.RESPONSE)
                         .id(SHARED_POLICY_GROUP_ID)
                         .policies(
                             List.of(
-                                Step
-                                    .builder()
+                                Step.builder()
                                     .enabled(true)
                                     .policy("transform-headers")
                                     .configuration(
                                         """
-                                               {
-                                                           "scope": "RESPONSE",
-                                                           "addHeaders": [
-                                                             {
-                                                               "name": "X-Response-Header-Inside-0",
-                                                               "value": "Header Inside 0"
-                                                             }
-                                                           ]
-                                                         }
-                                               """
+                                        {
+                                                    "scope": "RESPONSE",
+                                                    "addHeaders": [
+                                                      {
+                                                        "name": "X-Response-Header-Inside-0",
+                                                        "value": "Header Inside 0"
+                                                      }
+                                                    ]
+                                                  }
+                                        """
                                     )
                                     .build()
                             )
@@ -553,12 +554,11 @@ class SharedPolicyGroupV4IntegrationTest {
                 .assertComplete()
                 .assertValue(response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response))
-                        .contains(
-                            Map.entry("X-Response-Header-Outside-0", "Header Outside 0"),
-                            Map.entry("X-Response-Header-Dev-0", "Header Dev 0"),
-                            Map.entry("X-Response-Header-Outside-1", "Header Outside 1")
-                        );
+                    assertThat(extractHeaders(response)).contains(
+                        Map.entry("X-Response-Header-Outside-0", "Header Outside 0"),
+                        Map.entry("X-Response-Header-Dev-0", "Header Dev 0"),
+                        Map.entry("X-Response-Header-Outside-1", "Header Outside 1")
+                    );
                     return true;
                 })
                 .assertNoErrors();
@@ -573,12 +573,11 @@ class SharedPolicyGroupV4IntegrationTest {
                 .assertComplete()
                 .assertValue(response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response))
-                        .contains(
-                            Map.entry("X-Response-Header-Outside-0", "Header Outside 0"),
-                            Map.entry("X-Response-Header-Prod-0", "Header Prod 0"),
-                            Map.entry("X-Response-Header-Outside-1", "Header Outside 1")
-                        );
+                    assertThat(extractHeaders(response)).contains(
+                        Map.entry("X-Response-Header-Outside-0", "Header Outside 0"),
+                        Map.entry("X-Response-Header-Prod-0", "Header Prod 0"),
+                        Map.entry("X-Response-Header-Outside-1", "Header Outside 1")
+                    );
                     return true;
                 })
                 .assertNoErrors();

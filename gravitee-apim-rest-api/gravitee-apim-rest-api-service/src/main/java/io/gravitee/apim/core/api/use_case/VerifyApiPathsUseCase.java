@@ -42,7 +42,10 @@ public class VerifyApiPathsUseCase {
                 throw new InvalidPathsException(errors.iterator().next().getMessage());
             });
 
-        return validationResult.value().map(sanitized -> new Response(sanitized.paths())).orElseGet(() -> new Response(List.of()));
+        return validationResult
+            .value()
+            .map(sanitized -> new Response(sanitized.paths()))
+            .orElseGet(() -> new Response(List.of()));
     }
 
     public record Request(String apiId, List<Path> paths) {}

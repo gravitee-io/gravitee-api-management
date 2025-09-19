@@ -295,25 +295,23 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 .map(alertTrigger -> {
                     AlertTriggerEntity entity = alertTriggerConverter.toAlertTriggerEntity(alertTrigger);
 
-                    getLastEvent(entity.getId())
-                        .ifPresent(alertEvent -> {
-                            entity.setLastAlertAt(alertEvent.getCreatedAt());
-                            entity.setLastAlertMessage(alertEvent.getMessage());
-                        });
+                    getLastEvent(entity.getId()).ifPresent(alertEvent -> {
+                        entity.setLastAlertAt(alertEvent.getCreatedAt());
+                        entity.setLastAlertMessage(alertEvent.getMessage());
+                    });
 
                     final Date from = new Date(System.currentTimeMillis());
 
-                    Map<String, Integer> counters = Map
-                        .of(
-                            "5m",
-                            from.toInstant().minus(Duration.ofMinutes(5)),
-                            "1h",
-                            from.toInstant().minus(Duration.ofHours(1)),
-                            "1d",
-                            from.toInstant().minus(Duration.ofDays(1)),
-                            "1M",
-                            from.toInstant().minus(Duration.ofDays(30))
-                        )
+                    Map<String, Integer> counters = Map.of(
+                        "5m",
+                        from.toInstant().minus(Duration.ofMinutes(5)),
+                        "1h",
+                        from.toInstant().minus(Duration.ofHours(1)),
+                        "1d",
+                        from.toInstant().minus(Duration.ofDays(1)),
+                        "1M",
+                        from.toInstant().minus(Duration.ofDays(30))
+                    )
                         .entrySet()
                         // Get the count of events for each time period in parallel to speed up the process
                         .parallelStream()
@@ -384,12 +382,13 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             Set<AlertTriggerEntity> set = alertTriggerRepository
                 .findAll()
                 .stream()
-                .filter(alert ->
-                    alert.isTemplate() &&
-                    alert.getEventRules() != null &&
-                    alert.getEventRules().stream().map(AlertEventRule::getEvent).toList().contains(event) &&
-                    executionContext.hasEnvironmentId() &&
-                    executionContext.getEnvironmentId().equals(alert.getEnvironmentId())
+                .filter(
+                    alert ->
+                        alert.isTemplate() &&
+                        alert.getEventRules() != null &&
+                        alert.getEventRules().stream().map(AlertEventRule::getEvent).toList().contains(event) &&
+                        executionContext.hasEnvironmentId() &&
+                        executionContext.getEnvironmentId().equals(alert.getEnvironmentId())
                 )
                 .map(alertTriggerConverter::toAlertTriggerEntity)
                 .sorted(Comparator.comparing(AlertTriggerEntity::getName))

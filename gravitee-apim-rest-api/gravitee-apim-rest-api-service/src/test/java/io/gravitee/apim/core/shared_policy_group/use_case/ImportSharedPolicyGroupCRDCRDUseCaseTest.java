@@ -56,8 +56,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
     private final String ORG_ID = "org-id";
     private final String ENV_ID = "env-id";
     private final String USER_ID = "user-id";
-    private final AuditInfo AUDIT_INFO = AuditInfo
-        .builder()
+    private final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .organizationId(ORG_ID)
         .environmentId(ENV_ID)
         .actor(AuditActor.builder().userId(USER_ID).build())
@@ -112,14 +111,13 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
     @BeforeEach
     void setUp() {
         sharedPolicyGroupCrudService.reset();
-        cut =
-            new ImportSharedPolicyGroupCRDCRDUseCase(
-                createSharedPolicyGroupUseCase,
-                updateSharedPolicyGroupUseCase,
-                deploySharedPolicyGroupUseCase,
-                validateSharedPolicyGroupCRDDomainService,
-                sharedPolicyGroupCrudService
-            );
+        cut = new ImportSharedPolicyGroupCRDCRDUseCase(
+            createSharedPolicyGroupUseCase,
+            updateSharedPolicyGroupUseCase,
+            deploySharedPolicyGroupUseCase,
+            validateSharedPolicyGroupCRDDomainService,
+            sharedPolicyGroupCrudService
+        );
     }
 
     @Nested
@@ -158,8 +156,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Unable to import because of errors [Invalid configuration for policy policy_throw_invalid_data_exception]");
         }
@@ -176,8 +173,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage(
                     "Unable to import because of errors [Unexpected policies [policy_throw_unexpected_policy_exception] for API type PROXY and phase REQUEST]"
@@ -194,8 +190,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Unable to import because of errors [Phase is required.]");
         }
@@ -211,8 +206,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Unable to import because of errors [Invalid phase SUBSCRIBE for API type PROXY]");
         }
@@ -259,8 +253,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage("Unable to import because of errors [Invalid configuration for policy policy_throw_invalid_data_exception]");
         }
@@ -278,8 +271,7 @@ class ImportSharedPolicyGroupCRDCRDUseCaseTest {
             var throwable = Assertions.catchThrowable(() -> cut.execute(new ImportSharedPolicyGroupCRDCRDUseCase.Input(AUDIT_INFO, crd)));
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessage(
                     "Unable to import because of errors [Unexpected policies [policy_throw_unexpected_policy_exception] for API type PROXY and phase REQUEST]"

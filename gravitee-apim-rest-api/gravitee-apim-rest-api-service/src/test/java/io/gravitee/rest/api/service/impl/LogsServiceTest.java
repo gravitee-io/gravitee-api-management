@@ -153,8 +153,9 @@ class LogsServiceTest {
         when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(JWT));
-        when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID))
-            .thenReturn(Set.of(newSubscription()));
+        when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID)).thenReturn(
+            Set.of(newSubscription())
+        );
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -235,8 +236,9 @@ class LogsServiceTest {
         when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), eq(LOG_TIMESTAMP))).thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
         when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(JWT));
-        when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID))
-            .thenReturn(Set.of(newSubscription(), new SubscriptionEntity()));
+        when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID)).thenReturn(
+            Set.of(newSubscription(), new SubscriptionEntity())
+        );
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -359,9 +361,8 @@ class LogsServiceTest {
 
         long timestamp = Instant.now().toEpochMilli();
 
-        assertThrows(
-            LogNotFoundException.class,
-            () -> logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp)
+        assertThrows(LogNotFoundException.class, () ->
+            logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp)
         );
     }
 
@@ -370,9 +371,8 @@ class LogsServiceTest {
         when(logRepository.findById(any(QueryContext.class), eq(LOG_ID), anyLong())).thenThrow(new AnalyticsException("test_error"));
         long timestamp = Instant.now().toEpochMilli();
 
-        assertThrows(
-            TechnicalManagementException.class,
-            () -> logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp)
+        assertThrows(TechnicalManagementException.class, () ->
+            logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp)
         );
     }
 
@@ -453,14 +453,13 @@ class LogsServiceTest {
         searchLogResponse.setLogs(List.of(item1, item2));
         searchLogResponse.setMetadata(metadata);
         String exportAsCsv = logService.exportAsCsv(EXECUTION_CONTEXT, searchLogResponse);
-        assertThat(exportAsCsv)
-            .isEqualTo(
-                "Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n" +
+        assertThat(exportAsCsv).isEqualTo(
+            "Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n" +
                 dateFormat.format(1689838996000L) +
                 ";id1;transactionId1;GET;/path1;200;100;PLAN 1;APP 1\n" +
                 dateFormat.format(1689838999000L) +
                 ";id2;transactionId2;POST;/path2;201;523;PLAN 2;APP 2\n"
-            );
+        );
     }
 
     @Test
@@ -485,12 +484,11 @@ class LogsServiceTest {
         searchLogResponse.setLogs(List.of(item1));
         searchLogResponse.setMetadata(metadata);
         String exportAsCsv = logService.exportAsCsv(EXECUTION_CONTEXT, searchLogResponse);
-        assertThat(exportAsCsv)
-            .isEqualTo(
-                "Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n" +
+        assertThat(exportAsCsv).isEqualTo(
+            "Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n" +
                 dateFormat.format(LOG_TIMESTAMP) +
                 ";id1;transactionId1;GET;\"/path1;=cmd|'/Ccalc'!A0\";200;100;\"'=1+2\"\";=1+2\";\"'=1+3\"\n"
-            );
+        );
     }
 
     @NotNull

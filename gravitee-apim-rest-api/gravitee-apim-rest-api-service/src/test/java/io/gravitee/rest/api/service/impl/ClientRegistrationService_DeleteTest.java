@@ -60,15 +60,14 @@ public class ClientRegistrationService_DeleteTest {
 
         clientRegistrationService.delete(GraviteeContext.getExecutionContext(), existingPayload.getId());
 
-        verify(mockAuditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(CLIENT_REGISTRATION_PROVIDER_DELETED),
-                any(),
-                any(),
-                isNull()
-            );
+        verify(mockAuditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            eq(CLIENT_REGISTRATION_PROVIDER_DELETED),
+            any(),
+            any(),
+            isNull()
+        );
         verify(mockClientRegistrationProviderRepository, times(1)).delete(existingPayload.getId());
     }
 
@@ -82,15 +81,14 @@ public class ClientRegistrationService_DeleteTest {
 
         clientRegistrationService.delete(GraviteeContext.getExecutionContext(), existingPayload.getId());
 
-        verify(mockAuditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(CLIENT_REGISTRATION_PROVIDER_DELETED),
-                any(),
-                any(),
-                isNull()
-            );
+        verify(mockAuditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            eq(CLIENT_REGISTRATION_PROVIDER_DELETED),
+            any(),
+            any(),
+            isNull()
+        );
         verify(mockClientRegistrationProviderRepository, never()).delete(existingPayload.getId());
     }
 

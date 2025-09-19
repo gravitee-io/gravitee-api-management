@@ -77,7 +77,10 @@ public class APIV1toAPIV2Converter {
         List<Flow> flows = new ArrayList<>();
         if (!CollectionUtils.isEmpty(paths)) {
             paths.forEach((pathKey, pathValue) -> {
-                Set<HttpMethod> flowMethods = pathValue.stream().flatMap(rule -> rule.getMethods().stream()).collect(Collectors.toSet());
+                Set<HttpMethod> flowMethods = pathValue
+                    .stream()
+                    .flatMap(rule -> rule.getMethods().stream())
+                    .collect(Collectors.toSet());
                 final Flow flow = createFlow(pathKey, flowMethods);
                 pathValue.forEach(rule -> {
                     configurePolicies(policies, rule, flow);
@@ -132,19 +135,17 @@ public class APIV1toAPIV2Converter {
                         if (scope != null) {
                             switch (scope.asText()) {
                                 case "REQUEST":
-                                case "REQUEST_CONTENT":
-                                    {
-                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
-                                        flow.getPre().add(step);
-                                        break;
-                                    }
+                                case "REQUEST_CONTENT": {
+                                    final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
+                                    flow.getPre().add(step);
+                                    break;
+                                }
                                 case "RESPONSE":
-                                case "RESPONSE_CONTENT":
-                                    {
-                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
-                                        flow.getPost().add(step);
-                                        break;
-                                    }
+                                case "RESPONSE_CONTENT": {
+                                    final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
+                                    flow.getPost().add(step);
+                                    break;
+                                }
                             }
                         } else if (isSecurityPolicy(policy)) {
                             // Workaround for security policies, which do not have a scope defined in their configuration

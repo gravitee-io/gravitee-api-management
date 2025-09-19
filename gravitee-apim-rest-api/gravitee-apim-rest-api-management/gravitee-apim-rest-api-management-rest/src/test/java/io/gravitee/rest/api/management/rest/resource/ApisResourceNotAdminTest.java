@@ -51,8 +51,9 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void get_should_search_apis() throws TechnicalException {
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true)))
-            .thenReturn(Set.of("api1", "api2", "api15"));
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true))).thenReturn(
+            Set.of("api1", "api2", "api15")
+        );
 
         List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"), mockApi("api15"));
         Page<ApiEntity> apisPage = new Page<>(resultApis, 7, 3, 54);
@@ -64,8 +65,7 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
                 isNull(),
                 isA(Pageable.class)
             )
-        )
-            .thenReturn(apisPage);
+        ).thenReturn(apisPage);
 
         final Response response = envTarget().path("_search/_paged").queryParam("q", "*").request().post(null);
 
@@ -74,8 +74,9 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void get_should_search_apis_with_order() throws TechnicalException {
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), isA(ApiQuery.class), eq(true)))
-            .thenReturn(Set.of("api1", "api2", "api15"));
+        when(
+            apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), isA(ApiQuery.class), eq(true))
+        ).thenReturn(Set.of("api1", "api2", "api15"));
 
         List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"), mockApi("api15"));
         Page<ApiEntity> apisPage = new Page<>(resultApis, 7, 3, 54);
@@ -87,8 +88,7 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
                 isA(Sortable.class),
                 isA(Pageable.class)
             )
-        )
-            .thenReturn(apisPage);
+        ).thenReturn(apisPage);
 
         final Response response = envTarget().path("_search/_paged").queryParam("q", "*").queryParam("order", "name").request().post(null);
 
@@ -97,8 +97,9 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void get_should_search_apis_with_manageOnly_to_false() throws TechnicalException {
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(false)))
-            .thenReturn(Set.of("api1", "api2", "api15"));
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(false))).thenReturn(
+            Set.of("api1", "api2", "api15")
+        );
 
         List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"), mockApi("api15"));
         Page<ApiEntity> apisPage = new Page<>(resultApis, 7, 3, 54);
@@ -111,8 +112,7 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
                 isNull(),
                 isA(Pageable.class)
             )
-        )
-            .thenReturn(apisPage);
+        ).thenReturn(apisPage);
         final Response response = envTarget()
             .path("_search/_paged")
             .queryParam("q", "*")

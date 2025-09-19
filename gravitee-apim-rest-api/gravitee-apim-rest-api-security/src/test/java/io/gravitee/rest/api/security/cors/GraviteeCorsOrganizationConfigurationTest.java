@@ -77,15 +77,14 @@ public class GraviteeCorsOrganizationConfigurationTest {
             .when(parameterService.find(eq(GraviteeContext.getExecutionContext()), any(), eq(ORGANIZATION_ID), eq(ORGANIZATION_TYPE)))
             .thenReturn(null);
         eventManager = new EventManagerImpl();
-        cut =
-            new GraviteeCorsConfiguration(
-                environment,
-                parameterService,
-                installationAccessQueryService,
-                eventManager,
-                ORGANIZATION_ID,
-                ORGANIZATION_TYPE
-            );
+        cut = new GraviteeCorsConfiguration(
+            environment,
+            parameterService,
+            installationAccessQueryService,
+            eventManager,
+            ORGANIZATION_ID,
+            ORGANIZATION_TYPE
+        );
     }
 
     @AfterEach
@@ -95,30 +94,49 @@ public class GraviteeCorsOrganizationConfigurationTest {
 
     @Test
     void should_initialize_fields_from_default_value() {
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, ORGANIZATION_ID, ORGANIZATION_TYPE);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, ORGANIZATION_ID, ORGANIZATION_TYPE);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, ORGANIZATION_ID, ORGANIZATION_TYPE);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS, ORGANIZATION_ID, ORGANIZATION_TYPE);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.CONSOLE_HTTP_CORS_MAX_AGE, ORGANIZATION_ID, ORGANIZATION_TYPE);
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN,
+            ORGANIZATION_ID,
+            ORGANIZATION_TYPE
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS,
+            ORGANIZATION_ID,
+            ORGANIZATION_TYPE
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.CONSOLE_HTTP_CORS_ALLOW_METHODS,
+            ORGANIZATION_ID,
+            ORGANIZATION_TYPE
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS,
+            ORGANIZATION_ID,
+            ORGANIZATION_TYPE
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.CONSOLE_HTTP_CORS_MAX_AGE,
+            ORGANIZATION_ID,
+            ORGANIZATION_TYPE
+        );
 
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
-        assertThat(cut.getAllowedHeaders())
-            .containsOnly(
-                "Cache-Control",
-                "Pragma",
-                "Origin",
-                "Authorization",
-                "Content-Type",
-                "X-Requested-With",
-                "If-Match",
-                "X-Xsrf-Token",
-                "X-Recaptcha-Token"
-            );
+        assertThat(cut.getAllowedHeaders()).containsOnly(
+            "Cache-Control",
+            "Pragma",
+            "Origin",
+            "Authorization",
+            "Content-Type",
+            "X-Requested-With",
+            "If-Match",
+            "X-Xsrf-Token",
+            "X-Recaptcha-Token"
+        );
         assertThat(cut.getAllowedMethods()).containsOnly("OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH");
         assertThat(cut.getExposedHeaders()).containsOnly("ETag", "X-Xsrf-Token");
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);
@@ -169,8 +187,7 @@ public class GraviteeCorsOrganizationConfigurationTest {
         eventManager.publishEvent(
             new SimpleEvent<>(
                 AccessPointEvent.CREATED,
-                AccessPoint
-                    .builder()
+                AccessPoint.builder()
                     .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
                     .referenceId(ORGANIZATION_ID)
                     .host("origin1")
@@ -187,8 +204,7 @@ public class GraviteeCorsOrganizationConfigurationTest {
         eventManager.publishEvent(
             new SimpleEvent<>(
                 AccessPointEvent.CREATED,
-                AccessPoint
-                    .builder()
+                AccessPoint.builder()
                     .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
                     .referenceId(ORGANIZATION_ID)
                     .host("origin1")
@@ -205,8 +221,7 @@ public class GraviteeCorsOrganizationConfigurationTest {
         eventManager.publishEvent(
             new SimpleEvent<>(
                 AccessPointEvent.CREATED,
-                AccessPoint
-                    .builder()
+                AccessPoint.builder()
                     .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
                     .referenceId("ANOTHER_ORG")
                     .host("origin1")

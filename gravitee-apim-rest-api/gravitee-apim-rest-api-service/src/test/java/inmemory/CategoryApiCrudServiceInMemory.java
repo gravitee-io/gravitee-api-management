@@ -47,8 +47,9 @@ public class CategoryApiCrudServiceInMemory implements CategoryApiCrudService, I
     public Optional<ApiCategoryOrder> findById(String apiId, String categoryId) {
         return storage
             .stream()
-            .filter(apiCategoryOrder ->
-                Objects.equals(apiId, apiCategoryOrder.getApiId()) && Objects.equals(categoryId, apiCategoryOrder.getCategoryId())
+            .filter(
+                apiCategoryOrder ->
+                    Objects.equals(apiId, apiCategoryOrder.getApiId()) && Objects.equals(categoryId, apiCategoryOrder.getCategoryId())
             )
             .findFirst();
     }

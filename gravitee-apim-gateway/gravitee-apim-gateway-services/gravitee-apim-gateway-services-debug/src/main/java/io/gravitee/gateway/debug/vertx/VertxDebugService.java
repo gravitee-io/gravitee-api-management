@@ -59,27 +59,21 @@ public class VertxDebugService extends AbstractService {
     protected void doStart() {
         logger.info("Starting Vertx DEBUG container and deploy only 1 Verticle");
 
-        vertx.deployVerticle(
-            debugVerticle,
-            event -> {
-                if (event.failed()) {
-                    logger.warn("Unable to start debug verticle", event.cause());
-                } else {
-                    deploymentId = event.result();
-                }
+        vertx.deployVerticle(debugVerticle, event -> {
+            if (event.failed()) {
+                logger.warn("Unable to start debug verticle", event.cause());
+            } else {
+                deploymentId = event.result();
             }
-        );
+        });
     }
 
     @Override
     protected void doStop() {
         if (deploymentId != null) {
-            vertx.undeploy(
-                deploymentId,
-                event -> {
-                    lifecycle.moveToStopped();
-                }
-            );
+            vertx.undeploy(deploymentId, event -> {
+                lifecycle.moveToStopped();
+            });
         }
     }
 }

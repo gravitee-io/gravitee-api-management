@@ -40,7 +40,11 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(tags);
         assertEquals(3, tags.size());
-        final Tag tagProduct = tags.stream().filter(tag -> "products".equals(tag.getId())).findAny().get();
+        final Tag tagProduct = tags
+            .stream()
+            .filter(tag -> "products".equals(tag.getId()))
+            .findAny()
+            .get();
         assertEquals("Products", tagProduct.getName());
         assertEquals("Description for products tag", tagProduct.getDescription());
         assertEquals(asList("group1", "group2"), tagProduct.getRestrictedGroups());
@@ -137,7 +141,9 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
             TagReferenceType.ORGANIZATION
         );
 
-        assertThat(tags).hasSize(2).anyMatch(tag -> tag.getId().equals("international") && tag.getName().equals("International"));
+        assertThat(tags)
+            .hasSize(2)
+            .anyMatch(tag -> tag.getId().equals("international") && tag.getName().equals("International"));
     }
 
     @Test

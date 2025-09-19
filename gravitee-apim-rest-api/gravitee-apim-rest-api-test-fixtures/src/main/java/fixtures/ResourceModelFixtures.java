@@ -20,16 +20,14 @@ public class ResourceModelFixtures {
     private ResourceModelFixtures() {}
 
     private static final io.gravitee.definition.model.plugins.resources.Resource.ResourceBuilder BASE_RESOURCE_ENTITY_V2 =
-        io.gravitee.definition.model.plugins.resources.Resource
-            .builder()
+        io.gravitee.definition.model.plugins.resources.Resource.builder()
             .name("role-name")
             .type("resource-type")
             .enabled(true)
             .configuration("{\"key\":\"value\"}");
 
     private static final io.gravitee.definition.model.v4.resource.Resource.ResourceBuilder BASE_RESOURCE_ENTITY_V4 =
-        io.gravitee.definition.model.v4.resource.Resource
-            .builder()
+        io.gravitee.definition.model.v4.resource.Resource.builder()
             .name("role-name")
             .type("resource-type")
             .enabled(true)

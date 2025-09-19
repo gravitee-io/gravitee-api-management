@@ -194,17 +194,9 @@ public class ApiMapperTest {
         assertThat(apiEntity.getFlows().size()).isEqualTo(2);
         assertThat(apiEntity.getResponseTemplates()).isNotNull();
         assertThat(apiEntity.getResponseTemplates().size()).isEqualTo(1);
-        assertThat(apiEntity.getFailover())
-            .isEqualTo(
-                Failover
-                    .builder()
-                    .enabled(true)
-                    .perSubscription(false)
-                    .maxFailures(3)
-                    .openStateDuration(11000)
-                    .slowCallDuration(500)
-                    .build()
-            );
+        assertThat(apiEntity.getFailover()).isEqualTo(
+            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+        );
     }
 
     @Test

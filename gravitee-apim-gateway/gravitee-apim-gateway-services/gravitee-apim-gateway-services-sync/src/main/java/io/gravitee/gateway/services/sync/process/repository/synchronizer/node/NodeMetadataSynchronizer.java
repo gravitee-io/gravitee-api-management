@@ -39,8 +39,7 @@ public class NodeMetadataSynchronizer implements RepositorySynchronizer {
     public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
         if (from == -1) {
             AtomicLong launchTime = new AtomicLong();
-            return Single
-                .just(NodeMetadataDeployable.builder())
+            return Single.just(NodeMetadataDeployable.builder())
                 .flatMapMaybe(nodeMetadataDeployableBuilder ->
                     organizationIdsFetcher
                         .fetch(environments)

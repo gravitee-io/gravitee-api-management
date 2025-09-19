@@ -116,8 +116,7 @@ public class ApplicationService_FindByIdsAndStatusTest {
     @Test
     public void shouldFindByIdsAndStatus() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
             .environmentIds(Set.of(executionContext.getEnvironmentId()))
@@ -138,8 +137,7 @@ public class ApplicationService_FindByIdsAndStatusTest {
     @Test
     public void shouldFindByIdsAndStatusWithDuplicatedIdsAndStatus() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
             .environmentIds(Set.of(executionContext.getEnvironmentId()))
@@ -161,8 +159,7 @@ public class ApplicationService_FindByIdsAndStatusTest {
     @Test
     public void shouldFindByIdsAndStatusWithNoEnvironmentCriteria() throws TechnicalException {
         ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
             .build();
@@ -197,8 +194,7 @@ public class ApplicationService_FindByIdsAndStatusTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowsIfNoPrimaryOwner() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
             .environmentIds(Set.of(executionContext.getEnvironmentId()))

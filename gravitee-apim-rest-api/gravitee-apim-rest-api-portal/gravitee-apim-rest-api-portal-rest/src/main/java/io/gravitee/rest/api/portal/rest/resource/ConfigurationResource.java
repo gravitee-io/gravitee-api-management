@@ -79,14 +79,12 @@ public class ConfigurationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalConfiguration() {
-        return Response
-            .ok(
-                configMapper.convert(
-                    configService.getPortalSettings(GraviteeContext.getExecutionContext()),
-                    configService.getConsoleSettings(GraviteeContext.getExecutionContext())
-                )
+        return Response.ok(
+            configMapper.convert(
+                configService.getPortalSettings(GraviteeContext.getExecutionContext()),
+                configService.getConsoleSettings(GraviteeContext.getExecutionContext())
             )
-            .build();
+        ).build();
     }
 
     @GET
@@ -126,19 +124,17 @@ public class ConfigurationResource extends AbstractResource {
     @Path("identities/{identityProviderId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalIdentityProvider(@PathParam("identityProviderId") String identityProviderId) {
-        return Response
-            .ok(
-                identityProviderMapper.convert(
-                    socialIdentityProviderService.findById(
-                        identityProviderId,
-                        new IdentityProviderActivationService.ActivationTarget(
-                            GraviteeContext.getCurrentEnvironment(),
-                            IdentityProviderActivationReferenceType.ENVIRONMENT
-                        )
+        return Response.ok(
+            identityProviderMapper.convert(
+                socialIdentityProviderService.findById(
+                    identityProviderId,
+                    new IdentityProviderActivationService.ActivationTarget(
+                        GraviteeContext.getCurrentEnvironment(),
+                        IdentityProviderActivationReferenceType.ENVIRONMENT
                     )
                 )
             )
-            .build();
+        ).build();
     }
 
     @GET
@@ -237,24 +233,21 @@ public class ConfigurationResource extends AbstractResource {
     @Path("applications/roles")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApplicationRoles() {
-        return Response
-            .ok(
-                new ConfigurationApplicationRolesResponse()
-                    .data(
-                        roleService
-                            .findByScope(RoleScope.APPLICATION, GraviteeContext.getCurrentOrganization())
-                            .stream()
-                            .map(roleEntity ->
-                                new ApplicationRole()
-                                    ._default(roleEntity.isDefaultRole())
-                                    .id(roleEntity.getName())
-                                    .name(roleEntity.getName())
-                                    .system(roleEntity.isSystem())
-                            )
-                            .collect(Collectors.toList())
+        return Response.ok(
+            new ConfigurationApplicationRolesResponse().data(
+                roleService
+                    .findByScope(RoleScope.APPLICATION, GraviteeContext.getCurrentOrganization())
+                    .stream()
+                    .map(roleEntity ->
+                        new ApplicationRole()
+                            ._default(roleEntity.isDefaultRole())
+                            .id(roleEntity.getName())
+                            .name(roleEntity.getName())
+                            .system(roleEntity.isSystem())
                     )
+                    .collect(Collectors.toList())
             )
-            .build();
+        ).build();
     }
 
     private ConfigurationApplicationTypesResponse convert(ApplicationTypesEntity enabledApplicationTypes) {

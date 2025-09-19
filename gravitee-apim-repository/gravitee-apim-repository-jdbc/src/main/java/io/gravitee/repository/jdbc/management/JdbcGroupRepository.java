@@ -60,8 +60,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     @Override
     protected JdbcObjectMapper<Group> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Group.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Group.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
@@ -121,8 +120,9 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(group, group.getId()));
             storeGroupEvents(group, true);
-            return findById(group.getId())
-                .orElseThrow(() -> new IllegalStateException(format("No group found with id [%s]", group.getId())));
+            return findById(group.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No group found with id [%s]", group.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {

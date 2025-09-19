@@ -53,8 +53,7 @@ public class NodeMonitoringReporterService extends AbstractService<NodeMonitorin
 
         // Convert node monitoring to a reporter monitoring
         reporterService.report(
-            io.gravitee.reporter.api.monitor.Monitor
-                .on(nodeMonitor.getNodeId())
+            io.gravitee.reporter.api.monitor.Monitor.on(nodeMonitor.getNodeId())
                 .at(nodeMonitor.getTimestamp())
                 .os(map(nodeMonitor.getOs()))
                 .jvm(map(nodeMonitor.getJvm()))

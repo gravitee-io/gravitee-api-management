@@ -53,7 +53,10 @@ public class ValidateCategoryIdsDomainService implements Validator<ValidateCateg
 
         return Result.ofBoth(
             input.sanitized(idOrKeyToId.values()),
-            notFound.stream().map(idOrKey -> warning(WARNING_FORMAT, idOrKey, input.environmentId)).toList()
+            notFound
+                .stream()
+                .map(idOrKey -> warning(WARNING_FORMAT, idOrKey, input.environmentId))
+                .toList()
         );
     }
 

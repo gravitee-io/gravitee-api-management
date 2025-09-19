@@ -84,8 +84,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private final Cache<String, DynamicClientRegistrationProviderClient> clients = CacheBuilder
-        .newBuilder()
+    private final Cache<String, DynamicClientRegistrationProviderClient> clients = CacheBuilder.newBuilder()
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .build();
 
@@ -116,17 +115,15 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             if (clientRegistrationProviders.size() == 1) {
                 throw new IllegalStateException(
                     "Until now, supports only a single client registration provider. " +
-                    "Please update the existing one: " +
-                    clientRegistrationProviders.iterator().next().getName()
+                        "Please update the existing one: " +
+                        clientRegistrationProviders.iterator().next().getName()
                 );
             }
 
             if (
                 newClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.INITIAL_ACCESS_TOKEN &&
-                (
-                    newClientRegistrationProvider.getInitialAccessToken() == null ||
-                    newClientRegistrationProvider.getInitialAccessToken().isEmpty()
-                )
+                (newClientRegistrationProvider.getInitialAccessToken() == null ||
+                    newClientRegistrationProvider.getInitialAccessToken().isEmpty())
             ) {
                 throw new EmptyInitialAccessTokenException();
             }
@@ -189,10 +186,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             if (
                 updateClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.INITIAL_ACCESS_TOKEN &&
-                (
-                    updateClientRegistrationProvider.getInitialAccessToken() == null ||
-                    updateClientRegistrationProvider.getInitialAccessToken().isEmpty()
-                )
+                (updateClientRegistrationProvider.getInitialAccessToken() == null ||
+                    updateClientRegistrationProvider.getInitialAccessToken().isEmpty())
             ) {
                 throw new EmptyInitialAccessTokenException();
             }
@@ -247,10 +242,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             if (
                 provider.getRenewClientSecretEndpoint() == null ||
-                (
-                    !provider.getRenewClientSecretEndpoint().startsWith("http://") &&
-                    !provider.getRenewClientSecretEndpoint().startsWith("https://")
-                )
+                (!provider.getRenewClientSecretEndpoint().startsWith("http://") &&
+                    !provider.getRenewClientSecretEndpoint().startsWith("https://"))
             ) {
                 throw new InvalidRenewClientSecretException();
             }
@@ -354,12 +347,11 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             InitialAccessTokenProvider atProvider;
 
             if (clientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
-                atProvider =
-                    new ClientCredentialsInitialAccessTokenProvider(
-                        clientRegistrationProvider.getClientId(),
-                        clientRegistrationProvider.getClientSecret(),
-                        clientRegistrationProvider.getScopes()
-                    );
+                atProvider = new ClientCredentialsInitialAccessTokenProvider(
+                    clientRegistrationProvider.getClientId(),
+                    clientRegistrationProvider.getClientSecret(),
+                    clientRegistrationProvider.getScopes()
+                );
             } else {
                 atProvider = new PlainInitialAccessTokenProvider(clientRegistrationProvider.getInitialAccessToken());
             }
@@ -378,13 +370,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
                 return registrationProviderClient;
             } else {
-                return clients.get(
-                    clientRegistrationProvider.getId(),
-                    () ->
-                        new DiscoveryBasedDynamicClientRegistrationProviderClient(
-                            clientRegistrationProvider.getDiscoveryEndpoint(),
-                            atProvider
-                        )
+                return clients.get(clientRegistrationProvider.getId(), () ->
+                    new DiscoveryBasedDynamicClientRegistrationProviderClient(clientRegistrationProvider.getDiscoveryEndpoint(), atProvider)
                 );
             }
         } catch (Exception ex) {
@@ -475,8 +462,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             templateEngine.getTemplateContext().setVariable("client_id", registrationResponse.getClientId());
 
             if (registrationProviderClient instanceof DiscoveryBasedDynamicClientRegistrationProviderClient) {
-                ((DiscoveryBasedDynamicClientRegistrationProviderClient) registrationProviderClient).getMetadata()
-                    .forEach((s, o) -> templateEngine.getTemplateContext().setVariable(s, o));
+                ((DiscoveryBasedDynamicClientRegistrationProviderClient) registrationProviderClient).getMetadata().forEach((s, o) ->
+                    templateEngine.getTemplateContext().setVariable(s, o)
+                );
             }
 
             return registrationProviderClient.renewClientSecret(

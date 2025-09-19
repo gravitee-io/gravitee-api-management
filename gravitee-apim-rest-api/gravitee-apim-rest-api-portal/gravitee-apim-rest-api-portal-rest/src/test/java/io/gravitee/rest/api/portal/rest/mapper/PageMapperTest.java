@@ -116,8 +116,9 @@ public class PageMapperTest {
         Instant now = Instant.now();
         pageEntity.setLastModificationDate(Date.from(now));
 
-        when(mediaService.findAllWithoutContent(attachedMedia, API_ID))
-            .thenReturn(Arrays.asList(mock(MediaEntity.class), mock(MediaEntity.class)));
+        when(mediaService.findAllWithoutContent(attachedMedia, API_ID)).thenReturn(
+            Arrays.asList(mock(MediaEntity.class), mock(MediaEntity.class))
+        );
 
         //Test
         Page responsePage = pageMapper.convert(UriBuilder.fromPath("/"), API_ID, pageEntity);
@@ -201,8 +202,9 @@ public class PageMapperTest {
         Instant now = Instant.now();
         pageEntity.setLastModificationDate(Date.from(now));
 
-        when(mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), attachedMedia))
-            .thenReturn(Arrays.asList(mock(MediaEntity.class), mock(MediaEntity.class)));
+        when(mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), attachedMedia)).thenReturn(
+            Arrays.asList(mock(MediaEntity.class), mock(MediaEntity.class))
+        );
 
         //Test
         Page responsePage = pageMapper.convert(UriBuilder.fromPath("/"), null, pageEntity);

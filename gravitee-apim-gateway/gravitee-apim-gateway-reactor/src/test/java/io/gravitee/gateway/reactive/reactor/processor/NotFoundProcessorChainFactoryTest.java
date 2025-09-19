@@ -114,11 +114,10 @@ class NotFoundProcessorChainFactoryTest {
         when(request.id()).thenReturn("requestId");
         when(request.headers()).thenReturn(HttpHeaders.create());
 
-        when(request.transactionId(any()))
-            .thenAnswer(answer -> {
-                when(request.transactionId()).thenReturn(answer.getArgument(0));
-                return request;
-            });
+        when(request.transactionId(any())).thenAnswer(answer -> {
+            when(request.transactionId()).thenReturn(answer.getArgument(0));
+            return request;
+        });
 
         when(gatewayConfiguration.tenant()).thenReturn(Optional.of("TENANT"));
         when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));

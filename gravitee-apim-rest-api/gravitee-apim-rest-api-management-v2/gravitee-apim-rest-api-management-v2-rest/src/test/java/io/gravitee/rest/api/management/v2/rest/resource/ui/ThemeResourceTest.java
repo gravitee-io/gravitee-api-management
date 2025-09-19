@@ -102,12 +102,10 @@ public class ThemeResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
             final Response response = rootTarget().request().put(Entity.json(UpdateThemePortal.builder().id(THEME_ID).build()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -118,8 +116,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
         public void should_not_update_if_path_theme_id_does_not_match_body() {
             final Response response = rootTarget().request().put(Entity.json(UpdateThemePortal.builder().id("another-id").build()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -129,8 +126,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
         @Test
         public void should_not_update_non_existing_theme() {
             final Response response = rootTarget().request().put(Entity.json(UpdateThemePortal.builder().id(THEME_ID).build()));
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -143,8 +139,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
             themeCrudService.initWith(List.of(aPortalTheme().toBuilder().referenceId("another-env").build()));
 
             final Response response = rootTarget().request().put(Entity.json(UpdateThemePortal.builder().id(THEME_ID).build()));
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -156,8 +151,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
             themeQueryService.initWith(List.of(aPortalTheme()));
             themeCrudService.initWith(List.of(aPortalTheme()));
 
-            var updateTheme = UpdateThemePortal
-                .builder()
+            var updateTheme = UpdateThemePortal.builder()
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(false)
@@ -165,12 +159,10 @@ public class ThemeResourceTest extends AbstractResourceTest {
                 .logo("background image")
                 .optionalLogo("background image")
                 .definition(
-                    PortalDefinition
-                        .builder()
+                    PortalDefinition.builder()
                         .data(
                             List.of(
-                                PortalComponentDefinition
-                                    .builder()
+                                PortalComponentDefinition.builder()
                                     .name("title")
                                     .css(List.of(PortalCssDefinition.builder().name("background").value("#000").build()))
                                     .build()
@@ -182,8 +174,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
                 .extracting(io.gravitee.rest.api.management.v2.rest.model.Theme::getThemePortal)
@@ -203,16 +194,14 @@ public class ThemeResourceTest extends AbstractResourceTest {
             themeQueryService.initWith(List.of(aPortalNextTheme()));
             themeCrudService.initWith(List.of(aPortalNextTheme()));
 
-            var updateTheme = UpdateThemePortalNext
-                .builder()
+            var updateTheme = UpdateThemePortalNext.builder()
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(false)
                 .logo("background image")
                 .optionalLogo("background image")
                 .definition(
-                    PortalNextDefinition
-                        .builder()
+                    PortalNextDefinition.builder()
                         .color(PortalNextDefinitionColor.builder().primary("#666").secondary("#444").build())
                         .font(PortalNextDefinitionFont.builder().fontFamily("Comic Sans").build())
                         .customCss("a new style")
@@ -222,8 +211,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
                 .extracting(io.gravitee.rest.api.management.v2.rest.model.Theme::getThemePortalNext)
@@ -245,16 +233,14 @@ public class ThemeResourceTest extends AbstractResourceTest {
             themeQueryService.initWith(List.of(disabledTheme, currentThemeEnabled));
             themeCrudService.initWith(List.of(disabledTheme, currentThemeEnabled));
 
-            var updateTheme = UpdateThemePortalNext
-                .builder()
+            var updateTheme = UpdateThemePortalNext.builder()
                 .id(THEME_ID)
                 .name("new name")
                 .enabled(true)
                 .logo("background image")
                 .optionalLogo("background image")
                 .definition(
-                    PortalNextDefinition
-                        .builder()
+                    PortalNextDefinition.builder()
                         .color(PortalNextDefinitionColor.builder().primary("#666").secondary("#444").build())
                         .font(PortalNextDefinitionFont.builder().fontFamily("Comic Sans").build())
                         .customCss("a new style")
@@ -264,8 +250,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().request().put(Entity.json(updateTheme));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(io.gravitee.rest.api.management.v2.rest.model.Theme.class)
                 .extracting(io.gravitee.rest.api.management.v2.rest.model.Theme::getThemePortalNext)
@@ -285,8 +270,7 @@ public class ThemeResourceTest extends AbstractResourceTest {
     private Theme aPortalTheme() {
         var portalDefinition = new ThemeDefinition();
         portalDefinition.setData(List.of());
-        return Theme
-            .builder()
+        return Theme.builder()
             .id(THEME_ID)
             .name(THEME_ID)
             .type(ThemeType.PORTAL)
@@ -301,12 +285,10 @@ public class ThemeResourceTest extends AbstractResourceTest {
     }
 
     private Theme aPortalNextTheme() {
-        var portalDefinition = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
-            .builder()
+        var portalDefinition = io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
             .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("#fff").build())
             .build();
-        return Theme
-            .builder()
+        return Theme.builder()
             .id(THEME_ID)
             .name(THEME_ID)
             .type(ThemeType.PORTAL_NEXT)

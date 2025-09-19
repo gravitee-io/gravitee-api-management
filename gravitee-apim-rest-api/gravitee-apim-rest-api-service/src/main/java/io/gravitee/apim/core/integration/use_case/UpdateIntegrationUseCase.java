@@ -75,7 +75,10 @@ public class UpdateIntegrationUseCase {
         );
 
         if (validationResult.errors().isPresent() && !validationResult.errors().get().isEmpty()) {
-            validationResult.errors().get().forEach(error -> log.error(error.getMessage(), error));
+            validationResult
+                .errors()
+                .get()
+                .forEach(error -> log.error(error.getMessage(), error));
             throw new IntegrationGroupValidationException(input.integration.getId());
         }
 

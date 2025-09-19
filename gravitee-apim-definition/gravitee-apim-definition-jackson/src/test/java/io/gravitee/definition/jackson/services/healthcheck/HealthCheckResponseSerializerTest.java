@@ -31,12 +31,10 @@ class HealthCheckResponseSerializerTest extends AbstractTest {
     @Test
     void testHealthResponseSerializer() throws IOException {
         HealthCheckResponse healthCheckResponse = new HealthCheckResponse();
-        String expected = IOUtils
-            .toString(
-                read("/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck-response-expected.json"),
-                Charset.defaultCharset()
-            )
-            .trim();
+        String expected = IOUtils.toString(
+            read("/io/gravitee/definition/jackson/services/healthcheck/api-healthcheck-response-expected.json"),
+            Charset.defaultCharset()
+        ).trim();
         String given = objectMapper().writeValueAsString(healthCheckResponse);
         Assertions.assertEquals(expected, given);
     }

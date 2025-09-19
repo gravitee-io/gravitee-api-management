@@ -103,8 +103,7 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
                 ENVIRONMENT_ID,
                 RolePermissionAction.CREATE
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         // When
         var response = rootTarget().request().post(null);
@@ -117,19 +116,16 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
     @SneakyThrows
     public void should_throw_invalid_paths_exception() {
         // Given
-        when(oaiDomainService.convert(any(), any(), any()))
-            .thenReturn(
-                ImportDefinition
-                    .builder()
-                    .apiExport(
-                        ApiExport
-                            .builder()
-                            .definitionVersion(DefinitionVersion.V4)
-                            .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path("/path").build())).build()))
-                            .build()
-                    )
-                    .build()
-            );
+        when(oaiDomainService.convert(any(), any(), any())).thenReturn(
+            ImportDefinition.builder()
+                .apiExport(
+                    ApiExport.builder()
+                        .definitionVersion(DefinitionVersion.V4)
+                        .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path("/path").build())).build()))
+                        .build()
+                )
+                .build()
+        );
         when(createApiDomainService.create(any(), any(), any(), any(), any())).thenThrow(new InvalidPathsException("Invalid paths"));
 
         var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");

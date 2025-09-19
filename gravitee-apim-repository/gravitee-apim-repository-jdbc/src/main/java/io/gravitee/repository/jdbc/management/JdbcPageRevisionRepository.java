@@ -47,8 +47,7 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
 
     @Override
     protected JdbcObjectMapper<PageRevision> buildOrm() {
-        return JdbcObjectMapper
-            .builder(PageRevision.class, this.tableName, "page_id")
+        return JdbcObjectMapper.builder(PageRevision.class, this.tableName, "page_id")
             .addColumn("page_id", Types.NVARCHAR, String.class)
             .addColumn("revision", Types.INTEGER, int.class)
             .addColumn("name", Types.NVARCHAR, String.class)
@@ -150,7 +149,10 @@ public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<Pa
             }
 
             LOGGER.debug("JdbcPageRevisionRepository.delete({}) - Done", pageId);
-            return result.stream().map(p -> p.getPageId() + ":" + p.getRevision()).toList();
+            return result
+                .stream()
+                .map(p -> p.getPageId() + ":" + p.getRevision())
+                .toList();
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete page revision by id: {}", pageId, ex);
             throw new TechnicalException("Failed to delete page revision by page id", ex);

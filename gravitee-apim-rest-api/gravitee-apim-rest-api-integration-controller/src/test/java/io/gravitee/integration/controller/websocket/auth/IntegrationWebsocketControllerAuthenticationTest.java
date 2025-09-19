@@ -65,12 +65,11 @@ class IntegrationWebsocketControllerAuthenticationTest {
 
     @BeforeEach
     void setUp() {
-        authentication =
-            new IntegrationWebsocketControllerAuthentication(
-                tokenService,
-                userCrudServiceInMemory,
-                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
-            );
+        authentication = new IntegrationWebsocketControllerAuthentication(
+            tokenService,
+            userCrudServiceInMemory,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
+        );
 
         MultiMap requestHeaders = HttpHeaders.headers();
         requestHeaders

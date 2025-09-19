@@ -27,8 +27,7 @@ public class FederatedIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("keys")
             .name("f1")
             .key("federated", ascending())

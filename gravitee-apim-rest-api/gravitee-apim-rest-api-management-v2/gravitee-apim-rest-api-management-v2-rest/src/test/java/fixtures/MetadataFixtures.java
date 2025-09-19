@@ -40,8 +40,7 @@ public class MetadataFixtures {
         Object value,
         Metadata.MetadataFormat format
     ) {
-        return Metadata
-            .builder()
+        return Metadata.builder()
             .referenceId(referenceId)
             .referenceType(referenceType)
             .key(key)
@@ -58,8 +57,7 @@ public class MetadataFixtures {
         Object defaultValue,
         io.gravitee.rest.api.management.v2.rest.model.MetadataFormat format
     ) {
-        return io.gravitee.rest.api.management.v2.rest.model.Metadata
-            .builder()
+        return io.gravitee.rest.api.management.v2.rest.model.Metadata.builder()
             .key(key)
             .name(name)
             .value(value != null ? value.toString() : null)

@@ -57,9 +57,9 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
     public void shouldNotProcessPolicyAfterStreamFail() throws Exception {
         wireMockRule.stubFor(post("/api" + flowPath).willReturn(ok()));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request
-            .Post("http://localhost:8082/api" + flowPath)
-            .addHeader(HttpHeaders.ACCEPT, "application/json");
+        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post(
+            "http://localhost:8082/api" + flowPath
+        ).addHeader(HttpHeaders.ACCEPT, "application/json");
 
         request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 

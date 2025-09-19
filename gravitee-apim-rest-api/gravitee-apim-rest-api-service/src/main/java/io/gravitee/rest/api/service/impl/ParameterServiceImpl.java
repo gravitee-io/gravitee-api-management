@@ -196,21 +196,16 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return GraviteeContext
-            .getCurrentParameters()
-            .computeIfAbsent(
-                key,
-                k -> {
-                    final List<String> values = findAll(k, referenceId, referenceType, executionContext);
-                    final String value;
-                    if (values == null || values.isEmpty()) {
-                        value = k.defaultValue();
-                    } else {
-                        value = String.join(SEPARATOR, values);
-                    }
-                    return value;
-                }
-            );
+        return GraviteeContext.getCurrentParameters().computeIfAbsent(key, k -> {
+            final List<String> values = findAll(k, referenceId, referenceType, executionContext);
+            final String value;
+            if (values == null || values.isEmpty()) {
+                value = k.defaultValue();
+            } else {
+                value = String.join(SEPARATOR, values);
+            }
+            return value;
+        });
     }
 
     @Override
@@ -322,40 +317,36 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
             // Get System parameters
             for (Key keyToFind : keys) {
-                this.getSystemParameter(keyToFind)
-                    .ifPresent(p -> {
-                        result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                        keysToFind.remove(keyToFind);
-                    });
+                this.getSystemParameter(keyToFind).ifPresent(p -> {
+                    result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                    keysToFind.remove(keyToFind);
+                });
             }
 
             if (!keysToFind.isEmpty()) {
                 switch (referenceType) {
                     case ENVIRONMENT:
-                        this.getEnvParameters(keysToFind, refIdToUse)
-                            .forEach(p -> {
-                                result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                                keysToFind.remove(Key.findByKey(p.getKey()));
-                            });
+                        this.getEnvParameters(keysToFind, refIdToUse).forEach(p -> {
+                            result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                            keysToFind.remove(Key.findByKey(p.getKey()));
+                        });
                         if (!keysToFind.isEmpty()) {
                             //String organizationId = "DEFAULT";//environmentService.findById(referenceId).getOrganizationId();
                             String organizationId = environmentService.findById(refIdToUse).getOrganizationId();
-                            this.getOrgParameters(keysToFind, organizationId)
-                                .forEach(p -> {
-                                    result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                                    keysToFind.remove(Key.findByKey(p.getKey()));
-                                });
+                            this.getOrgParameters(keysToFind, organizationId).forEach(p -> {
+                                result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                                keysToFind.remove(Key.findByKey(p.getKey()));
+                            });
                             if (!keysToFind.isEmpty()) {
                                 keysToFind.forEach(k -> result.put(k.key(), splitValue(k.defaultValue(), mapper, filter)));
                             }
                         }
                         break;
                     case ORGANIZATION:
-                        this.getOrgParameters(keysToFind, refIdToUse)
-                            .forEach(p -> {
-                                result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                                keysToFind.remove(Key.findByKey(p.getKey()));
-                            });
+                        this.getOrgParameters(keysToFind, refIdToUse).forEach(p -> {
+                            result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                            keysToFind.remove(Key.findByKey(p.getKey()));
+                        });
                         if (!keysToFind.isEmpty()) {
                             keysToFind.forEach(k -> result.put(k.key(), splitValue(k.defaultValue(), mapper, filter)));
                         }
@@ -501,7 +492,11 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             key,
             values == null
                 ? null
-                : values.entrySet().stream().map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue()).collect(joining(SEPARATOR)),
+                : values
+                    .entrySet()
+                    .stream()
+                    .map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue())
+                    .collect(joining(SEPARATOR)),
             referenceId,
             referenceType
         );
@@ -522,7 +517,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private List<Parameter> getEnvParameters(List<Key> keys, String environmentId) throws TechnicalException {
-        List<Key> keysToFind = keys.stream().filter(k -> k.scopes().contains(KeyScope.ENVIRONMENT)).collect(toList());
+        List<Key> keysToFind = keys
+            .stream()
+            .filter(k -> k.scopes().contains(KeyScope.ENVIRONMENT))
+            .collect(toList());
         if (!keysToFind.isEmpty()) {
             return parameterRepository
                 .findByKeys(keysToFind.stream().map(Key::key).collect(toList()), environmentId, ParameterReferenceType.ENVIRONMENT)
@@ -541,7 +539,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private List<Parameter> getOrgParameters(List<Key> keys, String organizationId) throws TechnicalException {
-        List<Key> keysToFind = keys.stream().filter(k -> k.scopes().contains(KeyScope.ORGANIZATION)).collect(toList());
+        List<Key> keysToFind = keys
+            .stream()
+            .filter(k -> k.scopes().contains(KeyScope.ORGANIZATION))
+            .collect(toList());
         if (!keysToFind.isEmpty()) {
             return parameterRepository
                 .findByKeys(keysToFind.stream().map(Key::key).collect(toList()), organizationId, ParameterReferenceType.ORGANIZATION)

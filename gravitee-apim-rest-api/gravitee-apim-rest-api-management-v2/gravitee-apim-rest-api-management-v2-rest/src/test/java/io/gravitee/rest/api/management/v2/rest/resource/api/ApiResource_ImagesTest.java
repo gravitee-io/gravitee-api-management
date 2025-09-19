@@ -52,8 +52,7 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
                 eq(API),
                 eq(RolePermissionAction.READ)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         final Response response = rootTarget("picture").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
@@ -67,8 +66,7 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         final Response response = rootTarget("picture").request().put(Entity.text(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
@@ -130,8 +128,7 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
                 eq(API),
                 eq(RolePermissionAction.READ)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         final Response response = rootTarget("background").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
@@ -145,8 +142,7 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         final Response response = rootTarget("background").request().put(Entity.text(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }

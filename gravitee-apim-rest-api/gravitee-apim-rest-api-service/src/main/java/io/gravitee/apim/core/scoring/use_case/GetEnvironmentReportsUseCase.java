@@ -42,6 +42,7 @@ public class GetEnvironmentReportsUseCase {
         public Input(String environmentId) {
             this(environmentId, Optional.empty());
         }
+
         public Input(String environmentId, Pageable pageable) {
             this(environmentId, Optional.ofNullable(pageable));
         }

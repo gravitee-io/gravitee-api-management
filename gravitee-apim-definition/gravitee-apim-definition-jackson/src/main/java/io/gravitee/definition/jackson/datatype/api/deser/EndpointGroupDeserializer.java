@@ -127,7 +127,11 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
                     .traverse(ctxt.getParser().getCodec())
                     .readValueAs(new TypeReference<HashMap<String, String>>() {});
                 group.setHeaders(
-                    headers.entrySet().stream().map(entry -> new HttpHeader(entry.getKey(), entry.getValue())).collect(Collectors.toList())
+                    headers
+                        .entrySet()
+                        .stream()
+                        .map(entry -> new HttpHeader(entry.getKey(), entry.getValue()))
+                        .collect(Collectors.toList())
                 );
             }
         }

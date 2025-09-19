@@ -64,8 +64,9 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         category3.setOrder(1);
 
         Map<String, Long> countByCategory = Map.of(category1.getId(), 1L, category2.getId(), 0L, category3.getId(), 2L);
-        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any()))
-            .thenReturn(cat -> countByCategory.getOrDefault(cat, 0L));
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(any())).thenReturn(cat ->
+            countByCategory.getOrDefault(cat, 0L)
+        );
 
         existingCategories = List.of(category1, category2, category3);
 

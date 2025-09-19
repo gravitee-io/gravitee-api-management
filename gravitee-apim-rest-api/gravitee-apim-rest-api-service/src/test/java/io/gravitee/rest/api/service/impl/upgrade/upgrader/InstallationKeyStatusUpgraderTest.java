@@ -100,24 +100,21 @@ public class InstallationKeyStatusUpgraderTest {
             upgraderRepository.findById(
                 InstallationKeyStatusUpgrader.INSTALLATION_KEY_STATUS.get(InstallationKeyStatusUpgrader.ORPHAN_CATEGORY_UPGRADER_STATUS)
             )
-        )
-            .thenReturn(Maybe.just(new UpgradeRecord()));
+        ).thenReturn(Maybe.just(new UpgradeRecord()));
         when(
             upgraderRepository.findById(
                 InstallationKeyStatusUpgrader.INSTALLATION_KEY_STATUS.get(
                     InstallationKeyStatusUpgrader.APPLICATION_API_KEY_MODE_UPGRADER_STATUS
                 )
             )
-        )
-            .thenReturn(Maybe.empty());
+        ).thenReturn(Maybe.empty());
         when(
             upgraderRepository.findById(
                 InstallationKeyStatusUpgrader.INSTALLATION_KEY_STATUS.get(
                     InstallationKeyStatusUpgrader.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS
                 )
             )
-        )
-            .thenReturn(Maybe.empty());
+        ).thenReturn(Maybe.empty());
         when(upgraderRepository.create(any(UpgradeRecord.class))).thenReturn(Single.just(new UpgradeRecord()));
 
         boolean upgraded = cut.upgrade();

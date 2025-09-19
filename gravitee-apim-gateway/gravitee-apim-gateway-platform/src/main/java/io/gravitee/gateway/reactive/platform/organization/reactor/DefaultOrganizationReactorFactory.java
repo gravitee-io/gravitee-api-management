@@ -69,8 +69,9 @@ public class DefaultOrganizationReactorFactory implements OrganizationReactorFac
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
         );
 
-        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager =
-            (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(beanNamesForType[0]);
+        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager = (ConfigurablePluginManager<
+            PolicyPlugin<?>
+        >) applicationContext.getBean(beanNamesForType[0]);
 
         return new OrganizationPolicyManager(
             defaultClassLoader,

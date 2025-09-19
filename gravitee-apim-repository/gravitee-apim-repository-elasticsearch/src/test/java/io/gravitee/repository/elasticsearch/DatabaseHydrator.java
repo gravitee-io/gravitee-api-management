@@ -61,8 +61,7 @@ public class DatabaseHydrator {
     }
 
     private Completable createTemplate(List<String> types) {
-        return Flowable
-            .fromIterable(types)
+        return Flowable.fromIterable(types)
             .map(type -> {
                 String indexName = "gravitee-" + type;
                 Map<String, Object> data = Map.ofEntries(

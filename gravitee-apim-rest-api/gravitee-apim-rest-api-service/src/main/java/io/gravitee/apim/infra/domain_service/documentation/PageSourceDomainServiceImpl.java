@@ -70,7 +70,9 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
     }
 
     private Optional<Fetcher> loadFetcher(Page page) {
-        return Optional.ofNullable(page.getSource()).flatMap(this::loadPlugin).map(plugin -> buildFetcher(plugin, page.getSource()));
+        return Optional.ofNullable(page.getSource())
+            .flatMap(this::loadPlugin)
+            .map(plugin -> buildFetcher(plugin, page.getSource()));
     }
 
     private Optional<FetcherPlugin<?>> loadPlugin(PageSource source) {

@@ -26,16 +26,17 @@ public class AuditFixtures {
     private AuditFixtures() {}
 
     private static final Supplier<AuditEntity.AuditEntityBuilder> BASE = () ->
-        AuditEntity
-            .builder()
+        AuditEntity.builder()
             .id("audit-id")
             .organizationId("organization-id")
             .environmentId("environment-id")
             .user("user-id")
             .event("event-1")
             .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .patch("""
-                        [{ "op": "add", "path": "/hello", "value": ["world"] }]""");
+            .patch(
+                """
+                [{ "op": "add", "path": "/hello", "value": ["world"] }]"""
+            );
 
     public static AuditEntity anApiAudit() {
         return BASE.get().referenceType(AuditEntity.AuditReferenceType.API).referenceId("api-id").properties(Map.of()).build();

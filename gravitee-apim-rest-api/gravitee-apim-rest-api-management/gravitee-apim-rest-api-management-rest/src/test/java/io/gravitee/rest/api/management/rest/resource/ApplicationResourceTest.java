@@ -38,8 +38,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_update_application_having_unsupported_picture() {
-        var entity = UpdateApplicationEntity
-            .builder()
+        var entity = UpdateApplicationEntity.builder()
             .name("My beautiful application")
             .description("my description")
             .settings(new ApplicationSettings())
@@ -57,8 +56,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_update_application_having_unsupported_background() {
-        var entity = UpdateApplicationEntity
-            .builder()
+        var entity = UpdateApplicationEntity.builder()
             .name("My beautiful application")
             .description("my description")
             .settings(new ApplicationSettings())
@@ -76,8 +74,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_update_application() {
-        var entity = UpdateApplicationEntity
-            .builder()
+        var entity = UpdateApplicationEntity.builder()
             .name("My beautiful application")
             .description("my description")
             .settings(new ApplicationSettings())

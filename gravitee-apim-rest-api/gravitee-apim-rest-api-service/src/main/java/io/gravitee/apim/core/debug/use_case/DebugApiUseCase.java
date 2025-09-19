@@ -117,9 +117,10 @@ public class DebugApiUseCase {
         boolean hasValidPlan = debugApi
             .getPlans()
             .stream()
-            .anyMatch(plan ->
-                PlanStatus.STAGING.name().equalsIgnoreCase(plan.getStatus()) ||
-                PlanStatus.PUBLISHED.name().equalsIgnoreCase(plan.getStatus())
+            .anyMatch(
+                plan ->
+                    PlanStatus.STAGING.name().equalsIgnoreCase(plan.getStatus()) ||
+                    PlanStatus.PUBLISHED.name().equalsIgnoreCase(plan.getStatus())
             );
 
         if (!hasValidPlan) {

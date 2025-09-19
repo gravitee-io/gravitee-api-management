@@ -59,8 +59,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
 
     @Override
     protected JdbcObjectMapper<IdentityProvider> buildOrm() {
-        return JdbcObjectMapper
-            .builder(IdentityProvider.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(IdentityProvider.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)

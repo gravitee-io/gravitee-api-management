@@ -142,9 +142,8 @@ public class DebugApiDeserializerTest extends AbstractTest {
 
     @Test
     public void debugApi_withoutRequest() throws Exception {
-        assertThrows(
-            JsonMappingException.class,
-            () -> load("/io/gravitee/definition/jackson/debug/debug-api-without-request.json", DebugApi.class)
+        assertThrows(JsonMappingException.class, () ->
+            load("/io/gravitee/definition/jackson/debug/debug-api-without-request.json", DebugApi.class)
         );
     }
 }

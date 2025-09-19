@@ -137,17 +137,16 @@ public class ApiLoggingConditionUpgraderTest {
         Api apiBooleanCondition = new Api();
         apiBooleanCondition.setId("api6");
         apiBooleanCondition.setDefinition("{\"proxy\": {\"logging\": {\"condition\": \"true\"}}}");
-        when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class)))
-            .thenReturn(
-                Stream.of(
-                    apiEmpty,
-                    apiProxyEmpty,
-                    apiProxyLoggingEmpty,
-                    apiProxyLoggingCondition,
-                    apiProxyLoggingWrongCondition,
-                    apiBooleanCondition
-                )
-            );
+        when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(
+            Stream.of(
+                apiEmpty,
+                apiProxyEmpty,
+                apiProxyLoggingEmpty,
+                apiProxyLoggingCondition,
+                apiProxyLoggingWrongCondition,
+                apiBooleanCondition
+            )
+        );
 
         upgrader.fixApis(executionContext);
 
@@ -178,15 +177,14 @@ public class ApiLoggingConditionUpgraderTest {
         upgrader.fixLoggingCondition(executionContext, api, apiDefinition, logging.getCondition());
 
         verify(apiRepository, times(1)).update(argThat(apiUpdated -> apiUpdated.getDefinition().contains("{#request.timestamp < 1}")));
-        verify(eventService, times(0))
-            .createApiEvent(
-                eq(executionContext),
-                anySet(),
-                anyString(),
-                eq(PUBLISH_API),
-                argThat((ArgumentMatcher<Api>) argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),
-                any()
-            );
+        verify(eventService, times(0)).createApiEvent(
+            eq(executionContext),
+            anySet(),
+            anyString(),
+            eq(PUBLISH_API),
+            argThat((ArgumentMatcher<Api>) argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),
+            any()
+        );
     }
 
     @Test
@@ -212,15 +210,14 @@ public class ApiLoggingConditionUpgraderTest {
         upgrader.fixLoggingCondition(executionContext, api, apiDefinition, logging.getCondition());
 
         verify(apiRepository, times(1)).update(argThat(apiUpdated -> apiUpdated.getDefinition().contains("{#request.timestamp < 1}")));
-        verify(eventService, times(1))
-            .createApiEvent(
-                eq(executionContext),
-                anySet(),
-                anyString(),
-                eq(PUBLISH_API),
-                argThat((ArgumentMatcher<Api>) argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),
-                any()
-            );
+        verify(eventService, times(1)).createApiEvent(
+            eq(executionContext),
+            anySet(),
+            anyString(),
+            eq(PUBLISH_API),
+            argThat((ArgumentMatcher<Api>) argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),
+            any()
+        );
     }
 
     @Test

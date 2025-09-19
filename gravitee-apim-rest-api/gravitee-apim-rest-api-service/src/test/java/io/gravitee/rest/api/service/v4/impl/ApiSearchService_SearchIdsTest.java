@@ -127,17 +127,16 @@ public class ApiSearchService_SearchIdsTest {
             parameterService,
             workflowService
         );
-        apiSearchService =
-            new ApiSearchServiceImpl(
-                apiRepository,
-                apiMapper,
-                new GenericApiMapper(apiMapper, apiConverter),
-                primaryOwnerService,
-                categoryService,
-                searchEngineService,
-                apiAuthorizationService,
-                integrationRepository
-            );
+        apiSearchService = new ApiSearchServiceImpl(
+            apiRepository,
+            apiMapper,
+            new GenericApiMapper(apiMapper, apiConverter),
+            primaryOwnerService,
+            categoryService,
+            searchEngineService,
+            apiAuthorizationService,
+            integrationRepository
+        );
     }
 
     @Test
@@ -149,8 +148,9 @@ public class ApiSearchService_SearchIdsTest {
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
-            .thenReturn(new SearchResult(List.of()));
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
+            new SearchResult(List.of())
+        );
 
         final var apis = apiSearchService.searchIds(
             GraviteeContext.getExecutionContext(),
@@ -173,8 +173,9 @@ public class ApiSearchService_SearchIdsTest {
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
-            .thenReturn(new SearchResult(List.of("api-id")));
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
+            new SearchResult(List.of("api-id"))
+        );
 
         final var apis = apiSearchService.searchIds(
             GraviteeContext.getExecutionContext(),
@@ -198,8 +199,9 @@ public class ApiSearchService_SearchIdsTest {
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
-            .thenReturn(new SearchResult(List.of("api-id")));
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
+            new SearchResult(List.of("api-id"))
+        );
 
         final var apis = apiSearchService.searchIds(
             GraviteeContext.getExecutionContext(),
@@ -223,8 +225,9 @@ public class ApiSearchService_SearchIdsTest {
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
 
-        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build())))
-            .thenReturn(new SearchResult(List.of("api-id")));
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
+            new SearchResult(List.of("api-id"))
+        );
 
         final var apis = apiSearchService.searchIds(
             GraviteeContext.getExecutionContext(),

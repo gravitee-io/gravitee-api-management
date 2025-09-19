@@ -84,8 +84,14 @@ public class PlanSearchServiceImplTest {
 
     @Before
     public void before() throws TechnicalException {
-        planSearchService =
-            new PlanSearchServiceImpl(planRepository, apiRepository, groupService, apiSearchService, objectMapper, genericPlanMapper);
+        planSearchService = new PlanSearchServiceImpl(
+            planRepository,
+            apiRepository,
+            groupService,
+            apiSearchService,
+            objectMapper,
+            genericPlanMapper
+        );
 
         api = new Api();
         api.setId(API_ID);

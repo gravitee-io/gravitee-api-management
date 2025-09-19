@@ -57,7 +57,10 @@ public class PolicyValidationDomainServiceLegacyWrapper implements PolicyValidat
                 if (apiType.equals(ApiType.PROXY)) {
                     if (
                         policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY) == null ||
-                        policy.getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY).stream().noneMatch(p -> p.name().equals(phase.name()))
+                        policy
+                            .getFlowPhaseCompatibility(ApiProtocolType.HTTP_PROXY)
+                            .stream()
+                            .noneMatch(p -> p.name().equals(phase.name()))
                     ) {
                         policyNamesUnexpected.add(policy.getName());
                     }

@@ -27,8 +27,7 @@ public class ApiPropertyIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("events")
             .name("pa1")
             .key("properties.api_id", ascending())

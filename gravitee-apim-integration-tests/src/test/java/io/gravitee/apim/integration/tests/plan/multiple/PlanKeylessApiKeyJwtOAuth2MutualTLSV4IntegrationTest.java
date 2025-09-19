@@ -167,18 +167,17 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         }
 
         protected Stream<Arguments> provideSecurityHeaders() {
-            return provideApis()
-                .flatMap(arguments -> {
-                    String path = (String) arguments.get()[0];
-                    boolean requireWiremock = (boolean) arguments.get()[1];
-                    return Stream.of(
-                        Arguments.of(path, requireWiremock, "Authorization", ""),
-                        Arguments.of(path, requireWiremock, "Authorization", "Basic 1231456789"),
-                        Arguments.of(path, requireWiremock, "Authorization", "Bearer"),
-                        Arguments.of(path, requireWiremock, "Authorization", "Bearer "),
-                        Arguments.of(path, requireWiremock, "Authorization", "Bearer a-jwt-token")
-                    );
-                });
+            return provideApis().flatMap(arguments -> {
+                String path = (String) arguments.get()[0];
+                boolean requireWiremock = (boolean) arguments.get()[1];
+                return Stream.of(
+                    Arguments.of(path, requireWiremock, "Authorization", ""),
+                    Arguments.of(path, requireWiremock, "Authorization", "Basic 1231456789"),
+                    Arguments.of(path, requireWiremock, "Authorization", "Bearer"),
+                    Arguments.of(path, requireWiremock, "Authorization", "Bearer "),
+                    Arguments.of(path, requireWiremock, "Authorization", "Bearer a-jwt-token")
+                );
+            });
         }
 
         @Disabled("Disabled as all security type are defined on the api")
@@ -254,14 +253,10 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         }
 
         protected Stream<Arguments> provideWrongSecurityHeaders() {
-            return provideApis()
-                .flatMap(arguments -> {
-                    String apiId = (String) arguments.get()[0];
-                    return Stream.of(
-                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                        Arguments.of(apiId, "X-Gravitee-Api-Key", "")
-                    );
-                });
+            return provideApis().flatMap(arguments -> {
+                String apiId = (String) arguments.get()[0];
+                return Stream.of(Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"), Arguments.of(apiId, "X-Gravitee-Api-Key", ""));
+            });
         }
 
         @ParameterizedTest
@@ -390,17 +385,16 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         }
 
         protected Stream<Arguments> provideWrongSecurityHeaders() {
-            return provideApis()
-                .flatMap(arguments -> {
-                    String apiId = (String) arguments.get()[0];
-                    return Stream.of(
-                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                        Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
-                        Arguments.of(apiId, "Authorization", "Bearer"),
-                        Arguments.of(apiId, "Authorization", "Bearer "),
-                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                    );
-                });
+            return provideApis().flatMap(arguments -> {
+                String apiId = (String) arguments.get()[0];
+                return Stream.of(
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
+                    Arguments.of(apiId, "Authorization", "Bearer"),
+                    Arguments.of(apiId, "Authorization", "Bearer "),
+                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
+                );
+            });
         }
 
         @ParameterizedTest
@@ -515,16 +509,15 @@ public class PlanKeylessApiKeyJwtOAuth2MutualTLSV4IntegrationTest {
         }
 
         protected Stream<Arguments> provideWrongSecurityHeaders() {
-            return provideApis()
-                .flatMap(arguments -> {
-                    String apiId = (String) arguments.get()[0];
-                    return Stream.of(
-                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                        Arguments.of(apiId, "Authorization", "Bearer"),
-                        Arguments.of(apiId, "Authorization", "Bearer "),
-                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                    );
-                });
+            return provideApis().flatMap(arguments -> {
+                String apiId = (String) arguments.get()[0];
+                return Stream.of(
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                    Arguments.of(apiId, "Authorization", "Bearer"),
+                    Arguments.of(apiId, "Authorization", "Bearer "),
+                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
+                );
+            });
         }
 
         @ParameterizedTest

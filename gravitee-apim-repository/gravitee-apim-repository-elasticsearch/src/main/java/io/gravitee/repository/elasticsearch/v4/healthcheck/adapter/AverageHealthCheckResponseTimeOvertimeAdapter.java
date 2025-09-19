@@ -54,13 +54,10 @@ public class AverageHealthCheckResponseTimeOvertimeAdapter
             .map(json ->
                 Map.of(json.get("key_as_string").asText(), Math.round(json.get(AGGREGATION_AVG_RESPONSE_TIME).get("value").asDouble()))
             )
-            .reduce(
-                new LinkedHashMap<>(),
-                (acc, b) -> {
-                    acc.putAll(b);
-                    return acc;
-                }
-            );
+            .reduce(new LinkedHashMap<>(), (acc, b) -> {
+                acc.putAll(b);
+                return acc;
+            });
 
         return Maybe.just(new AverageHealthCheckResponseTimeOvertime(buckets));
     }

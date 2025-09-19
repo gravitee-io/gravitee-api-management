@@ -191,8 +191,7 @@ public class WebhookTestingActions {
             WebhookEntrypointConnectorSubscriptionConfiguration.class
         );
         conf.setAuth(
-            WebhookSubscriptionAuthConfiguration
-                .builder()
+            WebhookSubscriptionAuthConfiguration.builder()
                 .type(SecurityType.BASIC)
                 .basic(WebhookSubscriptionAuthConfiguration.Basic.builder().username(username).password(password).build())
                 .build()
@@ -216,8 +215,7 @@ public class WebhookTestingActions {
             WebhookEntrypointConnectorSubscriptionConfiguration.class
         );
         conf.setAuth(
-            WebhookSubscriptionAuthConfiguration
-                .builder()
+            WebhookSubscriptionAuthConfiguration.builder()
                 .type(SecurityType.TOKEN)
                 .token(WebhookSubscriptionAuthConfiguration.Token.builder().value(token).build())
                 .build()
@@ -241,12 +239,10 @@ public class WebhookTestingActions {
             WebhookEntrypointConnectorSubscriptionConfiguration.class
         );
         conf.setAuth(
-            WebhookSubscriptionAuthConfiguration
-                .builder()
+            WebhookSubscriptionAuthConfiguration.builder()
                 .type(SecurityType.OAUTH2)
                 .oauth2(
-                    WebhookSubscriptionAuthConfiguration.Oauth2
-                        .builder()
+                    WebhookSubscriptionAuthConfiguration.Oauth2.builder()
                         .clientId(clientId)
                         .clientSecret(clientSecret)
                         .endpoint("http://localhost:" + wiremock.port() + "/oauth2endpoint")
@@ -299,8 +295,9 @@ public class WebhookTestingActions {
     }
 
     public void verifyMessagesWithHeaders(int messageCount, String callbackPath, String message, List<HttpHeader> headers) {
-        final RequestPatternBuilder requestPatternBuilder = postRequestedFor(urlPathEqualTo(callbackPath))
-            .withRequestBody(equalTo(message));
+        final RequestPatternBuilder requestPatternBuilder = postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(
+            equalTo(message)
+        );
 
         for (HttpHeader header : headers) {
             requestPatternBuilder.withHeader(header.getName(), equalTo(header.getValue()));
@@ -311,8 +308,9 @@ public class WebhookTestingActions {
 
     public void verifyMessagesWithHeaders(int messageCount, String callbackPath, List<HttpHeader> headers) {
         for (int i = 0; i < messageCount; i++) {
-            final RequestPatternBuilder requestPatternBuilder = postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message-" + i));
+            final RequestPatternBuilder requestPatternBuilder = postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(
+                equalTo("message-" + i)
+            );
 
             for (HttpHeader header : headers) {
                 requestPatternBuilder.withHeader(header.getName(), equalTo(header.getValue()));

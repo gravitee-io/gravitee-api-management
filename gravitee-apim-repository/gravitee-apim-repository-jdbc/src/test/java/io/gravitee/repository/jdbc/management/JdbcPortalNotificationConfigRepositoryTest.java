@@ -39,8 +39,7 @@ public class JdbcPortalNotificationConfigRepositoryTest {
 
     @Test
     public void generateQuery_withHookAndReferenceTypeAndReferenceId() {
-        PortalNotificationCriteria criteria = PortalNotificationCriteria
-            .builder()
+        PortalNotificationCriteria criteria = PortalNotificationCriteria.builder()
             .hook("hook1")
             .referenceType(NotificationReferenceType.API)
             .referenceId("refId1")

@@ -53,13 +53,12 @@ public class StartIngestIntegrationApisUseCase {
             return Single.error(NotAllowedDomainException.noLicenseForFederation());
         }
 
-        return Single
-            .fromCallable(() ->
-                integrationCrudService
-                    .findById(integrationId)
-                    .filter(integration -> integration.getEnvironmentId().equals(environmentId))
-                    .orElseThrow(() -> new IntegrationNotFoundException(integrationId))
-            )
+        return Single.fromCallable(() ->
+            integrationCrudService
+                .findById(integrationId)
+                .filter(integration -> integration.getEnvironmentId().equals(environmentId))
+                .orElseThrow(() -> new IntegrationNotFoundException(integrationId))
+        )
             .flatMap(integration ->
                 integrationAgent
                     .startIngest(integration.getId(), UuidString.generateRandom(), input.apiIds())
@@ -83,8 +82,7 @@ public class StartIngestIntegrationApisUseCase {
 
     public AsyncJob newIngestJob(String id, Integration integration, String initiatorId, Long total) {
         var now = TimeProvider.now();
-        return AsyncJob
-            .builder()
+        return AsyncJob.builder()
             .id(id)
             .sourceId(integration.getId())
             .environmentId(integration.getEnvironmentId())

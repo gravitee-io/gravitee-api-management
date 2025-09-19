@@ -106,8 +106,7 @@ public class AuditService_SearchTest {
                 ),
                 any()
             )
-        )
-            .thenReturn(pageFound);
+        ).thenReturn(pageFound);
         when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
@@ -149,8 +148,7 @@ public class AuditService_SearchTest {
                 ),
                 any()
             )
-        )
-            .thenReturn(auditPage);
+        ).thenReturn(auditPage);
         when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(new Application()));
 
@@ -188,8 +186,7 @@ public class AuditService_SearchTest {
                 ),
                 any()
             )
-        )
-            .thenReturn(auditPage);
+        ).thenReturn(auditPage);
         when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
         when(
             permissionService.hasPermission(
@@ -198,8 +195,7 @@ public class AuditService_SearchTest {
                 executionContext.getOrganizationId(),
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(new Organization()));
 
         AuditQuery query = new AuditQuery();
@@ -235,8 +231,7 @@ public class AuditService_SearchTest {
                 ),
                 any()
             )
-        )
-            .thenReturn(auditPage);
+        ).thenReturn(auditPage);
         when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
         when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.of(new Environment()));
 

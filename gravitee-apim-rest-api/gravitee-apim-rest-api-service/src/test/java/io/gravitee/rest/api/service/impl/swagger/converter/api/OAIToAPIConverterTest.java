@@ -49,13 +49,12 @@ class OAIToAPIConverterTest {
 
     @BeforeEach
     void setUp() {
-        oaiToAPIConverter =
-            new OAIToAPIConverter(
-                new ImportSwaggerDescriptorEntity(),
-                new PolicyOperationVisitorManagerImpl(),
-                mock(GroupService.class),
-                mock(TagService.class)
-            );
+        oaiToAPIConverter = new OAIToAPIConverter(
+            new ImportSwaggerDescriptorEntity(),
+            new PolicyOperationVisitorManagerImpl(),
+            mock(GroupService.class),
+            mock(TagService.class)
+        );
     }
 
     @Test

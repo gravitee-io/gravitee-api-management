@@ -114,35 +114,31 @@ public class ImportApplicationCRDUseCaseTest {
     void setUp() {
         importApplicationCRDDomainService.initWith(List.of(anApplicationCRD()));
         userDomainService.initWith(getUsers());
-        useCase =
-            new ImportApplicationCRDUseCase(
-                applicationCrudService,
-                importApplicationCRDDomainService,
-                applicationMetadataCrudService,
-                applicationMetadataQueryService,
-                membersDomainService,
-                crdValidator
-            );
+        useCase = new ImportApplicationCRDUseCase(
+            applicationCrudService,
+            importApplicationCRDDomainService,
+            applicationMetadataCrudService,
+            applicationMetadataQueryService,
+            membersDomainService,
+            crdValidator
+        );
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .name(PRIMARY_OWNER.name())
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORGANIZATION_ID)
                     .id("primary_owner_id")
                     .scope(Role.Scope.APPLICATION)
                     .build(),
-                Role
-                    .builder()
+                Role.builder()
                     .name("USER")
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORGANIZATION_ID)
                     .id("user_role_id")
                     .scope(Role.Scope.APPLICATION)
                     .build(),
-                Role
-                    .builder()
+                Role.builder()
                     .name("OWNER")
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORGANIZATION_ID)
@@ -274,8 +270,7 @@ public class ImportApplicationCRDUseCaseTest {
     }
 
     private static ApplicationCRDSpec anApplicationCRD() {
-        return ApplicationCRDSpec
-            .builder()
+        return ApplicationCRDSpec.builder()
             .id(APP_ID)
             .name(APP_NAME)
             .description(APP_DESCRIPTION)
@@ -288,8 +283,7 @@ public class ImportApplicationCRDUseCaseTest {
     }
 
     private static ApplicationMetadataCRD anApplicationMetadata() {
-        return ApplicationMetadataCRD
-            .builder()
+        return ApplicationMetadataCRD.builder()
             .name(TEST_METADATA_NAME)
             .defaultValue(TEST_METADATA_DEFAULT_VALUE)
             .format(MetadataFormat.STRING)

@@ -62,15 +62,13 @@ public class PortalMenuLinksResourceTest extends AbstractResourceTest {
     @Test
     public void should_list_portal_menu_links_for_environment() {
         // Given
-        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id("public")
             .visibility(PortalMenuLinkVisibility.PUBLIC)
             .environmentId(ENV_ID)
             .build();
-        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id("private")
             .visibility(PortalMenuLinkVisibility.PRIVATE)

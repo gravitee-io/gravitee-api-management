@@ -46,8 +46,7 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
 
     @Override
     protected JdbcObjectMapper<Category> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Category.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Category.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("key", Types.NVARCHAR, String.class)
@@ -162,28 +161,28 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
         try {
             int rows = jdbcTemplate.update(
                 "update " +
-                this.tableName +
-                " set " +
-                " id = ?" +
-                " , environment_id = ?" +
-                " , " +
-                escapeReservedWord("key") +
-                " = ?" +
-                " , name = ?" +
-                " , description = ?" +
-                " , hidden = ?" +
-                " , " +
-                escapeReservedWord("order") +
-                " = ?" +
-                " , highlight_api = ?" +
-                " , picture = ?" +
-                " , background = ?" +
-                " , page = ?" +
-                " , created_at = ? " +
-                " , updated_at = ? " +
-                " where " +
-                " id = ? " +
-                " and environment_id = ? ",
+                    this.tableName +
+                    " set " +
+                    " id = ?" +
+                    " , environment_id = ?" +
+                    " , " +
+                    escapeReservedWord("key") +
+                    " = ?" +
+                    " , name = ?" +
+                    " , description = ?" +
+                    " , hidden = ?" +
+                    " , " +
+                    escapeReservedWord("order") +
+                    " = ?" +
+                    " , highlight_api = ?" +
+                    " , picture = ?" +
+                    " , background = ?" +
+                    " , page = ?" +
+                    " , created_at = ? " +
+                    " , updated_at = ? " +
+                    " where " +
+                    " id = ? " +
+                    " and environment_id = ? ",
                 item.getId(),
                 item.getEnvironmentId(),
                 item.getKey(),

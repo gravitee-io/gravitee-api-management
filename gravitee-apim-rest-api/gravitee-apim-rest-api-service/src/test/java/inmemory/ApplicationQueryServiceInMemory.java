@@ -53,6 +53,9 @@ public class ApplicationQueryServiceInMemory implements ApplicationQueryService,
 
     @Override
     public Set<BaseApplicationEntity> findByEnvironment(String environmentId) {
-        return storage.stream().filter(application -> application.getEnvironmentId().equals(environmentId)).collect(Collectors.toSet());
+        return storage
+            .stream()
+            .filter(application -> application.getEnvironmentId().equals(environmentId))
+            .collect(Collectors.toSet());
     }
 }

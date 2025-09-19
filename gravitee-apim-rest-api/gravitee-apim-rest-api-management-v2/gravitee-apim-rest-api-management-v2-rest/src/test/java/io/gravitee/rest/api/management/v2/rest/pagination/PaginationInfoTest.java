@@ -35,11 +35,9 @@ public class PaginationInfoTest {
 
         var pagination = computePaginationInfo(total, pageItemsCount, new PaginationParam(page, perPage));
 
-        Assertions
-            .assertThat(pagination)
-            .isEqualTo(
-                Pagination.builder().page(page).perPage(perPage).totalCount(total).pageItemsCount(pageItemsCount).pageCount(4).build()
-            );
+        Assertions.assertThat(pagination).isEqualTo(
+            Pagination.builder().page(page).perPage(perPage).totalCount(total).pageItemsCount(pageItemsCount).pageCount(4).build()
+        );
     }
 
     @Test

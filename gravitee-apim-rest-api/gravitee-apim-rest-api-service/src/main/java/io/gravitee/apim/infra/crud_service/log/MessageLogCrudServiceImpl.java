@@ -54,8 +54,7 @@ class MessageLogCrudServiceImpl implements MessageLogCrudService {
         try {
             var response = logRepository.searchAggregatedMessageLog(
                 executionContext.getQueryContext(),
-                MessageLogQuery
-                    .builder()
+                MessageLogQuery.builder()
                     .filter(MessageLogQuery.Filter.builder().apiId(apiId).requestId(requestId).build())
                     .page(pageable.getPageNumber())
                     .size(pageable.getPageSize())

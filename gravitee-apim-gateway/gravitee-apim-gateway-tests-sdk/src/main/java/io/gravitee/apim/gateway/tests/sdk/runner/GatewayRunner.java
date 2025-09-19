@@ -184,15 +184,14 @@ public class GatewayRunner {
         // Allow test instance to access api deployed at class level
         testInstance.setDeployedClassApis(this.deployedForTestClass);
 
-        this.apiDeploymentPreparers =
-            Map.of(
-                Api.class,
-                new LegacyApiDeploymentPreparer(),
-                io.gravitee.definition.model.v4.Api.class,
-                new V4ApiDeploymentPreparer(),
-                NativeApi.class,
-                new NativeApiDeploymentPreparer()
-            );
+        this.apiDeploymentPreparers = Map.of(
+            Api.class,
+            new LegacyApiDeploymentPreparer(),
+            io.gravitee.definition.model.v4.Api.class,
+            new V4ApiDeploymentPreparer(),
+            NativeApi.class,
+            new NativeApiDeploymentPreparer()
+        );
     }
 
     /**
@@ -213,14 +212,13 @@ public class GatewayRunner {
             configure(gatewayPort, technicalApiPort, gatewayConfiguration);
 
             // create Gateway
-            gatewayContainer =
-                new GatewayTestContainer(context -> {
-                    // add extra configuration to gravitee.yaml
-                    applyOnGraviteeYaml(context, gatewayConfiguration.yamlProperties());
+            gatewayContainer = new GatewayTestContainer(context -> {
+                // add extra configuration to gravitee.yaml
+                applyOnGraviteeYaml(context, gatewayConfiguration.yamlProperties());
 
-                    // secret provider plugins need to be set up during boot to ensure a proper resolution of secrets during startup.
-                    registerSecretProvider(context);
-                });
+                // secret provider plugins need to be set up during boot to ensure a proper resolution of secrets during startup.
+                registerSecretProvider(context);
+            });
 
             // initialize the container (e.g.: prepare the spring context)
             gatewayContainer.initialize();
@@ -912,17 +910,14 @@ public class GatewayRunner {
     }
 
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
-        String definition = cacheDefinition.computeIfAbsent(
-            resourcePath,
-            path -> {
-                try {
-                    final URL jsonFile = loadURL(path);
-                    return Files.readString(Paths.get(jsonFile.toURI()));
-                } catch (IOException | URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
+        String definition = cacheDefinition.computeIfAbsent(resourcePath, path -> {
+            try {
+                final URL jsonFile = loadURL(path);
+                return Files.readString(Paths.get(jsonFile.toURI()));
+            } catch (IOException | URISyntaxException e) {
+                throw new RuntimeException(e);
             }
-        );
+        });
 
         final AbstractGatewayTest.PlaceholderSymbols placeHolderSymbols = testInstance.configurePlaceHolder();
 
@@ -930,17 +925,15 @@ public class GatewayRunner {
         testInstance.configurePlaceHolderVariables(variables);
 
         for (Map.Entry<String, String> entry : variables.entrySet()) {
-            definition =
-                definition.replaceAll(
-                    Pattern.quote(placeHolderSymbols.prefix() + entry.getKey() + placeHolderSymbols.suffix()),
-                    entry.getValue()
-                );
+            definition = definition.replaceAll(
+                Pattern.quote(placeHolderSymbols.prefix() + entry.getKey() + placeHolderSymbols.suffix()),
+                entry.getValue()
+            );
         }
 
-        definition =
-            definition
-                .replace("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
-                .replace("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
+        definition = definition
+            .replace("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
+            .replace("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
 
         return graviteeMapper.readValue(definition, toClass);
     }
@@ -957,7 +950,7 @@ public class GatewayRunner {
      */
     private void copyJarResourcesRecursively(Path destination, JarURLConnection jarConnection) throws IOException {
         try (JarFile jarFile = jarConnection.getJarFile()) {
-            for (Iterator<JarEntry> it = jarFile.entries().asIterator(); it.hasNext();) {
+            for (Iterator<JarEntry> it = jarFile.entries().asIterator(); it.hasNext(); ) {
                 JarEntry entry = it.next();
                 if (entry.getName().startsWith(jarConnection.getEntryName())) {
                     if (entry.getName().contains("./") || entry.getName().contains("../")) {

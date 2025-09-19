@@ -75,8 +75,12 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-            new IntegrationPrimaryOwnerDomainService(membershipCrudService, roleQueryService, membershipQueryService, userCrudService);
+        service = new IntegrationPrimaryOwnerDomainService(
+            membershipCrudService,
+            roleQueryService,
+            membershipQueryService,
+            userCrudService
+        );
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
     }
@@ -102,21 +106,19 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
                 );
 
                 // Then
-                assertThat(membershipCrudService.storage())
-                    .containsExactly(
-                        Membership
-                            .builder()
-                            .id("generated-id")
-                            .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
-                            .memberId(MEMBER_ID)
-                            .memberType(Membership.Type.USER)
-                            .referenceId(INTEGRATION_ID)
-                            .referenceType(Membership.ReferenceType.INTEGRATION)
-                            .source("system")
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .build()
-                    );
+                assertThat(membershipCrudService.storage()).containsExactly(
+                    Membership.builder()
+                        .id("generated-id")
+                        .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .memberId(MEMBER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceId(INTEGRATION_ID)
+                        .referenceType(Membership.ReferenceType.INTEGRATION)
+                        .source("system")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                );
             }
         }
 
@@ -126,12 +128,12 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
             @Test
             void should_throw_error_when_create_group_integration_primary_owner_membership() {
                 assertThatThrownBy(() ->
-                        service.createIntegrationPrimaryOwnerMembership(
-                            INTEGRATION_ID,
-                            PrimaryOwnerEntity.builder().id(GROUP_ID).type(PrimaryOwnerEntity.Type.GROUP).build(),
-                            AUDIT_INFO
-                        )
+                    service.createIntegrationPrimaryOwnerMembership(
+                        INTEGRATION_ID,
+                        PrimaryOwnerEntity.builder().id(GROUP_ID).type(PrimaryOwnerEntity.Type.GROUP).build(),
+                        AUDIT_INFO
                     )
+                )
                     .isInstanceOf(UnsupportedOperationException.class)
                     .withFailMessage("Group Primary Owner is not supported for integrations. Integration id: my-integration");
             }
@@ -148,8 +150,7 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
             );
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.INTEGRATION)
                         .referenceId(INTEGRATION_ID)
                         .memberType(Membership.Type.USER)
@@ -162,8 +163,7 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
             var result = service.getIntegrationPrimaryOwner(ORGANIZATION_ID, INTEGRATION_ID).test();
 
             result.assertResult(
-                PrimaryOwnerEntity
-                    .builder()
+                PrimaryOwnerEntity.builder()
                     .id(MEMBER_ID)
                     .displayName("Jane Doe")
                     .email("jane.doe@gravitee.io")
@@ -179,16 +179,14 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
             );
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.INTEGRATION)
                         .referenceId(INTEGRATION_ID)
                         .memberType(Membership.Type.GROUP)
                         .memberId(GROUP_ID)
                         .roleId(integrationPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .build(),
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.GROUP)
                         .referenceId(GROUP_ID)
                         .memberType(Membership.Type.USER)
@@ -207,8 +205,7 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
         public void should_return_empty_for_group_primary_owner_with_no_email_when_group_has_no_users() {
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.INTEGRATION)
                         .referenceId(INTEGRATION_ID)
                         .memberType(Membership.Type.GROUP)
@@ -228,8 +225,7 @@ public class IntegrationPrimaryOwnerDomainServiceTest {
             givenExistingUsers(List.of());
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.API)
                         .referenceId(INTEGRATION_ID)
                         .memberType(Membership.Type.USER)
