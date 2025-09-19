@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -49,12 +50,22 @@ public class ImportApplicationCRDDomainServiceLegacyWrapper implements ImportApp
     public BaseApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         ApplicationEntity existing = applicationService.findById(executionContext, applicationId);
+        boolean restored = false;
         if (
             ApplicationStatus.ARCHIVED.name().equals(existing.getStatus()) &&
             ApplicationStatus.ACTIVE.name().equals(updateApplicationEntity.getStatus())
         ) {
             applicationService.restore(executionContext, applicationId);
+            restored = true;
         }
-        return applicationService.update(executionContext, applicationId, updateApplicationEntity);
+        try {
+            return applicationService.update(executionContext, applicationId, updateApplicationEntity);
+        } catch (AbstractManagementException ame) {
+            if (restored) {
+                // manual rollback to avoid a commit on AbstractManagementException that can happened on a restored apps
+                applicationService.archive(executionContext, applicationId);
+            }
+            throw ame;
+        }
     }
 }
