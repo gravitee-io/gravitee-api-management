@@ -48,8 +48,7 @@ public class ScoreApiRequestUseCase {
     private final ScoringRulesetQueryService scoringRulesetQueryService;
 
     public Completable execute(Input input) {
-        var assets$ = Flowable
-            .fromIterable(apiDocumentationDomainService.getApiPages(input.apiId, null))
+        var assets$ = Flowable.fromIterable(apiDocumentationDomainService.getApiPages(input.apiId, null))
             .filter(page -> page.isAsyncApi() || page.isSwagger())
             .map(page ->
                 new ScoreRequest.AssetToScore(
@@ -60,30 +59,25 @@ public class ScoreApiRequestUseCase {
                 )
             )
             .toList();
-        var customRulesets$ = Flowable
-            .fromCallable(() ->
-                scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
-            )
+        var customRulesets$ = Flowable.fromCallable(() ->
+            scoringRulesetQueryService.findByReference(input.auditInfo.environmentId(), ScoringRuleset.ReferenceType.ENVIRONMENT)
+        )
             .flatMap(Flowable::fromIterable)
             .flatMapMaybe(this::customRuleset)
             .toList();
 
-        return Maybe
-            .fromOptional(apiCrudService.findById(input.apiId()))
+        return Maybe.fromOptional(apiCrudService.findById(input.apiId()))
             .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId())))
             .flatMap(api ->
-                Single.zip(
-                    assets$,
-                    customRulesets$,
-                    (assets, customRulesets) ->
-                        new ScoreRequest(
-                            UuidString.generateRandom(),
-                            input.auditInfo.organizationId(),
-                            input.auditInfo.environmentId(),
-                            input.apiId,
-                            assets,
-                            customRulesets
-                        )
+                Single.zip(assets$, customRulesets$, (assets, customRulesets) ->
+                    new ScoreRequest(
+                        UuidString.generateRandom(),
+                        input.auditInfo.organizationId(),
+                        input.auditInfo.environmentId(),
+                        input.apiId,
+                        assets,
+                        customRulesets
+                    )
                 )
             )
             .flatMapCompletable(request -> {
@@ -101,8 +95,7 @@ public class ScoreApiRequestUseCase {
 
     public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId) {
         var now = TimeProvider.now();
-        return AsyncJob
-            .builder()
+        return AsyncJob.builder()
             .id(id)
             .sourceId(apiId)
             .environmentId(auditInfo.environmentId())

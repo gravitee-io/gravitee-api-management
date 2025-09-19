@@ -117,8 +117,9 @@ class EntrypointNotFoundIntegrationTest {
                 .flatMap(response -> {
                     assertThat(response.statusCode()).isEqualTo(404);
                     assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-                    assertThat(response.getHeader(HttpHeaders.CONTENT_LENGTH))
-                        .isEqualTo(Integer.toString(errorMessage.toBuffer().length()));
+                    assertThat(response.getHeader(HttpHeaders.CONTENT_LENGTH)).isEqualTo(
+                        Integer.toString(errorMessage.toBuffer().length())
+                    );
                     return response.body();
                 })
                 .test()
@@ -138,8 +139,9 @@ class EntrypointNotFoundIntegrationTest {
                 .flatMap(response -> {
                     assertThat(response.statusCode()).isEqualTo(404);
                     assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-                    assertThat(response.getHeader(HttpHeaders.CONTENT_LENGTH))
-                        .isEqualTo(Integer.toString(errorMessage.toBuffer().length()));
+                    assertThat(response.getHeader(HttpHeaders.CONTENT_LENGTH)).isEqualTo(
+                        Integer.toString(errorMessage.toBuffer().length())
+                    );
                     return response.body();
                 })
                 .test()

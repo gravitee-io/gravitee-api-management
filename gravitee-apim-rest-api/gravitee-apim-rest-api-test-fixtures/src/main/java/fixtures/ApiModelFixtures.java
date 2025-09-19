@@ -35,8 +35,7 @@ public class ApiModelFixtures {
     private ApiModelFixtures() {}
 
     private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V1 =
-        io.gravitee.rest.api.model.api.ApiEntity
-            .builder()
+        io.gravitee.rest.api.model.api.ApiEntity.builder()
             .graviteeDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V1.getLabel())
             .id("my-id")
             .name("my-name")
@@ -49,8 +48,7 @@ public class ApiModelFixtures {
             .paths(Map.of("path", List.of(new Rule())));
 
     private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V2 =
-        io.gravitee.rest.api.model.api.ApiEntity
-            .builder()
+        io.gravitee.rest.api.model.api.ApiEntity.builder()
             .graviteeDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V2.getLabel())
             .id("my-id")
             .name("my-name")
@@ -62,8 +60,7 @@ public class ApiModelFixtures {
             .updatedAt(new Date())
             .flows(List.of(FlowModelFixtures.aModelFlowV2()));
 
-    private static final ApiEntity.ApiEntityBuilder BASE_MODEL_API_V4 = ApiEntity
-        .builder()
+    private static final ApiEntity.ApiEntityBuilder BASE_MODEL_API_V4 = ApiEntity.builder()
         .id("my-id")
         .crossId("my-cross-id")
         .name("my-name")
@@ -100,8 +97,7 @@ public class ApiModelFixtures {
         .background("my-background")
         .backgroundUrl("my-background-url");
 
-    private static final ApiEntity.ApiEntityBuilder BASE_MODEL_API_FEDERATED = ApiEntity
-        .builder()
+    private static final ApiEntity.ApiEntityBuilder BASE_MODEL_API_FEDERATED = ApiEntity.builder()
         .id("my-id")
         .name("my-name")
         .apiVersion("v1.0")

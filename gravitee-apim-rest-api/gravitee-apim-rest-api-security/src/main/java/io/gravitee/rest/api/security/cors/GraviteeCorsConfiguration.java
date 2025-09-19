@@ -206,8 +206,8 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
         }
     }
 
-    private record AccessPointEventListener(GraviteeCorsConfiguration graviteeCorsConfiguration)
-        implements EventListener<AccessPointEvent, AccessPoint> {
+    private record AccessPointEventListener(GraviteeCorsConfiguration graviteeCorsConfiguration) implements
+        EventListener<AccessPointEvent, AccessPoint> {
         @Override
         public void onEvent(final Event<AccessPointEvent, AccessPoint> event) {
             if (isReferenced(event) && (isConsoleTarget(event) || isPortalTarget(event))) {
@@ -227,10 +227,8 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
 
         private boolean isReferenced(final Event<AccessPointEvent, AccessPoint> event) {
             return (
-                (
-                    graviteeCorsConfiguration.referenceId.equals(UNDEFINED_REFERENCE_ID) ||
-                    graviteeCorsConfiguration.referenceId.equals(event.content().getReferenceId())
-                ) &&
+                (graviteeCorsConfiguration.referenceId.equals(UNDEFINED_REFERENCE_ID) ||
+                    graviteeCorsConfiguration.referenceId.equals(event.content().getReferenceId())) &&
                 graviteeCorsConfiguration.parameterReferenceType.name().equals(event.content().getReferenceType().name())
             );
         }

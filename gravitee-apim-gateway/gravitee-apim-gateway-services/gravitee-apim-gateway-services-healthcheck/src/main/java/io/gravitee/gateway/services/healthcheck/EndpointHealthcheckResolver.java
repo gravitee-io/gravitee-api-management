@@ -104,31 +104,23 @@ public class EndpointHealthcheckResolver implements InitializingBean {
         // Filtering endpoints according to tenancy configuration
         if (gatewayConfiguration.tenant().isPresent()) {
             String tenant = gatewayConfiguration.tenant().get();
-            httpEndpoints =
-                httpEndpoints.filter(endpoint ->
-                    endpoint.getTenants() == null || endpoint.getTenants().isEmpty() || endpoint.getTenants().contains(tenant)
-                );
+            httpEndpoints = httpEndpoints.filter(
+                endpoint -> endpoint.getTenants() == null || endpoint.getTenants().isEmpty() || endpoint.getTenants().contains(tenant)
+            );
         }
 
         // Remove backup endpoints
         httpEndpoints = httpEndpoints.filter(endpoint -> !endpoint.isBackup());
 
         // Keep only endpoints where health-check is enabled or not settled (inherit from service)
-        httpEndpoints =
-            httpEndpoints.filter(endpoint ->
-                (
-                    (endpoint.getHealthCheck() == null && hcEnabled) ||
-                    (
-                        endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled() && !endpoint.getHealthCheck().isInherit()
-                    ) ||
-                    (
-                        endpoint.getHealthCheck() != null &&
-                        endpoint.getHealthCheck().isEnabled() &&
-                        endpoint.getHealthCheck().isInherit() &&
-                        hcEnabled
-                    )
-                )
-            );
+        httpEndpoints = httpEndpoints.filter(endpoint ->
+            ((endpoint.getHealthCheck() == null && hcEnabled) ||
+                (endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled() && !endpoint.getHealthCheck().isInherit()) ||
+                (endpoint.getHealthCheck() != null &&
+                    endpoint.getHealthCheck().isEnabled() &&
+                    endpoint.getHealthCheck().isInherit() &&
+                    hcEnabled))
+        );
 
         return httpEndpoints
             .map(

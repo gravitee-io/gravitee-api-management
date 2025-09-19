@@ -116,8 +116,9 @@ public class VertxTcpRequest extends AbstractRequest {
     @Override
     public String originalHost() {
         if (this.originalHost == null) {
-            this.originalHost =
-                Optional.ofNullable(proxySocket.remoteAddress()).map(address -> proxySocket.remoteAddress().host()).orElse(null);
+            this.originalHost = Optional.ofNullable(proxySocket.remoteAddress())
+                .map(address -> proxySocket.remoteAddress().host())
+                .orElse(null);
         }
         return this.originalHost;
     }

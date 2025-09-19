@@ -82,9 +82,9 @@ class DeleteMembershipDomainServiceTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(membershipCrudServiceInMemory, membershipQueryServiceInMemory, auditCrudServiceInMemory, userCrudServiceInMemory)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(membershipCrudServiceInMemory, membershipQueryServiceInMemory, auditCrudServiceInMemory, userCrudServiceInMemory).forEach(
+            InMemoryAlternative::reset
+        );
     }
 
     @Test
@@ -101,8 +101,7 @@ class DeleteMembershipDomainServiceTest {
         assertThat(auditCrudServiceInMemory.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .contains(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)

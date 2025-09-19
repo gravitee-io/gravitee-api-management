@@ -48,12 +48,11 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
         LOGGER.debug("JdbcIntegrationRepository.findAllByEnvironment({}, {})", environmentId, pageable);
         final List<Integration> integrations;
         try {
-            integrations =
-                jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
-                    getOrm().getRowMapper(),
-                    environmentId
-                );
+            integrations = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
+                getOrm().getRowMapper(),
+                environmentId
+            );
 
             integrations.forEach(this::addGroups);
         } catch (final Exception ex) {
@@ -77,14 +76,14 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
             String query = "%s where environment_id = ? order by updated_at desc".formatted(getOrm().getSelectAllSql());
             integrations = jdbcTemplate.query(query, getOrm().getRowMapper(), environmentId);
 
-            integrations =
-                integrations
-                    .stream()
-                    .peek(this::addGroups)
-                    .filter(integration ->
+            integrations = integrations
+                .stream()
+                .peek(this::addGroups)
+                .filter(
+                    integration ->
                         integrationIds.contains(integration.getId()) || integration.getGroups().stream().anyMatch(groups::contains)
-                    )
-                    .toList();
+                )
+                .toList();
         } catch (final Exception ex) {
             final String message =
                 "Failed to find integrations of environment: " + environmentId + " and groups: " + groups + ": " + ex.getMessage();
@@ -183,8 +182,7 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<Integr
 
     @Override
     protected JdbcObjectMapper<Integration> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Integration.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Integration.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)

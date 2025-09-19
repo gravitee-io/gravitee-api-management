@@ -59,26 +59,29 @@ public class EnvironmentInitializerTest {
 
     @Test
     public void upgrade_should_call_upgradeEnvironment_for_each_environment() throws Exception {
-        when(environmentRepository.findAll())
-            .thenReturn(
-                Set.of(
-                    buildTestEnvironment("env1", "org1"),
-                    buildTestEnvironment("env2", "org2"),
-                    buildTestEnvironment("env3", "org1"),
-                    buildTestEnvironment("env4", "org3")
-                )
-            );
+        when(environmentRepository.findAll()).thenReturn(
+            Set.of(
+                buildTestEnvironment("env1", "org1"),
+                buildTestEnvironment("env2", "org2"),
+                buildTestEnvironment("env3", "org1"),
+                buildTestEnvironment("env4", "org3")
+            )
+        );
 
         initializer.initialize();
 
-        verify(initializer, times(1))
-            .initializeEnvironment(argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")));
-        verify(initializer, times(1))
-            .initializeEnvironment(argThat(e -> e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")));
-        verify(initializer, times(1))
-            .initializeEnvironment(argThat(e -> e.getEnvironmentId().equals("env3") && e.getOrganizationId().equals("org1")));
-        verify(initializer, times(1))
-            .initializeEnvironment(argThat(e -> e.getEnvironmentId().equals("env4") && e.getOrganizationId().equals("org3")));
+        verify(initializer, times(1)).initializeEnvironment(
+            argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1"))
+        );
+        verify(initializer, times(1)).initializeEnvironment(
+            argThat(e -> e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2"))
+        );
+        verify(initializer, times(1)).initializeEnvironment(
+            argThat(e -> e.getEnvironmentId().equals("env3") && e.getOrganizationId().equals("org1"))
+        );
+        verify(initializer, times(1)).initializeEnvironment(
+            argThat(e -> e.getEnvironmentId().equals("env4") && e.getOrganizationId().equals("org3"))
+        );
     }
 
     @Test

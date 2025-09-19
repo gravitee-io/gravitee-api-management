@@ -47,15 +47,14 @@ public class DefaultResourceManager extends LegacyResourceManagerImpl {
         final DeploymentContext deploymentContext
     ) {
         super(reactable, resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
-        this.resourceLoader =
-            new ResourceLoader(
-                classLoader,
-                resourcePluginManager,
-                resourceClassLoaderFactory,
-                resourceConfigurationFactory,
-                applicationContext,
-                deploymentContext
-            );
+        this.resourceLoader = new ResourceLoader(
+            classLoader,
+            resourcePluginManager,
+            resourceClassLoaderFactory,
+            resourceConfigurationFactory,
+            applicationContext,
+            deploymentContext
+        );
     }
 
     protected void initialize() {

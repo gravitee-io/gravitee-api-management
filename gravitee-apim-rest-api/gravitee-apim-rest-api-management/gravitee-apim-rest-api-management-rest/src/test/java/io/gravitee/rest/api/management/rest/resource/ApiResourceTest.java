@@ -398,8 +398,7 @@ public class ApiResourceTest extends AbstractResourceTest {
                 eq("Foo"),
                 eq(DefinitionVersion.valueOfLabel("1.0.0"))
             )
-        )
-            .thenReturn(mockApi);
+        ).thenReturn(mockApi);
 
         final Response response = envTarget(API + "/import-path-mappings").queryParam("page", "Foo").request().post(null);
         assertEquals(OK_200, response.getStatus());
@@ -414,8 +413,7 @@ public class ApiResourceTest extends AbstractResourceTest {
                 eq("Foo"),
                 eq(DefinitionVersion.valueOfLabel("2.0.0"))
             )
-        )
-            .thenReturn(mockApi);
+        ).thenReturn(mockApi);
 
         final Response response = envTarget(API + "/import-path-mappings")
             .queryParam("page", "Foo")

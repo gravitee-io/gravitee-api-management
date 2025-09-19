@@ -55,8 +55,7 @@ public class PageUsedAsGeneralConditionsException extends AbstractManagementExce
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps
-            .<String, String>builder()
+        return Maps.<String, String>builder()
             .put("action", action)
             .put("planName", planName)
             .put("pageName", pageName)

@@ -572,7 +572,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             // transfer the ownership
             transferOwnership(executionContext, apiEntity.getId(), currentPo, roleUsedInTransfert, futurePo);
-        } else if (!apiJsonNode.hasMembers() && apiJsonNode.isKubernetesOrigin()) { // Used by GKO
+        } else if (!apiJsonNode.hasMembers() && apiJsonNode.isKubernetesOrigin()) {
+            // Used by GKO
             // Remove all members if exist except the PO
             // get current members of the api
             Set<MemberToImport> membersAlreadyPresent = getAPICurrentMembers(executionContext, apiEntity.getId());
@@ -814,11 +815,10 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiEntity.getId());
             Set<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
 
-            findRemovedPlans(existingPlans.values(), plansToImport)
-                .forEach(plan -> {
-                    planService.delete(executionContext, plan.getId());
-                    apiEntity.getPlans().remove(plan);
-                });
+            findRemovedPlans(existingPlans.values(), plansToImport).forEach(plan -> {
+                planService.delete(executionContext, plan.getId());
+                apiEntity.getPlans().remove(plan);
+            });
 
             plansToImport.forEach(planEntity -> {
                 planEntity.setApi(apiEntity.getId());
@@ -892,8 +892,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 pageService.importFiles(
                     executionContext,
                     apiId,
-                    ImportPageEntity
-                        .builder()
+                    ImportPageEntity.builder()
                         .type(PageType.ROOT)
                         .visibility(rootPage.getVisibility())
                         .published(rootPage.isPublished())
@@ -970,9 +969,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             accessControlEntity.getReferenceType().equals(AccessControlReferenceType.GROUP.name())
                         )
                         .peek(accessControlEntity -> {
-                            String groupId = pageGroupEntities.computeIfAbsent(
-                                accessControlEntity.getReferenceId(),
-                                key -> findGroupId(executionContext, key)
+                            String groupId = pageGroupEntities.computeIfAbsent(accessControlEntity.getReferenceId(), key ->
+                                findGroupId(executionContext, key)
                             );
                             accessControlEntity.setReferenceId(groupId);
                             if (groupId == null) {
@@ -993,8 +991,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private String findGroupId(ExecutionContext executionContext, String key) {
         try {
-            return Optional
-                .ofNullable(groupService.findById(executionContext, key))
+            return Optional.ofNullable(groupService.findById(executionContext, key))
                 .map(GroupEntity::getId)
                 .orElseThrow(() -> new GroupNotFoundException(key));
         } catch (GroupNotFoundException e) {

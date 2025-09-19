@@ -52,8 +52,7 @@ public class FailoverInvoker implements Invoker {
     public FailoverInvoker(Invoker delegate, Failover failoverConfiguration, String apiId) {
         this.delegate = delegate;
         this.failoverConfiguration = failoverConfiguration;
-        final CircuitBreakerConfig circuitBreakerConfiguration = CircuitBreakerConfig
-            .custom()
+        final CircuitBreakerConfig circuitBreakerConfiguration = CircuitBreakerConfig.custom()
             .permittedNumberOfCallsInHalfOpenState(1)
             .slowCallDurationThreshold(Duration.of(failoverConfiguration.getSlowCallDuration(), ChronoUnit.MILLIS))
             .minimumNumberOfCalls(failoverConfiguration.getMaxFailures())
@@ -76,15 +75,14 @@ public class FailoverInvoker implements Invoker {
     @Override
     public Completable invoke(ExecutionContext ctx) {
         final String originalEndpoint = ctx.getAttribute(ATTR_REQUEST_ENDPOINT);
-        return Completable
-            .defer(() -> {
-                // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
-                ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
-                // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
-                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
-                // Consume body and ignore it. Consuming it with .body() method internally enables caching of chunks, which is mandatory to retry the request in case of failure.
-                return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx));
-            })
+        return Completable.defer(() -> {
+            // EndpointInvoker overrides the request endpoint. We need to set it back to original state to retry properly
+            ctx.setAttribute(ATTR_REQUEST_ENDPOINT, originalEndpoint);
+            // Entrypoint connectors skip response handling if there is an error. In the case of a retry, we need to reset the failure.
+            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
+            // Consume body and ignore it. Consuming it with .body() method internally enables caching of chunks, which is mandatory to retry the request in case of failure.
+            return ctx.request().body().ignoreElement().andThen(delegate.invoke(ctx));
+        })
             .timeout(failoverConfiguration.getSlowCallDuration(), TimeUnit.MILLISECONDS)
             .retry(failoverConfiguration.getMaxRetries())
             .compose(CircuitBreakerOperator.of(circuitBreaker(ctx)))

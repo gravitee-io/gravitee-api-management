@@ -65,15 +65,13 @@ class FlowAdapterTest {
 
     @Test
     void should_convert_from_v4_flow_to_repository() {
-        var model = FlowFixtures
-            .aProxyFlowV4()
+        var model = FlowFixtures.aProxyFlowV4()
             .toBuilder()
             .tags(Set.of("tag1"))
             .selectors(
                 List.of(
                     HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    ChannelSelector
-                        .builder()
+                    ChannelSelector.builder()
                         .channel("/")
                         .channelOperator(Operator.STARTS_WITH)
                         .entrypoints(Set.of("sse"))
@@ -84,8 +82,7 @@ class FlowAdapterTest {
             )
             .request(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -96,8 +93,7 @@ class FlowAdapterTest {
             )
             .response(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -108,8 +104,7 @@ class FlowAdapterTest {
             )
             .publish(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -120,8 +115,7 @@ class FlowAdapterTest {
             )
             .subscribe(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -149,8 +143,7 @@ class FlowAdapterTest {
                 .hasSize(3)
                 .containsOnly(
                     FlowHttpSelector.builder().path("/").pathOperator(FlowOperator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    FlowChannelSelector
-                        .builder()
+                    FlowChannelSelector.builder()
                         .channel("/")
                         .channelOperator(FlowOperator.STARTS_WITH)
                         .entrypoints(Set.of("sse"))
@@ -161,8 +154,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getRequest())
                 .containsOnly(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -173,8 +165,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getResponse())
                 .containsOnly(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -185,8 +176,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPublish())
                 .containsOnly(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -197,8 +187,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getSubscribe())
                 .containsOnly(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -211,15 +200,13 @@ class FlowAdapterTest {
 
     @Test
     void should_update_repository_with_v4_flow_to_repository() {
-        var model = FlowFixtures
-            .aProxyFlowV4()
+        var model = FlowFixtures.aProxyFlowV4()
             .toBuilder()
             .tags(Set.of("tag1"))
             .selectors(
                 List.of(
                     HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    ChannelSelector
-                        .builder()
+                    ChannelSelector.builder()
                         .channel("/")
                         .channelOperator(Operator.STARTS_WITH)
                         .entrypoints(Set.of("sse"))
@@ -230,8 +217,7 @@ class FlowAdapterTest {
             )
             .request(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -242,8 +228,7 @@ class FlowAdapterTest {
             )
             .response(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -254,8 +239,7 @@ class FlowAdapterTest {
             )
             .publish(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -266,8 +250,7 @@ class FlowAdapterTest {
             )
             .subscribe(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -289,8 +272,7 @@ class FlowAdapterTest {
             .request(List.of())
             .response(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-updated-step-name-2")
                         .policy("a-updated-policy")
                         .description("my-updated-step-description")
@@ -301,8 +283,7 @@ class FlowAdapterTest {
             )
             .publish(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-updated-step-name-3")
                         .policy("a-updated-policy")
                         .description("my-updated-step-description")
@@ -330,8 +311,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(updatedResult.getResponse())
                 .containsOnly(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-updated-step-name-2")
                         .policy("a-updated-policy")
                         .description("my-updated-step-description")
@@ -342,8 +322,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(updatedResult.getPublish())
                 .containsOnly(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-updated-step-name-3")
                         .policy("a-updated-policy")
                         .description("my-updated-step-description")
@@ -379,8 +358,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPre())
                 .containsOnly(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -391,8 +369,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPost())
                 .containsOnly(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -405,16 +382,14 @@ class FlowAdapterTest {
 
     @Test
     void should_convert_from_repository_to_flow_v4() {
-        var repository = Flow
-            .builder()
+        var repository = Flow.builder()
             .name("my-flow")
             .enabled(true)
             .tags(Set.of("tag1"))
             .selectors(
                 List.of(
                     FlowHttpSelector.builder().path("/").pathOperator(FlowOperator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    FlowChannelSelector
-                        .builder()
+                    FlowChannelSelector.builder()
                         .channel("/")
                         .channelOperator(FlowOperator.STARTS_WITH)
                         .entrypoints(Set.of("sse"))
@@ -425,8 +400,7 @@ class FlowAdapterTest {
             )
             .request(
                 List.of(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -437,8 +411,7 @@ class FlowAdapterTest {
             )
             .response(
                 List.of(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -449,8 +422,7 @@ class FlowAdapterTest {
             )
             .publish(
                 List.of(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -461,8 +433,7 @@ class FlowAdapterTest {
             )
             .subscribe(
                 List.of(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -484,8 +455,7 @@ class FlowAdapterTest {
                 .hasSize(3)
                 .containsOnly(
                     HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
-                    ChannelSelector
-                        .builder()
+                    ChannelSelector.builder()
                         .channel("/")
                         .channelOperator(Operator.STARTS_WITH)
                         .entrypoints(Set.of("sse"))
@@ -496,8 +466,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getRequest())
                 .containsOnly(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -508,8 +477,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getResponse())
                 .containsOnly(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -520,8 +488,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPublish())
                 .containsOnly(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -532,8 +499,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getSubscribe())
                 .containsOnly(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -546,8 +512,7 @@ class FlowAdapterTest {
 
     @Test
     void should_convert_from_repository_to_flow_v2() {
-        var repository = Flow
-            .builder()
+        var repository = Flow.builder()
             .name("my-flow")
             .enabled(true)
             .tags(Set.of("tag1"))
@@ -558,8 +523,7 @@ class FlowAdapterTest {
             .methods(Set.of(HttpMethod.GET))
             .pre(
                 List.of(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -570,8 +534,7 @@ class FlowAdapterTest {
             )
             .post(
                 List.of(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -582,8 +545,7 @@ class FlowAdapterTest {
             )
             .publish(
                 List.of(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-3")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -594,8 +556,7 @@ class FlowAdapterTest {
             )
             .subscribe(
                 List.of(
-                    FlowStep
-                        .builder()
+                    FlowStep.builder()
                         .name("my-step-name-4")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -620,8 +581,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPre())
                 .containsOnly(
-                    io.gravitee.definition.model.flow.Step
-                        .builder()
+                    io.gravitee.definition.model.flow.Step.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -632,8 +592,7 @@ class FlowAdapterTest {
             soft
                 .assertThat(result.getPost())
                 .containsOnly(
-                    io.gravitee.definition.model.flow.Step
-                        .builder()
+                    io.gravitee.definition.model.flow.Step.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")

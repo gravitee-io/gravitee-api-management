@@ -80,19 +80,17 @@ class ImportEnvironmentRulesetUseCaseTest {
         useCase.execute(input);
 
         // Then
-        assertThat(scoringRulesetCrudService.storage())
-            .contains(
-                ScoringRuleset
-                    .builder()
-                    .id("generated-id")
-                    .name("name")
-                    .description("description")
-                    .payload("payload")
-                    .referenceId(ENVIRONMENT_ID)
-                    .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(scoringRulesetCrudService.storage()).contains(
+            ScoringRuleset.builder()
+                .id("generated-id")
+                .name("name")
+                .description("description")
+                .payload("payload")
+                .referenceId(ENVIRONMENT_ID)
+                .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test

@@ -137,8 +137,7 @@ public class ApplicationLogsResource extends AbstractResource {
         //Does application exists ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
-        return Response
-            .ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
+        return Response.ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
             .header(
                 HttpHeaders.CONTENT_DISPOSITION,
                 format("attachment;filename=logs-%s-%s.csv", applicationId, System.currentTimeMillis())

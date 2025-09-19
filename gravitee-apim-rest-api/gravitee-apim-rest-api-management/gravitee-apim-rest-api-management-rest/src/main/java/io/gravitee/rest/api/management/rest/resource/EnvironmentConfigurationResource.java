@@ -80,7 +80,9 @@ public class EnvironmentConfigurationResource {
     @Operation(summary = "Get the list of available hooks")
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getConfigurationHooks() {
-        return Arrays.stream(PortalHook.values()).filter(h -> !h.isHidden()).toArray(Hook[]::new);
+        return Arrays.stream(PortalHook.values())
+            .filter(h -> !h.isHidden())
+            .toArray(Hook[]::new);
     }
 
     @GET

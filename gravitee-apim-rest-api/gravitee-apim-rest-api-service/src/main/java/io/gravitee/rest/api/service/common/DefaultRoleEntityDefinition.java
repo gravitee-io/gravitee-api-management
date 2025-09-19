@@ -32,8 +32,7 @@ public interface DefaultRoleEntityDefinition {
         "Default Organization Role. Created by Gravitee.io.",
         ORGANIZATION,
         true,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(OrganizationPermission.ENVIRONMENT.getName(), new char[] { READ.getId() })
             .put(OrganizationPermission.ROLE.getName(), new char[] { READ.getId() })
             .put(OrganizationPermission.TAG.getName(), new char[] { READ.getId() })
@@ -47,8 +46,7 @@ public interface DefaultRoleEntityDefinition {
         "Environment Role. Created by Gravitee.io.",
         ENVIRONMENT,
         false,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(EnvironmentPermission.API.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.APPLICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
@@ -68,8 +66,7 @@ public interface DefaultRoleEntityDefinition {
         "Default Environment Role. Created by Gravitee.io.",
         ENVIRONMENT,
         true,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(EnvironmentPermission.API.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.APPLICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
@@ -84,8 +81,7 @@ public interface DefaultRoleEntityDefinition {
         "Environment Role used by Federation agents. Created by Gravitee.io.",
         ENVIRONMENT,
         false,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .build()
     );
@@ -95,8 +91,7 @@ public interface DefaultRoleEntityDefinition {
         "Default API Role. Created by Gravitee.io.",
         API,
         true,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(ApiPermission.DEFINITION.getName(), new char[] { READ.getId() })
             .put(ApiPermission.PLAN.getName(), new char[] { READ.getId() })
             .put(ApiPermission.SUBSCRIPTION.getName(), new char[] { READ.getId() })
@@ -113,8 +108,7 @@ public interface DefaultRoleEntityDefinition {
         "API Role. Created by Gravitee.io.",
         API,
         false,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(ApiPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId() })
             .put(ApiPermission.GATEWAY_DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId() })
             .put(ApiPermission.PLAN.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
@@ -140,8 +134,7 @@ public interface DefaultRoleEntityDefinition {
         "API Role. Created by Gravitee.io.",
         API,
         false,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(ApiPermission.DEFINITION.getName(), new char[] { READ.getId() })
             .put(ApiPermission.GATEWAY_DEFINITION.getName(), new char[] { READ.getId() })
             .put(ApiPermission.PLAN.getName(), new char[] { READ.getId() })
@@ -160,8 +153,7 @@ public interface DefaultRoleEntityDefinition {
         "Default Application Role. Created by Gravitee.io.",
         APPLICATION,
         true,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(ApplicationPermission.DEFINITION.getName(), new char[] { READ.getId() })
             .put(ApplicationPermission.MEMBER.getName(), new char[] { READ.getId() })
             .put(ApplicationPermission.ANALYTICS.getName(), new char[] { READ.getId() })
@@ -176,8 +168,7 @@ public interface DefaultRoleEntityDefinition {
         "Application Role. Created by Gravitee.io.",
         APPLICATION,
         false,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(ApplicationPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApplicationPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(ApplicationPermission.ANALYTICS.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
@@ -194,8 +185,7 @@ public interface DefaultRoleEntityDefinition {
         "Integration Role. Created by Gravitee.io.",
         INTEGRATION,
         false,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(IntegrationPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(IntegrationPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .build()
@@ -206,8 +196,7 @@ public interface DefaultRoleEntityDefinition {
         "Default Integration Role. Created by Gravitee.io.",
         INTEGRATION,
         true,
-        Maps
-            .<String, char[]>builder()
+        Maps.<String, char[]>builder()
             .put(IntegrationPermission.DEFINITION.getName(), new char[] { READ.getId() })
             .put(IntegrationPermission.MEMBER.getName(), new char[] { READ.getId() })
             .build()

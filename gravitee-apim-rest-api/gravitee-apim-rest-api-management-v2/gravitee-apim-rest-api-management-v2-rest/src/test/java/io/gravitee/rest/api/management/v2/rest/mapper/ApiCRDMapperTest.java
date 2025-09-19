@@ -80,22 +80,19 @@ class ApiCRDMapperTest {
     }
 
     private static ApiCRDSpec.ApiCRDSpecBuilder aCoreCRD() {
-        return ApiCRDSpec
-            .builder()
+        return ApiCRDSpec.builder()
             .analytics(Analytics.builder().enabled(false).build())
             .crossId("api-cross-id")
             .description("api-description")
             .endpointGroups(
                 List.of(
-                    EndpointGroup
-                        .builder()
+                    EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
                         .endpoints(
                             List.of(
-                                Endpoint
-                                    .builder()
+                                Endpoint.builder()
                                     .name("default-endpoint")
                                     .type("http-proxy")
                                     .inheritConfiguration(true)
@@ -112,8 +109,7 @@ class ApiCRDMapperTest {
             .lifecycleState("CREATED")
             .listeners(
                 List.of(
-                    HttpListener
-                        .builder()
+                    HttpListener.builder()
                         .paths(List.of(Path.builder().path("/http_proxy").build()))
                         .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                         .build()
@@ -123,8 +119,7 @@ class ApiCRDMapperTest {
             .plans(
                 Map.of(
                     "keyless-key",
-                    PlanCRD
-                        .builder()
+                    PlanCRD.builder()
                         .id("keyless-id")
                         .name("Keyless")
                         .security(PlanSecurity.builder().type("KEY_LESS").build())

@@ -26,8 +26,7 @@ public class ListenerModelFixtures {
     private static final Path.PathBuilder BASE_MODEL_PATH_V4 = Path.builder().host("my.fake.host").path("/test").overrideAccess(true);
 
     private static final io.gravitee.definition.model.v4.listener.http.HttpListener.HttpListenerBuilder<?, ?> BASE_MODEL_HTTP_LISTENER =
-        io.gravitee.definition.model.v4.listener.http.HttpListener
-            .builder()
+        io.gravitee.definition.model.v4.listener.http.HttpListener.builder()
             // Listener
             .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointV4()))
             .servers(List.of("my-server1", "my-server2"))
@@ -36,16 +35,16 @@ public class ListenerModelFixtures {
             .pathMappings(Set.of("/test"))
             .cors(CorsModelFixtures.aModelCors());
 
-    private static final io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener.SubscriptionListenerBuilder<?, ?> BASE_MODEL_SUBSCRIPTION_LISTENER =
-        io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener
-            .builder()
-            // BaseListener
-            .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointV4()))
-            .servers(List.of("my-server1", "my-server2"));
+    private static final io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener.SubscriptionListenerBuilder<
+        ?,
+        ?
+    > BASE_MODEL_SUBSCRIPTION_LISTENER = io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener.builder()
+        // BaseListener
+        .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointV4()))
+        .servers(List.of("my-server1", "my-server2"));
 
     private static final io.gravitee.definition.model.v4.listener.tcp.TcpListener.TcpListenerBuilder<?, ?> BASE_MODEL_TCP_LISTENER =
-        io.gravitee.definition.model.v4.listener.tcp.TcpListener
-            .builder()
+        io.gravitee.definition.model.v4.listener.tcp.TcpListener.builder()
             // BaseListener
             .hosts(List.of("fake.host.io"))
             .entrypoints(List.of(EntrypointModelFixtures.aModelEntrypointV4()))

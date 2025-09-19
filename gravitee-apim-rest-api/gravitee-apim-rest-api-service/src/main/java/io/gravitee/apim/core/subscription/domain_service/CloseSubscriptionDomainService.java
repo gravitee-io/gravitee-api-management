@@ -134,8 +134,7 @@ public class CloseSubscriptionDomainService {
 
     private void createAuditLog(SubscriptionEntity originalSubscription, SubscriptionEntity closedSubscription, AuditInfo auditInfo) {
         auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(originalSubscription.getApiId())
@@ -148,8 +147,7 @@ public class CloseSubscriptionDomainService {
                 .build()
         );
         auditDomainService.createApplicationAuditLog(
-            ApplicationAuditLogEntity
-                .builder()
+            ApplicationAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .applicationId(originalSubscription.getApplicationId())

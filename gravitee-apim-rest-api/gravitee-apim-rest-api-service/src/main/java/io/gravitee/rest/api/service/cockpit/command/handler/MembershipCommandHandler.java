@@ -121,12 +121,12 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
         } catch (Exception e) {
             String errorDetails =
                 "Error occurred when trying to assign role [%s] on %s [%s] for cockpit user [%s] and organization [%s].".formatted(
-                        membershipPayload.role(),
-                        membershipPayload.referenceType(),
-                        membershipPayload.referenceId(),
-                        membershipPayload.userId(),
-                        membershipPayload.organizationId()
-                    );
+                    membershipPayload.role(),
+                    membershipPayload.referenceType(),
+                    membershipPayload.referenceId(),
+                    membershipPayload.userId(),
+                    membershipPayload.organizationId()
+                );
             log.error(errorDetails, e);
             return Single.just(new MembershipReply(command.getId(), errorDetails));
         }

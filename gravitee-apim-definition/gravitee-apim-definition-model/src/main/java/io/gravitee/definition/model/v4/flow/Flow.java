@@ -73,7 +73,10 @@ public class Flow implements Serializable {
     @JsonIgnore
     public Optional<Selector> selectorByType(SelectorType type) {
         if (selectors != null) {
-            return selectors.stream().filter(selector -> selector.getType() == type).findFirst();
+            return selectors
+                .stream()
+                .filter(selector -> selector.getType() == type)
+                .findFirst();
         }
 
         return Optional.empty();
@@ -81,16 +84,19 @@ public class Flow implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Stream
-            .of(computePlugins(this.request), computePlugins(this.response), computePlugins(this.publish), computePlugins(this.subscribe))
+        return Stream.of(
+            computePlugins(this.request),
+            computePlugins(this.response),
+            computePlugins(this.publish),
+            computePlugins(this.subscribe)
+        )
             .flatMap(List::stream)
             .collect(Collectors.toList());
     }
 
     @JsonIgnore
     private List<Plugin> computePlugins(List<Step> step) {
-        return Optional
-            .ofNullable(step)
+        return Optional.ofNullable(step)
             .map(r -> r.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
             .orElse(List.of());
     }

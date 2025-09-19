@@ -87,15 +87,14 @@ public class EventsLatestUpgraderTest {
 
     @Before
     public void before() {
-        cut =
-            new EventsLatestUpgrader(
-                apiRepository,
-                dictionaryRepository,
-                organizationRepository,
-                eventRepository,
-                eventLatestRepository,
-                new GraviteeMapper(false)
-            );
+        cut = new EventsLatestUpgrader(
+            apiRepository,
+            dictionaryRepository,
+            organizationRepository,
+            eventRepository,
+            eventLatestRepository,
+            new GraviteeMapper(false)
+        );
     }
 
     @Test
@@ -128,8 +127,7 @@ public class EventsLatestUpgraderTest {
                 EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api1").build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
-        )
-            .thenReturn(new Page<>(List.of(event1), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(event1), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event1)).thenReturn(event1);
         Event event2 = new Event();
         when(
@@ -137,8 +135,7 @@ public class EventsLatestUpgraderTest {
                 EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api2").build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
-        )
-            .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(event2), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
         cut.upgrade();
@@ -159,8 +156,7 @@ public class EventsLatestUpgraderTest {
                 EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api1").build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
-        )
-            .thenReturn(new Page<>(List.of(event1), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(event1), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event1)).thenReturn(event1);
         Event event2 = new Event();
         event2.setId("id2");
@@ -170,25 +166,23 @@ public class EventsLatestUpgraderTest {
                 EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api2").build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
-        )
-            .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(event2), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
         cut.upgrade();
 
-        verify(eventLatestRepository, times(2))
-            .createOrUpdate(
-                argThat(argument -> {
-                    if (argument.getId().equals("api1")) {
-                        assertThat(argument.getPayload()).isEqualTo("{\"test\":\"value\"}");
-                    } else if (argument.getId().equals("api2")) {
-                        assertThat(argument.getPayload()).isEqualTo("{\\n");
-                    } else {
-                        return false;
-                    }
-                    return true;
-                })
-            );
+        verify(eventLatestRepository, times(2)).createOrUpdate(
+            argThat(argument -> {
+                if (argument.getId().equals("api1")) {
+                    assertThat(argument.getPayload()).isEqualTo("{\"test\":\"value\"}");
+                } else if (argument.getId().equals("api2")) {
+                    assertThat(argument.getPayload()).isEqualTo("{\\n");
+                } else {
+                    return false;
+                }
+                return true;
+            })
+        );
         verifyNoMoreInteractions(eventLatestRepository);
     }
 
@@ -205,43 +199,37 @@ public class EventsLatestUpgraderTest {
         event1.setType(EventType.PUBLISH_DICTIONARY);
         when(
             eventRepository.search(
-                EventCriteria
-                    .builder()
+                EventCriteria.builder()
                     .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary1.getId())
                     .types(Set.of(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
-        )
-            .thenReturn(new Page<>(List.of(event1), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(event1), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event1)).thenReturn(event1);
         Event event2 = new Event();
         event2.setType(EventType.STOP_DICTIONARY);
         when(
             eventRepository.search(
-                EventCriteria
-                    .builder()
+                EventCriteria.builder()
                     .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary1.getId())
                     .types(Set.of(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
-        )
-            .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(event2), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
         Event event3 = new Event();
         event3.setType(EventType.UNPUBLISH_DICTIONARY);
         when(
             eventRepository.search(
-                EventCriteria
-                    .builder()
+                EventCriteria.builder()
                     .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary2.getId())
                     .types(Set.of(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
-        )
-            .thenReturn(new Page<>(List.of(event3), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(event3), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event3)).thenReturn(event3);
 
         cut.upgrade();
@@ -272,8 +260,7 @@ public class EventsLatestUpgraderTest {
                 EventCriteria.builder().property(Event.EventProperties.ORGANIZATION_ID.getValue(), organization1.getId()).build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
-        )
-            .thenReturn(new Page<>(List.of(event1), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(event1), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event1)).thenReturn(event1);
         Event event2 = new Event();
         when(
@@ -281,8 +268,7 @@ public class EventsLatestUpgraderTest {
                 EventCriteria.builder().property(Event.EventProperties.ORGANIZATION_ID.getValue(), organization2.getId()).build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
-        )
-            .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(event2), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
         cut.upgrade();
@@ -320,8 +306,7 @@ public class EventsLatestUpgraderTest {
                     EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api" + i).build(),
                     new PageableBuilder().pageNumber(0).pageSize(1).build()
                 )
-            )
-                .thenReturn(new Page<>(List.of(event), 0, 1, 1));
+            ).thenReturn(new Page<>(List.of(event), 0, 1, 1));
             when(eventLatestRepository.createOrUpdate(event)).thenReturn(event);
         }
         cut.upgrade();

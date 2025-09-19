@@ -142,8 +142,7 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
             getAuthenticatedUser()
         );
 
-        return Response
-            .created(this.getLocationHeader(createdApplicationEntity.getId()))
+        return Response.created(this.getLocationHeader(createdApplicationEntity.getId()))
             .entity(applicationMapper.convert(executionContext, createdApplicationEntity, uriInfo))
             .build();
     }
@@ -162,25 +161,26 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Collection<String> applicationIds;
         if (forSubscription) {
-            applicationIds =
-                applicationService.findIdsByUserAndPermission(
-                    executionContext,
-                    getAuthenticatedUser(),
-                    applicationsOrderParam.toSortable(),
-                    RolePermission.APPLICATION_SUBSCRIPTION,
-                    RolePermissionAction.CREATE
-                );
+            applicationIds = applicationService.findIdsByUserAndPermission(
+                executionContext,
+                getAuthenticatedUser(),
+                applicationsOrderParam.toSortable(),
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                RolePermissionAction.CREATE
+            );
         } else {
-            applicationIds =
-                applicationService.findIdsByUser(executionContext, getAuthenticatedUser(), applicationsOrderParam.toSortable());
+            applicationIds = applicationService.findIdsByUser(
+                executionContext,
+                getAuthenticatedUser(),
+                applicationsOrderParam.toSortable()
+            );
         }
 
         if (NB_SUBSCRIPTIONS_DESC.equals(applicationsOrderParam.getValue()) || NB_SUBSCRIPTIONS.equals(applicationsOrderParam.getValue())) {
-            applicationIds =
-                filteringService.getApplicationsOrderByNumberOfSubscriptions(
-                    applicationIds,
-                    applicationsOrderParam.getValue().isAsc ? Order.ASC : Order.DESC
-                );
+            applicationIds = filteringService.getApplicationsOrderByNumberOfSubscriptions(
+                applicationIds,
+                applicationsOrderParam.getValue().isAsc ? Order.ASC : Order.DESC
+            );
         }
 
         return createListResponse(executionContext, applicationIds, paginationParam);
@@ -198,13 +198,9 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
             .map(applicationListItem -> applicationMapper.convert(executionContext, applicationListItem, uriInfo, false))
             .collect(Collectors.toList());
 
-        return Response
-            .ok(
-                new DataResponse()
-                    .data(applicationList)
-                    .links(this.computePaginatedLinks(1, applicationList.size(), applicationList.size()))
-            )
-            .build();
+        return Response.ok(
+            new DataResponse().data(applicationList).links(this.computePaginatedLinks(1, applicationList.size(), applicationList.size()))
+        ).build();
     }
 
     @Override

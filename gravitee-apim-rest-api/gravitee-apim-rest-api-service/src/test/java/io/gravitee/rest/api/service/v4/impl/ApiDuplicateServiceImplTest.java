@@ -76,8 +76,7 @@ public class ApiDuplicateServiceImplTest {
     private static final String API_ID = "source-id";
     private static final String DUPLICATE_API_ID = "duplicate-id";
 
-    private static final PrimaryOwnerEntity NEW_PRIMARY_OWNER = PrimaryOwnerEntity
-        .builder()
+    private static final PrimaryOwnerEntity NEW_PRIMARY_OWNER = PrimaryOwnerEntity.builder()
         .id("userId")
         .displayName(USERNAME)
         .type("USER")
@@ -158,8 +157,8 @@ public class ApiDuplicateServiceImplTest {
         @Test
         void should_throw_if_no_context_path() {
             assertThatThrownBy(() ->
-                    service.duplicate(GraviteeContext.getExecutionContext(), sourceApi, duplicateOptions.withContextPath(null))
-                )
+                service.duplicate(GraviteeContext.getExecutionContext(), sourceApi, duplicateOptions.withContextPath(null))
+            )
                 .isInstanceOf(ApiDuplicateException.class)
                 .hasMessage("Cannot find a context-path for HTTP Listener");
         }
@@ -358,18 +357,22 @@ public class ApiDuplicateServiceImplTest {
             duplicateOptions.withFilteredFields(List.of(PAGES, MEMBERS))
         );
 
-        assertThat(duplicated)
-            .hasOnlyPlans(
-                sourceApi.getPlans().stream().map(p -> p.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).build()).collect(toSet())
-            );
+        assertThat(duplicated).hasOnlyPlans(
+            sourceApi
+                .getPlans()
+                .stream()
+                .map(p -> p.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).build())
+                .collect(toSet())
+        );
 
         verify(planService, times(sourceApi.getPlans().size())).createOrUpdatePlan(any(), any());
     }
 
     @Test
     void should_duplicate_plans_and_update_general_conditions_page_id_when_pages_also_duplicated() {
-        when(pageDuplicateService.duplicatePages(any(), any(), any(), any()))
-            .thenReturn(Map.ofEntries(entry("page-1", "dup-page-1"), entry("page-2", "dup-page-2")));
+        when(pageDuplicateService.duplicatePages(any(), any(), any(), any())).thenReturn(
+            Map.ofEntries(entry("page-1", "dup-page-1"), entry("page-2", "dup-page-2"))
+        );
 
         PlanEntity keylessPlan = aKeylessPlanV4().toBuilder().generalConditions("page-1").build();
         PlanEntity apiKeyPlan = anApiKeyPanV4().toBuilder().generalConditions("page-2").build();
@@ -379,13 +382,12 @@ public class ApiDuplicateServiceImplTest {
             duplicateOptions.withFilteredFields(List.of(MEMBERS))
         );
 
-        assertThat(duplicated)
-            .hasOnlyPlans(
-                Set.of(
-                    keylessPlan.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).generalConditions("dup-page-1").build(),
-                    apiKeyPlan.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).generalConditions("dup-page-2").build()
-                )
-            );
+        assertThat(duplicated).hasOnlyPlans(
+            Set.of(
+                keylessPlan.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).generalConditions("dup-page-1").build(),
+                apiKeyPlan.toBuilder().id("fake-uuid").apiId(DUPLICATE_API_ID).generalConditions("dup-page-2").build()
+            )
+        );
 
         verify(planService, times(sourceApi.getPlans().size())).createOrUpdatePlan(any(), any());
     }
@@ -418,7 +420,11 @@ public class ApiDuplicateServiceImplTest {
     void should_duplicate_members_if_not_filtered() {
         service.duplicate(GraviteeContext.getExecutionContext(), sourceApi, duplicateOptions.withFilteredFields(List.of()));
 
-        verify(membershipDuplicateService)
-            .duplicateMemberships(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(DUPLICATE_API_ID), eq(USERNAME));
+        verify(membershipDuplicateService).duplicateMemberships(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API_ID),
+            eq(DUPLICATE_API_ID),
+            eq(USERNAME)
+        );
     }
 }

@@ -63,18 +63,16 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
     }
 
     private Flowable<Flow> getFlows(List<Plan> plans, String planId) {
-        return this.flowsByPlanId.computeIfAbsent(
-                planId,
-                id ->
-                    Flowable.fromIterable(
-                        plans
-                            .stream()
-                            .filter(plan -> Objects.equals(plan.getId(), id))
-                            .filter(plan -> Objects.nonNull(plan.getFlows()))
-                            .flatMap(plan -> plan.getFlows().stream())
-                            .filter(Flow::isEnabled)
-                            .collect(Collectors.toList())
-                    )
-            );
+        return this.flowsByPlanId.computeIfAbsent(planId, id ->
+            Flowable.fromIterable(
+                plans
+                    .stream()
+                    .filter(plan -> Objects.equals(plan.getId(), id))
+                    .filter(plan -> Objects.nonNull(plan.getFlows()))
+                    .flatMap(plan -> plan.getFlows().stream())
+                    .filter(Flow::isEnabled)
+                    .collect(Collectors.toList())
+            )
+        );
     }
 }

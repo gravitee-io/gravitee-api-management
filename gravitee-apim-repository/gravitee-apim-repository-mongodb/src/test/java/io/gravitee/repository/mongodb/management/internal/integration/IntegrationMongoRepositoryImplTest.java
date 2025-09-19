@@ -69,10 +69,9 @@ class IntegrationMongoRepositoryImplTest {
         assertThat(result.getContent()).isEmpty();
 
         JsonNode jsonQuery = MAPPER.readTree(query.getValue().getQueryObject().toJson());
-        assertThat(jsonQuery)
-            .isEqualTo(
-                MAPPER.readTree(
-                    """
+        assertThat(jsonQuery).isEqualTo(
+            MAPPER.readTree(
+                """
                 {
                   "$and": [
                     { "environmentId": "env-1" },
@@ -82,8 +81,8 @@ class IntegrationMongoRepositoryImplTest {
                   ]
                 }
                 """
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -102,21 +101,20 @@ class IntegrationMongoRepositoryImplTest {
         assertThat(result.getContent()).isEmpty();
 
         JsonNode jsonQuery = MAPPER.readTree(query.getValue().getQueryObject().toJson());
-        assertThat(jsonQuery)
-            .isEqualTo(
-                MAPPER.readTree(
-                    """
-                            {
-                              "$and": [
-                                { "environmentId": "env-1" },
-                                { "$or" : [
-                                  { "_id": {"$in": ["id1"]} },
-                                  { "groups": "grp-1" }
-                                ]}
-                              ]
-                            }
-                            """
-                )
-            );
+        assertThat(jsonQuery).isEqualTo(
+            MAPPER.readTree(
+                """
+                {
+                  "$and": [
+                    { "environmentId": "env-1" },
+                    { "$or" : [
+                      { "_id": {"$in": ["id1"]} },
+                      { "groups": "grp-1" }
+                    ]}
+                  ]
+                }
+                """
+            )
+        );
     }
 }

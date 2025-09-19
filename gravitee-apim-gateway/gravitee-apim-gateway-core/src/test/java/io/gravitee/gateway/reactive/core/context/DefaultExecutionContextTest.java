@@ -145,12 +145,9 @@ class DefaultExecutionContextTest {
     void should_return_class_cast_exception_when_invalid_cast_attribute() {
         cut.putAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
-        assertThrows(
-            ClassCastException.class,
-            () -> {
-                final Float value = cut.getAttribute(ATTRIBUTE_KEY);
-            }
-        );
+        assertThrows(ClassCastException.class, () -> {
+            final Float value = cut.getAttribute(ATTRIBUTE_KEY);
+        });
     }
 
     @Test
@@ -211,12 +208,9 @@ class DefaultExecutionContextTest {
     void should_return_class_cast_exception_when_invalid_cast_internal_attribute() {
         cut.putInternalAttribute(ATTRIBUTE_KEY, ATTRIBUTE_VALUE);
 
-        assertThrows(
-            ClassCastException.class,
-            () -> {
-                final Float value = cut.getInternalAttribute(ATTRIBUTE_KEY);
-            }
-        );
+        assertThrows(ClassCastException.class, () -> {
+            final Float value = cut.getInternalAttribute(ATTRIBUTE_KEY);
+        });
     }
 
     @Test

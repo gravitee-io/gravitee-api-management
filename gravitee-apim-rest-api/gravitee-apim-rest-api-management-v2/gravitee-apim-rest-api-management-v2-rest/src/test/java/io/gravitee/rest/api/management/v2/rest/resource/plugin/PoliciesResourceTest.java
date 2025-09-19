@@ -69,22 +69,19 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     public void shouldReturnSortedPolicies() {
         policyPluginQueryServiceInMemory.initWith(
             List.of(
-                io.gravitee.apim.core.plugin.model.PolicyPlugin
-                    .builder()
+                io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
                     .id("policy-1")
                     .name("policy-1")
                     .feature("feature-1")
                     .deployed(false)
                     .build(),
-                io.gravitee.apim.core.plugin.model.PolicyPlugin
-                    .builder()
+                io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
                     .id("policy-2")
                     .name("policy-2")
                     .feature("feature-2")
                     .deployed(true)
                     .build(),
-                io.gravitee.apim.core.plugin.model.PolicyPlugin
-                    .builder()
+                io.gravitee.apim.core.plugin.model.PolicyPlugin.builder()
                     .id("policy-3")
                     .name("policy-3")
                     .feature("feature-3")
@@ -105,12 +102,11 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         // Check response content
         final Set<PolicyPlugin> policyPlugins = response.readEntity(new GenericType<>() {});
 
-        assertThat(policyPlugins)
-            .containsExactly(
-                PolicyPlugin.builder().id("policy-2").name("policy-2").deployed(false).build(),
-                PolicyPlugin.builder().id("policy-3").name("policy-3").deployed(true).build(),
-                PolicyPlugin.builder().id("policy-1").name("policy-1").deployed(false).build()
-            );
+        assertThat(policyPlugins).containsExactly(
+            PolicyPlugin.builder().id("policy-2").name("policy-2").deployed(false).build(),
+            PolicyPlugin.builder().id("policy-3").name("policy-3").deployed(true).build(),
+            PolicyPlugin.builder().id("policy-1").name("policy-1").deployed(false).build()
+        );
     }
 
     @Test

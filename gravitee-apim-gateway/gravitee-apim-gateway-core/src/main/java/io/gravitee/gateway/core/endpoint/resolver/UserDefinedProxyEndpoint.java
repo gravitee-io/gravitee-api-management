@@ -42,8 +42,7 @@ class UserDefinedProxyEndpoint extends AbstractProxyEndpoint {
 
     @Override
     public ProxyRequest createProxyRequest(Request request, Function<ProxyRequestBuilder, ProxyRequestBuilder> mapper) {
-        ProxyRequestBuilder builder = ProxyRequestBuilder
-            .from(request)
+        ProxyRequestBuilder builder = ProxyRequestBuilder.from(request)
             .uri(getTargetWithoutQueryParams(uri))
             .parameters(mergeQueryParameters(uri, request.parameters()));
 

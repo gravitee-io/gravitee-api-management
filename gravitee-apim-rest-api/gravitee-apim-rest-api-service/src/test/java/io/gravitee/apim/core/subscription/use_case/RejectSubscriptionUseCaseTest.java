@@ -129,8 +129,7 @@ class RejectSubscriptionUseCaseTest {
         membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
         applicationCrudService.initWith(
             List.of(
-                ApplicationModelFixtures
-                    .anApplicationEntity()
+                ApplicationModelFixtures.anApplicationEntity()
                     .toBuilder()
                     .id(APPLICATION_ID)
                     .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
@@ -144,9 +143,14 @@ class RejectSubscriptionUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(apiKeyCrudService, applicationCrudService, auditCrudService, planCrudService, subscriptionCrudService, userCrudService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiKeyCrudService,
+            applicationCrudService,
+            auditCrudService,
+            planCrudService,
+            subscriptionCrudService,
+            userCrudService
+        ).forEach(InMemoryAlternative::reset);
         triggerNotificationService.reset();
     }
 
@@ -155,8 +159,7 @@ class RejectSubscriptionUseCaseTest {
         // Given
         var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
@@ -188,8 +191,7 @@ class RejectSubscriptionUseCaseTest {
         // Given
         var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
@@ -236,8 +238,7 @@ class RejectSubscriptionUseCaseTest {
         // Given
         var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
                 .planId(plan.getId())
@@ -249,17 +250,15 @@ class RejectSubscriptionUseCaseTest {
         reject(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationService.getApiNotifications())
-            .containsExactly(
-                new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
-            );
+        assertThat(triggerNotificationService.getApiNotifications()).containsExactly(
+            new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
+        );
 
-        assertThat(triggerNotificationService.getApplicationNotifications())
-            .containsExactly(
-                new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                    new SubscriptionRejectedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
-                )
-            );
+        assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
+            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                new SubscriptionRejectedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
+            )
+        );
     }
 
     @Test
@@ -268,8 +267,7 @@ class RejectSubscriptionUseCaseTest {
         var subscriber = givenExistingUser(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build());
         var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy(subscriber.getId())
                 .planId(plan.getId())
@@ -281,13 +279,12 @@ class RejectSubscriptionUseCaseTest {
         reject(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationService.getApplicationNotifications())
-            .contains(
-                new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                    new Recipient("EMAIL", "subscriber@mail.fake"),
-                    new SubscriptionRejectedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
-                )
-            );
+        assertThat(triggerNotificationService.getApplicationNotifications()).contains(
+            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                new Recipient("EMAIL", "subscriber@mail.fake"),
+                new SubscriptionRejectedApplicationHookContext("application-id", "api-id", "plan-published", "subscription-id", USER_ID)
+            )
+        );
     }
 
     @Test
@@ -314,8 +311,7 @@ class RejectSubscriptionUseCaseTest {
     void should_throw_when_plan_is_closed() {
         var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.CLOSED));
         var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
                 .planId(plan.getId())

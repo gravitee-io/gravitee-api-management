@@ -139,8 +139,9 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         UserEntity userEntity = mockUserEntity();
 
         String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, null);
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true))
-            .thenThrow(new UserNotFoundException(JWT_SUBJECT));
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenThrow(
+            new UserNotFoundException(JWT_SUBJECT)
+        );
         final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
@@ -212,8 +213,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     }
 
     private void assertToken(Response response, UserEntity userEntity) {
-        String token = URLEncodedUtils
-            .parse(response.getLocation(), "UTF-8")
+        String token = URLEncodedUtils.parse(response.getLocation(), "UTF-8")
             .stream()
             .filter(pair -> "token".equalsIgnoreCase(pair.getName()))
             .findFirst()
@@ -260,12 +260,11 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         var issueTime = TimeProvider.now();
         var expirationTime = issueTime.plusSeconds(TTL_SECONDS);
         try {
-            KeyStore keystore =
-                this.loadKeyStore(
-                        System.getProperty(getKeystorePropertyPrefix() + ".keystore.type"),
-                        System.getProperty(getKeystorePropertyPrefix() + ".keystore.path"),
-                        System.getProperty(getKeystorePropertyPrefix() + ".keystore.password")
-                    );
+            KeyStore keystore = this.loadKeyStore(
+                System.getProperty(getKeystorePropertyPrefix() + ".keystore.type"),
+                System.getProperty(getKeystorePropertyPrefix() + ".keystore.path"),
+                System.getProperty(getKeystorePropertyPrefix() + ".keystore.password")
+            );
             PrivateKey privateKey = (PrivateKey) keystore.getKey(
                 System.getProperty(getKeystorePropertyPrefix() + ".keystore.key.alias"),
                 System.getProperty(getKeystorePropertyPrefix() + ".keystore.password").toCharArray()

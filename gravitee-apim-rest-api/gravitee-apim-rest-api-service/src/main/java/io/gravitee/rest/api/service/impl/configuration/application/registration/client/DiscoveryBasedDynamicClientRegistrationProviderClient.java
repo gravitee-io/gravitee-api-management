@@ -53,29 +53,26 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
         httpClient = HttpClients.createDefault();
 
         try {
-            DiscoveryResponse discovery = httpClient.execute(
-                new HttpGet(discoveryEndpoint),
-                response -> {
-                    int status = response.getStatusLine().getStatusCode();
-                    if (status >= 200 && status < 300) {
-                        HttpEntity entity = response.getEntity();
+            DiscoveryResponse discovery = httpClient.execute(new HttpGet(discoveryEndpoint), response -> {
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+                    HttpEntity entity = response.getEntity();
 
-                        if (entity != null) {
-                            return mapper.readValue(EntityUtils.toString(entity), DiscoveryResponse.class);
-                        } else {
-                            throw new DynamicClientRegistrationException("OIDC Discovery response is not well-formed");
-                        }
+                    if (entity != null) {
+                        return mapper.readValue(EntityUtils.toString(entity), DiscoveryResponse.class);
                     } else {
-                        throw new DynamicClientRegistrationException(
-                            String.format(
-                                "Unexpected response status from OIDC Discovery endpoint: status [%s] message [%s]",
-                                status,
-                                EntityUtils.toString(response.getEntity())
-                            )
-                        );
+                        throw new DynamicClientRegistrationException("OIDC Discovery response is not well-formed");
                     }
+                } else {
+                    throw new DynamicClientRegistrationException(
+                        String.format(
+                            "Unexpected response status from OIDC Discovery endpoint: status [%s] message [%s]",
+                            status,
+                            EntityUtils.toString(response.getEntity())
+                        )
+                    );
                 }
-            );
+            });
 
             registrationEndpoint = discovery.getRegistrationEndpoint();
             attributes.put("token_endpoint", discovery.getTokenEndpoint());

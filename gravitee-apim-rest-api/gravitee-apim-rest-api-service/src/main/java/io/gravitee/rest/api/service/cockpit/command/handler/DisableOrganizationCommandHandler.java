@@ -65,21 +65,20 @@ public class DisableOrganizationCommandHandler implements CommandHandler<Disable
 
             // Deactivate all identity providers
             this.identityProviderActivationService.removeAllIdpsFromTarget(
-                    context,
-                    new IdentityProviderActivationService.ActivationTarget(
-                        organization.getId(),
-                        IdentityProviderActivationReferenceType.ORGANIZATION
-                    )
-                );
+                context,
+                new IdentityProviderActivationService.ActivationTarget(
+                    organization.getId(),
+                    IdentityProviderActivationReferenceType.ORGANIZATION
+                )
+            );
 
             log.info("Organization [{}] with id [{}] has been disabled.", organization.getName(), organization.getId());
             return Single.just(new DisableOrganizationReply(command.getId()));
         } catch (Exception e) {
-            String errorDetails =
-                "Error occurred when disabling organization [%s] with id [%s].".formatted(
-                        organizationPayload.name(),
-                        organizationPayload.id()
-                    );
+            String errorDetails = "Error occurred when disabling organization [%s] with id [%s].".formatted(
+                organizationPayload.name(),
+                organizationPayload.id()
+            );
             log.error(errorDetails, e);
             return Single.just(new DisableOrganizationReply(command.getId(), errorDetails));
         }

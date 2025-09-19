@@ -199,7 +199,11 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         return (
             api.getDefinitionVersion() == DefinitionVersion.V4 &&
             api.getDefinition().getType() == ApiType.PROXY &&
-            api.getDefinition().getListeners().stream().anyMatch(listener -> listener.getType() == ListenerType.HTTP)
+            api
+                .getDefinition()
+                .getListeners()
+                .stream()
+                .anyMatch(listener -> listener.getType() == ListenerType.HTTP)
         );
     }
 

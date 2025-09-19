@@ -148,7 +148,8 @@ public class ApiEndpointWeightUpgrader implements Upgrader {
     }
 
     private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
-        return new ApiCriteria.Builder()
-            .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2, DefinitionVersion.V4));
+        return new ApiCriteria.Builder().definitionVersion(
+            Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2, DefinitionVersion.V4)
+        );
     }
 }

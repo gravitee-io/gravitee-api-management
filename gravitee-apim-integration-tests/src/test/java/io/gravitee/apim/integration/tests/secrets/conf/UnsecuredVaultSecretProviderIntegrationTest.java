@@ -46,10 +46,9 @@ class UnsecuredVaultSecretProviderIntegrationTest {
 
     @BeforeAll
     static void startAndConfigure() throws IOException, InterruptedException {
-        vaultContainer =
-            new org.testcontainers.vault.VaultContainer<>(SecuredVaultContainer.HASHICORP_VAULT_IMAGE)
-                .withVaultToken(VAULT_TOKEN)
-                .withInitCommand("kv put secret/test top_secret=thatWillRemainOurDirtyLittleSecret");
+        vaultContainer = new org.testcontainers.vault.VaultContainer<>(SecuredVaultContainer.HASHICORP_VAULT_IMAGE)
+            .withVaultToken(VAULT_TOKEN)
+            .withInitCommand("kv put secret/test top_secret=thatWillRemainOurDirtyLittleSecret");
         vaultContainer.start();
         // create a renewable token so the plugin does not start panicking
         Container.ExecResult execResult = vaultContainer.execInContainer("vault", "token", "create", "-period=10m", "-field", "token");

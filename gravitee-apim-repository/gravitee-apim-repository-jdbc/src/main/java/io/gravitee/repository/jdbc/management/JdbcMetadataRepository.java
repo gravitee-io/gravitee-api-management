@@ -49,26 +49,25 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
 
     @Override
     protected JdbcObjectMapper<Metadata> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Metadata.class, this.tableName, "key")
+        return JdbcObjectMapper.builder(Metadata.class, this.tableName, "key")
             .updateSql(
                 "update " +
-                this.tableName +
-                " set " +
-                escapeReservedWord("key") +
-                " = ?" +
-                " , reference_type = ?" +
-                " , reference_id = ?" +
-                " , name = ?" +
-                " , format = ?" +
-                " , value = ?" +
-                " , created_at = ? " +
-                " , updated_at = ? " +
-                " where " +
-                escapeReservedWord("key") +
-                " = ? " +
-                "and reference_type = ? " +
-                "and reference_id = ? "
+                    this.tableName +
+                    " set " +
+                    escapeReservedWord("key") +
+                    " = ?" +
+                    " , reference_type = ?" +
+                    " , reference_id = ?" +
+                    " , name = ?" +
+                    " , format = ?" +
+                    " , value = ?" +
+                    " , created_at = ? " +
+                    " , updated_at = ? " +
+                    " where " +
+                    escapeReservedWord("key") +
+                    " = ? " +
+                    "and reference_type = ? " +
+                    "and reference_id = ? "
             )
             .addColumn("key", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, MetadataReferenceType.class)
@@ -104,25 +103,23 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
         }
         try {
             jdbcTemplate.update(
-                getOrm()
-                    .buildUpdatePreparedStatementCreator(
-                        metadata,
-                        metadata.getKey(),
-                        metadata.getReferenceType().name(),
-                        metadata.getReferenceId()
-                    )
+                getOrm().buildUpdatePreparedStatementCreator(
+                    metadata,
+                    metadata.getKey(),
+                    metadata.getReferenceType().name(),
+                    metadata.getReferenceId()
+                )
             );
-            return findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType())
-                .orElseThrow(() ->
-                    new IllegalStateException(
-                        format(
-                            "No metadata found with id [%s, %s, %s]",
-                            metadata.getKey(),
-                            metadata.getReferenceId(),
-                            metadata.getReferenceType()
-                        )
+            return findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType()).orElseThrow(() ->
+                new IllegalStateException(
+                    format(
+                        "No metadata found with id [%s, %s, %s]",
+                        metadata.getKey(),
+                        metadata.getReferenceId(),
+                        metadata.getReferenceType()
                     )
-                );
+                )
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -137,10 +134,10 @@ public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metada
         try {
             jdbcTemplate.update(
                 "delete from " +
-                this.tableName +
-                " where " +
-                escapeReservedWord("key") +
-                " = ? and reference_type = ? and reference_id = ? ",
+                    this.tableName +
+                    " where " +
+                    escapeReservedWord("key") +
+                    " = ? and reference_type = ? and reference_id = ? ",
                 key,
                 referenceType.name(),
                 referenceId

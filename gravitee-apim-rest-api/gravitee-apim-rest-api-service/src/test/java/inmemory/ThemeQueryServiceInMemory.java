@@ -59,9 +59,10 @@ public class ThemeQueryServiceInMemory implements ThemeQueryService, InMemoryAlt
     public Page<Theme> searchByCriteria(ThemeSearchCriteria criteria, Pageable pageable) {
         var themes = storage
             .stream()
-            .filter(theme ->
-                (Objects.isNull(criteria.getType()) || criteria.getType().equals(theme.getType())) &&
-                (Objects.isNull(criteria.getEnabled()) || criteria.getEnabled().equals(theme.isEnabled()))
+            .filter(
+                theme ->
+                    (Objects.isNull(criteria.getType()) || criteria.getType().equals(theme.getType())) &&
+                    (Objects.isNull(criteria.getEnabled()) || criteria.getEnabled().equals(theme.isEnabled()))
             )
             .toList();
 
@@ -72,10 +73,11 @@ public class ThemeQueryServiceInMemory implements ThemeQueryService, InMemoryAlt
     public Set<Theme> findByThemeTypeAndEnvironmentId(ThemeType themeType, String environmentId) {
         return storage
             .stream()
-            .filter(theme ->
-                Objects.equals(themeType, theme.getType()) &&
-                Objects.equals(environmentId, theme.getReferenceId()) &&
-                Objects.equals(Theme.ReferenceType.ENVIRONMENT, theme.getReferenceType())
+            .filter(
+                theme ->
+                    Objects.equals(themeType, theme.getType()) &&
+                    Objects.equals(environmentId, theme.getReferenceId()) &&
+                    Objects.equals(Theme.ReferenceType.ENVIRONMENT, theme.getReferenceType())
             )
             .collect(Collectors.toSet());
     }

@@ -94,21 +94,19 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
     @Override
     public RoleEntity findById(final String roleId) {
-        return GraviteeContext
-            .getCurrentRoles()
-            .computeIfAbsent(
-                roleId,
-                k -> {
-                    try {
-                        LOGGER.debug("Find Role by id");
+        return GraviteeContext.getCurrentRoles().computeIfAbsent(roleId, k -> {
+            try {
+                LOGGER.debug("Find Role by id");
 
-                        return roleRepository.findById(k).map(this::convert).orElseThrow(() -> new RoleNotFoundException(k));
-                    } catch (TechnicalException ex) {
-                        LOGGER.error("An error occurs while trying to find a role : {}", k, ex);
-                        throw new TechnicalManagementException("An error occurs while trying to find a role : " + k, ex);
-                    }
-                }
-            );
+                return roleRepository
+                    .findById(k)
+                    .map(this::convert)
+                    .orElseThrow(() -> new RoleNotFoundException(k));
+            } catch (TechnicalException ex) {
+                LOGGER.error("An error occurs while trying to find a role : {}", k, ex);
+                throw new TechnicalManagementException("An error occurs while trying to find a role : " + k, ex);
+            }
+        });
     }
 
     @Override
@@ -189,15 +187,12 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         try {
             Role role = roleRepository
                 .findById(roleEntity.getId())
-                .filter(r ->
-                    (
-                        r.getReferenceType() == RoleReferenceType.ENVIRONMENT &&
-                        r.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
-                    ) ||
-                    (
-                        r.getReferenceType() == RoleReferenceType.ORGANIZATION &&
-                        r.getReferenceId().equalsIgnoreCase(executionContext.getOrganizationId())
-                    )
+                .filter(
+                    r ->
+                        (r.getReferenceType() == RoleReferenceType.ENVIRONMENT &&
+                            r.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())) ||
+                        (r.getReferenceType() == RoleReferenceType.ORGANIZATION &&
+                            r.getReferenceId().equalsIgnoreCase(executionContext.getOrganizationId()))
                 )
                 .orElseThrow(() -> new RoleNotFoundException(roleEntity.getId()));
             Role updatedRole = convert(executionContext, roleEntity);
@@ -417,21 +412,19 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             return Collections.emptyMap();
         }
         Map<String, char[]> result = new HashMap<>();
-        Stream
-            .of(Permission.findByScope(scope))
-            .forEach(perm -> {
-                for (int action : perms) {
-                    if (action / 100 == perm.getMask() / 100) {
-                        List<Character> crud = new ArrayList<>();
-                        for (RolePermissionAction rolePermissionAction : RolePermissionAction.values()) {
-                            if (((action - perm.getMask()) & rolePermissionAction.getMask()) != 0) {
-                                crud.add(rolePermissionAction.getId());
-                            }
+        Stream.of(Permission.findByScope(scope)).forEach(perm -> {
+            for (int action : perms) {
+                if (action / 100 == perm.getMask() / 100) {
+                    List<Character> crud = new ArrayList<>();
+                    for (RolePermissionAction rolePermissionAction : RolePermissionAction.values()) {
+                        if (((action - perm.getMask()) & rolePermissionAction.getMask()) != 0) {
+                            crud.add(rolePermissionAction.getId());
                         }
-                        result.put(perm.getName(), ArrayUtils.toPrimitive(crud.toArray(new Character[0])));
                     }
+                    result.put(perm.getName(), ArrayUtils.toPrimitive(crud.toArray(new Character[0])));
                 }
-            });
+            }
+        });
         return result;
     }
 
@@ -500,7 +493,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 executionContext,
                 SystemRole.PRIMARY_OWNER,
                 RoleScope.API,
-                stream(ApiPermission.values()).filter(permission -> !REVIEWS.equals(permission)).toArray(Permission[]::new),
+                stream(ApiPermission.values())
+                    .filter(permission -> !REVIEWS.equals(permission))
+                    .toArray(Permission[]::new),
                 organizationId
             );
             //APPLICATION - PRIMARY_OWNER
@@ -534,10 +529,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
     @Override
     public RoleEntity findPrimaryOwnerRoleByOrganization(String organizationId, RoleScope roleScope) {
-        return this.primaryOwnersByOrganization.computeIfAbsent(
-                new PrimaryOwner(organizationId, roleScope),
-                s -> findByScopeAndName(s.roleScope(), SystemRole.PRIMARY_OWNER.name(), s.organisation()).orElse(null)
-            );
+        return this.primaryOwnersByOrganization.computeIfAbsent(new PrimaryOwner(organizationId, roleScope), s ->
+            findByScopeAndName(s.roleScope(), SystemRole.PRIMARY_OWNER.name(), s.organisation()).orElse(null)
+        );
     }
 
     public void createOrUpdateSystemRole(

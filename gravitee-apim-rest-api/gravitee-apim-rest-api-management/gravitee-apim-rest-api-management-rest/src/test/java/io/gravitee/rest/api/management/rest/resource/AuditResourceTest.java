@@ -84,8 +84,9 @@ public class AuditResourceTest extends AbstractResourceTest {
         when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
         List<AuditEntity> audits = List.of(new TestAudit("audit-1"));
         Map<String, String> metadata = new HashMap<>();
-        when(auditService.search(any(), argThat(o -> o != null && o.getEvents().equals(Collections.singletonList("eventId")))))
-            .thenReturn(new MetadataPage<>(audits, 1, 1, 1, metadata));
+        when(auditService.search(any(), argThat(o -> o != null && o.getEvents().equals(Collections.singletonList("eventId"))))).thenReturn(
+            new MetadataPage<>(audits, 1, 1, 1, metadata)
+        );
 
         final Response response = envTarget().queryParam("event", "eventId").request().get();
 

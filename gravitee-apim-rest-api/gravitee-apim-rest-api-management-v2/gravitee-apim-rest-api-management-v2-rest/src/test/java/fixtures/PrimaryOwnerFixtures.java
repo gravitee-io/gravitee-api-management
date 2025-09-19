@@ -24,8 +24,7 @@ public class PrimaryOwnerFixtures {
 
     private PrimaryOwnerFixtures() {}
 
-    private static final PrimaryOwner.PrimaryOwnerBuilder BASE_PRIMARY_OWNER = PrimaryOwner
-        .builder()
+    private static final PrimaryOwner.PrimaryOwnerBuilder BASE_PRIMARY_OWNER = PrimaryOwner.builder()
         .id("primary-owner-id")
         .displayName("primary-owner-displayName")
         .email("primary-owner@email.com")

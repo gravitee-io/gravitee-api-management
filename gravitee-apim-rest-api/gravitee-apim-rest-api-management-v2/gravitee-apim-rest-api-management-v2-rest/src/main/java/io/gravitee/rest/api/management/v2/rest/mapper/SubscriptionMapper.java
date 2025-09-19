@@ -90,7 +90,10 @@ public interface SubscriptionMapper {
 
     @Named("toBaseSubscriptionsList")
     default List<BaseSubscription> mapToBaseSubscriptionList(List<String> subscriptionIds) {
-        return subscriptionIds.stream().map(id -> new BaseSubscription().id(id)).toList();
+        return subscriptionIds
+            .stream()
+            .map(id -> new BaseSubscription().id(id))
+            .toList();
     }
 
     @Mapping(source = "subscriptions", target = "subscriptions", qualifiedByName = "toBaseSubscriptionsList")

@@ -39,18 +39,16 @@ class ResourcePluginQueryServiceLegacyWrapperTest {
 
     @Test
     void findAll() {
-        when(resourceService.findAll())
-            .thenReturn(
-                Set.of(
-                    PlatformPluginEntity.builder().id("resource-1").name("Resource 1").build(),
-                    PlatformPluginEntity.builder().id("resource-2").name("Resource 2").build()
-                )
-            );
+        when(resourceService.findAll()).thenReturn(
+            Set.of(
+                PlatformPluginEntity.builder().id("resource-1").name("Resource 1").build(),
+                PlatformPluginEntity.builder().id("resource-2").name("Resource 2").build()
+            )
+        );
 
-        assertThat(service.findAll())
-            .containsExactlyInAnyOrder(
-                ResourcePlugin.builder().id("resource-1").name("Resource 1").build(),
-                ResourcePlugin.builder().id("resource-2").name("Resource 2").build()
-            );
+        assertThat(service.findAll()).containsExactlyInAnyOrder(
+            ResourcePlugin.builder().id("resource-1").name("Resource 1").build(),
+            ResourcePlugin.builder().id("resource-2").name("Resource 2").build()
+        );
     }
 }

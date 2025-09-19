@@ -58,8 +58,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
     public DefaultPolicyChainFactory(final String id, final PolicyManager policyManager, final Configuration configuration) {
         this.policyManager = policyManager;
 
-        final CacheConfiguration cacheConfiguration = CacheConfiguration
-            .builder()
+        final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
             .maxSize(CACHE_MAX_SIZE)
             .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
             .build();

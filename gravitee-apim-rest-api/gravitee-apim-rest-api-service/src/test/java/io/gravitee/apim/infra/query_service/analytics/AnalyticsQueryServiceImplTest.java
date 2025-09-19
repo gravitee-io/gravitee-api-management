@@ -65,44 +65,43 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_map_repository_response_to_requests_count() {
-            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any()))
-                .thenReturn(
-                    Optional.of(CountAggregate.builder().total(10).countBy(Map.of("first", 3L, "second", 4L, "third", 3L)).build())
-                );
-            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1"))
-                .hasValueSatisfying(requestsCount -> {
-                    assertThat(requestsCount.getTotal()).isEqualTo(10);
-                    assertThat(requestsCount.getCountsByEntrypoint()).containsAllEntriesOf(Map.of("first", 3L, "second", 4L, "third", 3L));
-                });
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any())).thenReturn(
+                Optional.of(CountAggregate.builder().total(10).countBy(Map.of("first", 3L, "second", 4L, "third", 3L)).build())
+            );
+            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1")).hasValueSatisfying(requestsCount -> {
+                assertThat(requestsCount.getTotal()).isEqualTo(10);
+                assertThat(requestsCount.getCountsByEntrypoint()).containsAllEntriesOf(Map.of("first", 3L, "second", 4L, "third", 3L));
+            });
         }
 
         @Test
         void should_return_request_status_ranges() {
-            when(analyticsRepository.searchResponseStatusRanges(any(QueryContext.class), any()))
-                .thenReturn(
-                    Optional.of(
-                        ResponseStatusRangesAggregate
-                            .builder()
-                            .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L))
-                            .statusRangesCountByEntrypoint(
-                                Map.of(
-                                    "http-post",
-                                    Map.of("100.0-200.0", 1L, "200.0-300.0", 1L),
-                                    "http-get",
-                                    Map.of("100.0-200.0", 0L, "200.0-300.0", 1L)
-                                )
+            when(analyticsRepository.searchResponseStatusRanges(any(QueryContext.class), any())).thenReturn(
+                Optional.of(
+                    ResponseStatusRangesAggregate.builder()
+                        .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L))
+                        .statusRangesCountByEntrypoint(
+                            Map.of(
+                                "http-post",
+                                Map.of("100.0-200.0", 1L, "200.0-300.0", 1L),
+                                "http-get",
+                                Map.of("100.0-200.0", 0L, "200.0-300.0", 1L)
                             )
-                            .build()
-                    )
-                );
-            assertThat(cut.searchResponseStatusRanges(GraviteeContext.getExecutionContext(), "api#1"))
-                .hasValueSatisfying(responseStatusRanges -> {
+                        )
+                        .build()
+                )
+            );
+            assertThat(cut.searchResponseStatusRanges(GraviteeContext.getExecutionContext(), "api#1")).hasValueSatisfying(
+                responseStatusRanges -> {
                     assertThat(responseStatusRanges.getRanges()).containsAllEntriesOf(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L));
-                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-post"))
-                        .containsAllEntriesOf(Map.of("100.0-200.0", 1L, "200.0-300.0", 1L));
-                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-get"))
-                        .containsAllEntriesOf(Map.of("100.0-200.0", 0L, "200.0-300.0", 1L));
-                });
+                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-post")).containsAllEntriesOf(
+                        Map.of("100.0-200.0", 1L, "200.0-300.0", 1L)
+                    );
+                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-get")).containsAllEntriesOf(
+                        Map.of("100.0-200.0", 0L, "200.0-300.0", 1L)
+                    );
+                }
+            );
         }
     }
 }

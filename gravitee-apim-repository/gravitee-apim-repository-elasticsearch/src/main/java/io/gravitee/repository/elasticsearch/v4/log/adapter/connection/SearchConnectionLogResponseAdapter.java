@@ -38,13 +38,16 @@ public class SearchConnectionLogResponseAdapter {
 
         return new LogResponse<>(
             (int) hits.getTotal().getValue(),
-            hits.getHits().stream().map(h -> buildFromSource(h.getSource())).toList()
+            hits
+                .getHits()
+                .stream()
+                .map(h -> buildFromSource(h.getSource()))
+                .toList()
         );
     }
 
     private static ConnectionLog buildFromSource(JsonNode json) {
-        return ConnectionLog
-            .builder()
+        return ConnectionLog.builder()
             .requestId(json.get("request-id").asText())
             .timestamp(asTextOrNull(json.get("@timestamp")))
             .applicationId(asTextOrNull(json.get("application-id")))

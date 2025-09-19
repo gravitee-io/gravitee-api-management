@@ -172,8 +172,12 @@ public class ApiMembersResource extends AbstractResource {
                 apiMembership.getId()
             );
             if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
-                membership =
-                    membershipService.updateRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
+                membership = membershipService.updateRoleToMemberOnReference(
+                    GraviteeContext.getExecutionContext(),
+                    reference,
+                    member,
+                    role
+                );
             }
         }
         if (membership == null) {

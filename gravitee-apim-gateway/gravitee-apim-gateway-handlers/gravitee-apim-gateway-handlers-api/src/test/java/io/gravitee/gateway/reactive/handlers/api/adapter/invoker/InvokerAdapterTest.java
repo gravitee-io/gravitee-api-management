@@ -106,8 +106,9 @@ class InvokerAdapterTest {
     @Test
     void shouldInterruptWith502WhenExceptionOccurs() {
         when(ctx.response()).thenReturn(response);
-        when(ctx.interruptWith(any(ExecutionFailure.class)))
-            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
+        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
+            Completable.error(new InterruptionFailureException(i.getArgument(0)))
+        );
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
             .when(invoker)
@@ -127,8 +128,9 @@ class InvokerAdapterTest {
     @Test
     void shouldInterruptAndPropagateFailureWhenInterruptionFailureExceptionOccurs() {
         when(ctx.response()).thenReturn(response);
-        when(ctx.interruptWith(any(ExecutionFailure.class)))
-            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
+        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
+            Completable.error(new InterruptionFailureException(i.getArgument(0)))
+        );
 
         final String failureContentType = "text/plain";
         final String failureKey = "INTERNAL_ERROR";
@@ -215,8 +217,9 @@ class InvokerAdapterTest {
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
-        when(ctx.interruptWith(any(ExecutionFailure.class)))
-            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
+        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
+            Completable.error(new InterruptionFailureException(i.getArgument(0)))
+        );
 
         doThrow(new RuntimeException(MOCK_EXCEPTION_MESSAGE))
             .when(invoker)
@@ -235,15 +238,15 @@ class InvokerAdapterTest {
 
     private void mockComplete() {
         doAnswer(invocation -> {
-                ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
-                final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
-                    ConnectionHandlerAdapter.class,
-                    "nextEmitter",
-                    connectionHandlerAdapter
-                );
-                ((CompletableEmitter) nextEmitter.get()).onComplete();
-                return null;
-            })
+            ConnectionHandlerAdapter connectionHandlerAdapter = invocation.getArgument(2);
+            final Try<Object> nextEmitter = ReflectionUtils.tryToReadFieldValue(
+                ConnectionHandlerAdapter.class,
+                "nextEmitter",
+                connectionHandlerAdapter
+            );
+            ((CompletableEmitter) nextEmitter.get()).onComplete();
+            return null;
+        })
             .when(invoker)
             .invoke(any(io.gravitee.gateway.api.ExecutionContext.class), any(ReadWriteStream.class), any(Handler.class));
     }

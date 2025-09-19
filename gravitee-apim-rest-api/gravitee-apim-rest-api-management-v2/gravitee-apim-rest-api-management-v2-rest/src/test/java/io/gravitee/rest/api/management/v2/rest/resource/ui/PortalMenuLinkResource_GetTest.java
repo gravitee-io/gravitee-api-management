@@ -76,8 +76,7 @@ public class PortalMenuLinkResource_GetTest extends AbstractResourceTest {
     @Test
     void should_get_portal_menu_link() {
         // Given
-        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id(PORTAL_MENU_LINK_ID)
             .environmentId(ENV_ID)
@@ -103,8 +102,7 @@ public class PortalMenuLinkResource_GetTest extends AbstractResourceTest {
     @Test
     void should_not_get_portal_menu_link_when_not_found() {
         // Given
-        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id("Another-portal-link-id")
             .environmentId(ENV_ID)
@@ -115,8 +113,7 @@ public class PortalMenuLinkResource_GetTest extends AbstractResourceTest {
         var response = rootTarget().request().get();
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(NOT_FOUND_404)
             .asError()
             .hasHttpStatus(NOT_FOUND_404)
@@ -133,15 +130,13 @@ public class PortalMenuLinkResource_GetTest extends AbstractResourceTest {
                 eq(ENV_ID),
                 eq(RolePermissionAction.READ)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         // When
         final Response response = rootTarget().request().get();
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(FORBIDDEN_403)
             .asError()
             .hasHttpStatus(FORBIDDEN_403)

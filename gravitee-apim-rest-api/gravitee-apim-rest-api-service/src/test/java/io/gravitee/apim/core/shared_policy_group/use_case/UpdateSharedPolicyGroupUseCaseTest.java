@@ -57,8 +57,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
     private final String ORG_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getOrganizationId();
     private final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
     private final String USER_ID = "user-id";
-    private final AuditInfo AUDIT_INFO = AuditInfo
-        .builder()
+    private final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .organizationId(ORG_ID)
         .environmentId(ENV_ID)
         .actor(AuditActor.builder().userId(USER_ID).build())
@@ -86,8 +85,11 @@ public class UpdateSharedPolicyGroupUseCaseTest {
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
-        updateSharedPolicyGroupUseCase =
-            new UpdateSharedPolicyGroupUseCase(sharedPolicyGroupCrudService, policyValidationDomainService, auditService);
+        updateSharedPolicyGroupUseCase = new UpdateSharedPolicyGroupUseCase(
+            sharedPolicyGroupCrudService,
+            policyValidationDomainService,
+            auditService
+        );
     }
 
     @Test
@@ -97,8 +99,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
 
         // When
-        var toUpdate = UpdateSharedPolicyGroup
-            .builder()
+        var toUpdate = UpdateSharedPolicyGroup.builder()
             .crossId("new-cross-id")
             .name("new-name")
             .description("new-description")
@@ -179,8 +180,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
 
         // When
-        var toUpdate = UpdateSharedPolicyGroup
-            .builder()
+        var toUpdate = UpdateSharedPolicyGroup.builder()
             .crossId("new-cross-id")
             .name("new-name")
             .description("new-description")
@@ -194,8 +194,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORG_ID)
                     .environmentId(ENV_ID)
@@ -253,8 +252,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         );
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(SharedPolicyGroupDuplicateCrossIdException.class)
             .hasMessage("SharedPolicyGroup with crossId [cross-id-1] already exists for environment [environmentId].");
     }
@@ -266,8 +264,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
 
         // When
-        var toUpdate = UpdateSharedPolicyGroup
-            .builder()
+        var toUpdate = UpdateSharedPolicyGroup.builder()
             .steps(List.of(Step.builder().policy("policy_throw_invalid_data_exception").configuration("{ \"key\": \"value\" }").build()))
             .build();
         var throwable = Assertions.catchThrowable(() ->
@@ -277,8 +274,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         );
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(InvalidDataException.class)
             .hasMessage("Invalid configuration for policy policy_throw_invalid_data_exception");
     }
@@ -290,8 +286,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
 
         // When
-        var toUpdate = UpdateSharedPolicyGroup
-            .builder()
+        var toUpdate = UpdateSharedPolicyGroup.builder()
             .steps(
                 List.of(Step.builder().policy("policy_throw_unexpected_policy_exception").configuration("{ \"key\": \"value\" }").build())
             )
@@ -303,8 +298,7 @@ public class UpdateSharedPolicyGroupUseCaseTest {
         );
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(UnexpectedPoliciesException.class)
             .hasMessage("Unexpected policies [policy_throw_unexpected_policy_exception] for API type MESSAGE and phase REQUEST");
     }

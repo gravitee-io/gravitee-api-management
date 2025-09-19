@@ -113,8 +113,7 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     private static ScoringRuleset aRuleset(String uuid, Date date) {
-        return ScoringRuleset
-            .builder()
+        return ScoringRuleset.builder()
             .id(uuid)
             .name("ruleset-name")
             .description("ruleset-description")

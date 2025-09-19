@@ -83,17 +83,15 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
     }
 
     protected Completable handleEntrypointResponse(final MutableExecutionContext ctx) {
-        return Completable
-            .defer(() -> {
-                if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
-                    final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
-                    if (entrypointConnector != null) {
-                        return entrypointConnector.handleResponse(ctx);
-                    }
+        return Completable.defer(() -> {
+            if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
+                final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+                if (entrypointConnector != null) {
+                    return entrypointConnector.handleResponse(ctx);
                 }
-                return Completable.complete();
-            })
-            .compose(upstream -> timeout(upstream, ctx));
+            }
+            return Completable.complete();
+        }).compose(upstream -> timeout(upstream, ctx));
     }
 
     abstract Completable onTimeout(MutableExecutionContext ctx);

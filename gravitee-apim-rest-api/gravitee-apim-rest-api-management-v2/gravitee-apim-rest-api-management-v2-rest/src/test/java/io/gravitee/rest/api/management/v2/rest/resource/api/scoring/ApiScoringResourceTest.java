@@ -98,8 +98,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
             final Response response = evaluateTarget.request().post(null);
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -112,8 +111,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
             final Response response = evaluateTarget.request().post(null);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(ACCEPTED_202)
                 .asEntity(ApiScoringTriggerResponse.class)
                 .isEqualTo(ApiScoringTriggerResponse.builder().status(ScoringStatus.PENDING).build());
@@ -138,29 +136,24 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
             final Response response = latestReportTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiScoring.class)
                 .isEqualTo(
-                    ApiScoring
-                        .builder()
+                    ApiScoring.builder()
                         .summary(ApiScoringSummary.builder().score(0.9).all(1).errors(0).hints(0).infos(0).warnings(1).build())
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                         .assets(
                             List.of(
-                                ApiScoringAsset
-                                    .builder()
+                                ApiScoringAsset.builder()
                                     .name("parent")
                                     .type(ApiScoringAssetType.SWAGGER)
                                     .diagnostics(
                                         List.of(
-                                            ApiScoringDiagnostic
-                                                .builder()
+                                            ApiScoringDiagnostic.builder()
                                                 .severity(ApiScoringSeverity.WARN)
                                                 .range(
-                                                    ApiScoringDiagnosticRange
-                                                        .builder()
+                                                    ApiScoringDiagnosticRange.builder()
                                                         .start(ApiScoringPosition.builder().line(17).character(12).build())
                                                         .end(ApiScoringPosition.builder().line(38).character(25).build())
                                                         .build()

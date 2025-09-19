@@ -176,8 +176,9 @@ class CreateV4ApiUseCaseTest {
         );
         useCase = new CreateV4ApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
 
-        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
+            invocation.getArgument(0)
+        );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
@@ -188,27 +189,26 @@ class CreateV4ApiUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                apiCrudService,
-                auditCrudService,
-                flowCrudService,
-                groupQueryService,
-                membershipCrudService,
-                metadataCrudService,
-                notificationConfigCrudService,
-                parametersQueryService,
-                userCrudService,
-                workflowCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiCrudService,
+            auditCrudService,
+            flowCrudService,
+            groupQueryService,
+            membershipCrudService,
+            metadataCrudService,
+            notificationConfigCrudService,
+            parametersQueryService,
+            userCrudService,
+            workflowCrudService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_throw_when_api_is_invalid() {
         // Given
-        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
-            .thenThrow(new ValidationDomainException("Definition version is unsupported, should be V4 or higher"));
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenThrow(
+            new ValidationDomainException("Definition version is unsupported, should be V4 or higher")
+        );
         var newApi = NewApiFixtures.aProxyApiV4();
 
         // When
@@ -267,8 +267,7 @@ class CreateV4ApiUseCaseTest {
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
                 // API Audit
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
@@ -280,8 +279,7 @@ class CreateV4ApiUseCaseTest {
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .build(),
                 // Membership Audit
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
@@ -293,8 +291,7 @@ class CreateV4ApiUseCaseTest {
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .build(),
                 // Metadata Audit
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
@@ -319,21 +316,19 @@ class CreateV4ApiUseCaseTest {
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(membershipCrudService.storage())
-            .contains(
-                Membership
-                    .builder()
-                    .id("generated-id")
-                    .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
-                    .memberId(USER_ID)
-                    .memberType(Membership.Type.USER)
-                    .referenceId("generated-id")
-                    .referenceType(Membership.ReferenceType.API)
-                    .source("system")
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(membershipCrudService.storage()).contains(
+            Membership.builder()
+                .id("generated-id")
+                .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                .memberId(USER_ID)
+                .memberType(Membership.Type.USER)
+                .referenceId("generated-id")
+                .referenceType(Membership.ReferenceType.API)
+                .source("system")
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -343,8 +338,7 @@ class CreateV4ApiUseCaseTest {
         givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("Group name").apiPrimaryOwner(USER_ID).build()));
         givenExistingMemberships(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .referenceType(Membership.ReferenceType.GROUP)
                     .referenceId(GROUP_ID)
                     .memberType(Membership.Type.USER)
@@ -359,21 +353,19 @@ class CreateV4ApiUseCaseTest {
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(membershipCrudService.storage())
-            .contains(
-                Membership
-                    .builder()
-                    .id("generated-id")
-                    .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
-                    .memberId(GROUP_ID)
-                    .memberType(Membership.Type.GROUP)
-                    .referenceId("generated-id")
-                    .referenceType(Membership.ReferenceType.API)
-                    .source("system")
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(membershipCrudService.storage()).contains(
+            Membership.builder()
+                .id("generated-id")
+                .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                .memberId(GROUP_ID)
+                .memberType(Membership.Type.GROUP)
+                .referenceId("generated-id")
+                .referenceType(Membership.ReferenceType.API)
+                .source("system")
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -385,47 +377,45 @@ class CreateV4ApiUseCaseTest {
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(notificationConfigCrudService.storage())
-            .containsExactly(
-                NotificationConfig
-                    .builder()
-                    .id("generated-id")
-                    .type(NotificationConfig.Type.GENERIC)
-                    .name("Default Mail Notifications")
-                    .referenceType("API")
-                    .referenceId("generated-id")
-                    .hooks(
-                        List.of(
-                            "APIKEY_EXPIRED",
-                            "APIKEY_RENEWED",
-                            "APIKEY_REVOKED",
-                            "API_DEPLOYED",
-                            "API_DEPRECATED",
-                            "API_STARTED",
-                            "API_STOPPED",
-                            "API_UPDATED",
-                            "ASK_FOR_REVIEW",
-                            "MESSAGE",
-                            "NEW_RATING",
-                            "NEW_RATING_ANSWER",
-                            "NEW_SUPPORT_TICKET",
-                            "REQUEST_FOR_CHANGES",
-                            "REVIEW_OK",
-                            "SUBSCRIPTION_ACCEPTED",
-                            "SUBSCRIPTION_CLOSED",
-                            "SUBSCRIPTION_NEW",
-                            "SUBSCRIPTION_PAUSED",
-                            "SUBSCRIPTION_REJECTED",
-                            "SUBSCRIPTION_RESUMED",
-                            "SUBSCRIPTION_TRANSFERRED"
-                        )
+        assertThat(notificationConfigCrudService.storage()).containsExactly(
+            NotificationConfig.builder()
+                .id("generated-id")
+                .type(NotificationConfig.Type.GENERIC)
+                .name("Default Mail Notifications")
+                .referenceType("API")
+                .referenceId("generated-id")
+                .hooks(
+                    List.of(
+                        "APIKEY_EXPIRED",
+                        "APIKEY_RENEWED",
+                        "APIKEY_REVOKED",
+                        "API_DEPLOYED",
+                        "API_DEPRECATED",
+                        "API_STARTED",
+                        "API_STOPPED",
+                        "API_UPDATED",
+                        "ASK_FOR_REVIEW",
+                        "MESSAGE",
+                        "NEW_RATING",
+                        "NEW_RATING_ANSWER",
+                        "NEW_SUPPORT_TICKET",
+                        "REQUEST_FOR_CHANGES",
+                        "REVIEW_OK",
+                        "SUBSCRIPTION_ACCEPTED",
+                        "SUBSCRIPTION_CLOSED",
+                        "SUBSCRIPTION_NEW",
+                        "SUBSCRIPTION_PAUSED",
+                        "SUBSCRIPTION_REJECTED",
+                        "SUBSCRIPTION_RESUMED",
+                        "SUBSCRIPTION_TRANSFERRED"
                     )
-                    .notifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)
-                    .config("${(api.primaryOwner.email)!''}")
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+                )
+                .notifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)
+                .config("${(api.primaryOwner.email)!''}")
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -437,20 +427,18 @@ class CreateV4ApiUseCaseTest {
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(metadataCrudService.storage())
-            .containsExactly(
-                Metadata
-                    .builder()
-                    .key("email-support")
-                    .format(Metadata.MetadataFormat.MAIL)
-                    .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
-                    .value("${(api.primaryOwner.email)!''}")
-                    .referenceType(Metadata.ReferenceType.API)
-                    .referenceId("generated-id")
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(metadataCrudService.storage()).containsExactly(
+            Metadata.builder()
+                .key("email-support")
+                .format(Metadata.MetadataFormat.MAIL)
+                .name(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
+                .value("${(api.primaryOwner.email)!''}")
+                .referenceType(Metadata.ReferenceType.API)
+                .referenceId("generated-id")
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -476,20 +464,18 @@ class CreateV4ApiUseCaseTest {
         useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(workflowCrudService.storage())
-            .contains(
-                Workflow
-                    .builder()
-                    .id("generated-id")
-                    .referenceType(Workflow.ReferenceType.API)
-                    .referenceId("generated-id")
-                    .type(Workflow.Type.REVIEW)
-                    .state(Workflow.State.DRAFT)
-                    .user(USER_ID)
-                    .comment("")
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(workflowCrudService.storage()).contains(
+            Workflow.builder()
+                .id("generated-id")
+                .referenceType(Workflow.ReferenceType.API)
+                .referenceId("generated-id")
+                .type(Workflow.Type.REVIEW)
+                .state(Workflow.State.DRAFT)
+                .user(USER_ID)
+                .comment("")
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     private void enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode mode) {

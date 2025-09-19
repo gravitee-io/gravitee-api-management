@@ -89,8 +89,11 @@ class VerifyApiPathDomainServiceTest {
 
     @BeforeEach
     void setup() {
-        service =
-            new VerifyApiPathDomainService(apiSearchService, installationAccessQueryService, new ApiHostValidatorDomainServiceGoogleImpl());
+        service = new VerifyApiPathDomainService(
+            apiSearchService,
+            installationAccessQueryService,
+            new ApiHostValidatorDomainServiceGoogleImpl()
+        );
     }
 
     @AfterEach
@@ -416,7 +419,10 @@ class VerifyApiPathDomainServiceTest {
             .when(installationAccessQueryService.getGatewayRestrictedDomains(eq(environmentId)))
             .thenReturn(
                 domainRestrictions != null
-                    ? domainRestrictions.stream().map(domain -> RestrictedDomain.builder().domain(domain).build()).toList()
+                    ? domainRestrictions
+                        .stream()
+                        .map(domain -> RestrictedDomain.builder().domain(domain).build())
+                        .toList()
                     : List.of()
             );
     }
@@ -426,8 +432,7 @@ class VerifyApiPathDomainServiceTest {
             .when(
                 apiSearchService.search(
                     eq(
-                        ApiSearchCriteria
-                            .builder()
+                        ApiSearchCriteria.builder()
                             .environmentId(environmentId)
                             .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
                             .build()
@@ -441,12 +446,10 @@ class VerifyApiPathDomainServiceTest {
 
     @SneakyThrows
     private Api buildApiV2WithPaths(String environmentId, String apiId, List<Pair<String, String>> paths) {
-        io.gravitee.definition.model.Api apiDefV2 = ApiDefinitionFixtures
-            .anApiV2()
+        io.gravitee.definition.model.Api apiDefV2 = ApiDefinitionFixtures.anApiV2()
             .toBuilder()
             .proxy(
-                Proxy
-                    .builder()
+                Proxy.builder()
                     .virtualHosts(
                         paths
                             .stream()
@@ -467,20 +470,17 @@ class VerifyApiPathDomainServiceTest {
 
     @SneakyThrows
     private Api buildApiV4WithPaths(String environmentId, String apiId, List<Pair<String, String>> paths) {
-        io.gravitee.definition.model.v4.Api apiDefV4 = ApiDefinitionFixtures
-            .anApiV4()
+        io.gravitee.definition.model.v4.Api apiDefV4 = ApiDefinitionFixtures.anApiV4()
             .toBuilder()
             .id((apiId))
             .listeners(
                 List.of(
-                    HttpListener
-                        .builder()
+                    HttpListener.builder()
                         .paths(
                             paths
                                 .stream()
                                 .map(p ->
-                                    io.gravitee.definition.model.v4.listener.http.Path
-                                        .builder()
+                                    io.gravitee.definition.model.v4.listener.http.Path.builder()
                                         .host(p.getLeft())
                                         .path(p.getRight())
                                         .build()

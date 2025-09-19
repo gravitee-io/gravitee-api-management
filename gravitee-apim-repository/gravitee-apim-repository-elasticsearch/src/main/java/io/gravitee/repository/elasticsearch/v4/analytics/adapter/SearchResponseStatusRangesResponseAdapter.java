@@ -59,8 +59,7 @@ public class SearchResponseStatusRangesResponseAdapter {
             .collect(Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> jsonNode.get("doc_count").asLong()));
 
         return Optional.of(
-            ResponseStatusRangesAggregate
-                .builder()
+            ResponseStatusRangesAggregate.builder()
                 .statusRangesCountByEntrypoint(statusRangesByEntrypoints)
                 .ranges(allApisStatusRanges)
                 .build()

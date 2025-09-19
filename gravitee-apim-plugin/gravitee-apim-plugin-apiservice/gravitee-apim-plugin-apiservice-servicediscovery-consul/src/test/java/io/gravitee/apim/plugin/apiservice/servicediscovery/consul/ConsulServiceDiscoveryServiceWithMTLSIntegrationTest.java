@@ -121,13 +121,11 @@ class ConsulServiceDiscoveryServiceWithMTLSIntegrationTest {
         api = anApiWithDefaultGroup(HTTP_PROXY);
         when(deploymentContext.getComponent(Api.class)).thenReturn(api);
 
-        endpointManager =
-            new DefaultEndpointManager(
-                api.getDefinition(),
-                endpointConnectorPluginManager(EndpointBuilder.build(HTTP_PROXY, HttpProxyEndpointConnectorFactory.class)),
-                deploymentContext
-            )
-                .start();
+        endpointManager = new DefaultEndpointManager(
+            api.getDefinition(),
+            endpointConnectorPluginManager(EndpointBuilder.build(HTTP_PROXY, HttpProxyEndpointConnectorFactory.class)),
+            deploymentContext
+        ).start();
         when(deploymentContext.getComponent(EndpointManager.class)).thenReturn(endpointManager);
 
         Environment environment = mock(Environment.class);
@@ -165,8 +163,7 @@ class ConsulServiceDiscoveryServiceWithMTLSIntegrationTest {
             .extracting(ManagedEndpoint::getDefinition)
             .hasSize(1)
             .contains(
-                Endpoint
-                    .builder()
+                Endpoint.builder()
                     .name("consul#id1")
                     .type(HTTP_PROXY)
                     .configuration(new JsonObject(Map.of("target", "http://10.0.0.1:8048/")).toString())

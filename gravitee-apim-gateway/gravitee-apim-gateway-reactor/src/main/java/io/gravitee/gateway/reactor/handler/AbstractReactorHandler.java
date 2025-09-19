@@ -79,8 +79,8 @@ public abstract class AbstractReactorHandler<T extends Reactable>
 
     protected void contextualizeRequest(ExecutionContext context) {
         ((MutableExecutionContext) context).request(
-                new ContextualizedHttpServerRequest(((HttpAcceptor) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request())
-            );
+            new ContextualizedHttpServerRequest(((HttpAcceptor) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request())
+        );
     }
 
     protected void dumpVirtualHosts() {

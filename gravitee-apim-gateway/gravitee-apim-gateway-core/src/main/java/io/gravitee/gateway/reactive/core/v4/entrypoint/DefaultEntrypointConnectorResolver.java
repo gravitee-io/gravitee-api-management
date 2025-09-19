@@ -52,17 +52,14 @@ public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultE
         final DeploymentContext deploymentContext,
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager
     ) {
-        entrypointConnectors =
-            api
-                .getListeners()
-                .stream()
-                .flatMap(listener -> listener.getEntrypoints().stream())
-                .map(entrypoint ->
-                    this.<EntrypointConnector>createConnector(deploymentContext, entrypointConnectorPluginManager, entrypoint)
-                )
-                .filter(Objects::nonNull)
-                .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount).reversed())
-                .collect(Collectors.toList());
+        entrypointConnectors = api
+            .getListeners()
+            .stream()
+            .flatMap(listener -> listener.getEntrypoints().stream())
+            .map(entrypoint -> this.<EntrypointConnector>createConnector(deploymentContext, entrypointConnectorPluginManager, entrypoint))
+            .filter(Objects::nonNull)
+            .sorted(Comparator.comparingInt(EntrypointConnector::matchCriteriaCount).reversed())
+            .collect(Collectors.toList());
     }
 
     private <T extends EntrypointConnector> T createConnector(

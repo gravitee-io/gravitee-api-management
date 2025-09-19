@@ -40,11 +40,11 @@ public class ApiAuthorizationDomainServiceLegacyWrapper implements ApiAuthorizat
         boolean manageOnly
     ) {
         return this.delegate.findIdsByUser(
-                executionContext,
-                userId,
-                ApiQueryCriteriaAdapter.INSTANCE.toRestModel(apiQueryCriteria),
-                sortable,
-                manageOnly
-            );
+            executionContext,
+            userId,
+            ApiQueryCriteriaAdapter.INSTANCE.toRestModel(apiQueryCriteria),
+            sortable,
+            manageOnly
+        );
     }
 }

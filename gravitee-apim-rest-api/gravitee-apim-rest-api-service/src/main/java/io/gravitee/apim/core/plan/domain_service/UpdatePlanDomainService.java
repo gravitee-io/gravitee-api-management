@@ -166,8 +166,7 @@ public class UpdatePlanDomainService {
 
     private void createAuditLog(Plan oldPlan, Plan newPlan, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(newPlan.getApiId())

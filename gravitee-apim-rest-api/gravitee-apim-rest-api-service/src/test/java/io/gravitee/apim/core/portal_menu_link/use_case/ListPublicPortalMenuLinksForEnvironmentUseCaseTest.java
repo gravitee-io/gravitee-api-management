@@ -44,40 +44,35 @@ class ListPublicPortalMenuLinksForEnvironmentUseCaseTest {
         // Given
         portalMenuLinkQueryService.initWith(
             List.of(
-                PortalMenuLinkFixtures
-                    .aPortalMenuLink()
+                PortalMenuLinkFixtures.aPortalMenuLink()
                     .toBuilder()
                     .id("id1")
                     .environmentId("env1")
                     .visibility(PortalMenuLinkVisibility.PUBLIC)
                     .order(2)
                     .build(),
-                PortalMenuLinkFixtures
-                    .aPortalMenuLink()
+                PortalMenuLinkFixtures.aPortalMenuLink()
                     .toBuilder()
                     .id("id2")
                     .environmentId("env2")
                     .visibility(PortalMenuLinkVisibility.PUBLIC)
                     .order(1)
                     .build(),
-                PortalMenuLinkFixtures
-                    .aPortalMenuLink()
+                PortalMenuLinkFixtures.aPortalMenuLink()
                     .toBuilder()
                     .id("id3")
                     .environmentId("env1")
                     .visibility(PortalMenuLinkVisibility.PUBLIC)
                     .order(1)
                     .build(),
-                PortalMenuLinkFixtures
-                    .aPortalMenuLink()
+                PortalMenuLinkFixtures.aPortalMenuLink()
                     .toBuilder()
                     .id("id4")
                     .environmentId("env3")
                     .visibility(PortalMenuLinkVisibility.PUBLIC)
                     .order(1)
                     .build(),
-                PortalMenuLinkFixtures
-                    .aPortalMenuLink()
+                PortalMenuLinkFixtures.aPortalMenuLink()
                     .toBuilder()
                     .id("id5")
                     .environmentId("env1")

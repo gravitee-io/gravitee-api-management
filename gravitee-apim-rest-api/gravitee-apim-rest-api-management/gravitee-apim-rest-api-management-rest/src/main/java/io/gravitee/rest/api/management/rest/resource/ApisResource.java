@@ -216,15 +216,14 @@ public class ApisResource extends AbstractResource {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
             }
             if (isAuthenticated()) {
-                apis =
-                    apiService.findByUser(
-                        executionContext,
-                        getAuthenticatedUser(),
-                        apiQuery,
-                        sortable,
-                        commonPageable,
-                        !apisParam.isPortal()
-                    );
+                apis = apiService.findByUser(
+                    executionContext,
+                    getAuthenticatedUser(),
+                    apiQuery,
+                    sortable,
+                    commonPageable,
+                    !apisParam.isPortal()
+                );
             } else {
                 apiQuery.setVisibility(PUBLIC);
                 apis = apiService.search(executionContext, apiQuery, sortable, commonPageable);
@@ -250,7 +249,11 @@ public class ApisResource extends AbstractResource {
         }
 
         return new ApiListItemPagedResult(
-            apis.getContent().stream().map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled)).collect(toList()),
+            apis
+                .getContent()
+                .stream()
+                .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
+                .collect(toList()),
             apis.getPageNumber(),
             (int) apis.getPageElements(),
             (int) apis.getTotalElements()
@@ -368,19 +371,17 @@ public class ApisResource extends AbstractResource {
         );
 
         if (dryRun) {
-            return Response
-                .ok(
-                    new ApiCRDStatusEntity(
-                        executionContext.getOrganizationId(),
-                        executionContext.getEnvironmentId(),
-                        api.getId(),
-                        api.getCrossId(),
-                        api.getState(),
-                        validationResult,
-                        Map.of()
-                    )
+            return Response.ok(
+                new ApiCRDStatusEntity(
+                    executionContext.getOrganizationId(),
+                    executionContext.getEnvironmentId(),
+                    api.getId(),
+                    api.getCrossId(),
+                    api.getState(),
+                    validationResult,
+                    Map.of()
                 )
-                .build();
+            ).build();
         }
 
         if (CollectionUtils.isNotEmpty(validationResult.getSevere())) {
@@ -457,8 +458,7 @@ public class ApisResource extends AbstractResource {
             DefinitionVersion.valueOfLabel(definitionVersion)
         );
         final ApiEntity api = apiService.createFromSwagger(executionContext, swaggerApiEntity, getAuthenticatedUser(), swaggerDescriptor);
-        return Response
-            .created(URI.create(this.uriInfo.getRequestUri().getRawPath().replaceAll("import/swagger", "") + api.getId()))
+        return Response.created(URI.create(this.uriInfo.getRequestUri().getRawPath().replaceAll("import/swagger", "") + api.getId()))
             .entity(api)
             .build();
     }
@@ -496,7 +496,9 @@ public class ApisResource extends AbstractResource {
     @Operation(summary = "Get the list of available hooks")
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getApiHooks() {
-        return Arrays.stream(ApiHook.values()).filter(h -> !h.isHidden()).toArray(Hook[]::new);
+        return Arrays.stream(ApiHook.values())
+            .filter(h -> !h.isHidden())
+            .toArray(Hook[]::new);
     }
 
     @POST
@@ -569,7 +571,11 @@ public class ApisResource extends AbstractResource {
         );
 
         return new PagedResult<>(
-            apis.getContent().stream().map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled)).collect(toList()),
+            apis
+                .getContent()
+                .stream()
+                .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
+                .collect(toList()),
             apis.getPageNumber(),
             (int) apis.getPageElements(),
             (int) apis.getTotalElements()
@@ -592,8 +598,7 @@ public class ApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateWithDefinition(@RequestBody(required = true) @Valid @NotNull Object apiDefinitionOrUrl) {
         ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiDefinitionOrUrl);
-        return Response
-            .ok(updatedApi)
+        return Response.ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();

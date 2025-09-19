@@ -115,11 +115,9 @@ public class ApplicationService_FindByUserTest {
 
         when(
             membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        )
-            .thenReturn(Collections.singleton(APPLICATION_ID));
+        ).thenReturn(Collections.singleton(APPLICATION_ID));
 
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Set.of(APPLICATION_ID))
             .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
             .status(ApplicationStatus.ACTIVE)
@@ -168,19 +166,18 @@ public class ApplicationService_FindByUserTest {
 
         when(
             membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        )
-            .thenReturn(Collections.singleton(APPLICATION_ID));
+        ).thenReturn(Collections.singleton(APPLICATION_ID));
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.GROUP))
-            .thenReturn(Collections.singleton(groupAppMembership));
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.GROUP)
+        ).thenReturn(Collections.singleton(groupAppMembership));
 
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(RoleScope.APPLICATION);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(role);
         when(roleService.findById(any())).thenReturn(role);
 
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Set.of(APPLICATION_ID))
             .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
             .status(ApplicationStatus.ACTIVE)
@@ -222,17 +219,16 @@ public class ApplicationService_FindByUserTest {
         when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(
             membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        )
-            .thenReturn(Collections.singleton(APPLICATION_ID));
+        ).thenReturn(Collections.singleton(APPLICATION_ID));
 
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Set.of(APPLICATION_ID))
             .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
             .status(ApplicationStatus.ACTIVE)
             .build();
-        when(applicationRepository.search(criteria, null, new SortableBuilder().field("name").setAsc(true).build()))
-            .thenReturn(new Page<>(List.of(application), 1, 2, 2));
+        when(applicationRepository.search(criteria, null, new SortableBuilder().field("name").setAsc(true).build())).thenReturn(
+            new Page<>(List.of(application), 1, 2, 2)
+        );
 
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
@@ -261,11 +257,9 @@ public class ApplicationService_FindByUserTest {
 
         when(
             membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        )
-            .thenReturn(Collections.singleton(APPLICATION_ID));
+        ).thenReturn(Collections.singleton(APPLICATION_ID));
 
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Set.of(APPLICATION_ID))
             .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
             .status(ApplicationStatus.ACTIVE)
@@ -292,11 +286,9 @@ public class ApplicationService_FindByUserTest {
 
         when(
             membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        )
-            .thenReturn(Collections.singleton(APPLICATION_ID));
+        ).thenReturn(Collections.singleton(APPLICATION_ID));
 
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Set.of(APPLICATION_ID))
             .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
             .status(ApplicationStatus.ACTIVE)

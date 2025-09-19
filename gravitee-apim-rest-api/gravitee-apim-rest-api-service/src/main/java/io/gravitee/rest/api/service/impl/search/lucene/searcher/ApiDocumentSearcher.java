@@ -126,8 +126,10 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     private BooleanQuery.Builder buildApiQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
-        BooleanQuery.Builder apiQuery = new BooleanQuery.Builder()
-            .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER);
+        BooleanQuery.Builder apiQuery = new BooleanQuery.Builder().add(
+            new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)),
+            BooleanClause.Occur.FILTER
+        );
 
         if (executionContext.hasEnvironmentId()) {
             apiQuery.add(buildEnvCriteria(executionContext), BooleanClause.Occur.FILTER);
@@ -207,8 +209,9 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             final Optional<Query> baseFilterQuery = this.buildFilterQuery(FIELD_ID, query.getFilters());
             this.buildExcludedFilters(query.getExcludedFilters()).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST_NOT));
             this.buildExplicitQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST));
-            this.buildExactMatchQuery(executionContext, query, baseFilterQuery)
-                .ifPresent(q -> apiQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD));
+            this.buildExactMatchQuery(executionContext, query, baseFilterQuery).ifPresent(q ->
+                apiQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD)
+            );
             this.buildWildcardQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
             this.buildIdsQuery(executionContext, query).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
         } catch (ParseException pe) {
@@ -305,7 +308,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         parser.setAllowLeadingWildcard(true);
         // Escape [ and ] because they can be used in API names
         String escapedQuery = query.replace("[", "\\[").replace("]", "\\]");
-        if (escapedQuery.startsWith("/")) { // escape if we are looking for a path
+        if (escapedQuery.startsWith("/")) {
+            // escape if we are looking for a path
             escapedQuery = QueryParserBase.escape(query);
         }
         org.apache.lucene.search.Query parse = parser.parse(escapedQuery);

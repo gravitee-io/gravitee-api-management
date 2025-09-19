@@ -29,37 +29,36 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SearchAverageConnectionDurationQueryAdapterTest {
 
-    public static final String QUERY_WITHOUT_FILTER =
-        """
-                 {
-                       "size": 0,
-                       "query": {
-                         "bool": {
-                           "must": [
-                             {
-                               "term": {
-                                 "request-ended": "true"
-                               }
-                             }
-                           ]
+    public static final String QUERY_WITHOUT_FILTER = """
+           {
+                 "size": 0,
+                 "query": {
+                   "bool": {
+                     "must": [
+                       {
+                         "term": {
+                           "request-ended": "true"
                          }
-                       },
-                       "aggs": {
-                         "entrypoints_agg": {
-                           "terms": {
-                             "field": "entrypoint-id"
-                           },
-                           "aggs": {
-                             "avg_ended_request_duration_ms": {
-                               "avg": {
-                                 "field": "gateway-response-time-ms"
-                               }
-                             }
-                           }
+                       }
+                     ]
+                   }
+                 },
+                 "aggs": {
+                   "entrypoints_agg": {
+                     "terms": {
+                       "field": "entrypoint-id"
+                     },
+                     "aggs": {
+                       "avg_ended_request_duration_ms": {
+                         "avg": {
+                           "field": "gateway-response-time-ms"
                          }
                        }
                      }
-              """;
+                   }
+                 }
+               }
+        """;
 
     @Test
     void should_build_query_without_filter() {
@@ -82,82 +81,80 @@ class SearchAverageConnectionDurationQueryAdapterTest {
             true
         );
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
-                             {
-                               "size": 0,
-                               "query": {
-                                 "bool": {
-                                   "must": [
-                                     {
-                                       "term": {
-                                         "request-ended": "true"
-                                       }
-                                     },
-                                     {
-                                       "term": {
-                                         "api-id": "api-id"
-                                       }
-                                     }
-                                   ]
-                                 }
-                               },
-                               "aggs": {
-                                 "entrypoints_agg": {
-                                   "terms": {
-                                     "field": "entrypoint-id"
-                                   },
-                                   "aggs": {
-                                     "avg_ended_request_duration_ms": {
-                                       "avg": {
-                                         "field": "gateway-response-time-ms"
-                                       }
-                                     }
-                                   }
-                                 }
-                               }
-                             }
-                             """
-            );
+        assertThatJson(result).isEqualTo(
+            """
+            {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "term": {
+                        "request-ended": "true"
+                      }
+                    },
+                    {
+                      "term": {
+                        "api-id": "api-id"
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "entrypoints_agg": {
+                  "terms": {
+                    "field": "entrypoint-id"
+                  },
+                  "aggs": {
+                    "avg_ended_request_duration_ms": {
+                      "avg": {
+                        "field": "gateway-response-time-ms"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """
+        );
     }
 
     @Test
     void should_adapt_the_query_when_entrypoint_id_is_not_a_keyword() {
         var result = SearchAverageConnectionDurationQueryAdapter.adapt(AverageConnectionDurationQuery.builder().build(), false);
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
-                             {
-                               "size": 0,
-                               "query": {
-                                 "bool": {
-                                   "must": [
-                                     {
-                                       "term": {
-                                         "request-ended": "true"
-                                       }
-                                     }
-                                   ]
-                                 }
-                               },
-                               "aggs": {
-                                 "entrypoints_agg": {
-                                   "terms": {
-                                     "field": "entrypoint-id.keyword"
-                                   },
-                                   "aggs": {
-                                     "avg_ended_request_duration_ms": {
-                                       "avg": {
-                                         "field": "gateway-response-time-ms"
-                                       }
-                                     }
-                                   }
-                                 }
-                               }
-                             }
-                             """
-            );
+        assertThatJson(result).isEqualTo(
+            """
+            {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "term": {
+                        "request-ended": "true"
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "entrypoints_agg": {
+                  "terms": {
+                    "field": "entrypoint-id.keyword"
+                  },
+                  "aggs": {
+                    "avg_ended_request_duration_ms": {
+                      "avg": {
+                        "field": "gateway-response-time-ms"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """
+        );
     }
 }

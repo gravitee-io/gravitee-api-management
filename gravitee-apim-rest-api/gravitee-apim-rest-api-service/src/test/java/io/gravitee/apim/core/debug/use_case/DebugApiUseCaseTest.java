@@ -107,8 +107,9 @@ class DebugApiUseCaseTest {
     void should_throw_when_debugging_non_v2_api(DefinitionVersion definitionVersion) {
         final DebugApi debugApi = new DebugApi();
         debugApi.setDefinitionVersion(definitionVersion);
-        assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
-            )
+        assertThatThrownBy(() ->
+            cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
+        )
             .isInstanceOf(DebugApiInvalidDefinitionVersionException.class)
             .hasMessage("Only API with V2 definition can be debugged.");
     }
@@ -116,8 +117,9 @@ class DebugApiUseCaseTest {
     @Test
     void should_throw_when_debugging_non_existing_api() {
         final DebugApi debugApi = debugApiDefinition();
-        assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
-            )
+        assertThatThrownBy(() ->
+            cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
+        )
             .isInstanceOf(ApiNotFoundException.class)
             .hasMessage("Api not found.");
     }
@@ -132,8 +134,9 @@ class DebugApiUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(originalApi(debugApi)));
         debugApi.setDefinitionVersion(DefinitionVersion.V2);
         debugApi.setTags(Set.of("valid-tag"));
-        assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
-            )
+        assertThatThrownBy(() ->
+            cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
+        )
             .isInstanceOf(DebugApiNoCompatibleInstanceException.class)
             .hasMessage("There is no compatible gateway instance to debug this API [my-api].");
     }
@@ -147,8 +150,9 @@ class DebugApiUseCaseTest {
         final DebugApi debugApi = debugApiDefinition();
         debugApi.getPlan(PLAN_ID).setStatus(planStatus.name());
         debugApi.setTags(Set.of("valid-tag"));
-        assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
-            )
+        assertThatThrownBy(() ->
+            cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
+        )
             .isInstanceOf(DebugApiNoValidPlanException.class)
             .hasMessage("There is no staging or published plan for this API [my-api].");
     }
@@ -182,9 +186,10 @@ class DebugApiUseCaseTest {
                 ),
                 Index.atIndex(2)
             );
-        final DebugApi debugApiFromEvent = GraviteeJacksonMapper
-            .getInstance()
-            .readValue(output.debugApiEvent().getPayload(), DebugApi.class);
+        final DebugApi debugApiFromEvent = GraviteeJacksonMapper.getInstance().readValue(
+            output.debugApiEvent().getPayload(),
+            DebugApi.class
+        );
         assertThat(debugApiFromEvent)
             .extracting(DebugApi::getExecutionMode, DebugApi::getProxy, DebugApi::getServices)
             // Compare field by field because instance of Proxy and Services have changed due to ser/deser
@@ -222,8 +227,7 @@ class DebugApiUseCaseTest {
     }
 
     private static io.gravitee.apim.core.api.model.Api originalApi(Api apiDefinition) throws JsonProcessingException {
-        return ApiFixtures
-            .aProxyApiV2()
+        return ApiFixtures.aProxyApiV2()
             .toBuilder()
             .definitionVersion(DefinitionVersion.V2)
             .apiDefinition(apiDefinition)
@@ -232,8 +236,7 @@ class DebugApiUseCaseTest {
     }
 
     private static Instance validInstance() {
-        return Instance
-            .builder()
+        return Instance.builder()
             .id(GATEWAY_ID)
             .startedAt(new Date())
             .clusterPrimaryNode(true)
@@ -271,8 +274,7 @@ class DebugApiUseCaseTest {
             ),
             Arguments.of(
                 List.of(
-                    Instance
-                        .builder()
+                    Instance.builder()
                         .startedAt(new Date())
                         .clusterPrimaryNode(true)
                         .environments(Set.of(ENVIRONMENT_ID))
@@ -282,8 +284,7 @@ class DebugApiUseCaseTest {
             ),
             Arguments.of(
                 List.of(
-                    Instance
-                        .builder()
+                    Instance.builder()
                         .startedAt(new Date())
                         .clusterPrimaryNode(true)
                         .environments(Set.of(ENVIRONMENT_ID))
@@ -293,8 +294,7 @@ class DebugApiUseCaseTest {
             ),
             Arguments.of(
                 List.of(
-                    Instance
-                        .builder()
+                    Instance.builder()
                         .startedAt(new Date())
                         .clusterPrimaryNode(true)
                         .environments(Set.of(ENVIRONMENT_ID))

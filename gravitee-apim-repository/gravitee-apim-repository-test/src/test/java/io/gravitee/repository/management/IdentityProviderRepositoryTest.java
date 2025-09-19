@@ -307,6 +307,9 @@ public class IdentityProviderRepositoryTest extends AbstractManagementRepository
             return false;
         }
 
-        return first.entrySet().stream().allMatch(e -> Arrays.equals(e.getValue(), second.get(e.getKey())));
+        return first
+            .entrySet()
+            .stream()
+            .allMatch(e -> Arrays.equals(e.getValue(), second.get(e.getKey())));
     }
 }

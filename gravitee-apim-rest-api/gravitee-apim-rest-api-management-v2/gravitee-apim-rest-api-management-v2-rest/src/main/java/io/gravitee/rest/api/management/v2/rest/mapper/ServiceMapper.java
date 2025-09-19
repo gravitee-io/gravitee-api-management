@@ -100,10 +100,9 @@ public interface ServiceMapper {
             Objects.nonNull(configuration) &&
             configuration instanceof io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration
         ) {
-            var mappedConfiguration =
-                this.map(
-                        (io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration) configuration
-                    );
+            var mappedConfiguration = this.map(
+                (io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration) configuration
+            );
             return new DynamicPropertyServiceConfiguration(mappedConfiguration);
         }
         return null;

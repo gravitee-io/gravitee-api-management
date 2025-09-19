@@ -64,8 +64,7 @@ public class ApiKeyCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    ApiKey
-                        .builder()
+                    ApiKey.builder()
                         .id("api-key-id")
                         .subscriptions(apiKey.getSubscriptions())
                         .key("c080f684-2c35-40a1-903c-627c219e0567")
@@ -124,8 +123,7 @@ public class ApiKeyCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    ApiKey
-                        .builder()
+                    ApiKey.builder()
                         .id("api-key-id")
                         .subscriptions(apiKey.getSubscriptions())
                         .key("c080f684-2c35-40a1-903c-627c219e0567")

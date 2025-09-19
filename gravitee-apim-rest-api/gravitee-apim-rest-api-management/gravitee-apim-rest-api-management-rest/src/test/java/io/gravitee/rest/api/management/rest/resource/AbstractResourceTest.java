@@ -297,8 +297,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
                 anyString(),
                 any(RolePermissionAction[].class)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     @Priority(50)

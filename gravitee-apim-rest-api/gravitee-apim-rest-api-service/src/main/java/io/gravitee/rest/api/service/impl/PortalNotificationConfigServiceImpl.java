@@ -143,8 +143,7 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
     }
 
     private PortalNotificationConfig convert(PortalNotificationConfigEntity entity) {
-        return PortalNotificationConfig
-            .builder()
+        return PortalNotificationConfig.builder()
             .referenceType(NotificationReferenceType.valueOf(entity.getReferenceType()))
             .referenceId(entity.getReferenceId())
             .user(entity.getUser())

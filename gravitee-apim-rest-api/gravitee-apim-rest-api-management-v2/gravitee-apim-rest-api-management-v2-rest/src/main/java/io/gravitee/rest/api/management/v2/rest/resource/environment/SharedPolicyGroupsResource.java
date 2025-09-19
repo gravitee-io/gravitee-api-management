@@ -73,13 +73,11 @@ public class SharedPolicyGroupsResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo
-            .builder()
+        AuditInfo audit = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(userDetails.getUsername())
                     .userSource(userDetails.getSource())
                     .userSourceId(userDetails.getSourceId())
@@ -91,8 +89,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             new CreateSharedPolicyGroupUseCase.Input(SharedPolicyGroupMapper.INSTANCE.map(createSharedPolicyGroup), audit)
         );
 
-        return Response
-            .created(this.getLocationHeader(output.sharedPolicyGroup().getId()))
+        return Response.created(this.getLocationHeader(output.sharedPolicyGroup().getId()))
             .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
             .build();
     }
@@ -139,8 +136,7 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             new GetSharedPolicyGroupPolicyPluginsUseCase.Input(executionContext.getEnvironmentId())
         );
 
-        return Response
-            .ok()
+        return Response.ok()
             .entity(SharedPolicyGroupMapper.INSTANCE.mapToSharedPolicyGroupPolicyPlugins(result.sharedPolicyGroupPolicyList()))
             .build();
     }

@@ -39,8 +39,9 @@ class HttpDynamicPropertiesServiceFactoryTest {
 
     @Test
     void should_return_null_when_service_cannot_be_handled() {
-        assertThat(cut.createService(new DefaultManagementDeploymentContext(Api.builder().build(), mock(ApplicationContext.class))))
-            .isNull();
+        assertThat(
+            cut.createService(new DefaultManagementDeploymentContext(Api.builder().build(), mock(ApplicationContext.class)))
+        ).isNull();
     }
 
     @Test
@@ -51,7 +52,6 @@ class HttpDynamicPropertiesServiceFactoryTest {
             cut.createService(
                 new DefaultManagementDeploymentContext(Api.builder().services(services).build(), mock(ApplicationContext.class))
             )
-        )
-            .isInstanceOf(HttpDynamicPropertiesService.class);
+        ).isInstanceOf(HttpDynamicPropertiesService.class);
     }
 }

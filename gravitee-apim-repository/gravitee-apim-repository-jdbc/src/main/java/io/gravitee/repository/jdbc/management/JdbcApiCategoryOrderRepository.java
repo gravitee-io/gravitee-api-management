@@ -46,20 +46,19 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
 
     @Override
     protected JdbcObjectMapper<ApiCategoryOrder> buildOrm() {
-        return JdbcObjectMapper
-            .builder(ApiCategoryOrder.class, this.tableName)
+        return JdbcObjectMapper.builder(ApiCategoryOrder.class, this.tableName)
             .updateSql(
                 "update " +
-                this.tableName +
-                " set " +
-                " api_id = ?" +
-                " , category_id = ?" +
-                " , " +
-                escapeReservedWord("order") +
-                " = ? " +
-                WHERE_CLAUSE +
-                " api_id = ? " +
-                " and category_id = ? "
+                    this.tableName +
+                    " set " +
+                    " api_id = ?" +
+                    " , category_id = ?" +
+                    " , " +
+                    escapeReservedWord("order") +
+                    " = ? " +
+                    WHERE_CLAUSE +
+                    " api_id = ? " +
+                    " and category_id = ? "
             )
             .addColumn("api_id", Types.NVARCHAR, String.class)
             .addColumn("category_id", Types.NVARCHAR, String.class)
@@ -90,16 +89,21 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
 
         try {
             jdbcTemplate.update(
-                getOrm()
-                    .buildUpdatePreparedStatementCreator(apiCategoryOrder, apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())
+                getOrm().buildUpdatePreparedStatementCreator(
+                    apiCategoryOrder,
+                    apiCategoryOrder.getApiId(),
+                    apiCategoryOrder.getCategoryId()
+                )
             );
-            return findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())
-                .orElseThrow(() ->
-                    new IllegalStateException(
-                        format("No api category found with id [%s, %s]", apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())
-                            .toString()
-                    )
-                );
+            return findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId()).orElseThrow(() ->
+                new IllegalStateException(
+                    format(
+                        "No api category found with id [%s, %s]",
+                        apiCategoryOrder.getApiId(),
+                        apiCategoryOrder.getCategoryId()
+                    ).toString()
+                )
+            );
         } catch (IllegalStateException e) {
             LOGGER.error("Failed to update api category order", e);
             throw new IllegalStateException("Failed to update api category order", e);
@@ -116,10 +120,10 @@ public class JdbcApiCategoryOrderRepository extends JdbcAbstractFindAllRepositor
             if (!categoriesIds.isEmpty()) {
                 jdbcTemplate.update(
                     "delete from " +
-                    this.tableName +
-                    " where api_id = ? and category_id in ( " +
-                    getOrm().buildInClause(categoriesIds) +
-                    " ) ",
+                        this.tableName +
+                        " where api_id = ? and category_id in ( " +
+                        getOrm().buildInClause(categoriesIds) +
+                        " ) ",
                     (PreparedStatement ps) -> {
                         ps.setString(1, apiId);
                         getOrm().setArguments(ps, categoriesIds, 2);

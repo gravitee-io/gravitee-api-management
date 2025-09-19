@@ -31,8 +31,7 @@ public class JdbcApplicationRepositoryTest {
     public void searchQuery_queryAndEnvironmentIdsAndStatus() {
         JdbcApplicationRepository repository = new JdbcApplicationRepository("table_prefix_");
         Sortable sortable = new SortableBuilder().field("name").order(Order.ASC).build();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .query("id1")
             .environmentIds(Set.of("env1"))
             .status(ApplicationStatus.ACTIVE)
@@ -52,8 +51,7 @@ public class JdbcApplicationRepositoryTest {
     public void searchQuery_queryAndRestrictedIdsAndNameAndEnvironmentIdsAndStatus() {
         JdbcApplicationRepository repository = new JdbcApplicationRepository("table_prefix_");
         Sortable sortable = new SortableBuilder().field("name").order(Order.ASC).build();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .query("name1")
             .restrictedToIds(Set.of("id1", "id2"))
             .name("name1")

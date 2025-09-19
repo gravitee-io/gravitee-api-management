@@ -43,7 +43,8 @@ public enum ExecutionMode {
     @JsonCreator
     public static ExecutionMode fromLabel(final String label) {
         if (label != null) {
-            if (label.equals("jupiter")) { // Keep for compatibilty
+            if (label.equals("jupiter")) {
+                // Keep for compatibilty
                 return V4_EMULATION_ENGINE;
             }
             return BY_LABEL.getOrDefault(label, V3);

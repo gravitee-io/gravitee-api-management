@@ -59,8 +59,9 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturn500IfTechnicalException() {
-        when(apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID))
-            .thenThrow(new TechnicalManagementException());
+        when(apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID)).thenThrow(
+            new TechnicalManagementException()
+        );
 
         Response response = envTarget(API_ID).path("groups").request().get();
 
@@ -80,8 +81,9 @@ public class ApiGroupsResourceTest extends AbstractResourceTest {
 
         when(apiService.findById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
-        when(apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID))
-            .thenReturn(Map.of(UuidString.generateRandom(), List.of(new GroupMemberEntity())));
+        when(apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(
+            Map.of(UuidString.generateRandom(), List.of(new GroupMemberEntity()))
+        );
 
         Response response = envTarget(API_ID).path("groups").request().get();
 

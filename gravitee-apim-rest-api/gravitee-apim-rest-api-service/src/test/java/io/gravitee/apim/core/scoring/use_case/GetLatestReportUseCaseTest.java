@@ -101,8 +101,7 @@ class GetLatestReportUseCaseTest {
         var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
 
         // Then
-        Assertions
-            .assertThat(report)
+        Assertions.assertThat(report)
             .extracting(GetLatestReportUseCase.Output::report)
             .isEqualTo(
                 new ScoringReportView(
@@ -135,8 +134,7 @@ class GetLatestReportUseCaseTest {
         var report = useCase.execute(new GetLatestReportUseCase.Input(API_ID));
 
         // Then
-        Assertions
-            .assertThat(report)
+        Assertions.assertThat(report)
             .extracting(GetLatestReportUseCase.Output::report)
             .isEqualTo(
                 new ScoringReportView(
@@ -150,8 +148,7 @@ class GetLatestReportUseCaseTest {
     }
 
     private static ScoringReport aReport() {
-        return ScoringReportFixture
-            .aScoringReport()
+        return ScoringReportFixture.aScoringReport()
             .toBuilder()
             .id(REPORT_ID)
             .apiId(API_ID)

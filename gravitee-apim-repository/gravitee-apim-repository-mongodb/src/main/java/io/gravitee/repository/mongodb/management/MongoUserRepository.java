@@ -173,6 +173,10 @@ public class MongoUserRepository implements UserRepository {
 
     @Override
     public Set<User> findAll() throws TechnicalException {
-        return internalUserRepo.findAll().stream().map(userMongo -> mapper.map(userMongo)).collect(Collectors.toSet());
+        return internalUserRepo
+            .findAll()
+            .stream()
+            .map(userMongo -> mapper.map(userMongo))
+            .collect(Collectors.toSet());
     }
 }

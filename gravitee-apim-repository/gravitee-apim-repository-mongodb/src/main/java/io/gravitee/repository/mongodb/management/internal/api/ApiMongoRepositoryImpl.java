@@ -179,10 +179,12 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
             if (convertedCriteria.size() > 1) {
                 query.addCriteria(
-                    new Criteria()
-                        .orOperator(
-                            convertedCriteria.stream().map(criteria -> new Criteria().andOperator(criteria)).collect(Collectors.toList())
-                        )
+                    new Criteria().orOperator(
+                        convertedCriteria
+                            .stream()
+                            .map(criteria -> new Criteria().andOperator(criteria))
+                            .collect(Collectors.toList())
+                    )
                 );
             } else if (convertedCriteria.size() == 1) {
                 convertedCriteria.get(0).forEach(query::addCriteria);

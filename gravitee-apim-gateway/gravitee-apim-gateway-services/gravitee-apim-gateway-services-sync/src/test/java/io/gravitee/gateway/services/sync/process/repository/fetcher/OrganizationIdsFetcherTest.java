@@ -68,7 +68,11 @@ class OrganizationIdsFetcherTest {
     void should_fetch_organization_if_hrid_disable() throws TechnicalException {
         when(gatewayConfiguration.useLegacyEnvironmentHrids()).thenReturn(false);
         when(environmentRepository.findOrganizationIdsByEnvironments(ENVS)).thenReturn(Set.of("orga1"));
-        cut.fetch(ENVS).test().assertValueCount(1).assertValue(events -> events.contains("orga1"));
+        cut
+            .fetch(ENVS)
+            .test()
+            .assertValueCount(1)
+            .assertValue(events -> events.contains("orga1"));
     }
 
     @Test

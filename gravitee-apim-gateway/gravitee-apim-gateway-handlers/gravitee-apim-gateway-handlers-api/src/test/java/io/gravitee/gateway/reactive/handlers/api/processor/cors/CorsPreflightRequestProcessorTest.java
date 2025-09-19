@@ -152,8 +152,9 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         verify(spyResponseHeaders, times(3)).set(any(), anyString());
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("GET");
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS))
-            .isEqualTo(String.join(", ", accessControlAllowHeaders));
+        assertThat(spyResponseHeaders.get(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS)).isEqualTo(
+            String.join(", ", accessControlAllowHeaders)
+        );
         assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
         assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
     }

@@ -338,15 +338,13 @@ class ImportApiCRDUseCaseTest {
 
         userDomainService.initWith(
             List.of(
-                BaseUserEntity
-                    .builder()
+                BaseUserEntity.builder()
                     .source(USER_ENTITY_SOURCE)
                     .sourceId(USER_ENTITY_SOURCE_ID)
                     .id(USER_ID)
                     .organizationId(ORGANIZATION_ID)
                     .build(),
-                BaseUserEntity
-                    .builder()
+                BaseUserEntity.builder()
                     .source(USER_ENTITY_SOURCE)
                     .sourceId(ACTOR_USER_ID)
                     .id(ACTOR_USER_ID)
@@ -366,30 +364,29 @@ class ImportApiCRDUseCaseTest {
 
         categoryQueryService.reset();
 
-        useCase =
-            new ImportApiCRDUseCase(
-                apiCrudService,
-                apiQueryService,
-                apiPrimaryOwnerFactory,
-                validateApiDomainService,
-                createApiDomainService,
-                createPlanDomainService,
-                apiStateDomainService,
-                updateApiDomainService,
-                planQueryService,
-                updatePlanDomainService,
-                deletePlanDomainService,
-                subscriptionQueryService,
-                closeSubscriptionDomainService,
-                reorderPlanDomainService,
-                crdMembersDomainService,
-                apiMetadataDomainService,
-                pageQueryService,
-                pageCrudService,
-                createApiDocumentationDomainService,
-                updateApiDocumentationDomainService,
-                crdValidator
-            );
+        useCase = new ImportApiCRDUseCase(
+            apiCrudService,
+            apiQueryService,
+            apiPrimaryOwnerFactory,
+            validateApiDomainService,
+            createApiDomainService,
+            createPlanDomainService,
+            apiStateDomainService,
+            updateApiDomainService,
+            planQueryService,
+            updatePlanDomainService,
+            deletePlanDomainService,
+            subscriptionQueryService,
+            closeSubscriptionDomainService,
+            reorderPlanDomainService,
+            crdMembersDomainService,
+            apiMetadataDomainService,
+            pageQueryService,
+            pageCrudService,
+            createApiDocumentationDomainService,
+            updateApiDocumentationDomainService,
+            crdValidator
+        );
 
         enableApiPrimaryOwnerMode();
         parametersQueryService.define(
@@ -398,25 +395,25 @@ class ImportApiCRDUseCaseTest {
         parametersQueryService.define(
             new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
         );
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
+            invocation.getArgument(1)
+        );
         when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(true);
-        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
+            invocation.getArgument(0)
+        );
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         givenExistingUsers(
             List.of(
-                BaseUserEntity
-                    .builder()
+                BaseUserEntity.builder()
                     .organizationId(ORGANIZATION_ID)
                     .id(ACTOR_USER_ID)
                     .source(USER_ENTITY_SOURCE)
                     .sourceId(ACTOR_USER_ID)
                     .email("devops@gravitee.io")
                     .build(),
-                BaseUserEntity
-                    .builder()
+                BaseUserEntity.builder()
                     .organizationId(ORGANIZATION_ID)
                     .id(USER_ID)
                     .source(USER_ENTITY_SOURCE)
@@ -441,8 +438,7 @@ class ImportApiCRDUseCaseTest {
 
         applicationCrudService.initWith(
             List.of(
-                ApplicationModelFixtures
-                    .anApplicationEntity()
+                ApplicationModelFixtures.anApplicationEntity()
                     .toBuilder()
                     .id(APPLICATION_ID)
                     .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
@@ -488,25 +484,23 @@ class ImportApiCRDUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                apiCrudService,
-                applicationCrudService,
-                auditCrudService,
-                flowCrudService,
-                groupQueryService,
-                membershipCrudService,
-                metadataCrudService,
-                notificationConfigCrudService,
-                pageCrudService,
-                parametersQueryService,
-                parametersQueryService,
-                planCrudService,
-                subscriptionCrudService,
-                userCrudService,
-                workflowCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiCrudService,
+            applicationCrudService,
+            auditCrudService,
+            flowCrudService,
+            groupQueryService,
+            membershipCrudService,
+            metadataCrudService,
+            notificationConfigCrudService,
+            pageCrudService,
+            parametersQueryService,
+            parametersQueryService,
+            planCrudService,
+            subscriptionCrudService,
+            userCrudService,
+            workflowCrudService
+        ).forEach(InMemoryAlternative::reset);
         reset(policyValidationDomainService, planSynchronizationService);
     }
 
@@ -515,8 +509,9 @@ class ImportApiCRDUseCaseTest {
 
         @Test
         void should_not_create_api_if_validation_fails() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
-                .thenThrow(new ValidationDomainException("Validation error"));
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenThrow(
+                new ValidationDomainException("Validation error")
+            );
 
             var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
 
@@ -562,63 +557,56 @@ class ImportApiCRDUseCaseTest {
         void should_return_CRD_status() {
             var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
 
-            assertThat(result.status())
-                .isEqualTo(
-                    ApiCRDStatus
-                        .builder()
-                        .id(API_ID)
-                        .crossId(API_CROSS_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .organizationId(ORGANIZATION_ID)
-                        .state("STARTED")
-                        .plans(Map.of("keyless-key", "keyless-id"))
-                        .errors(
-                            ApiCRDStatus.Errors
-                                .builder()
-                                .severe(List.of())
-                                .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
-                                .build()
-                        )
-                        .build()
-                );
+            assertThat(result.status()).isEqualTo(
+                ApiCRDStatus.builder()
+                    .id(API_ID)
+                    .crossId(API_CROSS_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .organizationId(ORGANIZATION_ID)
+                    .state("STARTED")
+                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .errors(
+                        ApiCRDStatus.Errors.builder()
+                            .severe(List.of())
+                            .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
+                            .build()
+                    )
+                    .build()
+            );
         }
 
         @Test
         void should_return_CRD_status_with_warnings() {
             var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().categories(Set.of("unknown-category")).build()));
 
-            assertThat(result.status())
-                .isEqualTo(
-                    ApiCRDStatus
-                        .builder()
-                        .id(API_ID)
-                        .crossId(API_CROSS_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .organizationId(ORGANIZATION_ID)
-                        .state("STARTED")
-                        .plans(Map.of("keyless-key", "keyless-id"))
-                        .errors(
-                            ApiCRDStatus.Errors
-                                .builder()
-                                .severe(List.of())
-                                .warning(
-                                    List.of(
-                                        "Group [non-existing-group] could not be found in environment [environment-id]",
-                                        "category [unknown-category] is not defined in environment [environment-id]"
-                                    )
+            assertThat(result.status()).isEqualTo(
+                ApiCRDStatus.builder()
+                    .id(API_ID)
+                    .crossId(API_CROSS_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .organizationId(ORGANIZATION_ID)
+                    .state("STARTED")
+                    .plans(Map.of("keyless-key", "keyless-id"))
+                    .errors(
+                        ApiCRDStatus.Errors.builder()
+                            .severe(List.of())
+                            .warning(
+                                List.of(
+                                    "Group [non-existing-group] could not be found in environment [environment-id]",
+                                    "category [unknown-category] is not defined in environment [environment-id]"
                                 )
-                                .build()
-                        )
-                        .build()
-                );
+                            )
+                            .build()
+                    )
+                    .build()
+            );
         }
 
         @Test
         void should_sanitize_and_create_members() {
             roleQueryService.initWith(
                 List.of(
-                    Role
-                        .builder()
+                    Role.builder()
                         .name("USER")
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION_ID)
@@ -644,8 +632,9 @@ class ImportApiCRDUseCaseTest {
             var markdown = getMarkdownPage(folder);
             pages.put("markdown", markdown);
 
-            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
-                .thenAnswer(call -> call.getArgument(0));
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
+                call.getArgument(0)
+            );
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
 
@@ -774,8 +763,7 @@ class ImportApiCRDUseCaseTest {
                         .plans(
                             Map.of(
                                 "keyless-key",
-                                PlanCRD
-                                    .builder()
+                                PlanCRD.builder()
                                     .id(KEYLESS.getId())
                                     .name(KEYLESS.getName())
                                     .security(KEYLESS.getPlanSecurity())
@@ -786,8 +774,7 @@ class ImportApiCRDUseCaseTest {
                                     .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
                                     .build(),
                                 "apikey-key",
-                                PlanCRD
-                                    .builder()
+                                PlanCRD.builder()
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -802,25 +789,22 @@ class ImportApiCRDUseCaseTest {
                 )
             );
 
-            assertThat(result.status())
-                .isEqualTo(
-                    ApiCRDStatus
-                        .builder()
-                        .id(API_ID)
-                        .crossId(API_CROSS_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .organizationId(ORGANIZATION_ID)
-                        .state("STARTED")
-                        .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
-                        .errors(
-                            ApiCRDStatus.Errors
-                                .builder()
-                                .severe(List.of())
-                                .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
-                                .build()
-                        )
-                        .build()
-                );
+            assertThat(result.status()).isEqualTo(
+                ApiCRDStatus.builder()
+                    .id(API_ID)
+                    .crossId(API_CROSS_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .organizationId(ORGANIZATION_ID)
+                    .state("STARTED")
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .errors(
+                        ApiCRDStatus.Errors.builder()
+                            .severe(List.of())
+                            .warning(List.of("Group [non-existing-group] could not be found in environment [environment-id]"))
+                            .build()
+                    )
+                    .build()
+            );
         }
 
         @Test
@@ -836,8 +820,7 @@ class ImportApiCRDUseCaseTest {
                         .plans(
                             Map.of(
                                 "keyless-key",
-                                PlanCRD
-                                    .builder()
+                                PlanCRD.builder()
                                     .id(KEYLESS.getId())
                                     .name(KEYLESS.getName())
                                     .security(KEYLESS.getPlanSecurity())
@@ -848,8 +831,7 @@ class ImportApiCRDUseCaseTest {
                                     .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
                                     .build(),
                                 "apikey-key",
-                                PlanCRD
-                                    .builder()
+                                PlanCRD.builder()
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -864,30 +846,27 @@ class ImportApiCRDUseCaseTest {
                 )
             );
 
-            assertThat(result.status())
-                .isEqualTo(
-                    ApiCRDStatus
-                        .builder()
-                        .id(API_ID)
-                        .crossId(API_CROSS_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .organizationId(ORGANIZATION_ID)
-                        .state("STARTED")
-                        .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
-                        .errors(
-                            ApiCRDStatus.Errors
-                                .builder()
-                                .severe(List.of())
-                                .warning(
-                                    List.of(
-                                        "Group [non-existing-group] could not be found in environment [environment-id]",
-                                        "category [unknown-category] is not defined in environment [environment-id]"
-                                    )
+            assertThat(result.status()).isEqualTo(
+                ApiCRDStatus.builder()
+                    .id(API_ID)
+                    .crossId(API_CROSS_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .organizationId(ORGANIZATION_ID)
+                    .state("STARTED")
+                    .plans(Map.of("keyless-key", KEYLESS.getId(), "apikey-key", "generated-id"))
+                    .errors(
+                        ApiCRDStatus.Errors.builder()
+                            .severe(List.of())
+                            .warning(
+                                List.of(
+                                    "Group [non-existing-group] could not be found in environment [environment-id]",
+                                    "category [unknown-category] is not defined in environment [environment-id]"
                                 )
-                                .build()
-                        )
-                        .build()
-                );
+                            )
+                            .build()
+                    )
+                    .build()
+            );
         }
 
         @Test
@@ -902,8 +881,7 @@ class ImportApiCRDUseCaseTest {
                         .plans(
                             Map.of(
                                 "keyless-key",
-                                PlanCRD
-                                    .builder()
+                                PlanCRD.builder()
                                     .id(KEYLESS.getId())
                                     .name(KEYLESS.getName())
                                     .security(KEYLESS.getPlanSecurity())
@@ -914,8 +892,7 @@ class ImportApiCRDUseCaseTest {
                                     .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
                                     .build(),
                                 "api-key",
-                                PlanCRD
-                                    .builder()
+                                PlanCRD.builder()
                                     .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
@@ -953,8 +930,7 @@ class ImportApiCRDUseCaseTest {
                         .plans(
                             Map.of(
                                 "keyless-key",
-                                PlanAdapter.INSTANCE
-                                    .toCRD(KEYLESS)
+                                PlanAdapter.INSTANCE.toCRD(KEYLESS)
                                     .toBuilder()
                                     .name("Updated Keyless")
                                     .description("Updated description")
@@ -1060,8 +1036,9 @@ class ImportApiCRDUseCaseTest {
             var markdown = getMarkdownPage(folder);
             pages.put("markdown", markdown);
 
-            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean()))
-                .thenAnswer(call -> call.getArgument(0));
+            when(validationDomainService.validateAndSanitizeForUpdate(any(), anyString(), anyBoolean())).thenAnswer(call ->
+                call.getArgument(0)
+            );
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().pages(pages).build()));
 
@@ -1232,23 +1209,20 @@ class ImportApiCRDUseCaseTest {
     }
 
     private static ApiCRDSpec.ApiCRDSpecBuilder aCRD() {
-        return ApiCRDSpec
-            .builder()
+        return ApiCRDSpec.builder()
             .analytics(Analytics.builder().enabled(false).build())
             .crossId(API_CROSS_ID)
             .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
             .description("api-description")
             .endpointGroups(
                 List.of(
-                    EndpointGroup
-                        .builder()
+                    EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
                         .endpoints(
                             List.of(
-                                Endpoint
-                                    .builder()
+                                Endpoint.builder()
                                     .name("default-endpoint")
                                     .type("http-proxy")
                                     .inheritConfiguration(true)
@@ -1265,8 +1239,7 @@ class ImportApiCRDUseCaseTest {
             .lifecycleState("CREATED")
             .listeners(
                 List.of(
-                    HttpListener
-                        .builder()
+                    HttpListener.builder()
                         .paths(List.of(Path.builder().path("/http_proxy").build()))
                         .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                         .build()
@@ -1276,8 +1249,7 @@ class ImportApiCRDUseCaseTest {
             .plans(
                 Map.of(
                     "keyless-key",
-                    PlanCRD
-                        .builder()
+                    PlanCRD.builder()
                         .id("keyless-id")
                         .name("Keyless")
                         .security(PlanSecurity.builder().type("KEY_LESS").build())
@@ -1320,8 +1292,7 @@ class ImportApiCRDUseCaseTest {
             .groups(null)
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .apiDefinitionV4(
-                ApiDefinitionFixtures
-                    .aHttpProxyApiV4(API_ID)
+                ApiDefinitionFixtures.aHttpProxyApiV4(API_ID)
                     .toBuilder()
                     .id(API_ID)
                     .name("My Api")
@@ -1355,8 +1326,7 @@ class ImportApiCRDUseCaseTest {
     }
 
     private PageCRD getMarkdownPage(PageCRD folder) {
-        return PageCRD
-            .builder()
+        return PageCRD.builder()
             .id(UUID.randomUUID().toString())
             .crossId(UUID.randomUUID().toString())
             .parentId(folder.getId())
@@ -1369,8 +1339,7 @@ class ImportApiCRDUseCaseTest {
     }
 
     private PageCRD getMarkdownsFolderPage() {
-        return PageCRD
-            .builder()
+        return PageCRD.builder()
             .id(UUID.randomUUID().toString())
             .crossId(UUID.randomUUID().toString())
             .name("markdowns")

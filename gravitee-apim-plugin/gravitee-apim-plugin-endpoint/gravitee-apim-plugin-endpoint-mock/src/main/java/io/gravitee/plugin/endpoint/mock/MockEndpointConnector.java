@@ -114,35 +114,34 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
     ) {
         final long stateInitValue = getStateInitValue(lastId);
 
-        Flowable<Message> messageFlow = Flowable
-            .<Message, Long>generate(
-                () -> stateInitValue,
-                (state, emitter) -> {
-                    if (
-                        // If we have no published message limit or state is before the limit
-                        (maximumPublishedMessages == null || state < maximumPublishedMessages) &&
-                        // And the entrypoint has no limit or state minus lastId is less than limit, then emit a message
-                        (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)
-                    ) {
-                        DefaultMessage message = new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state));
-                        // handle optional params
-                        if (configuration.getHeaders() != null) {
-                            HttpHeaders headers = HttpHeaders.create();
-                            configuration.getHeaders().forEach(h -> headers.add(h.getName(), h.getValue()));
-                            message.headers(headers);
-                        }
-                        if (configuration.getMetadata() != null) {
-                            message.metadata(
-                                configuration.getMetadata().stream().collect(Collectors.toMap(HttpHeader::getName, HttpHeader::getValue))
-                            );
-                        }
-                        emitter.onNext(message);
-                    } else {
-                        emitter.onComplete();
+        Flowable<Message> messageFlow = Flowable.<Message, Long>generate(
+            () -> stateInitValue,
+            (state, emitter) -> {
+                if (
+                    // If we have no published message limit or state is before the limit
+                    (maximumPublishedMessages == null || state < maximumPublishedMessages) &&
+                    // And the entrypoint has no limit or state minus lastId is less than limit, then emit a message
+                    (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)
+                ) {
+                    DefaultMessage message = new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state));
+                    // handle optional params
+                    if (configuration.getHeaders() != null) {
+                        HttpHeaders headers = HttpHeaders.create();
+                        configuration.getHeaders().forEach(h -> headers.add(h.getName(), h.getValue()));
+                        message.headers(headers);
                     }
-                    return state + 1;
+                    if (configuration.getMetadata() != null) {
+                        message.metadata(
+                            configuration.getMetadata().stream().collect(Collectors.toMap(HttpHeader::getName, HttpHeader::getValue))
+                        );
+                    }
+                    emitter.onNext(message);
+                } else {
+                    emitter.onComplete();
                 }
-            )
+                return state + 1;
+            }
+        )
             .delay(configuration.getMessageInterval(), TimeUnit.MILLISECONDS)
             .rebatchRequests(1);
 

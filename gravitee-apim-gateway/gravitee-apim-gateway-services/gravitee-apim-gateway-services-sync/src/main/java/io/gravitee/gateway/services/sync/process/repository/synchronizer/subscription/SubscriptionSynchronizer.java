@@ -61,14 +61,12 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
                 .subscribeOn(Schedulers.from(syncFetcherExecutor))
                 // append per page
                 .flatMap(subscriptions ->
-                    Flowable
-                        .just(subscriptions)
+                    Flowable.just(subscriptions)
                         .flatMapIterable(s -> s)
                         .filter(subscription -> planCache.isDeployed(subscription.getApi(), subscription.getPlan()))
                         .flatMapMaybe(subscription -> Maybe.fromCallable(() -> subscriptionMapper.to(subscription)))
                         .map(subscription ->
-                            SingleSubscriptionDeployable
-                                .builder()
+                            SingleSubscriptionDeployable.builder()
                                 .subscription(subscription)
                                 .syncAction(
                                     subscription.getStatus().equals(Subscription.Status.ACCEPTED.name())

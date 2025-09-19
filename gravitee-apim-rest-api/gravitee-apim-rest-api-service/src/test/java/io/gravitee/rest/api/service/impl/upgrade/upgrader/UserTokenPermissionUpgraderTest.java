@@ -82,8 +82,9 @@ class UserTokenPermissionUpgraderTest {
         var updateUser = getUserRoleWithPermissionAndName(UPDATE_USER_ROLE, new char[] { 'U' });
         var deleteUser = getUserRoleWithPermissionAndName(DELETE_USER_ROLE, new char[] { 'D' });
 
-        when(roleService.findByScope(RoleScope.ORGANIZATION, DEFAULT_ORGANIZATION_ID))
-            .thenReturn(List.of(systemAdmin, simpleUser, readUser, createUser, updateUser, deleteUser));
+        when(roleService.findByScope(RoleScope.ORGANIZATION, DEFAULT_ORGANIZATION_ID)).thenReturn(
+            List.of(systemAdmin, simpleUser, readUser, createUser, updateUser, deleteUser)
+        );
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -125,7 +126,8 @@ class UserTokenPermissionUpgraderTest {
         assertThat(updatedRole.getId()).isEqualTo(originalRole.getId());
         assertThat(updatedRole.getName()).isEqualTo(originalRole.getName());
         assertThat(updatedRole.getScope()).isEqualTo(originalRole.getScope());
-        assertThat(updatedRole.getPermissions().get(OrganizationPermission.USER_TOKEN.getName()))
-            .containsExactlyInAnyOrder(expectedPermissions);
+        assertThat(updatedRole.getPermissions().get(OrganizationPermission.USER_TOKEN.getName())).containsExactlyInAnyOrder(
+            expectedPermissions
+        );
     }
 }

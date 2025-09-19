@@ -74,8 +74,7 @@ public class LicenseSynchronizer implements RepositorySynchronizer {
     }
 
     private LicenseDeployable prepareForDeployment(final License organizationLicense) {
-        return LicenseDeployable
-            .builder()
+        return LicenseDeployable.builder()
             .id(organizationLicense.getReferenceId())
             .license(organizationLicense.getLicense())
             .syncAction(SyncAction.DEPLOY)

@@ -158,25 +158,21 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
         context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis());
 
-        upstreamInvoker.invoke(
-            context,
-            chain,
-            connection -> {
-                context.request().customFrameHandler(connection::writeCustomFrame);
+        upstreamInvoker.invoke(context, chain, connection -> {
+            context.request().customFrameHandler(connection::writeCustomFrame);
 
-                connection.responseHandler(proxyResponse -> handleProxyResponse(context, endHandler, proxyResponse));
+            connection.responseHandler(proxyResponse -> handleProxyResponse(context, endHandler, proxyResponse));
 
-                // Override the stream error handler to be able to cancel connection to backend
-                chain.streamErrorHandler(failure -> {
-                    context
-                        .request()
-                        .metrics()
-                        .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
-                    connection.cancel();
-                    handleError(context, endHandler, failure);
-                });
-            }
-        );
+            // Override the stream error handler to be able to cancel connection to backend
+            chain.streamErrorHandler(failure -> {
+                context
+                    .request()
+                    .metrics()
+                    .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
+                connection.cancel();
+                handleError(context, endHandler, failure);
+            });
+        });
 
         // Plug server request stream to request processor stream
         context.request().bodyHandler(chain::write);
@@ -447,32 +443,31 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     @Override
     public List<Acceptor<?>> acceptors() {
         if (acceptors == null) {
-            acceptors =
-                reactable
-                    .getDefinition()
-                    .getProxy()
-                    .getVirtualHosts()
-                    .stream()
-                    .map(virtualHost -> {
-                        if (virtualHost.getHost() != null) {
-                            return new DefaultHttpAcceptor(
-                                virtualHost.getHost(),
-                                virtualHost.getPath(),
-                                this,
-                                reactable.getDefinition().getProxy().getServers()
-                            );
-                        } else {
-                            return new AccessPointHttpAcceptor(
-                                eventManager,
-                                reactable.getEnvironmentId(),
-                                accessPointManager.getByEnvironmentId(reactable.getEnvironmentId()),
-                                virtualHost.getPath(),
-                                this,
-                                reactable.getDefinition().getProxy().getServers()
-                            );
-                        }
-                    })
-                    .collect(Collectors.toList());
+            acceptors = reactable
+                .getDefinition()
+                .getProxy()
+                .getVirtualHosts()
+                .stream()
+                .map(virtualHost -> {
+                    if (virtualHost.getHost() != null) {
+                        return new DefaultHttpAcceptor(
+                            virtualHost.getHost(),
+                            virtualHost.getPath(),
+                            this,
+                            reactable.getDefinition().getProxy().getServers()
+                        );
+                    } else {
+                        return new AccessPointHttpAcceptor(
+                            eventManager,
+                            reactable.getEnvironmentId(),
+                            accessPointManager.getByEnvironmentId(reactable.getEnvironmentId()),
+                            virtualHost.getPath(),
+                            this,
+                            reactable.getDefinition().getProxy().getServers()
+                        );
+                    }
+                })
+                .collect(Collectors.toList());
         }
 
         return acceptors;

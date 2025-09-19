@@ -59,21 +59,24 @@ class SearchAverageConnectionDurationUseCaseTest {
     @Test
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, "another-environment")))
-            .isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() ->
+            cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, "another-environment"))
+        ).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_no_api_found() {
-        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
-            .isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID))).isInstanceOf(
+            ApiNotFoundException.class
+        );
     }
 
     @Test
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)))
-            .isInstanceOf(ApiInvalidDefinitionVersionException.class);
+        assertThatThrownBy(() -> cut.execute(null, new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID))).isInstanceOf(
+            ApiInvalidDefinitionVersionException.class
+        );
     }
 
     @Test
@@ -103,20 +106,17 @@ class SearchAverageConnectionDurationUseCaseTest {
     @Test
     void should_get_average_connection_duration_for_a_v4_api() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        analyticsQueryService.averageConnectionDuration =
-            AverageConnectionDuration
-                .builder()
-                .globalAverage(250.0)
-                .averagesByEntrypoint(Map.of("http-get", 499.0, "http-post", 1.0))
-                .build();
+        analyticsQueryService.averageConnectionDuration = AverageConnectionDuration.builder()
+            .globalAverage(250.0)
+            .averagesByEntrypoint(Map.of("http-get", 499.0, "http-post", 1.0))
+            .build();
         final SearchAverageConnectionDurationUseCase.Output result = cut.execute(
             null,
             new SearchAverageConnectionDurationUseCase.Input(MY_API, ENV_ID)
         );
-        assertThat(result.averageConnectionDuration())
-            .hasValueSatisfying(averageMessagesPerRequest -> {
-                assertThat(averageMessagesPerRequest.getGlobalAverage()).isEqualTo(250.0);
-                assertThat(averageMessagesPerRequest.getAveragesByEntrypoint()).isEqualTo(Map.of("http-get", 499.0, "http-post", 1.0));
-            });
+        assertThat(result.averageConnectionDuration()).hasValueSatisfying(averageMessagesPerRequest -> {
+            assertThat(averageMessagesPerRequest.getGlobalAverage()).isEqualTo(250.0);
+            assertThat(averageMessagesPerRequest.getAveragesByEntrypoint()).isEqualTo(Map.of("http-get", 499.0, "http-post", 1.0));
+        });
     }
 }

@@ -68,8 +68,7 @@ public class UnlinkInstallationCommandHandlerTest extends TestCase {
 
     @Test
     public void handle() throws InterruptedException {
-        final UnlinkInstallationCommandPayload payload = UnlinkInstallationCommandPayload
-            .builder()
+        final UnlinkInstallationCommandPayload payload = UnlinkInstallationCommandPayload.builder()
             .environmentCockpitId(COCKPIT_ENV_ID)
             .organizationCockpitId(COCKPIT_ORG_ID)
             .build();
@@ -97,8 +96,7 @@ public class UnlinkInstallationCommandHandlerTest extends TestCase {
 
     @Test
     public void handleWithException() throws InterruptedException {
-        final UnlinkInstallationCommandPayload payload = UnlinkInstallationCommandPayload
-            .builder()
+        final UnlinkInstallationCommandPayload payload = UnlinkInstallationCommandPayload.builder()
             .environmentCockpitId(COCKPIT_ENV_ID)
             .build();
 

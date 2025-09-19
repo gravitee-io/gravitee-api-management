@@ -104,15 +104,13 @@ class GetEnvironmentScoringOverviewUseCaseTest {
         var report = useCase.execute(new GetEnvironmentScoringOverviewUseCase.Input(ENVIRONMENT_1));
 
         // Then
-        Assertions
-            .assertThat(report)
+        Assertions.assertThat(report)
             .extracting(GetEnvironmentScoringOverviewUseCase.Output::overview)
             .isEqualTo(new EnvironmentOverview(ENVIRONMENT_1, 0.84D, 2L, 2L, 2L, 2L));
     }
 
     private static ScoringReport aReport() {
-        return ScoringReportFixture
-            .aScoringReport()
+        return ScoringReportFixture.aScoringReport()
             .toBuilder()
             .id(REPORT_ID)
             .summary(new ScoringReport.Summary(0.84D, 1L, 1L, 1L, 1L))

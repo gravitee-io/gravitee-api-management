@@ -136,8 +136,7 @@ public class HealthCheckManagedEndpoint implements ManagedEndpoint {
         reporterService.report(endpointStatus);
 
         if (endpointStatus.isTransition() && alertEventProducer != null && !alertEventProducer.isEmpty()) {
-            final Event event = Event
-                .at(endpointStatus.getTimestamp())
+            final Event event = Event.at(endpointStatus.getTimestamp())
                 .context(CONTEXT_NODE_ID, node.id())
                 .context(CONTEXT_NODE_HOSTNAME, node.hostname())
                 .context(CONTEXT_NODE_APPLICATION, node.application())

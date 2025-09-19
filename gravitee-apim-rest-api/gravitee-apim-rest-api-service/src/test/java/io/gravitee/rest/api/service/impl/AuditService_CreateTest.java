@@ -67,9 +67,9 @@ public class AuditService_CreateTest {
             singletonMap("name", "Bar")
         );
 
-        verify(auditRepository, times(1))
-            .create(
-                argThat(arg ->
+        verify(auditRepository, times(1)).create(
+            argThat(
+                arg ->
                     arg != null &&
                     !arg.getId().isEmpty() &&
                     arg.getOrganizationId().equals("DEFAULT") &&
@@ -79,8 +79,8 @@ public class AuditService_CreateTest {
                     arg.getCreatedAt().equals(createdAt) &&
                     arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
                     arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -101,9 +101,9 @@ public class AuditService_CreateTest {
             singletonMap("name", "Bar")
         );
 
-        verify(auditRepository, times(1))
-            .create(
-                argThat(arg ->
+        verify(auditRepository, times(1)).create(
+            argThat(
+                arg ->
                     arg != null &&
                     !arg.getId().isEmpty() &&
                     arg.getOrganizationId().equals("DEFAULT") &&
@@ -113,8 +113,8 @@ public class AuditService_CreateTest {
                     arg.getCreatedAt().equals(createdAt) &&
                     arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
                     arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -133,9 +133,9 @@ public class AuditService_CreateTest {
             singletonMap("name", "Bar")
         );
 
-        verify(auditRepository, times(1))
-            .create(
-                argThat(arg ->
+        verify(auditRepository, times(1)).create(
+            argThat(
+                arg ->
                     arg != null &&
                     !arg.getId().isEmpty() &&
                     arg.getOrganizationId().equals("DEFAULT") &&
@@ -145,8 +145,8 @@ public class AuditService_CreateTest {
                     arg.getCreatedAt().equals(createdAt) &&
                     arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
                     arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -165,9 +165,9 @@ public class AuditService_CreateTest {
             singletonMap("name", "Bar")
         );
 
-        verify(auditRepository, times(1))
-            .create(
-                argThat(arg ->
+        verify(auditRepository, times(1)).create(
+            argThat(
+                arg ->
                     arg != null &&
                     !arg.getId().isEmpty() &&
                     arg.getOrganizationId().equals(executionContext.getOrganizationId()) &&
@@ -177,7 +177,7 @@ public class AuditService_CreateTest {
                     arg.getCreatedAt().equals(createdAt) &&
                     arg.getProperties().equals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123")) &&
                     arg.getPatch().toString().equals("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Bar\"}]")
-                )
-            );
+            )
+        );
     }
 }

@@ -34,14 +34,12 @@ public class NewApiFixtures {
     private static final Supplier<NewApi.NewApiBuilder> BASE = () -> NewApi.builder().name("My API").apiVersion("1.0");
 
     public static NewApi aProxyApiV4() {
-        return BASE
-            .get()
+        return BASE.get()
             .definitionVersion(DefinitionVersion.V4)
             .type(ApiType.PROXY)
             .listeners(
                 List.of(
-                    HttpListener
-                        .builder()
+                    HttpListener.builder()
                         .paths(List.of(Path.builder().path("/http_proxy").build()))
                         .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                         .build()
@@ -49,15 +47,13 @@ public class NewApiFixtures {
             )
             .endpointGroups(
                 List.of(
-                    EndpointGroup
-                        .builder()
+                    EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
                         .endpoints(
                             List.of(
-                                Endpoint
-                                    .builder()
+                                Endpoint.builder()
                                     .name("default-endpoint")
                                     .type("http-proxy")
                                     .inheritConfiguration(true)

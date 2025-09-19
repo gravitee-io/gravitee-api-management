@@ -40,12 +40,11 @@ class GetResourcePluginUseCaseTest {
     @BeforeEach
     void setup() {
         licenseManager = mock(LicenseManager.class);
-        getResourcePluginUseCase =
-            new GetResourcePluginUseCase(
-                resourcePluginCrudServiceInMemory,
-                resourcePluginQueryServiceInMemory,
-                new PluginFilterByLicenseDomainService(licenseManager)
-            );
+        getResourcePluginUseCase = new GetResourcePluginUseCase(
+            resourcePluginCrudServiceInMemory,
+            resourcePluginQueryServiceInMemory,
+            new PluginFilterByLicenseDomainService(licenseManager)
+        );
     }
 
     @Test

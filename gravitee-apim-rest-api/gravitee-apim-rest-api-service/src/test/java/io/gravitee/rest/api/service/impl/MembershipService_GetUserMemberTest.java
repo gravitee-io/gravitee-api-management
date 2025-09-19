@@ -56,54 +56,53 @@ public class MembershipService_GetUserMemberTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        cut =
-            new MembershipServiceImpl(
-                null,
-                null,
-                applicationRepository,
-                null,
-                null,
-                null,
-                membershipRepository,
-                null,
-                null,
-                null,
-                null,
-                null,
-                apiRepository,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            );
+        cut = new MembershipServiceImpl(
+            null,
+            null,
+            applicationRepository,
+            null,
+            null,
+            null,
+            membershipRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            apiRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
     }
 
     @Test
     public void should_throw_if_no_api_found() throws TechnicalException {
-        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
-            .thenReturn(Set.of());
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any())).thenReturn(
+            Set.of()
+        );
         when(apiRepository.findById("reference-id")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-                cut.getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, "reference-id", "user-id")
-            )
-            .isInstanceOf(ApiNotFoundException.class);
+            cut.getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, "reference-id", "user-id")
+        ).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     public void should_throw_if_no_app_found() throws TechnicalException {
-        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
-            .thenReturn(Set.of());
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any())).thenReturn(
+            Set.of()
+        );
         when(applicationRepository.findById("reference-id")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-                cut.getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, "reference-id", "user-id")
-            )
-            .isInstanceOf(ApplicationNotFoundException.class);
+            cut.getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, "reference-id", "user-id")
+        ).isInstanceOf(ApplicationNotFoundException.class);
     }
 }

@@ -45,13 +45,11 @@ public class ApiFixtures {
 
     private ApiFixtures() {}
 
-    private static final DefinitionContext.DefinitionContextBuilder BASE_DEFINITION_CONTEXT = DefinitionContext
-        .builder()
+    private static final DefinitionContext.DefinitionContextBuilder BASE_DEFINITION_CONTEXT = DefinitionContext.builder()
         .origin(DefinitionContext.OriginEnum.MANAGEMENT)
         .mode(DefinitionContext.ModeEnum.FULLY_MANAGED);
 
-    private static final ApiV4.ApiV4Builder BASE_API_V4 = ApiV4
-        .builder()
+    private static final ApiV4.ApiV4Builder BASE_API_V4 = ApiV4.builder()
         // BaseApi fields
         .id("my-api")
         .crossId("my-cross-id")
@@ -90,8 +88,7 @@ public class ApiFixtures {
         .analytics(new Analytics())
         .flows(List.of(FlowFixtures.aFlowV4()));
 
-    private static final UpdateApiV2.UpdateApiV2Builder BASE_UPDATE_API_V2 = UpdateApiV2
-        .builder()
+    private static final UpdateApiV2.UpdateApiV2Builder BASE_UPDATE_API_V2 = UpdateApiV2.builder()
         .apiVersion("v1")
         .definitionVersion(DefinitionVersion.V2)
         .name("api-name")
@@ -112,8 +109,7 @@ public class ApiFixtures {
         .disableMembershipNotifications(true)
         .executionMode(ExecutionMode.V4_EMULATION_ENGINE);
 
-    private static final UpdateApiV4.UpdateApiV4Builder BASE_UPDATE_API_V4 = UpdateApiV4
-        .builder()
+    private static final UpdateApiV4.UpdateApiV4Builder BASE_UPDATE_API_V4 = UpdateApiV4.builder()
         .apiVersion("v1")
         .definitionVersion(DefinitionVersion.V4)
         .type(ApiType.MESSAGE)
@@ -135,8 +131,7 @@ public class ApiFixtures {
         .disableMembershipNotifications(true)
         .responseTemplates(Map.of("template-id", Map.of("application/json", new ResponseTemplate())));
 
-    private static final UpdateApiFederated.UpdateApiFederatedBuilder BASE_UPDATE_API_FEDERATED = UpdateApiFederated
-        .builder()
+    private static final UpdateApiFederated.UpdateApiFederatedBuilder BASE_UPDATE_API_FEDERATED = UpdateApiFederated.builder()
         .apiVersion("1.0.0")
         .definitionVersion(DefinitionVersion.FEDERATED)
         .name("api-name")

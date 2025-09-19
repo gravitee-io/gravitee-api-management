@@ -111,8 +111,9 @@ public class ApiService_FindByIdAsMapTest {
 
         when(apiRepository.findById("api-id")).thenReturn(Optional.of(api));
         when(environmentService.findById(ENV_ID)).thenReturn(environment);
-        when(objectMapper.convertValue(any(), any(Map.class.getClass())))
-            .thenAnswer(i -> getObjectMapper().convertValue(i.getArgument(0), Map.class));
+        when(objectMapper.convertValue(any(), any(Map.class.getClass()))).thenAnswer(i ->
+            getObjectMapper().convertValue(i.getArgument(0), Map.class)
+        );
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user");
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(userEntity);

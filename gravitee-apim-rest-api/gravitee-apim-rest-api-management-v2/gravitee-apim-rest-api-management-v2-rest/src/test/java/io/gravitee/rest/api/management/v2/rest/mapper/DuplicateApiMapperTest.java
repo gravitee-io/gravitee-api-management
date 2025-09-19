@@ -30,8 +30,7 @@ public class DuplicateApiMapperTest {
 
     @Test
     void should_map_to_DuplicateApiEntity() {
-        var duplicateApi = DuplicateApiOptions
-            .builder()
+        var duplicateApi = DuplicateApiOptions.builder()
             .contextPath("/context-path")
             .version("1.0")
             .filteredFields(
@@ -53,8 +52,7 @@ public class DuplicateApiMapperTest {
 
     @Test
     void should_map_to_DuplicateOptions() {
-        var duplicateApi = DuplicateApiOptions
-            .builder()
+        var duplicateApi = DuplicateApiOptions.builder()
             .contextPath("/context-path")
             .version("1.0")
             .filteredFields(
@@ -83,8 +81,7 @@ public class DuplicateApiMapperTest {
 
     @Test
     void should_map_to_DuplicateOptions_with_host() {
-        var duplicateApi = DuplicateApiOptions
-            .builder()
+        var duplicateApi = DuplicateApiOptions.builder()
             .host("host.gravitee.io")
             .version("1.0")
             .filteredFields(

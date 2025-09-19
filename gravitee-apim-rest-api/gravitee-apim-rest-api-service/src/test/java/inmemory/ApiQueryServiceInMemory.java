@@ -50,29 +50,25 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches =
-            this.storage()
-                .stream()
-                .filter(api -> {
-                    var matchesIntegrationId =
-                        isNull(apiCriteria) ||
-                        isNull(apiCriteria.getIntegrationId()) ||
-                        Objects.equals(
-                            ((OriginContext.Integration) api.getOriginContext()).integrationId(),
-                            apiCriteria.getIntegrationId()
-                        );
-                    var matchesApiId = isNull(apiCriteria) || isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
-                    var matchesEnvironmentId =
-                        isNull(apiCriteria) ||
-                        isNull(apiCriteria.getEnvironmentId()) ||
-                        apiCriteria.getEnvironmentId().equals(api.getEnvironmentId());
-                    var matchesLifecycleState =
-                        isNull(apiCriteria) ||
-                        isNull(apiCriteria.getLifecycleStates()) ||
-                        apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
-                    return matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesEnvironmentId;
-                })
-                .toList();
+        var matches = this.storage()
+            .stream()
+            .filter(api -> {
+                var matchesIntegrationId =
+                    isNull(apiCriteria) ||
+                    isNull(apiCriteria.getIntegrationId()) ||
+                    Objects.equals(((OriginContext.Integration) api.getOriginContext()).integrationId(), apiCriteria.getIntegrationId());
+                var matchesApiId = isNull(apiCriteria) || isNull(apiCriteria.getIds()) || apiCriteria.getIds().contains(api.getId());
+                var matchesEnvironmentId =
+                    isNull(apiCriteria) ||
+                    isNull(apiCriteria.getEnvironmentId()) ||
+                    apiCriteria.getEnvironmentId().equals(api.getEnvironmentId());
+                var matchesLifecycleState =
+                    isNull(apiCriteria) ||
+                    isNull(apiCriteria.getLifecycleStates()) ||
+                    apiCriteria.getLifecycleStates().contains(api.getApiLifecycleState());
+                return matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesEnvironmentId;
+            })
+            .toList();
 
         var page = matches.size() <= pageSize
             ? matches
@@ -108,7 +104,10 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
 
     @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
-        return storage.stream().filter(api -> api.getEnvironmentId().equals(environmentId) && api.getCrossId().equals(crossId)).findFirst();
+        return storage
+            .stream()
+            .filter(api -> api.getEnvironmentId().equals(environmentId) && api.getCrossId().equals(crossId))
+            .findFirst();
     }
 
     @Override

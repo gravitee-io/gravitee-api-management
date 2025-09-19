@@ -27,8 +27,7 @@ public class ScoringReportFixture {
     private ScoringReportFixture() {}
 
     public static final Supplier<ScoringReport.ScoringReportBuilder> BASE = () ->
-        ScoringReport
-            .builder()
+        ScoringReport.builder()
             .id("report-id")
             .apiId("api-id")
             .environmentId("environment-id")

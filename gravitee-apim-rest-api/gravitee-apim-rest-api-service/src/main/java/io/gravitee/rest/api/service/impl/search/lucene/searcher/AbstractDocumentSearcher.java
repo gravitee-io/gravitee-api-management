@@ -133,8 +133,8 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
                 BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
                 ((Collection<?>) values).forEach(value ->
-                        filterApisQuery.add(new TermQuery(new Term(apiReferenceField, (String) value)), BooleanClause.Occur.SHOULD)
-                    );
+                    filterApisQuery.add(new TermQuery(new Term(apiReferenceField, (String) value)), BooleanClause.Occur.SHOULD)
+                );
                 if (valuesAsCollection.size() > 0) {
                     filtersQuery.add(filterApisQuery.build(), BooleanClause.Occur.MUST);
                 }

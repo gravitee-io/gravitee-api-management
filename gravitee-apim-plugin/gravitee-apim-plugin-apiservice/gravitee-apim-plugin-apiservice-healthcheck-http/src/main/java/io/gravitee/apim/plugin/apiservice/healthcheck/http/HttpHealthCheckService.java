@@ -186,8 +186,7 @@ public class HttpHealthCheckService implements ApiService {
         final CronTrigger cron = new CronTrigger(hcConfiguration.getSchedule());
         final AtomicLong errorCount = new AtomicLong(0);
 
-        return Observable
-            .defer(() -> Observable.timer(cron.nextExecutionIn(), TimeUnit.MILLISECONDS))
+        return Observable.defer(() -> Observable.timer(cron.nextExecutionIn(), TimeUnit.MILLISECONDS))
             .switchMapCompletable(aLong -> {
                 final HttpHealthCheckExecutionContext ctx = new HttpHealthCheckExecutionContext(hcConfiguration, deploymentContext);
 
@@ -297,14 +296,12 @@ public class HttpHealthCheckService implements ApiService {
             synchronized (this) {
                 // Double-checked locking.
                 if (httpClientCreated.compareAndSet(false, true)) {
-                    httpClient =
-                        VertxHttpClientFactory
-                            .builder()
-                            .vertx(deploymentContext.getComponent(Vertx.class))
-                            .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
-                            .defaultTarget(hcConfiguration.getTarget())
-                            .build()
-                            .createHttpClient();
+                    httpClient = VertxHttpClientFactory.builder()
+                        .vertx(deploymentContext.getComponent(Vertx.class))
+                        .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
+                        .defaultTarget(hcConfiguration.getTarget())
+                        .build()
+                        .createHttpClient();
                 }
             }
         }
@@ -363,12 +360,13 @@ public class HttpHealthCheckService implements ApiService {
                     reportRequest.setUri(ctx.metrics().getEndpoint());
                     reportResponse.setStatus(response.status());
 
-                    final EndpointStatus.Builder statusBuilder = EndpointStatus
-                        .forEndpoint(api.getId(), api.getName(), hcEndpoint.getDefinition().getName())
-                        .on(request.timestamp());
+                    final EndpointStatus.Builder statusBuilder = EndpointStatus.forEndpoint(
+                        api.getId(),
+                        api.getName(),
+                        hcEndpoint.getDefinition().getName()
+                    ).on(request.timestamp());
 
-                    final EndpointStatus.StepBuilder stepBuilder = EndpointStatus
-                        .forStep(DEFAULT_STEP)
+                    final EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(DEFAULT_STEP)
                         .request(reportRequest)
                         .response(reportResponse)
                         .responseTime(currentTimestamp - request.timestamp());

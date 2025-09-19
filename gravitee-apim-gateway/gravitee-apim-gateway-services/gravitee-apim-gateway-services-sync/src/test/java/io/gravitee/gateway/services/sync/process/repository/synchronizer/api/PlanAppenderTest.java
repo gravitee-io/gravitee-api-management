@@ -152,14 +152,12 @@ class PlanAppenderTest {
             apiV4.setDefinitionVersion(DefinitionVersion.V4);
             PlanSecurity planSecurity = new PlanSecurity();
             planSecurity.setType("api-key");
-            io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan
-                .builder()
+            io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan.builder()
                 .id("planId")
                 .security(planSecurity)
                 .status(PlanStatus.PUBLISHED)
                 .build();
-            io.gravitee.definition.model.v4.plan.Plan plan2 = io.gravitee.definition.model.v4.plan.Plan
-                .builder()
+            io.gravitee.definition.model.v4.plan.Plan plan2 = io.gravitee.definition.model.v4.plan.Plan.builder()
                 .id("planId2")
                 .security(planSecurity)
                 .status(PlanStatus.CLOSED)

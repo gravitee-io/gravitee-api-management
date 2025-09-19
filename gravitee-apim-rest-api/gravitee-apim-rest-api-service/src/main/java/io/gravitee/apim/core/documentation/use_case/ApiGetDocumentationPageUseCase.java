@@ -44,10 +44,9 @@ public class ApiGetDocumentationPageUseCase {
         var page = this.pageCrudService.get(input.pageId);
         this.apiDocumentationDomainService.validatePageAssociatedToApi(page, input.apiId);
 
-        page =
-            page
-                .withHidden(this.apiDocumentationDomainService.pageIsHidden(page))
-                .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api));
+        page = page
+            .withHidden(this.apiDocumentationDomainService.pageIsHidden(page))
+            .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api));
 
         return new Output(page);
     }

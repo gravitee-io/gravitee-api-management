@@ -142,15 +142,13 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
 
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
-            return HookHelper
-                .hook(
-                    () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
-                    preProcessorChain.getId(),
-                    processorChainHooks,
-                    mutableCtx,
-                    ExecutionPhase.REQUEST
-                )
-                .andThen(handleNotFound(mutableCtx));
+            return HookHelper.hook(
+                () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
+                preProcessorChain.getId(),
+                processorChainHooks,
+                mutableCtx,
+                ExecutionPhase.REQUEST
+            ).andThen(handleNotFound(mutableCtx));
         } else if (httpAcceptor.reactor() instanceof ApiReactor) {
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
             mutableCtx.request().contextPath(httpAcceptor.path());
@@ -158,26 +156,24 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             final ApiReactor apiReactor = (ApiReactor) httpAcceptor.reactor();
             mutableCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
-            return HookHelper
-                .hook(
-                    () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
-                    preProcessorChain.getId(),
-                    processorChainHooks,
-                    mutableCtx,
-                    ExecutionPhase.REQUEST
-                )
+            return HookHelper.hook(
+                () -> preProcessorChain.execute(mutableCtx, ExecutionPhase.REQUEST),
+                preProcessorChain.getId(),
+                processorChainHooks,
+                mutableCtx,
+                ExecutionPhase.REQUEST
+            )
                 .andThen(Completable.defer(() -> apiReactor.handle(mutableCtx)))
                 .doFinally(() -> {
                     // Post action are dissociated from the main execution once the request has been handled and cover all the cases (error, success, cancel).
                     ProcessorChain postProcessorChain = platformProcessorChainFactory.postProcessorChain();
-                    HookHelper
-                        .hook(
-                            () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
-                            postProcessorChain.getId(),
-                            processorChainHooks,
-                            mutableCtx,
-                            ExecutionPhase.RESPONSE
-                        )
+                    HookHelper.hook(
+                        () -> postProcessorChain.execute(mutableCtx, ExecutionPhase.RESPONSE),
+                        postProcessorChain.getId(),
+                        processorChainHooks,
+                        mutableCtx,
+                        ExecutionPhase.RESPONSE
+                    )
                         .subscribeOn(Schedulers.computation())
                         .onErrorComplete()
                         .subscribe();
@@ -237,10 +233,11 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             requestProcessorChainFactory
                 .create()
                 .handler(ctx -> {
-                    reactorHandler.handle(
-                        ctx,
-                        executionContext ->
-                            executionContext.response().endHandler(aVoid -> processResponse(executionContext, endHandler)).end()
+                    reactorHandler.handle(ctx, executionContext ->
+                        executionContext
+                            .response()
+                            .endHandler(aVoid -> processResponse(executionContext, endHandler))
+                            .end()
                     );
                 })
                 .errorHandler(result -> processResponse(simpleExecutionContext, endHandler))
@@ -310,15 +307,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         SimpleExecutionContext simpleExecutionContext = new SimpleExecutionContext(request, request.createResponse());
 
         if (requestTimeoutConfiguration.getRequestTimeout() > 0 && !isV3WebSocket(httpServerRequest)) {
-            final long vertxTimerId = vertx.setTimer(
-                requestTimeoutConfiguration.getRequestTimeout(),
-                event -> {
-                    if (!httpServerRequest.response().ended()) {
-                        final Handler<Long> handler = request.timeoutHandler();
-                        handler.handle(event);
-                    }
+            final long vertxTimerId = vertx.setTimer(requestTimeoutConfiguration.getRequestTimeout(), event -> {
+                if (!httpServerRequest.response().ended()) {
+                    final Handler<Long> handler = request.timeoutHandler();
+                    handler.handle(event);
                 }
-            );
+            });
             simpleExecutionContext.setAttribute(ATTR_INTERNAL_VERTX_TIMER_ID, vertxTimerId);
         }
 

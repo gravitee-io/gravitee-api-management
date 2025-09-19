@@ -56,25 +56,23 @@ class ValidateApiMetadataDomainServiceTest {
             apiMetadataQueryService,
             new FreemarkerTemplateProcessor()
         );
-        service =
-            new ValidateApiMetadataDomainService(
-                apiMetadataQueryService,
-                metadataCrudService,
-                new ApiPrimaryOwnerDomainService(
-                    auditDomainService,
-                    groupQueryService,
-                    membershipCrudService,
-                    membershipQueryService,
-                    roleQueryService,
-                    userCrudService
-                ),
-                apiMetadataDecoderDomainService
-            );
+        service = new ValidateApiMetadataDomainService(
+            apiMetadataQueryService,
+            metadataCrudService,
+            new ApiPrimaryOwnerDomainService(
+                auditDomainService,
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService
+            ),
+            apiMetadataDecoderDomainService
+        );
 
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .id("role-id")
                     .scope(Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
@@ -85,8 +83,7 @@ class ValidateApiMetadataDomainServiceTest {
         );
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)
@@ -107,17 +104,15 @@ class ValidateApiMetadataDomainServiceTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                auditCrudService,
-                membershipCrudService,
-                roleQueryService,
-                userCrudService,
-                metadataCrudService,
-                groupQueryService,
-                membershipQueryService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            auditCrudService,
+            membershipCrudService,
+            roleQueryService,
+            userCrudService,
+            metadataCrudService,
+            groupQueryService,
+            membershipQueryService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -126,8 +121,9 @@ class ValidateApiMetadataDomainServiceTest {
         @ParameterizedTest
         @MethodSource("provideValidParameters")
         void should_validate_value(final String value, final Metadata.MetadataFormat format) {
-            assertThatCode(() -> service.validateValueByFormat(Api.builder().build(), ORGANIZATION_ID, value, format))
-                .doesNotThrowAnyException();
+            assertThatCode(() ->
+                service.validateValueByFormat(Api.builder().build(), ORGANIZATION_ID, value, format)
+            ).doesNotThrowAnyException();
         }
 
         public static Stream<Arguments> provideValidParameters() {
@@ -149,8 +145,9 @@ class ValidateApiMetadataDomainServiceTest {
         @ParameterizedTest
         @MethodSource("provideInvalidParameters")
         void should_throw_error_on_invalid_value(final String value, final Metadata.MetadataFormat format) {
-            assertThatThrownBy(() -> service.validateValueByFormat(Api.builder().id(API_ID).build(), ORGANIZATION_ID, value, format))
-                .isInstanceOf(InvalidApiMetadataValueException.class);
+            assertThatThrownBy(() ->
+                service.validateValueByFormat(Api.builder().id(API_ID).build(), ORGANIZATION_ID, value, format)
+            ).isInstanceOf(InvalidApiMetadataValueException.class);
         }
 
         public static Stream<Arguments> provideInvalidParameters() {
@@ -168,26 +165,24 @@ class ValidateApiMetadataDomainServiceTest {
     @Test
     void should_throw_error_when_decoding_mail_value_referencing_another_metadata_key() {
         assertThatThrownBy(() ->
-                service.validateValueByFormat(
-                    Api.builder().id(API_ID).build(),
-                    ORGANIZATION_ID,
-                    "${api.metadata['exists']}",
-                    Metadata.MetadataFormat.MAIL
-                )
+            service.validateValueByFormat(
+                Api.builder().id(API_ID).build(),
+                ORGANIZATION_ID,
+                "${api.metadata['exists']}",
+                Metadata.MetadataFormat.MAIL
             )
-            .isInstanceOf(InvalidApiMetadataValueException.class);
+        ).isInstanceOf(InvalidApiMetadataValueException.class);
     }
 
     @Test
     void should_not_throw_error_when_decoding_string_value_referencing_another_metadata_key() {
         assertThatCode(() ->
-                service.validateValueByFormat(
-                    Api.builder().id(API_ID).build(),
-                    ORGANIZATION_ID,
-                    "${api.metadata['exists']}",
-                    Metadata.MetadataFormat.STRING
-                )
+            service.validateValueByFormat(
+                Api.builder().id(API_ID).build(),
+                ORGANIZATION_ID,
+                "${api.metadata['exists']}",
+                Metadata.MetadataFormat.STRING
             )
-            .doesNotThrowAnyException();
+        ).doesNotThrowAnyException();
     }
 }

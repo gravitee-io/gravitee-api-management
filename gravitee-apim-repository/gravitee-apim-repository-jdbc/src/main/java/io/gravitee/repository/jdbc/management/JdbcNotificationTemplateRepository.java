@@ -48,8 +48,7 @@ public class JdbcNotificationTemplateRepository
 
     @Override
     protected JdbcObjectMapper<NotificationTemplate> buildOrm() {
-        return JdbcObjectMapper
-            .builder(NotificationTemplate.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(NotificationTemplate.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("hook", Types.NVARCHAR, String.class)
             .addColumn("scope", Types.NVARCHAR, String.class)

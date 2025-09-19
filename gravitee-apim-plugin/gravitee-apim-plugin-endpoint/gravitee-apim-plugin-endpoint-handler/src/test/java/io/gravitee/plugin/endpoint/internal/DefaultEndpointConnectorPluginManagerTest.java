@@ -49,11 +49,10 @@ class DefaultEndpointConnectorPluginManagerTest {
 
     @BeforeEach
     void beforeEach() {
-        cut =
-            new DefaultEndpointConnectorPluginManager(
-                new DefaultEndpointConnectorClassLoaderFactory(),
-                new PluginConfigurationHelper(null, new ObjectMapper())
-            );
+        cut = new DefaultEndpointConnectorPluginManager(
+            new DefaultEndpointConnectorClassLoaderFactory(),
+            new PluginConfigurationHelper(null, new ObjectMapper())
+        );
     }
 
     @Test

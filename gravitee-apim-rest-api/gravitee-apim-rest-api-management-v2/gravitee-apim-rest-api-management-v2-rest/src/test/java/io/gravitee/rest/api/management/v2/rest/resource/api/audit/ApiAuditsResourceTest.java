@@ -93,8 +93,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                     eq(API),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().get();
 
@@ -109,8 +108,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
         public void should_return_audits() {
             auditCrudServiceInMemory.initWith(
                 List.of(
-                    AuditFixtures
-                        .anApiAudit()
+                    AuditFixtures.anApiAudit()
                         .toBuilder()
                         .organizationId(ORGANIZATION)
                         .environmentId(ENVIRONMENT)
@@ -128,8 +126,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                 .extracting(AuditsResponse::getData)
                 .isEqualTo(
                     List.of(
-                        Audit
-                            .builder()
+                        Audit.builder()
                             .id("audit-id")
                             .reference(new AuditReference().id(API).type(AuditReference.TypeEnum.API).name("my-api-name"))
                             .organizationId(ORGANIZATION)
@@ -138,8 +135,10 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                             .event("event-1")
                             .createdAt(OffsetDateTime.parse("2020-02-01T20:22:02.00Z"))
                             .properties(List.of(new AuditPropertiesInner().key("API").value(API).name("my-api-name")))
-                            .patch("""
-                        [{ "op": "add", "path": "/hello", "value": ["world"] }]""")
+                            .patch(
+                                """
+                                [{ "op": "add", "path": "/hello", "value": ["world"] }]"""
+                            )
                             .build()
                     )
                 );
@@ -149,8 +148,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
         public void should_return_audits_filtered_by_interval() {
             auditCrudServiceInMemory.initWith(
                 List.of(
-                    AuditFixtures
-                        .anApiAudit()
+                    AuditFixtures.anApiAudit()
                         .toBuilder()
                         .id("1")
                         .organizationId(ORGANIZATION)
@@ -158,8 +156,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                         .referenceId(API)
                         .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
                         .build(),
-                    AuditFixtures
-                        .anApiAudit()
+                    AuditFixtures.anApiAudit()
                         .toBuilder()
                         .id("2")
                         .organizationId(ORGANIZATION)
@@ -167,8 +164,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                         .referenceId(API)
                         .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
                         .build(),
-                    AuditFixtures
-                        .anApiAudit()
+                    AuditFixtures.anApiAudit()
                         .toBuilder()
                         .id("3")
                         .organizationId(ORGANIZATION)
@@ -196,8 +192,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
         public void should_return_audits_filtered_by_events() {
             auditCrudServiceInMemory.initWith(
                 List.of(
-                    AuditFixtures
-                        .anApiAudit()
+                    AuditFixtures.anApiAudit()
                         .toBuilder()
                         .id("1")
                         .organizationId(ORGANIZATION)
@@ -205,8 +200,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                         .referenceId(API)
                         .event("event1")
                         .build(),
-                    AuditFixtures
-                        .anApiAudit()
+                    AuditFixtures.anApiAudit()
                         .toBuilder()
                         .id("2")
                         .organizationId(ORGANIZATION)
@@ -214,8 +208,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                         .referenceId(API)
                         .event("event2")
                         .build(),
-                    AuditFixtures
-                        .anApiAudit()
+                    AuditFixtures.anApiAudit()
                         .toBuilder()
                         .id("3")
                         .organizationId(ORGANIZATION)
@@ -240,11 +233,9 @@ class ApiAuditsResourceTest extends ApiResourceTest {
             var total = 20L;
             var pageSize = 5;
             auditCrudServiceInMemory.initWith(
-                LongStream
-                    .range(0, total)
+                LongStream.range(0, total)
                     .mapToObj(i ->
-                        AuditFixtures
-                            .anApiAudit()
+                        AuditFixtures.anApiAudit()
                             .toBuilder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
@@ -273,11 +264,9 @@ class ApiAuditsResourceTest extends ApiResourceTest {
             var page = 2;
             var pageSize = 5;
             auditCrudServiceInMemory.initWith(
-                LongStream
-                    .range(0, total)
+                LongStream.range(0, total)
                     .mapToObj(i ->
-                        AuditFixtures
-                            .anApiAudit()
+                        AuditFixtures.anApiAudit()
                             .toBuilder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
@@ -298,8 +287,7 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                 .asEntity(AuditsResponse.class)
                 .extracting(AuditsResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    Links.builder()
                         .self(target.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
                         .first(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .last(target.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())

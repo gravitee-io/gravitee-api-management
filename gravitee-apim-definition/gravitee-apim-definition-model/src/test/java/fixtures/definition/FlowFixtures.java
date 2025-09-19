@@ -35,8 +35,7 @@ public class FlowFixtures {
 
     private static final Supplier<Flow.FlowBuilder> BASE_V4 = () -> Flow.builder().name("my-flow");
     private static final Supplier<io.gravitee.definition.model.flow.Flow.FlowBuilder> BASE_V2 = () ->
-        io.gravitee.definition.model.flow.Flow
-            .builder()
+        io.gravitee.definition.model.flow.Flow.builder()
             .id("flow-id")
             .name("my-flow")
             .pathOperator(PathOperator.builder().path("/").operator(Operator.STARTS_WITH).build())
@@ -46,8 +45,7 @@ public class FlowFixtures {
             .stage(FlowStage.API)
             .pre(
                 List.of(
-                    io.gravitee.definition.model.flow.Step
-                        .builder()
+                    io.gravitee.definition.model.flow.Step.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -58,8 +56,7 @@ public class FlowFixtures {
             )
             .post(
                 List.of(
-                    io.gravitee.definition.model.flow.Step
-                        .builder()
+                    io.gravitee.definition.model.flow.Step.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -74,13 +71,11 @@ public class FlowFixtures {
     }
 
     public static Flow aProxyFlowV4() {
-        return BASE_V4
-            .get()
+        return BASE_V4.get()
             .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
             .request(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-1")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -91,8 +86,7 @@ public class FlowFixtures {
             )
             .response(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-2")
                         .policy("a-policy")
                         .description("my-step-description")
@@ -105,13 +99,11 @@ public class FlowFixtures {
     }
 
     public static Flow aMessageFlowV4() {
-        return BASE_V4
-            .get()
+        return BASE_V4.get()
             .selectors(List.of(ChannelSelector.builder().channel("/").channelOperator(Operator.STARTS_WITH).build()))
             .subscribe(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-1")
                         .policy("my-policy")
                         .description("my-step-description")
@@ -122,8 +114,7 @@ public class FlowFixtures {
             )
             .publish(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .name("my-step-name-2")
                         .policy("my-policy")
                         .description("my-step-description")

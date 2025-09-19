@@ -42,13 +42,11 @@ public class LicenseFetcher {
     public Flowable<List<License>> fetchLatest(final Long from, final Long to, final Set<String> organizations) {
         return Flowable.generate(
             () ->
-                LicensePageable
-                    .builder()
+                LicensePageable.builder()
                     .index(0)
                     .size(bulkItems)
                     .criteria(
-                        LicenseCriteria
-                            .builder()
+                        LicenseCriteria.builder()
                             .referenceType(License.ReferenceType.ORGANIZATION)
                             .referenceIds(organizations)
                             .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)

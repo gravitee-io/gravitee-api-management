@@ -58,14 +58,13 @@ class ApiAuthorizationDomainServiceLegacyWrapperTest {
             false
         );
 
-        verify(apiAuthorizationService)
-            .findIdsByUser(
-                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-                "user-id",
-                ApiQuery.builder().ids(List.of(API_ID)).build(),
-                null,
-                false
-            );
+        verify(apiAuthorizationService).findIdsByUser(
+            new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+            "user-id",
+            ApiQuery.builder().ids(List.of(API_ID)).build(),
+            null,
+            false
+        );
     }
 
     @Test

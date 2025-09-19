@@ -62,8 +62,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 AverageMessagesPerRequestQuery.builder().apiId(apiId).build()
             )
             .map(averageAggregate ->
-                AverageMessagesPerRequest
-                    .builder()
+                AverageMessagesPerRequest.builder()
                     .globalAverage(averageAggregate.getAverage())
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
@@ -77,8 +76,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             ResponseStatusRangesQuery.builder().apiId(apiId).build()
         );
         return queryResult.map(analytics ->
-            ResponseStatusRanges
-                .builder()
+            ResponseStatusRanges.builder()
                 .ranges(analytics.getRanges())
                 .statusRangesCountByEntrypoint(analytics.getStatusRangesCountByEntrypoint())
                 .build()
@@ -93,8 +91,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 AverageConnectionDurationQuery.builder().apiId(apiId).build()
             )
             .map(averageAggregate ->
-                AverageConnectionDuration
-                    .builder()
+                AverageConnectionDuration.builder()
                     .globalAverage(averageAggregate.getAverage())
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()

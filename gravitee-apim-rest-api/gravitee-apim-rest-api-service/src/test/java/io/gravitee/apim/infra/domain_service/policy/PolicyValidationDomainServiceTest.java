@@ -41,13 +41,12 @@ class PolicyValidationDomainServiceTest {
         @Test
         void should_validate() {
             // Given
-            when(policyPluginService.findAll())
-                .thenReturn(
-                    Set.of(
-                        PolicyPluginEntity.builder().id("policy-1").proxy(Set.of(ExecutionPhase.REQUEST, ExecutionPhase.RESPONSE)).build(),
-                        PolicyPluginEntity.builder().id("policy-2").proxy(Set.of(ExecutionPhase.REQUEST)).build()
-                    )
-                );
+            when(policyPluginService.findAll()).thenReturn(
+                Set.of(
+                    PolicyPluginEntity.builder().id("policy-1").proxy(Set.of(ExecutionPhase.REQUEST, ExecutionPhase.RESPONSE)).build(),
+                    PolicyPluginEntity.builder().id("policy-2").proxy(Set.of(ExecutionPhase.REQUEST)).build()
+                )
+            );
             // When
             service.validatePoliciesExecutionPhase(List.of("policy-1", "policy-2"), ApiType.PROXY, PolicyPlugin.ExecutionPhase.REQUEST);
         }
@@ -55,18 +54,16 @@ class PolicyValidationDomainServiceTest {
         @Test
         void should_throw_exception_when_a_policy_not_match_api_type() {
             // Given
-            when(policyPluginService.findAll())
-                .thenReturn(
-                    Set.of(
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-1")
-                            .name("Policy 1")
-                            .proxy(Set.of(ExecutionPhase.REQUEST, ExecutionPhase.RESPONSE))
-                            .build(),
-                        PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(ExecutionPhase.MESSAGE_REQUEST)).build()
-                    )
-                );
+            when(policyPluginService.findAll()).thenReturn(
+                Set.of(
+                    PolicyPluginEntity.builder()
+                        .id("policy-1")
+                        .name("Policy 1")
+                        .proxy(Set.of(ExecutionPhase.REQUEST, ExecutionPhase.RESPONSE))
+                        .build(),
+                    PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(ExecutionPhase.MESSAGE_REQUEST)).build()
+                )
+            );
 
             // When
             var throwable = Assertions.catchThrowable(() ->
@@ -74,8 +71,7 @@ class PolicyValidationDomainServiceTest {
             );
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(UnexpectedPoliciesException.class)
                 .hasMessage("Unexpected policies [Policy 2] for API type PROXY and phase RESPONSE");
         }
@@ -83,24 +79,17 @@ class PolicyValidationDomainServiceTest {
         @Test
         void should_throw_exception_when_a_policies_not_match_execution_phase() {
             // Given
-            when(policyPluginService.findAll())
-                .thenReturn(
-                    Set.of(
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-1")
-                            .name("Policy 1")
-                            .message(Set.of(ExecutionPhase.MESSAGE_REQUEST, ExecutionPhase.MESSAGE_RESPONSE))
-                            .build(),
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-2")
-                            .name("Policy 2")
-                            .message(Set.of(ExecutionPhase.MESSAGE_REQUEST))
-                            .build(),
-                        PolicyPluginEntity.builder().id("policy-3").name("Policy 3").build()
-                    )
-                );
+            when(policyPluginService.findAll()).thenReturn(
+                Set.of(
+                    PolicyPluginEntity.builder()
+                        .id("policy-1")
+                        .name("Policy 1")
+                        .message(Set.of(ExecutionPhase.MESSAGE_REQUEST, ExecutionPhase.MESSAGE_RESPONSE))
+                        .build(),
+                    PolicyPluginEntity.builder().id("policy-2").name("Policy 2").message(Set.of(ExecutionPhase.MESSAGE_REQUEST)).build(),
+                    PolicyPluginEntity.builder().id("policy-3").name("Policy 3").build()
+                )
+            );
             // When
 
             var throwable = Assertions.catchThrowable(() ->
@@ -112,8 +101,7 @@ class PolicyValidationDomainServiceTest {
             );
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(UnexpectedPoliciesException.class)
                 .hasMessage("Unexpected policies [Policy 2, Policy 3] for API type MESSAGE and phase MESSAGE_RESPONSE");
         }

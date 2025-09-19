@@ -25,8 +25,7 @@ public class AsyncJobFixture {
     private AsyncJobFixture() {}
 
     public static final Supplier<AsyncJob.AsyncJobBuilder> BASE = () ->
-        AsyncJob
-            .builder()
+        AsyncJob.builder()
             .id("job-id")
             .sourceId("integration-id")
             .environmentId("environment-id")

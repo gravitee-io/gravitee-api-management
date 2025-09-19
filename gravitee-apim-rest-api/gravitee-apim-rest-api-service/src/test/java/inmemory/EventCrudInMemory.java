@@ -41,8 +41,7 @@ public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<
         Object content,
         Map<Event.EventProperties, String> properties
     ) {
-        Event event = Event
-            .builder()
+        Event event = Event.builder()
             .type(eventType)
             .environments(environmentIds)
             .properties(new EnumMap<>(properties))

@@ -82,8 +82,9 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "https://default-entrypoint"
+        );
         when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -99,8 +100,9 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setTags(Set.of("tag"));
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "https://default-entrypoint"
+        );
         when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
@@ -139,8 +141,9 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         TcpListener tcpListener = TcpListener.builder().hosts(List.of("some_tcp_host")).build();
         apiEntity.setListeners(List.of(tcpListener));
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "https://default-entrypoint"
+        );
         when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -178,8 +181,9 @@ class ApiEntrypointServiceImplTest {
         virtualHost.setPath("path");
         proxy.setVirtualHosts(List.of(virtualHost));
         apiEntity.setProxy(proxy);
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "https://default-entrypoint"
+        );
         when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -198,8 +202,9 @@ class ApiEntrypointServiceImplTest {
         virtualHost.setPath("path");
         proxy.setVirtualHosts(List.of(virtualHost));
         apiEntity.setProxy(proxy);
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "https://default-entrypoint"
+        );
         when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
@@ -288,13 +293,12 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
-        when(accessPointQueryService.getGatewayAccessPoints(any()))
-            .thenReturn(
-                List.of(
-                    AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
-                    AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
-                )
-            );
+        when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
+            List.of(
+                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
+            )
+        );
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
@@ -314,13 +318,12 @@ class ApiEntrypointServiceImplTest {
         apiEntity.setTags(Set.of("tag"));
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
-        when(accessPointQueryService.getGatewayAccessPoints(any()))
-            .thenReturn(
-                List.of(
-                    AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
-                    AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
-                )
-            );
+        when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
+            List.of(
+                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
+            )
+        );
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
@@ -342,13 +345,12 @@ class ApiEntrypointServiceImplTest {
         virtualHost.setPath("path");
         proxy.setVirtualHosts(List.of(virtualHost));
         apiEntity.setProxy(proxy);
-        when(accessPointQueryService.getGatewayAccessPoints(any()))
-            .thenReturn(
-                List.of(
-                    AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
-                    AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
-                )
-            );
+        when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
+            List.of(
+                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
+            )
+        );
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
@@ -371,13 +373,12 @@ class ApiEntrypointServiceImplTest {
         virtualHost.setPath("path");
         proxy.setVirtualHosts(List.of(virtualHost));
         apiEntity.setProxy(proxy);
-        when(accessPointQueryService.getGatewayAccessPoints(any()))
-            .thenReturn(
-                List.of(
-                    AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
-                    AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
-                )
-            );
+        when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
+            List.of(
+                AccessPoint.builder().host("ap1Host").secured(true).overriding(true).build(),
+                AccessPoint.builder().host("ap2Host").secured(false).overriding(true).build()
+            )
+        );
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
         entrypointEntity.setValue("https://tag-entrypoint");
@@ -396,8 +397,13 @@ class ApiEntrypointServiceImplTest {
         void should_remove_trailing_slash() {
             String host = "https://localhost";
             String path = "/path1/";
-            ApiEntrypointEntity apiEntrypoint =
-                ((ApiEntrypointServiceImpl) apiEntrypointService).createApiEntrypointEntity(null, host, path, null, null);
+            ApiEntrypointEntity apiEntrypoint = ((ApiEntrypointServiceImpl) apiEntrypointService).createApiEntrypointEntity(
+                null,
+                host,
+                path,
+                null,
+                null
+            );
             assertThat(apiEntrypoint.getTarget()).isEqualTo("https://localhost/path1");
         }
     }

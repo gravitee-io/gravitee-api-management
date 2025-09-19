@@ -72,8 +72,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     void should_receive_all_messages(HttpClient client, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection.
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
+        Single.fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
                 publishToKafka(producer, "message1")
                     .andThen(publishToKafka(producer, "message2"))
@@ -157,15 +156,13 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     void should_receive_all_messages_from_topic_selected_by_attribute(HttpClient client, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection.
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
+        Single.fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
                 publishToKafka(producer, "message1").andThen(publishToKafka(producer, "message2")).doFinally(producer::close)
             )
             .blockingAwait();
 
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
+        Single.fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer -> publishToKafka(producer, "test-topic-attribute", "another-message").doFinally(producer::close))
             .blockingAwait();
 
@@ -210,15 +207,13 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
         HttpClient client,
         Vertx vertx
     ) {
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
+        Single.fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
                 publishToKafka(producer, "message1").andThen(publishToKafka(producer, "message2")).doFinally(producer::close)
             )
             .blockingAwait();
 
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
+        Single.fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
                 publishToKafka(producer, "test-topic-dynamic-configuration", "another-message").doFinally(producer::close)
             )
@@ -298,8 +293,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     void should_receive_all_messages_with_qos(Qos qos, HttpClient client, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection through SSE entrypoint.
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
+        Single.fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
                 publishToKafka(producer, "message1")
                     .andThen(publishToKafka(producer, "message2"))
@@ -401,8 +395,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     void should_receive_empty_items_while_requesting_recent_cursor_with_specific_qos(Qos qos, HttpClient client, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection through SSE entrypoint.
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
+        Single.fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
                 publishToKafka(producer, "message1")
                     .andThen(publishToKafka(producer, "message2"))

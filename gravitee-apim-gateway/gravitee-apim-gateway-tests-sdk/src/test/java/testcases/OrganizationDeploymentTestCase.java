@@ -85,13 +85,10 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
     @Test
     void should_execute_organization_flow_deployed_at_test_level_with_update(HttpClient httpClient) throws InterruptedException {
-        super.updateOrganization(
-            "ORGA-1",
-            organization -> {
-                organization.getFlows().get(0).getPre().get(0).setPolicy("header-policy2");
-                organization.getFlows().get(0).getPost().get(0).setPolicy("header-policy2");
-            }
-        );
+        super.updateOrganization("ORGA-1", organization -> {
+            organization.getFlows().get(0).getPre().get(0).setPolicy("header-policy2");
+            organization.getFlows().get(0).getPost().get(0).setPolicy("header-policy2");
+        });
 
         wiremock.stubFor(get("/team").willReturn(ok()));
 

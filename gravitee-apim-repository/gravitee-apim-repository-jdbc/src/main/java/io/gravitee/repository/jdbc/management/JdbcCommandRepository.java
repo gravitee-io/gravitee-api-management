@@ -53,8 +53,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
 
     @Override
     protected JdbcObjectMapper<Command> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Command.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Command.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
@@ -170,8 +169,9 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(item, item.getId()));
             storeAcknowledgments(item, true);
             storeTags(item, true);
-            return findById(item.getId())
-                .orElseThrow(() -> new IllegalStateException(format("No command found with id [%s]", item.getId())));
+            return findById(item.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No command found with id [%s]", item.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -186,14 +186,14 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
         final StringBuilder query = new StringBuilder(
             getOrm().getSelectAllSql() +
-            " c " +
-            "left join " +
-            COMMAND_ACKNOWLEDGMENTS +
-            " ca on c.id = ca.command_id " +
-            "left join " +
-            COMMAND_TAGS +
-            " ct on c.id = ct.command_id " +
-            "where 1=1 "
+                " c " +
+                "left join " +
+                COMMAND_ACKNOWLEDGMENTS +
+                " ca on c.id = ca.command_id " +
+                "left join " +
+                COMMAND_TAGS +
+                " ct on c.id = ct.command_id " +
+                "where 1=1 "
         );
 
         if (criteria.getNotAckBy() != null) {
@@ -254,13 +254,12 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         }
 
         if (criteria.getTags() != null && criteria.getTags().length > 0) {
-            commands =
-                commands
-                    .stream()
-                    .filter(command ->
-                        command.getTags() != null && command.getTags().stream().anyMatch(Arrays.asList(criteria.getTags())::contains)
-                    )
-                    .collect(Collectors.toList());
+            commands = commands
+                .stream()
+                .filter(
+                    command -> command.getTags() != null && command.getTags().stream().anyMatch(Arrays.asList(criteria.getTags())::contains)
+                )
+                .collect(Collectors.toList());
         }
 
         LOGGER.debug("command records found ({}): {}", commands.size(), commands);

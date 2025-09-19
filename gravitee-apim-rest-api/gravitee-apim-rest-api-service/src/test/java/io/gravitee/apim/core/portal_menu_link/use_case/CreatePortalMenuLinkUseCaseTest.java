@@ -76,8 +76,7 @@ public class CreatePortalMenuLinkUseCaseTest {
         var createdPortalMenuLink = createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input(ENV_ID, toCreate));
 
         // Then
-        var expected = PortalMenuLink
-            .builder()
+        var expected = PortalMenuLink.builder()
             .id("generated-id")
             .environmentId(ENV_ID)
             .name("portalMenuLinkNameToCreate")
@@ -101,8 +100,7 @@ public class CreatePortalMenuLinkUseCaseTest {
         var createdPortalMenuLink = createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input(ENV_ID, toCreate));
 
         // Then
-        var expected = PortalMenuLink
-            .builder()
+        var expected = PortalMenuLink.builder()
             .id("generated-id")
             .environmentId(ENV_ID)
             .name("portalMenuLinkNameToCreate")
@@ -126,8 +124,7 @@ public class CreatePortalMenuLinkUseCaseTest {
         var createdPortalMenuLink = createPortalMenuLinkUseCase.execute(new CreatePortalMenuLinkUseCase.Input("anotherEnv", toCreate));
 
         // Then
-        var expected = PortalMenuLink
-            .builder()
+        var expected = PortalMenuLink.builder()
             .id("generated-id")
             .environmentId("anotherEnv")
             .name("portalMenuLinkNameToCreate")

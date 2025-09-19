@@ -266,8 +266,9 @@ class MockEndpointConnectorTest {
             .test()
             .await()
             .assertValue(message -> {
-                assertThat(message.headers().toSingleValueMap())
-                    .containsExactlyInAnyOrderEntriesOf(Map.of("header1", "foo", "header2", "bar"));
+                assertThat(message.headers().toSingleValueMap()).containsExactlyInAnyOrderEntriesOf(
+                    Map.of("header1", "foo", "header2", "bar")
+                );
                 assertThat(message.metadata()).isEmpty();
                 return true;
             });
@@ -290,8 +291,9 @@ class MockEndpointConnectorTest {
             .await()
             .assertValue(message -> {
                 assertThat(message.metadata()).containsExactlyInAnyOrderEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
-                assertThat(message.headers().toSingleValueMap())
-                    .containsExactlyInAnyOrderEntriesOf(Map.of("header1", "foo", "header2", "bar"));
+                assertThat(message.headers().toSingleValueMap()).containsExactlyInAnyOrderEntriesOf(
+                    Map.of("header1", "foo", "header2", "bar")
+                );
                 return true;
             });
     }

@@ -196,8 +196,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 .hasStatus(ACCEPTED_202)
                 .asEntity(VerifyApiHostsResponse.class)
                 .isEqualTo(
-                    VerifyApiHostsResponse
-                        .builder()
+                    VerifyApiHostsResponse.builder()
                         .ok(false)
                         .reason("Duplicated hosts detected: 'tcp.example.com, tcp-2.example.com'. Please ensure each host is unique.")
                         .build()
@@ -268,8 +267,7 @@ class ApisResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     any()
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(Entity.json(CreateApiV4.builder().build()));
 
@@ -293,16 +291,14 @@ class ApisResourceTest extends AbstractResourceTest {
                 .request()
                 .post(
                     Entity.json(
-                        CreateApiV4
-                            .builder()
+                        CreateApiV4.builder()
                             .name("")
                             .apiVersion("v1")
                             .type(ApiType.PROXY)
                             .listeners(
                                 List.of(
                                     new Listener(
-                                        HttpListener
-                                            .builder()
+                                        HttpListener.builder()
                                             .paths(List.of(PathV4.builder().path("/path").build()))
                                             .entrypoints(List.of(Entrypoint.builder().type("sse").build()))
                                             .build()
@@ -331,16 +327,14 @@ class ApisResourceTest extends AbstractResourceTest {
                 .request()
                 .post(
                     Entity.json(
-                        CreateApiV4
-                            .builder()
+                        CreateApiV4.builder()
                             .name("no-endpoints")
                             .apiVersion("v1")
                             .type(ApiType.PROXY)
                             .listeners(
                                 List.of(
                                     new Listener(
-                                        HttpListener
-                                            .builder()
+                                        HttpListener.builder()
                                             .paths(List.of(PathV4.builder().path("/path").build()))
                                             .entrypoints(List.of(Entrypoint.builder().type("sse").build()))
                                             .build()
@@ -356,16 +350,16 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_created_api() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
+                invocation.getArgument(0)
+            );
 
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any()))
-                .thenAnswer(invocation -> {
-                    Api api = invocation.getArgument(0);
-                    return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionV4().getFlows());
-                });
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any())).thenAnswer(invocation -> {
+                Api api = invocation.getArgument(0);
+                return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionV4().getFlows());
+            });
 
             var newApi = aValidV4Api();
 
@@ -394,8 +388,7 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         private static CreateApiV4 aValidV4Api() {
-            return CreateApiV4
-                .builder()
+            return CreateApiV4.builder()
                 .name("my api")
                 .description("api description")
                 .definitionVersion(DefinitionVersion.V4)
@@ -407,8 +400,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 .listeners(
                     List.of(
                         new Listener(
-                            HttpListener
-                                .builder()
+                            HttpListener.builder()
                                 .type(ListenerType.HTTP)
                                 .paths(List.of(PathV4.builder().path("/path").overrideAccess(false).build()))
                                 .entrypoints(List.of(Entrypoint.builder().type("sse").qos(Qos.AUTO).build()))
@@ -418,14 +410,12 @@ class ApisResourceTest extends AbstractResourceTest {
                 )
                 .endpointGroups(
                     List.of(
-                        EndpointGroupV4
-                            .builder()
+                        EndpointGroupV4.builder()
                             .name("default-group")
                             .type("http")
                             .endpoints(
                                 List.of(
-                                    EndpointV4
-                                        .builder()
+                                    EndpointV4.builder()
                                         .name("default")
                                         .type("kafka")
                                         .weight(1)
@@ -453,8 +443,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 .flowExecution(FlowExecution.builder().mode(FlowMode.BEST_MATCH).matchRequired(true).build())
                 .flows(
                     List.of(
-                        FlowV4
-                            .builder()
+                        FlowV4.builder()
                             .name("flowName")
                             .enabled(true)
                             .tags(Set.of("tag1"))
@@ -462,8 +451,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .selectors(
                                 List.of(
                                     new Selector(
-                                        HttpSelector
-                                            .builder()
+                                        HttpSelector.builder()
                                             .type(BaseSelector.TypeEnum.HTTP)
                                             .path("/test")
                                             .methods(Set.of(HttpMethod.GET, HttpMethod.POST))
@@ -495,8 +483,7 @@ class ApisResourceTest extends AbstractResourceTest {
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
             roleQueryService.initWith(
                 List.of(
-                    Role
-                        .builder()
+                    Role.builder()
                         .name(PRIMARY_OWNER.name())
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
@@ -514,8 +501,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -523,8 +509,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
                             .errors(
-                                ApiCRDStatus.Errors
-                                    .builder()
+                                ApiCRDStatus.Errors.builder()
                                     .warning(List.of("category [unknown-category] is not defined in environment [fake-env]"))
                                     .severe(List.of())
                                     .build()
@@ -543,8 +528,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -552,8 +536,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
                             .errors(
-                                ApiCRDStatus.Errors
-                                    .builder()
+                                ApiCRDStatus.Errors.builder()
                                     .warning(List.of("member [unknown] of source [memory] could not be found in organization [fake-org]"))
                                     .severe(List.of())
                                     .build()
@@ -572,8 +555,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -581,8 +563,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
                             .errors(
-                                ApiCRDStatus.Errors
-                                    .builder()
+                                ApiCRDStatus.Errors.builder()
                                     .warning(List.of("Group [unknown-group] could not be found in environment [fake-env]"))
                                     .severe(List.of())
                                     .build()
@@ -601,8 +582,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -623,8 +603,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -632,8 +611,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
                             .errors(
-                                ApiCRDStatus.Errors
-                                    .builder()
+                                ApiCRDStatus.Errors.builder()
                                     .severe(List.of("property [owner] is required in [github-fetcher] configuration for page [swagger]"))
                                     .warning(List.of())
                                     .build()
@@ -652,8 +630,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")

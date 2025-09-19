@@ -71,37 +71,36 @@ class ApiDeleteDocumentationPageUseCaseTest {
             userCrudService,
             new JacksonJsonDiffProcessor()
         );
-        cut =
-            new ApiDeleteDocumentationPageUseCase(
-                new DeleteApiDocumentationDomainService(
-                    pageCrudService,
-                    pageQueryService,
-                    auditDomainService,
-                    new UpdateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService, indexer),
-                    planQueryService,
-                    indexer
-                ),
-                apiCrudService
-            );
+        cut = new ApiDeleteDocumentationPageUseCase(
+            new DeleteApiDocumentationDomainService(
+                pageCrudService,
+                pageQueryService,
+                auditDomainService,
+                new UpdateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService, indexer),
+                planQueryService,
+                indexer
+            ),
+            apiCrudService
+        );
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(pageCrudService, pageRevisionCrudService, pageQueryService, planQueryService, auditCrudService, userCrudService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(pageCrudService, pageRevisionCrudService, pageQueryService, planQueryService, auditCrudService, userCrudService).forEach(
+            InMemoryAlternative::reset
+        );
     }
 
     @Test
     void should_throw_if_api_not_found() {
-        assertThatThrownBy(() -> cut.execute(new ApiDeleteDocumentationPageUseCase.Input(API.getId(), PAGE_ID, AUDIT_INFO)))
-            .isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(new ApiDeleteDocumentationPageUseCase.Input(API.getId(), PAGE_ID, AUDIT_INFO))).isInstanceOf(
+            ApiNotFoundException.class
+        );
     }
 
     @Test
     void should_delete_page() {
-        final Page page = Page
-            .builder()
+        final Page page = Page.builder()
             .id(PAGE_ID)
             .referenceId(API.getId())
             .referenceType(Page.ReferenceType.API)

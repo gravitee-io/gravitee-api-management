@@ -76,7 +76,9 @@ class LogEndpointRequestTest {
         when(request.method()).thenReturn(HttpMethod.POST);
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(false);
-        when(request.chunks()).thenReturn(Flowable.empty()).thenAnswer(i -> chunksCaptor.getValue());
+        when(request.chunks())
+            .thenReturn(Flowable.empty())
+            .thenAnswer(i -> chunksCaptor.getValue());
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
         logRequest.capture();
@@ -104,7 +106,9 @@ class LogEndpointRequestTest {
         when(request.method()).thenReturn(HttpMethod.POST);
         when(loggingContext.endpointRequestHeaders()).thenReturn(true);
         when(loggingContext.endpointRequestPayload()).thenReturn(false);
-        when(request.chunks()).thenReturn(Flowable.empty()).thenAnswer(i -> chunksCaptor.getValue());
+        when(request.chunks())
+            .thenReturn(Flowable.empty())
+            .thenAnswer(i -> chunksCaptor.getValue());
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
         logRequest.capture();
@@ -123,7 +127,9 @@ class LogEndpointRequestTest {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
         final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
 
-        when(request.chunks()).thenReturn(body).thenAnswer(i -> chunksCaptor.getValue());
+        when(request.chunks())
+            .thenReturn(body)
+            .thenAnswer(i -> chunksCaptor.getValue());
         doNothing().when(request).chunks(chunksCaptor.capture());
         when(request.headers()).thenReturn(HttpHeaders.create());
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
@@ -173,7 +179,9 @@ class LogEndpointRequestTest {
         final int maxPayloadSize = 5;
 
         final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
-        when(request.chunks()).thenReturn(body).thenAnswer(i -> chunksCaptor.getValue());
+        when(request.chunks())
+            .thenReturn(body)
+            .thenAnswer(i -> chunksCaptor.getValue());
         doNothing().when(request).chunks(chunksCaptor.capture());
         when(request.headers()).thenReturn(HttpHeaders.create());
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);

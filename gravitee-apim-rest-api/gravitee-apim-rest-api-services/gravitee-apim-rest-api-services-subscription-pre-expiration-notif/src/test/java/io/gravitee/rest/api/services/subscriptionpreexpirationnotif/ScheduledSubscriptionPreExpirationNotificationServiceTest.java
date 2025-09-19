@@ -66,17 +66,18 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         SubscriptionEntity subscription = mock(SubscriptionEntity.class);
 
-        when(subscriptionService.search(eq(GraviteeContext.getExecutionContext()), any(SubscriptionQuery.class)))
-            .thenReturn(Collections.singletonList(subscription));
+        when(subscriptionService.search(eq(GraviteeContext.getExecutionContext()), any(SubscriptionQuery.class))).thenReturn(
+            Collections.singletonList(subscription)
+        );
 
         Collection<SubscriptionEntity> subscriptionsToNotify = service.findSubscriptionExpirationsToNotify(now, daysBeforeNotification);
 
         assertEquals(Collections.singletonList(subscription), subscriptionsToNotify);
 
-        verify(subscriptionService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(subscriptionQuery ->
+        verify(subscriptionService, times(1)).search(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                subscriptionQuery ->
                     Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED).equals(subscriptionQuery.getStatuses()) &&
                     // 1469886010000 -> now + 10 days
                     subscriptionQuery.getEndingAtAfter() ==
@@ -84,8 +85,8 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
                     // 1469889610000 -> now + 10 days + 1h (cron period)
                     subscriptionQuery.getEndingAtBefore() ==
                     1469889610000L
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -170,17 +171,18 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
 
         ApiKeyEntity apiKey = mock(ApiKeyEntity.class);
 
-        when(apiKeyService.search(eq(GraviteeContext.getExecutionContext()), any(ApiKeyQuery.class)))
-            .thenReturn(Collections.singletonList(apiKey));
+        when(apiKeyService.search(eq(GraviteeContext.getExecutionContext()), any(ApiKeyQuery.class))).thenReturn(
+            Collections.singletonList(apiKey)
+        );
 
         Collection<ApiKeyEntity> apiKeysToNotify = service.findApiKeyExpirationsToNotify(now, daysBeforeNotification);
 
         assertEquals(Collections.singletonList(apiKey), apiKeysToNotify);
 
-        verify(apiKeyService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(apiKeyQuery ->
+        verify(apiKeyService, times(1)).search(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                apiKeyQuery ->
                     !apiKeyQuery.isIncludeRevoked() &&
                     // 1469886010000 -> now + 10 days
                     apiKeyQuery.getExpireAfter() ==
@@ -188,7 +190,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
                     // 1469889610000 -> now + 10 days + 1h (cron period)
                     apiKeyQuery.getExpireBefore() ==
                     1469889610000L
-                )
-            );
+            )
+        );
     }
 }

@@ -145,9 +145,13 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
             })
             .flatMap(canExecute -> {
                 if (Boolean.TRUE.equals(canExecute)) {
-                    return HookHelper
-                        .hook(() -> securityPlan.execute(ctx, executionPhase), securityPlan.id(), securityPlanHooks, ctx, executionPhase)
-                        .andThen(TRUE);
+                    return HookHelper.hook(
+                        () -> securityPlan.execute(ctx, executionPhase),
+                        securityPlan.id(),
+                        securityPlanHooks,
+                        ctx,
+                        executionPhase
+                    ).andThen(TRUE);
                 }
                 return FALSE;
             });

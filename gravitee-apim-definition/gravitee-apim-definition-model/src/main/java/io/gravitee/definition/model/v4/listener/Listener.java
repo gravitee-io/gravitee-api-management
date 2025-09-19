@@ -104,8 +104,7 @@ public abstract class Listener implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Optional
-            .ofNullable(this.entrypoints)
+        return Optional.ofNullable(this.entrypoints)
             .map(e -> e.stream().map(Entrypoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
             .orElse(List.of());
     }

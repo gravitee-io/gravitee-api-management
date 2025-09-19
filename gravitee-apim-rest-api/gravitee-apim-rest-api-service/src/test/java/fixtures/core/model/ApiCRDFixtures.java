@@ -41,8 +41,7 @@ public class ApiCRDFixtures {
     public static final String PLAN_NAME = "plan-name";
     public static final String PLAN_ID = "plan-id";
 
-    public static ApiCRDSpecBuilder BASE_SPEC = ApiCRDSpec
-        .builder()
+    public static ApiCRDSpecBuilder BASE_SPEC = ApiCRDSpec.builder()
         .id(API_ID)
         .crossId(API_CROSS_ID)
         .name(API_NAME)
@@ -51,15 +50,13 @@ public class ApiCRDFixtures {
         .state("STARTED")
         .endpointGroups(
             List.of(
-                EndpointGroup
-                    .builder()
+                EndpointGroup.builder()
                     .name("default-group")
                     .type("http-proxy")
                     .sharedConfiguration("{}")
                     .endpoints(
                         List.of(
-                            Endpoint
-                                .builder()
+                            Endpoint.builder()
                                 .name("default-endpoint")
                                 .type("http-proxy")
                                 .inheritConfiguration(true)

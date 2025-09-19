@@ -73,22 +73,19 @@ class ApiCRDAdapterTest {
         var export = exportEntity();
         var then = Instant.now();
         var plansWithConflictingNames = Set.of(
-            PlanEntity
-                .builder()
+            PlanEntity.builder()
                 .createdAt(Date.from(then))
                 .id("api-key-1")
                 .name("api-key")
                 .security(PlanSecurity.builder().type("API_KEY").build())
                 .build(),
-            PlanEntity
-                .builder()
+            PlanEntity.builder()
                 .createdAt(Date.from(then.plusMillis(1)))
                 .id("api-key-2")
                 .name("api-key")
                 .security(PlanSecurity.builder().type("API_KEY").build())
                 .build(),
-            PlanEntity
-                .builder()
+            PlanEntity.builder()
                 .createdAt(Date.from(then.plusMillis(2)))
                 .id("api-key-3")
                 .name("api-key")
@@ -101,26 +98,22 @@ class ApiCRDAdapterTest {
     }
 
     private static ExportApiEntity exportEntity() {
-        return ExportApiEntity
-            .builder()
+        return ExportApiEntity.builder()
             .apiEntity(
-                ApiEntity
-                    .builder()
+                ApiEntity.builder()
                     .name("api-name")
                     .id("api-id")
                     .crossId("api-cross-id")
                     .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
                     .endpointGroups(
                         List.of(
-                            EndpointGroup
-                                .builder()
+                            EndpointGroup.builder()
                                 .name("default-group")
                                 .type("http-proxy")
                                 .sharedConfiguration("{}")
                                 .endpoints(
                                     List.of(
-                                        Endpoint
-                                            .builder()
+                                        Endpoint.builder()
                                             .name("default-endpoint")
                                             .type("http-proxy")
                                             .inheritConfiguration(true)

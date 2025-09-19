@@ -83,8 +83,7 @@ class ApiGetDocumentationPagesUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
             initPageServices(
                 List.of(
-                    Page
-                        .builder()
+                    Page.builder()
                         .id("page#1")
                         .referenceType(Page.ReferenceType.API)
                         .referenceId(API_ID)
@@ -93,8 +92,7 @@ class ApiGetDocumentationPagesUseCaseTest {
                         .published(true)
                         .build(),
                     Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build(),
-                    Page
-                        .builder()
+                    Page.builder()
                         .id("page#3")
                         .referenceType(Page.ReferenceType.API)
                         .referenceId(API_ID)
@@ -122,8 +120,7 @@ class ApiGetDocumentationPagesUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
             initPageServices(
                 List.of(
-                    Page
-                        .builder()
+                    Page.builder()
                         .id("page#1")
                         .referenceType(Page.ReferenceType.API)
                         .referenceId(API_ID)
@@ -137,8 +134,7 @@ class ApiGetDocumentationPagesUseCaseTest {
 
             planQueryService.initWith(
                 List.of(
-                    PlanFixtures
-                        .aPlanV4()
+                    PlanFixtures.aPlanV4()
                         .toBuilder()
                         .id("plan-1")
                         .apiId(API_ID)
@@ -158,8 +154,9 @@ class ApiGetDocumentationPagesUseCaseTest {
         @Test
         void should_throw_error_if_api_not_found() {
             initApiServices(List.of(Api.builder().id("not-my-api").build()));
-            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, null)))
-                .isInstanceOf(ApiNotFoundException.class);
+            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, null))).isInstanceOf(
+                ApiNotFoundException.class
+            );
         }
     }
 
@@ -231,16 +228,16 @@ class ApiGetDocumentationPagesUseCaseTest {
 
         @Test
         void should_throw_error_if_parent_not_found() {
-            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, "parent-id")))
-                .isInstanceOf(PageNotFoundException.class);
+            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, "parent-id"))).isInstanceOf(
+                PageNotFoundException.class
+            );
         }
 
         @Test
         void should_throw_error_if_parent_is_not_a_folder() {
             initPageServices(
                 List.of(
-                    Page
-                        .builder()
+                    Page.builder()
                         .id("parent-id")
                         .type(Page.Type.MARKDOWN)
                         .referenceType(Page.ReferenceType.API)
@@ -248,8 +245,9 @@ class ApiGetDocumentationPagesUseCaseTest {
                         .build()
                 )
             );
-            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, "parent-id")))
-                .isInstanceOf(InvalidPageParentException.class);
+            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, "parent-id"))).isInstanceOf(
+                InvalidPageParentException.class
+            );
         }
     }
 
@@ -263,8 +261,7 @@ class ApiGetDocumentationPagesUseCaseTest {
     }
 
     private Page basicPageWithParent(String id, String parentId) {
-        return Page
-            .builder()
+        return Page.builder()
             .id(id)
             .name(id + "-name")
             .referenceType(Page.ReferenceType.API)

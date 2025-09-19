@@ -67,8 +67,11 @@ public class ApiProcessorChainFactory {
     public ApiProcessorChainFactory(final Configuration configuration, final Node node, final ReporterService reporterService) {
         this.configuration = configuration;
         this.overrideXForwardedPrefix = configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false);
-        this.clientIdentifierHeader =
-            configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
+        this.clientIdentifierHeader = configuration.getProperty(
+            "handlers.request.client.header",
+            String.class,
+            DEFAULT_CLIENT_IDENTIFIER_HEADER
+        );
         this.node = node;
         this.reporterService = reporterService;
 
@@ -108,14 +111,13 @@ public class ApiProcessorChainFactory {
     public ProcessorChain beforeSecurityChain(final Api api) {
         final List<Processor> processors = new ArrayList<>();
 
-        getHttpListener(api)
-            .ifPresent(httpListener -> {
-                final Cors cors = httpListener.getCors();
+        getHttpListener(api).ifPresent(httpListener -> {
+            final Cors cors = httpListener.getCors();
 
-                if (cors != null && cors.isEnabled()) {
-                    processors.add(CorsPreflightRequestProcessor.instance());
-                }
-            });
+            if (cors != null && cors.isEnabled()) {
+                processors.add(CorsPreflightRequestProcessor.instance());
+            }
+        });
 
         return new ProcessorChain("processor-chain-before-security-chain", processors, processorHooks);
     }
@@ -141,13 +143,12 @@ public class ApiProcessorChainFactory {
 
             processors.add(SubscriptionProcessor.instance(clientIdentifierHeader));
 
-            getHttpListener(api)
-                .ifPresent(httpListener -> {
-                    final Map<String, Pattern> pathMappings = httpListener.getPathMappingsPattern();
-                    if (pathMappings != null && !pathMappings.isEmpty()) {
-                        processors.add(PathMappingProcessor.instance());
-                    }
-                });
+            getHttpListener(api).ifPresent(httpListener -> {
+                final Map<String, Pattern> pathMappings = httpListener.getPathMappingsPattern();
+                if (pathMappings != null && !pathMappings.isEmpty()) {
+                    processors.add(PathMappingProcessor.instance());
+                }
+            });
         }
 
         return new ProcessorChain("processor-chain-before-api-execution", processors, processorHooks);
@@ -171,13 +172,12 @@ public class ApiProcessorChainFactory {
         processors.add(new ShutdownProcessor(node));
         processors.add(new TransactionPostProcessor(new TransactionPostProcessorConfiguration(configuration)));
 
-        getHttpListener(api)
-            .ifPresent(httpListener -> {
-                final Cors cors = httpListener.getCors();
-                if (cors != null && cors.isEnabled()) {
-                    processors.add(CorsSimpleRequestProcessor.instance());
-                }
-            });
+        getHttpListener(api).ifPresent(httpListener -> {
+            final Cors cors = httpListener.getCors();
+            if (cors != null && cors.isEnabled()) {
+                processors.add(CorsSimpleRequestProcessor.instance());
+            }
+        });
 
         return processors;
     }

@@ -52,8 +52,7 @@ public class PageConfigurationOAITransformer extends AbstractPageConfigurationSw
                                 newURI.getPath(),
                                 newURI.getQuery(),
                                 newURI.getFragment()
-                            )
-                                .toString()
+                            ).toString()
                         );
                     } catch (URISyntaxException e) {
                         logger.error(e.getMessage(), e);

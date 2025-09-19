@@ -62,8 +62,7 @@ public class UpdateFederatedApiDomainService {
 
     private void createAuditLog(AuditInfo auditInfo, Api updatedApi, Api currentApi) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(updatedApi.getId())

@@ -70,8 +70,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_create_category_having_unsupported_picture() {
-        var entity = NewCategoryEntity
-            .builder()
+        var entity = NewCategoryEntity.builder()
             .name("My beautiful category")
             .description("my description")
             .picture("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
@@ -88,8 +87,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_create_category_having_unsupported_background() {
-        var entity = NewCategoryEntity
-            .builder()
+        var entity = NewCategoryEntity.builder()
             .name("My beautiful category")
             .description("my description")
             .background("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
@@ -106,8 +104,7 @@ public class CategoriesResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_create_category() {
-        var entity = NewCategoryEntity
-            .builder()
+        var entity = NewCategoryEntity.builder()
             .name("My beautiful category")
             .description("my description")
             .picture("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")

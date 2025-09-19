@@ -32,7 +32,8 @@ public class ValidateApiLifecycleService {
         // if lifecycle state not provided, return the existing one
         if (newLifecycleState == null) {
             return existingLifecycleState;
-        } else if (DEPRECATED == existingLifecycleState) { //  Otherwise, we should first check that existingAPI and updateApi have the same lifecycleState and THEN check for deprecation status of the exiting API //  if we don't want a deprecated API to be updated, then we should have a specific check // TODO FCY: because of this, you can't update a deprecated API but the reason is not clear.
+        } else if (DEPRECATED == existingLifecycleState) {
+            //  Otherwise, we should first check that existingAPI and updateApi have the same lifecycleState and THEN check for deprecation status of the exiting API //  if we don't want a deprecated API to be updated, then we should have a specific check // TODO FCY: because of this, you can't update a deprecated API but the reason is not clear.
             throw new LifecycleStateChangeNotAllowedException(newLifecycleState.name());
         } else if (ARCHIVED == existingLifecycleState) {
             throw new LifecycleStateChangeNotAllowedException(newLifecycleState.name());

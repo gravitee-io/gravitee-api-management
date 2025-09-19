@@ -89,20 +89,17 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
 
     private ProxyConnector getConnector(Request request) {
         if (request.isWebSocket()) {
-            return this.connectors.computeIfAbsent(
-                    "ws",
-                    type -> new WebSocketConnector(configuration, sharedConfiguration, httpClientFactory)
-                );
+            return this.connectors.computeIfAbsent("ws", type ->
+                new WebSocketConnector(configuration, sharedConfiguration, httpClientFactory)
+            );
         } else if (isGrpc(request)) {
-            return this.connectors.computeIfAbsent(
-                    "grpc",
-                    type -> new GrpcConnector(configuration, sharedConfiguration, grpcHttpClientFactory)
-                );
+            return this.connectors.computeIfAbsent("grpc", type ->
+                new GrpcConnector(configuration, sharedConfiguration, grpcHttpClientFactory)
+            );
         } else {
-            return this.connectors.computeIfAbsent(
-                    "http",
-                    type -> new HttpConnector(configuration, sharedConfiguration, httpClientFactory)
-                );
+            return this.connectors.computeIfAbsent("http", type ->
+                new HttpConnector(configuration, sharedConfiguration, httpClientFactory)
+            );
         }
     }
 

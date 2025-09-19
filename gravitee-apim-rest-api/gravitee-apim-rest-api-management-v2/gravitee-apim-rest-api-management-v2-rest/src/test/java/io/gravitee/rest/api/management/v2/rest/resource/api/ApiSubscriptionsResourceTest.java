@@ -139,8 +139,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_create_subscription() {
-            final CreateSubscription createSubscription = SubscriptionFixtures
-                .aCreateSubscription()
+            final CreateSubscription createSubscription = SubscriptionFixtures.aCreateSubscription()
                 .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
@@ -148,10 +147,9 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 .apiKeyMode(ApiKeyMode.EXCLUSIVE)
                 .build();
 
-            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any()))
-                .thenReturn(
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).application(APPLICATION).plan(PLAN).build()
-                );
+            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any())).thenReturn(
+                SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).application(APPLICATION).plan(PLAN).build()
+            );
 
             final Response response = target.request().post(Entity.json(createSubscription));
             assertThat(response)
@@ -165,16 +163,15 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     });
                 });
 
-            verify(subscriptionService)
-                .create(
-                    eq(GraviteeContext.getExecutionContext()),
-                    argThat(newSubscriptionEntity -> {
-                        assertThat(newSubscriptionEntity.getPlan()).isEqualTo(PLAN);
-                        assertThat(newSubscriptionEntity.getApplication()).isEqualTo(APPLICATION);
-                        return true;
-                    }),
-                    isNull()
-                );
+            verify(subscriptionService).create(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(newSubscriptionEntity -> {
+                    assertThat(newSubscriptionEntity.getPlan()).isEqualTo(PLAN);
+                    assertThat(newSubscriptionEntity.getApplication()).isEqualTo(APPLICATION);
+                    return true;
+                }),
+                isNull()
+            );
         }
 
         @Test
@@ -186,8 +183,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     eq(API),
                     eq(RolePermissionAction.CREATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(Entity.json(SubscriptionFixtures.aCreateSubscription()));
 
@@ -200,8 +196,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_400_if_custom_api_key_not_enabled() {
-            final CreateSubscription createSubscription = SubscriptionFixtures
-                .aCreateSubscription()
+            final CreateSubscription createSubscription = SubscriptionFixtures.aCreateSubscription()
                 .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
@@ -214,8 +209,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
                     ParameterReferenceType.ENVIRONMENT
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(Entity.json(createSubscription));
 
@@ -228,8 +222,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_create_subscription_with_custom_api_key() {
-            final CreateSubscription createSubscription = SubscriptionFixtures
-                .aCreateSubscription()
+            final CreateSubscription createSubscription = SubscriptionFixtures.aCreateSubscription()
                 .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
@@ -242,19 +235,16 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
                     ParameterReferenceType.ENVIRONMENT
                 )
-            )
-                .thenReturn(true);
-            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any()))
-                .thenReturn(
-                    SubscriptionFixtures
-                        .aSubscriptionEntity()
-                        .toBuilder()
-                        .id(SUBSCRIPTION)
-                        .application(APPLICATION)
-                        .plan(PLAN)
-                        .status(SubscriptionStatus.ACCEPTED)
-                        .build()
-                );
+            ).thenReturn(true);
+            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any())).thenReturn(
+                SubscriptionFixtures.aSubscriptionEntity()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .application(APPLICATION)
+                    .plan(PLAN)
+                    .status(SubscriptionStatus.ACCEPTED)
+                    .build()
+            );
 
             final Response response = target.request().post(Entity.json(createSubscription));
 
@@ -265,29 +255,25 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_create_subscription_with_custom_api_key_and_auto_process_it_if_pending() {
-            final CreateSubscription createSubscription = SubscriptionFixtures
-                .aCreateSubscription()
+            final CreateSubscription createSubscription = SubscriptionFixtures.aCreateSubscription()
                 .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
                 .customApiKey(null)
                 .build();
 
-            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any()))
-                .thenReturn(
-                    SubscriptionFixtures
-                        .aSubscriptionEntity()
-                        .toBuilder()
-                        .id(SUBSCRIPTION)
-                        .application(APPLICATION)
-                        .plan(PLAN)
-                        .status(SubscriptionStatus.PENDING)
-                        .build()
-                );
+            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any())).thenReturn(
+                SubscriptionFixtures.aSubscriptionEntity()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .application(APPLICATION)
+                    .plan(PLAN)
+                    .status(SubscriptionStatus.PENDING)
+                    .build()
+            );
             doReturn(
                 new AcceptSubscriptionUseCase.Output(
-                    fixtures.core.model.SubscriptionFixtures
-                        .aSubscription()
+                    fixtures.core.model.SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(SUBSCRIPTION)
                         .planId(PLAN)
@@ -314,8 +300,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_create_subscription_with_null_custom_api_key_and_auto_process_it_if_pending() {
-            final CreateSubscription createSubscription = SubscriptionFixtures
-                .aCreateSubscription()
+            final CreateSubscription createSubscription = SubscriptionFixtures.aCreateSubscription()
                 .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
@@ -328,24 +313,22 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
                     ParameterReferenceType.ENVIRONMENT
                 )
-            )
-                .thenReturn(true);
-            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), eq(null)))
-                .thenReturn(
-                    SubscriptionFixtures
-                        .aSubscriptionEntity()
-                        .toBuilder()
-                        .id(SUBSCRIPTION)
-                        .application(APPLICATION)
-                        .plan(PLAN)
-                        .status(SubscriptionStatus.PENDING)
-                        .build()
-                );
+            ).thenReturn(true);
+            when(
+                subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), eq(null))
+            ).thenReturn(
+                SubscriptionFixtures.aSubscriptionEntity()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .application(APPLICATION)
+                    .plan(PLAN)
+                    .status(SubscriptionStatus.PENDING)
+                    .build()
+            );
 
             doReturn(
                 new AcceptSubscriptionUseCase.Output(
-                    fixtures.core.model.SubscriptionFixtures
-                        .aSubscription()
+                    fixtures.core.model.SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(SUBSCRIPTION)
                         .planId(PLAN)
@@ -380,8 +363,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         @Test
         public void should_create_subscription_with_custom_api_key_and_auto_accept_it() {
             final String customApiKey = "custom-api-key";
-            final CreateSubscription createSubscription = SubscriptionFixtures
-                .aCreateSubscription()
+            final CreateSubscription createSubscription = SubscriptionFixtures.aCreateSubscription()
                 .toBuilder()
                 .applicationId(APPLICATION)
                 .planId(PLAN)
@@ -394,24 +376,22 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
                     ParameterReferenceType.ENVIRONMENT
                 )
-            )
-                .thenReturn(true);
-            when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), eq(customApiKey)))
-                .thenReturn(
-                    SubscriptionFixtures
-                        .aSubscriptionEntity()
-                        .toBuilder()
-                        .id(SUBSCRIPTION)
-                        .application(APPLICATION)
-                        .plan(PLAN)
-                        .status(SubscriptionStatus.PENDING)
-                        .build()
-                );
+            ).thenReturn(true);
+            when(
+                subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), eq(customApiKey))
+            ).thenReturn(
+                SubscriptionFixtures.aSubscriptionEntity()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .application(APPLICATION)
+                    .plan(PLAN)
+                    .status(SubscriptionStatus.PENDING)
+                    .build()
+            );
 
             doReturn(
                 new AcceptSubscriptionUseCase.Output(
-                    fixtures.core.model.SubscriptionFixtures
-                        .aSubscription()
+                    fixtures.core.model.SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(SUBSCRIPTION)
                         .planId(PLAN)
@@ -454,8 +434,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_accept_subscription() {
-            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-                .aSubscriptionEntity()
+            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
                 .toBuilder()
                 .id(SUBSCRIPTION)
                 .api(API)
@@ -466,8 +445,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
             doReturn(
                 new AcceptSubscriptionUseCase.Output(
-                    fixtures.core.model.SubscriptionFixtures
-                        .aSubscription()
+                    fixtures.core.model.SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(SUBSCRIPTION)
                         .planId(PLAN)
@@ -505,8 +483,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_accept_subscription_with_random_api_key() {
-            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-                .aSubscriptionEntity()
+            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
                 .toBuilder()
                 .id(SUBSCRIPTION)
                 .api(API)
@@ -516,8 +493,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             final var acceptSubscription = SubscriptionFixtures.anAcceptSubscriptionWithRandomKey();
             doReturn(
                 new AcceptSubscriptionUseCase.Output(
-                    fixtures.core.model.SubscriptionFixtures
-                        .aSubscription()
+                    fixtures.core.model.SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(SUBSCRIPTION)
                         .planId(PLAN)
@@ -564,8 +540,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     eq(API),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(Entity.json(SubscriptionFixtures.anAcceptSubscription()));
             assertThat(response)
@@ -586,8 +561,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_reject_subscription() {
-            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-                .aSubscriptionEntity()
+            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
                 .toBuilder()
                 .id(SUBSCRIPTION)
                 .api(API)
@@ -598,8 +572,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
             doReturn(
                 new RejectSubscriptionUseCase.Output(
-                    fixtures.core.model.SubscriptionFixtures
-                        .aSubscription()
+                    fixtures.core.model.SubscriptionFixtures.aSubscription()
                         .toBuilder()
                         .id(SUBSCRIPTION)
                         .planId(PLAN)
@@ -643,8 +616,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     eq(API),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(Entity.json(SubscriptionFixtures.aRejectSubscription()));
             assertThat(response)

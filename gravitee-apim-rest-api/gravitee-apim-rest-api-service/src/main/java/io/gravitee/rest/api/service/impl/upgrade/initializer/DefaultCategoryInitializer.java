@@ -57,7 +57,10 @@ public class DefaultCategoryInitializer implements Initializer {
                 .stream()
                 .filter(c -> c.getKey() == null || c.getKey().isEmpty())
                 .findFirst();
-            Optional<Category> optionalCategoryWithoutCreationDate = categories.stream().filter(c -> c.getCreatedAt() == null).findFirst();
+            Optional<Category> optionalCategoryWithoutCreationDate = categories
+                .stream()
+                .filter(c -> c.getCreatedAt() == null)
+                .findFirst();
 
             final boolean keyLessCategoriesExist = optionalKeyLessCategory.isPresent();
             final boolean categoriesWithoutCreationDateExist = optionalCategoryWithoutCreationDate.isPresent();

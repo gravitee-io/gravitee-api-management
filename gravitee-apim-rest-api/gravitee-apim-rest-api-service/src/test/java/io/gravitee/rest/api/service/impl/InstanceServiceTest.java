@@ -206,8 +206,7 @@ public class InstanceServiceTest {
                     return true;
                 })
             )
-        )
-            .thenReturn(List.of(evt, evt2));
+        ).thenReturn(List.of(evt, evt2));
         final List<InstanceEntity> result = cut.findAllStarted(executionContext);
         assertThat(result).hasSize(2);
     }
@@ -238,8 +237,7 @@ public class InstanceServiceTest {
                     return true;
                 })
             )
-        )
-            .thenReturn(List.of(evt, evt2));
+        ).thenReturn(List.of(evt, evt2));
         final List<InstanceEntity> result = cut.findAllStarted(executionContext);
         assertThat(result).hasSize(2);
     }
@@ -272,8 +270,7 @@ public class InstanceServiceTest {
                     return true;
                 })
             )
-        )
-            .thenReturn(List.of(evt, evt2));
+        ).thenReturn(List.of(evt, evt2));
         final List<InstanceEntity> result = cut.findAllStarted(executionContext);
         assertThat(result).hasSize(1);
     }
@@ -321,25 +318,25 @@ public class InstanceServiceTest {
             Map.of("id", "evt-id", "last_heartbeat_at", String.valueOf(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli()))
         );
 
-        when(eventService.search(any(ExecutionContext.class), anyList(), any(), anyLong(), anyLong(), anyInt(), anyInt(), anyList()))
-            .thenReturn(new Page<>(List.of(event), 0, 1, 1));
+        when(
+            eventService.search(any(ExecutionContext.class), anyList(), any(), anyLong(), anyLong(), anyInt(), anyInt(), anyList())
+        ).thenReturn(new Page<>(List.of(event), 0, 1, 1));
 
         cut.search(executionContext, query);
 
         ArgumentCaptor<Long> fromCaptor = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<Long> toCaptor = ArgumentCaptor.forClass(Long.class);
 
-        verify(eventService)
-            .search(
-                eq(executionContext),
-                argThat(collection -> collection.stream().allMatch(e -> e.equals(EventType.GATEWAY_STARTED))),
-                isNull(),
-                fromCaptor.capture(),
-                eq(0L),
-                eq(0),
-                eq(100),
-                any()
-            );
+        verify(eventService).search(
+            eq(executionContext),
+            argThat(collection -> collection.stream().allMatch(e -> e.equals(EventType.GATEWAY_STARTED))),
+            isNull(),
+            fromCaptor.capture(),
+            eq(0L),
+            eq(0),
+            eq(100),
+            any()
+        );
 
         // expect from to be today minus 7 days
         Instant now = Instant.now();

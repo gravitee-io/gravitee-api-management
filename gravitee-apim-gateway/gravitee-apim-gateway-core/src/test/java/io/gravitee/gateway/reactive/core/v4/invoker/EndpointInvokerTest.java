@@ -183,8 +183,9 @@ class EndpointInvokerTest {
         final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(null);
-        when(ctx.interruptWith(any(ExecutionFailure.class)))
-            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
+        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
+            Completable.error(new InterruptionFailureException(i.getArgument(0)))
+        );
 
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
@@ -229,8 +230,9 @@ class EndpointInvokerTest {
         // Here, return a random object from attribute and verify we end in error
         when(ctx.getAttribute(eq(ATTR_REQUEST_METHOD))).thenReturn(List.of("PUT"));
 
-        when(ctx.interruptWith(any(ExecutionFailure.class)))
-            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
+        when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
+            Completable.error(new InterruptionFailureException(i.getArgument(0)))
+        );
 
         cut
             .invoke(ctx)

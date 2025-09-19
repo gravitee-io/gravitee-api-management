@@ -126,18 +126,15 @@ public class ApplicationSubscriptionResource extends AbstractResource {
             final var user = getAuthenticatedUserDetails();
 
             var result = closeSubscriptionUsecase.execute(
-                CloseSubscriptionUseCase.Input
-                    .builder()
+                CloseSubscriptionUseCase.Input.builder()
                     .subscriptionId(subscription)
                     .applicationId(application)
                     .auditInfo(
-                        AuditInfo
-                            .builder()
+                        AuditInfo.builder()
                             .organizationId(executionContext.getOrganizationId())
                             .environmentId(executionContext.getEnvironmentId())
                             .actor(
-                                AuditActor
-                                    .builder()
+                                AuditActor.builder()
                                     .userId(user.getUsername())
                                     .userSource(user.getSource())
                                     .userSourceId(user.getSourceId())
@@ -220,16 +217,14 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         }
 
         switch (subscriptionConsumerStatus) {
-            case STARTED:
-                {
-                    SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeConsumer(executionContext, subscription);
-                    return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
-                }
-            case STOPPED:
-                {
-                    SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pauseConsumer(executionContext, subscription);
-                    return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
-                }
+            case STARTED: {
+                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resumeConsumer(executionContext, subscription);
+                return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
+            }
+            case STOPPED: {
+                SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pauseConsumer(executionContext, subscription);
+                return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
+            }
             default:
                 return Response.status(Response.Status.BAD_REQUEST).build();
         }

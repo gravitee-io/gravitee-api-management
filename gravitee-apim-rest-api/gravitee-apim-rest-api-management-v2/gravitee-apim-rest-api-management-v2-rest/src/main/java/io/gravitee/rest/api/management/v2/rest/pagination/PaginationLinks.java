@@ -50,20 +50,18 @@ public class PaginationLinks {
             final String queryPerPage = queryParameters.getFirst(PaginationParam.PER_PAGE_QUERY_PARAM_NAME);
 
             if (queryPage != null) {
-                linkTemplate =
-                    linkTemplate.replaceFirst(
-                        PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
-                        PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken
-                    );
+                linkTemplate = linkTemplate.replaceFirst(
+                    PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
+                    PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken
+                );
             } else {
                 linkTemplate += "&" + PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken;
             }
             if (queryPerPage != null) {
-                linkTemplate =
-                    linkTemplate.replaceFirst(
-                        PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=(\\w*)",
-                        PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=" + perPageToken
-                    );
+                linkTemplate = linkTemplate.replaceFirst(
+                    PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=(\\w*)",
+                    PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=" + perPageToken
+                );
             }
         }
 

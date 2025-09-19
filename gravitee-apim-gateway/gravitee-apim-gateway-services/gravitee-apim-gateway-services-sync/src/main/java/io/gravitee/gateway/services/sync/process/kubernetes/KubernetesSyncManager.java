@@ -64,23 +64,22 @@ public class KubernetesSyncManager extends AbstractService<SyncManager> implemen
     protected void doStart() {
         log.debug("Starting kubernetes synchronization process");
         if (!distributedSyncService.isEnabled() || distributedSyncService.isPrimaryNode()) {
-            watcherDisposable =
-                sync()
-                    .doOnComplete(() -> {
-                        log.debug("Moving to ready state as all resources have been synchronized");
-                        synced.set(true);
-                    })
-                    .andThen(watch())
-                    .doOnError(throwable -> log.debug("An error occurred during Kubernetes synchronization. Restarting ...", throwable))
-                    .retryWhen(
-                        RxHelper.retryExponentialBackoff(
-                            EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS,
-                            EXPONENTIAL_BACKOFF_RETRY_MAX_DELAY_MS,
-                            TimeUnit.MILLISECONDS,
-                            EXPONENTIAL_BACKOFF_RETRY_FACTOR
-                        )
+            watcherDisposable = sync()
+                .doOnComplete(() -> {
+                    log.debug("Moving to ready state as all resources have been synchronized");
+                    synced.set(true);
+                })
+                .andThen(watch())
+                .doOnError(throwable -> log.debug("An error occurred during Kubernetes synchronization. Restarting ...", throwable))
+                .retryWhen(
+                    RxHelper.retryExponentialBackoff(
+                        EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS,
+                        EXPONENTIAL_BACKOFF_RETRY_MAX_DELAY_MS,
+                        TimeUnit.MILLISECONDS,
+                        EXPONENTIAL_BACKOFF_RETRY_FACTOR
                     )
-                    .subscribe();
+                )
+                .subscribe();
         } else {
             log.warn("Kubernetes synchronization is disabled as distributed sync is enabled, and current node is secondary.");
         }
@@ -99,15 +98,13 @@ public class KubernetesSyncManager extends AbstractService<SyncManager> implemen
     }
 
     private Completable sync() {
-        return Flowable
-            .fromIterable(synchronizers)
+        return Flowable.fromIterable(synchronizers)
             .doOnNext(sync -> log.debug("{} will synchronize all resources ...", sync))
             .concatMapCompletable(sync -> sync.synchronize((Set<String>) node.metadata().get(Node.META_ENVIRONMENTS)));
     }
 
     private Completable watch() {
-        return Flowable
-            .fromIterable(synchronizers)
+        return Flowable.fromIterable(synchronizers)
             .doOnNext(sync -> log.debug("{} will start watching on resources ...", sync))
             .concatMapCompletable(sync -> sync.watch((Set<String>) node.metadata().get(Node.META_ENVIRONMENTS)));
     }

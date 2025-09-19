@@ -103,8 +103,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
                     .diagnostics()
                     .stream()
                     .map(d ->
-                        JdbcScoringRow
-                            .builder()
+                        JdbcScoringRow.builder()
                             .reportId(report.getId())
                             .apiId(report.getApiId())
                             .environmentId(report.getEnvironmentId())
@@ -193,7 +192,10 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
 
         var rowsByApiId = rowMapper.getRows().stream().collect(groupingBy(JdbcScoringRow::getApiId));
 
-        return rowsByApiId.entrySet().stream().flatMap(entry -> adaptScoringReport(entry.getValue()).stream());
+        return rowsByApiId
+            .entrySet()
+            .stream()
+            .flatMap(entry -> adaptScoringReport(entry.getValue()).stream());
     }
 
     @Override
@@ -227,17 +229,17 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
     public ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) {
         var result = jdbcTemplate.query(
             "select " +
-            "environment_id, " +
-            "AVG(score) AS averageScore," +
-            "SUM(errors) AS totalErrors," +
-            "SUM(warnings) AS totalWarnings," +
-            "SUM(infos) AS totalInfos," +
-            "SUM(hints) AS totalHints" +
-            " from " +
-            SCORING_REPORT_SUMMARY +
-            " where " +
-            " environment_id = ?" +
-            " group by environment_id",
+                "environment_id, " +
+                "AVG(score) AS averageScore," +
+                "SUM(errors) AS totalErrors," +
+                "SUM(warnings) AS totalWarnings," +
+                "SUM(infos) AS totalInfos," +
+                "SUM(hints) AS totalHints" +
+                " from " +
+                SCORING_REPORT_SUMMARY +
+                " where " +
+                " environment_id = ?" +
+                " group by environment_id",
             ENVIRONMENT_SUMMARY_MAPPER,
             environmentId
         );
@@ -251,8 +253,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
 
     @Override
     protected JdbcObjectMapper<JdbcScoringRow> buildOrm() {
-        return JdbcObjectMapper
-            .builder(JdbcScoringRow.class, this.tableName, "report_id")
+        return JdbcObjectMapper.builder(JdbcScoringRow.class, this.tableName, "report_id")
             .addColumn("report_id", Types.NVARCHAR, String.class)
             .addColumn("api_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
@@ -272,8 +273,8 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
     private void storeSummary(ScoringReport report) {
         jdbcTemplate.batchUpdate(
             "insert into " +
-            SCORING_REPORT_SUMMARY +
-            " ( report_id, api_id, environment_id, created_at, score, errors, warnings, infos, hints ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ? )",
+                SCORING_REPORT_SUMMARY +
+                " ( report_id, api_id, environment_id, created_at, score, errors, warnings, infos, hints ) values ( ?, ?, ?, ?, ?, ?, ?, ?, ? )",
             new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -360,8 +361,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
             return null;
         }
 
-        return ScoringEnvironmentSummary
-            .builder()
+        return ScoringEnvironmentSummary.builder()
             .environmentId(rs.getString(1))
             .score(BigDecimal.valueOf(rs.getDouble(2)).setScale(2, RoundingMode.HALF_EVEN).doubleValue())
             .errors(rs.getLong(3))
@@ -376,8 +376,7 @@ public class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScor
         while (rs.next()) {
             var reportId = rs.getString("report_id");
             result.add(
-                ScoringEnvironmentApi
-                    .builder()
+                ScoringEnvironmentApi.builder()
                     .apiId(rs.getString("api_id"))
                     .apiName(rs.getString("api_name"))
                     .apiUpdatedAt(new Date(rs.getTimestamp("api_updated_at").getTime()))

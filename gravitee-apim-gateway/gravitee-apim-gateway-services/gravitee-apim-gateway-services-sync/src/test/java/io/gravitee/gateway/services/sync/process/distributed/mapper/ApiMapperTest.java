@@ -65,8 +65,7 @@ class ApiMapperTest {
         apiDef.setProxy(proxy);
         io.gravitee.gateway.handlers.api.definition.Api api = new io.gravitee.gateway.handlers.api.definition.Api(apiDef);
 
-        DistributedEvent distributedEvent = DistributedEvent
-            .builder()
+        DistributedEvent distributedEvent = DistributedEvent.builder()
             .id("apiId")
             .payload(objectMapper.writeValueAsString(api))
             .updatedAt(new Date())
@@ -74,8 +73,7 @@ class ApiMapperTest {
             .syncAction(DistributedSyncAction.DEPLOY)
             .build();
 
-        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
             .apiId("apiId")
             .reactableApi(api)
             .syncAction(SyncAction.DEPLOY)
@@ -97,8 +95,7 @@ class ApiMapperTest {
         apiDef.setId("apiId");
         io.gravitee.gateway.reactive.handlers.api.v4.Api api = new io.gravitee.gateway.reactive.handlers.api.v4.Api(apiDef);
 
-        DistributedEvent distributedEvent = DistributedEvent
-            .builder()
+        DistributedEvent distributedEvent = DistributedEvent.builder()
             .id("apiId")
             .payload(objectMapper.writeValueAsString(api))
             .updatedAt(new Date())
@@ -106,8 +103,7 @@ class ApiMapperTest {
             .syncAction(DistributedSyncAction.DEPLOY)
             .build();
 
-        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
             .apiId("apiId")
             .reactableApi(api)
             .syncAction(SyncAction.DEPLOY)
@@ -137,8 +133,7 @@ class ApiMapperTest {
         apiKey.setId("apiKey");
         Subscription subscription = new Subscription();
         subscription.setId("subscription");
-        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
             .apiId("apiId")
             .reactableApi(api)
             .syncAction(SyncAction.DEPLOY)
@@ -149,35 +144,26 @@ class ApiMapperTest {
             .to(apiReactorDeployable)
             .test()
             .assertValueCount(3)
-            .assertValueAt(
-                0,
-                distributedEvent -> {
-                    assertThat(distributedEvent.getId()).isEqualTo("apiId");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
-                    assertThat(distributedEvent.getPayload()).isEqualTo(objectMapper.writeValueAsString(api));
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                distributedEvent -> {
-                    assertThat(distributedEvent.getId()).isEqualTo("subscription");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
-                    assertThat(distributedEvent.getPayload()).isEqualTo(objectMapper.writeValueAsString(subscription));
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                distributedEvent -> {
-                    assertThat(distributedEvent.getId()).isEqualTo("apiKey");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API_KEY);
-                    assertThat(distributedEvent.getPayload()).isEqualTo(objectMapper.writeValueAsString(apiKey));
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    return true;
-                }
-            );
+            .assertValueAt(0, distributedEvent -> {
+                assertThat(distributedEvent.getId()).isEqualTo("apiId");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
+                assertThat(distributedEvent.getPayload()).isEqualTo(objectMapper.writeValueAsString(api));
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                return true;
+            })
+            .assertValueAt(1, distributedEvent -> {
+                assertThat(distributedEvent.getId()).isEqualTo("subscription");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
+                assertThat(distributedEvent.getPayload()).isEqualTo(objectMapper.writeValueAsString(subscription));
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                return true;
+            })
+            .assertValueAt(2, distributedEvent -> {
+                assertThat(distributedEvent.getId()).isEqualTo("apiKey");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API_KEY);
+                assertThat(distributedEvent.getPayload()).isEqualTo(objectMapper.writeValueAsString(apiKey));
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                return true;
+            });
     }
 }

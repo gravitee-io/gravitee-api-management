@@ -80,13 +80,11 @@ class VertxHttpServerRequestTest {
     @BeforeEach
     void init() {
         subscriptionCount = new AtomicInteger(0);
-        Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable
-            .just(
-                io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk1"),
-                io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk2"),
-                io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk3")
-            )
-            .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
+        Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable.just(
+            io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk1"),
+            io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk2"),
+            io.vertx.rxjava3.core.buffer.Buffer.buffer("chunk3")
+        ).doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
         when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers());
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
@@ -476,9 +474,9 @@ class VertxHttpServerRequestTest {
     }
 
     private void mockWithEmpty() {
-        final Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable
-            .<io.vertx.rxjava3.core.buffer.Buffer>empty()
-            .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
+        final Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable.<io.vertx.rxjava3.core.buffer.Buffer>empty().doOnSubscribe(
+            subscription -> subscriptionCount.incrementAndGet()
+        );
 
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
 
@@ -486,9 +484,9 @@ class VertxHttpServerRequestTest {
     }
 
     private void mockWithError() {
-        final Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable
-            .<io.vertx.rxjava3.core.buffer.Buffer>error(new RuntimeException(MOCK_EXCEPTION))
-            .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
+        final Flowable<io.vertx.rxjava3.core.buffer.Buffer> chunks = Flowable.<io.vertx.rxjava3.core.buffer.Buffer>error(
+            new RuntimeException(MOCK_EXCEPTION)
+        ).doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
 
         when(httpServerRequest.toFlowable()).thenReturn(chunks);
 

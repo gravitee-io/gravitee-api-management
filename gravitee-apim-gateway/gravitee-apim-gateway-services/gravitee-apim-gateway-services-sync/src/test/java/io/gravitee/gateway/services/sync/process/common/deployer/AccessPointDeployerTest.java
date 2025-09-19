@@ -43,8 +43,7 @@ public class AccessPointDeployerTest {
 
     @Test
     void should_deploy_access_point() {
-        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
-            .builder()
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
             .id("id")
             .host("host")
             .environmentId("environmentId")
@@ -57,8 +56,7 @@ public class AccessPointDeployerTest {
 
     @Test
     void should_undeploy_access_point() {
-        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
-            .builder()
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
             .id("id")
             .host("host")
             .environmentId("environmentId")

@@ -81,8 +81,7 @@ public class ApiModelFactory {
         var now = TimeProvider.now();
         var defaultVersion = "0.0.0";
         var version = integrationApi.version() != null ? integrationApi.version() : defaultVersion;
-        return Api
-            .builder()
+        return Api.builder()
             .id(id)
             .version(version)
             .definitionVersion(DefinitionVersion.FEDERATED)
@@ -102,8 +101,7 @@ public class ApiModelFactory {
         var now = TimeProvider.now();
         var defaultVersion = "0.0.0";
         var version = integrationApi.version() != null ? integrationApi.version() : defaultVersion;
-        return Api
-            .builder()
+        return Api.builder()
             .id(id)
             .version(version)
             .definitionVersion(DefinitionVersion.FEDERATED)

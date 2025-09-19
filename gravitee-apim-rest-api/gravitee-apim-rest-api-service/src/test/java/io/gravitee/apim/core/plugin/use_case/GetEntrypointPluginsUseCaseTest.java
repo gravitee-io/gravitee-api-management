@@ -35,8 +35,10 @@ class GetEntrypointPluginsUseCaseTest {
     @BeforeEach
     void setup() {
         licenseManager = mock(LicenseManager.class);
-        getEntrypointPluginsUseCase =
-            new GetEntrypointPluginsUseCase(entrypointPluginQueryServiceInMemory, new PluginFilterByLicenseDomainService(licenseManager));
+        getEntrypointPluginsUseCase = new GetEntrypointPluginsUseCase(
+            entrypointPluginQueryServiceInMemory,
+            new PluginFilterByLicenseDomainService(licenseManager)
+        );
 
         entrypointPluginQueryServiceInMemory.reset();
     }
@@ -52,10 +54,29 @@ class GetEntrypointPluginsUseCaseTest {
 
         var res = getEntrypointPluginsUseCase.getEntrypointPluginsByOrganization(new GetEntrypointPluginsUseCase.Input("org-id"));
         assertThat(res.plugins()).hasSize(3);
-        assertThat(res.plugins().stream().filter(p -> p.getId().equals("sse")).findFirst().map(PlatformPlugin::isDeployed)).contains(false);
-        assertThat(res.plugins().stream().filter(p -> p.getId().equals("mock")).findFirst().map(PlatformPlugin::isDeployed))
-            .contains(false);
-        assertThat(res.plugins().stream().filter(p -> p.getId().equals("http-proxy")).findFirst().map(PlatformPlugin::isDeployed))
-            .contains(true);
+        assertThat(
+            res
+                .plugins()
+                .stream()
+                .filter(p -> p.getId().equals("sse"))
+                .findFirst()
+                .map(PlatformPlugin::isDeployed)
+        ).contains(false);
+        assertThat(
+            res
+                .plugins()
+                .stream()
+                .filter(p -> p.getId().equals("mock"))
+                .findFirst()
+                .map(PlatformPlugin::isDeployed)
+        ).contains(false);
+        assertThat(
+            res
+                .plugins()
+                .stream()
+                .filter(p -> p.getId().equals("http-proxy"))
+                .findFirst()
+                .map(PlatformPlugin::isDeployed)
+        ).contains(true);
     }
 }

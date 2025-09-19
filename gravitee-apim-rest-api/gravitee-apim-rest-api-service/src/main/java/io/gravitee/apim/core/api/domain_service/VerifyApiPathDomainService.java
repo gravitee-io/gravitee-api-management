@@ -98,7 +98,10 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
                 }
             }
             if (sanitizedBuilder.stream().noneMatch(builder -> builder.build().isOverrideAccess())) {
-                sanitizedBuilder.stream().findFirst().ifPresent(builder -> builder.overrideAccess(true));
+                sanitizedBuilder
+                    .stream()
+                    .findFirst()
+                    .ifPresent(builder -> builder.overrideAccess(true));
             }
         }
 
@@ -129,8 +132,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
         apiSearchService
             .search(
-                ApiSearchCriteria
-                    .builder()
+                ApiSearchCriteria.builder()
                     .environmentId(input.environmentId)
                     .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
                     .build(),
@@ -202,7 +204,11 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     }
 
     private static List<String> getPathsWithoutHost(List<Path> paths) {
-        return paths.stream().filter(path -> StringUtils.isEmpty(path.getHost())).map(Path::getPath).toList();
+        return paths
+            .stream()
+            .filter(path -> StringUtils.isEmpty(path.getHost()))
+            .map(Path::getPath)
+            .toList();
     }
 
     private static List<Path> extractPaths(Api api) {
@@ -234,8 +240,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
             .getVirtualHosts()
             .stream()
             .map(virtualHost ->
-                Path
-                    .builder()
+                Path.builder()
                     .host(virtualHost.getHost())
                     .path(virtualHost.getPath())
                     .overrideAccess(virtualHost.isOverrideEntrypoint())

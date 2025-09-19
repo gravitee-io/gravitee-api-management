@@ -104,8 +104,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.queryParam("perPage", 10).queryParam("page", 1).request().get();
             assertThat(response).hasStatus(FORBIDDEN_403);
@@ -131,8 +130,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_groups() {
-            GroupEntity group1 = GroupEntity
-                .builder()
+            GroupEntity group1 = GroupEntity.builder()
                 .id("group-1")
                 .name("group-1")
                 .eventRules(List.of(GroupEventRuleEntity.builder().event("API_CREATE").build()))
@@ -150,8 +148,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .maxInvitation(100)
                 .build();
 
-            GroupEntity group2 = GroupEntity
-                .builder()
+            GroupEntity group2 = GroupEntity.builder()
                 .id("group-2")
                 .name("group-2")
                 .eventRules(List.of())
@@ -208,8 +205,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     GROUP_ID,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
@@ -217,8 +213,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     ENVIRONMENT,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().get();
 
@@ -236,8 +231,9 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_get_error_when_technical_management_exception_thrown() {
-            when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID))
-                .thenThrow(new TechnicalManagementException("Oops"));
+            when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenThrow(
+                new TechnicalManagementException("Oops")
+            );
 
             final Response response = target.request().get();
 
@@ -246,8 +242,9 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_empty_page_when_no_results() {
-            when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID))
-                .thenReturn(Set.of());
+            when(
+                membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID)
+            ).thenReturn(Set.of());
 
             final Response response = target.request().get();
 
@@ -268,8 +265,9 @@ public class GroupsResourceTest extends AbstractResourceTest {
             MemberEntity member1 = aGroupMember(GROUP_ID).withId("member-1");
             MemberEntity member2 = aGroupMember(GROUP_ID).withId("member-2");
 
-            when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID))
-                .thenReturn(Set.of(member1, member2));
+            when(
+                membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID)
+            ).thenReturn(Set.of(member1, member2));
 
             final Response response = target.request().get();
 
@@ -303,8 +301,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(jakarta.ws.rs.client.Entity.json(Map.of("ids", Set.of("group-1", "group-2"))));
 
@@ -327,15 +324,13 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_groups_with_pagination() {
-            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group
-                .builder()
+            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group.builder()
                 .id("group-1")
                 .name("Group 1")
                 .environmentId(ENVIRONMENT)
                 .build();
 
-            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group
-                .builder()
+            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group.builder()
                 .id("group-2")
                 .name("Group 2")
                 .environmentId(ENVIRONMENT)
@@ -354,15 +349,13 @@ public class GroupsResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_groups_with_links() {
-            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group
-                .builder()
+            io.gravitee.apim.core.group.model.Group group1 = io.gravitee.apim.core.group.model.Group.builder()
                 .id("group-1")
                 .name("Group 1")
                 .environmentId(ENVIRONMENT)
                 .build();
 
-            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group
-                .builder()
+            io.gravitee.apim.core.group.model.Group group2 = io.gravitee.apim.core.group.model.Group.builder()
                 .id("group-2")
                 .name("Group 2")
                 .environmentId(ENVIRONMENT)

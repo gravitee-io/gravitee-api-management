@@ -62,9 +62,19 @@ public class FlowValidationDomainService {
 
     private static final Map<ApiType, Function<Flow, Optional<String>>> PATH_EXTRACTOR = Map.of(
         ApiType.PROXY,
-        flow -> flow.selectorByType(SelectorType.HTTP).stream().map(selector -> ((HttpSelector) selector).getPath()).findFirst(),
+        flow ->
+            flow
+                .selectorByType(SelectorType.HTTP)
+                .stream()
+                .map(selector -> ((HttpSelector) selector).getPath())
+                .findFirst(),
         ApiType.MESSAGE,
-        flow -> flow.selectorByType(SelectorType.CHANNEL).stream().map(selector -> ((ChannelSelector) selector).getChannel()).findFirst()
+        flow ->
+            flow
+                .selectorByType(SelectorType.CHANNEL)
+                .stream()
+                .map(selector -> ((ChannelSelector) selector).getChannel())
+                .findFirst()
     );
 
     public List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows) {
@@ -141,8 +151,7 @@ public class FlowValidationDomainService {
     }
 
     private void checkPolicyConfiguration(final Flow flow) {
-        Stream
-            .of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
+        Stream.of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
@@ -177,7 +186,9 @@ public class FlowValidationDomainService {
     }
 
     private Stream<Flow> filterFlowsWithPathParam(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
-        return Stream.concat(apiFlows, planFlows).filter(Flow::isEnabled).filter(flow -> containsPathParam(apiType, flow));
+        return Stream.concat(apiFlows, planFlows)
+            .filter(Flow::isEnabled)
+            .filter(flow -> containsPathParam(apiType, flow));
     }
 
     private void validatePathParamOverlapping(ApiType apiType, Stream<Flow> flows) {
@@ -217,19 +228,16 @@ public class FlowValidationDomainService {
     }
 
     private static void prepareOverlapsMap(Map<String, List<String>> pathsByParam, String path, String branches) {
-        pathsByParam.compute(
-            branches,
-            (key, value) -> {
-                if (value == null) {
-                    value = new ArrayList<>();
-                }
-                // Add the path only once to the error message
-                if (!value.contains(path)) {
-                    value.add(path);
-                }
-                return value;
+        pathsByParam.compute(branches, (key, value) -> {
+            if (value == null) {
+                value = new ArrayList<>();
             }
-        );
+            // Add the path only once to the error message
+            if (!value.contains(path)) {
+                value.add(path);
+            }
+            return value;
+        });
     }
 
     private static boolean isOverlapping(Map<String, Integer> paramWithPosition, String param, Integer i) {

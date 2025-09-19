@@ -60,8 +60,7 @@ public class PlanFixtures {
     }
 
     public static FederatedPlan aFederatedPlan() {
-        return FederatedPlan
-            .builder()
+        return FederatedPlan.builder()
             .id("my-plan")
             .mode(PlanMode.STANDARD)
             .providerId("provider-id")

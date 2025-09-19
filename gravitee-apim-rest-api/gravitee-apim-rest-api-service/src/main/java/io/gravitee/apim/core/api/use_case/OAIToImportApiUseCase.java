@@ -196,8 +196,7 @@ public class OAIToImportApiUseCase {
         if (!withDocumentation) {
             return importWithTags;
         }
-        var page = io.gravitee.apim.core.documentation.model.Page
-            .builder()
+        var page = io.gravitee.apim.core.documentation.model.Page.builder()
             .name(DEFAULT_IMPORT_PAGE_NAME)
             .type(io.gravitee.apim.core.documentation.model.Page.Type.SWAGGER)
             .homepage(false)
@@ -221,8 +220,7 @@ public class OAIToImportApiUseCase {
 
         try {
             // Add Content provider inline resource to API resources
-            Resource resource = Resource
-                .builder()
+            Resource resource = Resource.builder()
                 .name("OpenAPI Specification")
                 .type("content-provider-inline-resource")
                 .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", payload))))
@@ -230,8 +228,7 @@ public class OAIToImportApiUseCase {
             importDefinition.getApiExport().setResources(List.of(resource));
 
             // Add Flow with OAS validation policy to API flows
-            var step = Step
-                .builder()
+            var step = Step.builder()
                 .policy(oasValidationPolicy.getId())
                 .name(oasValidationPolicy.getName())
                 .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("resourceName", "OpenAPI Specification"))))
@@ -239,8 +236,7 @@ public class OAIToImportApiUseCase {
 
             var httpSelector = HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build();
 
-            var flow = Flow
-                .builder()
+            var flow = Flow.builder()
                 .name("OpenAPI Specification Validation")
                 .selectors(List.of(httpSelector))
                 .request(List.of(step))

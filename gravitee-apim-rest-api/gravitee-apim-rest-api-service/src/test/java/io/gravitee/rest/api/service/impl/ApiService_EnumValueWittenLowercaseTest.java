@@ -93,9 +93,8 @@ public class ApiService_EnumValueWittenLowercaseTest {
         apiEntity.setMetadata(metadata);
 
         String result = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
-        assertThat(result)
-            .isEqualTo(
-                "{\n" +
+        assertThat(result).isEqualTo(
+            "{\n" +
                 "  \"name\" : \"test\",\n" +
                 "  \"execution_mode\" : \"v3\",\n" +
                 "  \"description\" : \"Gravitee.io\",\n" +
@@ -108,7 +107,7 @@ public class ApiService_EnumValueWittenLowercaseTest {
                 "  \"path_mappings\" : [ ],\n" +
                 "  \"disable_membership_notifications\" : false\n" +
                 "}"
-            );
+        );
     }
 
     @Test
@@ -129,9 +128,8 @@ public class ApiService_EnumValueWittenLowercaseTest {
         apiEntity.setMetadata(metadata);
 
         String result = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
-        assertThat(result)
-            .isEqualTo(
-                "{\n" +
+        assertThat(result).isEqualTo(
+            "{\n" +
                 "  \"name\" : \"test\",\n" +
                 "  \"execution_mode\" : \"v3\",\n" +
                 "  \"description\" : \"Gravitee.io\",\n" +
@@ -144,7 +142,7 @@ public class ApiService_EnumValueWittenLowercaseTest {
                 "  \"path_mappings\" : [ ],\n" +
                 "  \"disable_membership_notifications\" : false\n" +
                 "}"
-            );
+        );
     }
 
     @Test

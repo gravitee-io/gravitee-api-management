@@ -54,11 +54,11 @@ public class CreateApiMetadataUseCase {
         this.validateApiMetadataDomainService.validateUniqueKey(apiId, input.newApiMetadata.getKey());
         this.validateApiMetadataDomainService.validateUniqueName(input.auditInfo.environmentId(), apiId, input.newApiMetadata.getName());
         this.validateApiMetadataDomainService.validateValueByFormat(
-                api,
-                input.auditInfo().organizationId(),
-                input.newApiMetadata.getValue(),
-                input.newApiMetadata.getFormat()
-            );
+            api,
+            input.auditInfo().organizationId(),
+            input.newApiMetadata.getValue(),
+            input.newApiMetadata.getFormat()
+        );
 
         return new Output(this.apiMetadataDomainService.create(input.newApiMetadata(), input.auditInfo()));
     }

@@ -137,12 +137,11 @@ public class V3UpgraderService extends AbstractService {
 
     public void moveIdpPermission() {
         try {
-            final Set<Role> allRole =
-                this.roleRepository.findByScopeAndReferenceIdAndReferenceType(
-                        RoleScope.ENVIRONMENT,
-                        "DEFAULT",
-                        RoleReferenceType.ORGANIZATION
-                    );
+            final Set<Role> allRole = this.roleRepository.findByScopeAndReferenceIdAndReferenceType(
+                RoleScope.ENVIRONMENT,
+                "DEFAULT",
+                RoleReferenceType.ORGANIZATION
+            );
             logger.info("{} environment roles found", allRole.size());
             for (Role envRole : allRole) {
                 int idpPerm = -1;
@@ -161,15 +160,15 @@ public class V3UpgraderService extends AbstractService {
                     Role orgRole;
                     final Optional<Role> existingOrgRoleWithSameNameRoleCursor =
                         this.roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
-                                RoleScope.ORGANIZATION,
-                                envRole.getName(),
-                                envRole.getReferenceId(),
-                                envRole.getReferenceType()
-                            );
+                            RoleScope.ORGANIZATION,
+                            envRole.getName(),
+                            envRole.getReferenceId(),
+                            envRole.getReferenceType()
+                        );
                     if (existingOrgRoleWithSameNameRoleCursor.isPresent()) {
                         logger.info("An org role exist with the same name");
                         orgRole = existingOrgRoleWithSameNameRoleCursor.get();
-                        orgRole.setPermissions(ArrayUtils.add(orgRole.getPermissions(), 1300 + idpPerm % 100));
+                        orgRole.setPermissions(ArrayUtils.add(orgRole.getPermissions(), 1300 + (idpPerm % 100)));
                         logger.info("permissions updated");
 
                         this.roleRepository.update(orgRole);
@@ -187,7 +186,7 @@ public class V3UpgraderService extends AbstractService {
                         orgRole.setCreatedAt(new Date());
                         orgRole.setDescription(envRole.getDescription());
                         orgRole.setSystem(envRole.isSystem());
-                        orgRole.setPermissions(new int[] { 1300 + idpPerm % 100 });
+                        orgRole.setPermissions(new int[] { 1300 + (idpPerm % 100) });
                         this.roleRepository.create(orgRole);
                         logger.info("Creation of org role done");
                     }
@@ -197,17 +196,20 @@ public class V3UpgraderService extends AbstractService {
                     logger.info("Remove permission from env role done");
 
                     // Update memberships
-                    final Set<Membership> envMembershipsWithRole =
-                        this.membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.ENVIRONMENT, "DEFAULT", envRole.getId());
+                    final Set<Membership> envMembershipsWithRole = this.membershipRepository.findByReferenceAndRoleId(
+                        MembershipReferenceType.ENVIRONMENT,
+                        "DEFAULT",
+                        envRole.getId()
+                    );
                     for (Membership membership : envMembershipsWithRole) {
                         Set<Membership> orgMembershipsWithRole =
                             this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-                                    membership.getMemberId(),
-                                    membership.getMemberType(),
-                                    MembershipReferenceType.ORGANIZATION,
-                                    "DEFAULT",
-                                    orgRole.getId()
-                                );
+                                membership.getMemberId(),
+                                membership.getMemberType(),
+                                MembershipReferenceType.ORGANIZATION,
+                                "DEFAULT",
+                                orgRole.getId()
+                            );
                         if (orgMembershipsWithRole.isEmpty()) {
                             Membership newOrganizationMembership = membership;
                             newOrganizationMembership.setId(UuidString.generateRandom());

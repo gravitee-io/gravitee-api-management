@@ -119,8 +119,7 @@ public class CreatePlanDomainService {
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(createdPlan.getApiId())
@@ -134,8 +133,7 @@ public class CreatePlanDomainService {
     }
 
     private PlanWithFlows toPlanWithFlows(Plan plan, List<Flow> flows) {
-        return PlanWithFlows
-            .builder()
+        return PlanWithFlows.builder()
             .flows(flows)
             .id(plan.getId())
             .crossId(plan.getCrossId())

@@ -100,6 +100,10 @@ public class SecurityContextHelper {
         if (user.getRoles() == null) {
             return new String[] {};
         }
-        return user.getRoles().stream().map(role -> role.getScope().name() + ":" + role.getName()).toArray(String[]::new);
+        return user
+            .getRoles()
+            .stream()
+            .map(role -> role.getScope().name() + ":" + role.getName())
+            .toArray(String[]::new);
     }
 }

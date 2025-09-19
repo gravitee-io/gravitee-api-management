@@ -28,8 +28,7 @@ public class PlanWithFlowsFixtures {
     private PlanWithFlowsFixtures() {}
 
     private static final Supplier<PlanWithFlows.PlanWithFlowsBuilder> BASE = () ->
-        PlanWithFlows
-            .builder()
+        PlanWithFlows.builder()
             .id("id")
             .crossId("my-plan-crossId")
             .name("My plan")
@@ -37,16 +36,16 @@ public class PlanWithFlowsFixtures {
             .validation(Plan.PlanValidationType.AUTO)
             .type(Plan.PlanType.API)
             .planDefinitionV4(
-                fixtures.definition.PlanFixtures
-                    .anApiKeyV4()
+                fixtures.definition.PlanFixtures.anApiKeyV4()
                     .toBuilder()
                     .security(
-                        PlanSecurity
-                            .builder()
+                        PlanSecurity.builder()
                             .type("API_KEY")
-                            .configuration("""
-                           {"nice": "config"}
-                           """)
+                            .configuration(
+                                """
+                                {"nice": "config"}
+                                """
+                            )
                             .build()
                     )
                     .selectionRule("{#request.attribute['selectionRule'] != null}")

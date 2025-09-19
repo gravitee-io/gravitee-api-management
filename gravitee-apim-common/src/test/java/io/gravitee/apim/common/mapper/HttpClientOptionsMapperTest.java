@@ -50,8 +50,7 @@ class HttpClientOptionsMapperTest {
 
     @Test
     void should_build_http_client_options_with_defined_values() {
-        final HttpClientOptions httpClientOptions = HttpClientOptions
-            .builder()
+        final HttpClientOptions httpClientOptions = HttpClientOptions.builder()
             .connectTimeout(1000)
             .idleTimeout(2000)
             .keepAlive(false)

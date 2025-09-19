@@ -61,23 +61,21 @@ public class ApiKeyQueryServiceImplTest {
             var result = service.findById(id);
 
             // Then
-            assertThat(result)
-                .contains(
-                    ApiKeyEntity
-                        .builder()
-                        .id(id)
-                        .subscriptions(List.of("subscription-id"))
-                        .key("c080f684-2c35-40a1-903c-627c219e0567")
-                        .applicationId("application-id")
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .revoked(true)
-                        .paused(true)
-                        .daysToExpirationOnLastNotification(310)
-                        .build()
-                );
+            assertThat(result).contains(
+                ApiKeyEntity.builder()
+                    .id(id)
+                    .subscriptions(List.of("subscription-id"))
+                    .key("c080f684-2c35-40a1-903c-627c219e0567")
+                    .applicationId("application-id")
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revoked(true)
+                    .paused(true)
+                    .daysToExpirationOnLastNotification(310)
+                    .build()
+            );
         }
 
         @Test
@@ -116,31 +114,30 @@ public class ApiKeyQueryServiceImplTest {
         void should_return_api_keys_and_adapt_them() throws TechnicalException {
             // Given
             var applicationId = "application-id";
-            when(apiKeyRepository.findByApplication(applicationId))
-                .thenAnswer(invocation -> List.of(anApiKeyForApplication(invocation.getArgument(0)).build()));
+            when(apiKeyRepository.findByApplication(applicationId)).thenAnswer(invocation ->
+                List.of(anApiKeyForApplication(invocation.getArgument(0)).build())
+            );
 
             // When
             var result = service.findByApplication(applicationId);
 
             // Then
-            assertThat(result)
-                .containsExactly(
-                    ApiKeyEntity
-                        .builder()
-                        .id("api-key-id")
-                        .applicationId(applicationId)
-                        .subscriptions(List.of("subscription-id"))
-                        .key("c080f684-2c35-40a1-903c-627c219e0567")
-                        .applicationId("application-id")
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .revoked(true)
-                        .paused(true)
-                        .daysToExpirationOnLastNotification(310)
-                        .build()
-                );
+            assertThat(result).containsExactly(
+                ApiKeyEntity.builder()
+                    .id("api-key-id")
+                    .applicationId(applicationId)
+                    .subscriptions(List.of("subscription-id"))
+                    .key("c080f684-2c35-40a1-903c-627c219e0567")
+                    .applicationId("application-id")
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revoked(true)
+                    .paused(true)
+                    .daysToExpirationOnLastNotification(310)
+                    .build()
+            );
         }
 
         @Test
@@ -180,30 +177,29 @@ public class ApiKeyQueryServiceImplTest {
             // Given
             var key = "my-key";
             var apiId = "my-api";
-            when(apiKeyRepository.findByKeyAndApi(key, apiId))
-                .thenAnswer(invocation -> Optional.of(anApiKey().key(invocation.getArgument(0)).build()));
+            when(apiKeyRepository.findByKeyAndApi(key, apiId)).thenAnswer(invocation ->
+                Optional.of(anApiKey().key(invocation.getArgument(0)).build())
+            );
 
             // When
             var result = service.findByKeyAndApiId(key, apiId);
 
             // Then
-            assertThat(result)
-                .contains(
-                    ApiKeyEntity
-                        .builder()
-                        .id("api-key-id")
-                        .subscriptions(List.of("subscription-id"))
-                        .key(key)
-                        .applicationId("application-id")
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .revoked(true)
-                        .paused(true)
-                        .daysToExpirationOnLastNotification(310)
-                        .build()
-                );
+            assertThat(result).contains(
+                ApiKeyEntity.builder()
+                    .id("api-key-id")
+                    .subscriptions(List.of("subscription-id"))
+                    .key(key)
+                    .applicationId("application-id")
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revoked(true)
+                    .paused(true)
+                    .daysToExpirationOnLastNotification(310)
+                    .build()
+            );
         }
 
         @Test
@@ -244,30 +240,29 @@ public class ApiKeyQueryServiceImplTest {
         void should_return_api_keys_and_adapt_them() throws TechnicalException {
             // Given
             var subscriptionId = "subscription-id";
-            when(apiKeyRepository.findBySubscription(subscriptionId))
-                .thenAnswer(invocation -> Set.of(anApiKeyForSubscription(invocation.getArgument(0)).build()));
+            when(apiKeyRepository.findBySubscription(subscriptionId)).thenAnswer(invocation ->
+                Set.of(anApiKeyForSubscription(invocation.getArgument(0)).build())
+            );
 
             // When
             var result = service.findBySubscription(subscriptionId);
 
             // Then
-            assertThat(result)
-                .containsExactly(
-                    ApiKeyEntity
-                        .builder()
-                        .id("api-key-id")
-                        .subscriptions(List.of(subscriptionId))
-                        .key("c080f684-2c35-40a1-903c-627c219e0567")
-                        .applicationId("application-id")
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .revoked(true)
-                        .paused(true)
-                        .daysToExpirationOnLastNotification(310)
-                        .build()
-                );
+            assertThat(result).containsExactly(
+                ApiKeyEntity.builder()
+                    .id("api-key-id")
+                    .subscriptions(List.of(subscriptionId))
+                    .key("c080f684-2c35-40a1-903c-627c219e0567")
+                    .applicationId("application-id")
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revoked(true)
+                    .paused(true)
+                    .daysToExpirationOnLastNotification(310)
+                    .build()
+            );
         }
 
         @Test
@@ -308,8 +303,7 @@ public class ApiKeyQueryServiceImplTest {
     }
 
     private ApiKey.ApiKeyBuilder anApiKey() {
-        return ApiKey
-            .builder()
+        return ApiKey.builder()
             .key("c080f684-2c35-40a1-903c-627c219e0567")
             .id("api-key-id")
             .application("application-id")

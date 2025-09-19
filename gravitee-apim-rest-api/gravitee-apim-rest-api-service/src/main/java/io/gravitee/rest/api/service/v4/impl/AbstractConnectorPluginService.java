@@ -124,8 +124,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
             !plugin.manifest().properties().get("features").isEmpty()
         ) {
             entity.setAvailableFeatures(
-                Arrays
-                    .stream(plugin.manifest().properties().get("features").split(","))
+                Arrays.stream(plugin.manifest().properties().get("features").split(","))
                     .map(ConnectorFeature::fromLabel)
                     .collect(Collectors.toSet())
             );

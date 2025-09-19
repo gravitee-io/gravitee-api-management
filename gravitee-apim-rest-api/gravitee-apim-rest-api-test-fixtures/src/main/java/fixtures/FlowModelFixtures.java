@@ -25,15 +25,13 @@ public class FlowModelFixtures {
 
     private FlowModelFixtures() {}
 
-    private static final ChannelSelector.ChannelSelectorBuilder BASE_MODEL_CHANNEL_SELECTOR_V4 = ChannelSelector
-        .builder()
+    private static final ChannelSelector.ChannelSelectorBuilder BASE_MODEL_CHANNEL_SELECTOR_V4 = ChannelSelector.builder()
         .channel("channel")
         .entrypoints(Set.of("entrypoint1", "entrypoint2"))
         .operations(Set.of(ChannelSelector.Operation.SUBSCRIBE, ChannelSelector.Operation.PUBLISH))
         .channelOperator(io.gravitee.definition.model.flow.Operator.EQUALS);
 
-    private static final Step.StepBuilder BASE_MODEL_STEP_V4 = Step
-        .builder()
+    private static final Step.StepBuilder BASE_MODEL_STEP_V4 = Step.builder()
         .name("step")
         .description("description")
         .enabled(true)
@@ -42,8 +40,7 @@ public class FlowModelFixtures {
         .messageCondition("{#context.attribute['messageCondition'] == true}")
         .configuration("{\n  \"nice\" : \"config\"\n}");
 
-    private static final Flow.FlowBuilder BASE_MODEL_FLOW_V4 = Flow
-        .builder()
+    private static final Flow.FlowBuilder BASE_MODEL_FLOW_V4 = Flow.builder()
         .name("Flow")
         .enabled(true)
         .selectors(List.of(BASE_MODEL_CHANNEL_SELECTOR_V4.build()))
@@ -52,29 +49,28 @@ public class FlowModelFixtures {
         .response(List.of(BASE_MODEL_STEP_V4.name("step_response").build()))
         .subscribe(List.of(BASE_MODEL_STEP_V4.name("step_subscribe").build()));
 
-    private static final io.gravitee.definition.model.flow.Step.StepBuilder BASE_MODEL_STEP_V2 = io.gravitee.definition.model.flow.Step
-        .builder()
-        .name("step")
-        .description("description")
-        .enabled(true)
-        .policy("policy")
-        .condition("{#context.attribute['condition'] == true}")
-        .configuration("{\n  \"nice\" : \"config\"\n}");
+    private static final io.gravitee.definition.model.flow.Step.StepBuilder BASE_MODEL_STEP_V2 =
+        io.gravitee.definition.model.flow.Step.builder()
+            .name("step")
+            .description("description")
+            .enabled(true)
+            .policy("policy")
+            .condition("{#context.attribute['condition'] == true}")
+            .configuration("{\n  \"nice\" : \"config\"\n}");
 
-    private static final io.gravitee.definition.model.flow.Flow.FlowBuilder BASE_MODEL_FLOW_V2 = io.gravitee.definition.model.flow.Flow
-        .builder()
-        .name("Flow")
-        .enabled(true)
-        .pathOperator(
-            io.gravitee.definition.model.flow.PathOperator
-                .builder()
-                .operator(io.gravitee.definition.model.flow.Operator.EQUALS)
-                .path("/path")
-                .build()
-        )
-        .condition("{#context.attribute['condition'] == true}")
-        .pre(List.of(BASE_MODEL_STEP_V2.name("step_pre").build()))
-        .post(List.of(BASE_MODEL_STEP_V2.name("step_pot").build()));
+    private static final io.gravitee.definition.model.flow.Flow.FlowBuilder BASE_MODEL_FLOW_V2 =
+        io.gravitee.definition.model.flow.Flow.builder()
+            .name("Flow")
+            .enabled(true)
+            .pathOperator(
+                io.gravitee.definition.model.flow.PathOperator.builder()
+                    .operator(io.gravitee.definition.model.flow.Operator.EQUALS)
+                    .path("/path")
+                    .build()
+            )
+            .condition("{#context.attribute['condition'] == true}")
+            .pre(List.of(BASE_MODEL_STEP_V2.name("step_pre").build()))
+            .post(List.of(BASE_MODEL_STEP_V2.name("step_pot").build()));
 
     public static Flow aModelFlowV4() {
         return BASE_MODEL_FLOW_V4.build();

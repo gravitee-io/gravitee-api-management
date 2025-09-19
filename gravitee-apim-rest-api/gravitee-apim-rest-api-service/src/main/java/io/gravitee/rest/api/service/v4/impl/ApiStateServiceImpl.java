@@ -221,8 +221,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         Map<String, String> properties,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
-        EventCriteria criteria = EventCriteria
-            .builder()
+        EventCriteria criteria = EventCriteria.builder()
             .types(
                 Set.of(
                     io.gravitee.repository.management.model.EventType.PUBLISH_API,
@@ -370,8 +369,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                 properties.put(Event.EventProperties.USER.getValue(), userId);
                 properties.put(
                     Event.EventProperties.DEPLOYMENT_NUMBER.getValue(),
-                    Optional
-                        .ofNullable(event.getProperties())
+                    Optional.ofNullable(event.getProperties())
                         .map(p -> p.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()))
                         .orElse("0")
                 );
@@ -427,8 +425,7 @@ public class ApiStateServiceImpl implements ApiStateService {
 
             // 1 - Check if the api definition is sync with last one in events
             List<Event> events = eventLatestRepository.search(
-                EventCriteria
-                    .builder()
+                EventCriteria.builder()
                     .types(
                         List.of(
                             io.gravitee.repository.management.model.EventType.PUBLISH_API,
@@ -471,12 +468,11 @@ public class ApiStateServiceImpl implements ApiStateService {
                         removePathsRuleDescriptionFromApiV1(deployedApiEntity);
                         removePathsRuleDescriptionFromApiV1(apiEntity);
 
-                        sync =
-                            synchronizationService.checkSynchronization(
-                                io.gravitee.rest.api.model.api.ApiEntity.class,
-                                deployedApiEntity,
-                                apiEntity
-                            );
+                        sync = synchronizationService.checkSynchronization(
+                            io.gravitee.rest.api.model.api.ApiEntity.class,
+                            deployedApiEntity,
+                            apiEntity
+                        );
                     } else {
                         ApiEntity apiEntity = (ApiEntity) genericApiEntity;
                         ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, false);
@@ -488,13 +484,13 @@ public class ApiStateServiceImpl implements ApiStateService {
                     // but only for published or closed plan
                     if (sync) {
                         Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, genericApiEntity.getId());
-                        sync =
-                            plans
-                                .stream()
-                                .noneMatch(plan ->
+                        sync = plans
+                            .stream()
+                            .noneMatch(
+                                plan ->
                                     plan.getPlanStatus() != PlanStatus.STAGING &&
                                     plan.getNeedRedeployAt().after(genericApiEntity.getDeployedAt())
-                                );
+                            );
                     }
                 }
                 return sync;

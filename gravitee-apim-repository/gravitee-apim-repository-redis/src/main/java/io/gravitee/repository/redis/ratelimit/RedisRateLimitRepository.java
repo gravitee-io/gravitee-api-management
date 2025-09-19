@@ -63,19 +63,18 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
 
         final RateLimit newRate = supplier.get();
 
-        return SingleHelper
-            .toSingle(
-                (Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler ->
-                    redisClient
-                        .redisApi()
-                        .flatMap(redisAPI ->
-                            redisAPI.evalsha(
-                                convertToList(this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY), REDIS_KEY_PREFIX + key, weight, newRate)
-                            )
+        return SingleHelper.toSingle(
+            (Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler ->
+                redisClient
+                    .redisApi()
+                    .flatMap(redisAPI ->
+                        redisAPI.evalsha(
+                            convertToList(this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY), REDIS_KEY_PREFIX + key, weight, newRate)
                         )
-                        .onFailure(this::logOperationFailure)
-                        .onComplete(asyncResultHandler)
-            )
+                    )
+                    .onFailure(this::logOperationFailure)
+                    .onComplete(asyncResultHandler)
+        )
             .map(response -> {
                 // It may happen when the rate has been expired while running the script
                 // expired values return a list of 'null'

@@ -165,8 +165,9 @@ class ConfigMapEventFetcherTest {
         KubernetesConfig.getInstance().setCurrentNamespace("current");
         ConfigMap configMap = createConfigMap("service1", "current");
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+            Flowable.just(createEvent(configMap))
+        );
         when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
@@ -181,8 +182,9 @@ class ConfigMapEventFetcherTest {
         // If no definition version is present, consider v2 for backward-compatibility.
         configMap.getData().remove(DATA_API_DEFINITION_VERSION);
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+            Flowable.just(createEvent(configMap))
+        );
         when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(1);
@@ -196,8 +198,9 @@ class ConfigMapEventFetcherTest {
 
         configMap.getData().put(DATA_API_DEFINITION_VERSION, DefinitionVersion.V4.getLabel());
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+            Flowable.just(createEvent(configMap))
+        );
 
         when(objectMapper.readValue("api", io.gravitee.definition.model.v4.Api.class)).thenReturn(mockApiV4());
 
@@ -212,8 +215,9 @@ class ConfigMapEventFetcherTest {
 
         configMap.getData().put(DATA_API_DEFINITION_VERSION, "unknown");
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+            Flowable.just(createEvent(configMap))
+        );
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertNoValues();
     }
@@ -225,8 +229,9 @@ class ConfigMapEventFetcherTest {
         ConfigMap configMap = createConfigMap("apiV4", "current");
         configMap.getMetadata().setOwnerReferences(null);
 
-        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
-            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+            Flowable.just(createEvent(configMap))
+        );
 
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertComplete().assertValueCount(0);
     }

@@ -30,40 +30,31 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public enum SamplingType {
-    PROBABILITY(
-        "probability",
-        (value, validationLimit) -> {
-            try {
-                double parseDouble = Double.parseDouble(value);
-                return parseDouble >= 0.01 && parseDouble <= ((ValidationLimit.ProbabilityLimit) validationLimit).getLimit();
-            } catch (Exception e) {
-                return false;
-            }
+    PROBABILITY("probability", (value, validationLimit) -> {
+        try {
+            double parseDouble = Double.parseDouble(value);
+            return parseDouble >= 0.01 && parseDouble <= ((ValidationLimit.ProbabilityLimit) validationLimit).getLimit();
+        } catch (Exception e) {
+            return false;
         }
-    ),
-    TEMPORAL(
-        "temporal",
-        (value, validationLimit) -> {
-            try {
-                Duration duration = DurationParser.parse(value);
-                Duration minDuration = Duration.parse(((ValidationLimit.TemporalLimit) validationLimit).getLimit());
-                return duration != null && duration.compareTo(minDuration) >= 0;
-            } catch (Exception e) {
-                return false;
-            }
+    }),
+    TEMPORAL("temporal", (value, validationLimit) -> {
+        try {
+            Duration duration = DurationParser.parse(value);
+            Duration minDuration = Duration.parse(((ValidationLimit.TemporalLimit) validationLimit).getLimit());
+            return duration != null && duration.compareTo(minDuration) >= 0;
+        } catch (Exception e) {
+            return false;
         }
-    ),
-    COUNT(
-        "count",
-        (value, validationLimit) -> {
-            try {
-                int count = Integer.parseInt(value);
-                return count >= ((ValidationLimit.CountLimit) validationLimit).getLimit();
-            } catch (Exception e) {
-                return false;
-            }
+    }),
+    COUNT("count", (value, validationLimit) -> {
+        try {
+            int count = Integer.parseInt(value);
+            return count >= ((ValidationLimit.CountLimit) validationLimit).getLimit();
+        } catch (Exception e) {
+            return false;
         }
-    );
+    });
 
     private static final Map<String, SamplingType> LABELS_MAP = Map.of(
         PROBABILITY.label,

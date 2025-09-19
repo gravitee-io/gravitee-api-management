@@ -93,8 +93,7 @@ public class MetadataDefaultReferenceUpgrader implements Upgrader {
     }
 
     private Metadata duplicateMetadata(Environment environment, Metadata metadata) {
-        return Metadata
-            .builder()
+        return Metadata.builder()
             .referenceId(environment.getId())
             .referenceType(MetadataReferenceType.ENVIRONMENT)
             .name(metadata.getName())

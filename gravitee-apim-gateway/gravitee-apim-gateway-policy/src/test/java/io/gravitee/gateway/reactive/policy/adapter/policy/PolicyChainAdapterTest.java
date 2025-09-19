@@ -51,11 +51,10 @@ class PolicyChainAdapterTest {
         final HttpExecutionContext ctx = new DefaultExecutionContext(null, null);
         final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
-        Completable
-            .create(emitter -> {
-                final PolicyChainAdapter policyChainAdapter = new PolicyChainAdapter(ctx, emitter);
-                policyChainAdapter.failWith(policyResult);
-            })
+        Completable.create(emitter -> {
+            final PolicyChainAdapter policyChainAdapter = new PolicyChainAdapter(ctx, emitter);
+            policyChainAdapter.failWith(policyResult);
+        })
             .test()
             .assertFailure(InterruptionFailureException.class);
     }
@@ -65,11 +64,10 @@ class PolicyChainAdapterTest {
         final HttpExecutionContext ctx = new DefaultExecutionContext(null, null);
         final PolicyResult policyResult = PolicyResult.failure("key", 500, "error");
 
-        Completable
-            .create(emitter -> {
-                final PolicyChainAdapter policyChainAdapter = new PolicyChainAdapter(ctx, emitter);
-                policyChainAdapter.streamFailWith(policyResult);
-            })
+        Completable.create(emitter -> {
+            final PolicyChainAdapter policyChainAdapter = new PolicyChainAdapter(ctx, emitter);
+            policyChainAdapter.streamFailWith(policyResult);
+        })
             .test()
             .assertFailure(InterruptionFailureException.class);
     }

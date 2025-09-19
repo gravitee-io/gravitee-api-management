@@ -179,14 +179,13 @@ public class V4ApiServiceCockpitTest {
             createCategoryApiDomainService
         );
 
-        service =
-            new V4ApiServiceCockpitImpl(
-                apiPrimaryOwnerFactory,
-                validateApiDomainService,
-                createApiDomainService,
-                apiServiceV4,
-                apiStateService
-            );
+        service = new V4ApiServiceCockpitImpl(
+            apiPrimaryOwnerFactory,
+            validateApiDomainService,
+            createApiDomainService,
+            apiServiceV4,
+            apiStateService
+        );
 
         lenient()
             .when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
@@ -210,12 +209,15 @@ public class V4ApiServiceCockpitTest {
 
     @Test
     public void should_create_publish_api() throws JsonProcessingException, InterruptedException {
-        when(apiStateService.start(any(), any(String.class), any()))
-            .thenAnswer(invocation -> ApiEntity.builder().id(invocation.getArgument(1)).build());
-        when(apiStateService.deploy(any(), any(String.class), any(), any()))
-            .thenAnswer(invocation -> ApiEntity.builder().id(invocation.getArgument(1)).build());
-        when(apiServiceV4.update(any(), any(), any(), any()))
-            .thenAnswer(invocation -> ApiEntity.builder().id(invocation.getArgument(1)).build());
+        when(apiStateService.start(any(), any(String.class), any())).thenAnswer(invocation ->
+            ApiEntity.builder().id(invocation.getArgument(1)).build()
+        );
+        when(apiStateService.deploy(any(), any(String.class), any(), any())).thenAnswer(invocation ->
+            ApiEntity.builder().id(invocation.getArgument(1)).build()
+        );
+        when(apiServiceV4.update(any(), any(), any(), any())).thenAnswer(invocation ->
+            ApiEntity.builder().id(invocation.getArgument(1)).build()
+        );
 
         TestObserver<ApiEntity> observer = service
             .createPublishApi(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID, validApiDefinition())
@@ -237,8 +239,7 @@ public class V4ApiServiceCockpitTest {
             soft
                 .assertThat(created.getApiDefinitionV4())
                 .isEqualTo(
-                    Api
-                        .builder()
+                    Api.builder()
                         .id("generated-id")
                         .apiVersion("1.0")
                         .name("Original")
@@ -247,8 +248,7 @@ public class V4ApiServiceCockpitTest {
                         .analytics(Analytics.builder().enabled(true).build())
                         .listeners(
                             List.of(
-                                HttpListener
-                                    .builder()
+                                HttpListener.builder()
                                     .entrypoints(List.of(Entrypoint.builder().type("http-proxy").qos(Qos.AUTO).build()))
                                     .paths(List.of(Path.builder().path("/original/http-proxy/").build()))
                                     .build()
@@ -256,14 +256,12 @@ public class V4ApiServiceCockpitTest {
                         )
                         .endpointGroups(
                             List.of(
-                                EndpointGroup
-                                    .builder()
+                                EndpointGroup.builder()
                                     .name("default-group")
                                     .type("http-proxy")
                                     .endpoints(
                                         List.of(
-                                            Endpoint
-                                                .builder()
+                                            Endpoint.builder()
                                                 .name("default")
                                                 .type("http-proxy")
                                                 .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
@@ -282,12 +280,15 @@ public class V4ApiServiceCockpitTest {
 
     @Test
     public void should_start_and_deploy_api() throws JsonProcessingException, InterruptedException {
-        when(apiStateService.start(any(), any(String.class), any()))
-            .thenAnswer(invocation -> ApiEntity.builder().id(invocation.getArgument(1)).build());
-        when(apiStateService.deploy(any(), any(String.class), any(), any()))
-            .thenAnswer(invocation -> ApiEntity.builder().id(invocation.getArgument(1)).build());
-        when(apiServiceV4.update(any(), any(), any(), any()))
-            .thenAnswer(invocation -> ApiEntity.builder().id(invocation.getArgument(1)).build());
+        when(apiStateService.start(any(), any(String.class), any())).thenAnswer(invocation ->
+            ApiEntity.builder().id(invocation.getArgument(1)).build()
+        );
+        when(apiStateService.deploy(any(), any(String.class), any(), any())).thenAnswer(invocation ->
+            ApiEntity.builder().id(invocation.getArgument(1)).build()
+        );
+        when(apiServiceV4.update(any(), any(), any(), any())).thenAnswer(invocation ->
+            ApiEntity.builder().id(invocation.getArgument(1)).build()
+        );
 
         TestObserver<ApiEntity> observer = service.createPublishApi(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID, validApiDefinition()).test();
         observer.await();
@@ -301,9 +302,8 @@ public class V4ApiServiceCockpitTest {
     @Test
     public void should_throw_exception() {
         final String userId = "any-user-id";
-        assertThrows(
-            JsonProcessingException.class,
-            () -> service.createPublishApi("organization-id", "environment-id", userId, "{invalid-json}")
+        assertThrows(JsonProcessingException.class, () ->
+            service.createPublishApi("organization-id", "environment-id", userId, "{invalid-json}")
         );
     }
 
@@ -314,310 +314,310 @@ public class V4ApiServiceCockpitTest {
     private String validApiDefinition() {
         return (
             """
-                {
-                   "newApiEntity":{
-                      "name":"Original",
-                      "apiVersion":"1.0",
-                      "definitionVersion":"4.0.0",
-                      "type":"proxy",
-                      "description":"Original from Cockpit - HTTP",
-                      "tags":[
-                        \s
-                      ],
-                      "listeners":[
-                         {
-                            "type":"http",
-                            "entrypoints":[
-                               {
-                                  "type":"http-proxy",
-                                  "qos":"auto"
-                               }
-                            ],
-                            "paths":[
-                               {
-                                  "path":"/original/http-proxy/"
-                               }
-                            ]
-                         }
-                      ],
-                      "endpointGroups":[
-                         {
-                            "name":"default-group",
-                            "type":"http-proxy",
-                            "loadBalancer":{
-                              \s
-                            },
-                            "endpoints":[
-                               {
-                                  "name":"default",
-                                  "type":"http-proxy",
-                                  "secondary":false,
-                                  "weight":1,
-                                  "inheritConfiguration":false,
-                                  "configuration":{
-                                     "target":"https://api.gravitee.io/echo"
-                                  },
-                                  "services":{
-                                    \s
-                                  }
-                               }
-                            ],
-                            "services":{
-                              \s
-                            }
-                         }
-                      ],
-                      "analytics":{
-                         "enabled":true
-                      },
-                      "flowExecution":{
-                         "mode":"default",
-                         "matchRequired":false
-                      },
-                      "flows":[
-                        \s
-                      ],
-                      "resources":[
-                         {
-                            "name":"my-cache",
-                            "type":"cache",
-                            "configuration":{
-                               "maxEntriesLocalHeap":1000,
-                               "timeToIdleSeconds":2,
-                               "timeToLiveSeconds":4
-                            },
-                            "enabled":true
-                         },
-                         {
-                            "name":"oauth",
-                            "type":"oauth2",
-                            "configuration":{
-                               "authorizationServerUrl":"https://authorization_server",
-                               "introspectionEndpoint":"/oauth/check_token",
-                               "useSystemProxy":false,
-                               "introspectionEndpointMethod":"GET",
-                               "scopeSeparator":" ",
-                               "userInfoEndpoint":"/userinfo",
-                               "userInfoEndpointMethod":"GET",
-                               "useClientAuthorizationHeader":true,
-                               "clientAuthorizationHeaderName":"Authorization",
-                               "clientAuthorizationHeaderScheme":"Basic",
-                               "tokenIsSuppliedByQueryParam":true,
-                               "tokenQueryParamName":"token",
-                               "tokenIsSuppliedByHttpHeader":false,
-                               "tokenIsSuppliedByFormUrlEncoded":false,
-                               "tokenFormUrlEncodedName":"token",
-                               "userClaim":"sub",
-                               "clientId":"client-id",
-                               "clientSecret":"client-secret"
-                            },
-                            "enabled":true
-                         }
-                      ],
-                      "properties":[
-                         {
-                            "key":"client-id",
-                            "value":"abc",
-                            "encrypted":false,
-                            "dynamic":false,
-                            "encryptable":false
-                         },
-                         {
-                            "key":"client-secret",
-                            "value":"abc",
-                            "encrypted":false,
-                            "dynamic":false,
-                            "encryptable":false
-                         },
-                         {
-                            "key":"property-1",
-                            "value":"value-1",
-                            "encrypted":false,
-                            "dynamic":false,
-                            "encryptable":false
-                         },
-                         {
-                            "key":"property-2",
-                            "value":"EnqXzj3i27jDUZU8h6fIqg==",
-                            "encrypted":true,
-                            "dynamic":false,
-                            "encryptable":false
-                         }
-                      ]
-                   },
-                   "planEntities":[
-                      {
-                         "name":"Keyless",
-                         "description":"Keyless",
-                         "createdAt":1689169972399,
-                         "updatedAt":1689169972399,
-                         "publishedAt":1689169972399,
-                         "validation":"auto",
-                         "type":"api",
-                         "mode":"standard",
-                         "security":{
-                            "type":"KEY_LESS"
-                         },
-                         "flows":[
-                           \s
-                         ],
-                         "tags":[
-                           \s
-                         ],
-                         "status":"published",
-                         "order":1,
-                         "commentRequired":false
-                      },
-                      {
-                         "name":"Premium API Key Plan",
-                         "description":"",
-                         "createdAt":1689169972379,
-                         "updatedAt":1689170527231,
-                         "publishedAt":1689169972379,
-                         "validation":"auto",
-                         "type":"api",
-                         "mode":"standard",
-                         "security":{
-                            "type":"API_KEY",
-                            "configuration":{
-                              \s
-                            }
-                         },
-                         "flows":[
-                            {
-                              \s
-                            }
-                         ],
-                         "tags":[
-                           \s
-                         ],
-                         "status":"published",
-                         "order":1,
-                         "characteristics":[
-                           \s
-                         ],
-                         "excludedGroups":[
-                           \s
-                         ],
-                         "commentRequired":false,
-                         "commentMessage":"",
-                         "generalConditions":""
-                      },
-                      {
-                         "name":"Keyless",
-                         "description":"Keyless",
-                         "createdAt":1689169964283,
-                         "updatedAt":1689171419581,
-                         "publishedAt":1689169964307,
-                         "closedAt":1689171419581,
-                         "validation":"auto",
-                         "type":"api",
-                         "mode":"standard",
-                         "security":{
-                            "type":"KEY_LESS"
-                         },
-                         "flows":[
-                           \s
-                         ],
-                         "tags":[
-                           \s
-                         ],
-                         "status":"closed",
-                         "order":1,
-                         "commentRequired":false
-                      },
-                      {
-                         "name":"Limit Creation of Tasks",
-                         "description":"",
-                         "createdAt":1689169972429,
-                         "updatedAt":1689169972429,
-                         "validation":"manual",
-                         "type":"api",
-                         "mode":"standard",
-                         "security":{
-                            "type":"API_KEY",
-                            "configuration":{
-                               "propagateApiKey":false
-                            }
-                         },
-                         "flows":[
-                            {
-                              \s
-                            }
-                         ],
-                         "tags":[
-                           \s
-                         ],
-                         "status":"closed",
-                         "order":3,
-                         "characteristics":[
-                           \s
-                         ],
-                         "excludedGroups":[
-                           \s
-                         ],
-                         "commentRequired":false,
-                         "commentMessage":"",
-                         "generalConditions":""
-                      },
-                      {
-                         "name":"Limit Creation of Tasks",
-                         "description":"",
-                         "createdAt":1689169972411,
-                         "updatedAt":1689169972411,
-                         "publishedAt":1689169972411,
-                         "validation":"manual",
-                         "type":"api",
-                         "mode":"standard",
-                         "security":{
-                            "type":"API_KEY",
-                            "configuration":{
-                              \s
-                            }
-                         },
-                         "flows":[
-                            {
-                              \s
-                            }
-                         ],
-                         "tags":[
-                           \s
-                         ],
-                         "status":"published",
-                         "order":2,
-                         "characteristics":[
-                           \s
-                         ],
-                         "excludedGroups":[
-                           \s
-                         ],
-                         "commentRequired":false,
-                         "commentMessage":"",
-                         "generalConditions":""
-                      }
-                   ],
-                   "metadata":[
-                      {
-                         "key":"test-2",
-                         "name":"test-2",
-                         "format":"STRING",
-                         "defaultValue":"value 2"
-                      },
-                      {
-                         "key":"email-support",
-                         "name":"email-support",
-                         "format":"MAIL",
-                         "value":"${(api.primaryOwner.email)!''}",
-                         "defaultValue":"support@change.me"
-                      },
-                      {
-                         "key":"test-1",
-                         "name":"test 1",
-                         "format":"STRING",
-                         "defaultValue":"value 1"
-                      }
-                   ]
-                }"""
+            {
+               "newApiEntity":{
+                  "name":"Original",
+                  "apiVersion":"1.0",
+                  "definitionVersion":"4.0.0",
+                  "type":"proxy",
+                  "description":"Original from Cockpit - HTTP",
+                  "tags":[
+                    \s
+                  ],
+                  "listeners":[
+                     {
+                        "type":"http",
+                        "entrypoints":[
+                           {
+                              "type":"http-proxy",
+                              "qos":"auto"
+                           }
+                        ],
+                        "paths":[
+                           {
+                              "path":"/original/http-proxy/"
+                           }
+                        ]
+                     }
+                  ],
+                  "endpointGroups":[
+                     {
+                        "name":"default-group",
+                        "type":"http-proxy",
+                        "loadBalancer":{
+                          \s
+                        },
+                        "endpoints":[
+                           {
+                              "name":"default",
+                              "type":"http-proxy",
+                              "secondary":false,
+                              "weight":1,
+                              "inheritConfiguration":false,
+                              "configuration":{
+                                 "target":"https://api.gravitee.io/echo"
+                              },
+                              "services":{
+                                \s
+                              }
+                           }
+                        ],
+                        "services":{
+                          \s
+                        }
+                     }
+                  ],
+                  "analytics":{
+                     "enabled":true
+                  },
+                  "flowExecution":{
+                     "mode":"default",
+                     "matchRequired":false
+                  },
+                  "flows":[
+                    \s
+                  ],
+                  "resources":[
+                     {
+                        "name":"my-cache",
+                        "type":"cache",
+                        "configuration":{
+                           "maxEntriesLocalHeap":1000,
+                           "timeToIdleSeconds":2,
+                           "timeToLiveSeconds":4
+                        },
+                        "enabled":true
+                     },
+                     {
+                        "name":"oauth",
+                        "type":"oauth2",
+                        "configuration":{
+                           "authorizationServerUrl":"https://authorization_server",
+                           "introspectionEndpoint":"/oauth/check_token",
+                           "useSystemProxy":false,
+                           "introspectionEndpointMethod":"GET",
+                           "scopeSeparator":" ",
+                           "userInfoEndpoint":"/userinfo",
+                           "userInfoEndpointMethod":"GET",
+                           "useClientAuthorizationHeader":true,
+                           "clientAuthorizationHeaderName":"Authorization",
+                           "clientAuthorizationHeaderScheme":"Basic",
+                           "tokenIsSuppliedByQueryParam":true,
+                           "tokenQueryParamName":"token",
+                           "tokenIsSuppliedByHttpHeader":false,
+                           "tokenIsSuppliedByFormUrlEncoded":false,
+                           "tokenFormUrlEncodedName":"token",
+                           "userClaim":"sub",
+                           "clientId":"client-id",
+                           "clientSecret":"client-secret"
+                        },
+                        "enabled":true
+                     }
+                  ],
+                  "properties":[
+                     {
+                        "key":"client-id",
+                        "value":"abc",
+                        "encrypted":false,
+                        "dynamic":false,
+                        "encryptable":false
+                     },
+                     {
+                        "key":"client-secret",
+                        "value":"abc",
+                        "encrypted":false,
+                        "dynamic":false,
+                        "encryptable":false
+                     },
+                     {
+                        "key":"property-1",
+                        "value":"value-1",
+                        "encrypted":false,
+                        "dynamic":false,
+                        "encryptable":false
+                     },
+                     {
+                        "key":"property-2",
+                        "value":"EnqXzj3i27jDUZU8h6fIqg==",
+                        "encrypted":true,
+                        "dynamic":false,
+                        "encryptable":false
+                     }
+                  ]
+               },
+               "planEntities":[
+                  {
+                     "name":"Keyless",
+                     "description":"Keyless",
+                     "createdAt":1689169972399,
+                     "updatedAt":1689169972399,
+                     "publishedAt":1689169972399,
+                     "validation":"auto",
+                     "type":"api",
+                     "mode":"standard",
+                     "security":{
+                        "type":"KEY_LESS"
+                     },
+                     "flows":[
+                       \s
+                     ],
+                     "tags":[
+                       \s
+                     ],
+                     "status":"published",
+                     "order":1,
+                     "commentRequired":false
+                  },
+                  {
+                     "name":"Premium API Key Plan",
+                     "description":"",
+                     "createdAt":1689169972379,
+                     "updatedAt":1689170527231,
+                     "publishedAt":1689169972379,
+                     "validation":"auto",
+                     "type":"api",
+                     "mode":"standard",
+                     "security":{
+                        "type":"API_KEY",
+                        "configuration":{
+                          \s
+                        }
+                     },
+                     "flows":[
+                        {
+                          \s
+                        }
+                     ],
+                     "tags":[
+                       \s
+                     ],
+                     "status":"published",
+                     "order":1,
+                     "characteristics":[
+                       \s
+                     ],
+                     "excludedGroups":[
+                       \s
+                     ],
+                     "commentRequired":false,
+                     "commentMessage":"",
+                     "generalConditions":""
+                  },
+                  {
+                     "name":"Keyless",
+                     "description":"Keyless",
+                     "createdAt":1689169964283,
+                     "updatedAt":1689171419581,
+                     "publishedAt":1689169964307,
+                     "closedAt":1689171419581,
+                     "validation":"auto",
+                     "type":"api",
+                     "mode":"standard",
+                     "security":{
+                        "type":"KEY_LESS"
+                     },
+                     "flows":[
+                       \s
+                     ],
+                     "tags":[
+                       \s
+                     ],
+                     "status":"closed",
+                     "order":1,
+                     "commentRequired":false
+                  },
+                  {
+                     "name":"Limit Creation of Tasks",
+                     "description":"",
+                     "createdAt":1689169972429,
+                     "updatedAt":1689169972429,
+                     "validation":"manual",
+                     "type":"api",
+                     "mode":"standard",
+                     "security":{
+                        "type":"API_KEY",
+                        "configuration":{
+                           "propagateApiKey":false
+                        }
+                     },
+                     "flows":[
+                        {
+                          \s
+                        }
+                     ],
+                     "tags":[
+                       \s
+                     ],
+                     "status":"closed",
+                     "order":3,
+                     "characteristics":[
+                       \s
+                     ],
+                     "excludedGroups":[
+                       \s
+                     ],
+                     "commentRequired":false,
+                     "commentMessage":"",
+                     "generalConditions":""
+                  },
+                  {
+                     "name":"Limit Creation of Tasks",
+                     "description":"",
+                     "createdAt":1689169972411,
+                     "updatedAt":1689169972411,
+                     "publishedAt":1689169972411,
+                     "validation":"manual",
+                     "type":"api",
+                     "mode":"standard",
+                     "security":{
+                        "type":"API_KEY",
+                        "configuration":{
+                          \s
+                        }
+                     },
+                     "flows":[
+                        {
+                          \s
+                        }
+                     ],
+                     "tags":[
+                       \s
+                     ],
+                     "status":"published",
+                     "order":2,
+                     "characteristics":[
+                       \s
+                     ],
+                     "excludedGroups":[
+                       \s
+                     ],
+                     "commentRequired":false,
+                     "commentMessage":"",
+                     "generalConditions":""
+                  }
+               ],
+               "metadata":[
+                  {
+                     "key":"test-2",
+                     "name":"test-2",
+                     "format":"STRING",
+                     "defaultValue":"value 2"
+                  },
+                  {
+                     "key":"email-support",
+                     "name":"email-support",
+                     "format":"MAIL",
+                     "value":"${(api.primaryOwner.email)!''}",
+                     "defaultValue":"support@change.me"
+                  },
+                  {
+                     "key":"test-1",
+                     "name":"test 1",
+                     "format":"STRING",
+                     "defaultValue":"value 1"
+                  }
+               ]
+            }"""
         );
     }
 }

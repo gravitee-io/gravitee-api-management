@@ -112,8 +112,7 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     }
 
     private String getMongoFullVersion(String[] containerEnvs) {
-        return Arrays
-            .stream(containerEnvs)
+        return Arrays.stream(containerEnvs)
             .filter(env -> env.startsWith("MONGO_VERSION="))
             .findFirst()
             .map(env -> env.split("=")[1])

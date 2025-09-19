@@ -63,11 +63,10 @@ public class PromotionTargetsResource extends AbstractResource {
     public Response getPromotionTargets() {
         InstallationStatus status = this.installationService.getInstallationStatus();
         if (InstallationStatus.ACCEPTED == status) {
-            final List<PromotionTargetEntity> promotionTargetEntities =
-                this.promotionService.listPromotionTargets(
-                        GraviteeContext.getCurrentOrganization(),
-                        GraviteeContext.getCurrentEnvironment()
-                    );
+            final List<PromotionTargetEntity> promotionTargetEntities = this.promotionService.listPromotionTargets(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment()
+            );
             return Response.ok(promotionTargetEntities).build();
         }
         throw new InstallationNotAcceptedException(this.installationService.get(), status);

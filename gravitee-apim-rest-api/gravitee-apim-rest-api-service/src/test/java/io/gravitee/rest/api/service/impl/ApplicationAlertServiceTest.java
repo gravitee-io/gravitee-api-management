@@ -101,16 +101,15 @@ public class ApplicationAlertServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        cut =
-            new ApplicationAlertServiceImpl(
-                applicationService,
-                alertService,
-                membershipService,
-                userService,
-                mapper,
-                notificationTemplateService,
-                EMAIL_FROM
-            );
+        cut = new ApplicationAlertServiceImpl(
+            applicationService,
+            alertService,
+            membershipService,
+            userService,
+            mapper,
+            notificationTemplateService,
+            EMAIL_FROM
+        );
     }
 
     @Test
@@ -126,12 +125,11 @@ public class ApplicationAlertServiceTest {
         cut.create(GraviteeContext.getExecutionContext(), APPLICATION_ID, newAlert);
 
         verify(alertService, times(1)).create(GraviteeContext.getExecutionContext(), newAlert);
-        verify(notificationTemplateService, times(1))
-            .findByHookAndScope(
-                GraviteeContext.getCurrentOrganization(),
-                AlertHook.CONSUMER_HTTP_STATUS.name(),
-                HookScope.TEMPLATES_FOR_ALERT.name()
-            );
+        verify(notificationTemplateService, times(1)).findByHookAndScope(
+            GraviteeContext.getCurrentOrganization(),
+            AlertHook.CONSUMER_HTTP_STATUS.name(),
+            HookScope.TEMPLATES_FOR_ALERT.name()
+        );
     }
 
     @Test
@@ -147,12 +145,11 @@ public class ApplicationAlertServiceTest {
         cut.create(GraviteeContext.getExecutionContext(), APPLICATION_ID, newAlert);
 
         verify(alertService, times(1)).create(GraviteeContext.getExecutionContext(), newAlert);
-        verify(notificationTemplateService, times(1))
-            .findByHookAndScope(
-                GraviteeContext.getCurrentOrganization(),
-                AlertHook.CONSUMER_RESPONSE_TIME.name(),
-                HookScope.TEMPLATES_FOR_ALERT.name()
-            );
+        verify(notificationTemplateService, times(1)).findByHookAndScope(
+            GraviteeContext.getCurrentOrganization(),
+            AlertHook.CONSUMER_RESPONSE_TIME.name(),
+            HookScope.TEMPLATES_FOR_ALERT.name()
+        );
     }
 
     @Test
@@ -474,8 +471,9 @@ public class ApplicationAlertServiceTest {
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_RATE");
-        when(alertService.findByReferences(AlertReferenceType.APPLICATION, applicationIds))
-            .thenReturn(Collections.singletonList(alertTrigger));
+        when(alertService.findByReferences(AlertReferenceType.APPLICATION, applicationIds)).thenReturn(
+            Collections.singletonList(alertTrigger)
+        );
 
         Notification notification = new Notification();
         notification.setType("default-email");
@@ -518,8 +516,9 @@ public class ApplicationAlertServiceTest {
 
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
         when(alertTrigger.getType()).thenReturn("METRICS_AGGREGATION");
-        when(alertService.findByReferences(eq(AlertReferenceType.APPLICATION), eq(applicationIds)))
-            .thenReturn(Collections.singletonList(alertTrigger));
+        when(alertService.findByReferences(eq(AlertReferenceType.APPLICATION), eq(applicationIds))).thenReturn(
+            Collections.singletonList(alertTrigger)
+        );
 
         Notification notification = new Notification();
         notification.setType("default-email");
@@ -575,8 +574,9 @@ public class ApplicationAlertServiceTest {
     @NotNull
     private void prepareForCreation(NewAlertTriggerEntity newAlert) {
         // recipients
-        when(membershipService.getMembershipsByReference(MembershipReferenceType.APPLICATION, APPLICATION_ID))
-            .thenReturn(Collections.emptySet());
+        when(membershipService.getMembershipsByReference(MembershipReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(
+            Collections.emptySet()
+        );
         UserEntity user1 = new UserEntity();
         user1.setEmail("user1@mail.gio");
         UserEntity user2 = new UserEntity();
@@ -589,8 +589,7 @@ public class ApplicationAlertServiceTest {
         // body
         List<Condition> conditions = new ArrayList<>();
         conditions.add(
-            RateCondition
-                .of(ThresholdRangeCondition.between("response.status", 200D, 299D).build())
+            RateCondition.of(ThresholdRangeCondition.between("response.status", 200D, 299D).build())
                 .duration(10L, TimeUnit.MINUTES)
                 .greaterThan(5D)
                 .build()

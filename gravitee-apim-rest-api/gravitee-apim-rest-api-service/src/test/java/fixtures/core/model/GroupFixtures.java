@@ -27,8 +27,7 @@ public class GroupFixtures {
     private GroupFixtures() {}
 
     private static final Supplier<Group.GroupBuilder> BASE = () ->
-        Group
-            .builder()
+        Group.builder()
             .id("group-id")
             .name("Group name")
             .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))

@@ -68,14 +68,12 @@ public class GroupValidationServiceTest {
         // Given
         givenExistingGroups(
             GroupFixtures.aGroup(GROUP_1),
-            GroupFixtures
-                .aGroup("default-group-1")
+            GroupFixtures.aGroup("default-group-1")
                 .toBuilder()
                 .environmentId(ENVIRONMENT_ID)
                 .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
                 .build(),
-            GroupFixtures
-                .aGroup("default-group-2")
+            GroupFixtures.aGroup("default-group-2")
                 .toBuilder()
                 .environmentId(ENVIRONMENT_ID)
                 .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
@@ -95,8 +93,7 @@ public class GroupValidationServiceTest {
         givenExistingGroups(
             GroupFixtures.aGroup("group-1").toBuilder().build(),
             GroupFixtures.aGroup("group-2").toBuilder().apiPrimaryOwner("user-2").build(),
-            GroupFixtures
-                .aGroup("default-group-1")
+            GroupFixtures.aGroup("default-group-1")
                 .toBuilder()
                 .environmentId(ENVIRONMENT_ID)
                 .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))

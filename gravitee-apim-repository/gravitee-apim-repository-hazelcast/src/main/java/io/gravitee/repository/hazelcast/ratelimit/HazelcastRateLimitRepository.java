@@ -57,16 +57,14 @@ public class HazelcastRateLimitRepository implements RateLimitRepository<RateLim
 
         Lock lock = hazelcastInstance.getCPSubsystem().getLock("lock-rl-" + key);
 
-        return Completable
-            .create(emitter -> {
-                lock.lock();
-                emitter.onComplete();
-            })
+        return Completable.create(emitter -> {
+            lock.lock();
+            emitter.onComplete();
+        })
             .subscribeOn(Schedulers.computation())
             .andThen(
                 Single.defer(() ->
-                    Maybe
-                        .fromFuture(counters.getAsync(key).toCompletableFuture())
+                    Maybe.fromFuture(counters.getAsync(key).toCompletableFuture())
                         .switchIfEmpty((SingleSource<RateLimit>) observer -> observer.onSuccess(supplier.get()))
                         .flatMap(
                             (Function<RateLimit, SingleSource<RateLimit>>) rateLimit -> {
@@ -78,12 +76,11 @@ public class HazelcastRateLimitRepository implements RateLimitRepository<RateLim
 
                                 final RateLimit finalRateLimit = rateLimit;
 
-                                return Completable
-                                    .fromFuture(
-                                        counters
-                                            .setAsync(rateLimit.getKey(), rateLimit, now - rateLimit.getResetTime(), TimeUnit.MILLISECONDS)
-                                            .toCompletableFuture()
-                                    )
+                                return Completable.fromFuture(
+                                    counters
+                                        .setAsync(rateLimit.getKey(), rateLimit, now - rateLimit.getResetTime(), TimeUnit.MILLISECONDS)
+                                        .toCompletableFuture()
+                                )
                                     .andThen(Single.defer(() -> Single.just(finalRateLimit)))
                                     .doFinally(lock::unlock);
                             }

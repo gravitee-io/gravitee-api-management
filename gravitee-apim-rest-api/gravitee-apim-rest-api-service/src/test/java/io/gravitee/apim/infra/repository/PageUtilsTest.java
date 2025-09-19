@@ -102,16 +102,14 @@ class PageUtilsTest {
 
         // When
         var throwable = catchThrowable(() ->
-            PageUtils
-                .toStream(p -> {
-                    if (p.pageNumber() == 0) {
-                        return page1;
-                    } else if (p.pageNumber() == 1) {
-                        throw exception;
-                    }
-                    return null;
-                })
-                .toList()
+            PageUtils.toStream(p -> {
+                if (p.pageNumber() == 0) {
+                    return page1;
+                } else if (p.pageNumber() == 1) {
+                    throw exception;
+                }
+                return null;
+            }).toList()
         );
 
         // Then

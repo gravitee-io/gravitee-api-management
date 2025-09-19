@@ -31,10 +31,12 @@ class SearchConnectionLogDetailQueryAdapterTest {
     void should_build_query_without_filter(ConnectionLogDetailQuery.Filter filter) {
         var result = SearchConnectionLogDetailQueryAdapter.adapt(ConnectionLogDetailQuery.builder().filter(filter).build());
 
-        assertThatJson(result).isEqualTo("""
-                             {
-                             }
-                             """);
+        assertThatJson(result).isEqualTo(
+            """
+            {
+            }
+            """
+        );
     }
 
     @ParameterizedTest
@@ -54,65 +56,64 @@ class SearchConnectionLogDetailQueryAdapterTest {
             Arguments.of(
                 ConnectionLogDetailQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build(),
                 """
-                             {
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                             {
-                                                 "term": {
-                                                     "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
-                                                 }
-                                             }
-                                         ]
-                                     }
-                                 }
-                              }
-                             """
+                {
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "term": {
+                                        "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
                 ConnectionLogDetailQuery.Filter.builder().requestId("f1608475-dd77-4603-a084-75dd775603e9").build(),
                 """
-                             {
-                                 "query": {
-                                     "bool": {
-                                         "must": [
-                                             {
-                                                 "term": {
-                                                     "request-id": "f1608475-dd77-4603-a084-75dd775603e9"
-                                                 }
-                                             }
-                                         ]
-                                     }
-                                 }
-                              }
-                             """
+                {
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "term": {
+                                        "request-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                 }
+                """
             ),
             Arguments.of(
-                ConnectionLogDetailQuery.Filter
-                    .builder()
+                ConnectionLogDetailQuery.Filter.builder()
                     .requestId("f1608475-dd77-4603-a084-75dd775603e9")
                     .apiId("f1608475-dd77-4603-a084-75dd775603e5")
                     .build(),
                 """
-                                   {
-                                       "query": {
-                                           "bool": {
-                                               "must": [
-                                                   {
-                                                       "term": {
-                                                           "request-id": "f1608475-dd77-4603-a084-75dd775603e9"
-                                                       }
-                                                   },
-                                                   {
-                                                       "term": {
-                                                           "api-id": "f1608475-dd77-4603-a084-75dd775603e5"
-                                                       }
-                                                   }
-                                               ]
-                                           }
-                                       }
+                {
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "term": {
+                                        "request-id": "f1608475-dd77-4603-a084-75dd775603e9"
                                     }
-                                   """
+                                },
+                                {
+                                    "term": {
+                                        "api-id": "f1608475-dd77-4603-a084-75dd775603e5"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                 }
+                """
             )
         );
     }

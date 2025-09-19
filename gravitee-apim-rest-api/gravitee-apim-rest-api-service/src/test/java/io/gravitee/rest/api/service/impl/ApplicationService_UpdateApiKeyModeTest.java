@@ -98,8 +98,7 @@ public class ApplicationService_UpdateApiKeyModeTest {
                 Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         Application applicationToUpdate = new Application();
         applicationToUpdate.setId(APPLICATION_ID);
@@ -168,8 +167,7 @@ public class ApplicationService_UpdateApiKeyModeTest {
                 Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         // existing application has a UNSPECIFIED api key mode
         when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);

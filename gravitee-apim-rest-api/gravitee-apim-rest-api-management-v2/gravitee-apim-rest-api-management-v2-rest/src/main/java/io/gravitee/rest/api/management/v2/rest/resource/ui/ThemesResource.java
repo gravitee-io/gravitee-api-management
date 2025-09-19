@@ -69,8 +69,7 @@ public class ThemesResource extends AbstractResource {
     ) {
         var result = getPortalThemesUseCase
             .execute(
-                GetThemesUseCase.Input
-                    .builder()
+                GetThemesUseCase.Input.builder()
                     .type(ThemeMapper.INSTANCE.map(type))
                     .enabled(enabled)
                     .size(paginationParam.getPerPage())
@@ -78,18 +77,15 @@ public class ThemesResource extends AbstractResource {
                     .build()
             )
             .result();
-        return Response
-            .ok(
-                ThemesResponse
-                    .builder()
-                    .data(ThemeMapper.INSTANCE.map(result.getContent()))
-                    .pagination(
-                        PaginationInfo.computePaginationInfo(result.getTotalElements(), (int) result.getPageElements(), paginationParam)
-                    )
-                    .links(computePaginationLinks(result.getTotalElements(), paginationParam))
-                    .build()
-            )
-            .build();
+        return Response.ok(
+            ThemesResponse.builder()
+                .data(ThemeMapper.INSTANCE.map(result.getContent()))
+                .pagination(
+                    PaginationInfo.computePaginationInfo(result.getTotalElements(), (int) result.getPageElements(), paginationParam)
+                )
+                .links(computePaginationLinks(result.getTotalElements(), paginationParam))
+                .build()
+        ).build();
     }
 
     @GET
@@ -103,8 +99,7 @@ public class ThemesResource extends AbstractResource {
 
         var result = getDefaultThemeUseCase
             .execute(
-                GetDefaultThemeUseCase.Input
-                    .builder()
+                GetDefaultThemeUseCase.Input.builder()
                     .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
                     .executionContext(GraviteeContext.getExecutionContext())
                     .build()
@@ -124,8 +119,7 @@ public class ThemesResource extends AbstractResource {
 
         var result = getCurrentThemeUseCase
             .execute(
-                GetCurrentThemeUseCase.Input
-                    .builder()
+                GetCurrentThemeUseCase.Input.builder()
                     .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(type.name()))
                     .executionContext(GraviteeContext.getExecutionContext())
                     .build()

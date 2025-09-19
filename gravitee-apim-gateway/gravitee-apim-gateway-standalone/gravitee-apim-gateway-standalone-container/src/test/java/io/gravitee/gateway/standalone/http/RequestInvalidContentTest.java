@@ -43,8 +43,7 @@ public class RequestInvalidContentTest extends AbstractWiremockGatewayTest {
 
         HttpResponse response = execute(
             Request.Post("http://localhost:8082/echo/helloworld").bodyString("Invalid body", ContentType.TEXT_PLAIN)
-        )
-            .returnResponse();
+        ).returnResponse();
 
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
 

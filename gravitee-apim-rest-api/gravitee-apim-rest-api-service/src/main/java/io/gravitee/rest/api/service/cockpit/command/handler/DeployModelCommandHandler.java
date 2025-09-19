@@ -100,16 +100,15 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                     return Single.just(new DeployModelReply(command.getId(), message.get()));
                 }
 
-                result =
-                    cockpitApiService.updateApi(
-                        executionContext,
-                        apiId,
-                        user.getId(),
-                        swaggerDefinition,
-                        executionContext.getEnvironmentId(),
-                        mode,
-                        labels
-                    );
+                result = cockpitApiService.updateApi(
+                    executionContext,
+                    apiId,
+                    user.getId(),
+                    swaggerDefinition,
+                    executionContext.getEnvironmentId(),
+                    mode,
+                    labels
+                );
             } else {
                 var message = permissionChecker.checkCreatePermission(
                     executionContext,
@@ -122,16 +121,15 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                     return Single.just(new DeployModelReply(command.getId(), message.get()));
                 }
 
-                result =
-                    cockpitApiService.createApi(
-                        executionContext,
-                        apiCrossId,
-                        user.getId(),
-                        swaggerDefinition,
-                        executionContext.getEnvironmentId(),
-                        mode,
-                        labels
-                    );
+                result = cockpitApiService.createApi(
+                    executionContext,
+                    apiCrossId,
+                    user.getId(),
+                    swaggerDefinition,
+                    executionContext.getEnvironmentId(),
+                    mode,
+                    labels
+                );
             }
 
             if (result.isSuccess()) {

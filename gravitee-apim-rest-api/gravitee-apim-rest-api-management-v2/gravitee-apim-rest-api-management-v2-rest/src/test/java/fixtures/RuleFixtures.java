@@ -25,8 +25,7 @@ public class RuleFixtures {
 
     private RuleFixtures() {}
 
-    private static final Rule.RuleBuilder BASE_RULE = Rule
-        .builder()
+    private static final Rule.RuleBuilder BASE_RULE = Rule.builder()
         .description("description")
         .enabled(true)
         .methods(List.of(HttpMethod.GET, HttpMethod.POST))

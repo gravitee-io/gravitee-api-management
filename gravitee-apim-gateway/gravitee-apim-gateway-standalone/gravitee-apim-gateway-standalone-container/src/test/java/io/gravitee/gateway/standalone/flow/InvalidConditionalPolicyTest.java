@@ -49,8 +49,7 @@ public class InvalidConditionalPolicyTest extends AbstractWiremockGatewayTest {
 
         final HttpResponse response = execute(
             Request.Get("http://localhost:8082/test/my_team").addHeader("conditionHeader", "condition-ok")
-        )
-            .returnResponse();
+        ).returnResponse();
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatusLine().getStatusCode());
         wireMockRule.verify(0, anyRequestedFor(anyUrl()));
     }

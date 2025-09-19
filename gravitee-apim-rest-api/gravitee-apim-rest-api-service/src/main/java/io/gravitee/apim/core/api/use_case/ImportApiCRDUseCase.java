@@ -215,8 +215,7 @@ public class ImportApiCRDUseCase {
                 apiStateDomainService.start(createdApi, sanitizedInput.auditInfo);
             }
 
-            return ApiCRDStatus
-                .builder()
+            return ApiCRDStatus.builder()
                 .id(createdApi.getId())
                 .crossId(createdApi.getCrossId())
                 .environmentId(environmentId)
@@ -308,8 +307,7 @@ public class ImportApiCRDUseCase {
 
             apiMetadataDomainService.importApiMetadata(api.getId(), sanitizedInput.spec.getMetadata(), sanitizedInput.auditInfo);
 
-            return ApiCRDStatus
-                .builder()
+            return ApiCRDStatus.builder()
                 .id(api.getId())
                 .crossId(api.getCrossId())
                 .environmentId(api.getEnvironmentId())
@@ -347,14 +345,12 @@ public class ImportApiCRDUseCase {
     }
 
     private Plan initPlanFromCRD(PlanCRD planCRD) {
-        return Plan
-            .builder()
+        return Plan.builder()
             .id(planCRD.getId())
             .name(planCRD.getName())
             .description(planCRD.getDescription())
             .planDefinitionV4(
-                io.gravitee.definition.model.v4.plan.Plan
-                    .builder()
+                io.gravitee.definition.model.v4.plan.Plan.builder()
                     .security(planCRD.getSecurity())
                     .selectionRule(planCRD.getSelectionRule())
                     .status(planCRD.getStatus())

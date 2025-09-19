@@ -93,7 +93,10 @@ public class VerifyApiHostsDomainService {
 
     private void checkNoDuplicate(List<String> hosts) throws DuplicatedHostException {
         var set = new HashSet<>();
-        var duplicates = hosts.stream().filter(n -> !set.add(n)).toList();
+        var duplicates = hosts
+            .stream()
+            .filter(n -> !set.add(n))
+            .toList();
 
         if (!duplicates.isEmpty()) {
             throw new DuplicatedHostException(String.join(", ", duplicates));
@@ -115,11 +118,12 @@ public class VerifyApiHostsDomainService {
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).build()
             )
-            .filter(api ->
-                !api.getId().equals(apiId) &&
-                ApiType.PROXY.equals(api.getType()) &&
-                DefinitionVersion.V4.equals(api.getDefinitionVersion()) &&
-                null != api.getApiDefinitionV4()
+            .filter(
+                api ->
+                    !api.getId().equals(apiId) &&
+                    ApiType.PROXY.equals(api.getType()) &&
+                    DefinitionVersion.V4.equals(api.getDefinitionVersion()) &&
+                    null != api.getApiDefinitionV4()
             )
             .flatMap(api -> api.getApiDefinitionV4().getListeners().stream())
             .filter(TcpListener.class::isInstance)

@@ -81,8 +81,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
     @Override
     protected JdbcObjectMapper<Application> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Application.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Application.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
@@ -134,10 +133,10 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
         List<List<String>> rows = jdbcTemplate.query(
             "select application_id, group_id from " +
-            APPLICATION_GROUPS +
-            " where application_id in (" +
-            getOrm().buildInClause(applicationIds) +
-            ")",
+                APPLICATION_GROUPS +
+                " where application_id in (" +
+                getOrm().buildInClause(applicationIds) +
+                ")",
             (PreparedStatement ps) -> {
                 getOrm().setArguments(ps, applicationIds, 1);
             },
@@ -226,8 +225,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(application, application.getId()));
             storeGroups(application, true);
             storeMetadata(application, true);
-            return findById(application.getId())
-                .orElseThrow(() -> new IllegalStateException(format("No application found with id [%s]", application.getId())));
+            return findById(application.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No application found with id [%s]", application.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -256,10 +256,10 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
                 "select a.*, am.k as am_k, am.v as am_v from " +
-                this.tableName +
-                " a left join " +
-                APPLICATION_METADATA +
-                " am on a.id = am.application_id where a.id = ?",
+                    this.tableName +
+                    " a left join " +
+                    APPLICATION_METADATA +
+                    " am on a.id = am.application_id where a.id = ?",
                 rowMapper,
                 id
             );
@@ -329,12 +329,12 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
             StringBuilder query = new StringBuilder(
                 "select " +
-                PROJECTION_WITHOUT_PICTURES +
-                ", am.k as am_k, am.v as am_v from " +
-                this.tableName +
-                " a left join " +
-                APPLICATION_METADATA +
-                " am on a.id = am.application_id"
+                    PROJECTION_WITHOUT_PICTURES +
+                    ", am.k as am_k, am.v as am_v from " +
+                    this.tableName +
+                    " a left join " +
+                    APPLICATION_METADATA +
+                    " am on a.id = am.application_id"
             );
             boolean first = true;
             getOrm().buildInCondition(first, query, STATUS_FIELD, statuses);
@@ -364,14 +364,14 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             final List<ApplicationStatus> statuses = Arrays.asList(ass);
             final StringBuilder query = new StringBuilder(
                 "select " +
-                PROJECTION_WITHOUT_PICTURES +
-                ", am.k as am_k, am.v as am_v from " +
-                this.tableName +
-                " a left join " +
-                APPLICATION_METADATA +
-                " am on a.id = am.application_id join " +
-                APPLICATION_GROUPS +
-                " ag on ag.application_id = a.id "
+                    PROJECTION_WITHOUT_PICTURES +
+                    ", am.k as am_k, am.v as am_v from " +
+                    this.tableName +
+                    " a left join " +
+                    APPLICATION_METADATA +
+                    " am on a.id = am.application_id join " +
+                    APPLICATION_GROUPS +
+                    " ag on ag.application_id = a.id "
             );
             boolean first = true;
             first = getOrm().buildInCondition(first, query, "group_id", groupIds);
@@ -405,12 +405,12 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             final List<ApplicationStatus> statuses = Arrays.asList(ass);
             StringBuilder query = new StringBuilder(
                 "select " +
-                PROJECTION_WITHOUT_PICTURES +
-                ", am.k as am_k, am.v as am_v from " +
-                this.tableName +
-                " a left join " +
-                APPLICATION_METADATA +
-                " am on a.id = am.application_id where lower(name) like ?"
+                    PROJECTION_WITHOUT_PICTURES +
+                    ", am.k as am_k, am.v as am_v from " +
+                    this.tableName +
+                    " a left join " +
+                    APPLICATION_METADATA +
+                    " am on a.id = am.application_id where lower(name) like ?"
             );
             getOrm().buildInCondition(false, query, "status", statuses);
 
@@ -447,12 +447,12 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     String searchQuery(ApplicationCriteria applicationCriteria, Sortable sortable) {
         final StringBuilder sbQuery = new StringBuilder(
             "select " +
-            PROJECTION_WITHOUT_PICTURES +
-            ", am.k as am_k, am.v as am_v from " +
-            this.tableName +
-            " a left join " +
-            APPLICATION_METADATA +
-            " am on a.id = am.application_id "
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from " +
+                this.tableName +
+                " a left join " +
+                APPLICATION_METADATA +
+                " am on a.id = am.application_id "
         );
 
         if (applicationCriteria != null) {
@@ -556,12 +556,12 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
             StringBuilder query = new StringBuilder(
                 "select " +
-                PROJECTION_WITHOUT_PICTURES +
-                ", am.k as am_k, am.v as am_v from " +
-                this.tableName +
-                " a left join " +
-                APPLICATION_METADATA +
-                " am on a.id = am.application_id where a.environment_id = ?"
+                    PROJECTION_WITHOUT_PICTURES +
+                    ", am.k as am_k, am.v as am_v from " +
+                    this.tableName +
+                    " a left join " +
+                    APPLICATION_METADATA +
+                    " am on a.id = am.application_id where a.environment_id = ?"
             );
             boolean first = false;
             getOrm().buildInCondition(first, query, STATUS_FIELD, statuses);

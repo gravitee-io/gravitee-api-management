@@ -75,8 +75,9 @@ class SubscriptionMapperTest {
         assertThat(subscriptionMapped.getStatus()).isEqualTo(subscription.getStatus().name());
         assertThat(subscriptionMapped.getConsumerStatus().name()).isEqualTo(subscription.getConsumerStatus().name());
         assertThat(subscriptionMapped.getType().name()).isEqualTo(subscription.getType().name());
-        assertThat(subscriptionMapped.getConfiguration())
-            .isEqualTo(objectMapper.readValue(subscription.getConfiguration(), SubscriptionConfiguration.class));
+        assertThat(subscriptionMapped.getConfiguration()).isEqualTo(
+            objectMapper.readValue(subscription.getConfiguration(), SubscriptionConfiguration.class)
+        );
         assertThat(subscriptionMapped.getMetadata()).isEqualTo(subscription.getMetadata());
     }
 

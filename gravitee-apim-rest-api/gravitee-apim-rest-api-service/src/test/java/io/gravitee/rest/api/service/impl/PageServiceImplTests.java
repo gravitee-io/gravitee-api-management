@@ -106,16 +106,15 @@ public class PageServiceImplTests {
 
         pageService.createPage(executionContext, API_ID, aNewPageEntity);
 
-        verify(auditService)
-            .createApiAuditLog(
-                any(ExecutionContext.class),
-                eq(API_ID),
-                any(),
-                any(Audit.AuditEvent.class),
-                any(),
-                isNull(),
-                pageCaptor.capture()
-            );
+        verify(auditService).createApiAuditLog(
+            any(ExecutionContext.class),
+            eq(API_ID),
+            any(),
+            any(Audit.AuditEvent.class),
+            any(),
+            isNull(),
+            pageCaptor.capture()
+        );
         var auditPage = pageCaptor.getValue();
         assertThat(auditPage).isNotNull();
         assertThat(auditPage.getContent()).isNotNull();
@@ -132,21 +131,22 @@ public class PageServiceImplTests {
 
         pageService.createPage(executionContext, API_ID, aNewPageEntity);
 
-        verify(auditService)
-            .createApiAuditLog(
-                any(ExecutionContext.class),
-                eq(API_ID),
-                any(),
-                any(Audit.AuditEvent.class),
-                any(),
-                isNull(),
-                pageCaptor.capture()
-            );
+        verify(auditService).createApiAuditLog(
+            any(ExecutionContext.class),
+            eq(API_ID),
+            any(),
+            any(Audit.AuditEvent.class),
+            any(),
+            isNull(),
+            pageCaptor.capture()
+        );
         var auditPage = pageCaptor.getValue();
         assertThat(auditPage).isNotNull();
-        assertThat(auditPage.getContent()).isEqualTo("""
-{
-  "opena...""");
+        assertThat(auditPage.getContent()).isEqualTo(
+            """
+            {
+              "opena..."""
+        );
     }
 
     @Test
@@ -159,16 +159,15 @@ public class PageServiceImplTests {
 
         pageService.createPage(executionContext, API_ID, aNewPageEntity);
 
-        verify(auditService)
-            .createApiAuditLog(
-                any(ExecutionContext.class),
-                eq(API_ID),
-                any(),
-                any(Audit.AuditEvent.class),
-                any(),
-                isNull(),
-                pageCaptor.capture()
-            );
+        verify(auditService).createApiAuditLog(
+            any(ExecutionContext.class),
+            eq(API_ID),
+            any(),
+            any(Audit.AuditEvent.class),
+            any(),
+            isNull(),
+            pageCaptor.capture()
+        );
         var auditPage = pageCaptor.getValue();
         assertThat(auditPage).isNotNull();
         assertThat(auditPage.getContent()).isNull();
@@ -193,8 +192,7 @@ public class PageServiceImplTests {
     }
 
     private Page aPage(NewPageEntity newPageEntity) {
-        return Page
-            .builder()
+        return Page.builder()
             .type(newPageEntity.getType().name())
             .visibility(newPageEntity.getVisibility().name())
             .name(newPageEntity.getName())

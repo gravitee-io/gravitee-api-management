@@ -52,8 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ValidateApiDomainServiceLegacyWrapperTest {
 
-    private static final PrimaryOwnerEntity PRIMARY_OWNER = PrimaryOwnerEntity
-        .builder()
+    private static final PrimaryOwnerEntity PRIMARY_OWNER = PrimaryOwnerEntity.builder()
         .id("primary-owner-id")
         .displayName("John Doe")
         .email("john.doe@example.com")
@@ -79,22 +78,19 @@ class ValidateApiDomainServiceLegacyWrapperTest {
         Api api = ApiFixtures.aProxyApiV4();
         service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
-        verify(apiValidationService)
-            .validateAndSanitizeNewApi(
-                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                eq(ApiAdapter.INSTANCE.toNewApiEntity(api)),
-                eq(PrimaryOwnerAdapter.INSTANCE.toRestEntity(PRIMARY_OWNER))
-            );
+        verify(apiValidationService).validateAndSanitizeNewApi(
+            eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+            eq(ApiAdapter.INSTANCE.toNewApiEntity(api)),
+            eq(PrimaryOwnerAdapter.INSTANCE.toRestEntity(PRIMARY_OWNER))
+        );
     }
 
     @Test
     void should_update_api_with_sanitized_value() {
-        var api = ApiFixtures
-            .aProxyApiV4()
+        var api = ApiFixtures.aProxyApiV4()
             .toBuilder()
             .apiDefinitionV4(
-                ApiFixtures
-                    .aProxyApiV4()
+                ApiFixtures.aProxyApiV4()
                     .getApiDefinitionV4()
                     .toBuilder()
                     .services(
@@ -104,38 +100,39 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             )
             .build();
         doAnswer(invocation -> {
-                NewApiEntity entity = invocation.getArgument(1);
-                entity.setName("sanitized");
-                entity.setApiVersion("sanitized");
-                entity.setType(ApiType.MESSAGE);
-                entity.setDescription("sanitized");
-                entity.setGroups(Set.of("sanitized"));
-                entity.setTags(Set.of("sanitized"));
-                entity.setListeners(List.of());
-                entity.setEndpointGroups(List.of());
-                entity.setAnalytics(Analytics.builder().enabled(true).build());
-                entity.setFlowExecution(null);
-                entity.setFlows(List.of(FlowFixtures.aSimpleFlowV4()));
+            NewApiEntity entity = invocation.getArgument(1);
+            entity.setName("sanitized");
+            entity.setApiVersion("sanitized");
+            entity.setType(ApiType.MESSAGE);
+            entity.setDescription("sanitized");
+            entity.setGroups(Set.of("sanitized"));
+            entity.setTags(Set.of("sanitized"));
+            entity.setListeners(List.of());
+            entity.setEndpointGroups(List.of());
+            entity.setAnalytics(Analytics.builder().enabled(true).build());
+            entity.setFlowExecution(null);
+            entity.setFlows(List.of(FlowFixtures.aSimpleFlowV4()));
 
-                return null;
-            })
+            return null;
+        })
             .when(apiValidationService)
             .validateAndSanitizeNewApi(any(), any(), any());
 
         doAnswer(invocation -> {
-                Service dynamicProperties = invocation.getArgument(0);
-                dynamicProperties.setConfiguration("sanitized");
-                return null;
-            })
+            Service dynamicProperties = invocation.getArgument(0);
+            dynamicProperties.setConfiguration("sanitized");
+            return null;
+        })
             .when(apiValidationService)
             .validateDynamicProperties(any());
 
-        doAnswer(invocation -> invocation.<List<Flow>>getArgument(1)).when(flowValidationDomainService).validateAndSanitize(any(), any());
+        doAnswer(invocation -> invocation.<List<Flow>>getArgument(1))
+            .when(flowValidationDomainService)
+            .validateAndSanitize(any(), any());
 
         var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
-        CoreAssertions
-            .assertThat(result)
+        CoreAssertions.assertThat(result)
             .hasName("sanitized")
             .hasVersion("sanitized")
             .hasType(ApiType.MESSAGE)

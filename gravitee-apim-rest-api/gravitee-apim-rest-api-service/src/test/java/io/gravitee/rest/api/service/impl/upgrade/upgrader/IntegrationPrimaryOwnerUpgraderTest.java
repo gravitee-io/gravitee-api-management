@@ -108,8 +108,7 @@ public class IntegrationPrimaryOwnerUpgraderTest {
                 ORG_ID,
                 RoleReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
+        ).thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
         when(
             roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
                 RoleScope.INTEGRATION,
@@ -117,10 +116,10 @@ public class IntegrationPrimaryOwnerUpgraderTest {
                 ORG_ID,
                 RoleReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(Optional.ofNullable(role(INTEGRATION_PRIMARY_OWNER_ROLE_ID)));
-        when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.API, List.of(API_ID), API_PRIMARY_OWNER_ROLE_ID))
-            .thenReturn(Set.of(membership()));
+        ).thenReturn(Optional.ofNullable(role(INTEGRATION_PRIMARY_OWNER_ROLE_ID)));
+        when(
+            membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.API, List.of(API_ID), API_PRIMARY_OWNER_ROLE_ID)
+        ).thenReturn(Set.of(membership()));
 
         boolean success = upgrader.upgrade();
 
@@ -157,10 +156,12 @@ public class IntegrationPrimaryOwnerUpgraderTest {
         Pageable pageablePage0 = new PageableBuilder().pageNumber(0).pageSize(PAGE_SIZE).build();
         Pageable pageablePage1 = new PageableBuilder().pageNumber(1).pageSize(PAGE_SIZE).build();
         when(environmentRepository.findAll()).thenReturn(Set.of(environment()));
-        when(integrationRepository.findAllByEnvironment(ORG_ID, pageablePage0))
-            .thenReturn(new Page<>(integrations.subList(0, 100), 0, 100, 102));
-        when(integrationRepository.findAllByEnvironment(ORG_ID, pageablePage1))
-            .thenReturn(new Page<>(integrations.subList(100, 102), 0, 2, 102));
+        when(integrationRepository.findAllByEnvironment(ORG_ID, pageablePage0)).thenReturn(
+            new Page<>(integrations.subList(0, 100), 0, 100, 102)
+        );
+        when(integrationRepository.findAllByEnvironment(ORG_ID, pageablePage1)).thenReturn(
+            new Page<>(integrations.subList(100, 102), 0, 2, 102)
+        );
         when(apiRepository.search(any(), any())).thenReturn(List.of(api()));
         when(
             roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
@@ -169,8 +170,7 @@ public class IntegrationPrimaryOwnerUpgraderTest {
                 ORG_ID,
                 RoleReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
+        ).thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
         when(
             roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
                 RoleScope.INTEGRATION,
@@ -178,10 +178,10 @@ public class IntegrationPrimaryOwnerUpgraderTest {
                 ORG_ID,
                 RoleReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(Optional.ofNullable(role(INTEGRATION_PRIMARY_OWNER_ROLE_ID)));
-        when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.API, List.of(API_ID), API_PRIMARY_OWNER_ROLE_ID))
-            .thenReturn(Set.of(membership()));
+        ).thenReturn(Optional.ofNullable(role(INTEGRATION_PRIMARY_OWNER_ROLE_ID)));
+        when(
+            membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.API, List.of(API_ID), API_PRIMARY_OWNER_ROLE_ID)
+        ).thenReturn(Set.of(membership()));
 
         boolean success = upgrader.upgrade();
         assertThat(success).isTrue();
@@ -201,8 +201,7 @@ public class IntegrationPrimaryOwnerUpgraderTest {
                 ORG_ID,
                 RoleReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
+        ).thenReturn(Optional.ofNullable(role(API_PRIMARY_OWNER_ROLE_ID)));
         when(
             roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
                 RoleScope.INTEGRATION,
@@ -210,8 +209,7 @@ public class IntegrationPrimaryOwnerUpgraderTest {
                 ORG_ID,
                 RoleReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(Optional.empty());
+        ).thenReturn(Optional.empty());
 
         assertThat(upgrader.upgrade()).isFalse();
         verify(membershipRepository, never()).create(any());
@@ -229,8 +227,7 @@ public class IntegrationPrimaryOwnerUpgraderTest {
                 ORG_ID,
                 RoleReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(Optional.empty());
+        ).thenReturn(Optional.empty());
 
         assertThat(upgrader.upgrade()).isFalse();
         verify(membershipRepository, never()).create(any());

@@ -62,21 +62,24 @@ class SearchRequestsCountAnalyticsUseCaseTest {
     @Test
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment")))
-            .isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment"))).isInstanceOf(
+            ApiNotFoundException.class
+        );
     }
 
     @Test
     void should_throw_if_no_api_found() {
-        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
-            .isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID))).isInstanceOf(
+            ApiNotFoundException.class
+        );
     }
 
     @Test
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
-            .isInstanceOf(ApiInvalidDefinitionVersionException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID))).isInstanceOf(
+            ApiInvalidDefinitionVersionException.class
+        );
     }
 
     @Test
@@ -104,13 +107,14 @@ class SearchRequestsCountAnalyticsUseCaseTest {
     @Test
     void should_get_requests_count_for_a_v4_api() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        analyticsQueryService.requestsCount =
-            RequestsCount.builder().total(56L).countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L)).build();
+        analyticsQueryService.requestsCount = RequestsCount.builder()
+            .total(56L)
+            .countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L))
+            .build();
         final Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
-        assertThat(result.requestsCount())
-            .hasValueSatisfying(requestsCount -> {
-                assertThat(requestsCount.getTotal()).isEqualTo(56);
-                assertThat(requestsCount.getCountsByEntrypoint()).isEqualTo(Map.of("http-get", 26L, "http-post", 30L));
-            });
+        assertThat(result.requestsCount()).hasValueSatisfying(requestsCount -> {
+            assertThat(requestsCount.getTotal()).isEqualTo(56);
+            assertThat(requestsCount.getCountsByEntrypoint()).isEqualTo(Map.of("http-get", 26L, "http-post", 30L));
+        });
     }
 }

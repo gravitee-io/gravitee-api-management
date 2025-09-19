@@ -100,13 +100,12 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
             auditDomainService,
             triggerNotificationDomainService
         );
-        usecase =
-            new RevokeApiSubscriptionApiKeyUseCase(
-                subscriptionCrudService,
-                applicationCrudService,
-                apiKeyQueryService,
-                revokeApiKeyDomainService
-            );
+        usecase = new RevokeApiSubscriptionApiKeyUseCase(
+            subscriptionCrudService,
+            applicationCrudService,
+            apiKeyQueryService,
+            revokeApiKeyDomainService
+        );
     }
 
     @AfterEach
@@ -263,14 +262,14 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
         usecase.execute(new Input(API_KEY_ID, API_ID, SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
-        assertThat(triggerNotificationDomainService.getApiNotifications())
-            .containsExactly(new ApiKeyRevokedApiHookContext(API_ID, APPLICATION_ID, PLAN_1, apiKey.getKey()));
+        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+            new ApiKeyRevokedApiHookContext(API_ID, APPLICATION_ID, PLAN_1, apiKey.getKey())
+        );
     }
 
     private SubscriptionEntity givenASubscription() {
         return givenASubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_ID)
                 .apiId(API_ID)

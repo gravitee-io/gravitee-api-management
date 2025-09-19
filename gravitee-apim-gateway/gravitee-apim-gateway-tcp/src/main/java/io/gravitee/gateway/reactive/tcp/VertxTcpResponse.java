@@ -53,9 +53,9 @@ public class VertxTcpResponse extends AbstractResponse {
      */
     @Override
     public Completable end(GenericExecutionContext ctx) {
-        return Completable
-            .defer(() -> Completable.mergeArray(request.upstreamPipe(), this.downstreamPipe))
-            .doFinally(() -> this.ended = true);
+        return Completable.defer(() -> Completable.mergeArray(request.upstreamPipe(), this.downstreamPipe)).doFinally(() ->
+            this.ended = true
+        );
     }
 
     @Override

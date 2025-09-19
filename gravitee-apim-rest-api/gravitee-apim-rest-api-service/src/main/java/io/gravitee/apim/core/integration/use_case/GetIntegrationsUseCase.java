@@ -67,15 +67,13 @@ public class GetIntegrationsUseCase {
             pageable
         );
 
-        var pageContent = Flowable
-            .fromIterable(page.getContent())
+        var pageContent = Flowable.fromIterable(page.getContent())
             .flatMapSingle(integration ->
                 Single.zip(
                     integrationAgent
                         .getAgentStatusFor(integration.getId())
                         .map(status -> IntegrationView.AgentStatus.valueOf(status.name())),
-                    Maybe
-                        .fromOptional(asyncJobQueryService.findPendingJobFor(integration.getId()))
+                    Maybe.fromOptional(asyncJobQueryService.findPendingJobFor(integration.getId()))
                         .map(Optional::of)
                         .defaultIfEmpty(Optional.empty()),
                     integrationPrimaryOwnerDomainService

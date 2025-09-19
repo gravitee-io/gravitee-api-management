@@ -68,32 +68,31 @@ public class ScoringReportQueryServiceImplTest {
             var result = service.findLatestByApiId("api-id");
 
             // Then
-            assertThat(result)
-                .contains(
-                    new ScoringReport(
-                        "report-id",
-                        "api-id",
-                        "environment-id",
-                        Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()),
-                        new ScoringReport.Summary(0.9D, 0L, 1L, 0L, 0L),
-                        List.of(
-                            new ScoringReport.Asset(
-                                "asset1",
-                                ScoringAssetType.SWAGGER,
-                                List.of(
-                                    new ScoringReport.Diagnostic(
-                                        ScoringReport.Severity.WARN,
-                                        new ScoringReport.Range(new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
-                                        "operation-operationId",
-                                        "Operation must have \"operationId\".",
-                                        "paths./echo.options"
-                                    )
+            assertThat(result).contains(
+                new ScoringReport(
+                    "report-id",
+                    "api-id",
+                    "environment-id",
+                    Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()),
+                    new ScoringReport.Summary(0.9D, 0L, 1L, 0L, 0L),
+                    List.of(
+                        new ScoringReport.Asset(
+                            "asset1",
+                            ScoringAssetType.SWAGGER,
+                            List.of(
+                                new ScoringReport.Diagnostic(
+                                    ScoringReport.Severity.WARN,
+                                    new ScoringReport.Range(new ScoringReport.Position(17, 12), new ScoringReport.Position(38, 25)),
+                                    "operation-operationId",
+                                    "Operation must have \"operationId\".",
+                                    "paths./echo.options"
                                 )
-                            ),
-                            new ScoringReport.Asset("asset2", ScoringAssetType.GRAVITEE_DEFINITION, List.of())
-                        )
+                            )
+                        ),
+                        new ScoringReport.Asset("asset2", ScoringAssetType.GRAVITEE_DEFINITION, List.of())
                     )
-                );
+                )
+            );
         }
 
         @Test
@@ -131,8 +130,9 @@ public class ScoringReportQueryServiceImplTest {
         void should_find_scoring_report() {
             // Given
             var pageable = new PageableImpl(1, 5);
-            when(scoringReportRepository.findEnvironmentLatestReports(any(), any()))
-                .thenAnswer(invocation -> new Page<>(List.of(aScoringEnvironmentApi()), 1, 5, 1));
+            when(scoringReportRepository.findEnvironmentLatestReports(any(), any())).thenAnswer(invocation ->
+                new Page<>(List.of(aScoringEnvironmentApi()), 1, 5, 1)
+            );
 
             // When
             var result = service.findEnvironmentLatestReports("environment-id", pageable);
@@ -187,18 +187,16 @@ public class ScoringReportQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_scoring_report() {
-            when(scoringReportRepository.getScoringEnvironmentSummary(any()))
-                .thenAnswer(invocation ->
-                    ScoringEnvironmentSummary
-                        .builder()
-                        .environmentId("environment-id")
-                        .score(0.95)
-                        .errors(0L)
-                        .warnings(1L)
-                        .infos(0L)
-                        .hints(0L)
-                        .build()
-                );
+            when(scoringReportRepository.getScoringEnvironmentSummary(any())).thenAnswer(invocation ->
+                ScoringEnvironmentSummary.builder()
+                    .environmentId("environment-id")
+                    .score(0.95)
+                    .errors(0L)
+                    .warnings(1L)
+                    .infos(0L)
+                    .hints(0L)
+                    .build()
+            );
 
             // When
             var result = service.getEnvironmentScoringSummary("environment-id");
@@ -223,8 +221,7 @@ public class ScoringReportQueryServiceImplTest {
     }
 
     io.gravitee.repository.management.model.ScoringReport aReport() {
-        return io.gravitee.repository.management.model.ScoringReport
-            .builder()
+        return io.gravitee.repository.management.model.ScoringReport.builder()
             .id("report-id")
             .apiId("api-id")
             .environmentId("environment-id")
@@ -255,8 +252,7 @@ public class ScoringReportQueryServiceImplTest {
     }
 
     ScoringEnvironmentApi aScoringEnvironmentApi() {
-        return ScoringEnvironmentApi
-            .builder()
+        return ScoringEnvironmentApi.builder()
             .apiId("api-id")
             .apiName("api-name")
             .apiUpdatedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))

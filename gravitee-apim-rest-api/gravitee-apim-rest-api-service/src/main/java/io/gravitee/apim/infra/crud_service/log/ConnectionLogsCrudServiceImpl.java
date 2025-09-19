@@ -57,11 +57,9 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         try {
             var response = logRepository.searchConnectionLogs(
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                ConnectionLogQuery
-                    .builder()
+                ConnectionLogQuery.builder()
                     .filter(
-                        ConnectionLogQuery.Filter
-                            .builder()
+                        ConnectionLogQuery.Filter.builder()
                             .apiId(apiId)
                             .from(logsFilters.from())
                             .to(logsFilters.to())
@@ -88,8 +86,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         try {
             var response = logRepository.searchConnectionLogDetail(
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                ConnectionLogDetailQuery
-                    .builder()
+                ConnectionLogDetailQuery.builder()
                     .filter(ConnectionLogDetailQuery.Filter.builder().apiId(apiId).requestId(requestId).build())
                     .build()
             );

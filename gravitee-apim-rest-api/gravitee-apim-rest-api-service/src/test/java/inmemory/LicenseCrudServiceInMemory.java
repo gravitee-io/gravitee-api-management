@@ -27,16 +27,16 @@ public class LicenseCrudServiceInMemory implements LicenseCrudService, InMemoryA
     public Optional<License> getOrganizationLicense(String organizationId) {
         return storage
             .stream()
-            .filter(license ->
-                License.ReferenceType.ORGANIZATION.equals(license.getReferenceType()) && organizationId.equals(license.getReferenceId())
+            .filter(
+                license ->
+                    License.ReferenceType.ORGANIZATION.equals(license.getReferenceType()) && organizationId.equals(license.getReferenceId())
             )
             .findFirst();
     }
 
     @Override
     public License createOrganizationLicense(String organizationId, String license) {
-        License organizationLicense = License
-            .builder()
+        License organizationLicense = License.builder()
             .referenceType(License.ReferenceType.ORGANIZATION)
             .referenceId(organizationId)
             .license(license)

@@ -411,20 +411,16 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 requestSupplier.apply(client),
                 requestSupplier.apply(client)
             );
-            final TestSubscriber<HttpClientResponse> test = Single
-                .merge(listOfParallelCalls)
+            final TestSubscriber<HttpClientResponse> test = Single.merge(listOfParallelCalls)
                 .test()
                 .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete();
             for (int i = 0; i < listOfParallelCalls.size(); i++) {
-                test.assertValueAt(
-                    i,
-                    response -> {
-                        // Then the API response should be 502
-                        assertThat(response.statusCode()).isEqualTo(502);
-                        return true;
-                    }
-                );
+                test.assertValueAt(i, response -> {
+                    // Then the API response should be 502
+                    assertThat(response.statusCode()).isEqualTo(502);
+                    return true;
+                });
             }
             // Then the backend should have been called 4 times
             wiremock.verify(4, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -485,14 +481,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
         private OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(ApiKey apiKey) {
             return when(
-                getBean(SubscriptionService.class)
-                    .getByApiAndSecurityToken(
-                        eq(apiKey.getApi()),
-                        argThat(securityToken ->
+                getBean(SubscriptionService.class).getByApiAndSecurityToken(
+                    eq(apiKey.getApi()),
+                    argThat(
+                        securityToken ->
                             securityToken.getTokenType().equals(API_KEY.name()) && securityToken.getTokenValue().equals(apiKey.getKey())
-                        ),
-                        eq(apiKey.getPlan())
-                    )
+                    ),
+                    eq(apiKey.getPlan())
+                )
             );
         }
     }
@@ -630,7 +626,8 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 .stream()
                 .filter(group -> group.getName().equals("second-group"))
                 .flatMap(group -> group.getEndpoints().stream())
-                .forEach(endpoint -> endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort)))
+                .forEach(endpoint ->
+                    endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort)))
                 );
             // Redeploy api with updated endpoint config
             var manager = applicationContext.getBean(ApiManager.class);
@@ -698,7 +695,8 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 .stream()
                 .filter(group -> group.getName().equals("second-group"))
                 .flatMap(group -> group.getEndpoints().stream())
-                .forEach(endpoint -> endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort)))
+                .forEach(endpoint ->
+                    endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(wiremockPort)))
                 );
             // Redeploy api with updated endpoint config
             var manager = applicationContext.getBean(ApiManager.class);

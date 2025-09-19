@@ -101,8 +101,9 @@ public class SharedPolicyGroupCrudServiceImplTest {
         void should_return_SharedPolicyGroup_and_adapt_it() {
             // Given
             var sharedPolicyGroupId = "sharedPolicyGroup-id";
-            when(repository.findById(sharedPolicyGroupId))
-                .thenAnswer(invocation -> Optional.of(aSharedPolicyGroup().id(invocation.getArgument(0)).build()));
+            when(repository.findById(sharedPolicyGroupId)).thenAnswer(invocation ->
+                Optional.of(aSharedPolicyGroup().id(invocation.getArgument(0)).build())
+            );
 
             // When
             var result = service.getByEnvironmentId(ENV_ID, sharedPolicyGroupId);
@@ -154,8 +155,9 @@ public class SharedPolicyGroupCrudServiceImplTest {
         void should_throw_when_environmentId_not_match() {
             // Given
             var sharedPolicyGroupId = "sharedPolicyGroup-id";
-            when(repository.findById(sharedPolicyGroupId))
-                .thenAnswer(invocation -> Optional.of(aSharedPolicyGroup().id(invocation.getArgument(0)).build()));
+            when(repository.findById(sharedPolicyGroupId)).thenAnswer(invocation ->
+                Optional.of(aSharedPolicyGroup().id(invocation.getArgument(0)).build())
+            );
 
             // When
             Throwable throwable = catchThrowable(() -> service.getByEnvironmentId("otherEnvId", sharedPolicyGroupId));
@@ -265,8 +267,9 @@ public class SharedPolicyGroupCrudServiceImplTest {
             // Given
             var environmentId = "environment-id";
             var crossId = "cross-id";
-            when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId))
-                .thenAnswer(invocation -> Optional.of(aSharedPolicyGroup().id("sharedPolicyGroup-id").build()));
+            when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId)).thenAnswer(invocation ->
+                Optional.of(aSharedPolicyGroup().id("sharedPolicyGroup-id").build())
+            );
 
             // When
             var optional = service.findByEnvironmentIdAndCrossId(environmentId, crossId);
@@ -302,8 +305,7 @@ public class SharedPolicyGroupCrudServiceImplTest {
     }
 
     private io.gravitee.repository.management.model.SharedPolicyGroup.SharedPolicyGroupBuilder aSharedPolicyGroup() {
-        return io.gravitee.repository.management.model.SharedPolicyGroup
-            .builder()
+        return io.gravitee.repository.management.model.SharedPolicyGroup.builder()
             .id("sharedPolicyGroup-id")
             .crossId("cross-id")
             .organizationId("organizationId")
@@ -315,14 +317,14 @@ public class SharedPolicyGroupCrudServiceImplTest {
             .phase(io.gravitee.repository.management.model.SharedPolicyGroup.ExecutionPhase.REQUEST)
             .definition(
                 """
-                        {
-                            "steps": [
-                                { "policy": "my-policy", "name": "my-step-1" },
-                                { "policy": "my-policy", "name": "my-step-2" }
-                            ],
-                            "phase": "REQUEST"
-                        }
-                        """
+                {
+                    "steps": [
+                        { "policy": "my-policy", "name": "my-step-1" },
+                        { "policy": "my-policy", "name": "my-step-2" }
+                    ],
+                    "phase": "REQUEST"
+                }
+                """
             )
             .deployedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
             .createdAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
@@ -334,8 +336,7 @@ public class SharedPolicyGroupCrudServiceImplTest {
     public void getLastDeployedByEnvironmentIdAndCrossId_currentIsDeployed() throws TechnicalException {
         String environmentId = "envId";
         String crossId = "crossId";
-        var currentSharedPolicyGroup = io.gravitee.repository.management.model.SharedPolicyGroup
-            .builder()
+        var currentSharedPolicyGroup = io.gravitee.repository.management.model.SharedPolicyGroup.builder()
             .id("spg1")
             .lifecycleState(SharedPolicyGroupLifecycleState.DEPLOYED)
             .build();
@@ -349,15 +350,15 @@ public class SharedPolicyGroupCrudServiceImplTest {
         String environmentId = "envId";
         String crossId = "crossId";
         io.gravitee.repository.management.model.SharedPolicyGroup currentSharedPolicyGroup =
-            io.gravitee.repository.management.model.SharedPolicyGroup
-                .builder()
+            io.gravitee.repository.management.model.SharedPolicyGroup.builder()
                 .id("spg1")
                 .lifecycleState(SharedPolicyGroupLifecycleState.PENDING)
                 .build();
         when(repository.findByEnvironmentIdAndCrossId(environmentId, crossId)).thenReturn(Optional.of(currentSharedPolicyGroup));
         var historySharedPolicyGroup = SharedPolicyGroup.builder().id("spg1").name("previous_spg").build();
-        when(sharedPolicyGroupHistoryQueryService.getLatestBySharedPolicyGroupId(environmentId, currentSharedPolicyGroup.getId()))
-            .thenReturn(Optional.of(historySharedPolicyGroup));
+        when(
+            sharedPolicyGroupHistoryQueryService.getLatestBySharedPolicyGroupId(environmentId, currentSharedPolicyGroup.getId())
+        ).thenReturn(Optional.of(historySharedPolicyGroup));
         SharedPolicyGroup sharedPolicyGroup = service.getLastDeployedByEnvironmentIdAndCrossId(environmentId, crossId).orElseThrow();
         assertThat(sharedPolicyGroup.getId()).isEqualTo(historySharedPolicyGroup.getId());
         assertThat(sharedPolicyGroup.getId()).isEqualTo(historySharedPolicyGroup.getId());

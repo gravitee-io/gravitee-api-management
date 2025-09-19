@@ -39,8 +39,7 @@ public class FlowFixtures {
     private FlowFixtures() {}
 
     private static final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.ChannelSelectorBuilder BASE_CHANNEL_SELECTOR_V4 =
-        io.gravitee.rest.api.management.v2.rest.model.ChannelSelector
-            .builder()
+        io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.builder()
             .channel("channel")
             .type(BaseSelector.TypeEnum.CHANNEL)
             .entrypoints(Set.of("entrypoint1", "entrypoint2"))
@@ -52,8 +51,7 @@ public class FlowFixtures {
             )
             .channelOperator(io.gravitee.rest.api.management.v2.rest.model.Operator.EQUALS);
 
-    private static final StepV4.StepV4Builder BASE_STEP_V4 = StepV4
-        .builder()
+    private static final StepV4.StepV4Builder BASE_STEP_V4 = StepV4.builder()
         .name("step")
         .description("description")
         .enabled(true)
@@ -62,8 +60,7 @@ public class FlowFixtures {
         .messageCondition("{#context.attribute['messageCondition'] == true}")
         .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
-    private static final FlowV4.FlowV4Builder BASE_FLOW_V4 = FlowV4
-        .builder()
+    private static final FlowV4.FlowV4Builder BASE_FLOW_V4 = FlowV4.builder()
         .name("Flow")
         .enabled(true)
         .selectors(List.of(new Selector(BASE_CHANNEL_SELECTOR_V4.build())))
@@ -73,8 +70,7 @@ public class FlowFixtures {
         .subscribe(List.of(BASE_STEP_V4.name("step_subscribe").build()))
         .tags(Set.of("tag1", "tag2"));
 
-    private static final StepV2.StepV2Builder BASE_STEP_V2 = StepV2
-        .builder()
+    private static final StepV2.StepV2Builder BASE_STEP_V2 = StepV2.builder()
         .name("step")
         .description("description")
         .enabled(true)
@@ -82,8 +78,7 @@ public class FlowFixtures {
         .condition("{#context.attribute['condition'] == true}")
         .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
-    private static final FlowV2.FlowV2Builder BASE_FLOW_V2 = FlowV2
-        .builder()
+    private static final FlowV2.FlowV2Builder BASE_FLOW_V2 = FlowV2.builder()
         .name("Flow")
         .enabled(true)
         .pathOperator(PathOperator.builder().operator(Operator.EQUALS).path("/path").build())
