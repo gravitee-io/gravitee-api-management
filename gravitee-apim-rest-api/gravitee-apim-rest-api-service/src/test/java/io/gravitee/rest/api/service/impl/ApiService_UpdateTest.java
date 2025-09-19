@@ -664,6 +664,54 @@ public class ApiService_UpdateTest {
     }
 
     @Test
+    public void shouldUpdatePictureWhenProvided() throws TechnicalException {
+        prepareUpdate();
+        String newPicture = "new-picture";
+        updateApiEntity.setPicture(newPicture);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository).update(
+            argThat(
+                updated -> Objects.equals(updated.getPicture(), newPicture) && Objects.equals(updated.getBackground(), api.getBackground())
+            )
+        );
+    }
+
+    @Test
+    public void shouldKeepExistingBackgroundWhenNotProvided() throws TechnicalException {
+        prepareUpdate();
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository).update(argThat(updated -> Objects.equals(updated.getBackground(), api.getBackground())));
+    }
+
+    @Test
+    public void shouldKeepExistingBackgroundWhenEmptyString() throws TechnicalException {
+        prepareUpdate();
+        updateApiEntity.setBackground("");
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository).update(argThat(updated -> Objects.equals(updated.getBackground(), api.getBackground())));
+    }
+
+    @Test
+    public void shouldUpdateBackgroundWhenProvided() throws TechnicalException {
+        prepareUpdate();
+        String newBackground = "new-background";
+        updateApiEntity.setBackground(newBackground);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository).update(
+            argThat(
+                updated -> Objects.equals(updated.getBackground(), newBackground) && Objects.equals(updated.getPicture(), api.getPicture())
+            )
+        );
+    }
+
+    @Test
     public void shouldUpdateWithAllowedTag() throws TechnicalException {
         prepareUpdate();
         updateApiEntity.setTags(singleton("public"));

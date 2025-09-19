@@ -1229,9 +1229,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.setCrossId(apiToUpdate.getCrossId());
             }
 
-            // Keep existing picture as picture update has dedicated service
-            api.setPicture(apiToUpdate.getPicture());
-            api.setBackground(apiToUpdate.getBackground());
+            // Keep existing values when not provided in update entity
+            api.setBackground(
+                updateApiEntity.getBackground() == null || updateApiEntity.getBackground().isEmpty()
+                    ? apiToUpdate.getBackground()
+                    : updateApiEntity.getBackground()
+            );
+
+            api.setPicture(
+                updateApiEntity.getPicture() == null || updateApiEntity.getPicture().isEmpty()
+                    ? apiToUpdate.getPicture()
+                    : updateApiEntity.getPicture()
+            );
 
             if (updateApiEntity.getGroups() == null) {
                 api.setGroups(apiToUpdate.getGroups());
