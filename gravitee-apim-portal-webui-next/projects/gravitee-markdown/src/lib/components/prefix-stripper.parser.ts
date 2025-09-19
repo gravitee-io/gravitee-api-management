@@ -18,6 +18,7 @@ import { HookParserEntry } from 'ngx-dynamic-hooks';
 import { CellComponent } from './grid/cell/cell.component';
 import { GridComponent } from './grid/grid.component';
 import { ComponentSelector } from '../models/componentSelector';
+import { ButtonComponent } from './button/button.component';
 
 export const prefixStripperParser: HookParserEntry[] = [
   {
@@ -28,4 +29,12 @@ export const prefixStripperParser: HookParserEntry[] = [
     component: CellComponent,
     selector: ComponentSelector.CELL,
   },
+  {
+    component: ButtonComponent,
+    selector: ComponentSelector.BUTTON,
+  },
+  {
+    component: ButtonComponent,
+    selector: 'filled-button'
+  }
 ];

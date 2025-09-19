@@ -17,75 +17,62 @@
 @use './overrides' as button-overrides;
 
 .gmd-button {
-  border: 2px solid transparent;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.5;
+  display: inline-flex;
+  border: none;
   outline: none;
-  position: relative;
+  cursor: pointer;
+  line-height: 1.5;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
-  vertical-align: middle;
   white-space: nowrap;
   height: 36px;
   min-height: 36px;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
 
   // Filled appearance
   &--filled {
     background-color: token-utils.slot(filled-container-color, button-overrides.tokens());
     border-radius: token-utils.slot(filled-container-shape, button-overrides.tokens());
-    color: token-utils.slot(filled-text-color, button-overrides.tokens());
+    color: token-utils.slot(filled-label-text-color, button-overrides.tokens());
     padding-left: token-utils.slot(filled-horizontal-padding, button-overrides.tokens());
     padding-right: token-utils.slot(filled-horizontal-padding, button-overrides.tokens());
-    text-transform: token-utils.slot(filled-text-transform, button-overrides.tokens());
+    text-transform: token-utils.slot(filled-label-text-transform, button-overrides.tokens());
+    font-family: token-utils.slot(filled-label-text-font, button-overrides.tokens()), sans-serif;
+    font-weight: token-utils.slot(filled-label-text-weight, button-overrides.tokens());
+    font-size: token-utils.slot(filled-label-text-size, button-overrides.tokens());
+    letter-spacing: token-utils.slot(filled-label-text-tracking, button-overrides.tokens());
 
     &:hover {
       background-color: token-utils.slot(filled-hover-container-color, button-overrides.tokens());
     }
 
     &:focus-within {
-      border-color: token-utils.slot(focus-outline-color, button-overrides.tokens());
-    }
-
-    &:active {
       background-color: token-utils.slot(filled-active-container-color, button-overrides.tokens());
-    //   border-color: token-utils.slot(filled-active-outline-color, button-overrides.tokens());
     }
   }
 
   // Outlined appearance
   &--outlined {
     background-color: transparent;
-    border: token-utils.slot(outlined-outline-width, button-overrides.tokens()) solid token-utils.slot(outlined-outline-color, button-overrides.tokens());
+    border-width: token-utils.slot(outlined-outline-width, button-overrides.tokens());
+    border-color: token-utils.slot(outlined-outline-color, button-overrides.tokens());
+    border-style: solid;
     border-radius: token-utils.slot(outlined-container-shape, button-overrides.tokens());
-    color: token-utils.slot(outlined-text-color, button-overrides.tokens());
+    color: token-utils.slot(outlined-label-text-color, button-overrides.tokens());
     padding-left: token-utils.slot(outlined-horizontal-padding, button-overrides.tokens());
     padding-right: token-utils.slot(outlined-horizontal-padding, button-overrides.tokens());
-    text-transform: token-utils.slot(outlined-text-transform, button-overrides.tokens());
+    text-transform: token-utils.slot(outlined-label-text-transform, button-overrides.tokens());
+    font-family: token-utils.slot(outlined-label-text-font, button-overrides.tokens()), sans-serif;
+    font-weight: token-utils.slot(outlined-label-text-weight, button-overrides.tokens());
+    font-size: token-utils.slot(outlined-label-text-size, button-overrides.tokens());
+    letter-spacing: token-utils.slot(outlined-label-text-tracking, button-overrides.tokens());
 
     &:hover {
       background-color: token-utils.slot(outlined-hover-container-color, button-overrides.tokens());
     }
 
-    //&:focus {
-    //   border-color: transparent;
-    //
-    //  box-shadow: 0 0 0 1px token-utils.slot(outlined-focus-outline-color, button-overrides.tokens()) inset;
-    //}
-
-    &:focus-within {
-
-      border-color: transparent;
-
-      box-shadow: 0 0 0 2px token-utils.slot(focus-outline-color, button-overrides.tokens()) inset;    }
-
-    &:active {
+    &:active, &:focus-within {
       background-color: token-utils.slot(outlined-active-container-color, button-overrides.tokens());
     }
   }
@@ -93,22 +80,21 @@
   // Text appearance
   &--text {
     background-color: transparent;
-    // border: none;
     border-radius: token-utils.slot(text-container-shape, button-overrides.tokens());
-    color: token-utils.slot(text-text-color, button-overrides.tokens());
+    color: token-utils.slot(text-label-text-color, button-overrides.tokens());
     padding-left:  token-utils.slot(text-horizontal-padding, button-overrides.tokens());
     padding-right: token-utils.slot(text-horizontal-padding, button-overrides.tokens());
-    text-transform: token-utils.slot(text-text-transform, button-overrides.tokens());
+    text-transform: token-utils.slot(text-label-text-transform, button-overrides.tokens());
+    font-family: token-utils.slot(text-label-text-font, button-overrides.tokens()), sans-serif;
+    font-weight: token-utils.slot(text-label-text-weight, button-overrides.tokens());
+    font-size: token-utils.slot(text-label-text-size, button-overrides.tokens());
+    letter-spacing: token-utils.slot(text-label-text-tracking, button-overrides.tokens());
 
     &:hover {
       background-color: token-utils.slot(text-hover-container-color, button-overrides.tokens());
     }
 
-    &:focus-within {
-      border-color: token-utils.slot(focus-outline-color, button-overrides.tokens());
-    }
-
-    &:active {
+    &:active, &:focus-within {
       border-color: transparent;
         background-color: token-utils.slot(text-active-container-color, button-overrides.tokens());
     }
@@ -119,5 +105,29 @@
     cursor: not-allowed;
     opacity: 0.6;
     pointer-events: none;
+  }
+
+  // High contrast mode support
+  @media (prefers-contrast: more) {
+    border-width: 2px;
+
+    &--filled {
+      border: 2px solid #000000;
+    }
+
+    &--outlined {
+      border-width: 3px;
+    }
+  }
+
+  // Reduced motion support
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  // Ensure minimum touch target size (44px minimum for mobile)
+  @media (max-width: 768px) {
+    min-height: 44px;
+    min-width: 44px;
   }
 }

@@ -16,5 +16,5 @@
 export enum ComponentSelector {
   GRID = 'grid',
   CELL = 'cell',
-  BUTTON = 'button',
+  BUTTON = 'gmd-button',
 }

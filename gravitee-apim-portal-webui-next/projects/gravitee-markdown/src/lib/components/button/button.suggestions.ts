@@ -18,19 +18,19 @@ import { ComponentSuggestionConfiguration } from '../../models/componentSuggesti
 
 const filledButton: ComponentSuggestion = {
   label: 'Button - Filled',
-  insertText: `<button appearance="filled">$1</button>`,
+  insertText: `<gmd-button appearance="filled">$1</gmd-button>`,
   detail: 'Filled button component',
 };
 
 const outlinedButton: ComponentSuggestion = {
   label: 'Button - Outlined',
-  insertText: `<button appearance="outlined">$1</button>`,
+  insertText: `<gmd-button appearance="outlined">$1</gmd-button>`,
   detail: 'Outlined button component',
 };
 
 const textButton: ComponentSuggestion = {
   label: 'Button - Text',
-  insertText: `<button appearance="text">$1</button>`,
+  insertText: `<gmd-button appearance="text">$1</gmd-button>`,
   detail: 'Text button component',
 };
 

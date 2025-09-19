@@ -17,20 +17,30 @@
 
 @function tokens() {
   @return (
-    // Generic tokens
-    focus-outline-color: (
-      value: #CDD7E1,
-      css-var: --gmd-button-focus-outline-color,
-    ),
-
     // Filled appearance tokens
-    filled-text-transform: (
-      value: uppercase,
-      css-var: --gmd-button-filled-text-transform,
+    filled-label-text-font: (
+      value: 'Arial',
+      css-var: --gmd-button-filled-label-text-font,
     ),
-    filled-text-color: (
+    filled-label-text-weight: (
+      value: 400,
+      css-var: --gmd-button-filled-label-text-weight,
+    ),
+    filled-label-text-size: (
+      value: 14px,
+      css-var: --gmd-button-filled-label-text-size,
+    ),
+    filled-label-text-tracking: (
+      value: 0.1px,
+      css-var: --gmd-button-filled-label-text-tracking,
+    ),
+    filled-label-text-transform: (
+      value: capitalize,
+      css-var: --gmd-button-filled-label-text-transform,
+    ),
+    filled-label-text-color: (
       value: #ffffff,
-      css-var: --gmd-button-filled-text-color,
+      css-var: --gmd-button-filled-label-text-color,
     ),
     filled-container-color: (
       value: #275CF6,
@@ -49,7 +59,7 @@
       css-var: --gmd-button-filled-hover-container-color,
     ),
     filled-active-container-color: (
-      value: #275CF6,
+      value: #123391,
       css-var: --gmd-button-filled-active-container-color,
     ),
     filled-active-outline-color: (
@@ -58,13 +68,29 @@
     ),
 
     // Outlined appearance tokens
-    outlined-text-transform: (
-      value: uppercase,
-      css-var: --gmd-button-outlined-text-transform,
+    outlined-label-text-font: (
+      value: 'Arial',
+      css-var: --gmd-button-outlined-label-text-font,
     ),
-    outlined-text-color: (
+    outlined-label-text-weight: (
+      value: 400,
+      css-var: --gmd-button-outlined-label-text-weight,
+    ),
+    outlined-label-text-size: (
+      value: 14px,
+      css-var: --gmd-button-outlined-label-text-size,
+    ),
+    outlined-label-text-tracking: (
+      value: 0.1px,
+      css-var: --gmd-button-outlined-label-text-tracking,
+    ),
+    outlined-label-text-transform: (
+      value: capitalize,
+      css-var: --gmd-button-outlined-label-text-transform,
+    ),
+    outlined-label-text-color: (
       value: #1976d2,
-      css-var: --gmd-button-outlined-text-color,
+      css-var: --gmd-button-outlined-label-text-color,
     ),
     outlined-outline-width: (
       value: 1px,
@@ -87,18 +113,34 @@
       css-var: --gmd-button-outlined-hover-container-color,
     ),
     outlined-active-container-color: (
-      value: #b9daff,
+      value: #d4eaff,
       css-var: --gmd-button-outlined-active-container-color,
     ),
 
     // Text appearance tokens
-    text-text-transform: (
-      value: uppercase,
-      css-var: --gmd-button-text-text-transform,
+    text-label-text-font: (
+      value: 'Arial',
+      css-var: --gmd-button-text-label-text-font,
     ),
-    text-text-color: (
+    text-label-text-weight: (
+      value: 400,
+      css-var: --gmd-button-text-label-text-weight,
+    ),
+    text-label-text-size: (
+      value: 14px,
+      css-var: --gmd-button-text-label-text-size,
+    ),
+    text-label-text-tracking: (
+      value: 0.1px,
+      css-var: --gmd-button-text-label-text-tracking,
+    ),
+    text-label-text-transform: (
+      value: capitalize,
+      css-var: --gmd-button-text-label-text-transform,
+    ),
+    text-label-text-color: (
       value: #1976d2,
-      css-var: --gmd-button-text-text-color,
+      css-var: --gmd-button-text-label-text-color,
     ),
     text-container-shape: (
       value: 4px,
@@ -113,7 +155,7 @@
       css-var: --gmd-button-text-hover-container-color,
     ),
     text-active-container-color: (
-      value: rgba(25, 118, 210, 0.502),
+      value: #d4eaff,
       css-var: --gmd-button-text-active-container-color,
     ),
   );
