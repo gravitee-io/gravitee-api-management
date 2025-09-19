@@ -170,8 +170,7 @@ public class ApiService_FindByUserTest {
                 new PageableBuilder().pageNumber(0).pageSize(1).build(),
                 ApiFieldFilter.allFields()
             )
-        )
-            .thenReturn(new Page<>(singletonList(api), 0, 1, 1));
+        ).thenReturn(new Page<>(singletonList(api), 0, 1, 1));
         when(apiAuthorizationService.findIdsByUser(any(), any(), any(), any(), anyBoolean())).thenReturn(Set.of("api-1"));
 
         UserEntity admin = new UserEntity();
@@ -208,8 +207,7 @@ public class ApiService_FindByUserTest {
                 new PageableBuilder().pageNumber(0).pageSize(1).build(),
                 ApiFieldFilter.allFields()
             )
-        )
-            .thenReturn(new Page<>(singletonList(api1), 0, 1, 1));
+        ).thenReturn(new Page<>(singletonList(api1), 0, 1, 1));
 
         final Page<ApiEntity> apiPage = apiService.findByUser(
             GraviteeContext.getExecutionContext(),
@@ -252,10 +250,16 @@ public class ApiService_FindByUserTest {
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
 
-        verify(membershipService, times(0))
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
-        verify(membershipService, times(0))
-            .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
+        verify(membershipService, times(0)).getMembershipsByMemberAndReference(
+            MembershipMemberType.USER,
+            null,
+            MembershipReferenceType.API
+        );
+        verify(membershipService, times(0)).getMembershipsByMemberAndReference(
+            MembershipMemberType.USER,
+            null,
+            MembershipReferenceType.GROUP
+        );
         verify(applicationService, times(0)).findByUser(GraviteeContext.getExecutionContext(), null);
     }
 }

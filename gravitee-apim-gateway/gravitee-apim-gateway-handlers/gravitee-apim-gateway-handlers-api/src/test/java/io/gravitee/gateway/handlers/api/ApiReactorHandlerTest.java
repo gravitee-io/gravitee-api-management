@@ -178,7 +178,9 @@ public class ApiReactorHandlerTest {
     }
 
     private static TestObserver<Boolean> stopAndObserve(ApiReactorHandler handler) {
-        return Observable.fromCallable(() -> doStop(handler)).subscribeOn(Schedulers.io()).test();
+        return Observable.fromCallable(() -> doStop(handler))
+            .subscribeOn(Schedulers.io())
+            .test();
     }
 
     private static boolean doStop(ApiReactorHandler handler) {

@@ -448,14 +448,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             if (
                 formerRoles != null &&
                 formerRoles.get(roleScope) != null &&
-                (
-                    newRoles == null ||
-                    (
-                        newRoles != null &&
+                (newRoles == null ||
+                    (newRoles != null &&
                         !formerRoles.get(roleScope).equals(newRoles.get(roleScope)) &&
-                        !SystemRole.PRIMARY_OWNER.name().equals(newRoles.get(roleScope))
-                    )
-                )
+                        !SystemRole.PRIMARY_OWNER.name().equals(newRoles.get(roleScope))))
             ) {
                 removeOldDefaultRole(executionContext, groupId, MembershipReferenceType.valueOf(roleScope.name()));
             }
@@ -491,8 +487,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.debug("findById {}", groupId);
             Optional<Group> group = groupRepository
                 .findById(groupId)
-                .filter(g ->
-                    !executionContext.hasEnvironmentId() || g.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                .filter(
+                    g -> !executionContext.hasEnvironmentId() || g.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId())
                 );
             if (!group.isPresent()) {
                 throw new GroupNotFoundException(groupId);
@@ -621,9 +617,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             Set<GroupEntity> set = groupRepository
                 .findAllByEnvironment(environmentId)
                 .stream()
-                .filter(g ->
-                    g.getEventRules() != null &&
-                    g.getEventRules().stream().map(GroupEventRule::getEvent).collect(Collectors.toList()).contains(event)
+                .filter(
+                    g ->
+                        g.getEventRules() != null &&
+                        g.getEventRules().stream().map(GroupEventRule::getEvent).collect(Collectors.toList()).contains(event)
                 )
                 .map(this::map)
                 .sorted(Comparator.comparing(GroupEntity::getName))
@@ -688,15 +685,14 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             //remove all applications or apis
             Date updatedDate = new Date();
 
-            Stream
-                .generate(() ->
-                    apiRepository.search(
-                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
-                        null,
-                        new PageableBuilder().pageSize(100).pageNumber(0).build(),
-                        ApiFieldFilter.allFields()
-                    )
+            Stream.generate(() ->
+                apiRepository.search(
+                    new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).groups(groupId).build(),
+                    null,
+                    new PageableBuilder().pageSize(100).pageNumber(0).build(),
+                    ApiFieldFilter.allFields()
                 )
+            )
                 .takeWhile(page -> page.getPageElements() > 0)
                 .flatMap(page -> page.getContent().stream())
                 .forEach(api -> {
@@ -830,10 +826,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         .getAccessControls()
                         .stream()
                         .filter(accessControl ->
-                            (
-                                AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()) &&
-                                accessControl.getReferenceId().equals(groupId)
-                            )
+                            (AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()) &&
+                                accessControl.getReferenceId().equals(groupId))
                         )
                         .collect(Collectors.toSet());
 

@@ -31,7 +31,10 @@ public class IntegrationCrudServiceInMemory implements IntegrationCrudService, I
 
     @Override
     public Optional<Integration> findById(String id) {
-        return storage.stream().filter(item -> item.getId().equals(id)).findFirst();
+        return storage
+            .stream()
+            .filter(item -> item.getId().equals(id))
+            .findFirst();
     }
 
     @Override

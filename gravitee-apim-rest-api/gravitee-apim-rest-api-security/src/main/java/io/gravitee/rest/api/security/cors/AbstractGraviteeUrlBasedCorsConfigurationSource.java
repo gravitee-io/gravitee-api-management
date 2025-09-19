@@ -51,17 +51,15 @@ public abstract class AbstractGraviteeUrlBasedCorsConfigurationSource extends Ur
         if (referenceId == null) {
             referenceId = UNDEFINED_REFERENCE_ID;
         }
-        return corsConfigurationByOrganization.computeIfAbsent(
-            referenceId,
-            id ->
-                new GraviteeCorsConfiguration(
-                    environment,
-                    parameterService,
-                    installationAccessQueryService,
-                    eventManager,
-                    id,
-                    parameterReferenceType
-                )
+        return corsConfigurationByOrganization.computeIfAbsent(referenceId, id ->
+            new GraviteeCorsConfiguration(
+                environment,
+                parameterService,
+                installationAccessQueryService,
+                eventManager,
+                id,
+                parameterReferenceType
+            )
         );
     }
 

@@ -40,8 +40,7 @@ public class EndpointFixtures {
 
     private EndpointFixtures() {}
 
-    private static final HttpEndpointV2.HttpEndpointV2Builder BASE_HTTP_ENDPOINT_V2 = HttpEndpointV2
-        .builder()
+    private static final HttpEndpointV2.HttpEndpointV2Builder BASE_HTTP_ENDPOINT_V2 = HttpEndpointV2.builder()
         .name("Endpoint name")
         .target("http://gravitee.io")
         .weight(1)
@@ -55,12 +54,10 @@ public class EndpointFixtures {
         .httpProxy(null)
         .httpClientOptions(null)
         .httpClientSslOptions(null);
-    private static final EndpointGroupServicesV2.EndpointGroupServicesV2Builder BASE_SERVICES_V2 = EndpointGroupServicesV2
-        .builder()
-        .discovery(null);
+    private static final EndpointGroupServicesV2.EndpointGroupServicesV2Builder BASE_SERVICES_V2 =
+        EndpointGroupServicesV2.builder().discovery(null);
 
-    private static final EndpointGroupV2.EndpointGroupV2Builder BASE_ENDPOINTGROUP_V2 = EndpointGroupV2
-        .builder()
+    private static final EndpointGroupV2.EndpointGroupV2Builder BASE_ENDPOINTGROUP_V2 = EndpointGroupV2.builder()
         .name("Endpoint group name")
         .endpoints(List.of(new EndpointV2(BASE_HTTP_ENDPOINT_V2.build())))
         .loadBalancer(LoadBalancer.builder().type(LoadBalancer.TypeEnum.ROUND_ROBIN).build())
@@ -69,13 +66,11 @@ public class EndpointFixtures {
         .httpClientOptions(null)
         .httpClientSslOptions(null);
 
-    private static final EndpointGroupServices.EndpointGroupServicesBuilder BASE_ENDPOINTGROUP_SERVICES_V4 = EndpointGroupServices
-        .builder()
+    private static final EndpointGroupServices.EndpointGroupServicesBuilder BASE_ENDPOINTGROUP_SERVICES_V4 = EndpointGroupServices.builder()
         .discovery(null)
         .healthCheck(null);
 
-    private static final EndpointV4.EndpointV4Builder BASE_ENDPOINT_V4 = EndpointV4
-        .builder()
+    private static final EndpointV4.EndpointV4Builder BASE_ENDPOINT_V4 = EndpointV4.builder()
         .name("Endpoint name")
         .type("http-get")
         .weight(1)
@@ -86,8 +81,7 @@ public class EndpointFixtures {
         .sharedConfigurationOverride(new LinkedHashMap<>(Map.of("nice", "configuration")))
         .services(EndpointServices.builder().healthCheck(null).build());
 
-    private static final EndpointGroupV4.EndpointGroupV4Builder BASE_ENDPOINTGROUP_V4 = EndpointGroupV4
-        .builder()
+    private static final EndpointGroupV4.EndpointGroupV4Builder BASE_ENDPOINTGROUP_V4 = EndpointGroupV4.builder()
         .name("Endpoint group name")
         .type("http-get")
         .loadBalancer(LoadBalancer.builder().type(LoadBalancer.TypeEnum.ROUND_ROBIN).build())
@@ -95,10 +89,8 @@ public class EndpointFixtures {
         .endpoints(List.of(BASE_ENDPOINT_V4.build()))
         .services(BASE_ENDPOINTGROUP_SERVICES_V4.build());
 
-    private static final EndpointHealthCheckService.EndpointHealthCheckServiceBuilder BASE_HEALTH_CHECK_SERVICE = EndpointHealthCheckService
-        .builder()
-        .enabled(true)
-        .schedule("0 */5 * * * *");
+    private static final EndpointHealthCheckService.EndpointHealthCheckServiceBuilder BASE_HEALTH_CHECK_SERVICE =
+        EndpointHealthCheckService.builder().enabled(true).schedule("0 */5 * * * *");
 
     public static HttpEndpointV2 anHttpEndpointV2() {
         return BASE_HTTP_ENDPOINT_V2.build();

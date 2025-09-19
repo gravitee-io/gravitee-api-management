@@ -75,20 +75,19 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
     }
 
     protected Stream<Arguments> provideWrongSecurityHeaders() {
-        return provideApis()
-            .flatMap(arguments -> {
-                String apiId = (String) arguments.get()[0];
-                return Stream.of(
-                    Arguments.of(apiId, null, null),
-                    Arguments.of(apiId, "Authorization", ""),
-                    Arguments.of(apiId, "Authorization", "Basic 123456789"),
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
-                    Arguments.of(apiId, "Authorization", "Bearer"),
-                    Arguments.of(apiId, "Authorization", "Bearer "),
-                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                );
-            });
+        return provideApis().flatMap(arguments -> {
+            String apiId = (String) arguments.get()[0];
+            return Stream.of(
+                Arguments.of(apiId, null, null),
+                Arguments.of(apiId, "Authorization", ""),
+                Arguments.of(apiId, "Authorization", "Basic 123456789"),
+                Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
+                Arguments.of(apiId, "Authorization", "Bearer"),
+                Arguments.of(apiId, "Authorization", "Bearer "),
+                Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
+            );
+        });
     }
 
     @ParameterizedTest
@@ -192,8 +191,9 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
         wiremock.stubFor(get("/endpoint").willReturn(ok("data")));
 
         if (withSubscription) {
-            whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID)
-                .thenReturn(Optional.of(createSubscription(apiId, PLAN_JWT_ID, false)));
+            whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID).thenReturn(
+                Optional.of(createSubscription(apiId, PLAN_JWT_ID, false))
+            );
         } else {
             whenSearchingSubscription(apiId, JWT_CLIENT_ID, PLAN_JWT_ID).thenReturn(Optional.empty());
         }
@@ -221,15 +221,15 @@ public class PlanJwtV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
         return when(
-            getBean(SubscriptionService.class)
-                .getByApiAndSecurityToken(
-                    eq(api),
-                    argThat(securityToken ->
+            getBean(SubscriptionService.class).getByApiAndSecurityToken(
+                eq(api),
+                argThat(
+                    securityToken ->
                         securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) &&
                         securityToken.getTokenValue().equals(clientId)
-                    ),
-                    eq(plan)
-                )
+                ),
+                eq(plan)
+            )
         );
     }
 }

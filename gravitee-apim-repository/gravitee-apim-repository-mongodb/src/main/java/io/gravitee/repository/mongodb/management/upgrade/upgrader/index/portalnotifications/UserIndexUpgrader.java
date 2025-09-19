@@ -27,8 +27,7 @@ public class UserIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("portalnotifications")
             .name("u1")
             .key("user", ascending())

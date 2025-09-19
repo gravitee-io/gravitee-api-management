@@ -208,8 +208,7 @@ public class GroupMapperTest extends AbstractMapperTest {
     }
 
     private GroupEntity createGroupEntity(String id) {
-        GroupEntity groupEntity = GroupEntity
-            .builder()
+        GroupEntity groupEntity = GroupEntity.builder()
             .id(id)
             .name("Group " + id)
             .manageable(true)
@@ -249,8 +248,7 @@ public class GroupMapperTest extends AbstractMapperTest {
         List<GroupEventRule> eventRules = new ArrayList<>();
         eventRules.add(new GroupEventRule(io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE));
 
-        return io.gravitee.apim.core.group.model.Group
-            .builder()
+        return io.gravitee.apim.core.group.model.Group.builder()
             .id(id)
             .environmentId("env-id")
             .name("Core Group " + id)

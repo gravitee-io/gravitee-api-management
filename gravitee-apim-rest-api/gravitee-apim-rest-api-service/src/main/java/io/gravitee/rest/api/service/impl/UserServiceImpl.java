@@ -383,36 +383,31 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public UserEntity findById(ExecutionContext executionContext, String id, boolean defaultValue) {
-        return GraviteeContext
-            .getCurrentUsers()
-            .computeIfAbsent(
-                id,
-                k -> {
-                    try {
-                        LOGGER.debug("Find user by ID: {}", k);
+        return GraviteeContext.getCurrentUsers().computeIfAbsent(id, k -> {
+            try {
+                LOGGER.debug("Find user by ID: {}", k);
 
-                        Optional<User> optionalUser = userRepository
-                            .findById(k)
-                            .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
-                        if (optionalUser.isPresent()) {
-                            return convert(optionalUser.get(), false, userMetadataService.findAllByUserId(k), true);
-                        }
-
-                        if (defaultValue) {
-                            UserEntity unknownUser = new UserEntity();
-                            unknownUser.setId(k);
-                            unknownUser.setFirstname("Unknown user");
-                            return unknownUser;
-                        }
-
-                        //should never happen
-                        throw new UserNotFoundException(k);
-                    } catch (TechnicalException ex) {
-                        LOGGER.error("An error occurs while trying to find user using its ID {}", k, ex);
-                        throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + k, ex);
-                    }
+                Optional<User> optionalUser = userRepository
+                    .findById(k)
+                    .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
+                if (optionalUser.isPresent()) {
+                    return convert(optionalUser.get(), false, userMetadataService.findAllByUserId(k), true);
                 }
-            );
+
+                if (defaultValue) {
+                    UserEntity unknownUser = new UserEntity();
+                    unknownUser.setId(k);
+                    unknownUser.setFirstname("Unknown user");
+                    return unknownUser;
+                }
+
+                //should never happen
+                throw new UserNotFoundException(k);
+            } catch (TechnicalException ex) {
+                LOGGER.error("An error occurs while trying to find user using its ID {}", k, ex);
+                throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + k, ex);
+            }
+        });
     }
 
     @Override
@@ -493,21 +488,19 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         boolean userCreationEnabled;
         ReferenceContext currentContext = executionContext.getReferenceContext();
         if (currentContext.getReferenceType().equals(ReferenceContext.Type.ORGANIZATION)) {
-            userCreationEnabled =
-                parameterService.findAsBoolean(
-                    executionContext,
-                    Key.CONSOLE_USERCREATION_ENABLED,
-                    currentContext.getReferenceId(),
-                    ParameterReferenceType.ORGANIZATION
-                );
+            userCreationEnabled = parameterService.findAsBoolean(
+                executionContext,
+                Key.CONSOLE_USERCREATION_ENABLED,
+                currentContext.getReferenceId(),
+                ParameterReferenceType.ORGANIZATION
+            );
         } else {
-            userCreationEnabled =
-                parameterService.findAsBoolean(
-                    executionContext,
-                    Key.PORTAL_USERCREATION_ENABLED,
-                    currentContext.getReferenceId(),
-                    ParameterReferenceType.ENVIRONMENT
-                );
+            userCreationEnabled = parameterService.findAsBoolean(
+                executionContext,
+                Key.PORTAL_USERCREATION_ENABLED,
+                currentContext.getReferenceId(),
+                ParameterReferenceType.ENVIRONMENT
+            );
         }
 
         if (!userCreationEnabled) {
@@ -645,11 +638,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             } else {
                 final String username = subject.toString();
                 LOGGER.debug("Find user {} to update password", username);
-                user =
-                    userRepository
-                        .findById(username)
-                        .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
-                        .orElseThrow(() -> new UserNotFoundException(username));
+                user = userRepository
+                    .findById(username)
+                    .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
+                    .orElseThrow(() -> new UserNotFoundException(username));
             }
 
             // Set date fields
@@ -960,8 +952,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         final Optional<User> optionalUser;
         try {
-            optionalUser =
-                userRepository.findBySource(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), organizationId);
+            optionalUser = userRepository.findBySource(
+                newExternalUserEntity.getSource(),
+                newExternalUserEntity.getSourceId(),
+                organizationId
+            );
             if (optionalUser.isPresent()) {
                 throw new UserAlreadyExistsException(
                     newExternalUserEntity.getSource(),
@@ -1110,8 +1105,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 )
             );
 
-        final String token = JWT
-            .create()
+        final String token = JWT.create()
             .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
             .withIssuedAt(issueAt)
             .withExpiresAt(Date.from(expireAt))
@@ -1145,8 +1139,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             registrationUrl = DEFAULT_CONSOLE_URL + managementUri + token;
             LOGGER.warn(
                 "An email will be sent with a default '" +
-                managementUri.substring(4, managementUri.indexOf('/', 4)) +
-                "' link. You may want to change this default configuration of the 'Management URL' in the Settings."
+                    managementUri.substring(4, managementUri.indexOf('/', 4)) +
+                    "' link. You may want to change this default configuration of the 'Management URL' in the Settings."
             );
         }
 
@@ -1269,13 +1263,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         Query<UserEntity> userQuery;
         if (query == null || query.isEmpty()) {
-            userQuery =
-                QueryBuilder
-                    .create(UserEntity.class)
-                    .setQuery("*")
-                    .setPage(pageable)
-                    .setSort(new SortableImpl(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME, true))
-                    .build();
+            userQuery = QueryBuilder.create(UserEntity.class)
+                .setQuery("*")
+                .setPage(pageable)
+                .setSort(new SortableImpl(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME, true))
+                .build();
         } else {
             // UserDocumentTransformation remove domain from email address for security reasons
             // remove it during search phase to provide results
@@ -1301,9 +1293,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
 
             users.sort(
-                Comparator
-                    .comparing(UserEntity::getFirstname, Comparator.nullsLast(String::compareToIgnoreCase))
-                    .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String::compareToIgnoreCase))
+                Comparator.comparing(UserEntity::getFirstname, Comparator.nullsLast(String::compareToIgnoreCase)).thenComparing(
+                    UserEntity::getLastname,
+                    Comparator.nullsLast(String::compareToIgnoreCase)
+                )
             );
 
             populateUserFlags(executionContext.getOrganizationId(), users);
@@ -1359,9 +1352,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .stream()
                 .map(u -> convert(u, false, userMetadataService.findAllByUserId(u.getId())))
                 .sorted(
-                    Comparator
-                        .comparing(UserEntity::getFirstname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
-                        .thenComparing(UserEntity::getLastname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                    Comparator.comparing(UserEntity::getFirstname, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)).thenComparing(
+                        UserEntity::getLastname,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+                    )
                 )
                 .collect(toList());
 
@@ -1802,13 +1796,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         String email
     ) {
         String userId;
-        UserEntity registeredUser =
-            this.findBySource(
-                    executionContext.getOrganizationId(),
-                    socialProvider.getId(),
-                    attrs.get(SocialIdentityProviderEntity.UserProfile.ID),
-                    false
-                );
+        UserEntity registeredUser = this.findBySource(
+            executionContext.getOrganizationId(),
+            socialProvider.getId(),
+            attrs.get(SocialIdentityProviderEntity.UserProfile.ID),
+            false
+        );
         userId = registeredUser.getId();
 
         // User refresh
@@ -2023,11 +2016,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 continue;
             }
             for (RoleScope scope : List.of(RoleScope.API, RoleScope.APPLICATION)) {
-                String roleName = Optional
-                    .ofNullable(group.getRoles())
+                String roleName = Optional.ofNullable(group.getRoles())
                     .map(roles -> roles.get(scope))
                     .orElseGet(() ->
-                        roleEntities.stream().filter(role -> role.getScope() == scope).map(RoleEntity::getName).findFirst().orElse(null)
+                        roleEntities
+                            .stream()
+                            .filter(role -> role.getScope() == scope)
+                            .map(RoleEntity::getName)
+                            .findFirst()
+                            .orElse(null)
                     );
 
                 // Skip if no group or default role is found
@@ -2151,8 +2148,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
         });
 
-        Map<MembershipService.MembershipReference, Map<MembershipService.MembershipMember, Map<String, Collection<MembershipService.MembershipRole>>>> groupedRoles =
-            new HashMap<>();
+        Map<
+            MembershipService.MembershipReference,
+            Map<MembershipService.MembershipMember, Map<String, Collection<MembershipService.MembershipRole>>>
+        > groupedRoles = new HashMap<>();
         memberships
             .stream()
             .filter(membership -> !containsMembership(overrideUserMemberships, membership))
@@ -2209,16 +2208,16 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         }
         if (!roleIds.isEmpty()) {
             this.addRolesToUser(
-                    executionContext,
-                    userId,
-                    roleIds
-                        .stream()
-                        .map(roleService::findById)
-                        .filter(role -> role.getScope().equals(RoleScope.valueOf(referenceType.name())))
-                        .collect(toSet()),
-                    referenceType,
-                    referenceId
-                );
+                executionContext,
+                userId,
+                roleIds
+                    .stream()
+                    .map(roleService::findById)
+                    .filter(role -> role.getScope().equals(RoleScope.valueOf(referenceType.name())))
+                    .collect(toSet()),
+                referenceType,
+                referenceId
+            );
         }
     }
 }

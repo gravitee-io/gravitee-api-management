@@ -73,8 +73,9 @@ public class SubscriptionCrudServiceImplTest {
         void should_return_subscription_and_adapt_it() throws TechnicalException {
             // Given
             var subscriptionId = "subscription-id";
-            when(subscriptionRepository.findById(subscriptionId))
-                .thenAnswer(invocation -> Optional.of(aSubscription().id(invocation.getArgument(0)).build()));
+            when(subscriptionRepository.findById(subscriptionId)).thenAnswer(invocation ->
+                Optional.of(aSubscription().id(invocation.getArgument(0)).build())
+            );
 
             // When
             var result = service.get(subscriptionId);
@@ -107,8 +108,7 @@ public class SubscriptionCrudServiceImplTest {
                 soft
                     .assertThat(result.getConfiguration())
                     .isEqualTo(
-                        SubscriptionConfiguration
-                            .builder()
+                        SubscriptionConfiguration.builder()
                             .entrypointId("entrypoint-id")
                             .channel("my-channel")
                             .entrypointConfiguration("\"{}\"")
@@ -212,8 +212,7 @@ public class SubscriptionCrudServiceImplTest {
     }
 
     private Subscription.SubscriptionBuilder aSubscription() {
-        return Subscription
-            .builder()
+        return Subscription.builder()
             .api("api-id")
             .plan("plan-id")
             .application("application-id")
@@ -239,8 +238,8 @@ public class SubscriptionCrudServiceImplTest {
             .daysToExpirationOnLastNotification(310)
             .configuration(
                 """
-                    { "entrypointId": "entrypoint-id", "channel": "my-channel", "entrypointConfiguration": "{}" }
-                    """
+                { "entrypointId": "entrypoint-id", "channel": "my-channel", "entrypointConfiguration": "{}" }
+                """
             )
             .metadata(Map.of("metadata1", "value1"))
             .failureCause("failure-cause");

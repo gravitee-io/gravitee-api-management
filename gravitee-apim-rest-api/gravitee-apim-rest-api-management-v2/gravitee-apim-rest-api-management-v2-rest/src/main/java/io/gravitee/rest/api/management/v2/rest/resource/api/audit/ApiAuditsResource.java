@@ -62,8 +62,7 @@ public class ApiAuditsResource extends AbstractResource {
 
         var output = searchApiAuditUseCase.execute(input);
 
-        return AuditsResponse
-            .builder()
+        return AuditsResponse.builder()
             .data(ApiAuditMapper.INSTANCE.map(output.data(), output.metadata()))
             .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
             .links(computePaginationLinks(output.total(), paginationParam))

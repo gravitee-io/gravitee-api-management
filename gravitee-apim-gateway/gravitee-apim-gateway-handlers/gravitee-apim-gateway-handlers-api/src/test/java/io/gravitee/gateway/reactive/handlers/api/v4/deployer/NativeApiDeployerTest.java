@@ -77,8 +77,7 @@ class NativeApiDeployerTest {
     @Test
     void should_decrypt_properties_on_initialize() {
         final NativeApi nativeApi = new NativeApi(
-            io.gravitee.definition.model.v4.nativeapi.NativeApi
-                .builder()
+            io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
                 .properties(
                     List.of(
                         Property.builder().key("key1").value("value1").encrypted(true).build(),
@@ -90,11 +89,10 @@ class NativeApiDeployerTest {
         );
         when(dataEncryptor.decrypt(any())).thenAnswer(invocation -> invocation.getArguments()[0].toString().toUpperCase());
         cut.initialize(nativeApi);
-        assertThat(nativeApi.getDefinition().getProperties())
-            .contains(
-                Property.builder().key("key1").value("VALUE1").encrypted(false).build(),
-                Property.builder().key("key2").value("VALUE2").encrypted(false).build(),
-                Property.builder().key("key3").value("value3").encrypted(false).build()
-            );
+        assertThat(nativeApi.getDefinition().getProperties()).contains(
+            Property.builder().key("key1").value("VALUE1").encrypted(false).build(),
+            Property.builder().key("key2").value("VALUE2").encrypted(false).build(),
+            Property.builder().key("key3").value("value3").encrypted(false).build()
+        );
     }
 }

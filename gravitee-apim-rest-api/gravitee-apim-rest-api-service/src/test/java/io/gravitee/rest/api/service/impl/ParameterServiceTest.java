@@ -118,8 +118,9 @@ public class ParameterServiceTest {
         parameter.setValue("api1;api2;api3");
 
         when(environment.containsProperty(PORTAL_TOP_APIS.key())).thenReturn(true);
-        when(parameterRepository.findById(PORTAL_TOP_APIS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT))
-            .thenReturn(Optional.of(parameter));
+        when(parameterRepository.findById(PORTAL_TOP_APIS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            Optional.of(parameter)
+        );
 
         final List<String> values = parameterService.findAll(
             GraviteeContext.getExecutionContext(),
@@ -189,8 +190,7 @@ public class ParameterServiceTest {
                 "DEFAULT",
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Arrays.asList(parameter1, parameter2, parameter3));
+        ).thenReturn(Arrays.asList(parameter1, parameter2, parameter3));
 
         final Map<String, List<String>> values = parameterService.findAll(
             GraviteeContext.getExecutionContext(),
@@ -227,8 +227,7 @@ public class ParameterServiceTest {
                 "DEFAULT",
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Arrays.asList(parameter1, parameter2, parameter3));
+        ).thenReturn(Arrays.asList(parameter1, parameter2, parameter3));
 
         final Map<String, List<String>> values = parameterService.findAll(
             GraviteeContext.getExecutionContext(),
@@ -274,8 +273,7 @@ public class ParameterServiceTest {
                 "DEFAULT",
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(parametersFromRepository);
+        ).thenReturn(parametersFromRepository);
         when(environment.containsProperty(API_LABELS_DICTIONARY.key())).thenReturn(true);
         when(environment.getProperty(API_LABELS_DICTIONARY.key())).thenReturn("api1,api12");
         when(environment.containsProperty(PORTAL_APIKEY_HEADER.key())).thenReturn(true);
@@ -315,15 +313,14 @@ public class ParameterServiceTest {
 
         assertEquals("api1", result.getValue());
         verify(parameterRepository).create(parameter);
-        verify(auditService)
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-                eq(PARAMETER_CREATED),
-                any(),
-                eq(null),
-                eq(parameter)
-            );
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
+            eq(PARAMETER_CREATED),
+            any(),
+            eq(null),
+            eq(parameter)
+        );
     }
 
     @Test
@@ -346,15 +343,14 @@ public class ParameterServiceTest {
 
         assertEquals("api1;api2", result.getValue());
         verify(parameterRepository).create(parameter);
-        verify(auditService)
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-                eq(PARAMETER_CREATED),
-                any(),
-                eq(null),
-                eq(parameter)
-            );
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
+            eq(PARAMETER_CREATED),
+            any(),
+            eq(null),
+            eq(parameter)
+        );
     }
 
     @Test
@@ -476,15 +472,14 @@ public class ParameterServiceTest {
         );
 
         verify(parameterRepository).update(newParameter);
-        verify(auditService)
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-                eq(PARAMETER_UPDATED),
-                any(),
-                eq(parameter),
-                eq(newParameter)
-            );
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
+            eq(PARAMETER_UPDATED),
+            any(),
+            eq(parameter),
+            eq(newParameter)
+        );
     }
 
     @Test
@@ -506,15 +501,14 @@ public class ParameterServiceTest {
         );
 
         verify(parameterRepository).create(parameter);
-        verify(auditService)
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-                eq(PARAMETER_CREATED),
-                any(),
-                eq(null),
-                eq(parameter)
-            );
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
+            eq(PARAMETER_CREATED),
+            any(),
+            eq(null),
+            eq(parameter)
+        );
     }
 
     @Test
@@ -568,15 +562,14 @@ public class ParameterServiceTest {
         );
 
         verify(parameterRepository).update(newParameter);
-        verify(auditService)
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-                eq(PARAMETER_UPDATED),
-                any(),
-                eq(parameter),
-                eq(newParameter)
-            );
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
+            eq(PARAMETER_UPDATED),
+            any(),
+            eq(parameter),
+            eq(newParameter)
+        );
     }
 
     @Test
@@ -585,8 +578,9 @@ public class ParameterServiceTest {
         parameter.setKey(PORTAL_RATING_ENABLED.key());
         parameter.setValue("true");
 
-        when(parameterRepository.findById(PORTAL_RATING_ENABLED.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT))
-            .thenReturn(of(parameter));
+        when(parameterRepository.findById(PORTAL_RATING_ENABLED.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            of(parameter)
+        );
 
         assertTrue(
             parameterService.findAsBoolean(
@@ -614,10 +608,12 @@ public class ParameterServiceTest {
 
     @Test
     public void shouldFindAsBooleanDefaultValue() throws TechnicalException {
-        when(parameterRepository.findById(PORTAL_USERCREATION_ENABLED.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT))
-            .thenReturn(empty());
-        when(parameterRepository.findById(PORTAL_USERCREATION_ENABLED.key(), "DEFAULT_ORG", ParameterReferenceType.ORGANIZATION))
-            .thenReturn(empty());
+        when(parameterRepository.findById(PORTAL_USERCREATION_ENABLED.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            empty()
+        );
+        when(
+            parameterRepository.findById(PORTAL_USERCREATION_ENABLED.key(), "DEFAULT_ORG", ParameterReferenceType.ORGANIZATION)
+        ).thenReturn(empty());
         EnvironmentEntity defaultEnv = new EnvironmentEntity();
         defaultEnv.setOrganizationId("DEFAULT_ORG");
         when(environmentService.findById("DEFAULT")).thenReturn(defaultEnv);
@@ -654,8 +650,9 @@ public class ParameterServiceTest {
         parameter.setKey(API_LABELS_DICTIONARY.key());
         parameter.setValue("label1;label2");
 
-        when(parameterRepository.findById(API_LABELS_DICTIONARY.key(), "DEFAULT", ParameterReferenceType.ORGANIZATION))
-            .thenReturn(of(parameter));
+        when(parameterRepository.findById(API_LABELS_DICTIONARY.key(), "DEFAULT", ParameterReferenceType.ORGANIZATION)).thenReturn(
+            of(parameter)
+        );
 
         assertEquals(
             parameter.getValue(),

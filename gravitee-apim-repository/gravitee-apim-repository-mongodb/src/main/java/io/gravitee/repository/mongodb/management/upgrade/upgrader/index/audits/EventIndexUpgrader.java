@@ -27,8 +27,7 @@ public class EventIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("audits")
             .name("e1")
             .key("event", ascending())

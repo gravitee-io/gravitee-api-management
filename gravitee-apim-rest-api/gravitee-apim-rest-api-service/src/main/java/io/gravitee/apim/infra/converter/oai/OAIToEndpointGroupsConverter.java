@@ -39,8 +39,7 @@ public class OAIToEndpointGroupsConverter {
         }
 
         return singletonList(
-            EndpointGroup
-                .builder()
+            EndpointGroup.builder()
                 .name(DEFAULT_ENDPOINT_GROUP_NAME)
                 .type("http-proxy")
                 .endpoints(
@@ -49,8 +48,7 @@ public class OAIToEndpointGroupsConverter {
                         .map(url -> {
                             var configurationNode = new ObjectMapper().createObjectNode();
                             configurationNode.put("target", url);
-                            return Endpoint
-                                .builder()
+                            return Endpoint.builder()
                                 .name(serverUrls.size() == 1 ? DEFAULT_ENDPOINT_NAME : "server" + (serverUrls.indexOf(url) + 1))
                                 .configuration(configurationNode.toString())
                                 .weight(1)

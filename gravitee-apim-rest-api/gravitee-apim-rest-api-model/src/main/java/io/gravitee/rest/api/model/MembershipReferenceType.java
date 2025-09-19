@@ -44,6 +44,10 @@ public enum MembershipReferenceType {
     public RoleScope findScope() {
         return roleScopes.size() == 1
             ? roleScopes.iterator().next()
-            : roleScopes.stream().filter(scope -> scope.name().equals(name())).findFirst().orElse(roleScopes.iterator().next());
+            : roleScopes
+                .stream()
+                .filter(scope -> scope.name().equals(name()))
+                .findFirst()
+                .orElse(roleScopes.iterator().next());
     }
 }

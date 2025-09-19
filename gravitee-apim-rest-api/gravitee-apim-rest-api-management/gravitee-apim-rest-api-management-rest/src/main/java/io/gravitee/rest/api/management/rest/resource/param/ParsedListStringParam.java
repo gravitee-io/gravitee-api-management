@@ -25,7 +25,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties({ "empty", "values" })
-public abstract class ParsedListStringParam<T> extends ArrayList<String> /* to generate the right open-api def */{
+public abstract class ParsedListStringParam<T> extends ArrayList<String> /* to generate the right open-api def */ {
 
     private List<T> values;
 

@@ -25,8 +25,7 @@ public class GraviteeDefinitionJacksonJsonSerializer extends JacksonJsonSerializ
 
     public GraviteeDefinitionJacksonJsonSerializer() {
         super(
-            JsonMapperFactory
-                .jsonBuilder()
+            JsonMapperFactory.jsonBuilder()
                 .addModule(new GraviteeDefinitionJacksonModule())
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .build()

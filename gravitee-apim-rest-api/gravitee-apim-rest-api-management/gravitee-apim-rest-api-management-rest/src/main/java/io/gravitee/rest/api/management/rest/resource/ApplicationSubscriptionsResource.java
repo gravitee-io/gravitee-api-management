@@ -122,8 +122,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         newSubscriptionEntity.setApplication(application);
         newSubscriptionEntity.setPlan(plan);
         Subscription subscription = convert(executionContext, subscriptionService.create(executionContext, newSubscriptionEntity));
-        return Response
-            .created(this.getRequestUriBuilder().path(subscription.getId()).replaceQueryParam("plan", null).build())
+        return Response.created(this.getRequestUriBuilder().path(subscription.getId()).replaceQueryParam("plan", null).build())
             .entity(subscription)
             .build();
     }

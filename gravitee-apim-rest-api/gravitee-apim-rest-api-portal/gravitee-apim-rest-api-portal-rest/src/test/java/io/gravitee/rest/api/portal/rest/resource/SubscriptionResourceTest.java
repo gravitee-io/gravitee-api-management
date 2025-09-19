@@ -260,8 +260,9 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
         SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
         subscriptionConfigurationEntity.setEntrypointConfiguration("{\"url\":\"my-url\"}");
         subscriptionEntity.setConfiguration(subscriptionConfigurationEntity);
-        when(subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class)))
-            .thenReturn(subscriptionEntity);
+        when(
+            subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class))
+        ).thenReturn(subscriptionEntity);
 
         Response response = target(SUBSCRIPTION).request().put(json(updateSubscriptionInput));
 

@@ -84,29 +84,28 @@ public abstract class JerseySpringTest {
 
     @Autowired
     public void setApplicationContext(final ApplicationContext context) {
-        _jerseyTest =
-            new JerseyTest() {
-                @Override
-                protected Application configure() {
-                    // Find first available port.
-                    forceSet(TestProperties.CONTAINER_PORT, "0");
+        _jerseyTest = new JerseyTest() {
+            @Override
+            protected Application configure() {
+                // Find first available port.
+                forceSet(TestProperties.CONTAINER_PORT, "0");
 
-                    ResourceConfig application = new GraviteePortalApplication(authenticationProviderManager);
+                ResourceConfig application = new GraviteePortalApplication(authenticationProviderManager);
 
-                    application.property("contextConfig", context);
-                    decorate(application);
+                application.property("contextConfig", context);
+                decorate(application);
 
-                    return application;
-                }
+                return application;
+            }
 
-                @Override
-                protected void configureClient(ClientConfig config) {
-                    super.configureClient(config);
+            @Override
+            protected void configureClient(ClientConfig config) {
+                super.configureClient(config);
 
-                    config.register(ObjectMapperResolver.class);
-                    config.register(MultiPartFeature.class);
-                }
-            };
+                config.register(ObjectMapperResolver.class);
+                config.register(MultiPartFeature.class);
+            }
+        };
     }
 
     protected void decorate(ResourceConfig resourceConfig) {

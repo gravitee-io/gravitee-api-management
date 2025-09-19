@@ -115,8 +115,7 @@ public class PlansDataFixUpgraderTest {
                 eq(null),
                 any(ApiFieldFilter.class)
             )
-        )
-            .thenReturn(Stream.of(apiv2_1, apiv2_2));
+        ).thenReturn(Stream.of(apiv2_1, apiv2_2));
 
         upgrader.upgrade();
 
@@ -156,12 +155,21 @@ public class PlansDataFixUpgraderTest {
         verifyNoMoreInteractions(environmentRepository);
 
         // assert that each call to fixApiPlans has been done with the ExecutionContext related to API
-        verify(upgrader, times(1))
-            .fixApiPlans(argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")), same(api1), any());
-        verify(upgrader, times(1))
-            .fixApiPlans(argThat(e -> e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")), same(api2), any());
-        verify(upgrader, times(1))
-            .fixApiPlans(argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")), same(api3), any());
+        verify(upgrader, times(1)).fixApiPlans(
+            argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
+            same(api1),
+            any()
+        );
+        verify(upgrader, times(1)).fixApiPlans(
+            argThat(e -> e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")),
+            same(api2),
+            any()
+        );
+        verify(upgrader, times(1)).fixApiPlans(
+            argThat(e -> e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
+            same(api3),
+            any()
+        );
     }
 
     @Test
@@ -243,8 +251,9 @@ public class PlansDataFixUpgraderTest {
         Api api = new Api();
         api.setId("my-api-id");
 
-        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id"))
-            .thenReturn(new PrimaryOwnerEntity());
+        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id")).thenReturn(
+            new PrimaryOwnerEntity()
+        );
 
         upgrader.sendEmailToApiOwner(GraviteeContext.getExecutionContext(), api, Collections.emptyList(), Collections.emptyList());
 
@@ -264,16 +273,16 @@ public class PlansDataFixUpgraderTest {
         List<Plan> closedPlans = new ArrayList<>();
         upgrader.sendEmailToApiOwner(GraviteeContext.getExecutionContext(), api, createdPlans, closedPlans);
 
-        verify(emailService, times(1))
-            .sendAsyncEmailNotification(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(notification ->
+        verify(emailService, times(1)).sendAsyncEmailNotification(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                notification ->
                     notification.getTo()[0].equals("primary-owner-email") &&
                     notification.getParams().get("api") == api &&
                     notification.getParams().get("createdPlans") == createdPlans &&
                     notification.getParams().get("closedPlans") == closedPlans
-                )
-            );
+            )
+        );
     }
 
     @Test

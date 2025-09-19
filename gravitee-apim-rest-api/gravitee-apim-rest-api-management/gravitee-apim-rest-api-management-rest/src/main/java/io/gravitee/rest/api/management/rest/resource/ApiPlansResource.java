@@ -112,12 +112,11 @@ public class ApiPlansResource extends AbstractResource {
         return planService
             .findByApi(executionContext, api)
             .stream()
-            .filter(plan ->
-                wishedStatus.contains(plan.getStatus()) &&
-                (
-                    (isAuthenticated() && isAdmin()) ||
-                    groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())
-                )
+            .filter(
+                plan ->
+                    wishedStatus.contains(plan.getStatus()) &&
+                    ((isAuthenticated() && isAdmin()) ||
+                        groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull()))
             )
             .filter(plan -> security == null || security.contains(plan.getSecurity()))
             .sorted(comparingInt(PlanEntity::getOrder))
@@ -163,8 +162,7 @@ public class ApiPlansResource extends AbstractResource {
         @Parameter(name = "plan", required = true) @Valid @NotNull UpdatePlanEntity updatePlanEntity
     ) {
         if (updatePlanEntity.getId() != null && !plan.equals(updatePlanEntity.getId())) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
+            return Response.status(Response.Status.BAD_REQUEST)
                 .entity("'plan' parameter does not correspond to the plan to update")
                 .build();
         }
@@ -200,8 +198,7 @@ public class ApiPlansResource extends AbstractResource {
         ) {
             PlanEntity planEntity = planService.findById(executionContext, plan);
             if (!planEntity.getApi().equals(api)) {
-                return Response
-                    .status(Response.Status.BAD_REQUEST)
+                return Response.status(Response.Status.BAD_REQUEST)
                     .entity("'plan' parameter does not correspond to the current API")
                     .build();
             }

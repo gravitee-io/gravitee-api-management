@@ -30,10 +30,11 @@ public class UserDomainServiceInMemory implements UserDomainService, InMemoryAlt
     public Optional<BaseUserEntity> findBySource(String organizationId, String source, String sourceId) {
         return storage
             .stream()
-            .filter(userEntity ->
-                userEntity.getOrganizationId().equals(organizationId) &&
-                userEntity.getSource().equals(source) &&
-                userEntity.getSourceId().equals(sourceId)
+            .filter(
+                userEntity ->
+                    userEntity.getOrganizationId().equals(organizationId) &&
+                    userEntity.getSource().equals(source) &&
+                    userEntity.getSourceId().equals(sourceId)
             )
             .findFirst();
     }

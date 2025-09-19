@@ -61,16 +61,14 @@ public class GetCategoryApisUseCase {
 
         var apiCategoryOrderApiIds = extractApiIds(apiCategoryOrders);
 
-        var apis =
-            this.getUserApisByCategoryAndApis(
-                    input.executionContext(),
-                    input.isAdmin(),
-                    input.onlyPublishedApiLifecycleState(),
-                    input.currentUserId(),
-                    categoryId,
-                    apiCategoryOrderApiIds
-                )
-                .toList();
+        var apis = this.getUserApisByCategoryAndApis(
+            input.executionContext(),
+            input.isAdmin(),
+            input.onlyPublishedApiLifecycleState(),
+            input.currentUserId(),
+            categoryId,
+            apiCategoryOrderApiIds
+        ).toList();
 
         var results = mapToResult(apis, apiCategoryOrders).sorted(Comparator.comparingInt(o -> o.apiCategoryOrder.getOrder())).toList();
 
@@ -84,8 +82,7 @@ public class GetCategoryApisUseCase {
         return apis
             .stream()
             .map(api ->
-                Optional
-                    .ofNullable(apiCategoryOrderByApi.get(api.getId()))
+                Optional.ofNullable(apiCategoryOrderByApi.get(api.getId()))
                     .map(apiCategoryOrder -> new Result(apiCategoryOrder, api))
                     .orElse(null)
             )
@@ -128,8 +125,13 @@ public class GetCategoryApisUseCase {
             if (onlyPublishedApiLifecycleState) {
                 apiQueryCriteria.lifecycleStates(List.of(ApiLifecycleState.PUBLISHED));
             }
-            var apiIdsInUserScope =
-                this.apiAuthorizationDomainService.findIdsByUser(executionContext, userId, apiQueryCriteria.build(), null, false);
+            var apiIdsInUserScope = this.apiAuthorizationDomainService.findIdsByUser(
+                executionContext,
+                userId,
+                apiQueryCriteria.build(),
+                null,
+                false
+            );
 
             if (apiIdsInUserScope == null || apiIdsInUserScope.isEmpty()) {
                 return Stream.empty();

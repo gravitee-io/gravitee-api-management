@@ -133,10 +133,10 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         if (apiProtocolType != null && schemaDisplayFormat != null) {
             schemaKeys.add(
                 apiProtocolType.name().toLowerCase() +
-                "." +
-                PluginManifestProperties.SCHEMA_PROPERTY +
-                "." +
-                schemaDisplayFormat.name().toLowerCase()
+                    "." +
+                    PluginManifestProperties.SCHEMA_PROPERTY +
+                    "." +
+                    schemaDisplayFormat.name().toLowerCase()
             );
         }
         if (apiProtocolType != null) {
@@ -167,11 +167,11 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         try {
             if (apiProtocolType != null) {
                 return this.pluginManager.getDocumentation(
-                        policyPluginId,
-                        apiProtocolType.name().toLowerCase() + "." + PluginManifestProperties.DOCUMENTATION_PROPERTY,
-                        true,
-                        true
-                    );
+                    policyPluginId,
+                    apiProtocolType.name().toLowerCase() + "." + PluginManifestProperties.DOCUMENTATION_PROPERTY,
+                    true,
+                    true
+                );
             }
             return this.getDocumentation(policyPluginId);
         } catch (IOException ioex) {
@@ -188,8 +188,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
             plugin.manifest().properties().get(property) != null &&
             !plugin.manifest().properties().get(property).isEmpty()
         ) {
-            return Arrays
-                .stream(plugin.manifest().properties().get(property).split(","))
+            return Arrays.stream(plugin.manifest().properties().get(property).split(","))
                 .map(String::trim)
                 .map(POLICY_FLOW_PHASE::valueOf)
                 .map(p ->

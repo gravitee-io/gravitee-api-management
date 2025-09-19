@@ -75,15 +75,13 @@ public class PortalMenuLinksResource_ListPortalMenuLinksTest extends AbstractRes
     @Test
     void should_list_portal_menu_links_for_environment() {
         // Given
-        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink publicPortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id("public")
             .visibility(PortalMenuLinkVisibility.PUBLIC)
             .environmentId(ENV_ID)
             .build();
-        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink privatePortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id("private")
             .visibility(PortalMenuLinkVisibility.PRIVATE)
@@ -131,13 +129,11 @@ public class PortalMenuLinksResource_ListPortalMenuLinksTest extends AbstractRes
                 eq(ENV_ID),
                 eq(RolePermissionAction.READ)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().get();
 
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(FORBIDDEN_403)
             .asError()
             .hasHttpStatus(FORBIDDEN_403)

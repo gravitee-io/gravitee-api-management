@@ -36,8 +36,7 @@ public class GenericNotificationConfigServiceImplTest {
 
     @Test
     public void convert_fromBasicToEntity() {
-        GenericNotificationConfig notifConfig = GenericNotificationConfig
-            .builder()
+        GenericNotificationConfig notifConfig = GenericNotificationConfig.builder()
             .id("nc1")
             .name("notif 1")
             .referenceType(NotificationReferenceType.ENVIRONMENT)
@@ -65,8 +64,7 @@ public class GenericNotificationConfigServiceImplTest {
 
     @Test
     public void convert_fromEntityToBasic() {
-        GenericNotificationConfigEntity notifConfigEntity = GenericNotificationConfigEntity
-            .builder()
+        GenericNotificationConfigEntity notifConfigEntity = GenericNotificationConfigEntity.builder()
             .id("nc1")
             .name("notif 1")
             .referenceType("ENVIRONMENT")

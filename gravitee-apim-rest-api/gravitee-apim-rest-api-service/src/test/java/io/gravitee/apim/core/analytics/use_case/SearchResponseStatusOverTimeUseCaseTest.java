@@ -95,15 +95,14 @@ class SearchResponseStatusOverTimeUseCaseTest {
 
         var queryCaptor = ArgumentCaptor.forClass(AnalyticsQueryService.ResponseStatusOverTimeQuery.class);
         verify(analyticsQueryService).searchResponseStatusOvertime(any(), queryCaptor.capture());
-        assertThat(queryCaptor.getValue())
-            .satisfies(query -> {
-                assertSoftly(softly -> {
-                    softly.assertThat(query.apiId()).isEqualTo(MY_API);
-                    softly.assertThat(query.from()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
-                    softly.assertThat(query.to()).isEqualTo(INSTANT_NOW);
-                    softly.assertThat(query.interval()).isEqualTo(Duration.ofMinutes(10));
-                });
+        assertThat(queryCaptor.getValue()).satisfies(query -> {
+            assertSoftly(softly -> {
+                softly.assertThat(query.apiId()).isEqualTo(MY_API);
+                softly.assertThat(query.from()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
+                softly.assertThat(query.to()).isEqualTo(INSTANT_NOW);
+                softly.assertThat(query.interval()).isEqualTo(Duration.ofMinutes(10));
             });
+        });
     }
 
     @Test

@@ -100,14 +100,13 @@ public class ApiSpecGenCrudServiceImpl implements ApiSpecGenCrudService {
     }
 
     private void deploy(Api api, String userId) {
-        Completable
-            .defer(() ->
-                Completable.fromRunnable(() -> {
-                    var apiDeploymentEntity = new ApiDeploymentEntity();
-                    apiDeploymentEntity.setDeploymentLabel("Analytics enabled by spec-gen");
-                    apiService.deploy(getExecutionContext(), api.getId(), userId, PUBLISH_API, apiDeploymentEntity);
-                })
-            )
+        Completable.defer(() ->
+            Completable.fromRunnable(() -> {
+                var apiDeploymentEntity = new ApiDeploymentEntity();
+                apiDeploymentEntity.setDeploymentLabel("Analytics enabled by spec-gen");
+                apiService.deploy(getExecutionContext(), api.getId(), userId, PUBLISH_API, apiDeploymentEntity);
+            })
+        )
             .subscribeOn(Schedulers.io())
             .subscribe(
                 () -> log.debug("Api [{}] successfully deployed by user [{}]", api.getId(), userId),

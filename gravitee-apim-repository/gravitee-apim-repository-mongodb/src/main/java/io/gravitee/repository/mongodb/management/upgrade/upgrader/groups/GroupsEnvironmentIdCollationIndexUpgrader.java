@@ -30,8 +30,7 @@ public class GroupsEnvironmentIdCollationIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        Collation collation = Collation
-            .builder()
+        Collation collation = Collation.builder()
             .locale(Locale.ENGLISH.getLanguage())
             .collationStrength(CollationStrength.SECONDARY)
             .build();

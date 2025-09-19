@@ -82,8 +82,9 @@ class SseEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointInt
             readyObs
         );
 
-        final TestSubscriber<SseEvent> obs = Flowable
-            .fromSingle(sse.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200)))
+        final TestSubscriber<SseEvent> obs = Flowable.fromSingle(
+            sse.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+        )
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
             .flatMap(this::extractMessages)
             .take(messageCount)
@@ -140,17 +141,19 @@ class SseEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointInt
 
         final Single<HttpClientResponse> sse = createSseRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
 
-        final TestSubscriber<SseEvent> obs = Flowable
-            .fromSingle(sse.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200)))
+        final TestSubscriber<SseEvent> obs = Flowable.fromSingle(
+            sse.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+        )
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
             .flatMap(response ->
                 extractMessages(response)
                     .concatWith(
-                        Single
-                            .defer(() ->
-                                createSseRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient)
-                                    .delaySubscription(500, TimeUnit.MILLISECONDS)
+                        Single.defer(() ->
+                            createSseRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient).delaySubscription(
+                                500,
+                                TimeUnit.MILLISECONDS
                             )
+                        )
                             .doOnSuccess(nextResponse -> assertThat(nextResponse.statusCode()).isEqualTo(200))
                             .flatMapPublisher(this::extractMessages)
                     )
@@ -180,8 +183,9 @@ class SseEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointInt
         obs
             .awaitDone(30, TimeUnit.SECONDS)
             .assertValue(body -> {
-                assertThat(body.toString())
-                    .isEqualTo("Incompatible Qos capabilities between entrypoint requirements and endpoint supports");
+                assertThat(body.toString()).isEqualTo(
+                    "Incompatible Qos capabilities between entrypoint requirements and endpoint supports"
+                );
 
                 return true;
             });
@@ -222,8 +226,9 @@ class SseEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointInt
         HttpClient httpClient,
         List<Completable> readyObs
     ) {
-        return createSseRequest(path, clientIdentifier, httpClient)
-            .doOnSuccess(response -> readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(response))));
+        return createSseRequest(path, clientIdentifier, httpClient).doOnSuccess(response ->
+            readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(response)))
+        );
     }
 
     @NonNull
@@ -236,23 +241,19 @@ class SseEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointInt
         final Map<String, AtomicInteger> counters = new ConcurrentHashMap<>();
 
         for (int i = 0; i < messageCount; i++) {
-            obs.assertValueAt(
-                i,
-                sseEvent -> {
-                    final Integer messageCounter = sseEvent.getCounter();
-                    final AtomicInteger requestCounter = counters.computeIfAbsent(
-                        sseEvent.getRequestId(),
-                        s -> new AtomicInteger(messageCounter)
-                    );
+            obs.assertValueAt(i, sseEvent -> {
+                final Integer messageCounter = sseEvent.getCounter();
+                final AtomicInteger requestCounter = counters.computeIfAbsent(sseEvent.getRequestId(), s ->
+                    new AtomicInteger(messageCounter)
+                );
 
-                    // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
-                    assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
-                    requestCounter.set(messageCounter);
-                    assertThat(sseEvent.getData()).matches("message-" + messageCounter);
+                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
+                assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
+                requestCounter.set(messageCounter);
+                assertThat(sseEvent.getData()).matches("message-" + messageCounter);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 
@@ -260,16 +261,13 @@ class SseEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointInt
         final HashSet<String> messages = new HashSet<>();
 
         for (int i = 0; i < messageCount; i++) {
-            obs.assertValueAt(
-                i,
-                sseEvent -> {
-                    final String content = sseEvent.getData();
-                    assertThat(messages.contains(content)).isFalse();
-                    messages.add(content);
+            obs.assertValueAt(i, sseEvent -> {
+                final String content = sseEvent.getData();
+                assertThat(messages.contains(content)).isFalse();
+                messages.add(content);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 
@@ -277,18 +275,15 @@ class SseEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointInt
         final HashSet<Integer> messages = new HashSet<>();
 
         for (int i = 0; i < end - start; i++) {
-            obs.assertValueAt(
-                i,
-                sseEvent -> {
-                    final Integer messageCounter = sseEvent.getCounter();
+            obs.assertValueAt(i, sseEvent -> {
+                final Integer messageCounter = sseEvent.getCounter();
 
-                    assertThat(messageCounter).isGreaterThanOrEqualTo(start);
-                    assertThat(messageCounter).isLessThan(end);
-                    messages.add(messageCounter);
+                assertThat(messageCounter).isGreaterThanOrEqualTo(start);
+                assertThat(messageCounter).isLessThan(end);
+                messages.add(messageCounter);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
 
         assertThat(messages.size()).isEqualTo(end - start);

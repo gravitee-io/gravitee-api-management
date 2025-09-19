@@ -47,20 +47,19 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
 
     @Override
     protected JdbcObjectMapper<ApiQualityRule> buildOrm() {
-        return JdbcObjectMapper
-            .builder(ApiQualityRule.class, this.tableName)
+        return JdbcObjectMapper.builder(ApiQualityRule.class, this.tableName)
             .updateSql(
                 "update " +
-                this.tableName +
-                " set " +
-                " api = ?" +
-                " , quality_rule = ?" +
-                " , checked = ?" +
-                " , created_at = ? " +
-                " , updated_at = ? " +
-                WHERE_CLAUSE +
-                " api = ? " +
-                " and quality_rule = ? "
+                    this.tableName +
+                    " set " +
+                    " api = ?" +
+                    " , quality_rule = ?" +
+                    " , checked = ?" +
+                    " , created_at = ? " +
+                    " , updated_at = ? " +
+                    WHERE_CLAUSE +
+                    " api = ? " +
+                    " and quality_rule = ? "
             )
             .addColumn("api", Types.NVARCHAR, String.class)
             .addColumn("quality_rule", Types.NVARCHAR, String.class)
@@ -76,10 +75,10 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
         try {
             final List<ApiQualityRule> apiQualityRules = jdbcTemplate.query(
                 "select" +
-                " api, quality_rule, checked, created_at, updated_at " +
-                " from " +
-                this.tableName +
-                " where api = ? and quality_rule = ?",
+                    " api, quality_rule, checked, created_at, updated_at " +
+                    " from " +
+                    this.tableName +
+                    " where api = ? and quality_rule = ?",
                 getOrm().getRowMapper(),
                 api,
                 qualityRule
@@ -115,12 +114,11 @@ public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<
             jdbcTemplate.update(
                 getOrm().buildUpdatePreparedStatementCreator(apiQualityRule, apiQualityRule.getApi(), apiQualityRule.getQualityRule())
             );
-            return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule())
-                .orElseThrow(() ->
-                    new IllegalStateException(
-                        format("No apiQualityRule found with id [%s, %s]", apiQualityRule.getApi(), apiQualityRule.getQualityRule())
-                    )
-                );
+            return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule()).orElseThrow(() ->
+                new IllegalStateException(
+                    format("No apiQualityRule found with id [%s, %s]", apiQualityRule.getApi(), apiQualityRule.getQualityRule())
+                )
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {

@@ -55,8 +55,7 @@ public class DebugSynchronizer implements RepositorySynchronizer {
                 .fetchLatest(from, to, environments)
                 .subscribeOn(Schedulers.from(syncFetcherExecutor))
                 .flatMap(events ->
-                    Flowable
-                        .just(events)
+                    Flowable.just(events)
                         .flatMapIterable(e -> e)
                         .flatMapMaybe(event ->
                             debugMapperMapper
@@ -83,7 +82,8 @@ public class DebugSynchronizer implements RepositorySynchronizer {
                 })
                 .count()
                 .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-                .doOnSuccess(count -> log.debug("{} debug events refreshed in {}ms", count, (System.currentTimeMillis() - launchTime.get()))
+                .doOnSuccess(count ->
+                    log.debug("{} debug events refreshed in {}ms", count, (System.currentTimeMillis() - launchTime.get()))
                 )
                 .ignoreElement();
         }

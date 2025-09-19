@@ -90,13 +90,12 @@ class HelloCommandHandlerTest {
             null
         );
 
-        commandHandler =
-            (HelloCommandHandler) factory
-                .buildCommandHandlers(CONTEXT)
-                .stream()
-                .filter(handler -> handler.supportType().equals(IntegrationCommandType.HELLO.name()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No handler found for type [HELLO]"));
+        commandHandler = (HelloCommandHandler) factory
+            .buildCommandHandlers(CONTEXT)
+            .stream()
+            .filter(handler -> handler.supportType().equals(IntegrationCommandType.HELLO.name()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("No handler found for type [HELLO]"));
 
         environmentCrudService.initWith(List.of(ENVIRONMENT));
     }
@@ -109,8 +108,7 @@ class HelloCommandHandlerTest {
     @Test
     void should_reply_succeeded_when_integration_exists() {
         var integration = givenIntegration(
-            IntegrationFixture
-                .anIntegration()
+            IntegrationFixture.anIntegration()
                 .toBuilder()
                 .id(INTEGRATION_ID)
                 .environmentId(ENVIRONMENT.getId())
@@ -163,8 +161,7 @@ class HelloCommandHandlerTest {
     @Test
     void should_reply_error_when_integration_exist_but_provider_mismatch() {
         givenIntegration(
-            IntegrationFixture
-                .anIntegration()
+            IntegrationFixture.anIntegration()
                 .toBuilder()
                 .id("my-integration-id")
                 .environmentId(ENVIRONMENT.getId())
@@ -202,8 +199,10 @@ class HelloCommandHandlerTest {
     void should_reply_error_when_exception_occurs() {
         var spied = Mockito.spy(integrationCrudServiceInMemory);
         lenient().when(spied.findById(any())).thenThrow(new TechnicalDomainException("error"));
-        commandHandler =
-            new HelloCommandHandler(new CheckIntegrationUseCase(spied, environmentCrudService, permissionDomainService), CONTEXT);
+        commandHandler = new HelloCommandHandler(
+            new CheckIntegrationUseCase(spied, environmentCrudService, permissionDomainService),
+            CONTEXT
+        );
 
         commandHandler
             .handle(COMMAND)

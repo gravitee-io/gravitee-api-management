@@ -115,13 +115,11 @@ class ApiHealthResourceTest extends ApiResourceTest {
                     API,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = averageResponseTimeTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -140,8 +138,7 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .request()
                 .get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiHealthAverageResponseTimeResponse.class)
                 .satisfies(r -> {
@@ -168,13 +165,11 @@ class ApiHealthResourceTest extends ApiResourceTest {
                     API,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = averageResponseTimeOvertimeTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -184,11 +179,10 @@ class ApiHealthResourceTest extends ApiResourceTest {
         @Test
         void should_return_buckets() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            apiHealthQueryService.averageHealthCheckResponseTimeOvertime =
-                new AverageHealthCheckResponseTimeOvertime(
-                    new AverageHealthCheckResponseTimeOvertime.TimeRange(FROM, TO, INTERVAL),
-                    List.of(3L)
-                );
+            apiHealthQueryService.averageHealthCheckResponseTimeOvertime = new AverageHealthCheckResponseTimeOvertime(
+                new AverageHealthCheckResponseTimeOvertime.TimeRange(FROM, TO, INTERVAL),
+                List.of(3L)
+            );
 
             final Response response = averageResponseTimeOvertimeTarget
                 .queryParam("from", FROM.toEpochMilli())
@@ -197,20 +191,13 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .request()
                 .get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiHealthAverageResponseTimeOvertimeResponse.class)
                 .satisfies(r -> {
-                    assertThat(r.getTimeRange())
-                        .isEqualTo(
-                            AnalyticTimeRange
-                                .builder()
-                                .to(TO.toEpochMilli())
-                                .from(FROM.toEpochMilli())
-                                .interval(INTERVAL.toMillis())
-                                .build()
-                        );
+                    assertThat(r.getTimeRange()).isEqualTo(
+                        AnalyticTimeRange.builder().to(TO.toEpochMilli()).from(FROM.toEpochMilli()).interval(INTERVAL.toMillis()).build()
+                    );
                     assertThat(r.getData()).isEqualTo(List.of(3L));
                 });
         }
@@ -233,13 +220,11 @@ class ApiHealthResourceTest extends ApiResourceTest {
                     API,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = availabilityTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -258,8 +243,7 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .request()
                 .get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiHealthAvailabilityResponse.class)
                 .satisfies(r -> {
@@ -286,13 +270,11 @@ class ApiHealthResourceTest extends ApiResourceTest {
                     API,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = healthCheckLogsTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -302,39 +284,38 @@ class ApiHealthResourceTest extends ApiResourceTest {
         @Test
         void should_return_logs() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            apiHealthQueryService.healthCheckLogs =
-                new Page<>(
-                    List.of(
-                        new HealthCheckLog(
-                            "id",
-                            INSTANT,
-                            API,
-                            "endpoint",
-                            "gateway",
-                            100L,
-                            true,
-                            List.of(
-                                new HealthCheckLog.Step(
-                                    "step1",
-                                    true,
-                                    "message",
-                                    new HealthCheckLog.Request("uri", "GET", Map.of("key", "value")),
-                                    new HealthCheckLog.Response(200, "body", Map.of("key", "value"))
-                                ),
-                                new HealthCheckLog.Step(
-                                    "step2",
-                                    true,
-                                    "message",
-                                    new HealthCheckLog.Request("uri", "GET", null),
-                                    new HealthCheckLog.Response(200, "body", null)
-                                )
+            apiHealthQueryService.healthCheckLogs = new Page<>(
+                List.of(
+                    new HealthCheckLog(
+                        "id",
+                        INSTANT,
+                        API,
+                        "endpoint",
+                        "gateway",
+                        100L,
+                        true,
+                        List.of(
+                            new HealthCheckLog.Step(
+                                "step1",
+                                true,
+                                "message",
+                                new HealthCheckLog.Request("uri", "GET", Map.of("key", "value")),
+                                new HealthCheckLog.Response(200, "body", Map.of("key", "value"))
+                            ),
+                            new HealthCheckLog.Step(
+                                "step2",
+                                true,
+                                "message",
+                                new HealthCheckLog.Request("uri", "GET", null),
+                                new HealthCheckLog.Response(200, "body", null)
                             )
                         )
-                    ),
-                    1,
-                    5,
-                    1
-                );
+                    )
+                ),
+                1,
+                5,
+                1
+            );
 
             final Response response = healthCheckLogsTarget
                 .queryParam("from", FROM.toEpochMilli())
@@ -343,8 +324,7 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .request()
                 .get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiHealthLogsResponse.class)
                 .extracting(ApiHealthLogsResponse::getData)
@@ -401,39 +381,38 @@ class ApiHealthResourceTest extends ApiResourceTest {
         public void should_use_default_pagination_when_no_pagination_param() {
             // Given
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            apiHealthQueryService.healthCheckLogs =
-                new Page<>(
-                    List.of(
-                        new HealthCheckLog(
-                            "id",
-                            INSTANT,
-                            API,
-                            "endpoint",
-                            "gateway",
-                            100L,
-                            true,
-                            List.of(
-                                new HealthCheckLog.Step(
-                                    "step1",
-                                    true,
-                                    "message",
-                                    new HealthCheckLog.Request("uri", "GET", Map.of("key", "value")),
-                                    new HealthCheckLog.Response(200, "body", Map.of("key", "value"))
-                                ),
-                                new HealthCheckLog.Step(
-                                    "step2",
-                                    true,
-                                    "message",
-                                    new HealthCheckLog.Request("uri", "GET", null),
-                                    new HealthCheckLog.Response(200, "body", null)
-                                )
+            apiHealthQueryService.healthCheckLogs = new Page<>(
+                List.of(
+                    new HealthCheckLog(
+                        "id",
+                        INSTANT,
+                        API,
+                        "endpoint",
+                        "gateway",
+                        100L,
+                        true,
+                        List.of(
+                            new HealthCheckLog.Step(
+                                "step1",
+                                true,
+                                "message",
+                                new HealthCheckLog.Request("uri", "GET", Map.of("key", "value")),
+                                new HealthCheckLog.Response(200, "body", Map.of("key", "value"))
+                            ),
+                            new HealthCheckLog.Step(
+                                "step2",
+                                true,
+                                "message",
+                                new HealthCheckLog.Request("uri", "GET", null),
+                                new HealthCheckLog.Response(200, "body", null)
                             )
                         )
-                    ),
-                    1,
-                    5,
-                    1
-                );
+                    )
+                ),
+                1,
+                5,
+                1
+            );
 
             // When
             Response response = healthCheckLogsTarget
@@ -443,8 +422,7 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .get();
 
             // Then
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(ApiHealthLogsResponse.class)
                 .extracting(ApiHealthLogsResponse::getPagination)
@@ -455,39 +433,38 @@ class ApiHealthResourceTest extends ApiResourceTest {
         public void should_compute_links() {
             // Given
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            apiHealthQueryService.healthCheckLogs =
-                new Page<>(
-                    List.of(
-                        new HealthCheckLog(
-                            "id",
-                            INSTANT,
-                            API,
-                            "endpoint",
-                            "gateway",
-                            100L,
-                            true,
-                            List.of(
-                                new HealthCheckLog.Step(
-                                    "step1",
-                                    true,
-                                    "message",
-                                    new HealthCheckLog.Request("uri", "GET", Map.of("key", "value")),
-                                    new HealthCheckLog.Response(200, "body", Map.of("key", "value"))
-                                ),
-                                new HealthCheckLog.Step(
-                                    "step2",
-                                    true,
-                                    "message",
-                                    new HealthCheckLog.Request("uri", "GET", null),
-                                    new HealthCheckLog.Response(200, "body", null)
-                                )
+            apiHealthQueryService.healthCheckLogs = new Page<>(
+                List.of(
+                    new HealthCheckLog(
+                        "id",
+                        INSTANT,
+                        API,
+                        "endpoint",
+                        "gateway",
+                        100L,
+                        true,
+                        List.of(
+                            new HealthCheckLog.Step(
+                                "step1",
+                                true,
+                                "message",
+                                new HealthCheckLog.Request("uri", "GET", Map.of("key", "value")),
+                                new HealthCheckLog.Response(200, "body", Map.of("key", "value"))
+                            ),
+                            new HealthCheckLog.Step(
+                                "step2",
+                                true,
+                                "message",
+                                new HealthCheckLog.Request("uri", "GET", null),
+                                new HealthCheckLog.Response(200, "body", null)
                             )
                         )
-                    ),
-                    2,
-                    5,
-                    15
-                );
+                    )
+                ),
+                2,
+                5,
+                15
+            );
 
             // When
             Response response = healthCheckLogsTarget
@@ -500,14 +477,12 @@ class ApiHealthResourceTest extends ApiResourceTest {
 
             // Then
             var target = healthCheckLogsTarget.queryParam("from", FROM.toEpochMilli()).queryParam("to", TO.toEpochMilli());
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(ApiHealthLogsResponse.class)
                 .extracting(ApiHealthLogsResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    Links.builder()
                         .self(target.queryParam("page", 2).queryParam("perPage", 5).getUri().toString())
                         .first(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
                         .last(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
@@ -527,16 +502,14 @@ class ApiHealthResourceTest extends ApiResourceTest {
                 .request()
                 .get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiHealthLogsResponse.class)
                 .extracting(ApiHealthLogsResponse::getData, ApiHealthLogsResponse::getPagination, ApiHealthLogsResponse::getLinks)
                 .contains(
                     List.of(),
                     Pagination.builder().build(),
-                    Links
-                        .builder()
+                    Links.builder()
                         .self(
                             healthCheckLogsTarget
                                 .queryParam("from", FROM.toEpochMilli())

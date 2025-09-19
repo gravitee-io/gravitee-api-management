@@ -82,8 +82,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     @Override
     protected JdbcObjectMapper<Subscription> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Subscription.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Subscription.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("plan", Types.NVARCHAR, String.class)
             .addColumn("application", Types.NVARCHAR, String.class)
@@ -136,8 +135,9 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(subscription, subscription.getId()));
             storeMetadata(subscription, true);
-            return findById(subscription.getId())
-                .orElseThrow(() -> new IllegalStateException(format("No subscription found with id [%s]", subscription.getId())));
+            return findById(subscription.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No subscription found with id [%s]", subscription.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -230,18 +230,14 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .append(" group by ")
             .append(group)
             .append(" order by numberOfSubscriptions " + orderAsString + ", lastUpdatedAt " + orderAsString);
-        return jdbcTemplate.query(
-            builder.toString(),
-            fillPreparedStatement(data, criteria),
-            resultSet -> {
-                Set<String> ranking = new LinkedHashSet();
-                while (resultSet.next()) {
-                    String referenceId = resultSet.getString(1);
-                    ranking.add(referenceId);
-                }
-                return ranking;
+        return jdbcTemplate.query(builder.toString(), fillPreparedStatement(data, criteria), resultSet -> {
+            Set<String> ranking = new LinkedHashSet();
+            while (resultSet.next()) {
+                String referenceId = resultSet.getString(1);
+                ranking.add(referenceId);
             }
-        );
+            return ranking;
+        });
     }
 
     private PreparedStatementSetter fillPreparedStatement(Collection<String> data, SubscriptionCriteria criteria) {
@@ -266,10 +262,10 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
         final StringBuilder builder = new StringBuilder(
             "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-            this.tableName +
-            " s left join " +
-            this.metadataTableName +
-            " sm on s.id = sm.subscription_id "
+                this.tableName +
+                " s left join " +
+                this.metadataTableName +
+                " sm on s.id = sm.subscription_id "
         );
 
         boolean started = false;
@@ -359,10 +355,10 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             );
             jdbcTemplate.query(
                 "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-                this.tableName +
-                " s left join " +
-                this.metadataTableName +
-                " sm on s.id = sm.subscription_id where s.id = ?",
+                    this.tableName +
+                    " s left join " +
+                    this.metadataTableName +
+                    " sm on s.id = sm.subscription_id where s.id = ?",
                 rowMapper,
                 id
             );
@@ -385,10 +381,10 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
             jdbcTemplate.query(
                 "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-                this.tableName +
-                " s left join " +
-                this.metadataTableName +
-                " sm on s.id = sm.subscription_id",
+                    this.tableName +
+                    " s left join " +
+                    this.metadataTableName +
+                    " sm on s.id = sm.subscription_id",
                 rowMapper
             );
             LOGGER.debug("Found {} subscriptions: {}", rowMapper.getRows().size(), rowMapper.getRows());
@@ -407,10 +403,10 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         try {
             StringBuilder queryBuilder = new StringBuilder(
                 "select s.*, sm.k as sm_k, sm.v as sm_v from " +
-                this.tableName +
-                " s left join " +
-                this.metadataTableName +
-                " sm on s.id = sm.subscription_id"
+                    this.tableName +
+                    " s left join " +
+                    this.metadataTableName +
+                    " sm on s.id = sm.subscription_id"
             );
             getOrm().buildInCondition(true, queryBuilder, "s.id", ids);
 

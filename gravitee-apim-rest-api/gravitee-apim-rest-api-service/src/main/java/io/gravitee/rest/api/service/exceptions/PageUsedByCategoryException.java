@@ -54,8 +54,7 @@ public class PageUsedByCategoryException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps
-            .<String, String>builder()
+        return Maps.<String, String>builder()
             .put("action", action)
             .put("categoriesName", categoriesName)
             .put("pageName", pageName)

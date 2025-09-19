@@ -55,8 +55,7 @@ class CheckIntegrationUseCaseTest {
     private static final String ENVIRONMENT_2 = "environment-2";
     private static final String INTEGRATION_ID = "my-integration-id";
     private static final String PROVIDER = "aws-api-gateway";
-    private static final Integration INTEGRATION = IntegrationFixture
-        .anIntegration()
+    private static final Integration INTEGRATION = IntegrationFixture.anIntegration()
         .toBuilder()
         .id(INTEGRATION_ID)
         .provider(PROVIDER)

@@ -59,7 +59,9 @@ public class ScoringFunctionCrudServiceImplTest {
         @SneakyThrows
         void setUp() {
             // happy path
-            lenient().when(scoringFunctionRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            lenient()
+                .when(scoringFunctionRepository.create(any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         }
 
         @Test
@@ -94,8 +96,9 @@ public class ScoringFunctionCrudServiceImplTest {
             // Given
             var function1 = ScoringFunctionFixture.aFunction("id1");
             var function2 = ScoringFunctionFixture.aFunction("id2");
-            when(scoringFunctionRepository.findAllByReferenceId(any(), any()))
-                .thenReturn(List.of(ScoringFunctionAdapter.INSTANCE.toRepository(function1)));
+            when(scoringFunctionRepository.findAllByReferenceId(any(), any())).thenReturn(
+                List.of(ScoringFunctionAdapter.INSTANCE.toRepository(function1))
+            );
 
             // When
             service.create(function2);
@@ -116,25 +119,24 @@ public class ScoringFunctionCrudServiceImplTest {
         void should_find_a_function_by_id() {
             // Given
             var function = ScoringFunctionFixture.aFunction();
-            when(scoringFunctionRepository.findById("function-id"))
-                .thenReturn(Optional.of(fixtures.repository.ScoringFunctionFixture.aFunction()));
+            when(scoringFunctionRepository.findById("function-id")).thenReturn(
+                Optional.of(fixtures.repository.ScoringFunctionFixture.aFunction())
+            );
 
             // When
             var found = service.findById("function-id");
 
             // Then
-            assertThat(found)
-                .contains(
-                    ScoringFunction
-                        .builder()
-                        .id("function-id")
-                        .name("function-name")
-                        .payload("function-payload")
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
-                        .referenceId("reference-id")
-                        .build()
-                );
+            assertThat(found).contains(
+                ScoringFunction.builder()
+                    .id("function-id")
+                    .name("function-name")
+                    .payload("function-payload")
+                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
+                    .referenceId("reference-id")
+                    .build()
+            );
         }
 
         @Test

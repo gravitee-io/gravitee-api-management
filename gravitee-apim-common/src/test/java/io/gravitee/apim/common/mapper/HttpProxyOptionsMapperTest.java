@@ -34,8 +34,7 @@ class HttpProxyOptionsMapperTest {
 
     @Test
     void should_build_http_client_options_with_defined_values() {
-        final HttpProxyOptions httpProxyOptions = HttpProxyOptions
-            .builder()
+        final HttpProxyOptions httpProxyOptions = HttpProxyOptions.builder()
             .enabled(true)
             .useSystemProxy(false)
             .host("host")

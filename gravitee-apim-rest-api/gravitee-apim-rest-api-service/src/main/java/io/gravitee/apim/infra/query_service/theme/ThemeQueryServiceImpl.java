@@ -44,8 +44,10 @@ public class ThemeQueryServiceImpl extends AbstractService implements ThemeQuery
     public Page<Theme> searchByCriteria(ThemeSearchCriteria criteria, Pageable pageable) {
         var type = criteria.getType() == null ? null : ThemeType.valueOf(criteria.getType().name());
         try {
-            var page =
-                this.themeRepository.search(ThemeCriteria.builder().enabled(criteria.getEnabled()).type(type).build(), convert(pageable));
+            var page = this.themeRepository.search(
+                ThemeCriteria.builder().enabled(criteria.getEnabled()).type(type).build(),
+                convert(pageable)
+            );
 
             return page.map(ThemeAdapter.INSTANCE::map);
         } catch (TechnicalException e) {
@@ -58,10 +60,10 @@ public class ThemeQueryServiceImpl extends AbstractService implements ThemeQuery
         try {
             return ThemeAdapter.INSTANCE.map(
                 this.themeRepository.findByReferenceIdAndReferenceTypeAndType(
-                        environmentId,
-                        Theme.ReferenceType.ENVIRONMENT.name(),
-                        ThemeType.valueOf(themeType.name())
-                    )
+                    environmentId,
+                    Theme.ReferenceType.ENVIRONMENT.name(),
+                    ThemeType.valueOf(themeType.name())
+                )
             );
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(e.getMessage(), e);

@@ -200,8 +200,9 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.GROUP);
         membershipEntity.setMemberId("group");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
-            .thenReturn(membershipEntity);
+        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
+            membershipEntity
+        );
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
@@ -239,8 +240,9 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.GROUP);
         membershipEntity.setMemberId("group");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
-            .thenReturn(membershipEntity);
+        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
+            membershipEntity
+        );
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
@@ -277,8 +279,9 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.USER);
         membershipEntity.setMemberId("user");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
-            .thenReturn(membershipEntity);
+        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
+            membershipEntity
+        );
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
@@ -316,8 +319,9 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.USER);
         membershipEntity.setMemberId("user");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
-            .thenReturn(membershipEntity);
+        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
+            membershipEntity
+        );
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
@@ -355,8 +359,9 @@ public class GroupValidationServiceImplTest {
         MembershipEntity membershipEntity = new MembershipEntity();
         membershipEntity.setMemberType(MembershipMemberType.USER);
         membershipEntity.setMemberId("user");
-        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId))
-            .thenReturn(membershipEntity);
+        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
+            membershipEntity
+        );
 
         GroupEntity defaultGroupEntity = new GroupEntity();
         String defaultGroup = "default";
@@ -390,17 +395,16 @@ public class GroupValidationServiceImplTest {
         when(groupService.findByIds(groups)).thenThrow(new GroupsNotFoundException(Set.of(groupId)));
 
         // When
-        assertThatExceptionOfType(InvalidDataException.class)
-            .isThrownBy(() ->
-                groupValidationService.validateAndSanitize(
-                    GraviteeContext.getExecutionContext(),
-                    null,
-                    groups,
-                    null,
-                    new PrimaryOwnerEntity(new UserEntity()),
-                    true
-                )
-            );
+        assertThatExceptionOfType(InvalidDataException.class).isThrownBy(() ->
+            groupValidationService.validateAndSanitize(
+                GraviteeContext.getExecutionContext(),
+                null,
+                groups,
+                null,
+                new PrimaryOwnerEntity(new UserEntity()),
+                true
+            )
+        );
     }
 
     @Test

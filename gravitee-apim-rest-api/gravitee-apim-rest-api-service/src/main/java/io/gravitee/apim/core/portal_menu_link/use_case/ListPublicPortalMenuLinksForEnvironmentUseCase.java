@@ -32,9 +32,9 @@ public class ListPublicPortalMenuLinksForEnvironmentUseCase {
     public Output execute(Input input) {
         return new Output(
             this.portalMenuLinkQueryService.findByEnvironmentIdAndVisibilitySortByOrder(
-                    input.environmentId(),
-                    PortalMenuLinkVisibility.PUBLIC
-                )
+                input.environmentId(),
+                PortalMenuLinkVisibility.PUBLIC
+            )
         );
     }
 

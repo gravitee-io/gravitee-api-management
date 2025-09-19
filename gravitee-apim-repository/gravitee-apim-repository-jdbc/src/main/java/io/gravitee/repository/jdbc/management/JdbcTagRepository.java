@@ -53,8 +53,7 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
 
     @Override
     protected JdbcObjectMapper<Tag> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Tag.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Tag.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
@@ -104,9 +103,9 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
             return jdbcTemplate
                 .query(
                     getOrm().getSelectAllSql() +
-                    " where reference_id = ? and reference_type = ? and id in ( " +
-                    getOrm().buildInClause(tagIds) +
-                    " )",
+                        " where reference_id = ? and reference_type = ? and id in ( " +
+                        getOrm().buildInClause(tagIds) +
+                        " )",
                     (PreparedStatement ps) -> {
                         ps.setString(1, referenceId);
                         ps.setString(2, referenceType.name());

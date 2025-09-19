@@ -75,8 +75,12 @@ public class ApiTemplateServiceImplTest {
 
     @Before
     public void before() {
-        apiTemplateService =
-            new ApiTemplateServiceImpl(apiSearchService, apiMetadataService, primaryOwnerService, notificationTemplateService);
+        apiTemplateService = new ApiTemplateServiceImpl(
+            apiSearchService,
+            apiMetadataService,
+            primaryOwnerService,
+            notificationTemplateService
+        );
     }
 
     @Test
@@ -120,8 +124,9 @@ public class ApiTemplateServiceImplTest {
         apiMetadataEntity.setValue("value");
         when(apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), "api")).thenReturn(List.of(apiMetadataEntity));
 
-        when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(Reader.class), any()))
-            .thenReturn("{key=value resolved}");
+        when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(Reader.class), any())).thenReturn(
+            "{key=value resolved}"
+        );
 
         when(primaryOwnerService.getPrimaryOwnerEmail(any(), any())).thenReturn("support@gravitee.test");
 
@@ -197,8 +202,9 @@ public class ApiTemplateServiceImplTest {
         apiMetadataEntity.setValue("value");
         when(apiMetadataService.findAllByApi(GraviteeContext.getExecutionContext(), "api-id")).thenReturn(List.of(apiMetadataEntity));
 
-        when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(Reader.class), any()))
-            .thenReturn("{key=value resolved}");
+        when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(Reader.class), any())).thenReturn(
+            "{key=value resolved}"
+        );
 
         when(primaryOwnerService.getPrimaryOwnerEmail(any(), any())).thenReturn("support@gravitee.test");
 

@@ -61,8 +61,7 @@ class GetIngestedApisUseCaseTest {
         var ingestedApis = usecase.execute(input).ingestedApis();
 
         AssertionsForClassTypes.assertThat(ingestedApis).isNotNull();
-        AssertionsForClassTypes
-            .assertThat(ingestedApis)
+        AssertionsForClassTypes.assertThat(ingestedApis)
             .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
             .containsExactly(apis, 1, ingestedApis.getPageElements(), (long) ingestedApis.getContent().size());
     }

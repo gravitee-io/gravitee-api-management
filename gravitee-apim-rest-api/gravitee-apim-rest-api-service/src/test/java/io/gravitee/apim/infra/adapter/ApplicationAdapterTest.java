@@ -39,8 +39,7 @@ class ApplicationAdapterTest {
 
     @Test
     public void should_convert_application_to_application_entity() {
-        final Application toConvert = Application
-            .builder()
+        final Application toConvert = Application.builder()
             .id("app-id")
             .name("app-name")
             .description("app-description")
@@ -82,8 +81,7 @@ class ApplicationAdapterTest {
 
     @Test
     public void should_convert_application_to_application_entity_null_fields() {
-        final Application toConvert = Application
-            .builder()
+        final Application toConvert = Application.builder()
             .id("app-id")
             .name("app-name")
             .description("app-description")

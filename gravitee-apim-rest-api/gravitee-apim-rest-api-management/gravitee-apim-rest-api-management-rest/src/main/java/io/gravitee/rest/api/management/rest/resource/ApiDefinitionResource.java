@@ -111,14 +111,12 @@ public class ApiDefinitionResource extends AbstractResource {
             }
             ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(executionContext, apiDefinitionModified);
             final String apiDefinitionUpdated = apiExportService.exportAsJson(executionContext, api, EXPORT_VERSION);
-            return Response
-                .ok(apiDefinitionUpdated)
+            return Response.ok(apiDefinitionUpdated)
                 .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
                 .lastModified(updatedApi.getUpdatedAt())
                 .build();
         } catch (JsonPatchTestFailedException e) {
-            return Response
-                .noContent()
+            return Response.noContent()
                 .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
                 .lastModified(apiEntity.getUpdatedAt())
                 .build();

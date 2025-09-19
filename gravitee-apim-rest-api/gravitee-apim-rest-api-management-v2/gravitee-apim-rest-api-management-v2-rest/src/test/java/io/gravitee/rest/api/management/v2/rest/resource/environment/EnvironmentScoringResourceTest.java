@@ -114,8 +114,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                     assertThat(result.getData())
                         .hasSize(1)
                         .containsOnly(
-                            EnvironmentApiScore
-                                .builder()
+                            EnvironmentApiScore.builder()
                                 .id("api1")
                                 .name("api-name")
                                 .pictureUrl(apisTarget.path("api1").path("picture").queryParam("hash", "1697969730000").getUri().toString())
@@ -126,8 +125,9 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                                 .hints(1)
                                 .build()
                         );
-                    assertThat(result.getPagination())
-                        .isEqualTo(Pagination.builder().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L).build());
+                    assertThat(result.getPagination()).isEqualTo(
+                        Pagination.builder().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L).build()
+                    );
                 });
         }
 
@@ -139,7 +139,10 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             var pageSize = 5;
 
             scoringReportQueryService.initWith(
-                IntStream.range(0, expectedTotal).mapToObj(String::valueOf).map(id -> aReport(id).withApiId(id)).toList()
+                IntStream.range(0, expectedTotal)
+                    .mapToObj(String::valueOf)
+                    .map(id -> aReport(id).withApiId(id))
+                    .toList()
             );
 
             // When
@@ -151,8 +154,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                 .asEntity(EnvironmentApisScoringResponse.class)
                 .extracting(EnvironmentApisScoringResponse::getPagination)
                 .isEqualTo(
-                    Pagination
-                        .builder()
+                    Pagination.builder()
                         .page(pageNumber)
                         .perPage(pageSize)
                         .pageItemsCount(pageSize)
@@ -170,7 +172,10 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             var pageSize = 5;
 
             scoringReportQueryService.initWith(
-                IntStream.range(0, expectedTotal).mapToObj(String::valueOf).map(id -> aReport(id).withApiId(id)).toList()
+                IntStream.range(0, expectedTotal)
+                    .mapToObj(String::valueOf)
+                    .map(id -> aReport(id).withApiId(id))
+                    .toList()
             );
 
             // When
@@ -182,8 +187,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                 .asEntity(EnvironmentApisScoringResponse.class)
                 .extracting(EnvironmentApisScoringResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    Links.builder()
                         .self(scoringApisTarget.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
                         .first(scoringApisTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .last(scoringApisTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
@@ -222,8 +226,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
     }
 
     private static ScoringReport aReport(String id) {
-        return ScoringReportFixture
-            .aScoringReport()
+        return ScoringReportFixture.aScoringReport()
             .toBuilder()
             .id(id)
             .environmentId(ENVIRONMENT)

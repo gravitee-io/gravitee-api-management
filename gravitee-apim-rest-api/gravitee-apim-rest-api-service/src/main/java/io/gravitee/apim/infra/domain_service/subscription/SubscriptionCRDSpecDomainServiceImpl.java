@@ -53,7 +53,9 @@ public class SubscriptionCRDSpecDomainServiceImpl implements SubscriptionCRDSpec
 
     @Override
     public SubscriptionEntity createOrUpdate(AuditInfo auditInfo, SubscriptionCRDSpec spec) {
-        return find(spec.getId()).map((existing -> update(auditInfo, existing, spec))).orElseGet(() -> create(auditInfo, spec));
+        return find(spec.getId())
+            .map((existing -> update(auditInfo, existing, spec)))
+            .orElseGet(() -> create(auditInfo, spec));
     }
 
     @Override

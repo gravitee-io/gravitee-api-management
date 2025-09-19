@@ -54,8 +54,7 @@ public class ThemeServiceLegacyWrapperImplTest {
 
             var executionContext = new ExecutionContext("ORG_ID", "ENV_ID");
 
-            var themeEntity = ThemeEntity
-                .builder()
+            var themeEntity = ThemeEntity.builder()
                 .id("portal-id")
                 .type(io.gravitee.rest.api.model.theme.ThemeType.PORTAL)
                 .definition(definitionPortal)

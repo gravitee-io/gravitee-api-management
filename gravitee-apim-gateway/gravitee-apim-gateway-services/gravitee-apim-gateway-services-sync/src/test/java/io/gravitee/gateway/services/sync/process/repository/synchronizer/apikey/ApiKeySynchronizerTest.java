@@ -76,15 +76,14 @@ class ApiKeySynchronizerTest {
 
     @BeforeEach
     public void beforeEach() {
-        cut =
-            new ApiKeySynchronizer(
-                apiKeyFetcher,
-                subscriptionService,
-                new ApiKeyMapper(),
-                deployerFactory,
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-            );
+        cut = new ApiKeySynchronizer(
+            apiKeyFetcher,
+            subscriptionService,
+            new ApiKeyMapper(),
+            deployerFactory,
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+        );
         lenient().when(deployerFactory.createApiKeyDeployer()).thenReturn(apiKeyDeployer);
         lenient().when(apiKeyDeployer.deploy(any())).thenReturn(Completable.complete());
         lenient().when(apiKeyDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());

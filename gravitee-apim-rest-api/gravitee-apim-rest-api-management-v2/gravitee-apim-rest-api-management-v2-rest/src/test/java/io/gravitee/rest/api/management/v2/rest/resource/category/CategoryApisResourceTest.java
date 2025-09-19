@@ -87,9 +87,12 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        Stream
-            .of(apiAuthorizationDomainService, categoryApiQueryServiceInMemory, categoryQueryServiceInMemory, apiQueryServiceInMemory)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiAuthorizationDomainService,
+            categoryApiQueryServiceInMemory,
+            categoryQueryServiceInMemory,
+            apiQueryServiceInMemory
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -104,13 +107,11 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
                     ENV_ID,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -121,8 +122,7 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
         void should_throw_error_when_category_does_not_exist() {
             final Response response = rootTarget().request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -135,8 +135,7 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(CategoryApisResponse.class)
                 .hasFieldOrPropertyWithValue("data", List.of());
@@ -160,8 +159,7 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
             );
             final Response response = rootTarget().queryParam("page", 2).queryParam("perPage", 1).request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(CategoryApisResponse.class)
                 .extracting(CategoryApisResponse::getData)
@@ -189,8 +187,7 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
             );
             final Response response = rootTarget().request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(CategoryApisResponse.class)
                 .extracting(CategoryApisResponse::getData)
@@ -219,8 +216,7 @@ public class CategoryApisResourceTest extends AbstractResourceTest {
             );
             final Response response = rootTarget().request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(CategoryApisResponse.class)
                 .extracting(CategoryApisResponse::getData)

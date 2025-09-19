@@ -74,10 +74,12 @@ class ApiV4DefinitionSecretRefsFinderTest {
     void should_get_definition() {
         Api api = new Api();
         api.setId("foo");
-        assertThat(underTest.toDefinitionDescriptor(api, new DefinitionMetadata(null)))
-            .isEqualTo(new DefinitionDescriptor(new Definition("api-v4", "foo"), Optional.empty()));
-        assertThat(underTest.toDefinitionDescriptor(api, new DefinitionMetadata("42")))
-            .isEqualTo(new DefinitionDescriptor(new Definition("api-v4", "foo"), Optional.of("42")));
+        assertThat(underTest.toDefinitionDescriptor(api, new DefinitionMetadata(null))).isEqualTo(
+            new DefinitionDescriptor(new Definition("api-v4", "foo"), Optional.empty())
+        );
+        assertThat(underTest.toDefinitionDescriptor(api, new DefinitionMetadata("42"))).isEqualTo(
+            new DefinitionDescriptor(new Definition("api-v4", "foo"), Optional.of("42"))
+        );
     }
 
     public static Stream<Arguments> apis() {
@@ -160,8 +162,9 @@ class ApiV4DefinitionSecretRefsFinderTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("apis")
     void should_no_fail_when_parts_of_the_api_is_null(String name, Api api) {
-        assertThatCode(() -> underTest.findSecretRefs(api, (config, location, setter) -> setter.accept(processed(config))))
-            .doesNotThrowAnyException();
+        assertThatCode(() ->
+            underTest.findSecretRefs(api, (config, location, setter) -> setter.accept(processed(config)))
+        ).doesNotThrowAnyException();
     }
 
     @Test
@@ -320,16 +323,13 @@ class ApiV4DefinitionSecretRefsFinderTest {
         Set<String> actualLocations = new HashSet<>();
 
         // execute test
-        underTest.findSecretRefs(
-            api,
-            (config, location, setter) -> {
-                actualConfigs.add(config);
-                actualLocations.add(location.id());
-                // simulate plugin has processed the config
-                String processed = processed(config);
-                setter.accept(processed);
-            }
-        );
+        underTest.findSecretRefs(api, (config, location, setter) -> {
+            actualConfigs.add(config);
+            actualLocations.add(location.id());
+            // simulate plugin has processed the config
+            String processed = processed(config);
+            setter.accept(processed);
+        });
 
         // assertions
         assertThat(actualConfigs).hasSameElementsAs(expectedConfigs);
@@ -338,26 +338,33 @@ class ApiV4DefinitionSecretRefsFinderTest {
         assertThat(api.getListeners().get(0).getEntrypoints().get(0).getConfiguration()).isEqualTo(processed(entrypointConfig));
         assertThat(api.getResources().get(0).getConfiguration()).isEqualTo(processed(resourceConfig));
         assertThat(api.getPlans().get(0).getSecurity().getConfiguration()).isEqualTo(processed(planSecurityConfig));
-        assertThat(api.getPlans().get(0).getFlows().get(0).getRequest().get(0).getConfiguration())
-            .isEqualTo(processed(planRequestFlowConfig));
-        assertThat(api.getPlans().get(0).getFlows().get(0).getResponse().get(0).getConfiguration())
-            .isEqualTo(processed(planResponseFlowConfig));
-        assertThat(api.getPlans().get(0).getFlows().get(0).getPublish().get(0).getConfiguration())
-            .isEqualTo(processed(planPublishFlowConfig));
-        assertThat(api.getPlans().get(0).getFlows().get(0).getSubscribe().get(0).getConfiguration())
-            .isEqualTo(processed(planSubscribeFlowConfig));
+        assertThat(api.getPlans().get(0).getFlows().get(0).getRequest().get(0).getConfiguration()).isEqualTo(
+            processed(planRequestFlowConfig)
+        );
+        assertThat(api.getPlans().get(0).getFlows().get(0).getResponse().get(0).getConfiguration()).isEqualTo(
+            processed(planResponseFlowConfig)
+        );
+        assertThat(api.getPlans().get(0).getFlows().get(0).getPublish().get(0).getConfiguration()).isEqualTo(
+            processed(planPublishFlowConfig)
+        );
+        assertThat(api.getPlans().get(0).getFlows().get(0).getSubscribe().get(0).getConfiguration()).isEqualTo(
+            processed(planSubscribeFlowConfig)
+        );
         assertThat(api.getFlows().get(0).getRequest().get(0).getConfiguration()).isEqualTo(processed(definitionRequestFlowConfig));
         assertThat(api.getFlows().get(0).getResponse().get(0).getConfiguration()).isEqualTo(processed(definitionResponseFlowConfig));
         assertThat(api.getFlows().get(0).getPublish().get(0).getConfiguration()).isEqualTo(processed(definitionPublishFlowConfig));
         assertThat(api.getFlows().get(0).getSubscribe().get(0).getConfiguration()).isEqualTo(processed(definitionSubscribeFlowConfig));
-        assertThat(api.getEndpointGroups().get(0).getServices().getHealthCheck().getConfiguration())
-            .isEqualTo(processed(endpointGroupHealthCheckServiceConfig));
-        assertThat(api.getEndpointGroups().get(0).getServices().getDiscovery().getConfiguration())
-            .isEqualTo(processed(endpointGroupDiscoveryServiceConfig));
+        assertThat(api.getEndpointGroups().get(0).getServices().getHealthCheck().getConfiguration()).isEqualTo(
+            processed(endpointGroupHealthCheckServiceConfig)
+        );
+        assertThat(api.getEndpointGroups().get(0).getServices().getDiscovery().getConfiguration()).isEqualTo(
+            processed(endpointGroupDiscoveryServiceConfig)
+        );
         assertThat(api.getEndpointGroups().get(0).getSharedConfiguration()).isEqualTo(processed(endpointGroupSharedConfig));
         assertThat(api.getEndpointGroups().get(0).getEndpoints().get(0).getConfiguration()).isEqualTo(processed(endpointConfig));
-        assertThat(api.getEndpointGroups().get(0).getEndpoints().get(0).getServices().getHealthCheck().getConfiguration())
-            .isEqualTo(processed(endpointHealthCheckConfig));
+        assertThat(api.getEndpointGroups().get(0).getEndpoints().get(0).getServices().getHealthCheck().getConfiguration()).isEqualTo(
+            processed(endpointHealthCheckConfig)
+        );
         ResponseTemplate processedTemplate = api.getResponseTemplates().get(responseTemplateType).get("*/*");
         assertThat(processedTemplate.getBody()).isEqualTo(processed(responseTemplateBody));
         assertThat(processedTemplate.getHeaders().get("Test")).hasToString(processed(responseTemplateHeaderValue));

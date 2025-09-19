@@ -30,8 +30,7 @@ public class NotFoundDomainExceptionMapper extends AbstractDomainExceptionMapper
     }
 
     private Error notFoundDomainError(NotFoundDomainException nfe) {
-        return Error
-            .builder()
+        return Error.builder()
             .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
             .message(nfe.getMessage())
             .parameters(Map.of("id", nfe.getId()))

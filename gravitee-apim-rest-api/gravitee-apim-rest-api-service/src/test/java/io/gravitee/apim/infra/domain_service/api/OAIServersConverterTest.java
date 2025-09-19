@@ -80,8 +80,10 @@ class OAIServersConverterTest {
             var server3 = new Server();
             server3.setUrl("https://api3.company.com/{basePath}");
             server3.setVariables(
-                new ServerVariables()
-                    .addServerVariable("basePath", new ServerVariable().description("Base path")._enum(List.of("v2", "v3")))
+                new ServerVariables().addServerVariable(
+                    "basePath",
+                    new ServerVariable().description("Base path")._enum(List.of("v2", "v3"))
+                )
             );
 
             var server4 = new Server();
@@ -96,13 +98,12 @@ class OAIServersConverterTest {
             var result = OAIServersConverter.INSTANCE.convert(List.of(server1, server2, server3, server4));
 
             // Then
-            assertThat(result)
-                .containsExactlyInAnyOrder(
-                    "https://api.company.com/v1",
-                    "https://api2.company.com",
-                    "https://api3.company.com/v2",
-                    "https://api3.company.com/v3"
-                );
+            assertThat(result).containsExactlyInAnyOrder(
+                "https://api.company.com/v1",
+                "https://api2.company.com",
+                "https://api3.company.com/v2",
+                "https://api3.company.com/v3"
+            );
         }
 
         @Test
@@ -120,13 +121,12 @@ class OAIServersConverterTest {
             var result = OAIServersConverter.INSTANCE.convert(List.of(server));
 
             // Then
-            assertThat(result)
-                .containsExactlyInAnyOrder(
-                    "https://demo.gravitee.io:8443/gateway/v1",
-                    "https://demo.gravitee.io:443/gateway/v1",
-                    "https://demo.gravitee.io:8443/gateway/v2",
-                    "https://demo.gravitee.io:443/gateway/v2"
-                );
+            assertThat(result).containsExactlyInAnyOrder(
+                "https://demo.gravitee.io:8443/gateway/v1",
+                "https://demo.gravitee.io:443/gateway/v1",
+                "https://demo.gravitee.io:8443/gateway/v2",
+                "https://demo.gravitee.io:443/gateway/v2"
+            );
         }
     }
 }

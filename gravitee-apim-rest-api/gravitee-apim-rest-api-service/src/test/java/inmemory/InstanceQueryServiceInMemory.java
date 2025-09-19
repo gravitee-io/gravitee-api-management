@@ -27,7 +27,10 @@ public class InstanceQueryServiceInMemory implements InstanceQueryService, InMem
 
     @Override
     public List<Instance> findAllStarted(String organizationId, String environmentId) {
-        return storage.stream().filter(instance -> instance.getStartedAt() != null).toList();
+        return storage
+            .stream()
+            .filter(instance -> instance.getStartedAt() != null)
+            .toList();
     }
 
     @Override

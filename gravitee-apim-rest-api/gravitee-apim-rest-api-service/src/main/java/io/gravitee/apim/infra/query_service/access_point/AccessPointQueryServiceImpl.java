@@ -46,8 +46,7 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
             return accessPointRepository
                 .findByHost(host)
                 .map(accessPoint ->
-                    ReferenceContext
-                        .builder()
+                    ReferenceContext.builder()
                         .referenceId(accessPoint.getReferenceId())
                         .referenceType(ReferenceContext.Type.valueOf(accessPoint.getReferenceType().name()))
                         .build()

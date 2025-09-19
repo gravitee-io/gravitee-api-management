@@ -57,14 +57,16 @@ public class ResponseTimeRangeQueryAdapter {
             .map(json ->
                 Map.of(json.get("key_as_string").asText(), json.get(REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD).get("value").asDouble())
             )
-            .reduce(
-                new LinkedHashMap<>(),
-                (acc, b) -> {
-                    acc.putAll(b);
-                    return acc;
-                }
-            );
-        double avg = averageConnectionDuration.values().stream().mapToDouble(e -> e).average().orElse(0);
+            .reduce(new LinkedHashMap<>(), (acc, b) -> {
+                acc.putAll(b);
+                return acc;
+            });
+        double avg = averageConnectionDuration
+            .values()
+            .stream()
+            .mapToDouble(e -> e)
+            .average()
+            .orElse(0);
 
         return Maybe.just(buildFromSource(averageConnectionDuration, avg));
     }
@@ -104,8 +106,10 @@ public class ResponseTimeRangeQueryAdapter {
                     .put("min", query.from().toEpochMilli())
                     .put("max", query.to().toEpochMilli())
             );
-        ObjectNode agg = json()
-            .set(REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD, json().set(REDUCE_OPERATION, json().put("field", RESPONSE_TIME_FIELD)));
+        ObjectNode agg = json().set(
+            REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD,
+            json().set(REDUCE_OPERATION, json().put("field", RESPONSE_TIME_FIELD))
+        );
 
         return json().set(HISTOGRAM, json().<ObjectNode>set("date_histogram", histogram).set("aggregations", agg));
     }

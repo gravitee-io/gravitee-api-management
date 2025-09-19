@@ -67,24 +67,19 @@ public class UserMapper {
                         .entrySet()
                         .stream()
                         .collect(
-                            Collectors.toMap(
-                                Map.Entry::getKey,
-                                entry ->
-                                    new String(entry.getValue())
-                                        .chars()
-                                        .mapToObj(c -> (char) c)
-                                        .map(String::valueOf)
-                                        .collect(Collectors.toList())
+                            Collectors.toMap(Map.Entry::getKey, entry ->
+                                new String(entry.getValue())
+                                    .chars()
+                                    .mapToObj(c -> (char) c)
+                                    .map(String::valueOf)
+                                    .collect(Collectors.toList())
                             )
                         )
                 )
-                .reduce(
-                    new HashMap<>(),
-                    (acc, rolePermissions) -> {
-                        acc.putAll(rolePermissions);
-                        return acc;
-                    }
-                );
+                .reduce(new HashMap<>(), (acc, rolePermissions) -> {
+                    acc.putAll(rolePermissions);
+                    return acc;
+                });
             userItem.setPermissions(objectMapper.convertValue(userPermissions, UserPermissions.class));
         }
         userItem.setCustomFields(user.getCustomFields());

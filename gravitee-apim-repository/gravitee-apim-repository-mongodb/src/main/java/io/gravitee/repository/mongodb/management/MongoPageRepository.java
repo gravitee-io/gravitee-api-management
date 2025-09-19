@@ -248,6 +248,10 @@ public class MongoPageRepository implements PageRepository {
 
     @Override
     public Set<Page> findAll() throws TechnicalException {
-        return internalPageRepo.findAll().stream().map(pageMongo -> mapper.map(pageMongo)).collect(Collectors.toSet());
+        return internalPageRepo
+            .findAll()
+            .stream()
+            .map(pageMongo -> mapper.map(pageMongo))
+            .collect(Collectors.toSet());
     }
 }

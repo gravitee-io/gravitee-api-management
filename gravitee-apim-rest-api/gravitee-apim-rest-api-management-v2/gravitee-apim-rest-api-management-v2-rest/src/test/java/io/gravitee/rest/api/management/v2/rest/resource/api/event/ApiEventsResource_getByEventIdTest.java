@@ -45,8 +45,7 @@ import org.junit.jupiter.api.Test;
 
 class ApiEventsResource_getByEventIdTest extends ApiResourceTest {
 
-    private static final BaseUserEntity USER = BaseUserEntity
-        .builder()
+    private static final BaseUserEntity USER = BaseUserEntity.builder()
         .id("user-id")
         .firstname("John")
         .lastname("Doe")
@@ -88,22 +87,19 @@ class ApiEventsResource_getByEventIdTest extends ApiResourceTest {
     void should_return_event_by_specific_event_id() {
         eventQueryService.initWith(
             List.of(
-                EventFixtures
-                    .anApiEvent(API)
+                EventFixtures.anApiEvent(API)
                     .toBuilder()
                     .id("1")
                     .environments(Set.of(ENVIRONMENT))
                     .createdAt(ZonedDateTime.parse("2020-02-01T20:00:00.00Z"))
                     .build(),
-                EventFixtures
-                    .anApiEvent(API)
+                EventFixtures.anApiEvent(API)
                     .toBuilder()
                     .id("2")
                     .environments(Set.of(ENVIRONMENT))
                     .createdAt(ZonedDateTime.parse("2020-02-02T20:00:00.00Z"))
                     .build(),
-                EventFixtures
-                    .anApiEvent(API)
+                EventFixtures.anApiEvent(API)
                     .toBuilder()
                     .id("3")
                     .environments(Set.of(ENVIRONMENT))
@@ -118,8 +114,7 @@ class ApiEventsResource_getByEventIdTest extends ApiResourceTest {
             .hasStatus(OK_200)
             .asEntity(Event.class)
             .isEqualTo(
-                Event
-                    .builder()
+                Event.builder()
                     .id("2")
                     .environmentIds(List.of(ENVIRONMENT))
                     .initiator(new BaseUser().id("user-id").displayName("John Doe"))
@@ -141,8 +136,7 @@ class ApiEventsResource_getByEventIdTest extends ApiResourceTest {
     void should_return_403_if_incorrect_permissions() {
         when(
             permissionService.hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_EVENT, API, RolePermissionAction.READ)
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = target.request().get();
 

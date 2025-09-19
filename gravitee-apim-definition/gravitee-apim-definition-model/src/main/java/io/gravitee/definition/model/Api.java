@@ -242,25 +242,21 @@ public class Api implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Stream
-            .of(
-                Optional
-                    .ofNullable(this.getResources())
-                    .map(r ->
-                        r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).collect(Collectors.toList())
-                    )
-                    .orElse(List.of()),
-                Optional
-                    .ofNullable(this.getFlows())
-                    .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
-                    .orElse(List.of()),
-                Optional
-                    .ofNullable(this.getPlans())
-                    .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
-                    .orElse(List.of()),
-                Optional.ofNullable(this.getServices()).map(Services::getPlugins).orElse(List.of()),
-                Optional.ofNullable(this.proxy).map(Proxy::getPlugins).orElse(List.of())
-            )
+        return Stream.of(
+            Optional.ofNullable(this.getResources())
+                .map(r ->
+                    r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).collect(Collectors.toList())
+                )
+                .orElse(List.of()),
+            Optional.ofNullable(this.getFlows())
+                .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
+                .orElse(List.of()),
+            Optional.ofNullable(this.getPlans())
+                .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
+                .orElse(List.of()),
+            Optional.ofNullable(this.getServices()).map(Services::getPlugins).orElse(List.of()),
+            Optional.ofNullable(this.proxy).map(Proxy::getPlugins).orElse(List.of())
+        )
             .flatMap(List::stream)
             .collect(Collectors.toList());
     }

@@ -40,7 +40,15 @@ public class JoltMapperTest {
         Collection<DynamicProperty> properties = mapper.map(input);
         assertEquals(properties.size(), 10);
         // Should stringify input number value if used as key
-        assertEquals(properties.stream().filter(p -> p.getKey().equals("1")).findFirst().get().getValue(), "stores_id");
+        assertEquals(
+            properties
+                .stream()
+                .filter(p -> p.getKey().equals("1"))
+                .findFirst()
+                .get()
+                .getValue(),
+            "stores_id"
+        );
     }
 
     @Test
@@ -51,7 +59,15 @@ public class JoltMapperTest {
         Collection<DynamicProperty> properties = mapper.map(input);
         assertEquals(properties.size(), 10);
         // Should stringify input number value if used as value
-        assertEquals(properties.stream().filter(p -> p.getKey().equals("stores_id")).findFirst().get().getValue(), "1");
+        assertEquals(
+            properties
+                .stream()
+                .filter(p -> p.getKey().equals("stores_id"))
+                .findFirst()
+                .get()
+                .getValue(),
+            "1"
+        );
     }
 
     private InputStream read(String resource) throws IOException {

@@ -41,9 +41,9 @@ public class JoltMapper {
         if (source == null || source.isEmpty()) {
             return List.of();
         }
-        ArrayList<Object> transformedProperties = (ArrayList<Object>) (
-            isJsonArray(source) ? joltReader.transform(JsonUtils.jsonToList(source)) : joltReader.transform(JsonUtils.jsonToMap(source))
-        );
+        ArrayList<Object> transformedProperties = (ArrayList<Object>) (isJsonArray(source)
+                ? joltReader.transform(JsonUtils.jsonToList(source))
+                : joltReader.transform(JsonUtils.jsonToMap(source)));
         final String newProperties = JsonUtils.toJsonString(transformedProperties);
 
         final List<Object> extractObjects = JsonUtils.jsonToList(newProperties);

@@ -80,8 +80,7 @@ public class PromoteApiOperationHandlerTest {
 
     @Test
     public void shouldHandlePromotionRequest() throws JsonProcessingException, InterruptedException {
-        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload
-            .builder()
+        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload.builder()
             .operation(BridgeOperation.PROMOTE_API.name())
             .installationId(INSTALLATION_ID)
             .organizationId(ORGANIZATION_ID)
@@ -117,8 +116,7 @@ public class PromoteApiOperationHandlerTest {
 
     @Test
     public void shouldHandlePromotionRequestIfCannotReadPromotionEntity() throws JsonProcessingException, InterruptedException {
-        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload
-            .builder()
+        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload.builder()
             .operation(BridgeOperation.PROMOTE_API.name())
             .installationId(INSTALLATION_ID)
             .organizationId(ORGANIZATION_ID)
@@ -134,17 +132,17 @@ public class PromoteApiOperationHandlerTest {
 
         // Then
         obs.await();
-        obs.assertValue(reply ->
-            reply.getCommandId().equals(command.getId()) &&
-            reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-            reply.getErrorDetails().equals("Problem while deserializing promotion request for environment [" + ENVIRONMENT_ID + "]")
+        obs.assertValue(
+            reply ->
+                reply.getCommandId().equals(command.getId()) &&
+                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+                reply.getErrorDetails().equals("Problem while deserializing promotion request for environment [" + ENVIRONMENT_ID + "]")
         );
     }
 
     @Test
     public void shouldHandlePromotionRequestIfCannotWritePayload() throws JsonProcessingException, InterruptedException {
-        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload
-            .builder()
+        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload.builder()
             .operation(BridgeOperation.PROMOTE_API.name())
             .installationId(INSTALLATION_ID)
             .organizationId(ORGANIZATION_ID)
@@ -165,18 +163,18 @@ public class PromoteApiOperationHandlerTest {
 
         // Then
         obs.await();
-        obs.assertValue(reply ->
-            reply.getCommandId().equals(command.getId()) &&
-            reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-            reply.getErrorDetails().equals("Problem while serializing promotion request for environment [" + ENVIRONMENT_ID + "]")
+        obs.assertValue(
+            reply ->
+                reply.getCommandId().equals(command.getId()) &&
+                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+                reply.getErrorDetails().equals("Problem while serializing promotion request for environment [" + ENVIRONMENT_ID + "]")
         );
     }
 
     @Test
     public void shouldReturnErrorCommand() throws JsonProcessingException, InterruptedException {
         when(promotionService.createOrUpdate(any())).thenThrow(new TechnicalManagementException("error"));
-        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload
-            .builder()
+        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload.builder()
             .installationId(INSTALLATION_ID)
             .organizationId(ORGANIZATION_ID)
             .environmentId(ENVIRONMENT_ID)

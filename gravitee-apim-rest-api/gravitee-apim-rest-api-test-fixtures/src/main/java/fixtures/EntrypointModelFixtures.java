@@ -20,16 +20,14 @@ public class EntrypointModelFixtures {
     private EntrypointModelFixtures() {}
 
     private static final io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint.EntrypointBuilder BASE_MODEL_ENTRYPOINT_HTTP_V4 =
-        io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint
-            .builder()
+        io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint.builder()
             .type("Entrypoint type")
             .qos(io.gravitee.definition.model.v4.listener.entrypoint.Qos.AT_LEAST_ONCE)
             .dlq(new io.gravitee.definition.model.v4.listener.entrypoint.Dlq("my-endpoint"))
             .configuration("{\"nice\": \"configuration\"}");
 
     private static final io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint.NativeEntrypointBuilder BASE_MODEL_ENTRYPOINT_NATIVE_V4 =
-        io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint
-            .builder()
+        io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint.builder()
             .type("Entrypoint type")
             .configuration("{\"nice\": \"configuration\"}");
 

@@ -94,11 +94,10 @@ public class ScheduledSearchIndexerServiceTest {
         delete.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
         delete.setContent("{\"id\":\"2\"}");
 
-        when(commandService.search(any(ExecutionContext.class), any()))
-            .thenAnswer(call -> {
-                ExecutionContext context = call.getArgument(0);
-                return "DEFAULT_1".equals(context.getOrganizationId()) ? List.of(delete, insert) : List.of();
-            });
+        when(commandService.search(any(ExecutionContext.class), any())).thenAnswer(call -> {
+            ExecutionContext context = call.getArgument(0);
+            return "DEFAULT_1".equals(context.getOrganizationId()) ? List.of(delete, insert) : List.of();
+        });
 
         service.run();
 

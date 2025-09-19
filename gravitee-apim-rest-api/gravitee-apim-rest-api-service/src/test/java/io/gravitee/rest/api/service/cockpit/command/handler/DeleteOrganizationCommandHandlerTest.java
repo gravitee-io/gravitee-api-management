@@ -168,32 +168,31 @@ public class DeleteOrganizationCommandHandlerTest {
         when(organizationService.findByCockpitId(ORG_ID)).thenReturn(organization);
         when(userRepository.deleteByOrganizationId(ORG_ID)).thenReturn(List.of(USER_ID, USER_ID_2));
 
-        cut =
-            new DeleteOrganizationCommandHandler(
-                accessPointRepository,
-                auditRepository,
-                commandRepository,
-                customUserFieldsRepository,
-                flowRepository,
-                identityProviderActivationRepository,
-                identityProviderRepository,
-                licenseRepository,
-                mediaRepository,
-                membershipRepository,
-                metadataRepository,
-                parameterRepository,
-                portalNotificationRepository,
-                roleRepository,
-                tagRepository,
-                tenantRepository,
-                tokenRepository,
-                userRepository,
-                accessPointService,
-                environmentService,
-                identityProviderActivationService,
-                organizationService,
-                searchEngineService
-            );
+        cut = new DeleteOrganizationCommandHandler(
+            accessPointRepository,
+            auditRepository,
+            commandRepository,
+            customUserFieldsRepository,
+            flowRepository,
+            identityProviderActivationRepository,
+            identityProviderRepository,
+            licenseRepository,
+            mediaRepository,
+            membershipRepository,
+            metadataRepository,
+            parameterRepository,
+            portalNotificationRepository,
+            roleRepository,
+            tagRepository,
+            tenantRepository,
+            tokenRepository,
+            userRepository,
+            accessPointService,
+            environmentService,
+            identityProviderActivationService,
+            organizationService,
+            searchEngineService
+        );
     }
 
     @Test
@@ -249,15 +248,23 @@ public class DeleteOrganizationCommandHandlerTest {
     }
 
     private void verifyDeleteOrganization(ExecutionContext executionContext) throws TechnicalException {
-        verify(accessPointRepository)
-            .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), AccessPointReferenceType.ORGANIZATION);
+        verify(accessPointRepository).deleteByReferenceIdAndReferenceType(
+            executionContext.getOrganizationId(),
+            AccessPointReferenceType.ORGANIZATION
+        );
         verify(flowRepository).deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), FlowReferenceType.ORGANIZATION);
-        verify(parameterRepository)
-            .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION);
-        verify(auditRepository)
-            .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), Audit.AuditReferenceType.ORGANIZATION);
-        verify(customUserFieldsRepository)
-            .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), CustomUserFieldReferenceType.ORGANIZATION);
+        verify(parameterRepository).deleteByReferenceIdAndReferenceType(
+            executionContext.getOrganizationId(),
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(auditRepository).deleteByReferenceIdAndReferenceType(
+            executionContext.getOrganizationId(),
+            Audit.AuditReferenceType.ORGANIZATION
+        );
+        verify(customUserFieldsRepository).deleteByReferenceIdAndReferenceType(
+            executionContext.getOrganizationId(),
+            CustomUserFieldReferenceType.ORGANIZATION
+        );
         verify(userRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(searchEngineService).delete(executionContext, UserEntity.builder().id(USER_ID).build());
         verify(searchEngineService).delete(executionContext, UserEntity.builder().id(USER_ID_2).build());
@@ -267,17 +274,20 @@ public class DeleteOrganizationCommandHandlerTest {
         verify(portalNotificationRepository).deleteAll(USER_ID_2);
         verify(tokenRepository).deleteByReferenceIdAndReferenceType(USER_ID, TokenReferenceType.USER.name());
         verify(tokenRepository).deleteByReferenceIdAndReferenceType(USER_ID_2, TokenReferenceType.USER.name());
-        verify(tenantRepository)
-            .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), TenantReferenceType.ORGANIZATION);
+        verify(tenantRepository).deleteByReferenceIdAndReferenceType(
+            executionContext.getOrganizationId(),
+            TenantReferenceType.ORGANIZATION
+        );
         verify(roleRepository).deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), RoleReferenceType.ORGANIZATION);
-        verify(membershipRepository)
-            .deleteByReferenceIdAndReferenceType(executionContext.getOrganizationId(), MembershipReferenceType.ORGANIZATION);
+        verify(membershipRepository).deleteByReferenceIdAndReferenceType(
+            executionContext.getOrganizationId(),
+            MembershipReferenceType.ORGANIZATION
+        );
         verify(identityProviderRepository).deleteByOrganizationId(executionContext.getOrganizationId());
-        verify(identityProviderActivationRepository)
-            .deleteByReferenceIdAndReferenceType(
-                executionContext.getOrganizationId(),
-                io.gravitee.repository.management.model.IdentityProviderActivationReferenceType.ORGANIZATION
-            );
+        verify(identityProviderActivationRepository).deleteByReferenceIdAndReferenceType(
+            executionContext.getOrganizationId(),
+            io.gravitee.repository.management.model.IdentityProviderActivationReferenceType.ORGANIZATION
+        );
         verify(commandRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(licenseRepository).delete(ORG_ID, License.ReferenceType.ORGANIZATION);
         verify(tagRepository).deleteByReferenceIdAndReferenceType(ORG_ID, TagReferenceType.ORGANIZATION);
@@ -288,14 +298,13 @@ public class DeleteOrganizationCommandHandlerTest {
 
     private void verifyDisableOrganization(ExecutionContext context) {
         verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, context.getOrganizationId());
-        verify(identityProviderActivationService)
-            .removeAllIdpsFromTarget(
-                context,
-                new IdentityProviderActivationService.ActivationTarget(
-                    context.getOrganizationId(),
-                    IdentityProviderActivationReferenceType.ORGANIZATION
-                )
-            );
+        verify(identityProviderActivationService).removeAllIdpsFromTarget(
+            context,
+            new IdentityProviderActivationService.ActivationTarget(
+                context.getOrganizationId(),
+                IdentityProviderActivationReferenceType.ORGANIZATION
+            )
+        );
     }
 
     @Test

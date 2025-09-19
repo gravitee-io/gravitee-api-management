@@ -72,8 +72,9 @@ public class HttpProviderTest {
     @Test
     public void shouldGetProperties() throws IOException {
         when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
-        when(configuration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
+        when(configuration.getSpecification()).thenReturn(
+            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
+        );
         when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
         HttpProvider provider = new HttpProvider(configuration);
@@ -91,8 +92,9 @@ public class HttpProviderTest {
     @Test
     public void shouldGetPropertiesWithoutMethod() throws IOException {
         when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
-        when(configuration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
+        when(configuration.getSpecification()).thenReturn(
+            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
+        );
         when(configuration.getBody()).thenReturn("{}");
 
         HttpProvider provider = new HttpProvider(configuration);
@@ -110,8 +112,9 @@ public class HttpProviderTest {
     @Test
     public void shouldGetPropertiesFromPOST() throws IOException {
         when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
-        when(configuration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
+        when(configuration.getSpecification()).thenReturn(
+            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
+        );
         when(configuration.getMethod()).thenReturn(HttpMethod.GET);
         when(configuration.getBody()).thenReturn("{}");
 
@@ -130,8 +133,9 @@ public class HttpProviderTest {
     @Test
     public void shouldGetNullPropertiesBecauseHttpError() throws IOException {
         when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/error");
-        when(configuration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
+        when(configuration.getSpecification()).thenReturn(
+            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
+        );
         when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
         HttpProvider provider = new HttpProvider(configuration);
@@ -149,8 +153,9 @@ public class HttpProviderTest {
     @Test(expected = CompletionException.class)
     public void shouldCallUnknownUri() throws IOException {
         when(configuration.getUrl()).thenReturn("http://unknown_host:" + wireMockRule.port());
-        when(configuration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
+        when(configuration.getSpecification()).thenReturn(
+            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
+        );
         when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
         HttpProvider provider = new HttpProvider(configuration);

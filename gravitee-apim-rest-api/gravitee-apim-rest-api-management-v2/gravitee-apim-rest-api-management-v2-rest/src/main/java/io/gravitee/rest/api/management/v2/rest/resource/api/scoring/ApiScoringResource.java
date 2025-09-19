@@ -44,8 +44,7 @@ import java.util.List;
 
 public class ApiScoringResource extends AbstractResource {
 
-    static final ApiScoring EMPTY_REPORT = ApiScoring
-        .builder()
+    static final ApiScoring EMPTY_REPORT = ApiScoring.builder()
         .summary(ApiScoringSummary.builder().all(0).errors(0).hints(0).infos(0).warnings(0).build())
         .assets(List.of())
         .build();

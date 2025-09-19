@@ -67,7 +67,12 @@ class VertxTcpRequestTest {
 
         assertBlankedValues(tcpRequest);
 
-        tcpRequest.chunks().doOnNext(buffer -> assertThat(buffer).hasToString("foo")).test().awaitCount(1).assertComplete();
+        tcpRequest
+            .chunks()
+            .doOnNext(buffer -> assertThat(buffer).hasToString("foo"))
+            .test()
+            .awaitCount(1)
+            .assertComplete();
     }
 
     @Test

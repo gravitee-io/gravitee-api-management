@@ -72,11 +72,10 @@ public class ApiImagesServiceImpl implements ApiImagesService {
         if (picture != null) {
             convertImage(imageEntity, picture);
         } else {
-            getDefaultPicture()
-                .ifPresent(content -> {
-                    imageEntity.setType("image/png");
-                    imageEntity.setContent(content);
-                });
+            getDefaultPicture().ifPresent(content -> {
+                imageEntity.setType("image/png");
+                imageEntity.setContent(content);
+            });
         }
         return imageEntity;
     }

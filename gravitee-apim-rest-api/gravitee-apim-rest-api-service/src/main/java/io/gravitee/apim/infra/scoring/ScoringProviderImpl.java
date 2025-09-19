@@ -72,8 +72,16 @@ public class ScoringProviderImpl implements ScoringProvider {
                         )
                         .toList(),
                     null,
-                    request.customRulesets().stream().map(r -> new CustomRuleset(format(r.format()), r.content())).toList(),
-                    request.customFunctions().stream().map(fct -> new CustomFunction(fct.filename(), fct.content())).toList()
+                    request
+                        .customRulesets()
+                        .stream()
+                        .map(r -> new CustomRuleset(format(r.format()), r.content()))
+                        .toList(),
+                    request
+                        .customFunctions()
+                        .stream()
+                        .map(fct -> new CustomFunction(fct.filename(), fct.content()))
+                        .toList()
                 )
             )
         );

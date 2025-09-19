@@ -101,8 +101,9 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
         deployEntity.setDeploymentLabel("a nice label");
 
-        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
-            .thenReturn(false);
+        when(
+            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any())
+        ).thenReturn(false);
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());

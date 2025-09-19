@@ -44,7 +44,9 @@ public enum Order {
 
     static {
         Set<Integer> elements = new HashSet<>();
-        List<Order> orders = Arrays.stream(Order.values()).filter(order -> !elements.add(order.index)).toList();
+        List<Order> orders = Arrays.stream(Order.values())
+            .filter(order -> !elements.add(order.index))
+            .toList();
         if (!orders.isEmpty()) {
             throw new IllegalStateException(String.format("Synchronizer order contain duplicated indexes [%s].", orders));
         }

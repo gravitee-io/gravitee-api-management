@@ -86,8 +86,7 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
         @Test
         void should_create_ruleset() {
             // Given
-            var request = ImportScoringRuleset
-                .builder()
+            var request = ImportScoringRuleset.builder()
                 .name("ruleset-name")
                 .description("ruleset-description")
                 .payload("ruleset-payload")
@@ -106,8 +105,7 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
         @Test
         void should_create_ruleset_without_description() {
             // Given
-            var request = ImportScoringRuleset
-                .builder()
+            var request = ImportScoringRuleset.builder()
                 .name("ruleset-name")
                 .payload("ruleset-payload")
                 .format(ImportScoringRuleset.FormatEnum.GRAVITEE_PROXY)
@@ -126,8 +124,7 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
         void should_set_location_header_with_created_ruleset_url() {
             // Given
             UuidString.overrideGenerator(() -> "generated-id");
-            var request = ImportScoringRuleset
-                .builder()
+            var request = ImportScoringRuleset.builder()
                 .name("ruleset-name")
                 .description("ruleset-description")
                 .payload("ruleset-payload")
@@ -167,8 +164,7 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                 .extracting(ScoringRulesetsResponse::getData)
                 .asInstanceOf(InstanceOfAssertFactories.LIST)
                 .containsExactly(
-                    io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset
-                        .builder()
+                    io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset.builder()
                         .id("ruleset1")
                         .name("ruleset-name")
                         .description("ruleset-description")
@@ -178,8 +174,7 @@ class EnvironmentScoringRulesetsResourceTest extends AbstractResourceTest {
                         .referenceType(io.gravitee.rest.api.management.v2.rest.model.ScoringRulesetReferenceType.ENVIRONMENT)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atOffset(ZoneOffset.UTC))
                         .build(),
-                    io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset
-                        .builder()
+                    io.gravitee.rest.api.management.v2.rest.model.ScoringRuleset.builder()
                         .id("ruleset2")
                         .name("ruleset-name")
                         .description("ruleset-description")

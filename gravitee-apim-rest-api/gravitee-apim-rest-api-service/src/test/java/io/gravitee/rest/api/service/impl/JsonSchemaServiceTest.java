@@ -46,14 +46,14 @@ public class JsonSchemaServiceTest {
             .isInstanceOf(InvalidDataException.class)
             .hasMessage(
                 "#/ssl/trustStore/type: \n" +
-                "#/ssl/trustStore: required key [content] not found\n" +
-                "#/ssl/trustStore: required key [path] not found\n" +
-                "#/ssl/trustStore: required key [content] not found\n" +
-                "#/ssl/trustStore: required key [password] not found\n" +
-                "#/ssl/trustStore/type: string [PEM] does not match pattern JKS|PKCS12\n" +
-                "#/ssl/trustStore: required key [path] not found\n" +
-                "#/ssl/trustStore: required key [password] not found\n" +
-                "#/ssl/trustStore/type: string [PEM] does not match pattern JKS|PKCS12"
+                    "#/ssl/trustStore: required key [content] not found\n" +
+                    "#/ssl/trustStore: required key [path] not found\n" +
+                    "#/ssl/trustStore: required key [content] not found\n" +
+                    "#/ssl/trustStore: required key [password] not found\n" +
+                    "#/ssl/trustStore/type: string [PEM] does not match pattern JKS|PKCS12\n" +
+                    "#/ssl/trustStore: required key [path] not found\n" +
+                    "#/ssl/trustStore: required key [password] not found\n" +
+                    "#/ssl/trustStore/type: string [PEM] does not match pattern JKS|PKCS12"
             );
     }
 
@@ -73,9 +73,8 @@ public class JsonSchemaServiceTest {
             "  }\n" +
             "}";
         String validate = jsonSchemaService.validate(schema, configuration);
-        assertThat(validate)
-            .isEqualTo(
-                "{\"http\":{\"keepAliveTimeout\":30000,\"readTimeout\":7777,\"idleTimeout\":60000,\"connectTimeout\":5000,\"maxConcurrentConnections\":100},\"ssl\":{\"trustStore\":{\"path\":\"...\",\"type\":\"PEM\"},\"hostnameVerifier\":false,\"trustAll\":false}}"
-            );
+        assertThat(validate).isEqualTo(
+            "{\"http\":{\"keepAliveTimeout\":30000,\"readTimeout\":7777,\"idleTimeout\":60000,\"connectTimeout\":5000,\"maxConcurrentConnections\":100},\"ssl\":{\"trustStore\":{\"path\":\"...\",\"type\":\"PEM\"},\"hostnameVerifier\":false,\"trustAll\":false}}"
+        );
     }
 }

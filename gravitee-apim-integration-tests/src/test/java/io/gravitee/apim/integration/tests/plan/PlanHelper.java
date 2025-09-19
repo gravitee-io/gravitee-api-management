@@ -184,8 +184,7 @@ public class PlanHelper {
     public static void configurePlans(final io.gravitee.definition.model.v4.Api api, final Set<String> planIds) {
         List<io.gravitee.definition.model.v4.plan.Plan> plans = new ArrayList<>();
         if (planIds.contains("key-less")) {
-            io.gravitee.definition.model.v4.plan.Plan keylessPlan = io.gravitee.definition.model.v4.plan.Plan
-                .builder()
+            io.gravitee.definition.model.v4.plan.Plan keylessPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
                 .id(PLAN_KEYLESS_ID)
                 .name("plan-name")
                 .security(PlanSecurity.builder().type("key-less").build())
@@ -196,8 +195,7 @@ public class PlanHelper {
         }
 
         if (planIds.contains("api-key")) {
-            io.gravitee.definition.model.v4.plan.Plan apiKeyPlan = io.gravitee.definition.model.v4.plan.Plan
-                .builder()
+            io.gravitee.definition.model.v4.plan.Plan apiKeyPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
                 .id(PLAN_APIKEY_ID)
                 .name("plan-apikey-name")
                 .security(PlanSecurity.builder().type("api-key").build())
@@ -214,8 +212,7 @@ public class PlanHelper {
                 configuration.setResolverParameter(JWT_SECRET);
                 configuration.setPublicKeyResolver(GIVEN_KEY);
 
-                io.gravitee.definition.model.v4.plan.Plan jwtPlan = io.gravitee.definition.model.v4.plan.Plan
-                    .builder()
+                io.gravitee.definition.model.v4.plan.Plan jwtPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
                     .id(PLAN_JWT_ID)
                     .name("plan-jwt-name")
                     .security(
@@ -237,8 +234,7 @@ public class PlanHelper {
             try {
                 OAuth2PolicyConfiguration configuration = new OAuth2PolicyConfiguration();
                 configuration.setOauthResource(RESOURCE_ID);
-                io.gravitee.definition.model.v4.plan.Plan oauth2Plan = io.gravitee.definition.model.v4.plan.Plan
-                    .builder()
+                io.gravitee.definition.model.v4.plan.Plan oauth2Plan = io.gravitee.definition.model.v4.plan.Plan.builder()
                     .id(PLAN_OAUTH2_ID)
                     .name("plan-oauth2-name")
                     .security(
@@ -254,8 +250,7 @@ public class PlanHelper {
         }
 
         if (planIds.contains("mtls")) {
-            io.gravitee.definition.model.v4.plan.Plan mtlsPlan = io.gravitee.definition.model.v4.plan.Plan
-                .builder()
+            io.gravitee.definition.model.v4.plan.Plan mtlsPlan = io.gravitee.definition.model.v4.plan.Plan.builder()
                 .id(PLAN_MTLS_ID)
                 .name("plan-name")
                 .security(PlanSecurity.builder().type("mtls").build())
@@ -274,12 +269,11 @@ public class PlanHelper {
     public static HttpClient createTrustedHttpClient(Vertx vertx, int gatewayPort, boolean withCert) {
         var options = new HttpClientOptions().setSsl(true).setTrustAll(true).setDefaultPort(gatewayPort).setDefaultHost("localhost");
         if (withCert) {
-            options =
-                options.setPemKeyCertOptions(
-                    new PemKeyCertOptions()
-                        .addCertPath(getUrl("plans/mtls/client.cer").getPath())
-                        .addKeyPath(getUrl("plans/mtls/client.key").getPath())
-                );
+            options = options.setPemKeyCertOptions(
+                new PemKeyCertOptions()
+                    .addCertPath(getUrl("plans/mtls/client.cer").getPath())
+                    .addKeyPath(getUrl("plans/mtls/client.key").getPath())
+            );
         }
 
         return vertx.createHttpClient(options);

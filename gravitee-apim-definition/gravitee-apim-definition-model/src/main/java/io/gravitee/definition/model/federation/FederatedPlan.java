@@ -53,11 +53,9 @@ public class FederatedPlan implements Serializable {
     @JsonIgnore
     public final boolean isSubscribable() {
         return (
-            (
-                this.getSecurity() != null &&
+            (this.getSecurity() != null &&
                 this.getSecurity().getType() != null &&
-                !"KEY_LESS".equalsIgnoreCase(this.getSecurity().getType())
-            ) ||
+                !"KEY_LESS".equalsIgnoreCase(this.getSecurity().getType())) ||
             usePushMode()
         );
     }

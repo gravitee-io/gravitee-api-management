@@ -127,8 +127,7 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
                 API,
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         Response response = rootTarget().request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
@@ -144,8 +143,9 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Test
     public void should_export_ApiEntityV4() throws JsonProcessingException {
-        when(apiImportExportService.exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA))
-            .thenReturn(this.fakeExportApiEntity(fakeApiEntityV4()));
+        when(apiImportExportService.exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA)).thenReturn(
+            this.fakeExportApiEntity(fakeApiEntityV4())
+        );
 
         Response response = rootTarget().request().get();
         assertEquals(OK_200, response.getStatus());
@@ -177,8 +177,9 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Test
     public void should_export_NativeApiEntityV4() throws JsonProcessingException {
-        when(apiImportExportService.exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA))
-            .thenReturn(this.fakeExportApiEntity(fakeNativeApiEntityV4()));
+        when(apiImportExportService.exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA)).thenReturn(
+            this.fakeExportApiEntity(fakeNativeApiEntityV4())
+        );
 
         Response response = rootTarget().request().get();
         assertEquals(OK_200, response.getStatus());
@@ -278,19 +279,19 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         endpoint.setType("http-get");
         endpoint.setConfiguration(
             "{\n" +
-            "                        \"bootstrapServers\": \"kafka:9092\",\n" +
-            "                        \"topics\": [\n" +
-            "                            \"demo\"\n" +
-            "                        ],\n" +
-            "                        \"producer\": {\n" +
-            "                            \"enabled\": false\n" +
-            "                        },\n" +
-            "                        \"consumer\": {\n" +
-            "                            \"encodeMessageId\": true,\n" +
-            "                            \"enabled\": true,\n" +
-            "                            \"autoOffsetReset\": \"earliest\"\n" +
-            "                        }\n" +
-            "                    }"
+                "                        \"bootstrapServers\": \"kafka:9092\",\n" +
+                "                        \"topics\": [\n" +
+                "                            \"demo\"\n" +
+                "                        ],\n" +
+                "                        \"producer\": {\n" +
+                "                            \"enabled\": false\n" +
+                "                        },\n" +
+                "                        \"consumer\": {\n" +
+                "                            \"encodeMessageId\": true,\n" +
+                "                            \"enabled\": true,\n" +
+                "                            \"autoOffsetReset\": \"earliest\"\n" +
+                "                        }\n" +
+                "                    }"
         );
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));

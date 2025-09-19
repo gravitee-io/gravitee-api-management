@@ -40,26 +40,24 @@ public class WebsocketAcceptV4EmulationIntegrationTest extends AbstractWebsocket
 
         Promise<Void> clientReady = Promise.promise();
 
-        websocketServerHandler =
-            serverWebSocket ->
-                Completable
-                    .fromRunnable(() -> {
-                        serverConnected.flag();
-                        serverWebSocket.exceptionHandler(testContext::failNow);
-                        serverWebSocket.accept();
+        websocketServerHandler = serverWebSocket ->
+            Completable.fromRunnable(() -> {
+                serverConnected.flag();
+                serverWebSocket.exceptionHandler(testContext::failNow);
+                serverWebSocket.accept();
 
-                        clientReady
-                            .future()
-                            .onSuccess(__ ->
-                                serverWebSocket
-                                    .writeTextMessage("PING")
-                                    .doOnComplete(serverMessageSent::flag)
-                                    .doOnError(testContext::failNow)
-                                    .subscribe()
-                            );
-                    })
-                    .subscribeOn(Schedulers.io())
-                    .subscribe();
+                clientReady
+                    .future()
+                    .onSuccess(__ ->
+                        serverWebSocket
+                            .writeTextMessage("PING")
+                            .doOnComplete(serverMessageSent::flag)
+                            .doOnError(testContext::failNow)
+                            .subscribe()
+                    );
+            })
+                .subscribeOn(Schedulers.io())
+                .subscribe();
 
         httpClient
             .webSocket("/test")

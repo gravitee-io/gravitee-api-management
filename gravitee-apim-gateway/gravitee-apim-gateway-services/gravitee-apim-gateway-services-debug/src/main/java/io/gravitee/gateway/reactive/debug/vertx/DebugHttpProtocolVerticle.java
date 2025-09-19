@@ -136,8 +136,7 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStop() {
-        return Completable
-            .fromRunnable(requestDisposable::dispose)
+        return Completable.fromRunnable(requestDisposable::dispose)
             .andThen(
                 debugServer
                     .instances()

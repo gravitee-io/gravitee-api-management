@@ -32,15 +32,13 @@ public class PlanModelFactory {
     public static Plan fromIntegration(IntegrationApi.Plan plan, Api federatedApi) {
         var id = generateFederatedPlanId(plan, federatedApi);
         var now = TimeProvider.now();
-        return Plan
-            .builder()
+        return Plan.builder()
             .id(id)
             .name(plan.name())
             .description(plan.description())
             .apiId(federatedApi.getId())
             .federatedPlanDefinition(
-                FederatedPlan
-                    .builder()
+                FederatedPlan.builder()
                     .id(id)
                     .providerId(plan.id())
                     .security(PlanSecurity.builder().type(PlanSecurityType.valueOf(plan.type().name()).getLabel()).build())

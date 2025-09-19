@@ -23,8 +23,7 @@ public class PropertyFixtures {
 
     private PropertyFixtures() {}
 
-    private static final Property.PropertyBuilder BASE_PROPERTY = Property
-        .builder()
+    private static final Property.PropertyBuilder BASE_PROPERTY = Property.builder()
         .dynamic(false)
         .encrypted(false)
         .key("prop-key")

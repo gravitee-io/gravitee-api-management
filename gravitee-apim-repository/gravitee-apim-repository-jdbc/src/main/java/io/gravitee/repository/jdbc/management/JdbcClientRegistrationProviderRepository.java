@@ -48,8 +48,7 @@ public class JdbcClientRegistrationProviderRepository
 
     @Override
     protected JdbcObjectMapper<ClientRegistrationProvider> buildOrm() {
-        return JdbcObjectMapper
-            .builder(ClientRegistrationProvider.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(ClientRegistrationProvider.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
@@ -162,12 +161,9 @@ public class JdbcClientRegistrationProviderRepository
                 getOrm().buildUpdatePreparedStatementCreator(clientRegistrationProvider, clientRegistrationProvider.getId())
             );
             storeScopes(clientRegistrationProvider, true);
-            return findById(clientRegistrationProvider.getId())
-                .orElseThrow(() ->
-                    new IllegalStateException(
-                        format("No client registration provider found with id [%s]", clientRegistrationProvider.getId())
-                    )
-                );
+            return findById(clientRegistrationProvider.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No client registration provider found with id [%s]", clientRegistrationProvider.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {

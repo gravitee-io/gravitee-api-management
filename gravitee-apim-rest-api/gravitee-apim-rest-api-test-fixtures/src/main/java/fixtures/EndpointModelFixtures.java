@@ -32,8 +32,7 @@ public class EndpointModelFixtures {
     private EndpointModelFixtures() {}
 
     private static final io.gravitee.definition.model.Endpoint.EndpointBuilder BASE_MODEL_ENDPOINT_V2 =
-        io.gravitee.definition.model.Endpoint
-            .builder()
+        io.gravitee.definition.model.Endpoint.builder()
             .name("Endpoint name")
             .target("http://gravitee.io")
             .weight(1)
@@ -45,8 +44,7 @@ public class EndpointModelFixtures {
             .healthCheck(io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService.builder().build())
             .configuration(null);
 
-    private static final HttpEndpoint.HttpEndpointBuilder BASE_MODEL_HTTP_ENDPOINT_V2 = HttpEndpoint
-        .builder()
+    private static final HttpEndpoint.HttpEndpointBuilder BASE_MODEL_HTTP_ENDPOINT_V2 = HttpEndpoint.builder()
         .name("Endpoint name")
         .target("http://gravitee.io")
         .weight(1)
@@ -62,8 +60,7 @@ public class EndpointModelFixtures {
         .httpClientSslOptions(null);
 
     private static final io.gravitee.definition.model.EndpointGroup.EndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_V2 =
-        io.gravitee.definition.model.EndpointGroup
-            .builder()
+        io.gravitee.definition.model.EndpointGroup.builder()
             .name(ENDPOINT_GROUP_NAME)
             .endpoints(Set.of(BASE_MODEL_ENDPOINT_V2.build()))
             .loadBalancer(
@@ -75,8 +72,7 @@ public class EndpointModelFixtures {
             .httpClientSslOptions(null)
             .headers(Collections.emptyList());
 
-    private static final Endpoint.EndpointBuilder BASE_MODEL_ENDPOINT_HTTP_V4 = Endpoint
-        .builder()
+    private static final Endpoint.EndpointBuilder BASE_MODEL_ENDPOINT_HTTP_V4 = Endpoint.builder()
         .name("Endpoint name")
         .type(ENDPOINT_TYPE_HTTP_GET)
         .weight(1)
@@ -87,8 +83,7 @@ public class EndpointModelFixtures {
         .sharedConfigurationOverride("{\n  \"nice\" : \"configuration\"\n}")
         .services(io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices.builder().healthCheck(null).build());
 
-    private static final NativeEndpoint.NativeEndpointBuilder BASE_MODEL_ENDPOINT_NATIVE_V4 = NativeEndpoint
-        .builder()
+    private static final NativeEndpoint.NativeEndpointBuilder BASE_MODEL_ENDPOINT_NATIVE_V4 = NativeEndpoint.builder()
         .name("Endpoint name")
         .type(ENDPOINT_TYPE_HTTP_GET)
         .weight(1)
@@ -98,13 +93,11 @@ public class EndpointModelFixtures {
         .configuration("{\n  \"nice\" : \"configuration\"\n}")
         .sharedConfigurationOverride("{\n  \"nice\" : \"configuration\"\n}");
 
-    private static final EndpointGroup.EndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_HTTP_V4 = EndpointGroup
-        .builder()
+    private static final EndpointGroup.EndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_HTTP_V4 = EndpointGroup.builder()
         .name(ENDPOINT_GROUP_NAME)
         .type(ENDPOINT_TYPE_HTTP_GET)
         .loadBalancer(
-            io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer
-                .builder()
+            io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer.builder()
                 .type(io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.ROUND_ROBIN)
                 .build()
         )
@@ -112,13 +105,11 @@ public class EndpointModelFixtures {
         .endpoints(List.of(BASE_MODEL_ENDPOINT_HTTP_V4.build()))
         .services(io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices.builder().healthCheck(null).build());
 
-    private static final NativeEndpointGroup.NativeEndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_NATIVE_V4 = NativeEndpointGroup
-        .builder()
+    private static final NativeEndpointGroup.NativeEndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_NATIVE_V4 = NativeEndpointGroup.builder()
         .name(ENDPOINT_GROUP_NAME)
         .type(ENDPOINT_TYPE_HTTP_GET)
         .loadBalancer(
-            io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer
-                .builder()
+            io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer.builder()
                 .type(io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.ROUND_ROBIN)
                 .build()
         )

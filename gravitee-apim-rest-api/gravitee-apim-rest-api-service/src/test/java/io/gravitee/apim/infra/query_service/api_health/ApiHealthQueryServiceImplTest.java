@@ -80,8 +80,9 @@ class ApiHealthQueryServiceImplTest {
         @Test
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(ApiFieldPeriod.class);
-            when(healthCheckRepository.averageResponseTime(any(), any()))
-                .thenReturn(Maybe.just(new AverageHealthCheckResponseTime(2L, Map.of("default", 2L))));
+            when(healthCheckRepository.averageResponseTime(any(), any())).thenReturn(
+                Maybe.just(new AverageHealthCheckResponseTime(2L, Map.of("default", 2L)))
+            );
 
             var result = service
                 .averageResponseTime(
@@ -106,8 +107,9 @@ class ApiHealthQueryServiceImplTest {
         @Test
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(ApiFieldPeriod.class);
-            when(healthCheckRepository.availability(any(), any()))
-                .thenReturn(Maybe.just(new AvailabilityResponse(.75f, Map.of("default", .75f))));
+            when(healthCheckRepository.availability(any(), any())).thenReturn(
+                Maybe.just(new AvailabilityResponse(.75f, Map.of("default", .75f)))
+            );
 
             var result = service
                 .availability(new ApiHealthQueryService.ApiFieldPeriodQuery(ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO))
@@ -128,8 +130,9 @@ class ApiHealthQueryServiceImplTest {
         @Test
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(AverageHealthCheckResponseTimeOvertimeQuery.class);
-            when(healthCheckRepository.averageResponseTimeOvertime(any(), any()))
-                .thenReturn(Maybe.just(new AverageHealthCheckResponseTimeOvertime(Map.of("default", 2L))));
+            when(healthCheckRepository.averageResponseTimeOvertime(any(), any())).thenReturn(
+                Maybe.just(new AverageHealthCheckResponseTimeOvertime(Map.of("default", 2L)))
+            );
 
             var result = service
                 .averageResponseTimeOvertime(
@@ -168,28 +171,27 @@ class ApiHealthQueryServiceImplTest {
         @Test
         void should_call_repository() {
             var queryCaptor = ArgumentCaptor.forClass(HealthCheckLogQuery.class);
-            when(healthCheckRepository.searchLogs(any(), any()))
-                .thenReturn(
-                    Maybe.just(
-                        new Page<>(
-                            List.of(
-                                new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
-                                    "id",
-                                    INSTANT,
-                                    "api-id",
-                                    "endpoint",
-                                    "gateway",
-                                    21L,
-                                    false,
-                                    List.of()
-                                )
-                            ),
-                            1,
-                            5,
-                            1
-                        )
+            when(healthCheckRepository.searchLogs(any(), any())).thenReturn(
+                Maybe.just(
+                    new Page<>(
+                        List.of(
+                            new io.gravitee.repository.healthcheck.v4.model.HealthCheckLog(
+                                "id",
+                                INSTANT,
+                                "api-id",
+                                "endpoint",
+                                "gateway",
+                                21L,
+                                false,
+                                List.of()
+                            )
+                        ),
+                        1,
+                        5,
+                        1
                     )
-                );
+                )
+            );
 
             var result = service
                 .searchLogs(

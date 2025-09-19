@@ -44,8 +44,7 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
 
     @Override
     protected JdbcObjectMapper<ApiHeader> buildOrm() {
-        return JdbcObjectMapper
-            .builder(ApiHeader.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(ApiHeader.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)

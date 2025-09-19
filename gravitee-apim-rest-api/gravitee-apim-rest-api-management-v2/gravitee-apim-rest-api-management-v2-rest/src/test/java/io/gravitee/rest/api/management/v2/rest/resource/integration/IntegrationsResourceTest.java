@@ -124,8 +124,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         @Test
         public void should_create_integration() {
             //Given
-            var createIntegration = CreateIntegration
-                .builder()
+            var createIntegration = CreateIntegration.builder()
                 .name(INTEGRATION_NAME)
                 .description(INTEGRATION_DESCRIPTION)
                 .provider(INTEGRATION_PROVIDER)
@@ -140,8 +139,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.CREATED_201)
                 .asEntity(Integration.class)
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    Integration.builder()
                         .id(INTEGRATION_ID)
                         .name(INTEGRATION_NAME)
                         .description(INTEGRATION_DESCRIPTION)
@@ -153,8 +151,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
         @Test
         public void should_throw_bad_request_when_name_is_missing() {
             //Given
-            CreateIntegration createIntegration = CreateIntegration
-                .builder()
+            CreateIntegration createIntegration = CreateIntegration.builder()
                 .description(INTEGRATION_DESCRIPTION)
                 .provider(INTEGRATION_PROVIDER)
                 .build();
@@ -186,8 +183,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     eq(RolePermissionAction.CREATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             //When
             Response response = target.request().post(Entity.json(createIntegration));
@@ -202,12 +198,13 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setup() {
-            var integration = IntStream.range(0, 15).mapToObj(i -> IntegrationFixture.anIntegration()).toList();
+            var integration = IntStream.range(0, 15)
+                .mapToObj(i -> IntegrationFixture.anIntegration())
+                .toList();
             integrationCrudServiceInMemory.initWith(integration);
             membershipQueryServiceInMemory.initWith(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .memberId(USER_NAME)
                         .referenceId(INTEGRATION_ID)
                         .roleId("int-po-id-fake-org")
@@ -267,8 +264,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
             var description = "should-be-returned-first";
             var provider = "test-provider";
             var recentDate = ZonedDateTime.parse("2024-02-03T20:22:02.00Z");
-            var integration = IntegrationFixture.BASE
-                .get()
+            var integration = IntegrationFixture.BASE.get()
                 .id(INTEGRATION_ID)
                 .name(name)
                 .description(description)
@@ -288,8 +284,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .extracting(IntegrationsResponse::getData)
                 .extracting(integrations -> integrations.get(0))
                 .isEqualTo(
-                    Integration
-                        .builder()
+                    Integration.builder()
                         .id(INTEGRATION_ID)
                         .name(name)
                         .description(description)
@@ -310,8 +305,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .asEntity(ApiLogsResponse.class)
                 .extracting(ApiLogsResponse::getLinks)
                 .isEqualTo(
-                    Links
-                        .builder()
+                    Links.builder()
                         .self(target.queryParam("page", 2).queryParam("perPage", 5).getUri().toString())
                         .first(target.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
                         .last(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
@@ -331,8 +325,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             //When
             Response response = target.queryParam("page", 1).queryParam("perPage", 5).request().get();

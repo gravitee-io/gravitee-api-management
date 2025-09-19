@@ -72,9 +72,8 @@ public class PolicyLoader {
                     throw new IllegalStateException("Policy [" + policy.getName() + "] cannot be found in policy registry");
                 }
 
-                classLoader.addClassLoader(
-                    policyPlugin.policy().getCanonicalName(),
-                    () -> policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, classLoader)
+                classLoader.addClassLoader(policyPlugin.policy().getCanonicalName(), () ->
+                    policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, classLoader)
                 );
 
                 logger.debug("Loading policy {}", policy.getName());
@@ -105,8 +104,8 @@ public class PolicyLoader {
 
                         if (context instanceof PolicyContextProviderAware) {
                             ((PolicyContextProviderAware) context).setPolicyContextProvider(
-                                    new DefaultPolicyContextProvider(componentProvider)
-                                );
+                                new DefaultPolicyContextProvider(componentProvider)
+                            );
                         }
 
                         builder.setContext(context);
@@ -122,8 +121,8 @@ public class PolicyLoader {
                 } catch (Error error) {
                     logger.error(
                         "Unable to load policy id[" +
-                        policyPlugin.id() +
-                        "]. This error mainly occurs when the policy is linked to a missing resource, for example a cache or an oauth2 resource. Please check your policy configuration!",
+                            policyPlugin.id() +
+                            "]. This error mainly occurs when the policy is linked to a missing resource, for example a cache or an oauth2 resource. Please check your policy configuration!",
                         error
                     );
                     try {

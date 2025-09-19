@@ -58,9 +58,10 @@ public class PortalNotificationConfigUpgrader implements Upgrader {
             List<PortalNotificationConfig> portalNotificationConfigs = portalNotificationConfigRepository
                 .findAll()
                 .stream()
-                .filter(portalNotificationConfig ->
-                    portalNotificationConfig.getReferenceType().equals(NotificationReferenceType.PORTAL) &&
-                    portalNotificationConfig.getReferenceId().equals("DEFAULT")
+                .filter(
+                    portalNotificationConfig ->
+                        portalNotificationConfig.getReferenceType().equals(NotificationReferenceType.PORTAL) &&
+                        portalNotificationConfig.getReferenceId().equals("DEFAULT")
                 )
                 .flatMap(
                     (Function<PortalNotificationConfig, Stream<PortalNotificationConfig>>) portalNotificationConfig ->
@@ -100,8 +101,7 @@ public class PortalNotificationConfigUpgrader implements Upgrader {
     }
 
     private PortalNotificationConfig duplicate(Environment environment, PortalNotificationConfig portalNotificationConfig) {
-        return PortalNotificationConfig
-            .builder()
+        return PortalNotificationConfig.builder()
             .referenceId(environment.getId())
             .referenceType(NotificationReferenceType.ENVIRONMENT)
             .hooks(portalNotificationConfig.getHooks())

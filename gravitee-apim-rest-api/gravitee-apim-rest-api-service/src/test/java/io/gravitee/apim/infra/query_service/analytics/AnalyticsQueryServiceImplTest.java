@@ -96,90 +96,85 @@ class AnalyticsQueryServiceImplTest {
 
         @Test
         void should_map_repository_response_to_requests_count() {
-            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any()))
-                .thenReturn(
-                    Optional.of(CountAggregate.builder().total(10).countBy(Map.of("first", 3L, "second", 4L, "third", 3L)).build())
-                );
-            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1", null, null))
-                .hasValueSatisfying(requestsCount -> {
+            when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any())).thenReturn(
+                Optional.of(CountAggregate.builder().total(10).countBy(Map.of("first", 3L, "second", 4L, "third", 3L)).build())
+            );
+            assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1", null, null)).hasValueSatisfying(
+                requestsCount -> {
                     assertThat(requestsCount.getTotal()).isEqualTo(10);
                     assertThat(requestsCount.getCountsByEntrypoint()).containsAllEntriesOf(Map.of("first", 3L, "second", 4L, "third", 3L));
-                });
+                }
+            );
         }
 
         @Test
         void should_return_request_status_ranges() {
             var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
-            when(analyticsRepository.searchResponseStatusRanges(any(QueryContext.class), any()))
-                .thenReturn(
-                    Optional.of(
-                        ResponseStatusRangesAggregate
-                            .builder()
-                            .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L))
-                            .statusRangesCountByEntrypoint(
-                                Map.of(
-                                    "http-post",
-                                    Map.of("100.0-200.0", 1L, "200.0-300.0", 1L),
-                                    "http-get",
-                                    Map.of("100.0-200.0", 0L, "200.0-300.0", 1L)
-                                )
+            when(analyticsRepository.searchResponseStatusRanges(any(QueryContext.class), any())).thenReturn(
+                Optional.of(
+                    ResponseStatusRangesAggregate.builder()
+                        .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L))
+                        .statusRangesCountByEntrypoint(
+                            Map.of(
+                                "http-post",
+                                Map.of("100.0-200.0", 1L, "200.0-300.0", 1L),
+                                "http-get",
+                                Map.of("100.0-200.0", 0L, "200.0-300.0", 1L)
                             )
-                            .build()
-                    )
-                );
-            assertThat(cut.searchResponseStatusRanges(GraviteeContext.getExecutionContext(), queryParameters))
-                .hasValueSatisfying(responseStatusRanges -> {
+                        )
+                        .build()
+                )
+            );
+            assertThat(cut.searchResponseStatusRanges(GraviteeContext.getExecutionContext(), queryParameters)).hasValueSatisfying(
+                responseStatusRanges -> {
                     assertThat(responseStatusRanges.getRanges()).containsAllEntriesOf(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L));
-                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-post"))
-                        .containsAllEntriesOf(Map.of("100.0-200.0", 1L, "200.0-300.0", 1L));
-                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-get"))
-                        .containsAllEntriesOf(Map.of("100.0-200.0", 0L, "200.0-300.0", 1L));
-                });
+                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-post")).containsAllEntriesOf(
+                        Map.of("100.0-200.0", 1L, "200.0-300.0", 1L)
+                    );
+                    assertThat(responseStatusRanges.getStatusRangesCountByEntrypoint().get("http-get")).containsAllEntriesOf(
+                        Map.of("100.0-200.0", 0L, "200.0-300.0", 1L)
+                    );
+                }
+            );
         }
 
         @Test
         void should_return_top_hits() {
             var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
-            when(analyticsRepository.searchTopHitsApi(any(QueryContext.class), any()))
-                .thenReturn(
-                    Optional.of(TopHitsAggregate.builder().topHitsCounts(Map.of("api-id-1", 15L, "api-id-2", 2L, "api-id-3", 17L)).build())
-                );
+            when(analyticsRepository.searchTopHitsApi(any(QueryContext.class), any())).thenReturn(
+                Optional.of(TopHitsAggregate.builder().topHitsCounts(Map.of("api-id-1", 15L, "api-id-2", 2L, "api-id-3", 17L)).build())
+            );
 
             var result = cut.searchTopHitsApis(GraviteeContext.getExecutionContext(), queryParameters);
 
-            assertThat(result)
-                .hasValueSatisfying(topHits ->
-                    assertThat(topHits.getData())
-                        .containsExactlyInAnyOrder(
-                            TopHitsApis.TopHitApi.builder().id("api-id-1").count(15L).build(),
-                            TopHitsApis.TopHitApi.builder().id("api-id-2").count(2L).build(),
-                            TopHitsApis.TopHitApi.builder().id("api-id-3").count(17L).build()
-                        )
-                );
+            assertThat(result).hasValueSatisfying(topHits ->
+                assertThat(topHits.getData()).containsExactlyInAnyOrder(
+                    TopHitsApis.TopHitApi.builder().id("api-id-1").count(15L).build(),
+                    TopHitsApis.TopHitApi.builder().id("api-id-2").count(2L).build(),
+                    TopHitsApis.TopHitApi.builder().id("api-id-3").count(17L).build()
+                )
+            );
         }
 
         @Test
         void should_return_request_response_time() {
             var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
-            when(analyticsRepository.searchRequestResponseTimes(any(QueryContext.class), any()))
-                .thenReturn(
-                    RequestResponseTimeAggregate
-                        .builder()
-                        .requestsPerSecond(3.7d)
-                        .requestsTotal(25600L)
-                        .responseMinTime(32.5d)
-                        .responseMaxTime(1220.87d)
-                        .responseAvgTime(159.2d)
-                        .build()
-                );
+            when(analyticsRepository.searchRequestResponseTimes(any(QueryContext.class), any())).thenReturn(
+                RequestResponseTimeAggregate.builder()
+                    .requestsPerSecond(3.7d)
+                    .requestsTotal(25600L)
+                    .responseMinTime(32.5d)
+                    .responseMaxTime(1220.87d)
+                    .responseAvgTime(159.2d)
+                    .build()
+            );
 
             var result = cut.searchRequestResponseTime(GraviteeContext.getExecutionContext(), queryParameters);
 
             assertThat(result)
                 .isNotNull()
                 .isEqualTo(
-                    RequestResponseTime
-                        .builder()
+                    RequestResponseTime.builder()
                         .requestsPerSecond(3.7d)
                         .requestsTotal(25600L)
                         .responseMinTime(32.5d)
@@ -206,8 +201,9 @@ class AnalyticsQueryServiceImplTest {
             var queryCaptor = ArgumentCaptor.forClass(ResponseStatusOverTimeQuery.class);
             var expectedMap = Map.of("200", List.of(0L, 0L));
 
-            when(analyticsRepository.searchResponseStatusOvertime(any(), any()))
-                .thenReturn(new ResponseStatusOverTimeAggregate(expectedMap));
+            when(analyticsRepository.searchResponseStatusOvertime(any(), any())).thenReturn(
+                new ResponseStatusOverTimeAggregate(expectedMap)
+            );
 
             var result = cut.searchResponseStatusOvertime(
                 GraviteeContext.getExecutionContext(),

@@ -71,8 +71,7 @@ class SearchMessageLogsUseCaseTest {
                 .assertThat(result.data())
                 .isEqualTo(
                     List.of(
-                        AggregatedMessageLog
-                            .builder()
+                        AggregatedMessageLog.builder()
                             .apiId(API_ID)
                             .requestId(REQUEST_ID)
                             .apiId(API_ID)
@@ -120,8 +119,7 @@ class SearchMessageLogsUseCaseTest {
         var pageNumber = 2;
         var pageSize = 5;
         messageLogStorageService.initWith(
-            IntStream
-                .range(0, expectedTotal)
+            IntStream.range(0, expectedTotal)
                 .mapToObj(i -> aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
                 .toList()
         );

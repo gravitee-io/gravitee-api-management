@@ -49,8 +49,7 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
 
     @Override
     protected JdbcObjectMapper<Promotion> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Promotion.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Promotion.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("api_definition", Types.NCLOB, String.class)
             .addColumn("api_id", Types.NVARCHAR, String.class)
@@ -115,26 +114,25 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
 
                 applySortable(sortable, query);
 
-                result =
-                    jdbcTemplate.query(
-                        query.toString(),
-                        (PreparedStatement ps) -> {
-                            int idx = 1;
-                            if (!isEmpty(criteria.getTargetEnvCockpitIds())) {
-                                idx = getOrm().setArguments(ps, criteria.getTargetEnvCockpitIds(), idx);
-                            }
+                result = jdbcTemplate.query(
+                    query.toString(),
+                    (PreparedStatement ps) -> {
+                        int idx = 1;
+                        if (!isEmpty(criteria.getTargetEnvCockpitIds())) {
+                            idx = getOrm().setArguments(ps, criteria.getTargetEnvCockpitIds(), idx);
+                        }
 
-                            if (!isEmpty(criteria.getStatuses())) {
-                                List<String> statusesNames = criteria.getStatuses().stream().map(Enum::name).collect(Collectors.toList());
-                                idx = getOrm().setArguments(ps, statusesNames, idx);
-                            }
+                        if (!isEmpty(criteria.getStatuses())) {
+                            List<String> statusesNames = criteria.getStatuses().stream().map(Enum::name).collect(Collectors.toList());
+                            idx = getOrm().setArguments(ps, statusesNames, idx);
+                        }
 
-                            if (!isEmpty(criteria.getApiId())) {
-                                ps.setString(idx++, criteria.getApiId());
-                            }
-                        },
-                        getOrm().getRowMapper()
-                    );
+                        if (!isEmpty(criteria.getApiId())) {
+                            ps.setString(idx++, criteria.getApiId());
+                        }
+                    },
+                    getOrm().getRowMapper()
+                );
             }
 
             return getResultAsPage(pageable, result);

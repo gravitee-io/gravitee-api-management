@@ -42,10 +42,10 @@ public class AuthoritiesProvider {
     public Set<GrantedAuthority> retrieveAuthorities(String userId) {
         final String currentEnvironment = GraviteeContext.getCurrentEnvironment();
         return this.retrieveAuthorities(
-                userId,
-                GraviteeContext.getCurrentOrganization(),
-                currentEnvironment == null ? GraviteeContext.getDefaultEnvironment() : currentEnvironment
-            );
+            userId,
+            GraviteeContext.getCurrentOrganization(),
+            currentEnvironment == null ? GraviteeContext.getDefaultEnvironment() : currentEnvironment
+        );
     }
 
     public Set<GrantedAuthority> retrieveAuthorities(String userId, String organizationId, String environmentId) {
@@ -63,7 +63,10 @@ public class AuthoritiesProvider {
         if (!roles.isEmpty()) {
             authorities.addAll(
                 commaSeparatedStringToAuthorityList(
-                    roles.stream().map(r -> r.getScope().name() + ':' + r.getName()).collect(Collectors.joining(","))
+                    roles
+                        .stream()
+                        .map(r -> r.getScope().name() + ':' + r.getName())
+                        .collect(Collectors.joining(","))
                 )
             );
         }

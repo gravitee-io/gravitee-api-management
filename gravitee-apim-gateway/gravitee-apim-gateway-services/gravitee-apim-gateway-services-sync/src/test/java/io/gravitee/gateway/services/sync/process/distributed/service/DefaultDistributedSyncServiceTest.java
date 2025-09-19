@@ -100,23 +100,22 @@ class DefaultDistributedSyncServiceTest {
         SubscriptionMapper subscriptionMapper = new SubscriptionMapper(objectMapper);
         ApiKeyMapper apiKeyMapper = new ApiKeyMapper(objectMapper);
         ApiMapper apiMapper = new ApiMapper(objectMapper, subscriptionMapper, apiKeyMapper);
-        cut =
-            new DefaultDistributedSyncService(
-                node,
-                clusterManager,
-                "type",
-                distributedEventRepository,
-                distributedSyncStateRepository,
-                apiMapper,
-                subscriptionMapper,
-                apiKeyMapper,
-                new OrganizationMapper(objectMapper),
-                new DictionaryMapper(objectMapper),
-                new LicenseMapper(),
-                new AccessPointMapper(objectMapper),
-                new SharedPolicyGroupMapper(objectMapper),
-                new NodeMetadataMapper(objectMapper)
-            );
+        cut = new DefaultDistributedSyncService(
+            node,
+            clusterManager,
+            "type",
+            distributedEventRepository,
+            distributedSyncStateRepository,
+            apiMapper,
+            subscriptionMapper,
+            apiKeyMapper,
+            new OrganizationMapper(objectMapper),
+            new DictionaryMapper(objectMapper),
+            new LicenseMapper(),
+            new AccessPointMapper(objectMapper),
+            new SharedPolicyGroupMapper(objectMapper),
+            new NodeMetadataMapper(objectMapper)
+        );
     }
 
     @Nested
@@ -136,23 +135,22 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_not_be_validate_with_repo_type() {
-            cut =
-                new DefaultDistributedSyncService(
-                    node,
-                    clusterManager,
-                    null,
-                    distributedEventRepository,
-                    distributedSyncStateRepository,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                );
+            cut = new DefaultDistributedSyncService(
+                node,
+                clusterManager,
+                null,
+                distributedEventRepository,
+                distributedSyncStateRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
             assertThrows(SyncException.class, () -> cut.validate());
         }
 
@@ -229,8 +227,7 @@ class DefaultDistributedSyncServiceTest {
         void should_distribute_access_point() {
             cut
                 .distributeIfNeeded(
-                    AccessPointDeployable
-                        .builder()
+                    AccessPointDeployable.builder()
                         .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
                         .build()
                 )
@@ -315,8 +312,7 @@ class DefaultDistributedSyncServiceTest {
         void should_not_call_repository_when_distributing_access_point() {
             cut
                 .distributeIfNeeded(
-                    AccessPointDeployable
-                        .builder()
+                    AccessPointDeployable.builder()
                         .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
                         .build()
                 )

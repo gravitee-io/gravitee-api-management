@@ -82,8 +82,9 @@ class HttpPolicyFactoryTest {
         policyConfiguration = new DummyPolicyConfiguration();
         ((DummyPolicyConfiguration) policyConfiguration).setValue(1);
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}");
-        policyManifestBuilder =
-            new PolicyManifestBuilder().setId("dummy-reactive").setClassLoader(new DefaultClassLoader(this.getClass().getClassLoader()));
+        policyManifestBuilder = new PolicyManifestBuilder()
+            .setId("dummy-reactive")
+            .setClassLoader(new DefaultClassLoader(this.getClass().getClassLoader()));
     }
 
     @ParameterizedTest

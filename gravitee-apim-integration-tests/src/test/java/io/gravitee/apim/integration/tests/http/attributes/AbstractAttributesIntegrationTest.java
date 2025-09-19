@@ -66,25 +66,23 @@ public class AbstractAttributesIntegrationTest extends AbstractGatewayTest {
         apiKey = anApiKey(api);
         if (api.getDefinition() instanceof Api) {
             ((Api) api.getDefinition()).setPlans(
-                    List.of(
-                        Plan
-                            .builder()
-                            .id("default_plan")
-                            .api(api.getId())
-                            .security("key_less")
-                            .status("PUBLISHED")
-                            .securityDefinition("{\"propagateApiKey\":true}")
-                            .build(),
-                        Plan
-                            .builder()
-                            .id("plan-id")
-                            .api(api.getId())
-                            .security("API_KEY")
-                            .status("PUBLISHED")
-                            .securityDefinition("{\"propagateApiKey\":true}")
-                            .build()
-                    )
-                );
+                List.of(
+                    Plan.builder()
+                        .id("default_plan")
+                        .api(api.getId())
+                        .security("key_less")
+                        .status("PUBLISHED")
+                        .securityDefinition("{\"propagateApiKey\":true}")
+                        .build(),
+                    Plan.builder()
+                        .id("plan-id")
+                        .api(api.getId())
+                        .security("API_KEY")
+                        .status("PUBLISHED")
+                        .securityDefinition("{\"propagateApiKey\":true}")
+                        .build()
+                )
+            );
         }
     }
 

@@ -75,50 +75,48 @@ public class SubscriptionQueryServiceImplTest {
             // Then
             var captor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
             verify(subscriptionRepository).search(captor.capture());
-            assertThat(captor.getValue())
-                .satisfies(criteria -> {
-                    assertThat(criteria.getStatuses()).containsExactly(Subscription.Status.ACCEPTED.name());
-                    assertThat(criteria.getEndingAtBefore()).isBetween(now, new Date().getTime());
-                    assertThat(criteria.getFrom()).isEqualTo(-1);
-                    assertThat(criteria.getTo()).isEqualTo(-1);
-                    assertThat(criteria.getEndingAtAfter()).isEqualTo(-1);
-                    assertThat(criteria.getClientId()).isNull();
-                    assertThat(criteria.getApis()).isNull();
-                    assertThat(criteria.getApplications()).isNull();
-                    assertThat(criteria.getExcludedApis()).isNull();
-                    assertThat(criteria.getIds()).isNull();
-                    assertThat(criteria.getPlans()).isNull();
-                    assertThat(criteria.getPlanSecurityTypes()).isNull();
-                    assertThat(criteria.isIncludeWithoutEnd()).isFalse();
-                });
+            assertThat(captor.getValue()).satisfies(criteria -> {
+                assertThat(criteria.getStatuses()).containsExactly(Subscription.Status.ACCEPTED.name());
+                assertThat(criteria.getEndingAtBefore()).isBetween(now, new Date().getTime());
+                assertThat(criteria.getFrom()).isEqualTo(-1);
+                assertThat(criteria.getTo()).isEqualTo(-1);
+                assertThat(criteria.getEndingAtAfter()).isEqualTo(-1);
+                assertThat(criteria.getClientId()).isNull();
+                assertThat(criteria.getApis()).isNull();
+                assertThat(criteria.getApplications()).isNull();
+                assertThat(criteria.getExcludedApis()).isNull();
+                assertThat(criteria.getIds()).isNull();
+                assertThat(criteria.getPlans()).isNull();
+                assertThat(criteria.getPlanSecurityTypes()).isNull();
+                assertThat(criteria.isIncludeWithoutEnd()).isFalse();
+            });
         }
 
         @Test
         void should_return_subscriptions_and_adapt_them() throws TechnicalException {
             // Given
-            when(subscriptionRepository.search(any()))
-                .thenAnswer(invocation -> List.of(aSubscription("s1").status(Subscription.Status.ACCEPTED).build()));
+            when(subscriptionRepository.search(any())).thenAnswer(invocation ->
+                List.of(aSubscription("s1").status(Subscription.Status.ACCEPTED).build())
+            );
 
             // When
             var result = service.findExpiredSubscriptions();
 
             // Then
-            assertThat(result)
-                .containsExactly(
-                    SubscriptionEntity
-                        .builder()
-                        .id("s1")
-                        .apiId("api-id")
-                        .planId("plan-id")
-                        .applicationId("application-id")
-                        .status(SubscriptionEntity.Status.ACCEPTED)
-                        .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
-                        .type(SubscriptionEntity.Type.STANDARD)
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .build()
-                );
+            assertThat(result).containsExactly(
+                SubscriptionEntity.builder()
+                    .id("s1")
+                    .apiId("api-id")
+                    .planId("plan-id")
+                    .applicationId("application-id")
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
+                    .type(SubscriptionEntity.Type.STANDARD)
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .build()
+            );
         }
 
         @Test
@@ -162,55 +160,52 @@ public class SubscriptionQueryServiceImplTest {
             // Then
             var captor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
             verify(subscriptionRepository).search(captor.capture());
-            assertThat(captor.getValue())
-                .satisfies(criteria -> {
-                    assertThat(criteria.getStatuses())
-                        .containsExactly(
-                            Subscription.Status.ACCEPTED.name(),
-                            Subscription.Status.PENDING.name(),
-                            Subscription.Status.PAUSED.name()
-                        );
-                    assertThat(criteria.getEndingAtBefore()).isEqualTo(-1);
-                    assertThat(criteria.getFrom()).isEqualTo(-1);
-                    assertThat(criteria.getTo()).isEqualTo(-1);
-                    assertThat(criteria.getEndingAtAfter()).isEqualTo(-1);
-                    assertThat(criteria.getClientId()).isNull();
-                    assertThat(criteria.getApis()).isNull();
-                    assertThat(criteria.getApplications()).isNull();
-                    assertThat(criteria.getExcludedApis()).isNull();
-                    assertThat(criteria.getIds()).isNull();
-                    assertThat(criteria.getPlans()).containsExactly("plan-id");
-                    assertThat(criteria.getPlanSecurityTypes()).isNull();
-                    assertThat(criteria.isIncludeWithoutEnd()).isFalse();
-                });
+            assertThat(captor.getValue()).satisfies(criteria -> {
+                assertThat(criteria.getStatuses()).containsExactly(
+                    Subscription.Status.ACCEPTED.name(),
+                    Subscription.Status.PENDING.name(),
+                    Subscription.Status.PAUSED.name()
+                );
+                assertThat(criteria.getEndingAtBefore()).isEqualTo(-1);
+                assertThat(criteria.getFrom()).isEqualTo(-1);
+                assertThat(criteria.getTo()).isEqualTo(-1);
+                assertThat(criteria.getEndingAtAfter()).isEqualTo(-1);
+                assertThat(criteria.getClientId()).isNull();
+                assertThat(criteria.getApis()).isNull();
+                assertThat(criteria.getApplications()).isNull();
+                assertThat(criteria.getExcludedApis()).isNull();
+                assertThat(criteria.getIds()).isNull();
+                assertThat(criteria.getPlans()).containsExactly("plan-id");
+                assertThat(criteria.getPlanSecurityTypes()).isNull();
+                assertThat(criteria.isIncludeWithoutEnd()).isFalse();
+            });
         }
 
         @Test
         void should_return_subscriptions_and_adapt_them() throws TechnicalException {
             // Given
-            when(subscriptionRepository.search(any()))
-                .thenAnswer(invocation -> List.of(aSubscription("s1").status(Subscription.Status.ACCEPTED).build()));
+            when(subscriptionRepository.search(any())).thenAnswer(invocation ->
+                List.of(aSubscription("s1").status(Subscription.Status.ACCEPTED).build())
+            );
 
             // When
             var result = service.findActiveSubscriptionsByPlan("plan-id");
 
             // Then
-            assertThat(result)
-                .containsExactly(
-                    SubscriptionEntity
-                        .builder()
-                        .id("s1")
-                        .apiId("api-id")
-                        .planId("plan-id")
-                        .applicationId("application-id")
-                        .status(SubscriptionEntity.Status.ACCEPTED)
-                        .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
-                        .type(SubscriptionEntity.Type.STANDARD)
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .build()
-                );
+            assertThat(result).containsExactly(
+                SubscriptionEntity.builder()
+                    .id("s1")
+                    .apiId("api-id")
+                    .planId("plan-id")
+                    .applicationId("application-id")
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
+                    .type(SubscriptionEntity.Type.STANDARD)
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .build()
+            );
         }
 
         @Test
@@ -249,8 +244,9 @@ public class SubscriptionQueryServiceImplTest {
             var id = "s1";
             var apiId = "api-id";
             var appId = "app-id";
-            when(subscriptionRepository.search(any()))
-                .thenAnswer(invocation -> List.of(aSubscription(id).api(apiId).application(appId).build()));
+            when(subscriptionRepository.search(any())).thenAnswer(invocation ->
+                List.of(aSubscription(id).api(apiId).application(appId).build())
+            );
 
             // When
             var result = service.findActiveByApplicationIdAndApiId(appId, apiId);
@@ -290,22 +286,20 @@ public class SubscriptionQueryServiceImplTest {
             var result = service.findActiveSubscriptionsByPlan("plan-id");
 
             // Then
-            assertThat(result)
-                .containsExactly(
-                    SubscriptionEntity
-                        .builder()
-                        .id("subscription-id")
-                        .apiId("api-id")
-                        .planId("plan-id")
-                        .applicationId("application-id")
-                        .status(SubscriptionEntity.Status.ACCEPTED)
-                        .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
-                        .type(SubscriptionEntity.Type.STANDARD)
-                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .build()
-                );
+            assertThat(result).containsExactly(
+                SubscriptionEntity.builder()
+                    .id("subscription-id")
+                    .apiId("api-id")
+                    .planId("plan-id")
+                    .applicationId("application-id")
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
+                    .type(SubscriptionEntity.Type.STANDARD)
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .build()
+            );
         }
 
         @Test
@@ -336,8 +330,7 @@ public class SubscriptionQueryServiceImplTest {
     }
 
     private Subscription.SubscriptionBuilder aSubscription(String subscriptionId) {
-        return Subscription
-            .builder()
+        return Subscription.builder()
             .id(subscriptionId)
             .api("api-id")
             .plan("plan-id")

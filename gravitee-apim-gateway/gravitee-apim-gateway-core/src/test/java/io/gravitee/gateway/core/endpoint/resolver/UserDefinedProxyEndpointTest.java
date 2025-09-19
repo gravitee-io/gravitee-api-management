@@ -37,8 +37,10 @@ public class UserDefinedProxyEndpointTest {
         MultiValueMap<String, String> expectedParameters = new LinkedMultiValueMap<>();
         expectedParameters.add("endpointParam", "v");
 
-        ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test?endpointParam=v")
-            .createProxyRequest(mock(Request.class));
+        ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(
+            mock(Endpoint.class),
+            "http://host:8080/test?endpointParam=v"
+        ).createProxyRequest(mock(Request.class));
 
         Assert.assertNotNull(proxyRequest);
         Assert.assertNotNull(proxyRequest.parameters());
@@ -75,8 +77,10 @@ public class UserDefinedProxyEndpointTest {
         requestQueryParameters.add("dynroutParam", "v");
         when(request.parameters()).thenReturn(requestQueryParameters);
 
-        ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(mock(Endpoint.class), "http://host:8080/test?endpointParam=v")
-            .createProxyRequest(request);
+        ProxyRequest proxyRequest = new UserDefinedProxyEndpoint(
+            mock(Endpoint.class),
+            "http://host:8080/test?endpointParam=v"
+        ).createProxyRequest(request);
 
         Assert.assertNotNull(proxyRequest);
         Assert.assertNotNull(proxyRequest.parameters());

@@ -55,8 +55,9 @@ public class ECJWKSourceResolverTest {
     public void shouldNotResolveInvalidPublicKey() throws NoSuchAlgorithmException {
         KeyPair keyPair = generateKeyPair();
 
-        sourceResolver =
-            new ECJWKSourceResolver<>(() -> Base64.getEncoder().withoutPadding().encodeToString(keyPair.getPublic().getEncoded()));
+        sourceResolver = new ECJWKSourceResolver<>(() ->
+            Base64.getEncoder().withoutPadding().encodeToString(keyPair.getPublic().getEncoded())
+        );
         sourceResolver.resolve();
         fail("Source resolver must fail for wrong public keys");
     }

@@ -31,8 +31,7 @@ public class PageModelFactory {
     private PageModelFactory() {}
 
     public static Page fromCRDSpec(PageCRD pageCRD) {
-        return Page
-            .builder()
+        return Page.builder()
             .id(pageCRD.getId())
             .name(pageCRD.getName())
             .crossId(pageCRD.getCrossId())
@@ -68,8 +67,7 @@ public class PageModelFactory {
     }
 
     public static PageCRD toCRDSpec(Page page) {
-        return PageCRD
-            .builder()
+        return PageCRD.builder()
             .id(page.getId())
             .name(page.getName())
             .crossId(page.getCrossId())

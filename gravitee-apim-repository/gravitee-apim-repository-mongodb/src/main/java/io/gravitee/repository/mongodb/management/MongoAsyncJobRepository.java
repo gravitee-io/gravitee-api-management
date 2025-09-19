@@ -85,7 +85,11 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
 
     @Override
     public Set<AsyncJob> findAll() throws TechnicalException {
-        return internalRepository.findAll().stream().map(source -> mapper.map(source)).collect(Collectors.toSet());
+        return internalRepository
+            .findAll()
+            .stream()
+            .map(source -> mapper.map(source))
+            .collect(Collectors.toSet());
     }
 
     @Override

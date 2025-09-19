@@ -391,7 +391,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     private Set<EventEntity> convert(ExecutionContext executionContext, List<Event> events) {
-        return events.stream().map(event -> convert(executionContext, event)).collect(toSet());
+        return events
+            .stream()
+            .map(event -> convert(executionContext, event))
+            .collect(toSet());
     }
 
     private EventEntity convert(ExecutionContext executionContext, Event event) {
@@ -445,10 +448,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             Api apiForGatewayEvent = new Api(api);
             if (
                 api.getDefinitionVersion() == null ||
-                (
-                    !api.getDefinitionVersion().equals(DefinitionVersion.V4) &&
-                    !api.getDefinitionVersion().equals(DefinitionVersion.FEDERATED)
-                )
+                (!api.getDefinitionVersion().equals(DefinitionVersion.V4) &&
+                    !api.getDefinitionVersion().equals(DefinitionVersion.FEDERATED))
             ) {
                 apiForGatewayEvent.setDefinition(objectMapper.writeValueAsString(buildGatewayApiDefinition(executionContext, api)));
             } else {

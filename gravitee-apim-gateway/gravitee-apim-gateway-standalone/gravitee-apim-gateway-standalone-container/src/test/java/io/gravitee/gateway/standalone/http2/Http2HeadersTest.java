@@ -34,9 +34,9 @@ import org.junit.Test;
 @ApiDescriptor("/io/gravitee/gateway/standalone/http/teams.json")
 public class Http2HeadersTest extends AbstractWiremockGatewayTest {
 
-    io.vertx.core.http.HttpClient httpClient = Vertx
-        .vertx()
-        .createHttpClient(new HttpClientOptions().setSsl(true).setTrustAll(true).setUseAlpn(true).setProtocolVersion(HttpVersion.HTTP_2));
+    io.vertx.core.http.HttpClient httpClient = Vertx.vertx().createHttpClient(
+        new HttpClientOptions().setSsl(true).setTrustAll(true).setUseAlpn(true).setProtocolVersion(HttpVersion.HTTP_2)
+    );
 
     @Test
     public void should_conserve_multi_values() {
@@ -44,8 +44,9 @@ public class Http2HeadersTest extends AbstractWiremockGatewayTest {
         String cookie2 = "JSESSIONID=BASCDEDASDSSDSSE.oai008; path=/another; Secure; HttpOnly";
 
         wireMockRule.stubFor(
-            get(urlPathEqualTo("/team/my_team"))
-                .willReturn(ok().withHeader(HttpHeaderNames.SET_COOKIE, cookie1).withHeader(HttpHeaderNames.SET_COOKIE, cookie2))
+            get(urlPathEqualTo("/team/my_team")).willReturn(
+                ok().withHeader(HttpHeaderNames.SET_COOKIE, cookie1).withHeader(HttpHeaderNames.SET_COOKIE, cookie2)
+            )
         );
 
         httpClient

@@ -91,8 +91,9 @@ public class SharedPolicyGroupsResource_CreateTest extends AbstractResourceTest 
     void should_create_shared_policy_group() {
         var createSharedPolicyGroup = aCreateSharedPolicyGroup();
 
-        when(createSharedPolicyGroupUseCase.execute(any()))
-            .thenReturn(new CreateSharedPolicyGroupUseCase.Output(SharedPolicyGroupFixtures.aSharedPolicyGroup()));
+        when(createSharedPolicyGroupUseCase.execute(any())).thenReturn(
+            new CreateSharedPolicyGroupUseCase.Output(SharedPolicyGroupFixtures.aSharedPolicyGroup())
+        );
 
         final Response response = rootTarget().request().post(json(createSharedPolicyGroup));
         assertThat(response.getStatus()).isEqualTo(CREATED_201);
@@ -112,13 +113,11 @@ public class SharedPolicyGroupsResource_CreateTest extends AbstractResourceTest 
             .hasFieldOrPropertyWithValue("apiType", ApiType.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getApiType().name()))
             .hasFieldOrPropertyWithValue("phase", FlowPhase.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getPhase().name()))
             .satisfies(sharedPolicyGroup -> {
-                Assertions
-                    .assertThat(sharedPolicyGroup.getSteps())
+                Assertions.assertThat(sharedPolicyGroup.getSteps())
                     .hasSize(1)
                     .containsAll(
                         List.of(
-                            StepV4
-                                .builder()
+                            StepV4.builder()
                                 .policy("policyId")
                                 .name("Step name")
                                 .enabled(true)
@@ -173,13 +172,11 @@ public class SharedPolicyGroupsResource_CreateTest extends AbstractResourceTest 
                 eq(ENV_ID),
                 eq(RolePermissionAction.CREATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().post(json(SharedPolicyGroupFixtures.aCreateSharedPolicyGroup()));
 
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(FORBIDDEN_403)
             .asError()
             .hasHttpStatus(FORBIDDEN_403)

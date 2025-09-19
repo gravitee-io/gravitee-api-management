@@ -188,8 +188,7 @@ public class AnalyticsParam {
 
         if (interval < 1_000 || interval > 1_000_000_000) {
             throw new WebApplicationException(
-                Response
-                    .status(Response.Status.BAD_REQUEST)
+                Response.status(Response.Status.BAD_REQUEST)
                     .entity("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000")
                     .build()
             );
@@ -205,8 +204,7 @@ public class AnalyticsParam {
             // we need a field and, optionally, a list of ranges
             if (field == null || field.trim().isEmpty()) {
                 throw new WebApplicationException(
-                    Response
-                        .status(Response.Status.BAD_REQUEST)
+                    Response.status(Response.Status.BAD_REQUEST)
                         .entity("'field' query parameter is required for 'group_by' request")
                         .build()
                 );

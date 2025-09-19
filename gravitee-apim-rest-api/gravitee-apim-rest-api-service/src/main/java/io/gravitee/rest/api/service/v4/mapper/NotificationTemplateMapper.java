@@ -23,8 +23,7 @@ import org.springframework.stereotype.Component;
 public class NotificationTemplateMapper {
 
     public NotificationTemplateCommandEntity toNotificationTemplateCommandEntity(NotificationTemplateEntity notificationTemplate) {
-        return NotificationTemplateCommandEntity
-            .builder()
+        return NotificationTemplateCommandEntity.builder()
             .id(notificationTemplate.getId())
             .hook(notificationTemplate.getHook())
             .scope(notificationTemplate.getScope())

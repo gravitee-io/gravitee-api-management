@@ -47,12 +47,11 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
         LOGGER.debug("JdbcAsyncJobRepository.findPendingJobFor({})", sourceId);
         final List<AsyncJob> jobs;
         try {
-            jobs =
-                jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where source_id = ? and status = 'PENDING'",
-                    getOrm().getRowMapper(),
-                    sourceId
-                );
+            jobs = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where source_id = ? and status = 'PENDING'",
+                getOrm().getRowMapper(),
+                sourceId
+            );
             return jobs.stream().findFirst();
         } catch (final Exception ex) {
             final String message = "Failed to find pending AsyncJob for: " + sourceId;
@@ -66,12 +65,11 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
         LOGGER.debug("JdbcAsyncJobRepository.search({})", criteria);
         final List<AsyncJob> jobs;
         try {
-            jobs =
-                jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where " + convert(criteria) + " order by updated_at desc",
-                    ps -> fillPreparedStatement(criteria, ps),
-                    getOrm().getRowMapper()
-                );
+            jobs = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where " + convert(criteria) + " order by updated_at desc",
+                ps -> fillPreparedStatement(criteria, ps),
+                getOrm().getRowMapper()
+            );
             return getResultAsPage(pageable, jobs);
         } catch (final Exception ex) {
             final String message = "Failed to search AsyncJob with: " + criteria;
@@ -110,8 +108,7 @@ public class JdbcAsyncJobRepository extends JdbcAbstractCrudRepository<AsyncJob,
 
     @Override
     protected JdbcObjectMapper<AsyncJob> buildOrm() {
-        return JdbcObjectMapper
-            .builder(AsyncJob.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(AsyncJob.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("source_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)

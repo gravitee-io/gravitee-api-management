@@ -48,8 +48,8 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
     private final UserDomainService userDomainService;
     private final RoleQueryService roleQueryService;
 
-    public record Input(AuditInfo auditInfo, String referenceId, MembershipReferenceType referenceType, Set<MemberCRD> members)
-        implements Validator.Input {
+    public record Input(AuditInfo auditInfo, String referenceId, MembershipReferenceType referenceType, Set<MemberCRD> members) implements
+        Validator.Input {
         Input sanitized(Set<MemberCRD> sanitizedMembers) {
             return new Input(auditInfo, referenceId, referenceType, sanitizedMembers);
         }
@@ -92,11 +92,10 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
 
     private void validateMemberRole(Input input, Set<MemberCRD> sanitized, ArrayList<Error> errors) {
         for (var member : sanitized) {
-            findRole(input.auditInfo.organizationId(), input.referenceType, member.getRole())
-                .ifPresentOrElse(
-                    role -> log.debug("Role {} found for scope {}", member.getRole(), input.referenceType),
-                    () -> errors.add(Error.warning("member role [%s] doesn't exist", member.getRole()))
-                );
+            findRole(input.auditInfo.organizationId(), input.referenceType, member.getRole()).ifPresentOrElse(
+                role -> log.debug("Role {} found for scope {}", member.getRole(), input.referenceType),
+                () -> errors.add(Error.warning("member role [%s] doesn't exist", member.getRole()))
+            );
         }
     }
 

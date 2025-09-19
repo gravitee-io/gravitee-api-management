@@ -98,16 +98,14 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        Stream
-            .of(
-                apiAuthorizationDomainService,
-                categoryQueryServiceInMemory,
-                apiQueryServiceInMemory,
-                categoryApiCrudServiceInMemory,
-                updateCategoryApiDomainServiceInMemory,
-                apiCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiAuthorizationDomainService,
+            categoryQueryServiceInMemory,
+            apiQueryServiceInMemory,
+            categoryApiCrudServiceInMemory,
+            updateCategoryApiDomainServiceInMemory,
+            apiCrudService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -122,13 +120,11 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
                     eq(ENV_ID),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().order(99).build()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -139,8 +135,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
         public void should_return_400_if_missing_body() {
             final Response response = rootTarget().request().post(Entity.json(null));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -151,8 +146,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
         public void should_return_400_if_order_not_specified() {
             final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().build()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -163,8 +157,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
         public void should_return_404_if_category_not_found() {
             final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().order(99).build()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -177,8 +170,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().order(99).build()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -192,8 +184,7 @@ public class CategoryApiResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().request().post(Entity.json(UpdateCategoryApi.builder().order(99).build()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)

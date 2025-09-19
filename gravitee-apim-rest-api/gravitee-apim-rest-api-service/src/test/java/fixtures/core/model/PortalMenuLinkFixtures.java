@@ -27,8 +27,7 @@ public class PortalMenuLinkFixtures {
     private PortalMenuLinkFixtures() {}
 
     private static final Supplier<PortalMenuLink.PortalMenuLinkBuilder> BASE = () ->
-        PortalMenuLink
-            .builder()
+        PortalMenuLink.builder()
             .id("portalMenuLinkId")
             .environmentId("environmentId")
             .type(PortalMenuLinkType.EXTERNAL)
@@ -42,8 +41,7 @@ public class PortalMenuLinkFixtures {
     }
 
     private static final Supplier<CreatePortalMenuLink.CreatePortalMenuLinkBuilder> CREATE_BASE = () ->
-        CreatePortalMenuLink
-            .builder()
+        CreatePortalMenuLink.builder()
             .type(PortalMenuLinkType.EXTERNAL)
             .name("portalMenuLinkNameToCreate")
             .target("portalMenuLinkTargetToCreate")
@@ -54,8 +52,7 @@ public class PortalMenuLinkFixtures {
     }
 
     private static final Supplier<UpdatePortalMenuLink.UpdatePortalMenuLinkBuilder> UPDATE_BASE = () ->
-        UpdatePortalMenuLink
-            .builder()
+        UpdatePortalMenuLink.builder()
             .name("portalMenuLinkNameToUpdate")
             .target("portalMenuLinkTargetToUpdate")
             .visibility(PortalMenuLinkVisibility.PUBLIC)

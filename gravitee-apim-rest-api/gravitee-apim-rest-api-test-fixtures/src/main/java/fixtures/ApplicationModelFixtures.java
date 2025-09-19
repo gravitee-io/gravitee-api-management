@@ -29,13 +29,11 @@ public class ApplicationModelFixtures {
 
     private ApplicationModelFixtures() {}
 
-    protected static final ApplicationSettings.ApplicationSettingsBuilder APPLICATION_SETTINGS_BUILDER = ApplicationSettings
-        .builder()
+    protected static final ApplicationSettings.ApplicationSettingsBuilder APPLICATION_SETTINGS_BUILDER = ApplicationSettings.builder()
         .app(SimpleApplicationSettings.builder().clientId("clientId").build())
         .oauth(OAuthClientSettings.builder().clientId("clientId").build());
 
-    private static final ApplicationListItem.ApplicationListItemBuilder BASE_APPLICATION_LIST_ITEM = ApplicationListItem
-        .builder()
+    private static final ApplicationListItem.ApplicationListItemBuilder BASE_APPLICATION_LIST_ITEM = ApplicationListItem.builder()
         .id("my-application")
         .name("My application")
         .description("Description")
@@ -55,8 +53,7 @@ public class ApplicationModelFixtures {
         .status("ACTIVE")
         .type("iOS");
 
-    private static final ApplicationEntity.ApplicationEntityBuilder BASE_APPLICATION_ENTITY = ApplicationEntity
-        .builder()
+    private static final ApplicationEntity.ApplicationEntityBuilder BASE_APPLICATION_ENTITY = ApplicationEntity.builder()
         .id("my-application")
         .name("My application")
         .description("Description")

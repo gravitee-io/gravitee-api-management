@@ -92,23 +92,22 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
     private StringBuilder createSearchQueryBuilder() {
         return new StringBuilder(
             "select evt.*, evp.*, ev.*, evo.* from " +
-            this.tableName +
-            " evt inner join " +
-            EVENT_PROPERTIES +
-            " evp on evt.id = evp.event_id " +
-            "left join " +
-            EVENT_ENVIRONMENTS +
-            " ev on evt.id = ev.event_id " +
-            "left join " +
-            EVENT_ORGANIZATIONS +
-            " evo on evt.id = evo.event_id "
+                this.tableName +
+                " evt inner join " +
+                EVENT_PROPERTIES +
+                " evp on evt.id = evp.event_id " +
+                "left join " +
+                EVENT_ENVIRONMENTS +
+                " ev on evt.id = ev.event_id " +
+                "left join " +
+                EVENT_ORGANIZATIONS +
+                " evo on evt.id = evo.event_id "
         );
     }
 
     @Override
     protected JdbcObjectMapper<Event> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Event.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Event.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("type", Types.NVARCHAR, EventType.class)

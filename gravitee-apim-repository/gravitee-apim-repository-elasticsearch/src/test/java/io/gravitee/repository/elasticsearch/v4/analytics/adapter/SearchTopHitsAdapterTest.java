@@ -65,120 +65,117 @@ class SearchTopHitsAdapterTest {
             assertThatJson(result).isEqualTo(TOP_HIT_QUERY_WITH_EMPTY_ID_LIST);
         }
 
-        private static final String TOP_HIT_QUERY_WITH_API_IDS_AND_TIME_RANGES =
-            """
-                 {
-                     "size": 0,
-                     "query": {
-                         "bool": {
-                             "filter": [
-                                 {
-                                     "terms": {
-                                         "api-id": [
-                                             "api-id-1",
-                                             "api-id-2"
-                                         ]
-                                     }
-                                 },
-                                 {
-                                     "range": {
-                                         "@timestamp": {
-                                             "gte": 1728992401566,
-                                             "lte" : 1729078801566
-                                         }
+        private static final String TOP_HIT_QUERY_WITH_API_IDS_AND_TIME_RANGES = """
+             {
+                 "size": 0,
+                 "query": {
+                     "bool": {
+                         "filter": [
+                             {
+                                 "terms": {
+                                     "api-id": [
+                                         "api-id-1",
+                                         "api-id-2"
+                                     ]
+                                 }
+                             },
+                             {
+                                 "range": {
+                                     "@timestamp": {
+                                         "gte": 1728992401566,
+                                         "lte" : 1729078801566
                                      }
                                  }
-                             ]
-                         }
-                     },
-                     "aggs": {
-                         "api_top_hits_count": {
-                             "terms": {
-                                 "field": "api-id"
-                             },
-                             "aggs": {
-                                 "hits_count": {
-                                     "value_count": {
-                                         "field": "api-id"
-                                     }
+                             }
+                         ]
+                     }
+                 },
+                 "aggs": {
+                     "api_top_hits_count": {
+                         "terms": {
+                             "field": "api-id"
+                         },
+                         "aggs": {
+                             "hits_count": {
+                                 "value_count": {
+                                     "field": "api-id"
                                  }
                              }
                          }
                      }
-                 }\s
-                \s""";
+                 }
+             }\s
+            \s""";
 
-        private static final String TOP_HIT_QUERY_WITH_NULL_QUERY_PARAMS =
-            """
-                 {
-                     "size": 0,
-                     "query": {
-                         "bool": {
-                             "filter": [
-                                 {
-                                     "terms": {
-                                         "api-id": []
-                                     }
+        private static final String TOP_HIT_QUERY_WITH_NULL_QUERY_PARAMS = """
+             {
+                 "size": 0,
+                 "query": {
+                     "bool": {
+                         "filter": [
+                             {
+                                 "terms": {
+                                     "api-id": []
                                  }
-                             ]
-                         }
-                     },
-                     "aggs": {
-                         "api_top_hits_count": {
-                             "terms": {
-                                 "field": "api-id"
-                             },
-                             "aggs": {
-                                 "hits_count": {
-                                     "value_count": {
-                                         "field": "api-id"
-                                     }
+                             }
+                         ]
+                     }
+                 },
+                 "aggs": {
+                     "api_top_hits_count": {
+                         "terms": {
+                             "field": "api-id"
+                         },
+                         "aggs": {
+                             "hits_count": {
+                                 "value_count": {
+                                     "field": "api-id"
                                  }
                              }
                          }
                      }
-                 }\s
-                \s""";
+                 }
+             }\s
+            \s""";
 
-        private static final String TOP_HIT_QUERY_WITH_EMPTY_ID_LIST =
-            """
-                 {
-                     "size": 0,
-                     "query": {
-                         "bool": {
-                             "filter": [
-                                 {
-                                     "terms": {
-                                         "api-id": []
-                                     }
-                                 },
-                                 {
-                                     "range": {
-                                         "@timestamp": {
-                                             "gte": 1728992401566,
-                                             "lte" : 1729078801566
-                                         }
+        private static final String TOP_HIT_QUERY_WITH_EMPTY_ID_LIST = """
+             {
+                 "size": 0,
+                 "query": {
+                     "bool": {
+                         "filter": [
+                             {
+                                 "terms": {
+                                     "api-id": []
+                                 }
+                             },
+                             {
+                                 "range": {
+                                     "@timestamp": {
+                                         "gte": 1728992401566,
+                                         "lte" : 1729078801566
                                      }
                                  }
-                             ]
-                         }
-                     },
-                     "aggs": {
-                         "api_top_hits_count": {
-                             "terms": {
-                                 "field": "api-id"
-                             },
-                             "aggs": {
-                                 "hits_count": {
-                                     "value_count": {
-                                         "field": "api-id"
-                                     }
+                             }
+                         ]
+                     }
+                 },
+                 "aggs": {
+                     "api_top_hits_count": {
+                         "terms": {
+                             "field": "api-id"
+                         },
+                         "aggs": {
+                             "hits_count": {
+                                 "value_count": {
+                                     "field": "api-id"
                                  }
                              }
                          }
                      }
-                 }\s
-                \s""";
+                 }
+             }\s
+            \s""";
     }
 
     @Nested
@@ -222,10 +219,9 @@ class SearchTopHitsAdapterTest {
 
             var result = SearchTopHitsAdapter.adaptResponse(searchResponse);
 
-            assertThat(result)
-                .hasValueSatisfying(topHits ->
-                    assertThat(topHits.getTopHitsCounts()).containsEntry(API_ID_1, API_ID_1_COUNT).containsEntry(API_ID_2, API_ID_2_COUNT)
-                );
+            assertThat(result).hasValueSatisfying(topHits ->
+                assertThat(topHits.getTopHitsCounts()).containsEntry(API_ID_1, API_ID_1_COUNT).containsEntry(API_ID_2, API_ID_2_COUNT)
+            );
         }
 
         JsonNode createTopHitsBucket(String apiId, long topHitsCount) {

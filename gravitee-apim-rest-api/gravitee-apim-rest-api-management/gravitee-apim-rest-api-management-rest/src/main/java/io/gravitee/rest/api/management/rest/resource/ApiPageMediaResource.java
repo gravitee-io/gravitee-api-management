@@ -104,10 +104,10 @@ public class ApiPageMediaResource extends AbstractResource {
         if (request.getContentLength() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
             throw new UploadUnauthorized(
                 "Max size is " +
-                this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext()) +
-                "bytes. Actual size is " +
-                request.getContentLength() +
-                "bytes."
+                    this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext()) +
+                    "bytes. Actual size is " +
+                    request.getContentLength() +
+                    "bytes."
             );
         }
         final String originalFileName = fileDetail.getFileName();
@@ -121,7 +121,13 @@ public class ApiPageMediaResource extends AbstractResource {
         mediaId = mediaService.saveApiMedia(GraviteeContext.getExecutionContext(), api, mediaEntity);
         pageService
             .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
-            .flatMap(pageEntity -> pageEntity.getAttachedMedia().stream().filter(media -> media.getMediaHash().equals(mediaId)).findFirst())
+            .flatMap(pageEntity ->
+                pageEntity
+                    .getAttachedMedia()
+                    .stream()
+                    .filter(media -> media.getMediaHash().equals(mediaId))
+                    .findFirst()
+            )
             .ifPresent(createdMedia -> {
                 mediaEntity.setUploadDate(createdMedia.getAttachedAt());
                 mediaEntity.setHash(createdMedia.getMediaHash());

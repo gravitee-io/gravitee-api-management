@@ -149,12 +149,11 @@ public class DebugResponseStepTest {
     }
 
     private void applyDifferentValuesForFields(List<String> fields) {
-        when(afterResponse.headers())
-            .thenReturn(
-                fields.contains(DebugStep.DIFF_KEY_HEADERS)
-                    ? HttpHeaders.create().add("Other-Header", "other-value")
-                    : HttpHeaders.create().add("Header", "header-value")
-            );
+        when(afterResponse.headers()).thenReturn(
+            fields.contains(DebugStep.DIFF_KEY_HEADERS)
+                ? HttpHeaders.create().add("Other-Header", "other-value")
+                : HttpHeaders.create().add("Header", "header-value")
+        );
 
         when(afterResponse.status()).thenReturn(fields.contains(DebugStep.DIFF_KEY_STATUS_CODE) ? 500 : 200);
 

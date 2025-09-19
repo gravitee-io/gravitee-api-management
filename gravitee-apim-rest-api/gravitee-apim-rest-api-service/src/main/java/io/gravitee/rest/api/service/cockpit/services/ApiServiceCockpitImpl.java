@@ -333,8 +333,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
             return ContextPathValidationResult.builder().sanitizedPaths(sanitizedPaths).build();
         } catch (InvalidPathsException e) {
             String ctxPath = api.getProxy().getVirtualHosts().stream().findFirst().map(VirtualHost::getPath).orElse("");
-            return ContextPathValidationResult
-                .builder()
+            return ContextPathValidationResult.builder()
                 .error("The path [" + ctxPath + "] automatically generated from the name is already covered by another API.")
                 .build();
         } catch (Exception e) {

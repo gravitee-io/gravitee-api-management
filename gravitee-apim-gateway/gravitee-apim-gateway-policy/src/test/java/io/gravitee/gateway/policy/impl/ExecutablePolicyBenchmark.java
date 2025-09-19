@@ -49,23 +49,21 @@ public class ExecutablePolicyBenchmark {
     public void setup() {
         policy = new DummyPolicy();
 
-        policyManifest =
-            new PolicyManifestBuilder()
-                .setPolicy(DummyPolicy.class)
-                .setId("dummy")
-                .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
-                .build();
+        policyManifest = new PolicyManifestBuilder()
+            .setPolicy(DummyPolicy.class)
+            .setId("dummy")
+            .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
+            .build();
 
         requestMethod = policyManifest.method(OnRequest.class);
         executablePolicy = new ExecutablePolicy("dummy", policy, requestMethod, policyManifest.method(OnRequestContent.class));
 
-        reflectionExecutablePolicy =
-            new ReflectionExecutablePolicy(
-                "dummy",
-                policy,
-                policyManifest.method(OnRequest.class),
-                policyManifest.method(OnRequestContent.class)
-            );
+        reflectionExecutablePolicy = new ReflectionExecutablePolicy(
+            "dummy",
+            policy,
+            policyManifest.method(OnRequest.class),
+            policyManifest.method(OnRequestContent.class)
+        );
 
         executionContext = new SimpleExecutionContext(new SimpleRequest(), new SimpleResponse());
         policyChain = OrderedPolicyChain.create(Collections.emptyList(), executionContext);

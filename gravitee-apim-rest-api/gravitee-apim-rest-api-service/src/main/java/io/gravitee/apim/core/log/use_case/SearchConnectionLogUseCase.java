@@ -47,6 +47,7 @@ public class SearchConnectionLogUseCase {
         Output(ConnectionLogDetail connectionLogDetail) {
             this(Optional.of(connectionLogDetail));
         }
+
         Output() {
             this(Optional.empty());
         }

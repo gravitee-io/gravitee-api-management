@@ -67,15 +67,14 @@ public class ApiPolicyValidatorDomainService {
             pathsStream = api.getPaths().values().stream().flatMap(Collection::stream);
         }
         if (plans != null && pathsStream != null) {
-            pathsStream =
-                Stream.concat(
-                    pathsStream,
-                    plans
-                        .stream()
-                        .flatMap(plan ->
-                            plan.getPaths() != null ? plan.getPaths().values().stream().flatMap(Collection::stream) : Stream.empty()
-                        )
-                );
+            pathsStream = Stream.concat(
+                pathsStream,
+                plans
+                    .stream()
+                    .flatMap(plan ->
+                        plan.getPaths() != null ? plan.getPaths().values().stream().flatMap(Collection::stream) : Stream.empty()
+                    )
+            );
         }
         return pathsStream;
     }
@@ -102,11 +101,10 @@ public class ApiPolicyValidatorDomainService {
             flowsStream = api.getFlows().stream();
         }
         if (plans != null && flowsStream != null) {
-            flowsStream =
-                Stream.concat(
-                    flowsStream,
-                    plans.stream().flatMap(plan -> plan.getFlows() != null ? plan.getFlows().stream() : Stream.empty())
-                );
+            flowsStream = Stream.concat(
+                flowsStream,
+                plans.stream().flatMap(plan -> plan.getFlows() != null ? plan.getFlows().stream() : Stream.empty())
+            );
         }
 
         if (flowsStream == null) {

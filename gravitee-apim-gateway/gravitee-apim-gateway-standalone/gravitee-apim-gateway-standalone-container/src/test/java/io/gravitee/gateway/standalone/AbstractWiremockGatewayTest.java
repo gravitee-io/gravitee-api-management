@@ -89,8 +89,15 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
 
     public String exchangePort(URL url, int port) {
         try {
-            return new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), port, url.getPath(), url.getQuery(), url.getRef())
-                .toString();
+            return new URI(
+                url.getProtocol(),
+                url.getUserInfo(),
+                url.getHost(),
+                port,
+                url.getPath(),
+                url.getQuery(),
+                url.getRef()
+            ).toString();
         } catch (URISyntaxException e) {
             return null;
         }

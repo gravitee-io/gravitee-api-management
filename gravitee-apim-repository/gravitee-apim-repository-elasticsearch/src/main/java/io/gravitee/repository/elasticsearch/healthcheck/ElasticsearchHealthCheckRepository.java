@@ -98,12 +98,11 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
         String[] clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
 
         try {
-            final Single<SearchResponse> result =
-                this.client.search(
-                        this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, clusters),
-                        !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
-                        sQuery
-                    );
+            final Single<SearchResponse> result = this.client.search(
+                this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, clusters),
+                !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
+                sQuery
+            );
 
             SearchResponse searchResponse = result.blockingGet();
             if (searchResponse.getSearchHits().getTotal().getValue() == 0) {

@@ -184,8 +184,7 @@ public class NotificationTemplateServiceTest {
                 NOTIFICATION_TEMPLATE_REFERENCE_ID,
                 NOTIFICATION_TEMPLATE_REFERENCE_TYPE
             )
-        )
-            .thenReturn(Sets.newSet(temp1, temp2));
+        ).thenReturn(Sets.newSet(temp1, temp2));
 
         final Set<NotificationTemplateEntity> all = notificationTemplateService.findAll(GraviteeContext.getCurrentOrganization());
         assertNotNull(all);
@@ -203,8 +202,7 @@ public class NotificationTemplateServiceTest {
                 NOTIFICATION_TEMPLATE_REFERENCE_ID,
                 NOTIFICATION_TEMPLATE_REFERENCE_TYPE
             )
-        )
-            .thenReturn(Sets.newSet(temp1));
+        ).thenReturn(Sets.newSet(temp1));
 
         final Set<NotificationTemplateEntity> byType = notificationTemplateService.findByType(
             GraviteeContext.getCurrentOrganization(),
@@ -227,16 +225,15 @@ public class NotificationTemplateServiceTest {
 
         notificationTemplateService.create(GraviteeContext.getExecutionContext(), newNotificationTemplateEntity);
         verify(notificationTemplateRepository, times(1)).create(any());
-        verify(auditService, times(1))
-            .createOrganizationAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentOrganization()),
-                any(),
-                eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_CREATED),
-                any(),
-                isNull(),
-                any()
-            );
+        verify(auditService, times(1)).createOrganizationAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(GraviteeContext.getCurrentOrganization()),
+            any(),
+            eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_CREATED),
+            any(),
+            isNull(),
+            any()
+        );
     }
 
     @Test
@@ -260,16 +257,15 @@ public class NotificationTemplateServiceTest {
         notificationTemplateService.update(GraviteeContext.getExecutionContext(), updatingNotificationTemplateEntity);
 
         verify(notificationTemplateRepository, times(1)).update(any());
-        verify(auditService, times(1))
-            .createOrganizationAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentOrganization()),
-                any(),
-                eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),
-                any(),
-                eq(toUpdate),
-                eq(notificationTemplate)
-            );
+        verify(auditService, times(1)).createOrganizationAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(GraviteeContext.getCurrentOrganization()),
+            any(),
+            eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),
+            any(),
+            eq(toUpdate),
+            eq(notificationTemplate)
+        );
 
         ArgumentCaptor<Command> captor = ArgumentCaptor.forClass(Command.class);
         verify(commandRepository, times(1)).create(captor.capture());
@@ -298,16 +294,15 @@ public class NotificationTemplateServiceTest {
 
         notificationTemplateService.update(GraviteeContext.getExecutionContext(), updatingNotificationTemplateEntity);
         verify(notificationTemplateRepository, never()).update(any());
-        verify(auditService, never())
-            .createOrganizationAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentOrganization()),
-                any(),
-                eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),
-                any(),
-                eq(toUpdate),
-                eq(notificationTemplate)
-            );
+        verify(auditService, never()).createOrganizationAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(GraviteeContext.getCurrentOrganization()),
+            any(),
+            eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),
+            any(),
+            eq(toUpdate),
+            eq(notificationTemplate)
+        );
     }
 
     @Test

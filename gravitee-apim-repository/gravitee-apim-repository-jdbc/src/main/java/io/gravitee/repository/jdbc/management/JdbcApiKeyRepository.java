@@ -75,8 +75,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     @Override
     protected JdbcObjectMapper<ApiKey> buildOrm() {
-        return JdbcObjectMapper
-            .builder(ApiKey.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(ApiKey.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("key", Types.NVARCHAR, String.class)

@@ -95,11 +95,9 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             var messageApiV4 = ApiFixtures.aMessageApiV4();
 
             apiQueryService.initWith(List.of(proxyApiV4, messageApiV4));
-            analyticsQueryService.responseStatusRanges =
-                ResponseStatusRanges
-                    .builder()
-                    .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
-                    .build();
+            analyticsQueryService.responseStatusRanges = ResponseStatusRanges.builder()
+                .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
+                .build();
 
             //When
 
@@ -111,8 +109,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsResponseStatusRangesResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsResponseStatusRangesResponse
-                        .builder()
+                    EnvironmentAnalyticsResponseStatusRangesResponse.builder()
                         .ranges(Map.of("100.0-200.0", 1, "200.0-300.0", 17, "300.0-400.0", 0, "400.0-500.0", 0, "500.0-600.0", 0))
                         .build()
                 );
@@ -136,16 +133,14 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             var messageApiV4 = ApiFixtures.aMessageApiV4().toBuilder().id(topHitApi2Id).name("Top Hit API 2").build();
 
             apiQueryService.initWith(List.of(proxyApiV4, messageApiV4));
-            analyticsQueryService.topHitsApis =
-                TopHitsApis
-                    .builder()
-                    .data(
-                        List.of(
-                            TopHitsApis.TopHitApi.builder().id(topHitApi1Id).count(7L).build(),
-                            TopHitsApis.TopHitApi.builder().id(topHitApi2Id).count(13L).build()
-                        )
+            analyticsQueryService.topHitsApis = TopHitsApis.builder()
+                .data(
+                    List.of(
+                        TopHitsApis.TopHitApi.builder().id(topHitApi1Id).count(7L).build(),
+                        TopHitsApis.TopHitApi.builder().id(topHitApi2Id).count(13L).build()
                     )
-                    .build();
+                )
+                .build();
 
             //When
 
@@ -155,8 +150,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsTopHitsApisResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsTopHitsApisResponse
-                        .builder()
+                    EnvironmentAnalyticsTopHitsApisResponse.builder()
                         .data(
                             List.of(
                                 TopHitApi.builder().id(topHitApi2Id).name("Top Hit API 2").count(13L).build(),
@@ -198,15 +192,13 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
             var apiV4 = ApiFixtures.aProxyApiV4().toBuilder().id(topHitApi1Id).name("Request Response Time API").build();
 
             apiQueryService.initWith(List.of(apiV4));
-            analyticsQueryService.requestResponseTime =
-                RequestResponseTime
-                    .builder()
-                    .requestsPerSecond(3.7d)
-                    .requestsTotal(25600L)
-                    .responseMinTime(32.5d)
-                    .responseMaxTime(1220.87d)
-                    .responseAvgTime(159.2d)
-                    .build();
+            analyticsQueryService.requestResponseTime = RequestResponseTime.builder()
+                .requestsPerSecond(3.7d)
+                .requestsTotal(25600L)
+                .responseMinTime(32.5d)
+                .responseMaxTime(1220.87d)
+                .responseAvgTime(159.2d)
+                .build();
 
             //When
 
@@ -216,8 +208,7 @@ class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
                 .hasStatus(OK_200)
                 .asEntity(EnvironmentAnalyticsRequestResponseTimeResponse.class)
                 .isEqualTo(
-                    EnvironmentAnalyticsRequestResponseTimeResponse
-                        .builder()
+                    EnvironmentAnalyticsRequestResponseTimeResponse.builder()
                         .requestsPerSecond(3.7)
                         .requestsTotal(25600)
                         .responseMinTime(32.5)

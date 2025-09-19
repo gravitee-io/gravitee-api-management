@@ -67,12 +67,12 @@ class SearchResponseStatusRangesResponseAdapterTest {
 
         Optional<ResponseStatusRangesAggregate> result = SearchResponseStatusRangesResponseAdapter.adapt(searchResponse);
 
-        assertThat(result)
-            .hasValueSatisfying(topHits ->
-                assertThat(topHits.getStatusRangesCountByEntrypoint().keySet()).containsExactlyInAnyOrder(entrypoints)
-            );
-        assertThat(result.get().getRanges())
-            .containsExactlyInAnyOrderEntriesOf(Map.of("100.0-200.0", 1L, "200.0-300.0", 2L, "300.0-400.0", 3L, "400.0-500.0", 4L));
+        assertThat(result).hasValueSatisfying(topHits ->
+            assertThat(topHits.getStatusRangesCountByEntrypoint().keySet()).containsExactlyInAnyOrder(entrypoints)
+        );
+        assertThat(result.get().getRanges()).containsExactlyInAnyOrderEntriesOf(
+            Map.of("100.0-200.0", 1L, "200.0-300.0", 2L, "300.0-400.0", 3L, "400.0-500.0", 4L)
+        );
     }
 
     private Aggregation provideAllApiStatusAggregation() {

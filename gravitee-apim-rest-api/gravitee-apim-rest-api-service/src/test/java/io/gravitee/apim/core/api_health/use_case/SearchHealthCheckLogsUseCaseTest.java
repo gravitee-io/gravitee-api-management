@@ -108,18 +108,17 @@ class SearchHealthCheckLogsUseCaseTest {
 
         var queryCaptor = ArgumentCaptor.forClass(ApiHealthQueryService.SearchLogsQuery.class);
         verify(apiHealthQueryService).searchLogs(queryCaptor.capture());
-        assertThat(queryCaptor.getValue())
-            .satisfies(query -> {
-                assertSoftly(softly -> {
-                    softly.assertThat(query.organizationId()).isEqualTo(ORGANIZATION_ID);
-                    softly.assertThat(query.environmentId()).isEqualTo(ENV_ID);
-                    softly.assertThat(query.apiId()).isEqualTo(MY_API);
-                    softly.assertThat(query.from()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
-                    softly.assertThat(query.to()).isEqualTo(INSTANT_NOW);
-                    softly.assertThat(query.success()).isEqualTo(Optional.of(false));
-                    softly.assertThat(query.pageable()).isEqualTo(new PageableImpl(2, 5));
-                });
+        assertThat(queryCaptor.getValue()).satisfies(query -> {
+            assertSoftly(softly -> {
+                softly.assertThat(query.organizationId()).isEqualTo(ORGANIZATION_ID);
+                softly.assertThat(query.environmentId()).isEqualTo(ENV_ID);
+                softly.assertThat(query.apiId()).isEqualTo(MY_API);
+                softly.assertThat(query.from()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
+                softly.assertThat(query.to()).isEqualTo(INSTANT_NOW);
+                softly.assertThat(query.success()).isEqualTo(Optional.of(false));
+                softly.assertThat(query.pageable()).isEqualTo(new PageableImpl(2, 5));
             });
+        });
     }
 
     @Test
@@ -149,18 +148,17 @@ class SearchHealthCheckLogsUseCaseTest {
 
         var queryCaptor = ArgumentCaptor.forClass(ApiHealthQueryService.SearchLogsQuery.class);
         verify(apiHealthQueryService).searchLogs(queryCaptor.capture());
-        assertThat(queryCaptor.getValue())
-            .satisfies(query -> {
-                assertSoftly(softly -> {
-                    softly.assertThat(query.organizationId()).isEqualTo(ORGANIZATION_ID);
-                    softly.assertThat(query.environmentId()).isEqualTo(ENV_ID);
-                    softly.assertThat(query.apiId()).isEqualTo(MY_API);
-                    softly.assertThat(query.from()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
-                    softly.assertThat(query.to()).isEqualTo(INSTANT_NOW);
-                    softly.assertThat(query.success()).isEqualTo(Optional.of(false));
-                    softly.assertThat(query.pageable()).isEqualTo(new PageableImpl(1, 10));
-                });
+        assertThat(queryCaptor.getValue()).satisfies(query -> {
+            assertSoftly(softly -> {
+                softly.assertThat(query.organizationId()).isEqualTo(ORGANIZATION_ID);
+                softly.assertThat(query.environmentId()).isEqualTo(ENV_ID);
+                softly.assertThat(query.apiId()).isEqualTo(MY_API);
+                softly.assertThat(query.from()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS));
+                softly.assertThat(query.to()).isEqualTo(INSTANT_NOW);
+                softly.assertThat(query.success()).isEqualTo(Optional.of(false));
+                softly.assertThat(query.pageable()).isEqualTo(new PageableImpl(1, 10));
             });
+        });
     }
 
     @Test

@@ -27,8 +27,7 @@ public class ParentTypeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("pages")
             .name("p1t1")
             .key("parent", ascending())

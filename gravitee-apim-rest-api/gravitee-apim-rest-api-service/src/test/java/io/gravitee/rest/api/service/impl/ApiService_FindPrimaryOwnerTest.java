@@ -435,8 +435,9 @@ public class ApiService_FindPrimaryOwnerTest {
     }
 
     private void setPrimaryOwnerMode(String mode) {
-        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
-            .thenReturn(mode);
+        when(
+            parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)
+        ).thenReturn(mode);
     }
 
     private void addUserInPOGroup(String username, String poGroup) {

@@ -92,8 +92,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     @Override
     public Analytics query(final ExecutionContext executionContext, final DateHistogramQuery query) {
         try {
-            final DateHistogramQueryBuilder queryBuilder = QueryBuilders
-                .dateHistogram()
+            final DateHistogramQueryBuilder queryBuilder = QueryBuilders.dateHistogram()
                 .query(query.getQuery())
                 .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
                 .root(query.getRootField(), query.getRootIdentifier());
@@ -224,8 +223,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         try {
             LogsResponse response = healthCheckRepository.query(
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                QueryBuilders
-                    .logs()
+                QueryBuilders.logs()
                     .api(api)
                     .page(query.getPage())
                     .size(query.getSize())
@@ -433,14 +431,13 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 metadata.put("deleted", "true");
             }
         } else if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
-            Optional<Endpoint> endpointOpt =
-                ((ApiEntity) api).getProxy()
-                    .getGroups()
-                    .stream()
-                    .filter(group -> group.getEndpoints() != null)
-                    .flatMap(group -> group.getEndpoints().stream())
-                    .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
-                    .findFirst();
+            Optional<Endpoint> endpointOpt = ((ApiEntity) api).getProxy()
+                .getGroups()
+                .stream()
+                .filter(group -> group.getEndpoints() != null)
+                .flatMap(group -> group.getEndpoints().stream())
+                .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
+                .findFirst();
 
             if (endpointOpt.isPresent()) {
                 metadata.put("target", endpointOpt.get().getTarget());

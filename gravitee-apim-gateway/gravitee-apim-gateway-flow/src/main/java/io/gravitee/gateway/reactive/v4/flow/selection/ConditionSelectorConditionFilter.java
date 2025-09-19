@@ -39,7 +39,10 @@ public class ConditionSelectorConditionFilter implements ConditionFilter<BaseExe
         return flow
             .selectorByType(SelectorType.CONDITION)
             .map(conditionSelector ->
-                elConditionFilter.filter(ctx, (ConditionSelector) conditionSelector).onErrorResumeWith(Maybe.empty()).map(filter -> flow)
+                elConditionFilter
+                    .filter(ctx, (ConditionSelector) conditionSelector)
+                    .onErrorResumeWith(Maybe.empty())
+                    .map(filter -> flow)
             )
             .orElse(Maybe.just(flow));
     }

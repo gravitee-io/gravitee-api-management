@@ -101,8 +101,9 @@ class KubernetesHttpProxyHeaderSecretTest extends AbstractGatewayTest {
     @Override
     public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
         try {
-            kubeConfigFile =
-                Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName()).resolve("kube_config.yml");
+            kubeConfigFile = Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName()).resolve(
+                "kube_config.yml"
+            );
             configurationBuilder.setYamlProperty("api.secrets.providers[0].plugin", "kubernetes");
             configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.enabled", true);
             configurationBuilder.setYamlProperty("api.secrets.providers[0].configuration.kubeConfigFile", kubeConfigFile.toString());

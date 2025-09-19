@@ -94,8 +94,7 @@ class HealthCheckManagedEndpointTest {
         when(managedEndpoint.getStatus()).thenReturn(ManagedEndpoint.Status.UP);
         final HealthCheckManagedEndpoint cut = buildHCManagedEndpoint();
 
-        final EndpointStatus endpointStatus = EndpointStatus
-            .forEndpoint(API_ID, API_NAME, ENDPOINT_NAME)
+        final EndpointStatus endpointStatus = EndpointStatus.forEndpoint(API_ID, API_NAME, ENDPOINT_NAME)
             .on(TIMESTAMP)
             .step(EndpointStatus.forStep(DEFAULT_STEP).build())
             .build();
@@ -114,8 +113,7 @@ class HealthCheckManagedEndpointTest {
         when(managedEndpoint.getStatus()).thenReturn(ManagedEndpoint.Status.UP);
         final HealthCheckManagedEndpoint cut = buildHCManagedEndpoint();
 
-        final EndpointStatus endpointStatus = EndpointStatus
-            .forEndpoint(API_ID, API_NAME, ENDPOINT_NAME)
+        final EndpointStatus endpointStatus = EndpointStatus.forEndpoint(API_ID, API_NAME, ENDPOINT_NAME)
             .on(TIMESTAMP)
             .step(EndpointStatus.forStep(DEFAULT_STEP).build())
             .build();

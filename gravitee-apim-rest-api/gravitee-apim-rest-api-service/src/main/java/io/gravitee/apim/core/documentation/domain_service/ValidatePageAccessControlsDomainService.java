@@ -81,8 +81,9 @@ public class ValidatePageAccessControlsDomainService implements Validator<Valida
 
         var byIds = this.groupQueryService.findByIds(references).stream().collect(Collectors.toMap(Group::getId, Group::getId));
 
-        var byNames =
-            this.groupQueryService.findByNames(environmentId, references).stream().collect(Collectors.toMap(Group::getName, Group::getId));
+        var byNames = this.groupQueryService.findByNames(environmentId, references)
+            .stream()
+            .collect(Collectors.toMap(Group::getName, Group::getId));
 
         var mapping = new HashMap<>(byIds);
         mapping.putAll(byNames);

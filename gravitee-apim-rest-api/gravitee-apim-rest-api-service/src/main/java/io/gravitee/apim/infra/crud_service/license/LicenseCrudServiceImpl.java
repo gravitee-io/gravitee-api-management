@@ -46,10 +46,9 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
             log.debug("Find license by organization id: {}", organizationId);
 
             return this.licenseRepository.findById(
-                    organizationId,
-                    io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION
-                )
-                .map(LicenseAdapter.INSTANCE::toModel);
+                organizationId,
+                io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION
+            ).map(LicenseAdapter.INSTANCE::toModel);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
@@ -62,8 +61,7 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
 
             var currentTime = TimeProvider.now();
 
-            var organizationLicense = License
-                .builder()
+            var organizationLicense = License.builder()
                 .referenceType(License.ReferenceType.ORGANIZATION)
                 .referenceId(organizationId)
                 .license(license)
@@ -83,13 +81,15 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
         try {
             log.debug("Update license for organization id: {}", organizationId);
 
-            var organizationLicense =
-                this.licenseRepository.findById(organizationId, io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION);
+            var organizationLicense = this.licenseRepository.findById(
+                organizationId,
+                io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION
+            );
             if (organizationLicense.isPresent()) {
                 return LicenseAdapter.INSTANCE.toModel(
                     this.licenseRepository.update(
-                            organizationLicense.get().toBuilder().license(license).updatedAt(Date.from(TimeProvider.instantNow())).build()
-                        )
+                        organizationLicense.get().toBuilder().license(license).updatedAt(Date.from(TimeProvider.instantNow())).build()
+                    )
                 );
             } else {
                 throw new LicenseNotFound(License.ReferenceType.ORGANIZATION.name(), organizationId);

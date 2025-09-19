@@ -190,8 +190,7 @@ public class MongoGroupRepository implements GroupRepository {
     public Set<Group> findAllByOrganization(String organizationId) throws TechnicalException {
         logger.debug("Find all groups by organization");
 
-        LookupOperation lookupOperation = LookupOperation
-            .newLookup()
+        LookupOperation lookupOperation = LookupOperation.newLookup()
             .from(getTableNameFor("environments"))
             .localField("environmentId")
             .foreignField("_id")

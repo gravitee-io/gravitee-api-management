@@ -51,8 +51,7 @@ public class SearchResponseTimeUseCase {
     }
 
     private Single<Api> validateApiRequirements(Input input) {
-        return Maybe
-            .fromOptional(apiCrudService.findById(input.apiId))
+        return Maybe.fromOptional(apiCrudService.findById(input.apiId))
             .switchIfEmpty(Single.error(new ApiNotFoundException(input.apiId)))
             .flatMap(SearchResponseTimeUseCase::validateApiDefinitionVersion)
             .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId))

@@ -44,15 +44,13 @@ public class SaveScoringResponseUseCase {
     private final ScoreComputingDomainService scoreComputingDomainService;
 
     public Completable execute(Input input) {
-        return Maybe
-            .defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(input.jobId)))
+        return Maybe.defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(input.jobId)))
             .subscribeOn(Schedulers.computation())
             .flatMapCompletable(job -> {
                 String apiId = job.getSourceId();
                 String environmentId = job.getEnvironmentId();
 
-                var report = ScoringReport
-                    .builder()
+                var report = ScoringReport.builder()
                     .id(job.getId())
                     .apiId(apiId)
                     .environmentId(environmentId)
@@ -61,8 +59,7 @@ public class SaveScoringResponseUseCase {
                     .assets(input.analyzedAssets)
                     .build();
 
-                return Completable
-                    .fromRunnable(() -> scoringReportCrudService.deleteByApi(apiId))
+                return Completable.fromRunnable(() -> scoringReportCrudService.deleteByApi(apiId))
                     .andThen(Completable.fromRunnable(() -> scoringReportCrudService.create(report)))
                     .doOnComplete(() -> asyncJobCrudService.update(job.complete()))
                     .doOnError(throwable -> log.error("Fail to save scoring report for API [{}]", apiId, throwable));
@@ -97,29 +94,25 @@ public class SaveScoringResponseUseCase {
                 );
             });
 
-        var averageScore = BigDecimal
-            .valueOf(
-                assetsSummary
-                    .stream()
-                    .filter(summary -> summary.score() != null)
-                    .mapToDouble(ScoringReport.Summary::score)
-                    .average()
-                    .orElse(0.0)
-            )
-            .setScale(2, RoundingMode.HALF_EVEN);
+        var averageScore = BigDecimal.valueOf(
+            assetsSummary
+                .stream()
+                .filter(summary -> summary.score() != null)
+                .mapToDouble(ScoringReport.Summary::score)
+                .average()
+                .orElse(0.0)
+        ).setScale(2, RoundingMode.HALF_EVEN);
 
         return assetsSummary
             .stream()
-            .reduce(
-                new ScoringReport.Summary(averageScore.doubleValue(), 0L, 0L, 0L, 0L),
-                (s1, s2) ->
-                    new ScoringReport.Summary(
-                        averageScore.doubleValue(),
-                        s1.errors() + s2.errors(),
-                        s1.warnings() + s2.warnings(),
-                        s1.infos() + s2.infos(),
-                        s1.hints() + s2.hints()
-                    )
+            .reduce(new ScoringReport.Summary(averageScore.doubleValue(), 0L, 0L, 0L, 0L), (s1, s2) ->
+                new ScoringReport.Summary(
+                    averageScore.doubleValue(),
+                    s1.errors() + s2.errors(),
+                    s1.warnings() + s2.warnings(),
+                    s1.infos() + s2.infos(),
+                    s1.hints() + s2.hints()
+                )
             );
     }
 

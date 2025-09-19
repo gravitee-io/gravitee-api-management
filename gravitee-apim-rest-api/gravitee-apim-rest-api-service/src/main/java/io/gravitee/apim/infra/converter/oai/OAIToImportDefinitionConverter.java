@@ -40,8 +40,7 @@ public class OAIToImportDefinitionConverter {
         var xGraviteeIODefinition = getXGraviteeIODefinition(specification);
         var serverUrls = OAIServersConverter.INSTANCE.convert(specification.getServers());
         var importDefinitionBuilder = ImportDefinition.builder();
-        var apiBuilder = ApiExport
-            .builder()
+        var apiBuilder = ApiExport.builder()
             .name(specification.getInfo().getTitle())
             .description(
                 StringUtils.isEmpty(specification.getInfo().getDescription())
@@ -78,8 +77,8 @@ public class OAIToImportDefinitionConverter {
                 )
                 .picture(
                     xGraviteeIODefinition.getPicture() != null &&
-                        !StringUtils.isEmpty(xGraviteeIODefinition.getPicture()) &&
-                        xGraviteeIODefinition.getPicture().matches(PICTURE_REGEX)
+                            !StringUtils.isEmpty(xGraviteeIODefinition.getPicture()) &&
+                            xGraviteeIODefinition.getPicture().matches(PICTURE_REGEX)
                         ? xGraviteeIODefinition.getPicture()
                         : null
                 )
@@ -103,7 +102,9 @@ public class OAIToImportDefinitionConverter {
         if (specification.getExtensions() == null || specification.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION) == null) {
             return null;
         }
-        return new ObjectMapper()
-            .convertValue(specification.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION), XGraviteeIODefinition.class);
+        return new ObjectMapper().convertValue(
+            specification.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION),
+            XGraviteeIODefinition.class
+        );
     }
 }

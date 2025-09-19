@@ -89,8 +89,7 @@ class UpdateFederatedApiUseCaseTest {
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)
@@ -102,8 +101,7 @@ class UpdateFederatedApiUseCaseTest {
         );
         groupQueryService.initWith(
             List.of(
-                Group
-                    .builder()
+                Group.builder()
                     .id("group-1")
                     .environmentId("environment-id")
                     .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
@@ -141,19 +139,17 @@ class UpdateFederatedApiUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                auditCrudService,
-                apiCrudService,
-                userCrudService,
-                roleQueryService,
-                groupQueryService,
-                membershipCrudService,
-                metadataCrudService,
-                membershipQueryService,
-                indexer
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            auditCrudService,
+            apiCrudService,
+            userCrudService,
+            roleQueryService,
+            groupQueryService,
+            membershipCrudService,
+            metadataCrudService,
+            membershipQueryService,
+            indexer
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -162,8 +158,7 @@ class UpdateFederatedApiUseCaseTest {
         apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         String categoryKey = "categoryKey-1";
-        var apiToUpdate = ApiFixtures
-            .aFederatedApi()
+        var apiToUpdate = ApiFixtures.aFederatedApi()
             .toBuilder()
             .name("updated-name")
             .description("updated-description")
@@ -218,8 +213,7 @@ class UpdateFederatedApiUseCaseTest {
     @Test
     void updating() {
         ZonedDateTime inputDate = ZonedDateTime.now().plusDays(1);
-        Api input = Api
-            .builder()
+        Api input = Api.builder()
             .id("input")
             .environmentId("input")
             .crossId("input")
@@ -247,8 +241,7 @@ class UpdateFederatedApiUseCaseTest {
             .build();
         UnaryOperator<Api> update = UpdateFederatedApiUseCase.update(input);
         ZonedDateTime oldDate = ZonedDateTime.now().minusDays(1);
-        Api old = Api
-            .builder()
+        Api old = Api.builder()
             .id("old")
             .environmentId("old")
             .crossId("old")

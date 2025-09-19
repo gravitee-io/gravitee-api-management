@@ -79,9 +79,13 @@ public class GroupsResource extends AbstractResource {
         List<Member> groupsMembers = membershipService
             .getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId)
             .stream()
-            .filter(groupMemberEntity ->
-                groupMemberEntity != null &&
-                groupMemberEntity.getRoles().stream().anyMatch(role -> role.getScope().equals(RoleScope.APPLICATION))
+            .filter(
+                groupMemberEntity ->
+                    groupMemberEntity != null &&
+                    groupMemberEntity
+                        .getRoles()
+                        .stream()
+                        .anyMatch(role -> role.getScope().equals(RoleScope.APPLICATION))
             )
             .map(groupMemberEntity -> memberMapper.convert(executionContext, groupMemberEntity, uriInfo))
             .collect(toList());
