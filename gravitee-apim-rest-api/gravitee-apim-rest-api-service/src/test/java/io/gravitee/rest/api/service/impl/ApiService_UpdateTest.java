@@ -669,6 +669,21 @@ public class ApiService_UpdateTest {
     }
 
     @Test
+    public void shouldUpdatePictureWhenProvided() throws TechnicalException {
+        prepareUpdate();
+        String newPicture = "new-picture";
+        updateApiEntity.setPicture(newPicture);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository).update(
+            argThat(
+                updated -> Objects.equals(updated.getPicture(), newPicture) && Objects.equals(updated.getBackground(), api.getBackground())
+            )
+        );
+    }
+
+    @Test
     public void shouldUpdateWithAllowedTag() throws TechnicalException {
         prepareUpdate();
         updateApiEntity.setTags(singleton("public"));
