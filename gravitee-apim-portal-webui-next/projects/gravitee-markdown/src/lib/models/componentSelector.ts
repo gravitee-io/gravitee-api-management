@@ -16,4 +16,7 @@
 export enum ComponentSelector {
   GRID = 'grid',
   CELL = 'cell',
+  CARD = 'gmd-card',
+  CARD_TITLE = 'gmd-card-title',
+  CARD_SUBTITLE = 'gmd-card-subtitle',
 }

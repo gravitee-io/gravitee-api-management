@@ -18,6 +18,9 @@ import { HookParserEntry } from 'ngx-dynamic-hooks';
 import { CellComponent } from './grid/cell/cell.component';
 import { GridComponent } from './grid/grid.component';
 import { ComponentSelector } from '../models/componentSelector';
+import { GraviteeMarkdownCardSubtitleComponent } from './card/components/card-subtitle/gravitee-markdown-card-subtitle.component';
+import { GraviteeMarkdownCardTitleComponent } from './card/components/card-title/gravitee-markdown-card-title.component';
+import { GraviteeMarkdownCardComponent } from './card/gravitee-markdown-card.component';
 
 export const prefixStripperParser: HookParserEntry[] = [
   {
@@ -27,5 +30,17 @@ export const prefixStripperParser: HookParserEntry[] = [
   {
     component: CellComponent,
     selector: ComponentSelector.CELL,
+  },
+  {
+    component: GraviteeMarkdownCardComponent,
+    selector: ComponentSelector.CARD,
+  },
+  {
+    component: GraviteeMarkdownCardTitleComponent,
+    selector: ComponentSelector.CARD_TITLE,
+  },
+  {
+    component: GraviteeMarkdownCardSubtitleComponent,
+    selector: ComponentSelector.CARD_SUBTITLE,
   },
 ];
