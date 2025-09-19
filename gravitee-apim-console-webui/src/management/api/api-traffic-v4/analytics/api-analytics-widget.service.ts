@@ -38,6 +38,7 @@ export interface ApiAnalyticsWidgetUrlParamsData {
   httpStatuses: string[];
   applications: string[];
   plans: string[];
+  terms?: string[];
 }
 
 // Colors for charts
@@ -54,6 +55,7 @@ export class ApiAnalyticsWidgetService {
     httpStatuses: [],
     applications: [],
     plans: [],
+    terms: [],
   });
 
   // Cache for stats requests to avoid multiple backend calls
@@ -354,7 +356,14 @@ export class ApiAnalyticsWidgetService {
     if (urlParamsData.applications && urlParamsData.applications.length > 0) {
       filters.push({ type: 'isin', field: 'application-id', values: urlParamsData.applications });
     }
-    return toQuery(filters);
+
+    let queryString = toQuery(filters);
+
+    if (urlParamsData.terms && urlParamsData.terms.length > 0) {
+      queryString  = queryString + '&terms=' + urlParamsData.terms;
+    }
+
+      return queryString;
   }
 
   private transformHistogramResponseToApiAnalyticsWidgetConfig(
