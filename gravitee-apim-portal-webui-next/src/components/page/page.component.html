@@ -26,6 +26,9 @@
   @case ('MARKDOWN') {
     <app-page-markdown [pages]="pages" [content]="page.content" [apiId]="apiId" />
   }
+  @case ('GRAVITEE_MARKDOWN') {
+    <gmd-hello-world />
+  }
   @case ('ASCIIDOC') {
     <app-page-asciidoc [content]="page.content" />
   }

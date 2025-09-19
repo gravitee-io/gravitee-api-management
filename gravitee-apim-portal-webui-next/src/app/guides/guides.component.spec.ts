@@ -130,7 +130,17 @@ describe('GuidesComponent', () => {
       expect(displayedItems).toEqual(['valid page']);
     });
     it('should show page', async () => {
-      expectGetPages(fakePagesResponse({ data: [fakePage({ id: 'valid-page', name: 'valid page', type: 'MARKDOWN' })] }));
+      expectGetPages(
+        fakePagesResponse({
+          data: [
+            fakePage({
+              id: 'valid-page',
+              name: 'valid page',
+              type: 'MARKDOWN',
+            }),
+          ],
+        }),
+      );
 
       expectGetPageContent(fakePage({ id: 'valid-page', type: 'MARKDOWN', content: 'content' }));
 

@@ -62,4 +62,4 @@ export interface Page {
   configuration?: PageConfiguration;
 }
 
-export type PageTypeEnum = 'ASCIIDOC' | 'ASYNCAPI' | 'SWAGGER' | 'MARKDOWN' | 'FOLDER' | 'ROOT' | 'LINK';
+export type PageTypeEnum = 'ASCIIDOC' | 'ASYNCAPI' | 'SWAGGER' | 'MARKDOWN' | 'GRAVITEE_MARKDOWN' | 'FOLDER' | 'ROOT' | 'LINK';

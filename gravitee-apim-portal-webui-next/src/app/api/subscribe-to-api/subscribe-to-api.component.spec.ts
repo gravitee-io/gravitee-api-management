@@ -104,8 +104,17 @@ describe('SubscribeToApiComponent', () => {
       data: [
         fakePlan({ id: KEYLESS_PLAN_ID, security: 'KEY_LESS' }),
         fakePlan({ id: API_KEY_PLAN_ID, security: 'API_KEY', comment_required: false, general_conditions: undefined }),
-        fakePlan({ id: API_KEY_PLAN_ID_COMMENT_REQUIRED, security: 'API_KEY', comment_required: true, general_conditions: undefined }),
-        fakePlan({ id: API_KEY_PLAN_ID_GENERAL_CONDITIONS, security: 'API_KEY', general_conditions: GENERAL_CONDITIONS_ID }),
+        fakePlan({
+          id: API_KEY_PLAN_ID_COMMENT_REQUIRED,
+          security: 'API_KEY',
+          comment_required: true,
+          general_conditions: undefined,
+        }),
+        fakePlan({
+          id: API_KEY_PLAN_ID_GENERAL_CONDITIONS,
+          security: 'API_KEY',
+          general_conditions: GENERAL_CONDITIONS_ID,
+        }),
         fakePlan({ id: OAUTH2_PLAN_ID, security: 'OAUTH2', general_conditions: undefined }),
         fakePlan({ id: JWT_PLAN_ID, security: 'JWT', general_conditions: undefined }),
         fakePlan({ id: MTLS_PLAN_ID, security: 'MTLS', general_conditions: undefined }),
@@ -243,7 +252,15 @@ describe('SubscribeToApiComponent', () => {
       describe('V4 Native', () => {
         const KAFKA_ENTRYPOINT = 'my.kafka.entrypoint:9092';
         beforeEach(async () => {
-          await init(true, fakeApi({ id: API_ID, type: 'NATIVE', definitionVersion: 'V4', entrypoints: [KAFKA_ENTRYPOINT] }));
+          await init(
+            true,
+            fakeApi({
+              id: API_ID,
+              type: 'NATIVE',
+              definitionVersion: 'V4',
+              entrypoints: [KAFKA_ENTRYPOINT],
+            }),
+          );
 
           const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
           await step1.selectPlanByPlanId(KEYLESS_PLAN_ID);
@@ -474,7 +491,11 @@ describe('SubscribeToApiComponent', () => {
           expect(await subscribeButton?.isDisabled()).toEqual(false);
           await subscribeButton?.click();
 
-          expectPostCreateSubscription({ plan: API_KEY_PLAN_ID_COMMENT_REQUIRED, application: 'app-id', request: 'My new message' });
+          expectPostCreateSubscription({
+            plan: API_KEY_PLAN_ID_COMMENT_REQUIRED,
+            application: 'app-id',
+            request: 'My new message',
+          });
         });
       });
       describe('When terms and conditions need to be accepted', () => {
@@ -531,7 +552,13 @@ describe('SubscribeToApiComponent', () => {
             await selectPlan(API_KEY_PLAN_ID);
             await selectApplication(APP_ID_NO_SUBSCRIPTIONS);
 
-            expectGetSubscriptionsForApplication(APP_ID_NO_SUBSCRIPTIONS, fakeSubscriptionResponse({ data: [], metadata: {} }));
+            expectGetSubscriptionsForApplication(
+              APP_ID_NO_SUBSCRIPTIONS,
+              fakeSubscriptionResponse({
+                data: [],
+                metadata: {},
+              }),
+            );
             fixture.detectChanges();
           });
           it('should NOT show api key mode choice', async () => {
@@ -1219,7 +1246,11 @@ describe('SubscribeToApiComponent', () => {
         data: [
           fakeApplication({ id: APP_ID, name: APP_ID }),
           fakeApplication({ id: APP_ID_NO_SUBSCRIPTIONS, name: APP_ID_NO_SUBSCRIPTIONS, api_key_mode: 'UNSPECIFIED' }),
-          fakeApplication({ id: APP_ID_ONE_API_KEY_SUBSCRIPTION, name: APP_ID_ONE_API_KEY_SUBSCRIPTION, api_key_mode: 'UNSPECIFIED' }),
+          fakeApplication({
+            id: APP_ID_ONE_API_KEY_SUBSCRIPTION,
+            name: APP_ID_ONE_API_KEY_SUBSCRIPTION,
+            api_key_mode: 'UNSPECIFIED',
+          }),
           fakeApplication({
             id: APP_ID_WITH_CLIENT_CERTIFICATE,
             name: APP_ID_WITH_CLIENT_CERTIFICATE,

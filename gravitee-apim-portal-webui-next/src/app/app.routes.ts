@@ -47,6 +47,7 @@ import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
 import { catalogCategoriesViewGuard } from '../guards/catalog-categories-view.guard';
 import { catalogTabsViewGuard } from '../guards/catalog-tabs-view.guard';
+import { homepageGuard } from '../guards/homepage.guard';
 import { redirectGuard } from '../guards/redirect.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
@@ -125,7 +126,11 @@ const apiRoutes: Routes = [
 ];
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'catalog', pathMatch: 'full' },
+  { path: '', canActivate: [redirectGuard, homepageGuard], children: [] },
+  {
+    path: 'homepage',
+    loadComponent: () => import('./homepage/homepage.component').then(m => m.HomepageComponent),
+  },
   {
     path: 'catalog',
     canActivateChild: [redirectGuard],

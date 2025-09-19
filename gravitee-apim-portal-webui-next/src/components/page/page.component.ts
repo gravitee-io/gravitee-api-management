@@ -15,6 +15,8 @@
  */
 import { Component, Input } from '@angular/core';
 
+import { GraviteeMarkdownComponent } from '@gravitee/gravitee-markdown';
+
 import { PageAsciidocComponent } from './page-asciidoc/page-asciidoc.component';
 import { PageAsyncApiComponent } from './page-async-api/page-async-api.component';
 import { PageMarkdownComponent } from './page-markdown/page-markdown.component';
@@ -24,7 +26,14 @@ import { Page } from '../../entities/page/page';
 
 @Component({
   selector: 'app-page',
-  imports: [PageSwaggerComponent, PageMarkdownComponent, PageAsciidocComponent, PageAsyncApiComponent, PageRedocComponent],
+  imports: [
+    PageSwaggerComponent,
+    PageMarkdownComponent,
+    PageAsciidocComponent,
+    PageAsyncApiComponent,
+    PageRedocComponent,
+    GraviteeMarkdownComponent,
+  ],
   templateUrl: './page.component.html',
   styleUrl: './page.component.scss',
 })

@@ -38,7 +38,9 @@ describe('PageComponent', () => {
       providers: [
         {
           provide: RedocService,
-          useValue: { init: (_content: string | undefined, _options: unknown, _el: unknown) => {} },
+          useValue: {
+            init: (_content: string | undefined, _options: unknown, _el: unknown) => {},
+          },
         },
       ],
     }).compileComponents();

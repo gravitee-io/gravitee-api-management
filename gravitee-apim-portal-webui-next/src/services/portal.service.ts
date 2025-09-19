@@ -31,6 +31,7 @@ import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { ApiInformation } from '../entities/api/api-information';
+import { PortalHomepage } from '../entities/portal/portal-homepage';
 
 @Injectable({
   providedIn: 'root',
@@ -43,5 +44,14 @@ export class PortalService {
 
   public getApiInformations(apiId: string): Observable<ApiInformation[]> {
     return this.http.get<ApiInformation[]>(`${this.configService.baseURL}/apis/${apiId}/informations`);
+  }
+
+  public getPortalHomepage(includeContent: boolean = true): Observable<PortalHomepage> {
+    const params = new URLSearchParams();
+    params.set('type', 'HOMEPAGE');
+    if (includeContent) {
+      params.set('expands', 'content');
+    }
+    return this.http.get<PortalHomepage>(`${this.configService.baseURL}/portal-pages?${params.toString()}`);
   }
 }

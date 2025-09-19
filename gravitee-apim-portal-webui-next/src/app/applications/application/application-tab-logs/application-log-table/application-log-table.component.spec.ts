@@ -130,7 +130,7 @@ describe('ApplicationLogTableComponent', () => {
       expect(apiCellRowTwo).toContain('My API 2');
       expect(apiCellRowTwo).toContain('Version: 2.0');
 
-      expect(await getTextByRowIndexAndColumnName(1, 'timestamp')).toContain('2019-08-21');
+      expect(await getTextByRowIndexAndColumnName(1, 'timestamp')).toContain('2019-08-21 21:54:50.000');
       expect(await getTextByRowIndexAndColumnName(1, 'responseStatus')).toEqual('204');
       expect(await getTextByRowIndexAndColumnName(1, 'httpMethod')).toEqual('GET');
     });
