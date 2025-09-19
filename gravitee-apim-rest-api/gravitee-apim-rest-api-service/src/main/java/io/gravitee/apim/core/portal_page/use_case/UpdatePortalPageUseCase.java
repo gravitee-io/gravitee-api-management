@@ -22,9 +22,7 @@ import io.gravitee.apim.core.portal_page.domain_service.ContentSanitizedSpecific
 import io.gravitee.apim.core.portal_page.domain_service.PageExistsSpecification;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PageId;
-import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -41,7 +39,7 @@ public class UpdatePortalPageUseCase {
     public Output execute(Input input) {
         PageId pageId = PageId.of(input.pageId);
         var portalPageOpt = portalPageCrudService.findById(pageId);
-        var pageExistsSpec = new PageExistsSpecification<Optional<PortalPage>>(Optional::isPresent);
+        var pageExistsSpec = PageExistsSpecification.ofOptional();
         var contentSanitizedSpec = new ContentSanitizedSpecification();
 
         GraviteeMarkdown pageContent = new GraviteeMarkdown(input.content);

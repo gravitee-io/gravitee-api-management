@@ -21,6 +21,7 @@ import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.infra.adapter.PortalPageAdapter;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
@@ -56,5 +57,15 @@ public class PortalPageContextCrudServiceImpl implements PortalPageContextCrudSe
     @Override
     public PortalPageView findByPageId(PageId pageId) {
         return pageAdapter.map(portalPageContextRepository.findByPageId(pageId.toString()));
+    }
+
+    @Override
+    public void update(PageId pageId, PortalPageView toUpdate) {
+        var item = pageAdapter.map(pageId, toUpdate);
+        try {
+            portalPageContextRepository.updateByPageId(item);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("Something went wrong while trying to update portal page context", e);
+        }
     }
 }

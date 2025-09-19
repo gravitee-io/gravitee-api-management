@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.crud_service;
+package io.gravitee.apim.core.portal_page.exception;
 
-import io.gravitee.apim.core.portal_page.model.PageId;
-import io.gravitee.apim.core.portal_page.model.PortalPageView;
-import io.gravitee.apim.core.portal_page.model.PortalViewContext;
-import java.util.List;
+import io.gravitee.apim.core.exception.AbstractDomainException;
 
-public interface PortalPageContextCrudService {
-    List<PageId> findAllIdsByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId);
+public class IllegalPublicationStateException extends AbstractDomainException {
 
-    PortalPageView findByPageId(PageId pageId);
+    private IllegalPublicationStateException(String message) {
+        super(message);
+    }
 
-    void update(PageId pageId, PortalPageView toUpdate);
+    public static IllegalPublicationStateException alreadyPublished() {
+        return new IllegalPublicationStateException("The page is already published.");
+    }
+
+    public static IllegalPublicationStateException alreadyUnpublished() {
+        return new IllegalPublicationStateException("The page is already unpublished.");
+    }
 }
