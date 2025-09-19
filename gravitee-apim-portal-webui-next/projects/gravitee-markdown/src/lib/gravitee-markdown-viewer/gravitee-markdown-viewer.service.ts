@@ -78,19 +78,90 @@ export class GraviteeMarkdownViewerService {
   }
 
   private preprocessMarkdownContent(content: string): string {
-    // Generic regex to find any tag with markdownContent attribute
-    // This pattern captures: tagName (including hyphens), attributes, and content
-    const markdownContentRegex = /<([a-zA-Z][a-zA-Z0-9-]*)([^>]*markdownContent[^>]*)>([\s\S]*?)<\/\1>/gi;
+    let processedContent = content;
     
-    console.log('=== PREPROCESSING MARKDOWN CONTENT ===');
+    // Process gmd-block components using a more reliable approach
+    console.log('=== PROCESSING GMD-BLOCK COMPONENTS ===');
     console.log('Input content:', JSON.stringify(content));
     
-    // Test the regex first
-    const testMatch = markdownContentRegex.exec(content);
-    console.log('Regex test match:', testMatch);
-    markdownContentRegex.lastIndex = 0;
+    // Find all gmd-block opening tags
+    const gmdBlockOpenRegex = /<gmd-block([^>]*)>/g;
+    const matches: Array<{startIndex: number, endIndex: number, attributes: string}> = [];
     
-    const processedContent = content.replace(markdownContentRegex, (match, tagName, attributes, content) => {
+    let match;
+    while ((match = gmdBlockOpenRegex.exec(content)) !== null) {
+      const startIndex = match.index;
+      const attributes = match[1];
+      
+      // Find the corresponding closing tag
+      const afterOpenTag = content.substring(startIndex + match[0].length);
+      const closingTagIndex = afterOpenTag.indexOf('</gmd-block>');
+      
+      if (closingTagIndex !== -1) {
+        const endIndex = startIndex + match[0].length + closingTagIndex + '</gmd-block>'.length;
+        const contentBetween = afterOpenTag.substring(0, closingTagIndex);
+        
+        console.log('Found gmd-block:');
+        console.log('  Start index:', startIndex);
+        console.log('  End index:', endIndex);
+        console.log('  Attributes:', JSON.stringify(attributes));
+        console.log('  Content:', JSON.stringify(contentBetween));
+        
+        matches.push({
+          startIndex,
+          endIndex,
+          attributes
+        });
+      }
+    }
+    
+    console.log('Found gmd-block matches:', matches.length);
+    
+    // Process matches in reverse order to avoid index shifting
+    for (let i = matches.length - 1; i >= 0; i--) {
+      const blockMatch = matches[i];
+      const fullMatch = content.substring(blockMatch.startIndex, blockMatch.endIndex);
+      const contentStart = blockMatch.startIndex + `<gmd-block${blockMatch.attributes}>`.length;
+      const contentEnd = blockMatch.endIndex - '</gmd-block>'.length;
+      const blockContent = content.substring(contentStart, contentEnd);
+      
+      console.log('Processing gmd-block:');
+      console.log('  Full match:', JSON.stringify(fullMatch));
+      console.log('  Block content:', JSON.stringify(blockContent));
+      
+      // Clean up the markdown content
+      let markdownContent = blockContent.trim();
+      
+      // Remove leading whitespace from each line to normalize indentation
+      const lines = markdownContent.split('\n');
+      markdownContent = lines.map((line: string) => {
+        if (line.trim().length === 0) return line; // Keep empty lines as is
+        return line.trim();
+      }).join('\n');
+      
+      console.log('Processed gmd-block markdown content:', JSON.stringify(markdownContent));
+      
+      if (markdownContent) {
+        // Render the markdown content
+        const renderedMarkdown = marked(markdownContent) as string;
+        console.log('Rendered gmd-block markdown:', renderedMarkdown);
+        
+        // Replace the match in the content
+        const replacement = `<gmd-block${blockMatch.attributes}>${renderedMarkdown}</gmd-block>`;
+        console.log('Replacement:', JSON.stringify(replacement));
+        
+        processedContent = processedContent.substring(0, blockMatch.startIndex) + 
+                          replacement + 
+                          processedContent.substring(blockMatch.endIndex);
+        
+        console.log('After replacement length:', processedContent.length);
+      }
+    }
+    
+    // Then, process any tag with markdownContent attribute
+    const markdownContentRegex = /<([a-zA-Z][a-zA-Z0-9-]*)([^>]*markdownContent[^>]*)>([\s\S]*?)<\/\1>/gi;
+    
+    processedContent = processedContent.replace(markdownContentRegex, (match, tagName, attributes, content) => {
       console.log('Found markdownContent tag:', tagName);
       console.log('Full match:', match);
       console.log('Attributes:', attributes);
@@ -120,7 +191,6 @@ export class GraviteeMarkdownViewerService {
       return match; // Return original if no content
     });
     
-    console.log('Preprocessing complete. Original length:', content.length, 'Processed length:', processedContent.length);
     return processedContent;
   }
 }

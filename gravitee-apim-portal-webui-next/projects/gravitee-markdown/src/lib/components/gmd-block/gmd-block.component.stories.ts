@@ -322,3 +322,136 @@ export const MarkdownContentAttribute: StoryObj<GmdBlockComponent> = {
     `,
   }),
 };
+
+export const GmdBlockInGrid: StoryObj<GmdBlockComponent> = {
+  render: () => ({
+    props: {
+      gmdBlockTest: `<gmd-grid columns="2">
+  <gmd-block>
+      # First Block
+      
+      This is a **gmd-block** component inside a grid cell.
+      
+      - Feature 1
+      - Feature 2
+      - Feature 3
+      
+      > This content is automatically processed as markdown!
+  </gmd-block>
+  
+  <gmd-block>
+      ## Second Block
+      
+      Another \`gmd-block\` with different content.
+      
+      \`\`\`typescript
+      interface BlockContent {
+        title: string;
+        description: string;
+      }
+      \`\`\`
+      
+      **Note**: All markdown is rendered automatically!
+  </gmd-block>
+</gmd-grid>
+
+<gmd-grid columns="1">
+  <gmd-block>
+      ### Single Column Block
+      
+      This \`gmd-block\` spans the full width of the grid.
+      
+      - List item 1
+      - List item 2
+      - List item 3
+      
+      > The content inside gmd-block is automatically processed as markdown!
+  </gmd-block>
+</gmd-grid>`,
+    },
+    template: `
+      <div style="padding: 20px;">
+        <h2>GmdBlock in Grid Test</h2>
+        <p>This story demonstrates gmd-block components used within gmd-grid layouts:</p>
+        
+        <div style="height: 600px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+          <gmd-editor [(ngModel)]="gmdBlockTest" />
+        </div>
+      </div>
+    `,
+  }),
+};
+
+export const GmdBlockExamples: StoryObj<GmdBlockComponent> = {
+  render: () => ({
+    props: {
+      gmdBlockExamples: `<gmd-block>
+  # Basic GmdBlock
+  
+  This is a simple \`gmd-block\` component with markdown content.
+  
+  - **Bold text**
+  - *Italic text*
+  - \`Code text\`
+  
+  > This is a blockquote
+</gmd-block>
+
+<gmd-block>
+  ## Code Examples
+  
+  Here's some code:
+  
+  \`\`\`javascript
+  function greet(name) {
+    return \`Hello, \${name}!\`;
+  }
+  
+  console.log(greet('World'));
+  \`\`\`
+  
+  And some inline code: \`const x = 42;\`
+</gmd-block>
+
+<gmd-block>
+  ### Lists and Tables
+  
+  **Unordered List:**
+  - Item 1
+  - Item 2
+  - Item 3
+  
+  **Ordered List:**
+  1. First item
+  2. Second item
+  3. Third item
+  
+  **Table:**
+  | Column 1 | Column 2 | Column 3 |
+  |----------|----------|----------|
+  | Data 1   | Data 2   | Data 3   |
+  | Data 4   | Data 5   | Data 6   |
+</gmd-block>
+
+<gmd-block>
+  #### Links and Images
+  
+  Here's a [link to Gravitee](https://gravitee.io) and an image:
+  
+  ![Gravitee Logo](https://gravitee.io/assets/images/logo-gravitee.svg)
+  
+  **Note**: All markdown features work inside \`gmd-block\` components!
+</gmd-block>`,
+    },
+    template: `
+      <div style="padding: 20px;">
+        <h2>GmdBlock Examples</h2>
+        <p>This story shows various examples of gmd-block components with different markdown content:</p>
+        
+        <div style="height: 800px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+          <gmd-editor [(ngModel)]="gmdBlockExamples" />
+        </div>
+      </div>
+    `,
+  }),
+};
