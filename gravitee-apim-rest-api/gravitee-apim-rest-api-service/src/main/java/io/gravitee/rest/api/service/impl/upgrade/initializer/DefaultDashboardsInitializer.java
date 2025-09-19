@@ -75,9 +75,10 @@ public class DefaultDashboardsInitializer implements Initializer {
     private static boolean shouldConfigureDashboardForEnvironment(EnvironmentEntity environment, List<DashboardEntity> dashboards) {
         return dashboards
             .stream()
-            .noneMatch(dashboard ->
-                dashboard.getReferenceType().equals(DashboardReferenceType.ENVIRONMENT.name()) &&
-                dashboard.getReferenceId().equals(environment.getId())
+            .noneMatch(
+                dashboard ->
+                    dashboard.getReferenceType().equals(DashboardReferenceType.ENVIRONMENT.name()) &&
+                    dashboard.getReferenceId().equals(environment.getId())
             );
     }
 

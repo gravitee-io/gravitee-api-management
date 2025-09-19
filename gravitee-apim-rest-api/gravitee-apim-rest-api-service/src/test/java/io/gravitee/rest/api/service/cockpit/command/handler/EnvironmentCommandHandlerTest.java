@@ -77,8 +77,7 @@ public class EnvironmentCommandHandlerTest {
     @SneakyThrows
     public void handle() throws InterruptedException {
         String envId = "env#1";
-        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload
-            .builder()
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
             .id(envId)
             .cockpitId("env#cockpit-1")
             .hrids(Collections.singletonList("env-1"))
@@ -99,15 +98,15 @@ public class EnvironmentCommandHandlerTest {
             environmentService.createOrUpdate(
                 eq("orga#1"),
                 eq(envId),
-                argThat(newEnvironment ->
-                    newEnvironment.getCockpitId().equals(environmentPayload.cockpitId()) &&
-                    newEnvironment.getHrids().equals(environmentPayload.hrids()) &&
-                    newEnvironment.getDescription().equals(environmentPayload.description()) &&
-                    newEnvironment.getName().equals(environmentPayload.name())
+                argThat(
+                    newEnvironment ->
+                        newEnvironment.getCockpitId().equals(environmentPayload.cockpitId()) &&
+                        newEnvironment.getHrids().equals(environmentPayload.hrids()) &&
+                        newEnvironment.getDescription().equals(environmentPayload.description()) &&
+                        newEnvironment.getName().equals(environmentPayload.name())
                 )
             )
-        )
-            .thenReturn(EnvironmentEntity.builder().id(envId).build());
+        ).thenReturn(EnvironmentEntity.builder().id(envId).build());
 
         TestObserver<EnvironmentReply> obs = cut.handle(command).test();
 
@@ -119,8 +118,7 @@ public class EnvironmentCommandHandlerTest {
 
     @Test
     public void handleWithException() throws InterruptedException {
-        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload
-            .builder()
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
             .id("env#1")
             .cockpitId("env#cockpit-1")
             .hrids(Collections.singletonList("env-1"))
@@ -137,8 +135,9 @@ public class EnvironmentCommandHandlerTest {
         EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
 
         when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
-        when(environmentService.createOrUpdate(eq("orga#1"), eq("env#1"), any(UpdateEnvironmentEntity.class)))
-            .thenThrow(new RuntimeException("fake error"));
+        when(environmentService.createOrUpdate(eq("orga#1"), eq("env#1"), any(UpdateEnvironmentEntity.class))).thenThrow(
+            new RuntimeException("fake error")
+        );
 
         TestObserver<EnvironmentReply> obs = cut.handle(command).test();
 
@@ -149,8 +148,7 @@ public class EnvironmentCommandHandlerTest {
 
     @Test
     public void handleWithExistingCockpitId() throws InterruptedException {
-        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload
-            .builder()
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
             .id("env#1")
             .cockpitId("env#cockpit-1")
             .hrids(Collections.singletonList("env-1"))
@@ -173,15 +171,15 @@ public class EnvironmentCommandHandlerTest {
             environmentService.createOrUpdate(
                 eq("DEFAULT"),
                 eq("DEFAULT"),
-                argThat(newEnvironment ->
-                    newEnvironment.getCockpitId().equals(environmentPayload.cockpitId()) &&
-                    newEnvironment.getHrids().equals(environmentPayload.hrids()) &&
-                    newEnvironment.getDescription().equals(environmentPayload.description()) &&
-                    newEnvironment.getName().equals(environmentPayload.name())
+                argThat(
+                    newEnvironment ->
+                        newEnvironment.getCockpitId().equals(environmentPayload.cockpitId()) &&
+                        newEnvironment.getHrids().equals(environmentPayload.hrids()) &&
+                        newEnvironment.getDescription().equals(environmentPayload.description()) &&
+                        newEnvironment.getName().equals(environmentPayload.name())
                 )
             )
-        )
-            .thenReturn(new EnvironmentEntity());
+        ).thenReturn(new EnvironmentEntity());
 
         TestObserver<EnvironmentReply> obs = cut.handle(command).test();
 

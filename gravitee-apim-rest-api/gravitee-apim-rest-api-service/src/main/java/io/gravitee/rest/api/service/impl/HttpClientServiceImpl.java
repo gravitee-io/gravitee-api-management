@@ -167,11 +167,11 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                                                     promise.fail(
                                                         new TechnicalManagementException(
                                                             " Error on url '" +
-                                                            uri +
-                                                            "'. Status code: " +
-                                                            response.statusCode() +
-                                                            ". Message: " +
-                                                            buffer.toString(),
+                                                                uri +
+                                                                "'. Status code: " +
+                                                                response.statusCode() +
+                                                                ". Message: " +
+                                                                buffer.toString(),
                                                             null
                                                         )
                                                     )

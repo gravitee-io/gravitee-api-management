@@ -57,22 +57,21 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(get(result))
-            .satisfies(v4Flow -> {
-                assertThat(v4Flow.getName()).isEqualTo("flow-name");
-                assertThat(v4Flow.isEnabled()).isTrue();
-                assertThat(v4Flow.getRequest()).isEmpty();
-                assertThat(v4Flow.getResponse()).isEmpty();
-                assertThat(v4Flow.getSelectors())
-                    .hasSize(1)
-                    .first()
-                    .isInstanceOf(HttpSelector.class)
-                    .satisfies(httpSelector -> {
-                        assertThat(((HttpSelector) httpSelector).getPath()).isEqualTo("/");
-                        assertThat(((HttpSelector) httpSelector).getPathOperator()).isEqualTo(Operator.STARTS_WITH);
-                        assertThat(((HttpSelector) httpSelector).getMethods()).containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
-                    });
-            });
+        assertThat(get(result)).satisfies(v4Flow -> {
+            assertThat(v4Flow.getName()).isEqualTo("flow-name");
+            assertThat(v4Flow.isEnabled()).isTrue();
+            assertThat(v4Flow.getRequest()).isEmpty();
+            assertThat(v4Flow.getResponse()).isEmpty();
+            assertThat(v4Flow.getSelectors())
+                .hasSize(1)
+                .first()
+                .isInstanceOf(HttpSelector.class)
+                .satisfies(httpSelector -> {
+                    assertThat(((HttpSelector) httpSelector).getPath()).isEqualTo("/");
+                    assertThat(((HttpSelector) httpSelector).getPathOperator()).isEqualTo(Operator.STARTS_WITH);
+                    assertThat(((HttpSelector) httpSelector).getMethods()).containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
+                });
+        });
         assertThat(result.issues()).isEmpty();
     }
 
@@ -93,21 +92,14 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(get(result))
-            .satisfies(v4Flow -> {
-                assertThat(v4Flow.getRequest()).hasSize(1);
-                assertThat(v4Flow.getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getName).first().isEqualTo("pre-step");
-                assertThat(v4Flow.getRequest())
-                    .map(io.gravitee.definition.model.v4.flow.step.Step::getPolicy)
-                    .first()
-                    .isEqualTo("rate-limit");
-                assertThat(v4Flow.getResponse()).hasSize(1);
-                assertThat(v4Flow.getResponse())
-                    .map(io.gravitee.definition.model.v4.flow.step.Step::getName)
-                    .first()
-                    .isEqualTo("post-step");
-                assertThat(v4Flow.getResponse()).map(io.gravitee.definition.model.v4.flow.step.Step::getPolicy).first().isEqualTo("mock");
-            });
+        assertThat(get(result)).satisfies(v4Flow -> {
+            assertThat(v4Flow.getRequest()).hasSize(1);
+            assertThat(v4Flow.getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getName).first().isEqualTo("pre-step");
+            assertThat(v4Flow.getRequest()).map(io.gravitee.definition.model.v4.flow.step.Step::getPolicy).first().isEqualTo("rate-limit");
+            assertThat(v4Flow.getResponse()).hasSize(1);
+            assertThat(v4Flow.getResponse()).map(io.gravitee.definition.model.v4.flow.step.Step::getName).first().isEqualTo("post-step");
+            assertThat(v4Flow.getResponse()).map(io.gravitee.definition.model.v4.flow.step.Step::getPolicy).first().isEqualTo("mock");
+        });
         assertThat(result.issues()).isEmpty();
     }
 
@@ -150,15 +142,14 @@ class FlowMigrationTest {
 
         var result = cut.mapFlow(v2Flow);
 
-        assertThat(get(result))
-            .satisfies(v4Flow ->
-                assertThat(v4Flow.getSelectors())
-                    .hasSize(2)
-                    .anySatisfy(selector -> {
-                        assertThat(selector).isInstanceOf(ConditionSelector.class);
-                        assertThat(((ConditionSelector) selector).getCondition()).isEqualTo("{#context.attribute['condition'] == 'true'}");
-                    })
-            );
+        assertThat(get(result)).satisfies(v4Flow ->
+            assertThat(v4Flow.getSelectors())
+                .hasSize(2)
+                .anySatisfy(selector -> {
+                    assertThat(selector).isInstanceOf(ConditionSelector.class);
+                    assertThat(((ConditionSelector) selector).getCondition()).isEqualTo("{#context.attribute['condition'] == 'true'}");
+                })
+        );
         assertThat(result.issues()).isEmpty();
     }
 
@@ -219,25 +210,22 @@ class FlowMigrationTest {
         @CsvSource(
             delimiterString = "|",
             textBlock = """
-        onRequestContentScript  | true        | true
-        onRequestScript         | false       | false
-        onResponseContentScript | true        | true
-        onResponseScript        | false       | false
-        """
+            onRequestContentScript  | true        | true
+            onRequestScript         | false       | false
+            onResponseContentScript | true        | true
+            onResponseScript        | false       | false
+            """
         )
         void should_map_the_configuration(String inputField, boolean expectedReadContent, boolean expectedOverrideContent)
             throws Exception {
             // Given
             var v2Flow = buildV2Flow(
                 """
-                    {
-                      "%s" : "%s",
-                      "scope" : "REQUEST"
-                    }
-                    """.formatted(
-                        inputField,
-                        GROOVY_SCRIPT
-                    )
+                {
+                  "%s" : "%s",
+                  "scope" : "REQUEST"
+                }
+                """.formatted(inputField, GROOVY_SCRIPT)
             );
 
             // When
@@ -257,10 +245,12 @@ class FlowMigrationTest {
         @Test
         void impossible_to_parse_configuration() {
             // Given
-            var v2Flow = buildV2Flow("""
-                    {
-                      "%s" : "%s
-                    """);
+            var v2Flow = buildV2Flow(
+                """
+                {
+                  "%s" : "%s
+                """
+            );
 
             // When
             var result = cut.mapFlow(v2Flow);
@@ -276,15 +266,12 @@ class FlowMigrationTest {
             // Given
             var v2Flow = buildV2Flow(
                 """
-                    {
-                      "onRequestContentScript" : "%s",
-                      "onRequestScript" : "%s",
-                      "scope" : "REQUEST"
-                    }
-                    """.formatted(
-                        GROOVY_SCRIPT,
-                        GROOVY_SCRIPT
-                    )
+                {
+                  "onRequestContentScript" : "%s",
+                  "onRequestScript" : "%s",
+                  "scope" : "REQUEST"
+                }
+                """.formatted(GROOVY_SCRIPT, GROOVY_SCRIPT)
             );
 
             // When

@@ -54,8 +54,7 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
                 any(Pageable.class),
                 isNull()
             )
-        )
-            .thenReturn(new Page<>(null, 0, 1, 0));
+        ).thenReturn(new Page<>(null, 0, 1, 0));
 
         alertService.applyDefaults(GraviteeContext.getExecutionContext(), "my-alert", AlertReferenceType.API);
     }
@@ -93,8 +92,9 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
         when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
         when(alertTriggerRepository.create(any())).thenReturn(alertTrigger);
 
-        when(apiRepository.searchIds(anyList(), any(Pageable.class), isNull()))
-            .thenReturn(new Page<>(List.of(UUID.randomUUID().toString()), 0, 1, 1));
+        when(apiRepository.searchIds(anyList(), any(Pageable.class), isNull())).thenReturn(
+            new Page<>(List.of(UUID.randomUUID().toString()), 0, 1, 1)
+        );
 
         alertService.applyDefaults(executionContext, alert.getId(), alert.getReferenceType());
     }

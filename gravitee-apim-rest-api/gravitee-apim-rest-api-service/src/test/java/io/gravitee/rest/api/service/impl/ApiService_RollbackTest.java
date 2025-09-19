@@ -60,16 +60,15 @@ public class ApiService_RollbackTest {
 
         apiService.rollback(GraviteeContext.getExecutionContext(), "my-api-id", rollbackApiEntity);
 
-        verify(auditService, times(1))
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("my-api-id"),
-                anyMap(),
-                same(API_ROLLBACKED),
-                any(),
-                isNull(),
-                isNull()
-            );
+        verify(auditService, times(1)).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq("my-api-id"),
+            anyMap(),
+            same(API_ROLLBACKED),
+            any(),
+            isNull(),
+            isNull()
+        );
     }
 
     @Test
@@ -79,8 +78,11 @@ public class ApiService_RollbackTest {
 
         apiService.rollback(GraviteeContext.getExecutionContext(), "my-api-id", rollbackApiEntity);
 
-        verify(apiDuplicatorService, times(1))
-            .updateWithImportedDefinition(GraviteeContext.getExecutionContext(), "my-api-id", "my-serialized-api");
+        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(
+            GraviteeContext.getExecutionContext(),
+            "my-api-id",
+            "my-serialized-api"
+        );
     }
 
     @Test
@@ -97,8 +99,9 @@ public class ApiService_RollbackTest {
         apiEntityResult.setName("nametest");
         apiEntityResult.setDescription("descriptiontest");
         apiEntityResult.setExecutionMode(ExecutionMode.V3);
-        when(apiDuplicatorService.updateWithImportedDefinition(any(ExecutionContext.class), any(String.class), any(String.class)))
-            .thenReturn(apiEntityResult);
+        when(
+            apiDuplicatorService.updateWithImportedDefinition(any(ExecutionContext.class), any(String.class), any(String.class))
+        ).thenReturn(apiEntityResult);
         ApiEntity apiEntity = apiService.rollback(GraviteeContext.getExecutionContext(), "idtest", rollbackApiEntity);
         verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(GraviteeContext.getExecutionContext(), "idtest", mapperString);
         assertEquals(apiEntityResult, apiEntity);

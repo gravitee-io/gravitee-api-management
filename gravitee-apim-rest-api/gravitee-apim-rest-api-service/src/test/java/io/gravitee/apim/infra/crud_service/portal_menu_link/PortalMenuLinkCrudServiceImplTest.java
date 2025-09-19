@@ -104,8 +104,7 @@ public class PortalMenuLinkCrudServiceImplTest {
             // Given
             var portalMenuLinkId = "portalMenuLink-id";
             var environmentId = "portalMenuLink-environmentId";
-            var portalMenuLinkInRepositoryBuilder = io.gravitee.repository.management.model.PortalMenuLink
-                .builder()
+            var portalMenuLinkInRepositoryBuilder = io.gravitee.repository.management.model.PortalMenuLink.builder()
                 .id(portalMenuLinkId)
                 .environmentId(environmentId)
                 .name("portalMenuLink-name")
@@ -113,12 +112,11 @@ public class PortalMenuLinkCrudServiceImplTest {
                 .type(io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkType.EXTERNAL)
                 .order(1);
 
-            when(repository.findByIdAndEnvironmentId(portalMenuLinkId, environmentId))
-                .thenAnswer(invocation ->
-                    Optional.of(
-                        portalMenuLinkInRepositoryBuilder.id(invocation.getArgument(0)).environmentId(invocation.getArgument(1)).build()
-                    )
-                );
+            when(repository.findByIdAndEnvironmentId(portalMenuLinkId, environmentId)).thenAnswer(invocation ->
+                Optional.of(
+                    portalMenuLinkInRepositoryBuilder.id(invocation.getArgument(0)).environmentId(invocation.getArgument(1)).build()
+                )
+            );
 
             // When
             var result = service.getByIdAndEnvironmentId(portalMenuLinkId, environmentId);
@@ -189,8 +187,9 @@ public class PortalMenuLinkCrudServiceImplTest {
             assertThat(captor.getValue()).isEqualTo(PortalMenuLinkAdapter.INSTANCE.toRepository(portalMenuLink));
             assertThat(captor.getValue().getName()).isEqualTo("newName");
             assertThat(captor.getValue().getTarget()).isEqualTo("newTarget");
-            assertThat(captor.getValue().getVisibility())
-                .isEqualTo(io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkVisibility.PUBLIC);
+            assertThat(captor.getValue().getVisibility()).isEqualTo(
+                io.gravitee.repository.management.model.PortalMenuLink.PortalMenuLinkVisibility.PUBLIC
+            );
             assertThat(captor.getValue().getOrder()).isEqualTo(1000);
         }
 

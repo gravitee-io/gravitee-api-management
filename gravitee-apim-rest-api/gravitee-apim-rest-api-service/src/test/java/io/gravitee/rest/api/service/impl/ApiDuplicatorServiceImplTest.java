@@ -142,8 +142,9 @@ public class ApiDuplicatorServiceImplTest {
         groupMember.setType(MembershipMemberType.GROUP);
         groupMember.setRoles(Collections.singletonList(new RoleEntity()));
 
-        when(membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID))
-            .thenReturn(Set.of(userMember, groupMember));
+        when(
+            membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID)
+        ).thenReturn(Set.of(userMember, groupMember));
 
         UserEntity userEntity = new UserEntity();
         userEntity.setId("user-id");
@@ -253,8 +254,9 @@ public class ApiDuplicatorServiceImplTest {
         userRoleEntity2.setId(UUID.randomUUID().toString());
         userRoleEntity2.setName("user-role-2-name");
 
-        when(roleService.findByScopeAndName(RoleScope.API, "user-role-1-name", GraviteeContext.getExecutionContext().getOrganizationId()))
-            .thenReturn(Optional.of(userRoleEntity1));
+        when(
+            roleService.findByScopeAndName(RoleScope.API, "user-role-1-name", GraviteeContext.getExecutionContext().getOrganizationId())
+        ).thenReturn(Optional.of(userRoleEntity1));
 
         ApiDuplicatorServiceImpl.MemberToImport memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
         memberToImport.setSource("user-source");
@@ -300,8 +302,11 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.default.json");
         apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
 
-        verify(pageService, times(1))
-            .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pageEntities -> pageEntities.size() == 2), eq(API_ID));
+        verify(pageService, times(1)).createOrUpdatePages(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(pageEntities -> pageEntities.size() == 2),
+            eq(API_ID)
+        );
     }
 
     @Test
@@ -320,8 +325,11 @@ public class ApiDuplicatorServiceImplTest {
 
         verify(pageService, times(1)).delete(GraviteeContext.getExecutionContext(), deletedPageId);
 
-        verify(pageService, times(1))
-            .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pageEntities -> pageEntities.size() == 2), eq(API_ID));
+        verify(pageService, times(1)).createOrUpdatePages(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(pageEntities -> pageEntities.size() == 2),
+            eq(API_ID)
+        );
     }
 
     @Test
@@ -330,33 +338,33 @@ public class ApiDuplicatorServiceImplTest {
 
         when(apiEntity.getId()).thenReturn(API_ID);
 
-        when(pageService.importFiles(eq(GraviteeContext.getExecutionContext()), eq(API_ID), argThat(page -> page.getSource() != null)))
-            .thenReturn(List.of(PageEntity.builder().type("MARKDOWN").build(), PageEntity.builder().type("MARKDOWN").build()));
+        when(
+            pageService.importFiles(eq(GraviteeContext.getExecutionContext()), eq(API_ID), argThat(page -> page.getSource() != null))
+        ).thenReturn(List.of(PageEntity.builder().type("MARKDOWN").build(), PageEntity.builder().type("MARKDOWN").build()));
 
         apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, node);
 
-        verify(pageService, times(1))
-            .importFiles(eq(GraviteeContext.getExecutionContext()), eq(API_ID), argThat(page -> page.getSource() != null));
+        verify(pageService, times(1)).importFiles(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API_ID),
+            argThat(page -> page.getSource() != null)
+        );
 
-        verify(pageService, atLeastOnce())
-            .createOrUpdatePages(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(pages ->
-                    pages
-                        .stream()
-                        .allMatch(page ->
-                            "MARKDOWN".equals(page.getType()) && page.isPublished() && page.getVisibility() == Visibility.PUBLIC
-                        )
-                ),
-                eq(API_ID)
-            );
+        verify(pageService, atLeastOnce()).createOrUpdatePages(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(pages ->
+                pages
+                    .stream()
+                    .allMatch(page -> "MARKDOWN".equals(page.getType()) && page.isPublished() && page.getVisibility() == Visibility.PUBLIC)
+            ),
+            eq(API_ID)
+        );
 
-        verify(pageService, atLeastOnce())
-            .createOrUpdatePages(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(pages -> pages.size() == 1 && pages.iterator().next().getId().equals("markdown-page")),
-                eq(API_ID)
-            );
+        verify(pageService, atLeastOnce()).createOrUpdatePages(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(pages -> pages.size() == 1 && pages.iterator().next().getId().equals("markdown-page")),
+            eq(API_ID)
+        );
     }
 
     @Test
@@ -463,8 +471,9 @@ public class ApiDuplicatorServiceImplTest {
 
     @Test
     public void cleanCategories_shouldUseCaseInsensitiveKeysIfKubernetesOrigin() throws IOException {
-        when(categoryService.findAll(ENVIRONMENT_ID))
-            .thenReturn(List.of(CategoryEntity.builder().key("poc").name("PoC").id("poc-id").build()));
+        when(categoryService.findAll(ENVIRONMENT_ID)).thenReturn(
+            List.of(CategoryEntity.builder().key("poc").name("PoC").id("poc-id").build())
+        );
 
         var jsonNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.categories.kubernetes.json");
 
@@ -488,14 +497,11 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.with-access-controls.json");
         apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
 
-        verify(pageService, times(1))
-            .createOrUpdatePages(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(pageEntities ->
-                    pageEntities.size() == 2 && pageEntities.stream().allMatch(page -> page.getAccessControls().isEmpty())
-                ),
-                eq(API_ID)
-            );
+        verify(pageService, times(1)).createOrUpdatePages(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(pageEntities -> pageEntities.size() == 2 && pageEntities.stream().allMatch(page -> page.getAccessControls().isEmpty())),
+            eq(API_ID)
+        );
     }
 
     @Test
@@ -504,14 +510,15 @@ public class ApiDuplicatorServiceImplTest {
         GroupEntity mockGroupEntity = new GroupEntity();
         mockGroupEntity.setId("group-id-1");
         mockGroupEntity.setName("TestGroup");
-        when(groupService.findByName(eq(GraviteeContext.getExecutionContext().getEnvironmentId()), eq("TestGroup")))
-            .thenReturn(Collections.singletonList(mockGroupEntity));
+        when(groupService.findByName(eq(GraviteeContext.getExecutionContext().getEnvironmentId()), eq("TestGroup"))).thenReturn(
+            Collections.singletonList(mockGroupEntity)
+        );
         apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
 
-        verify(pageService, times(1))
-            .createOrUpdatePages(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(pageEntities ->
+        verify(pageService, times(1)).createOrUpdatePages(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                pageEntities ->
                     pageEntities.size() == 2 &&
                     pageEntities
                         .stream()
@@ -530,17 +537,16 @@ public class ApiDuplicatorServiceImplTest {
                             }
                             return true; // For other pages, no specific checks
                         })
-                ),
-                eq(API_ID)
-            );
+            ),
+            eq(API_ID)
+        );
     }
 
     @Test
     public void shouldThrowExceptionForInvalidFetchCronExpression() throws IOException {
         ImportApiJsonNode node = loadTestNode(IMPORT_FILES_FOLDER + "import-api.invalid.cron.json");
-        ApiImportException exception = assertThrows(
-            ApiImportException.class,
-            () -> ReflectionTestUtils.invokeMethod(apiDuplicatorService, "checkPagesConsistency", node)
+        ApiImportException exception = assertThrows(ApiImportException.class, () ->
+            ReflectionTestUtils.invokeMethod(apiDuplicatorService, "checkPagesConsistency", node)
         );
 
         assertTrue(exception.getMessage().startsWith("Invalid fetchCron expression in page"));

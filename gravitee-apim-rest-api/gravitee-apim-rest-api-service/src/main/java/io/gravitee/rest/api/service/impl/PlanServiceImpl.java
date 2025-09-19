@@ -382,8 +382,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             // Close subscriptions
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
-                var auditInfo = AuditInfo
-                    .builder()
+                var auditInfo = AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
                     .environmentId(executionContext.getEnvironmentId())
                     .actor(getAuthenticatedUserAsAuditActor())
@@ -591,7 +590,8 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         // the new plan order must be between 1 && numbers of published apis
         if (planToReorder.getOrder() < 1) {
             planToReorder.setOrder(1);
-        } else if (planToReorder.getOrder() > plansToReorder.length + 1) { // -1 because we have filtered the plan itself
+        } else if (planToReorder.getOrder() > plansToReorder.length + 1) {
+            // -1 because we have filtered the plan itself
             planToReorder.setOrder(plansToReorder.length + 1);
         }
         try {

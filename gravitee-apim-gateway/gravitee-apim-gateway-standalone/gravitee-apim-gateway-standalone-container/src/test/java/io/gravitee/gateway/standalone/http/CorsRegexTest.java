@@ -38,12 +38,10 @@ public class CorsRegexTest extends AbstractWiremockGatewayTest {
     @Test
     public void preflight_request() throws Exception {
         HttpResponse response = execute(
-            Request
-                .Options("http://localhost:8082/test/my_team")
+            Request.Options("http://localhost:8082/test/my_team")
                 .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
                 .addHeader(HttpHeaders.ORIGIN, "http://api.mycompany.com")
-        )
-            .returnResponse();
+        ).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -53,12 +51,10 @@ public class CorsRegexTest extends AbstractWiremockGatewayTest {
     @Test
     public void preflight_request_unauthorized() throws Exception {
         HttpResponse response = execute(
-            Request
-                .Options("http://localhost:8082/test/my_team")
+            Request.Options("http://localhost:8082/test/my_team")
                 .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
                 .addHeader(HttpHeaders.ORIGIN, "http://mycompany.com")
-        )
-            .returnResponse();
+        ).returnResponse();
 
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
 
@@ -83,8 +79,7 @@ public class CorsRegexTest extends AbstractWiremockGatewayTest {
 
         HttpResponse response = execute(
             Request.Get("http://localhost:8082/test/my_team").addHeader(HttpHeaders.ORIGIN, "https://api2.mycompany.com")
-        )
-            .returnResponse();
+        ).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         // CORS behavior differs from V3 to V4 emulation. Jupiter fixes default '*' return to use instead the Origin header from the request.

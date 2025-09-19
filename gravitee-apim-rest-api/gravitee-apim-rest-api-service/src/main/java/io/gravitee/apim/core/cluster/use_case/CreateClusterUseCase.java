@@ -53,8 +53,7 @@ public class CreateClusterUseCase {
 
     public Output execute(Input input) {
         Instant now = TimeProvider.instantNow();
-        Cluster clusterToCreate = Cluster
-            .builder()
+        Cluster clusterToCreate = Cluster.builder()
             .name(input.createCluster.getName())
             .description(input.createCluster.getDescription())
             .configuration(input.createCluster.getConfiguration())
@@ -85,8 +84,7 @@ public class CreateClusterUseCase {
                 GraviteeContext.getExecutionContext().getOrganizationId()
             )
             .orElseThrow();
-        Membership membership = Membership
-            .builder()
+        Membership membership = Membership.builder()
             .id(UuidString.generateRandom())
             .memberId(memberId)
             .memberType(Membership.Type.USER)
@@ -101,8 +99,7 @@ public class CreateClusterUseCase {
 
     private void createAuditLog(Cluster cluster, AuditInfo auditInfo) {
         auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity
-                .builder()
+            EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_CREATED)

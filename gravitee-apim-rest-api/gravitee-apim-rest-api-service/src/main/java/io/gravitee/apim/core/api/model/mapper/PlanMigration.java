@@ -49,7 +49,7 @@ class PlanMigration {
             planDefinitionV2.getSelectionRule(),
             planDefinitionV2.getTags(),
             PlanStatus.valueOf(planDefinitionV2.getStatus()),
-            null/* flows are managed in another place because is in a different collection */
+            null /* flows are managed in another place because is in a different collection */
         );
     }
 }

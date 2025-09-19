@@ -78,20 +78,21 @@ public class ClientRegistrationService_CreateTest {
         providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
 
         wireMockServer.stubFor(
-            get(urlEqualTo("/am"))
-                .willReturn(aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}"))
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
+            )
         );
         ClientRegistrationProvider providerCreatedMock = new ClientRegistrationProvider();
         when(
             mockClientRegistrationProviderRepository.create(
-                argThat(p ->
-                    Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
-                    Objects.equals(p.getName(), providerPayload.getName()) &&
-                    p.getCreatedAt() != null
+                argThat(
+                    p ->
+                        Objects.equals(p.getEnvironmentId(), GraviteeContext.getExecutionContext().getEnvironmentId()) &&
+                        Objects.equals(p.getName(), providerPayload.getName()) &&
+                        p.getCreatedAt() != null
                 )
             )
-        )
-            .thenReturn(providerCreatedMock);
+        ).thenReturn(providerCreatedMock);
 
         ClientRegistrationProviderEntity providerCreated = clientRegistrationService.create(
             GraviteeContext.getExecutionContext(),
@@ -99,22 +100,22 @@ public class ClientRegistrationService_CreateTest {
         );
         assertNotNull("Result is null", providerCreated);
 
-        verify(mockAuditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(CLIENT_REGISTRATION_PROVIDER_CREATED),
-                any(),
-                isNull(),
-                any()
-            );
+        verify(mockAuditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            eq(CLIENT_REGISTRATION_PROVIDER_CREATED),
+            any(),
+            isNull(),
+            any()
+        );
         verify(mockClientRegistrationProviderRepository, times(1)).create(any());
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateMoreThanOneProvider() throws TechnicalException {
-        when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
-            .thenReturn(Collections.singleton(new ClientRegistrationProvider()));
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenReturn(Collections.singleton(new ClientRegistrationProvider()));
 
         NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
         clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);

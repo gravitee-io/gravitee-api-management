@@ -47,8 +47,9 @@ public class UserDetailsContextPropertiesMapperTest {
 
     @Test
     public void shouldAddMappedAuthorities() {
-        when(environment.getProperty("authentication.group.role.mapper.multiple"))
-            .thenReturn("ORGANIZATION:USER,ENVIRONMENT:API_PUBLISHER");
+        when(environment.getProperty("authentication.group.role.mapper.multiple")).thenReturn(
+            "ORGANIZATION:USER,ENVIRONMENT:API_PUBLISHER"
+        );
 
         LdapAuthority authority = new LdapAuthority("multiple", "dn");
 
@@ -71,8 +72,9 @@ public class UserDetailsContextPropertiesMapperTest {
     @Test
     public void shouldAddMixedMappedAuthorities() {
         when(environment.getProperty("authentication.group.role.mapper.simple")).thenReturn("API_CONSUMER");
-        when(environment.getProperty("authentication.group.role.mapper.multiple"))
-            .thenReturn("ORGANIZATION:USER,ENVIRONMENT:API_PUBLISHER");
+        when(environment.getProperty("authentication.group.role.mapper.multiple")).thenReturn(
+            "ORGANIZATION:USER,ENVIRONMENT:API_PUBLISHER"
+        );
 
         LdapAuthority authority = new LdapAuthority("simple", "dn");
         LdapAuthority authority2 = new LdapAuthority("multiple", "dn");

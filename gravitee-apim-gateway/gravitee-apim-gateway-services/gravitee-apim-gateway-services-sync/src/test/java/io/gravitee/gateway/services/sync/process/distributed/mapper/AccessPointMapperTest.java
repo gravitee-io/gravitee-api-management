@@ -45,25 +45,24 @@ public class AccessPointMapperTest {
     public void beforeEach() throws JsonProcessingException {
         cut = new AccessPointMapper(objectMapper);
 
-        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint
-            .builder()
+        ReactableAccessPoint reactableAccessPoint = ReactableAccessPoint.builder()
             .id("id")
             .environmentId("environmentId")
             .host("host")
             .build();
 
-        distributedEvent =
-            DistributedEvent
-                .builder()
-                .id(reactableAccessPoint.getId())
-                .payload(objectMapper.writeValueAsString(reactableAccessPoint))
-                .updatedAt(new Date())
-                .type(DistributedEventType.ACCESS_POINT)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .build();
+        distributedEvent = DistributedEvent.builder()
+            .id(reactableAccessPoint.getId())
+            .payload(objectMapper.writeValueAsString(reactableAccessPoint))
+            .updatedAt(new Date())
+            .type(DistributedEventType.ACCESS_POINT)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
 
-        accessPointDeployable =
-            AccessPointDeployable.builder().reactableAccessPoint(reactableAccessPoint).syncAction(SyncAction.DEPLOY).build();
+        accessPointDeployable = AccessPointDeployable.builder()
+            .reactableAccessPoint(reactableAccessPoint)
+            .syncAction(SyncAction.DEPLOY)
+            .build();
     }
 
     @Test

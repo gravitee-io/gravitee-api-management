@@ -47,6 +47,8 @@ public class ApplicationMetadataQueryServiceInMemory
 
     @Override
     public List<ApplicationMetadataEntity> findAllByApplication(String applicationId) {
-        return this.entities.stream().filter(entity -> entity.getApplicationId().equals(applicationId)).collect(Collectors.toList());
+        return this.entities.stream()
+            .filter(entity -> entity.getApplicationId().equals(applicationId))
+            .collect(Collectors.toList());
     }
 }

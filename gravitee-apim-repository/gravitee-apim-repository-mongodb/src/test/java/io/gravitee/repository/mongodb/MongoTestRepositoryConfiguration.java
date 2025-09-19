@@ -143,8 +143,7 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     }
 
     private String getMongoFullVersion(String[] containerEnvs) {
-        return Arrays
-            .stream(containerEnvs)
+        return Arrays.stream(containerEnvs)
             .filter(env -> env.startsWith("MONGO_VERSION="))
             .findFirst()
             .map(env -> env.split("=")[1])
@@ -161,8 +160,7 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         kmsProviders.put("local", localKmsProvider);
 
         String collectionName = environment.getProperty("management.mongodb.encryption.keyVault.collectionName");
-        ClientEncryptionSettings.Builder builder = ClientEncryptionSettings
-            .builder()
+        ClientEncryptionSettings.Builder builder = ClientEncryptionSettings.builder()
             // The collection in MongoDB where the Data Encryption Keys (DEKs) will be stored.
             .keyVaultNamespace("test.test_prefix_" + collectionName)
             .keyVaultMongoClientSettings(

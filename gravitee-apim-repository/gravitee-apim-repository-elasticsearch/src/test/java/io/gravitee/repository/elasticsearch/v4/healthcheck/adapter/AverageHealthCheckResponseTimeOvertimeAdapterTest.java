@@ -49,41 +49,40 @@ class AverageHealthCheckResponseTimeOvertimeAdapterTest {
             var result = adapter.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result.toString())
-                .isEqualTo(
-                    """
-                                {
-                                   "aggregations": {
-                                     "by_date": {
-                                       "aggregations": { "avg_response-time": { "avg": { "field": "response-time" } } },
-                                       "date_histogram": {
-                                         "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
-                                         "field": "@timestamp",
-                                         "fixed_interval": "600000ms",
-                                         "min_doc_count": 0
-                                       }
-                                     }
-                                   },
-                                   "query": {
-                                     "bool": {
-                                       "filter": [
-                                         { "term": { "api": "my-api-id" } },
-                                         {
-                                           "range": {
-                                             "@timestamp": {
-                                               "from": 1697882730000,
-                                               "to": 1697970330000,
-                                               "include_lower": true,
-                                               "include_upper": true
-                                             }
-                                           }
-                                         }
-                                       ]
-                                     }
-                                   },
-                                   "size": 0
-                                 }"""
-                );
+            assertThatJson(result.toString()).isEqualTo(
+                """
+                {
+                   "aggregations": {
+                     "by_date": {
+                       "aggregations": { "avg_response-time": { "avg": { "field": "response-time" } } },
+                       "date_histogram": {
+                         "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
+                         "field": "@timestamp",
+                         "fixed_interval": "600000ms",
+                         "min_doc_count": 0
+                       }
+                     }
+                   },
+                   "query": {
+                     "bool": {
+                       "filter": [
+                         { "term": { "api": "my-api-id" } },
+                         {
+                           "range": {
+                             "@timestamp": {
+                               "from": 1697882730000,
+                               "to": 1697970330000,
+                               "include_lower": true,
+                               "include_upper": true
+                             }
+                           }
+                         }
+                       ]
+                     }
+                   },
+                   "size": 0
+                 }"""
+            );
         }
 
         @Test
@@ -96,41 +95,40 @@ class AverageHealthCheckResponseTimeOvertimeAdapterTest {
             var result = adapter.adaptQuery(query, esInfo);
 
             // Then
-            assertThatJson(result.toString())
-                .isEqualTo(
-                    """
-                            {
-                               "aggregations": {
-                                 "by_date": {
-                                   "aggregations": { "avg_response-time": { "avg": { "field": "response-time" } } },
-                                   "date_histogram": {
-                                     "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
-                                     "field": "@timestamp",
-                                     "interval": "600000ms",
-                                     "min_doc_count": 0
-                                   }
-                                 }
-                               },
-                               "query": {
-                                 "bool": {
-                                   "filter": [
-                                     { "term": { "api": "my-api-id" } },
-                                     {
-                                       "range": {
-                                         "@timestamp": {
-                                           "from": 1697882730000,
-                                           "to": 1697970330000,
-                                           "include_lower": true,
-                                           "include_upper": true
-                                         }
-                                       }
-                                     }
-                                   ]
-                                 }
-                               },
-                               "size": 0
-                             }"""
-                );
+            assertThatJson(result.toString()).isEqualTo(
+                """
+                {
+                   "aggregations": {
+                     "by_date": {
+                       "aggregations": { "avg_response-time": { "avg": { "field": "response-time" } } },
+                       "date_histogram": {
+                         "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
+                         "field": "@timestamp",
+                         "interval": "600000ms",
+                         "min_doc_count": 0
+                       }
+                     }
+                   },
+                   "query": {
+                     "bool": {
+                       "filter": [
+                         { "term": { "api": "my-api-id" } },
+                         {
+                           "range": {
+                             "@timestamp": {
+                               "from": 1697882730000,
+                               "to": 1697970330000,
+                               "include_lower": true,
+                               "include_upper": true
+                             }
+                           }
+                         }
+                       ]
+                     }
+                   },
+                   "size": 0
+                 }"""
+            );
         }
     }
 

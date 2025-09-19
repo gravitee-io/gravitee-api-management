@@ -92,8 +92,7 @@ public class ApiModelFactory {
     }
 
     public static UpdateNativeApi toUpdateNativeApi(ApiCRDSpec spec) {
-        return UpdateNativeApi
-            .builder()
+        return UpdateNativeApi.builder()
             .id(spec.getId())
             .name(spec.getName())
             .description(spec.getDescription())
@@ -142,8 +141,7 @@ public class ApiModelFactory {
         var now = TimeProvider.now();
         var defaultVersion = "0.0.0";
         var version = integrationApi.version() != null ? integrationApi.version() : defaultVersion;
-        return Api
-            .builder()
+        return Api.builder()
             .id(id)
             .version(version)
             .definitionVersion(DefinitionVersion.FEDERATED)
@@ -163,8 +161,7 @@ public class ApiModelFactory {
         var now = TimeProvider.now();
         var defaultVersion = "0.0.0";
         var version = integrationApi.version() != null ? integrationApi.version() : defaultVersion;
-        return Api
-            .builder()
+        return Api.builder()
             .id(id)
             .version(version)
             .definitionVersion(DefinitionVersion.FEDERATED)

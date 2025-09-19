@@ -27,8 +27,7 @@ public class PageIdContextEnvironmentIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("portal_page_contexts")
             .name("ppc_page_ctx_env_unique")
             .key("pageId", ascending())

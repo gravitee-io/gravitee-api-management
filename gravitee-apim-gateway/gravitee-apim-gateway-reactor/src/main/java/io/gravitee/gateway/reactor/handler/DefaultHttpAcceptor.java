@@ -69,18 +69,14 @@ public class DefaultHttpAcceptor extends AbstractHttpAcceptor implements HttpAcc
             return 0;
         }
 
-        final int hostCompare = Objects.compare(
-            toLower(this.host()),
-            toLower(o2.host()),
-            (host1, host2) -> {
-                if (host1 == null) {
-                    return 1;
-                } else if (host2 == null) {
-                    return -1;
-                }
-                return host1.compareTo(host2);
+        final int hostCompare = Objects.compare(toLower(this.host()), toLower(o2.host()), (host1, host2) -> {
+            if (host1 == null) {
+                return 1;
+            } else if (host2 == null) {
+                return -1;
             }
-        );
+            return host1.compareTo(host2);
+        });
 
         if (hostCompare == 0) {
             final int pathCompare = this.path().compareTo(o2.path());

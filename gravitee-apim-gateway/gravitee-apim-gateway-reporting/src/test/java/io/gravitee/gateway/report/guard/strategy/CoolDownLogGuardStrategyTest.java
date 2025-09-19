@@ -78,6 +78,9 @@ class CoolDownLogGuardStrategyTest {
         assertThat(cut.execute()).isTrue();
 
         //Check if result is true during cooldown period and false once cooldown period has ended
-        await().atLeast(Duration.ofSeconds(2)).atMost(Duration.ofSeconds(4)).untilAsserted(() -> assertThat(cut.execute()).isFalse());
+        await()
+            .atLeast(Duration.ofSeconds(2))
+            .atMost(Duration.ofSeconds(4))
+            .untilAsserted(() -> assertThat(cut.execute()).isFalse());
     }
 }

@@ -58,7 +58,10 @@ public class ThemeCrudServiceImpl implements ThemeCrudService {
     @Override
     public Theme get(String id) {
         try {
-            return themeRepository.findById(id).map(ThemeAdapter.INSTANCE::map).orElseThrow(() -> new ThemeNotFoundException(id));
+            return themeRepository
+                .findById(id)
+                .map(ThemeAdapter.INSTANCE::map)
+                .orElseThrow(() -> new ThemeNotFoundException(id));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Error during get", e);
         }

@@ -42,17 +42,15 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         deleteClusterUseCase = new DeleteClusterUseCase(clusterCrudService, auditService);
 
-        existingCluster =
-            Cluster
-                .builder()
-                .id(GENERATED_UUID)
-                .name("Cluster 1")
-                .createdAt(INSTANT_NOW)
-                .description("The cluster no 1")
-                .environmentId(ENV_ID)
-                .organizationId(ORG_ID)
-                .configuration(Map.of("bootstrapServers", "localhost:9092"))
-                .build();
+        existingCluster = Cluster.builder()
+            .id(GENERATED_UUID)
+            .name("Cluster 1")
+            .createdAt(INSTANT_NOW)
+            .description("The cluster no 1")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .configuration(Map.of("bootstrapServers", "localhost:9092"))
+            .build();
         clusterCrudService.initWith(List.of(existingCluster));
     }
 
@@ -71,8 +69,7 @@ class DeleteClusterUseCaseTest extends AbstractUseCaseTest {
         deleteClusterUseCase.execute(new DeleteClusterUseCase.Input(existingCluster.getId(), AUDIT_INFO));
 
         // Then
-        AuditEntity deletedAudit = AuditEntity
-            .builder()
+        AuditEntity deletedAudit = AuditEntity.builder()
             .id("generated-id")
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

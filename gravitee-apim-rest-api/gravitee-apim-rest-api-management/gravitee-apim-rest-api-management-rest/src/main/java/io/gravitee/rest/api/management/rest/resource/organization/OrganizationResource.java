@@ -103,17 +103,17 @@ public class OrganizationResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateOrganizationIdentities(Set<IdentityProviderActivationEntity> identityProviderActivations) {
         this.identityProviderActivationService.updateTargetIdp(
-                GraviteeContext.getExecutionContext(),
-                new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION),
-                identityProviderActivations
-                    .stream()
-                    .filter(ipa -> {
-                        final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
-                        return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
-                    })
-                    .map(IdentityProviderActivationEntity::getIdentityProvider)
-                    .collect(Collectors.toList())
-            );
+            GraviteeContext.getExecutionContext(),
+            new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION),
+            identityProviderActivations
+                .stream()
+                .filter(ipa -> {
+                    final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
+                    return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
+                })
+                .map(IdentityProviderActivationEntity::getIdentityProvider)
+                .collect(Collectors.toList())
+        );
         return Response.noContent().build();
     }
 

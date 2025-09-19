@@ -52,8 +52,7 @@ class SearchApplicationConnectionLogsUseCaseTest {
     private static final String ENV_ID = "my-env";
     private static final Plan PLAN_1 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan1").name("1st plan").build();
     private static final Plan PLAN_2 = PlanFixtures.aPlanHttpV4().toBuilder().id("plan2").name("2nd plan").build();
-    private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity
-        .builder()
+    private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity.builder()
         .id(APPLICATION_ID)
         .name("an application name")
         .build();
@@ -77,13 +76,12 @@ class SearchApplicationConnectionLogsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        cut =
-            new SearchApplicationConnectionLogsUseCase(
-                logStorageService,
-                applicationStorageService,
-                planStorageService,
-                apiCrudServiceInMemory
-            );
+        cut = new SearchApplicationConnectionLogsUseCase(
+            logStorageService,
+            applicationStorageService,
+            planStorageService,
+            apiCrudServiceInMemory
+        );
 
         planStorageService.initWith(List.of(PLAN_1, PLAN_2));
         applicationStorageService.initWith(List.of(APPLICATION_1));
@@ -128,8 +126,7 @@ class SearchApplicationConnectionLogsUseCaseTest {
                 .assertThat(result.data())
                 .isEqualTo(
                     List.of(
-                        ConnectionLog
-                            .builder()
+                        ConnectionLog.builder()
                             .requestId("req1")
                             .apiId(API_ID)
                             .api(API_1)
@@ -186,7 +183,9 @@ class SearchApplicationConnectionLogsUseCaseTest {
         var pageNumber = 2;
         var pageSize = 5;
         logStorageService.initWithConnectionLogs(
-            IntStream.range(0, expectedTotal).mapToObj(i -> connectionLogFixtures.aConnectionLog(String.valueOf(i))).toList()
+            IntStream.range(0, expectedTotal)
+                .mapToObj(i -> connectionLogFixtures.aConnectionLog(String.valueOf(i)))
+                .toList()
         );
 
         var result = cut.execute(

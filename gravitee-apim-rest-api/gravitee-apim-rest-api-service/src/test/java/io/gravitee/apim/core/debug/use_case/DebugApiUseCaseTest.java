@@ -113,22 +113,21 @@ class DebugApiUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        cut =
-            new DebugApiUseCase(
-                apiPolicyValidatorDomainService,
-                apiCrudServiceInMemory,
-                instanceQueryService,
-                planQueryService,
-                flowCrudService,
-                eventCrudService
-            );
+        cut = new DebugApiUseCase(
+            apiPolicyValidatorDomainService,
+            apiCrudServiceInMemory,
+            instanceQueryService,
+            planQueryService,
+            flowCrudService,
+            eventCrudService
+        );
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(apiCrudServiceInMemory, eventCrudService, flowCrudService, instanceQueryService, planQueryService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudServiceInMemory, eventCrudService, flowCrudService, instanceQueryService, planQueryService).forEach(
+            InMemoryAlternative::reset
+        );
     }
 
     @Test
@@ -201,9 +200,10 @@ class DebugApiUseCaseTest {
                     ),
                     Index.atIndex(2)
                 );
-            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper
-                .getInstance()
-                .readValue(output.debugApiEvent().getPayload(), DebugApiV2.class);
+            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper.getInstance().readValue(
+                output.debugApiEvent().getPayload(),
+                DebugApiV2.class
+            );
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(debugApiFromEvent.getExecutionMode()).isEqualTo(V4_EMULATION_ENGINE);
                 softly
@@ -255,13 +255,11 @@ class DebugApiUseCaseTest {
             var plan = givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
             givenExistingPlanV2Flows(
                 plan.getId(),
-                FlowFixtures
-                    .aFlowV2()
+                FlowFixtures.aFlowV2()
                     .toBuilder()
                     .pre(
                         List.of(
-                            io.gravitee.definition.model.flow.Step
-                                .builder()
+                            io.gravitee.definition.model.flow.Step.builder()
                                 .name("my-step-name-1")
                                 .policy("a-policy_throw_invalid_data_exception")
                                 .configuration("{}")
@@ -307,9 +305,10 @@ class DebugApiUseCaseTest {
                     ),
                     Index.atIndex(2)
                 );
-            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper
-                .getInstance()
-                .readValue(output.debugApiEvent().getPayload(), DebugApiV2.class);
+            final DebugApiV2 debugApiFromEvent = GraviteeJacksonMapper.getInstance().readValue(
+                output.debugApiEvent().getPayload(),
+                DebugApiV2.class
+            );
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(debugApiFromEvent.getExecutionMode()).isEqualTo(V4_EMULATION_ENGINE);
                 softly
@@ -372,13 +371,11 @@ class DebugApiUseCaseTest {
             var plan = givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanHttpV4().setApiId(API_ID));
             givenExistingPlanV4Flows(
                 plan.getId(),
-                FlowFixtures
-                    .aProxyFlowV4()
+                FlowFixtures.aProxyFlowV4()
                     .toBuilder()
                     .request(
                         List.of(
-                            Step
-                                .builder()
+                            Step.builder()
                                 .name("my-step-name-1")
                                 .policy("a-policy_throw_invalid_data_exception")
                                 .configuration("{}")
@@ -402,13 +399,11 @@ class DebugApiUseCaseTest {
             var api = givenExistingApi(ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag")));
             givenExistingApiV4Flows(
                 api.getId(),
-                FlowFixtures
-                    .aProxyFlowV4()
+                FlowFixtures.aProxyFlowV4()
                     .toBuilder()
                     .request(
                         List.of(
-                            Step
-                                .builder()
+                            Step.builder()
                                 .name("my-step-name-1")
                                 .policy("a-policy_throw_invalid_data_exception")
                                 .configuration("{}")
@@ -495,8 +490,7 @@ class DebugApiUseCaseTest {
     }
 
     private static Instance validInstance() {
-        return Instance
-            .builder()
+        return Instance.builder()
             .id(GATEWAY_ID)
             .startedAt(new Date())
             .clusterPrimaryNode(true)
@@ -522,8 +516,7 @@ class DebugApiUseCaseTest {
             ),
             Arguments.of(
                 List.of(
-                    Instance
-                        .builder()
+                    Instance.builder()
                         .startedAt(new Date())
                         .clusterPrimaryNode(true)
                         .environments(Set.of(ENVIRONMENT_ID))
@@ -533,8 +526,7 @@ class DebugApiUseCaseTest {
             ),
             Arguments.of(
                 List.of(
-                    Instance
-                        .builder()
+                    Instance.builder()
                         .startedAt(new Date())
                         .clusterPrimaryNode(true)
                         .environments(Set.of(ENVIRONMENT_ID))
@@ -544,8 +536,7 @@ class DebugApiUseCaseTest {
             ),
             Arguments.of(
                 List.of(
-                    Instance
-                        .builder()
+                    Instance.builder()
                         .startedAt(new Date())
                         .clusterPrimaryNode(true)
                         .environments(Set.of(ENVIRONMENT_ID))

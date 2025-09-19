@@ -42,21 +42,18 @@ class PolicyValidationDomainServiceTest {
         @Test
         void should_validate() {
             // Given
-            when(policyPluginService.findAll())
-                .thenReturn(
-                    Set.of(
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-1")
-                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE)))
-                            .build(),
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-2")
-                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.REQUEST)))
-                            .build()
-                    )
-                );
+            when(policyPluginService.findAll()).thenReturn(
+                Set.of(
+                    PolicyPluginEntity.builder()
+                        .id("policy-1")
+                        .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE)))
+                        .build(),
+                    PolicyPluginEntity.builder()
+                        .id("policy-2")
+                        .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.REQUEST)))
+                        .build()
+                )
+            );
             // When
             service.validatePoliciesFlowPhase(
                 List.of("policy-1", "policy-2"),
@@ -68,23 +65,20 @@ class PolicyValidationDomainServiceTest {
         @Test
         void should_throw_exception_when_a_policy_not_match_api_type() {
             // Given
-            when(policyPluginService.findAll())
-                .thenReturn(
-                    Set.of(
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-1")
-                            .name("Policy 1")
-                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.RESPONSE)))
-                            .build(),
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-2")
-                            .name("Policy 2")
-                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_MESSAGE, Set.of(FlowPhase.PUBLISH)))
-                            .build()
-                    )
-                );
+            when(policyPluginService.findAll()).thenReturn(
+                Set.of(
+                    PolicyPluginEntity.builder()
+                        .id("policy-1")
+                        .name("Policy 1")
+                        .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_PROXY, Set.of(FlowPhase.RESPONSE)))
+                        .build(),
+                    PolicyPluginEntity.builder()
+                        .id("policy-2")
+                        .name("Policy 2")
+                        .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_MESSAGE, Set.of(FlowPhase.PUBLISH)))
+                        .build()
+                )
+            );
 
             // When
             var throwable = Assertions.catchThrowable(() ->
@@ -96,8 +90,7 @@ class PolicyValidationDomainServiceTest {
             );
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(UnexpectedPoliciesException.class)
                 .hasMessage("Unexpected policies [Policy 2] for API type PROXY and phase RESPONSE");
         }
@@ -105,31 +98,28 @@ class PolicyValidationDomainServiceTest {
         @Test
         void should_throw_exception_when_a_policies_not_match_execution_phase() {
             // Given
-            when(policyPluginService.findAll())
-                .thenReturn(
-                    Set.of(
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-1")
-                            .name("Policy 1")
-                            .flowPhaseCompatibility(
-                                Map.of(
-                                    ApiProtocolType.HTTP_PROXY,
-                                    Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE),
-                                    ApiProtocolType.HTTP_MESSAGE,
-                                    Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE)
-                                )
+            when(policyPluginService.findAll()).thenReturn(
+                Set.of(
+                    PolicyPluginEntity.builder()
+                        .id("policy-1")
+                        .name("Policy 1")
+                        .flowPhaseCompatibility(
+                            Map.of(
+                                ApiProtocolType.HTTP_PROXY,
+                                Set.of(FlowPhase.REQUEST, FlowPhase.RESPONSE),
+                                ApiProtocolType.HTTP_MESSAGE,
+                                Set.of(FlowPhase.PUBLISH, FlowPhase.SUBSCRIBE)
                             )
-                            .build(),
-                        PolicyPluginEntity
-                            .builder()
-                            .id("policy-2")
-                            .name("Policy 2")
-                            .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_MESSAGE, Set.of(FlowPhase.PUBLISH)))
-                            .build(),
-                        PolicyPluginEntity.builder().id("policy-3").name("Policy 3").build()
-                    )
-                );
+                        )
+                        .build(),
+                    PolicyPluginEntity.builder()
+                        .id("policy-2")
+                        .name("Policy 2")
+                        .flowPhaseCompatibility(Map.of(ApiProtocolType.HTTP_MESSAGE, Set.of(FlowPhase.PUBLISH)))
+                        .build(),
+                    PolicyPluginEntity.builder().id("policy-3").name("Policy 3").build()
+                )
+            );
             // When
 
             var throwable = Assertions.catchThrowable(() ->
@@ -141,8 +131,7 @@ class PolicyValidationDomainServiceTest {
             );
 
             // Then
-            Assertions
-                .assertThat(throwable)
+            Assertions.assertThat(throwable)
                 .isInstanceOf(UnexpectedPoliciesException.class)
                 .hasMessage("Unexpected policies [Policy 2, Policy 3] for API type MESSAGE and phase SUBSCRIBE");
         }

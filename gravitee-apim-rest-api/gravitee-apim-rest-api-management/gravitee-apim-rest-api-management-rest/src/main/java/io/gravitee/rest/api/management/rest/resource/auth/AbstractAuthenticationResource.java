@@ -61,9 +61,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public abstract class AbstractAuthenticationResource {
 
-    public static final String CLIENT_ID_KEY = "client_id", REDIRECT_URI_KEY = "redirect_uri", CLIENT_SECRET = "client_secret", CODE_KEY =
-        "code", GRANT_TYPE_KEY = "grant_type", AUTH_CODE = "authorization_code", CODE_VERIFIER_KEY = "code_verifier", TOKEN =
-        "token", STATE = "state";
+    public static final String CLIENT_ID_KEY = "client_id",
+        REDIRECT_URI_KEY = "redirect_uri",
+        CLIENT_SECRET = "client_secret",
+        CODE_KEY = "code",
+        GRANT_TYPE_KEY = "grant_type",
+        AUTH_CODE = "authorization_code",
+        CODE_VERIFIER_KEY = "code_verifier",
+        TOKEN = "token",
+        STATE = "state";
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Autowired
@@ -169,8 +175,7 @@ public abstract class AbstractAuthenticationResource {
                 )
             );
 
-        final String token = JWT
-            .create()
+        final String token = JWT.create()
             .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
             .withIssuedAt(issueAt)
             .withExpiresAt(Date.from(expireAt))

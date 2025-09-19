@@ -109,7 +109,10 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
         final List<CustomUserFieldMongo> fields = internalMongoRepo.findByReference(refId, referenceType.name());
 
         logger.debug("Find CustomUserField by Reference [{}/{}] - Done", refId, referenceType);
-        return fields.stream().map(f -> mapper.map(f)).collect(Collectors.toList());
+        return fields
+            .stream()
+            .map(f -> mapper.map(f))
+            .collect(Collectors.toList());
     }
 
     @Override

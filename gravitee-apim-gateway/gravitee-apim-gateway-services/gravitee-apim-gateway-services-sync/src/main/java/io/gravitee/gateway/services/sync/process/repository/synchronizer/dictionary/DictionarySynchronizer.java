@@ -61,8 +61,7 @@ public class DictionarySynchronizer implements RepositorySynchronizer {
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
             // fetch per page
             .flatMap(events ->
-                Flowable
-                    .just(events)
+                Flowable.just(events)
                     .flatMapIterable(e -> e)
                     .groupBy(Event::getType)
                     .flatMap(eventsByType -> {

@@ -46,8 +46,7 @@ public class DefaultSharedPolicyGroupPolicyChainFactory implements SharedPolicyG
     public DefaultSharedPolicyGroupPolicyChainFactory(final String id, final PolicyManager policyManager, final boolean tracing) {
         this.policyManager = policyManager;
 
-        final CacheConfiguration cacheConfiguration = CacheConfiguration
-            .builder()
+        final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
             .maxSize(CACHE_MAX_SIZE)
             .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
             .build();

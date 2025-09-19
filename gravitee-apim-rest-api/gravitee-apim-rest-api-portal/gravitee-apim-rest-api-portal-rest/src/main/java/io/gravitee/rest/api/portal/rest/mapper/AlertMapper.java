@@ -120,8 +120,7 @@ public class AlertMapper {
             case STATUS:
                 final Pair<Double, Double> status = convertStatusCode(alertInput.getStatusCode());
                 conditions.add(
-                    RateCondition
-                        .of(ThresholdRangeCondition.between("response.status", status.getLeft(), status.getRight()).build())
+                    RateCondition.of(ThresholdRangeCondition.between("response.status", status.getLeft(), status.getRight()).build())
                         .duration((long) alertInput.getDuration(), convert(alertInput.getTimeUnit()))
                         .greaterThan(alertInput.getStatusPercent().doubleValue())
                         .build()
@@ -129,8 +128,7 @@ public class AlertMapper {
                 break;
             case RESPONSE_TIME:
                 conditions.add(
-                    AggregationCondition
-                        .avg("response.response_time")
+                    AggregationCondition.avg("response.response_time")
                         .duration((long) alertInput.getDuration(), convert(alertInput.getTimeUnit()))
                         .greaterThan(alertInput.getResponseTime().doubleValue())
                         .build()

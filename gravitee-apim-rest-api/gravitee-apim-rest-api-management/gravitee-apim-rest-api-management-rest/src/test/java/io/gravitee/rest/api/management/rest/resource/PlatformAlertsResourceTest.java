@@ -113,13 +113,17 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
         param.setFrom(0L);
         param.setTo(0L);
 
-        when(alertAnalyticsService.findByReference(eq(ENVIRONMENT), eq(getCurrentEnvironment()), any(AlertAnalyticsQuery.class)))
-            .thenReturn(alerts);
+        when(
+            alertAnalyticsService.findByReference(eq(ENVIRONMENT), eq(getCurrentEnvironment()), any(AlertAnalyticsQuery.class))
+        ).thenReturn(alerts);
 
         final Response response = envTarget("analytics").queryParam("from", 12).queryParam("to", 157).request().get();
 
-        verify(alertAnalyticsService, times(1))
-            .findByReference(eq(ENVIRONMENT), eq(getCurrentEnvironment()), argThat(query -> query.getFrom() == 12 && query.getTo() == 157));
+        verify(alertAnalyticsService, times(1)).findByReference(
+            eq(ENVIRONMENT),
+            eq(getCurrentEnvironment()),
+            argThat(query -> query.getFrom() == 12 && query.getTo() == 157)
+        );
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
@@ -150,11 +154,10 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newAlertTriggerEntity));
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(alertService, times(1))
-            .create(
-                eq(getExecutionContext()),
-                argThat(alert -> alert.getId().equals("my-alert") && alert.getReferenceType() == ENVIRONMENT)
-            );
+        verify(alertService, times(1)).create(
+            eq(getExecutionContext()),
+            argThat(alert -> alert.getId().equals("my-alert") && alert.getReferenceType() == ENVIRONMENT)
+        );
     }
 
     @Test
@@ -167,11 +170,10 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
         final Response response = envTarget().path("my-alert").request().put(Entity.json(updateAlertTriggerEntity));
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(alertService, times(1))
-            .update(
-                eq(getExecutionContext()),
-                argThat(alert -> alert.getId().equals("my-alert") && alert.getReferenceType() == ENVIRONMENT)
-            );
+        verify(alertService, times(1)).update(
+            eq(getExecutionContext()),
+            argThat(alert -> alert.getId().equals("my-alert") && alert.getReferenceType() == ENVIRONMENT)
+        );
     }
 
     @Test

@@ -91,16 +91,14 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(membershipService.createNewMembershipForApi(any(), any(), any(), any(), any()))
-                .thenAnswer(invocation ->
-                    MemberEntity
-                        .builder()
-                        .id(invocation.getArgument(2))
-                        .referenceId(invocation.getArgument(1))
-                        .displayName("John Doe")
-                        .roles(List.of(RoleEntity.builder().name(invocation.getArgument(4)).build()))
-                        .build()
-                );
+            when(membershipService.createNewMembershipForApi(any(), any(), any(), any(), any())).thenAnswer(invocation ->
+                MemberEntity.builder()
+                    .id(invocation.getArgument(2))
+                    .referenceId(invocation.getArgument(1))
+                    .displayName("John Doe")
+                    .roles(List.of(RoleEntity.builder().name(invocation.getArgument(4)).build()))
+                    .build()
+            );
         }
 
         @Test
@@ -112,8 +110,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
                     eq(apiId),
                     eq(RolePermissionAction.CREATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(Entity.json(new AddMember()));
             assertThat(response).hasStatus(FORBIDDEN_403);
@@ -144,8 +141,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
         public void should_return_403_when_user_not_permitted_to_list_members() {
             when(
                 permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_MEMBER), eq(apiId), any())
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().get();
             assertThat(response).hasStatus(FORBIDDEN_403);
@@ -153,8 +149,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_list_one_api_member() {
-            var member = MemberEntity
-                .builder()
+            var member = MemberEntity.builder()
                 .id("memberId")
                 .displayName("John Doe")
                 .roles(List.of(RoleEntity.builder().name("OWNER").build()))
@@ -167,8 +162,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
                     eq(MembershipReferenceType.API),
                     eq(apiId)
                 )
-            )
-                .thenReturn(Set.of(member));
+            ).thenReturn(Set.of(member));
 
             final Response response = target.request().get();
             assertThat(response)
@@ -190,32 +184,28 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
             var roleOwner = RoleEntity.builder().name("OWNER").build();
             var roleUser = RoleEntity.builder().name("USER").build();
 
-            var member1 = MemberEntity
-                .builder()
+            var member1 = MemberEntity.builder()
                 .id("member1")
                 .displayName("John Doe")
                 .roles(List.of(roleOwner))
                 .type(MembershipMemberType.USER)
                 .build();
 
-            var member2 = MemberEntity
-                .builder()
+            var member2 = MemberEntity.builder()
                 .id("member2")
                 .displayName("Jane Doe")
                 .roles(List.of(roleUser))
                 .type(MembershipMemberType.USER)
                 .build();
 
-            var member3 = MemberEntity
-                .builder()
+            var member3 = MemberEntity.builder()
                 .id("member3")
                 .displayName("Richard Roe")
                 .roles(List.of(roleUser))
                 .type(MembershipMemberType.USER)
                 .build();
 
-            var member4 = MemberEntity
-                .builder()
+            var member4 = MemberEntity.builder()
                 .id("member4")
                 .displayName("Baby Doe")
                 .roles(List.of(roleUser))
@@ -228,8 +218,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
                     eq(MembershipReferenceType.API),
                     eq(apiId)
                 )
-            )
-                .thenReturn(Set.of(member1, member2, member3, member4));
+            ).thenReturn(Set.of(member1, member2, member3, member4));
 
             var paginatedTarget = target
                 .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
@@ -273,8 +262,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
                     eq(apiId),
                     eq(RolePermissionAction.DELETE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().delete();
             assertThat(response).hasStatus(FORBIDDEN_403);
@@ -298,16 +286,14 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
         void setUp() {
             target = rootTarget(MEMBER_ID);
 
-            when(membershipService.updateMembershipForApi(any(), any(), any(), any()))
-                .thenAnswer(invocation ->
-                    MemberEntity
-                        .builder()
-                        .id(invocation.getArgument(2))
-                        .referenceId(invocation.getArgument(1))
-                        .displayName("John Doe")
-                        .roles(List.of(RoleEntity.builder().name(invocation.getArgument(3)).build()))
-                        .build()
-                );
+            when(membershipService.updateMembershipForApi(any(), any(), any(), any())).thenAnswer(invocation ->
+                MemberEntity.builder()
+                    .id(invocation.getArgument(2))
+                    .referenceId(invocation.getArgument(1))
+                    .displayName("John Doe")
+                    .roles(List.of(RoleEntity.builder().name(invocation.getArgument(3)).build()))
+                    .build()
+            );
         }
 
         @Test
@@ -319,8 +305,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
                     eq(apiId),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().put(Entity.json(new UpdateMember()));
             assertThat(response).hasStatus(FORBIDDEN_403);

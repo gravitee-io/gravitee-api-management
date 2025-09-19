@@ -45,7 +45,11 @@ public class SearchConnectionLogDetailResponseAdapter {
             return Optional.empty();
         }
 
-        return hits.getHits().stream().findFirst().map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource()));
+        return hits
+            .getHits()
+            .stream()
+            .findFirst()
+            .map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource()));
     }
 
     public static LogResponse<ConnectionLogDetail> adapt(SearchResponse response) {
@@ -56,7 +60,11 @@ public class SearchConnectionLogDetailResponseAdapter {
 
         return new LogResponse<>(
             (int) hits.getTotal().getValue(),
-            hits.getHits().stream().map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource())).toList()
+            hits
+                .getHits()
+                .stream()
+                .map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource()))
+                .toList()
         );
     }
 
@@ -94,8 +102,7 @@ public class SearchConnectionLogDetailResponseAdapter {
 
     private static ConnectionLogDetail.Request buildRequest(JsonNode json) {
         return null != json
-            ? ConnectionLogDetail.Request
-                .builder()
+            ? ConnectionLogDetail.Request.builder()
                 .uri(asTextOrNull(json.get("uri")))
                 .method(asTextOrNull(json.get("method")))
                 .headers(buildHeaders(json.get("headers")))
@@ -106,8 +113,7 @@ public class SearchConnectionLogDetailResponseAdapter {
 
     private static ConnectionLogDetail.Response buildResponse(JsonNode json) {
         return null != json
-            ? ConnectionLogDetail.Response
-                .builder()
+            ? ConnectionLogDetail.Response.builder()
                 .status(asIntOr(json.get("status"), 0))
                 .headers(buildHeaders(json.get("headers")))
                 .body(asTextOrNull(json.get("body")))
@@ -123,9 +129,8 @@ public class SearchConnectionLogDetailResponseAdapter {
             .properties()
             .stream()
             .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey,
-                    entry -> StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
+                Collectors.toMap(Map.Entry::getKey, entry ->
+                    StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
                 )
             );
     }
@@ -134,8 +139,7 @@ public class SearchConnectionLogDetailResponseAdapter {
         if (json == null || json.isNull()) {
             return null;
         }
-        return ConnectionDiagnostic
-            .builder()
+        return ConnectionDiagnostic.builder()
             .componentType(asTextOrNull(json.get("component-type")))
             .componentName(asTextOrNull(json.get("component-name")))
             .key(asTextOrNull(json.get("key")))
@@ -147,8 +151,7 @@ public class SearchConnectionLogDetailResponseAdapter {
         if (json == null || json.isNull() || !json.isArray()) {
             return null;
         }
-        return StreamSupport
-            .stream(json.spliterator(), false)
+        return StreamSupport.stream(json.spliterator(), false)
             .map(SearchConnectionLogDetailResponseAdapter::buildFailure)
             .filter(Objects::nonNull)
             .toList();

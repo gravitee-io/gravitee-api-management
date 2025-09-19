@@ -52,8 +52,7 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
                 API,
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
     }

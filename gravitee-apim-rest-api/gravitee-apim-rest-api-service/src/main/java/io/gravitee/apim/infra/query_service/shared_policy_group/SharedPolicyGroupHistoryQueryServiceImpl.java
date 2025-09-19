@@ -55,11 +55,9 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
     @Override
     public Stream<SharedPolicyGroup> streamLatestBySharedPolicyGroupId(String environmentId) {
         try {
-            return PageUtils
-                .toStream(repositoryPageable ->
-                    sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(environmentId, repositoryPageable)
-                )
-                .map(sharedPolicyGroupAdapter::toEntity);
+            return PageUtils.toStream(repositoryPageable ->
+                sharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId(environmentId, repositoryPageable)
+            ).map(sharedPolicyGroupAdapter::toEntity);
         } catch (TechnicalException e) {
             logger.error("An error occurred while streaming all last shared policy groups by environment ID {}", environmentId, e);
             throw new TechnicalDomainException(
@@ -74,8 +72,7 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
         Assert.notNull(environmentId, "EnvironmentId must not be null");
         Assert.notNull(sharedPolicyGroupId, "SharedPolicyGroupId must not be null");
         try {
-            var criteria = SharedPolicyGroupHistoryCriteria
-                .builder()
+            var criteria = SharedPolicyGroupHistoryCriteria.builder()
                 .sharedPolicyGroupId(sharedPolicyGroupId)
                 .environmentId(environmentId)
                 .build();

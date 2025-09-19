@@ -248,11 +248,10 @@ class RevokeApplicationApiKeyUseCaseTest {
         usecase.execute(new Input(API_KEY_ID, APPLICATION_ID, AUDIT_INFO));
 
         // Then
-        assertThat(triggerNotificationDomainService.getApiNotifications())
-            .containsExactly(
-                new ApiKeyRevokedApiHookContext(API_1, APPLICATION_ID, PLAN_1, apiKey.getKey()),
-                new ApiKeyRevokedApiHookContext(API_2, APPLICATION_ID, PLAN_2, apiKey.getKey())
-            );
+        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+            new ApiKeyRevokedApiHookContext(API_1, APPLICATION_ID, PLAN_1, apiKey.getKey()),
+            new ApiKeyRevokedApiHookContext(API_2, APPLICATION_ID, PLAN_2, apiKey.getKey())
+        );
     }
 
     private BaseApplicationEntity givenAnApplication() {
@@ -271,16 +270,14 @@ class RevokeApplicationApiKeyUseCaseTest {
 
     private List<SubscriptionEntity> givenSubscriptions() {
         var subscriptions = List.of(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_1)
                 .apiId(API_1)
                 .applicationId(APPLICATION_ID)
                 .planId(PLAN_1)
                 .build(),
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_2)
                 .apiId(API_2)

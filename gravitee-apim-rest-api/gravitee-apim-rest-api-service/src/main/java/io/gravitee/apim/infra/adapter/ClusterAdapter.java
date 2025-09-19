@@ -33,8 +33,7 @@ public abstract class ClusterAdapter {
 
     @Named("mapDefinition")
     public String mapDefinition(Cluster cluster) throws JsonProcessingException {
-        var clusterDefinition = io.gravitee.definition.model.cluster.Cluster
-            .builder()
+        var clusterDefinition = io.gravitee.definition.model.cluster.Cluster.builder()
             .id(cluster.getId())
             .name(cluster.getName())
             .configuration(cluster.getConfiguration())

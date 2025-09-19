@@ -51,16 +51,14 @@ class PortalPageContextCrudServiceImplTest {
         String id1 = "11111111-1111-1111-1111-111111111111";
         String id2 = "22222222-2222-2222-2222-222222222222";
 
-        var ctx1 = PortalPageContext
-            .builder()
+        var ctx1 = PortalPageContext.builder()
             .id(id1)
             .pageId(id1)
             .contextType(PortalPageContextType.HOMEPAGE)
             .environmentId(environmentId)
             .published(true)
             .build();
-        var ctx2 = PortalPageContext
-            .builder()
+        var ctx2 = PortalPageContext.builder()
             .id(id2)
             .pageId(id2)
             .contextType(PortalPageContextType.HOMEPAGE)
@@ -68,8 +66,9 @@ class PortalPageContextCrudServiceImplTest {
             .published(false)
             .build();
 
-        when(contextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId))
-            .thenReturn(List.of(ctx1, ctx2));
+        when(contextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId)).thenReturn(
+            List.of(ctx1, ctx2)
+        );
 
         var result = service.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, environmentId);
 
@@ -80,20 +79,19 @@ class PortalPageContextCrudServiceImplTest {
     void should_throw_technical_domain_exception_when_repository_fails() throws TechnicalException {
         String environmentId = "env-1";
 
-        when(contextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId))
-            .thenThrow(new TechnicalException("boom"));
+        when(contextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId)).thenThrow(
+            new TechnicalException("boom")
+        );
 
-        assertThrows(
-            TechnicalDomainException.class,
-            () -> service.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, environmentId)
+        assertThrows(TechnicalDomainException.class, () ->
+            service.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, environmentId)
         );
     }
 
     @Test
     void should_return_portal_page_view_when_found_by_page_id() {
         String id = "33333333-3333-3333-3333-333333333333";
-        var ctx = PortalPageContext
-            .builder()
+        var ctx = PortalPageContext.builder()
             .id(id)
             .pageId(id)
             .contextType(PortalPageContextType.HOMEPAGE)

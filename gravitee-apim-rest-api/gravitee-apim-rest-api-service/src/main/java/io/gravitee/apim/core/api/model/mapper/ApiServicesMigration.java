@@ -102,11 +102,9 @@ public final class ApiServicesMigration {
                 try {
                     config.set(
                         "headers",
-                        (
-                            step.getRequest().getHeaders() == null
+                        (step.getRequest().getHeaders() == null
                                 ? jsonMapper.createArrayNode()
-                                : jsonMapper.valueToTree(step.getRequest().getHeaders())
-                        )
+                                : jsonMapper.valueToTree(step.getRequest().getHeaders()))
                     );
                     config.set("method", jsonMapper.valueToTree(step.getRequest().getMethod()));
                     config.set("target", jsonMapper.valueToTree(step.getRequest().getPath()));
@@ -141,11 +139,10 @@ public final class ApiServicesMigration {
         String type,
         String name
     ) {
-        return convertHealthCheckService(v2EPHealthCheckService, type, name)
-            .map(plainHealthCheckService -> {
-                plainHealthCheckService.setOverrideConfiguration(!v2EPHealthCheckService.isInherit());
-                return plainHealthCheckService;
-            });
+        return convertHealthCheckService(v2EPHealthCheckService, type, name).map(plainHealthCheckService -> {
+            plainHealthCheckService.setOverrideConfiguration(!v2EPHealthCheckService.isInherit());
+            return plainHealthCheckService;
+        });
     }
 
     private MigrationResult<io.gravitee.definition.model.v4.service.Service> convertDynamicPropertyService(
@@ -156,8 +153,7 @@ public final class ApiServicesMigration {
         }
         ObjectNode configNode = jsonMapper.createObjectNode();
         MigrationResult<Service> migrationResult = MigrationResult.value(
-            Service
-                .builder()
+            Service.builder()
                 .overrideConfiguration(false)
                 .type("http-dynamic-properties")
                 .enabled(v2dynamicPropertyService.isEnabled())
@@ -215,8 +211,7 @@ public final class ApiServicesMigration {
             );
         }
 
-        var service = Service
-            .builder()
+        var service = Service.builder()
             .configuration(discoveryService.getConfiguration())
             .type(discoveryService.getProvider())
             .enabled(discoveryService.isEnabled())

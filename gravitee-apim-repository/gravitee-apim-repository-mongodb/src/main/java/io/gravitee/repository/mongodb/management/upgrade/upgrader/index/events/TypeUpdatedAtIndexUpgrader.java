@@ -27,8 +27,7 @@ public class TypeUpdatedAtIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("events")
             .name("t1u1")
             .key("type", ascending())

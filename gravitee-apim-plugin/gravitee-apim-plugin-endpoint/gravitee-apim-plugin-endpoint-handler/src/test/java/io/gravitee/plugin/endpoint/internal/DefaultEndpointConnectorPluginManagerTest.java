@@ -55,13 +55,12 @@ class DefaultEndpointConnectorPluginManagerTest {
 
     @BeforeEach
     void beforeEach() {
-        cut =
-            spy(
-                new DefaultEndpointConnectorPluginManager(
-                    new DefaultEndpointConnectorClassLoaderFactory(),
-                    new PluginConfigurationHelper(null, new ObjectMapper())
-                )
-            );
+        cut = spy(
+            new DefaultEndpointConnectorPluginManager(
+                new DefaultEndpointConnectorClassLoaderFactory(),
+                new PluginConfigurationHelper(null, new ObjectMapper())
+            )
+        );
     }
 
     @Test

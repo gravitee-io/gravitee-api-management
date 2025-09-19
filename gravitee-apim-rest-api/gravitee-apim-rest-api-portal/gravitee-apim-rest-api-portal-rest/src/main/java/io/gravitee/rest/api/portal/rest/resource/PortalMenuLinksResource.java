@@ -51,15 +51,13 @@ public class PortalMenuLinksResource extends AbstractResource {
         List<PortalMenuLink> portalMenuLinks;
 
         if (isAuthenticated()) {
-            portalMenuLinks =
-                listAllPortalMenuLinksForEnvironmentUseCase
-                    .execute(new ListAllPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
-                    .portalMenuLinkList();
+            portalMenuLinks = listAllPortalMenuLinksForEnvironmentUseCase
+                .execute(new ListAllPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
+                .portalMenuLinkList();
         } else {
-            portalMenuLinks =
-                listPublicPortalMenuLinksForEnvironmentUseCase
-                    .execute(new ListPublicPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
-                    .portalMenuLinkList();
+            portalMenuLinks = listPublicPortalMenuLinksForEnvironmentUseCase
+                .execute(new ListPublicPortalMenuLinksForEnvironmentUseCase.Input(executionContext.getEnvironmentId()))
+                .portalMenuLinkList();
         }
 
         return Response.ok(mapper.map(portalMenuLinks)).build();

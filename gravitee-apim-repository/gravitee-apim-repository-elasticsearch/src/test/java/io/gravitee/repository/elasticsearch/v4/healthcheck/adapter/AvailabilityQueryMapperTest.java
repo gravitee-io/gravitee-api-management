@@ -58,39 +58,38 @@ class AvailabilityQueryMapperTest {
             var result = availabilityQueryMapper.adaptQuery(apiFieldPeriod);
 
             //Then
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                    {
-                      "size": 0,
-                      "query": {
-                        "bool": {
-                          "filter": [
-                            { "term": { "api": "my-api-id" } },
-                            {
-                              "range": {
-                                "@timestamp": {
-                                  "from": 1697969730000,
-                                  "to": 1697883330000,
-                                  "include_lower": true,
-                                  "include_upper": true
-                                }
-                              }
+            assertThatJson(result).isEqualTo(
+                """
+                {
+                  "size": 0,
+                  "query": {
+                    "bool": {
+                      "filter": [
+                        { "term": { "api": "my-api-id" } },
+                        {
+                          "range": {
+                            "@timestamp": {
+                              "from": 1697969730000,
+                              "to": 1697883330000,
+                              "include_lower": true,
+                              "include_upper": true
                             }
-                          ]
-                        }
-                      },
-                      "aggregations": {
-                        "by_field": {
-                          "terms": { "field": "gateway" },
-                          "aggregations": {
-                            "results": { "terms": { "field": "available", "include": [true] } }
                           }
                         }
+                      ]
+                    }
+                  },
+                  "aggregations": {
+                    "by_field": {
+                      "terms": { "field": "gateway" },
+                      "aggregations": {
+                        "results": { "terms": { "field": "available", "include": [true] } }
                       }
                     }
-                    """
-                );
+                  }
+                }
+                """
+            );
         }
     }
 
@@ -124,93 +123,93 @@ class AvailabilityQueryMapperTest {
 
         private static String response() {
             return """
-                {
-                  "took": 192,
-                  "timed_out": false,
-                  "_shards": {
-                    "total": 1118,
-                    "successful": 1118,
-                    "skipped": 1070,
-                    "failed": 0
-                  },
-                  "hits": {
-                    "total": {
-                      "value": 10000,
-                      "relation": "gte"
+            {
+              "took": 192,
+              "timed_out": false,
+              "_shards": {
+                "total": 1118,
+                "successful": 1118,
+                "skipped": 1070,
+                "failed": 0
+              },
+              "hits": {
+                "total": {
+                  "value": 10000,
+                  "relation": "gte"
+                },
+                "max_score": null,
+                "hits": []
+              },
+              "aggregations": {
+                "by_field": {
+                  "doc_count_error_upper_bound": 0,
+                  "sum_other_doc_count": 0,
+                  "buckets": [
+                    {
+                      "key": "api-1",
+                      "doc_count": 1565333,
+                      "results": {
+                        "doc_count_error_upper_bound": 0,
+                        "sum_other_doc_count": 0,
+                        "buckets": [
+                          {
+                            "key": 1,
+                            "key_as_string": "true",
+                            "doc_count": 66
+                          }
+                        ]
+                      }
                     },
-                    "max_score": null,
-                    "hits": []
-                  },
-                  "aggregations": {
-                    "by_field": {
-                      "doc_count_error_upper_bound": 0,
-                      "sum_other_doc_count": 0,
-                      "buckets": [
-                        {
-                          "key": "api-1",
-                          "doc_count": 1565333,
-                          "results": {
-                            "doc_count_error_upper_bound": 0,
-                            "sum_other_doc_count": 0,
-                            "buckets": [
-                              {
-                                "key": 1,
-                                "key_as_string": "true",
-                                "doc_count": 66
-                              }
-                            ]
+                    {
+                      "key": "api-2",
+                      "doc_count": 1299657,
+                      "results": {
+                        "doc_count_error_upper_bound": 0,
+                        "sum_other_doc_count": 0,
+                        "buckets": [
+                          {
+                            "key": 1,
+                            "key_as_string": "true",
+                            "doc_count": 1299657
                           }
-                        },
-                        {
-                          "key": "api-2",
-                          "doc_count": 1299657,
-                          "results": {
-                            "doc_count_error_upper_bound": 0,
-                            "sum_other_doc_count": 0,
-                            "buckets": [
-                              {
-                                "key": 1,
-                                "key_as_string": "true",
-                                "doc_count": 1299657
-                              }
-                            ]
+                        ]
+                      }
+                    },
+                    {
+                      "key": "api-3",
+                      "doc_count": 820874,
+                      "results": {
+                        "doc_count_error_upper_bound": 0,
+                        "sum_other_doc_count": 0,
+                        "buckets": [
+                          {
+                            "key": 1,
+                            "key_as_string": "true",
+                            "doc_count": 18
                           }
-                        },
-                        {
-                          "key": "api-3",
-                          "doc_count": 820874,
-                          "results": {
-                            "doc_count_error_upper_bound": 0,
-                            "sum_other_doc_count": 0,
-                            "buckets": [
-                              {
-                                "key": 1,
-                                "key_as_string": "true",
-                                "doc_count": 18
-                              }
-                            ]
+                        ]
+                      }
+                    },
+                    {
+                      "key": "api-4",
+                      "doc_count": 633953,
+                      "results": {
+                        "doc_count_error_upper_bound": 0,
+                        "sum_other_doc_count": 0,
+                        "buckets": [
+                          {
+                            "key": 1,
+                            "key_as_string": "true",
+                            "doc_count": 633953
                           }
-                        },
-                        {
-                          "key": "api-4",
-                          "doc_count": 633953,
-                          "results": {
-                            "doc_count_error_upper_bound": 0,
-                            "sum_other_doc_count": 0,
-                            "buckets": [
-                              {
-                                "key": 1,
-                                "key_as_string": "true",
-                                "doc_count": 633953
-                              }
-                            ]
-                          }
-                        }
-                      ]
+                        ]
+                      }
                     }
-                  }
+                  ]
                 }
-                """;
+              }
+            }
+            """;
         }
 
         @Test

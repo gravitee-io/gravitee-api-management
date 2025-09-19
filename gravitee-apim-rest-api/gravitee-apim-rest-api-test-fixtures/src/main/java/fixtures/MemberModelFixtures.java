@@ -26,8 +26,7 @@ public class MemberModelFixtures {
 
     private MemberModelFixtures() {}
 
-    private static final MemberEntity.MemberEntityBuilder BASE = MemberEntity
-        .builder()
+    private static final MemberEntity.MemberEntityBuilder BASE = MemberEntity.builder()
         .id("member-id")
         .displayName("John Doe")
         .roles(List.of(RoleEntity.builder().name("OWNER").scope(RoleScope.GROUP).build()))

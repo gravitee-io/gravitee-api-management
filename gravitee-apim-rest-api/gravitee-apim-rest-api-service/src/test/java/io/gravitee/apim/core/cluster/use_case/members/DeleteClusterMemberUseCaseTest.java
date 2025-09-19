@@ -48,32 +48,28 @@ class DeleteClusterMemberUseCaseTest {
 
     @Test
     public void should_throw_exception_if_membership_not_found() {
-        assertThrows(
-            NoSuchElementException.class,
-            () -> deleteClusterMemberUseCase.execute(new DeleteClusterMemberUseCase.Input("cluster-1", "member-unknown"))
+        assertThrows(NoSuchElementException.class, () ->
+            deleteClusterMemberUseCase.execute(new DeleteClusterMemberUseCase.Input("cluster-1", "member-unknown"))
         );
     }
 
     private void initMemberships() {
         List<Membership> memberships = List.of(
-            Membership
-                .builder()
+            Membership.builder()
                 .id("m1")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .referenceId("cluster-1")
                 .memberType(Membership.Type.USER)
                 .memberId("member-1")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .id("m2")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .referenceId("cluster-1")
                 .memberType(Membership.Type.USER)
                 .memberId("member-2")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .id("m3")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .referenceId("cluster-1")

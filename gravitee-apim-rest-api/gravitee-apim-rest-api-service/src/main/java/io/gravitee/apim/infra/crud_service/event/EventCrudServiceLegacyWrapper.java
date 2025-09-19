@@ -90,8 +90,7 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
         AtomicLong skippedCount = new AtomicLong(0);
 
         try {
-            Flowable
-                .fromStream(eventRepository.findEventsToClean(environmentId))
+            Flowable.fromStream(eventRepository.findEventsToClean(environmentId))
                 .filter(eventToClean -> {
                     long currentProcessed = processedCount.incrementAndGet();
 

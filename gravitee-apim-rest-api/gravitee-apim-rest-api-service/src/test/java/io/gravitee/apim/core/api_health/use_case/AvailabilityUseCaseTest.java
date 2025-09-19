@@ -62,8 +62,7 @@ class AvailabilityUseCaseTest {
         // Given
         var ctx = new ExecutionContext(GraviteeContext.getExecutionContext().getOrganizationId(), ENV_ID);
         var input = new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), "MyApiID", "gateway");
-        var definition = io.gravitee.definition.model.v4.Api
-            .builder()
+        var definition = io.gravitee.definition.model.v4.Api.builder()
             .type(ApiType.MESSAGE)
             .definitionVersion(DefinitionVersion.V4)
             .build();
@@ -84,8 +83,7 @@ class AvailabilityUseCaseTest {
         // Given
         var ctx = new ExecutionContext(GraviteeContext.getExecutionContext().getOrganizationId(), ENV_ID);
         var input = new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), "MyApiID", "gateway");
-        var definition = io.gravitee.definition.model.v4.Api
-            .builder()
+        var definition = io.gravitee.definition.model.v4.Api.builder()
             .type(ApiType.MESSAGE)
             .definitionVersion(DefinitionVersion.V4)
             .build();
@@ -103,9 +101,8 @@ class AvailabilityUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         var ctx = new ExecutionContext(GraviteeContext.getExecutionContext().getOrganizationId(), "other-env");
         assertThatThrownBy(() ->
-                cut.execute(new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), MY_API, "gateway")).blockingGet()
-            )
-            .isInstanceOf(ApiNotFoundException.class);
+            cut.execute(new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), MY_API, "gateway")).blockingGet()
+        ).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
@@ -113,8 +110,8 @@ class AvailabilityUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
         var ctx = new ExecutionContext(GraviteeContext.getExecutionContext().getOrganizationId(), ENV_ID);
         assertThatThrownBy(() ->
-                cut.execute(new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), MY_API, "gateway")).blockingGet()
-            )
+            cut.execute(new AvailabilityUseCase.Input(ctx, Instant.now(), Instant.now(), MY_API, "gateway")).blockingGet()
+        )
             .isInstanceOf(TcpProxyNotSupportedException.class)
             .hasMessage("TCP Proxy not supported");
     }

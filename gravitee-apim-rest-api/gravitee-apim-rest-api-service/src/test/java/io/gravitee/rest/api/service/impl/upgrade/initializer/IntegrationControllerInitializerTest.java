@@ -46,11 +46,10 @@ class IntegrationControllerInitializerTest {
 
     @BeforeEach
     void setUp() {
-        initializer =
-            new IntegrationControllerInitializer(
-                Optional.of(exchangeController),
-                Optional.of(new IdentifyConfiguration(environment, "integration"))
-            );
+        initializer = new IntegrationControllerInitializer(
+            Optional.of(exchangeController),
+            Optional.of(new IdentifyConfiguration(environment, "integration"))
+        );
     }
 
     @Test

@@ -82,8 +82,7 @@ public abstract class PolicyStep<T> {
     protected abstract Single<PolicyStepState> saveInputState(final T source, final Map<String, Serializable> inputAttributes);
 
     public Completable post(final T source, final Map<String, Object> attributes) {
-        return Completable
-            .fromRunnable(this::stopTimeWatch)
+        return Completable.fromRunnable(this::stopTimeWatch)
             .andThen(computeDiff(source, this.inputState, AttributeHelper.filterAndSerializeAttributes(attributes)))
             .doOnSuccess(computedDiffMap -> {
                 this.diffMap = computedDiffMap;

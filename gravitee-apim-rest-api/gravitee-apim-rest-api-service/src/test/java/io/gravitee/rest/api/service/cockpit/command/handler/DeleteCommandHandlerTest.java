@@ -58,11 +58,10 @@ public class DeleteCommandHandlerTest {
      */
     @Test
     public void should_check_if_we_use_all_repositories_when_delete_an_organization() {
-        Set<Class> deleteCommandRepositories = Stream
-            .concat(
-                Arrays.stream(DeleteOrganizationCommandHandler.class.getDeclaredFields()),
-                Arrays.stream(DeleteEnvironmentCommandHandler.class.getDeclaredFields())
-            )
+        Set<Class> deleteCommandRepositories = Stream.concat(
+            Arrays.stream(DeleteOrganizationCommandHandler.class.getDeclaredFields()),
+            Arrays.stream(DeleteEnvironmentCommandHandler.class.getDeclaredFields())
+        )
             .map(Field::getType)
             .collect(Collectors.toSet());
 

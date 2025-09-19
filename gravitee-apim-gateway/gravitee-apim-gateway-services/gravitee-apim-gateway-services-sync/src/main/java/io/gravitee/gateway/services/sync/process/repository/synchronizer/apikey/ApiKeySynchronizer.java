@@ -59,17 +59,15 @@ public class ApiKeySynchronizer implements RepositorySynchronizer {
                 .subscribeOn(Schedulers.from(syncFetcherExecutor))
                 // append per page
                 .flatMap(apiKeys ->
-                    Flowable
-                        .just(apiKeys)
+                    Flowable.just(apiKeys)
                         .flatMapIterable(s -> s)
                         .flatMap(apiKey ->
-                            Flowable
-                                .fromIterable(apiKey.getSubscriptions())
-                                .map(subscriptionId -> apiKeyMapper.to(apiKey, subscriptionService.getById(subscriptionId)))
+                            Flowable.fromIterable(apiKey.getSubscriptions()).map(subscriptionId ->
+                                apiKeyMapper.to(apiKey, subscriptionService.getById(subscriptionId))
+                            )
                         )
                         .map(apiKey ->
-                            SingleApiKeyDeployable
-                                .builder()
+                            SingleApiKeyDeployable.builder()
                                 .apiKey(apiKey)
                                 .syncAction(apiKey.isActive() ? SyncAction.DEPLOY : SyncAction.UNDEPLOY)
                                 .build()

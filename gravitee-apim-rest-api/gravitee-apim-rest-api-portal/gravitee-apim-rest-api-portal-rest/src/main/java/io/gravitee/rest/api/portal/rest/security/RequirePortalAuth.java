@@ -31,5 +31,4 @@ import java.lang.annotation.Target;
 @NameBinding
 @Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RequirePortalAuth {
-}
+public @interface RequirePortalAuth {}

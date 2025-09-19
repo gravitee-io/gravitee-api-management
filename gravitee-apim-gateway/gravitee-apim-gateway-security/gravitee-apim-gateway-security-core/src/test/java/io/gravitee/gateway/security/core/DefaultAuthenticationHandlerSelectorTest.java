@@ -70,22 +70,20 @@ public class DefaultAuthenticationHandlerSelectorTest {
         when(authenticationHandler2.tokenType()).thenReturn("type");
 
         when(authenticationHandler1.canHandle(any(AuthenticationContext.class))).thenReturn(true);
-        when(authenticationHandlerManager.getAuthenticationHandlers())
-            .thenReturn(List.of(authenticationHandler1, authenticationHandler2, authenticationHandler3));
+        when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(
+            List.of(authenticationHandler1, authenticationHandler2, authenticationHandler3)
+        );
 
         final AuthenticationHandler selected = cut.select(ctx);
 
         assertSame(authenticationHandler1, selected);
-        verify(authenticationHandler1)
-            .canHandle(
-                argThat(authContext ->
-                    Boolean.FALSE.equals(
-                        authContext.getInternalAttribute(
-                            AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE
-                        )
-                    )
+        verify(authenticationHandler1).canHandle(
+            argThat(authContext ->
+                Boolean.FALSE.equals(
+                    authContext.getInternalAttribute(AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE)
                 )
-            );
+            )
+        );
         verify(authenticationHandler2, never()).canHandle(any());
         verify(authenticationHandler3, never()).canHandle(any());
     }
@@ -101,24 +99,22 @@ public class DefaultAuthenticationHandlerSelectorTest {
         when(authenticationHandler3.tokenType()).thenReturn("type3");
 
         when(authenticationHandler2.canHandle(any(AuthenticationContext.class))).thenReturn(true);
-        when(authenticationHandlerManager.getAuthenticationHandlers())
-            .thenReturn(List.of(authenticationHandler1, authenticationHandler2, authenticationHandler3));
+        when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(
+            List.of(authenticationHandler1, authenticationHandler2, authenticationHandler3)
+        );
 
         final AuthenticationHandler selected = cut.select(ctx);
 
         assertSame(authenticationHandler2, selected);
 
         verify(authenticationHandler1).canHandle(any());
-        verify(authenticationHandler2)
-            .canHandle(
-                argThat(authContext ->
-                    Boolean.TRUE.equals(
-                        authContext.getInternalAttribute(
-                            AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE
-                        )
-                    )
+        verify(authenticationHandler2).canHandle(
+            argThat(authContext ->
+                Boolean.TRUE.equals(
+                    authContext.getInternalAttribute(AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE)
                 )
-            );
+            )
+        );
         verify(authenticationHandler3, never()).canHandle(any());
     }
 }

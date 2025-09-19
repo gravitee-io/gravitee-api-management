@@ -138,8 +138,7 @@ class SearchHistogramQueryAdapterTest {
         @Test
         void should_parse_histogram_aggregation_response() throws Exception {
             ObjectMapper mapper = new ObjectMapper();
-            String json =
-                """
+            String json = """
                 {
                   "aggregations": {
                     "by_date": {
@@ -201,8 +200,7 @@ class SearchHistogramQueryAdapterTest {
         @Test
         void should_parse_avg_aggregation_response() throws Exception {
             ObjectMapper mapper = new ObjectMapper();
-            String json =
-                """
+            String json = """
                 {
                   "aggregations": {
                     "by_date": {

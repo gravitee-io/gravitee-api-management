@@ -44,8 +44,7 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
 
     @Override
     protected JdbcObjectMapper<Workflow> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Workflow.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Workflow.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
@@ -69,9 +68,9 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " where reference_type = ? and reference_id = ? and " +
-                escapeReservedWord("type") +
-                " = ? order by created_at desc",
+                    " where reference_type = ? and reference_id = ? and " +
+                    escapeReservedWord("type") +
+                    " = ? order by created_at desc",
                 getOrm().getRowMapper(),
                 referenceType,
                 referenceId,

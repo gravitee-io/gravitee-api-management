@@ -79,13 +79,13 @@ public class ApiHealthResource extends AbstractResource {
     ) {
         switch (healthcheckType) {
             case RESPONSE_TIME:
-                return Response
-                    .ok(healthCheckService.getResponseTime(GraviteeContext.getExecutionContext(), api, healthcheckField.name()))
-                    .build();
+                return Response.ok(
+                    healthCheckService.getResponseTime(GraviteeContext.getExecutionContext(), api, healthcheckField.name())
+                ).build();
             default:
-                return Response
-                    .ok(healthCheckService.getAvailability(GraviteeContext.getExecutionContext(), api, healthcheckField.name()))
-                    .build();
+                return Response.ok(
+                    healthCheckService.getAvailability(GraviteeContext.getExecutionContext(), api, healthcheckField.name())
+                ).build();
         }
     }
 

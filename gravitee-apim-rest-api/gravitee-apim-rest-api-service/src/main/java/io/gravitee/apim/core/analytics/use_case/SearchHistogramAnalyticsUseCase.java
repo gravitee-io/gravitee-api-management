@@ -129,8 +129,7 @@ public class SearchHistogramAnalyticsUseCase {
         List<HistogramAnalytics.Bucket> buckets = new ArrayList<>();
         Timestamp timestamp = new Timestamp(from, to, Duration.ofMillis(input.interval()));
         eventAnalytics.ifPresent(
-            (
-                analytics ->
+            (analytics ->
                     analytics
                         .values()
                         .forEach((aggName, values) -> {
@@ -139,8 +138,7 @@ public class SearchHistogramAnalyticsUseCase {
                                 List<Long> valueList = values.get(field);
                                 buckets.add(new HistogramAnalytics.MetricBucket(aggName, field, valueList));
                             }
-                        })
-            )
+                        }))
         );
 
         return new Output(timestamp, buckets, Collections.emptyMap());

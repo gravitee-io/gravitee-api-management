@@ -45,11 +45,9 @@ public class Http2UnexpectedHttpHeadersGatewayTest extends Http2WiremockGatewayT
             get("/team/my_team").willReturn(ok().withHeader(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE))
         );
 
-        io.vertx.core.http.HttpClient httpClient = Vertx
-            .vertx()
-            .createHttpClient(
-                new HttpClientOptions().setSsl(true).setTrustAll(true).setUseAlpn(true).setProtocolVersion(HttpVersion.HTTP_2)
-            );
+        io.vertx.core.http.HttpClient httpClient = Vertx.vertx().createHttpClient(
+            new HttpClientOptions().setSsl(true).setTrustAll(true).setUseAlpn(true).setProtocolVersion(HttpVersion.HTTP_2)
+        );
 
         httpClient
             .request(HttpMethod.GET, "https://localhost:8082/test/my_team")

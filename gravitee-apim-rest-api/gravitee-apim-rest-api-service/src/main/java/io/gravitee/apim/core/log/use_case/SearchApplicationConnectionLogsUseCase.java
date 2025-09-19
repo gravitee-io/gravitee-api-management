@@ -65,14 +65,17 @@ public class SearchApplicationConnectionLogsUseCase {
 
     private Output mapToResponse(BaseApplicationEntity application, SearchLogsResponse<BaseConnectionLog> logs) {
         var total = logs.total();
-        var data = logs.logs().stream().map(log -> mapToModel(log, application)).toList();
+        var data = logs
+            .logs()
+            .stream()
+            .map(log -> mapToModel(log, application))
+            .toList();
 
         return new Output(total, data);
     }
 
     private ConnectionLog mapToModel(BaseConnectionLog connectionLog, BaseApplicationEntity application) {
-        return ConnectionLog
-            .builder()
+        return ConnectionLog.builder()
             .applicationId(connectionLog.getApplicationId())
             .application(application)
             .apiId(connectionLog.getApiId())
@@ -134,6 +137,7 @@ public class SearchApplicationConnectionLogsUseCase {
         public Input(String applicationId, String organizationId, String environmentId, SearchLogsFilters logsFilters) {
             this(applicationId, organizationId, environmentId, logsFilters, Optional.empty());
         }
+
         public Input(String applicationId, String organizationId, String environmentId, SearchLogsFilters logsFilters, Pageable pageable) {
             this(applicationId, organizationId, environmentId, logsFilters, Optional.of(pageable));
         }

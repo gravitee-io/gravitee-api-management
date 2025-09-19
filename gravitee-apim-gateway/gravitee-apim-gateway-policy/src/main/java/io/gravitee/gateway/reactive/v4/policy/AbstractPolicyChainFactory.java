@@ -51,8 +51,7 @@ public abstract class AbstractPolicyChainFactory<T extends BasePolicy, F extends
     public AbstractPolicyChainFactory(final String id, final PolicyManager policyManager) {
         this.policyManager = policyManager;
 
-        final CacheConfiguration cacheConfiguration = CacheConfiguration
-            .builder()
+        final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
             .maxSize(CACHE_MAX_SIZE)
             .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
             .build();

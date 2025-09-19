@@ -35,7 +35,10 @@ public class ScoringRulesetCrudServiceInMemory implements ScoringRulesetCrudServ
 
     @Override
     public Optional<ScoringRuleset> findById(String id) {
-        return storage.stream().filter(i -> i.id().equals(id)).findFirst();
+        return storage
+            .stream()
+            .filter(i -> i.id().equals(id))
+            .findFirst();
     }
 
     @Override
@@ -59,8 +62,10 @@ public class ScoringRulesetCrudServiceInMemory implements ScoringRulesetCrudServ
 
     @Override
     public void deleteByReference(String referenceId, ScoringRuleset.ReferenceType referenceType) {
-        OptionalInt index =
-            this.findIndex(this.storage, i -> i.referenceId().equals(referenceId) && i.referenceType().equals(referenceType));
+        OptionalInt index = this.findIndex(
+            this.storage,
+            i -> i.referenceId().equals(referenceId) && i.referenceType().equals(referenceType)
+        );
         if (index.isPresent()) {
             storage.remove(index.getAsInt());
         }

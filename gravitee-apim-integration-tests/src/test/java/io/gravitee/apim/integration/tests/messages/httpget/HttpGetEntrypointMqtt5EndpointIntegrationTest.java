@@ -149,8 +149,9 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
             readyObs
         );
 
-        final TestSubscriber<JsonObject> obs = Flowable
-            .fromSingle(get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200)))
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(
+            get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+        )
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
             .flatMap(response -> response.rxBody().flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
             .take(messageCount)
@@ -176,19 +177,21 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
         final Single<HttpClientResponse> get = createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient, readyObs);
 
-        final TestSubscriber<JsonObject> obs = Flowable
-            .fromSingle(get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200)))
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(
+            get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+        )
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos))
             .flatMap(response ->
                 response
                     .rxBody()
                     .flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response)))
                     .concatWith(
-                        Single
-                            .defer(() ->
-                                createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient)
-                                    .delaySubscription(500, TimeUnit.MILLISECONDS)
+                        Single.defer(() ->
+                            createGetRequest("/test-qos-" + qos.getLabel(), clientIdentifier, httpClient).delaySubscription(
+                                500,
+                                TimeUnit.MILLISECONDS
                             )
+                        )
                             .doOnSuccess(nextResponse -> assertThat(nextResponse.statusCode()).isEqualTo(200))
                             .flatMapPublisher(nextResponse ->
                                 nextResponse
@@ -257,8 +260,9 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
         obs
             .awaitDone(30, TimeUnit.SECONDS)
             .assertValue(jsonBody -> {
-                assertThat(jsonBody.getString("message"))
-                    .isEqualTo("Incompatible Qos capabilities between entrypoint requirements and endpoint supports");
+                assertThat(jsonBody.getString("message")).isEqualTo(
+                    "Incompatible Qos capabilities between entrypoint requirements and endpoint supports"
+                );
                 assertThat(jsonBody.getInteger("http_status_code")).isEqualTo(400);
                 return true;
             });
@@ -291,8 +295,9 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
         final Single<HttpClientResponse> get = createGetRequest("/test-secret", UUID.random().toString(), httpClient, readyObs);
 
-        final TestSubscriber<JsonObject> obs = Flowable
-            .fromSingle(get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200)))
+        final TestSubscriber<JsonObject> obs = Flowable.fromSingle(
+            get.doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
+        )
             .concatWith(publishMessagesWhenReady(readyObs, TEST_TOPIC + "-secret", MqttQos.AT_LEAST_ONCE))
             .flatMap(response -> response.rxBody().flatMapPublisher(buffer -> extractMessages(buffer, extractTransactionId(response))))
             .take(messageCount)
@@ -339,31 +344,28 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
         HttpClient httpClient,
         List<Completable> readyObs
     ) {
-        return createGetRequest(path, clientIdentifier, httpClient)
-            .doOnSuccess(response -> readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(response))));
+        return createGetRequest(path, clientIdentifier, httpClient).doOnSuccess(response ->
+            readyObs.add(MessageFlowReadyPolicy.readyObs(extractTransactionId(response)))
+        );
     }
 
     private void verifyMessagesAreOrdered(int messageCount, TestSubscriber<JsonObject> obs) {
         final Map<String, AtomicInteger> counters = new ConcurrentHashMap<>();
 
         for (int i = 0; i < messageCount; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final Integer messageCounter = jsonObject.getInteger("counter");
-                    final AtomicInteger requestCounter = counters.computeIfAbsent(
-                        jsonObject.getString("transactionId"),
-                        s -> new AtomicInteger(messageCounter)
-                    );
+            obs.assertValueAt(i, jsonObject -> {
+                final Integer messageCounter = jsonObject.getInteger("counter");
+                final AtomicInteger requestCounter = counters.computeIfAbsent(jsonObject.getString("transactionId"), s ->
+                    new AtomicInteger(messageCounter)
+                );
 
-                    // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
-                    assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
-                    requestCounter.set(messageCounter);
-                    assertThat(jsonObject.getString("content")).matches("message-" + messageCounter);
+                // A same request must receive a subset of all messages but always in order (ie: can't receive message-3 then message-1).
+                assertThat(messageCounter).isGreaterThanOrEqualTo(requestCounter.get());
+                requestCounter.set(messageCounter);
+                assertThat(jsonObject.getString("content")).matches("message-" + messageCounter);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 
@@ -371,16 +373,13 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
         final HashSet<String> messages = new HashSet<>();
 
         for (int i = 0; i < messageCount; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final String content = jsonObject.getString("content");
-                    assertThat(messages.contains(content)).isFalse();
-                    messages.add(content);
+            obs.assertValueAt(i, jsonObject -> {
+                final String content = jsonObject.getString("content");
+                assertThat(messages.contains(content)).isFalse();
+                messages.add(content);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
     }
 
@@ -388,18 +387,15 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
         final HashSet<Integer> messages = new HashSet<>();
 
         for (int i = 0; i < end - start; i++) {
-            obs.assertValueAt(
-                i,
-                jsonObject -> {
-                    final Integer messageCounter = jsonObject.getInteger("counter");
+            obs.assertValueAt(i, jsonObject -> {
+                final Integer messageCounter = jsonObject.getInteger("counter");
 
-                    assertThat(messageCounter).isGreaterThanOrEqualTo(start);
-                    assertThat(messageCounter).isLessThan(end);
-                    messages.add(messageCounter);
+                assertThat(messageCounter).isGreaterThanOrEqualTo(start);
+                assertThat(messageCounter).isLessThan(end);
+                messages.add(messageCounter);
 
-                    return true;
-                }
-            );
+                return true;
+            });
         }
 
         assertThat(messages.size()).isEqualTo(end - start);

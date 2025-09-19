@@ -196,8 +196,9 @@ class DebugEventCompletionProcessorTest {
         ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
         verify(eventRepository, times(2)).update(captor.capture());
         assertThat(captor.getAllValues().get(1).getId()).isEqualTo("event-id");
-        assertThat(captor.getAllValues().get(1).getProperties())
-            .isEqualTo(Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name()));
+        assertThat(captor.getAllValues().get(1).getProperties()).isEqualTo(
+            Map.of(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name())
+        );
     }
 
     @ParameterizedTest
@@ -246,8 +247,7 @@ class DebugEventCompletionProcessorTest {
 
     @Test
     void shouldConvertMultiMapHeadersToSimpleMap() {
-        final HttpHeaders headers = HttpHeaders
-            .create()
+        final HttpHeaders headers = HttpHeaders.create()
             .add("transfer-encoding", "chunked")
             .add("X-Gravitee-Transaction-Id", "transaction-id")
             .add("content-type", "application/json")

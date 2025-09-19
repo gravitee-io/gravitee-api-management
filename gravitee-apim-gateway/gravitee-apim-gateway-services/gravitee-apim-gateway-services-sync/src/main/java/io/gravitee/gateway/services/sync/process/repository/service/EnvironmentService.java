@@ -82,34 +82,28 @@ public class EnvironmentService {
     }
 
     private Environment loadEnvironment(final String environmentId) {
-        return environments.computeIfAbsent(
-            environmentId,
-            envId -> {
-                try {
-                    var environmentOpt = environmentRepository.findById(envId);
-                    if (environmentOpt.isPresent()) {
-                        Environment environment = environmentOpt.get();
-                        loadOrganization(environment);
-                        return environment;
-                    }
-                } catch (Exception e) {
-                    log.warn("An error occurred fetching the environment '{}' and its organization.", envId, e);
+        return environments.computeIfAbsent(environmentId, envId -> {
+            try {
+                var environmentOpt = environmentRepository.findById(envId);
+                if (environmentOpt.isPresent()) {
+                    Environment environment = environmentOpt.get();
+                    loadOrganization(environment);
+                    return environment;
                 }
-                return null;
+            } catch (Exception e) {
+                log.warn("An error occurred fetching the environment '{}' and its organization.", envId, e);
             }
-        );
+            return null;
+        });
     }
 
     private void loadOrganization(final Environment environment) {
-        organizations.computeIfAbsent(
-            environment.getOrganizationId(),
-            orgId -> {
-                try {
-                    return organizationRepository.findById(orgId).orElse(null);
-                } catch (Exception e) {
-                    return null;
-                }
+        organizations.computeIfAbsent(environment.getOrganizationId(), orgId -> {
+            try {
+                return organizationRepository.findById(orgId).orElse(null);
+            } catch (Exception e) {
+                return null;
             }
-        );
+        });
     }
 }

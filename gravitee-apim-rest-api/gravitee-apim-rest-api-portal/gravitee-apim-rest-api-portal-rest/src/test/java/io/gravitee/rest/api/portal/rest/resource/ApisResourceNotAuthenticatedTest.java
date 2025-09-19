@@ -147,8 +147,7 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
     }
 
     private static io.gravitee.apim.core.api.model.Api createApi(String A) {
-        return io.gravitee.apim.core.api.model.Api
-            .builder()
+        return io.gravitee.apim.core.api.model.Api.builder()
             .id(A)
             .name(A)
             .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)

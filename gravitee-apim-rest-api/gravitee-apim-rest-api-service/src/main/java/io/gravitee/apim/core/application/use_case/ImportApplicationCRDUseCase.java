@@ -108,8 +108,7 @@ public class ImportApplicationCRDUseCase {
                 sanitizedInput.crd.getMembers()
             );
 
-            return ApplicationCRDStatus
-                .builder()
+            return ApplicationCRDStatus.builder()
                 .id(newApplication.getId())
                 .organizationId(sanitizedInput.auditInfo.organizationId())
                 .environmentId(sanitizedInput.auditInfo.environmentId())
@@ -139,8 +138,7 @@ public class ImportApplicationCRDUseCase {
                 sanitizedInput.crd.getMembers()
             );
 
-            return ApplicationCRDStatus
-                .builder()
+            return ApplicationCRDStatus.builder()
                 .id(updatedApplication.getId())
                 .organizationId(sanitizedInput.auditInfo.organizationId())
                 .environmentId(sanitizedInput.auditInfo.environmentId())

@@ -55,8 +55,7 @@ class SearchEnvironmentResponseTimeUseCaseTest {
     void nominal_case() {
         // Given
         var input = new SearchEnvironmentResponseTimeOverTimeUseCase.Input(ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now());
-        var definition = io.gravitee.definition.model.v4.Api
-            .builder()
+        var definition = io.gravitee.definition.model.v4.Api.builder()
             .type(ApiType.MESSAGE)
             .definitionVersion(DefinitionVersion.V4)
             .build();

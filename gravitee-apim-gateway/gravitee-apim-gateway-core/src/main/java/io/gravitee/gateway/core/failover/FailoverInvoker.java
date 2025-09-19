@@ -68,59 +68,55 @@ public class FailoverInvoker extends EndpointInvoker {
                 new io.vertx.core.Handler<Promise<ProxyConnection>>() {
                     @Override
                     public void handle(Promise<ProxyConnection> event) {
-                        FailoverInvoker.super.invoke(
-                            context,
-                            stream,
-                            proxyConnection -> {
-                                proxyConnection.exceptionHandler(error -> {
-                                    try {
-                                        event.fail(error);
-                                    } catch (IllegalStateException e) {
-                                        final Future<ProxyConnection> future = event.future();
-                                        if (future.failed()) {
-                                            LOGGER.error(
-                                                String.format(
-                                                    errorMessageFormat,
-                                                    apiId,
-                                                    future.cause() == null ? null : future.cause().getMessage()
-                                                ),
-                                                future.cause()
-                                            );
-                                        } else {
-                                            LOGGER.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
-                                        }
-                                        throw e; // rethrow the exception to let vertx handle this case
+                        FailoverInvoker.super.invoke(context, stream, proxyConnection -> {
+                            proxyConnection.exceptionHandler(error -> {
+                                try {
+                                    event.fail(error);
+                                } catch (IllegalStateException e) {
+                                    final Future<ProxyConnection> future = event.future();
+                                    if (future.failed()) {
+                                        LOGGER.error(
+                                            String.format(
+                                                errorMessageFormat,
+                                                apiId,
+                                                future.cause() == null ? null : future.cause().getMessage()
+                                            ),
+                                            future.cause()
+                                        );
+                                    } else {
+                                        LOGGER.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
                                     }
-                                });
-                                proxyConnection.responseHandler(response -> {
-                                    try {
-                                        event.complete(new FailoverProxyConnection(proxyConnection, response));
-                                    } catch (IllegalStateException e) {
-                                        final Future<ProxyConnection> future = event.future();
-                                        if (future.failed()) {
-                                            LOGGER.error(
-                                                String.format(
-                                                    errorMessageFormat,
-                                                    apiId,
-                                                    future.cause() == null ? null : future.cause().getMessage()
-                                                ),
-                                                future.cause()
-                                            );
-                                        } else {
-                                            LOGGER.error(
-                                                String.format(
-                                                    errorMessageFormat,
-                                                    apiId,
-                                                    "Failover invocation has succeeded but result already completed"
-                                                ),
-                                                e
-                                            );
-                                        }
-                                        throw e; // rethrow the exception to let vertx handle this case
+                                    throw e; // rethrow the exception to let vertx handle this case
+                                }
+                            });
+                            proxyConnection.responseHandler(response -> {
+                                try {
+                                    event.complete(new FailoverProxyConnection(proxyConnection, response));
+                                } catch (IllegalStateException e) {
+                                    final Future<ProxyConnection> future = event.future();
+                                    if (future.failed()) {
+                                        LOGGER.error(
+                                            String.format(
+                                                errorMessageFormat,
+                                                apiId,
+                                                future.cause() == null ? null : future.cause().getMessage()
+                                            ),
+                                            future.cause()
+                                        );
+                                    } else {
+                                        LOGGER.error(
+                                            String.format(
+                                                errorMessageFormat,
+                                                apiId,
+                                                "Failover invocation has succeeded but result already completed"
+                                            ),
+                                            e
+                                        );
                                     }
-                                });
-                            }
-                        );
+                                    throw e; // rethrow the exception to let vertx handle this case
+                                }
+                            });
+                        });
                     }
                 }
             )
@@ -138,16 +134,15 @@ public class FailoverInvoker extends EndpointInvoker {
     }
 
     private void initialize() {
-        circuitBreaker =
-            CircuitBreaker.create(
-                "cb-" + options.hashCode(),
-                vertx,
-                new CircuitBreakerOptions()
-                    .setMaxRetries(options.getMaxAttempts()) // number of failure before opening the circuit
-                    .setTimeout(options.getRetryTimeout()) // consider a failure if the operation does not succeed in time
-                    .setResetTimeout(10000L) // time spent in open state before attempting to pass in half-open state. Half-open state would only let one attempt and if it fails, it goes back to open
-                    .setNotificationAddress(null)
-            );
+        circuitBreaker = CircuitBreaker.create(
+            "cb-" + options.hashCode(),
+            vertx,
+            new CircuitBreakerOptions()
+                .setMaxRetries(options.getMaxAttempts()) // number of failure before opening the circuit
+                .setTimeout(options.getRetryTimeout()) // consider a failure if the operation does not succeed in time
+                .setResetTimeout(10000L) // time spent in open state before attempting to pass in half-open state. Half-open state would only let one attempt and if it fails, it goes back to open
+                .setNotificationAddress(null)
+        );
     }
 
     private class FailoverConnection implements ProxyConnection {

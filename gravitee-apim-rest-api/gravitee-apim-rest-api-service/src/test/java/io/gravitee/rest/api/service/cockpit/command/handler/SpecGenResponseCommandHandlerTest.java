@@ -74,8 +74,11 @@ class SpecGenResponseCommandHandlerTest {
 
     @BeforeEach
     void setUp() {
-        specGenResponseCommandHandler =
-            new SpecGenResponseCommandHandler(buildSpecGenPageResponseUseCase, createDocumentationPageUseCase, portalNotificationService);
+        specGenResponseCommandHandler = new SpecGenResponseCommandHandler(
+            buildSpecGenPageResponseUseCase,
+            createDocumentationPageUseCase,
+            portalNotificationService
+        );
     }
 
     @Test
@@ -154,8 +157,7 @@ class SpecGenResponseCommandHandlerTest {
     }
 
     private static Page getPage() {
-        return Page
-            .builder()
+        return Page.builder()
             .referenceId(generateRandom())
             .referenceType(API)
             .name("Api Name")

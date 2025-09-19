@@ -35,23 +35,22 @@ public class WebsocketBidirectionalTest extends AbstractWebsocketV4GatewayTest {
         var clientMessageSent = testContext.checkpoint();
         var clientMessageChecked = testContext.checkpoint();
 
-        websocketServerHandler =
-            serverWebSocket -> {
-                serverConnected.flag();
-                serverWebSocket.exceptionHandler(testContext::failNow);
-                serverWebSocket.accept();
-                serverWebSocket.frameHandler(frame -> {
-                    if (frame.isText()) {
-                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                        clientMessageChecked.flag();
-                        serverWebSocket
-                            .writeTextMessage("PONG")
-                            .doOnComplete(serverMessageSent::flag)
-                            .doOnError(testContext::failNow)
-                            .subscribe();
-                    }
-                });
-            };
+        websocketServerHandler = serverWebSocket -> {
+            serverConnected.flag();
+            serverWebSocket.exceptionHandler(testContext::failNow);
+            serverWebSocket.accept();
+            serverWebSocket.frameHandler(frame -> {
+                if (frame.isText()) {
+                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                    clientMessageChecked.flag();
+                    serverWebSocket
+                        .writeTextMessage("PONG")
+                        .doOnComplete(serverMessageSent::flag)
+                        .doOnError(testContext::failNow)
+                        .subscribe();
+                }
+            });
+        };
 
         httpClient
             .webSocket("/test")

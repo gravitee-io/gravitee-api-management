@@ -47,9 +47,9 @@ public class SearchClusterUseCase {
     public record Output(Page<Cluster> pageResult) {}
 
     public Output execute(Input input) {
-        ClusterSearchCriteria.ClusterSearchCriteriaBuilder criteriaBuilder = ClusterSearchCriteria
-            .builder()
-            .environmentId(input.environmentId);
+        ClusterSearchCriteria.ClusterSearchCriteriaBuilder criteriaBuilder = ClusterSearchCriteria.builder().environmentId(
+            input.environmentId
+        );
 
         if (!input.isAdmin) {
             var clustersIdsUserCanRead = membershipQueryService.findClustersIdsThatUserBelongsTo(input.userId);

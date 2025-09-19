@@ -72,13 +72,12 @@ class ApiPublishDocumentationPageUseCaseTest {
             new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
             indexer
         );
-        useCase =
-            new ApiPublishDocumentationPageUseCase(
-                apiDocumentationDomainService,
-                updateDocumentationDomainService,
-                apiCrudService,
-                pageCrudService
-            );
+        useCase = new ApiPublishDocumentationPageUseCase(
+            apiDocumentationDomainService,
+            updateDocumentationDomainService,
+            apiCrudService,
+            pageCrudService
+        );
     }
 
     @AfterEach
@@ -94,8 +93,7 @@ class ApiPublishDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.API)
                     .referenceId(API_ID)
@@ -114,8 +112,7 @@ class ApiPublishDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.API)
                     .referenceId(API_ID)
@@ -138,8 +135,7 @@ class ApiPublishDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.API)
                     .referenceId(API_ID)
@@ -163,8 +159,7 @@ class ApiPublishDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.API)
                     .referenceId(API_ID)
@@ -183,8 +178,7 @@ class ApiPublishDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.API)
                     .referenceId(API_ID)
@@ -203,8 +197,7 @@ class ApiPublishDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.API)
                     .referenceId(API_ID)
@@ -214,16 +207,16 @@ class ApiPublishDocumentationPageUseCaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
-            .isInstanceOf(ValidationDomainException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO))).isInstanceOf(
+            ValidationDomainException.class
+        );
     }
 
     @Test
     void should_throw_error_if_api_does_not_exist() {
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id("page#1")
                     .referenceType(Page.ReferenceType.API)
                     .referenceId(API_ID)
@@ -232,8 +225,9 @@ class ApiPublishDocumentationPageUseCaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
-            .isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO))).isInstanceOf(
+            ApiNotFoundException.class
+        );
     }
 
     @Test
@@ -241,8 +235,7 @@ class ApiPublishDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.API)
                     .referenceId(API_ID + "-bad")
@@ -252,8 +245,9 @@ class ApiPublishDocumentationPageUseCaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
-            .isInstanceOf(ValidationDomainException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO))).isInstanceOf(
+            ValidationDomainException.class
+        );
     }
 
     @Test
@@ -261,8 +255,7 @@ class ApiPublishDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.ENVIRONMENT)
                     .referenceId(API_ID)
@@ -270,23 +263,26 @@ class ApiPublishDocumentationPageUseCaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
-            .isInstanceOf(ValidationDomainException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO))).isInstanceOf(
+            ValidationDomainException.class
+        );
     }
 
     @Test
     void should_throw_error_if_page_does_not_exist() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(List.of());
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
-            .isInstanceOf(PageNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO))).isInstanceOf(
+            PageNotFoundException.class
+        );
     }
 
     @Test
     void should_throw_error_if_page_id_is_root() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, "ROOT", AUDIT_INFO)))
-            .isInstanceOf(PageNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, "ROOT", AUDIT_INFO))).isInstanceOf(
+            PageNotFoundException.class
+        );
     }
 
     private void initPageServices(List<Page> pages) {

@@ -49,8 +49,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     @Override
     protected JdbcObjectMapper<Rating> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Rating.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Rating.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, RatingReferenceType.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
@@ -86,13 +85,12 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
         LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypePageable({}, {}, {})", referenceId, referenceType, page);
         final List<Rating> ratings;
         try {
-            ratings =
-                jdbcTemplate.query(
-                    "select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? order by created_at desc",
-                    getOrm().getRowMapper(),
-                    referenceId,
-                    referenceType.name()
-                );
+            ratings = jdbcTemplate.query(
+                "select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? order by created_at desc",
+                getOrm().getRowMapper(),
+                referenceId,
+                referenceType.name()
+            );
         } catch (final Exception ex) {
             final String message = "Failed to find ratings by api pageable";
             LOGGER.error(message, ex);
@@ -124,10 +122,10 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
         try {
             List<Rating> ratings = jdbcTemplate.query(
                 "select r.* from " +
-                this.tableName +
-                " r where reference_id = ? and reference_type = ?  and " +
-                escapeReservedWord("user") +
-                " = ?",
+                    this.tableName +
+                    " r where reference_id = ? and reference_type = ?  and " +
+                    escapeReservedWord("user") +
+                    " = ?",
                 getOrm().getRowMapper(),
                 referenceId,
                 referenceType.name(),

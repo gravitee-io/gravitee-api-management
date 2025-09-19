@@ -85,9 +85,8 @@ public class SubscriptionValidationServiceImplTest {
                 PlanEntity planEntity = new PlanEntity();
                 planEntity.setMode(PlanMode.PUSH);
 
-                assertThrows(
-                    SubscriptionEntrypointIdMissingException.class,
-                    () -> cut.validateAndSanitize(planEntity, newSubscriptionEntity)
+                assertThrows(SubscriptionEntrypointIdMissingException.class, () ->
+                    cut.validateAndSanitize(planEntity, newSubscriptionEntity)
                 );
             }
 
@@ -105,8 +104,7 @@ public class SubscriptionValidationServiceImplTest {
                         configuration.getEntrypointId(),
                         configuration.getEntrypointConfiguration()
                     )
-                )
-                    .thenReturn(sanitizedCfg);
+                ).thenReturn(sanitizedCfg);
 
                 cut.validateAndSanitize(planEntity, newSubscriptionEntity);
 
@@ -123,9 +121,8 @@ public class SubscriptionValidationServiceImplTest {
                 SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
                 updateSubscriptionEntity.setConfiguration(configuration);
 
-                assertThrows(
-                    SubscriptionEntrypointIdMissingException.class,
-                    () -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity)
+                assertThrows(SubscriptionEntrypointIdMissingException.class, () ->
+                    cut.validateAndSanitize(planEntity, updateSubscriptionEntity)
                 );
             }
 
@@ -143,8 +140,7 @@ public class SubscriptionValidationServiceImplTest {
                         configuration.getEntrypointId(),
                         configuration.getEntrypointConfiguration()
                     )
-                )
-                    .thenReturn(sanitizedCfg);
+                ).thenReturn(sanitizedCfg);
 
                 cut.validateAndSanitize(planEntity, updateSubscriptionEntity);
 
@@ -161,9 +157,8 @@ public class SubscriptionValidationServiceImplTest {
                 SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
                 updateSubscriptionConfigurationEntity.setConfiguration(configuration);
 
-                assertThrows(
-                    SubscriptionEntrypointIdMissingException.class,
-                    () -> cut.validateAndSanitize(planEntity, updateSubscriptionConfigurationEntity)
+                assertThrows(SubscriptionEntrypointIdMissingException.class, () ->
+                    cut.validateAndSanitize(planEntity, updateSubscriptionConfigurationEntity)
                 );
             }
 
@@ -181,8 +176,7 @@ public class SubscriptionValidationServiceImplTest {
                         configuration.getEntrypointId(),
                         configuration.getEntrypointConfiguration()
                     )
-                )
-                    .thenReturn(sanitizedCfg);
+                ).thenReturn(sanitizedCfg);
 
                 cut.validateAndSanitize(planEntity, updateSubscriptionConfigurationEntity);
 

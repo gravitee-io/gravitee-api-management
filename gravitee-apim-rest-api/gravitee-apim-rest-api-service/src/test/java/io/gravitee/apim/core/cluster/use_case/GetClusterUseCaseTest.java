@@ -39,18 +39,16 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
     void setUp() {
         getClusterUseCase = new GetClusterUseCase(clusterCrudService);
 
-        existingCluster =
-            Cluster
-                .builder()
-                .id(GENERATED_UUID)
-                .name("Cluster 1")
-                .createdAt(INSTANT_NOW)
-                .description("The cluster no 1")
-                .environmentId(ENV_ID)
-                .organizationId(ORG_ID)
-                .configuration(Map.of("bootstrapServers", "localhost:9092"))
-                .groups(Set.of("group-1", "group-2"))
-                .build();
+        existingCluster = Cluster.builder()
+            .id(GENERATED_UUID)
+            .name("Cluster 1")
+            .createdAt(INSTANT_NOW)
+            .description("The cluster no 1")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .configuration(Map.of("bootstrapServers", "localhost:9092"))
+            .groups(Set.of("group-1", "group-2"))
+            .build();
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
     }
 
@@ -65,9 +63,8 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_throw_exception_when_shared_policy_group_not_found() {
         // When
-        var throwable = assertThrows(
-            DbEntityNotFoundException.class,
-            () -> getClusterUseCase.execute(new GetClusterUseCase.Input("unknown", ENV_ID))
+        var throwable = assertThrows(DbEntityNotFoundException.class, () ->
+            getClusterUseCase.execute(new GetClusterUseCase.Input("unknown", ENV_ID))
         );
         // Then
         assertThat(throwable.getMessage()).isEqualTo("Cluster with id unknown cannot be found");
@@ -76,9 +73,8 @@ class GetClusterUseCaseTest extends AbstractUseCaseTest {
     @Test
     void should_throw_exception_when_shared_policy_group_not_found_in_environment() {
         // When
-        var throwable = assertThrows(
-            DbEntityNotFoundException.class,
-            () -> getClusterUseCase.execute(new GetClusterUseCase.Input(existingCluster.getId(), "unknown"))
+        var throwable = assertThrows(DbEntityNotFoundException.class, () ->
+            getClusterUseCase.execute(new GetClusterUseCase.Input(existingCluster.getId(), "unknown"))
         );
         // Then
         assertThat(throwable.getMessage()).isEqualTo("Cluster with id " + GENERATED_UUID + " cannot be found");

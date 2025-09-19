@@ -116,9 +116,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         super.tearDown();
         GraviteeContext.cleanContext();
 
-        Stream
-            .of(applicationStorageService, connectionLogStorageService, messageLogStorageService, planStorageService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(applicationStorageService, connectionLogStorageService, messageLogStorageService, planStorageService).forEach(
+            InMemoryAlternative::reset
+        );
     }
 
     @Override
@@ -138,8 +138,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     eq(API),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = connectionLogsTarget.request().get();
 
@@ -196,13 +195,14 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var total = 20L;
             var pageSize = 5;
             connectionLogStorageService.initWithConnectionLogs(
-                LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList()
+                LongStream.range(0, total)
+                    .mapToObj(i -> connectionLogFixtures.aConnectionLog())
+                    .toList()
             );
 
-            connectionLogsTarget =
-                connectionLogsTarget
-                    .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
-                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
+            connectionLogsTarget = connectionLogsTarget
+                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response)
@@ -218,7 +218,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var page = 2;
             var pageSize = 5;
             connectionLogStorageService.initWithConnectionLogs(
-                LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList()
+                LongStream.range(0, total)
+                    .mapToObj(i -> connectionLogFixtures.aConnectionLog())
+                    .toList()
             );
 
             final Response response = connectionLogsTarget
@@ -250,13 +252,11 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     eq(API),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(true);
+            ).thenReturn(true);
 
-            connectionLogsTarget =
-                connectionLogsTarget
-                    .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, -1)
-                    .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, -1);
+            connectionLogsTarget = connectionLogsTarget
+                .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, -1)
+                .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, -1);
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
@@ -271,13 +271,11 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     eq(API),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(true);
+            ).thenReturn(true);
 
-            connectionLogsTarget =
-                connectionLogsTarget
-                    .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, 2)
-                    .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, 1);
+            connectionLogsTarget = connectionLogsTarget
+                .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, 2)
+                .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, 1);
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
@@ -293,10 +291,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                 )
             );
 
-            connectionLogsTarget =
-                connectionLogsTarget
-                    .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
-                    .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli());
+            connectionLogsTarget = connectionLogsTarget
+                .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
+                .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli());
             final Response response = connectionLogsTarget.request().get();
 
             Supplier<ApiLog> expectedApiLog = () ->
@@ -543,8 +540,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     eq(API),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = messageLogsTarget.request().get();
 
@@ -603,16 +599,14 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var total = 20L;
             var pageSize = 5;
             messageLogStorageService.initWith(
-                LongStream
-                    .range(0, total)
+                LongStream.range(0, total)
                     .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
                     .toList()
             );
 
-            messageLogsTarget =
-                messageLogsTarget
-                    .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
-                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
+            messageLogsTarget = messageLogsTarget
+                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
             final Response response = messageLogsTarget.request().get();
 
             assertThat(response)
@@ -628,8 +622,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var page = 2;
             var pageSize = 5;
             messageLogStorageService.initWith(
-                LongStream
-                    .range(0, total)
+                LongStream.range(0, total)
                     .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
                     .toList()
             );
@@ -667,8 +660,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                     API,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = connectionLogTarget.request().get();
 

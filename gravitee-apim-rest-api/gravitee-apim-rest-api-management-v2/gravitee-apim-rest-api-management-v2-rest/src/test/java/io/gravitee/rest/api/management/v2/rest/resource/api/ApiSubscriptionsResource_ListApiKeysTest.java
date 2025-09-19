@@ -94,8 +94,7 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscri
                 eq(API),
                 eq(RolePermissionAction.READ)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().get();
         MAPIAssertions.assertThat(response).hasStatus(FORBIDDEN_403);
@@ -104,13 +103,12 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscri
     @Test
     public void should_return_list_of_api_keys() {
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION))
-            .thenReturn(
-                List.of(
-                    SubscriptionFixtures.anApiKeyEntity().toBuilder().id("api-key-1").key("custom1").build(),
-                    SubscriptionFixtures.anApiKeyEntity().toBuilder().id("api-key-2").key("custom2").build()
-                )
-            );
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION)).thenReturn(
+            List.of(
+                SubscriptionFixtures.anApiKeyEntity().toBuilder().id("api-key-1").key("custom1").build(),
+                SubscriptionFixtures.anApiKeyEntity().toBuilder().id("api-key-2").key("custom2").build()
+            )
+        );
 
         final Response response = rootTarget().request().get();
 

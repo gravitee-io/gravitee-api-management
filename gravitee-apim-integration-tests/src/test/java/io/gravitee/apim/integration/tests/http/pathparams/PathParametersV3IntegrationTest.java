@@ -134,8 +134,7 @@ public class PathParametersV3IntegrationTest extends AbstractGatewayTest {
 
         int nbCall = 1_000;
 
-        Flowable
-            .range(1, nbCall)
+        Flowable.range(1, nbCall)
             .subscribeOn(Schedulers.io()) // Change scheduler to avoid blocking the main thread
             .flatMap(i -> callUrl(httpClient, HttpMethod.GET, "/test/products").toFlowable())
             .test()
@@ -144,7 +143,9 @@ public class PathParametersV3IntegrationTest extends AbstractGatewayTest {
             .assertNoErrors()
             .assertValueCount(nbCall)
             .assertValueSequence(
-                IntStream.range(0, nbCall).mapToObj(i -> Buffer.buffer("response from backend")).collect(Collectors.toList())
+                IntStream.range(0, nbCall)
+                    .mapToObj(i -> Buffer.buffer("response from backend"))
+                    .collect(Collectors.toList())
             );
 
         final RequestPatternBuilder requestedFor = requestedFor("GET", urlPathEqualTo("/endpoint/products"));

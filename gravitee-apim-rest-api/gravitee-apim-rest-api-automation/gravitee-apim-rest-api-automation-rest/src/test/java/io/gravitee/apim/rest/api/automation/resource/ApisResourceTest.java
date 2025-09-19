@@ -58,18 +58,16 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class)))
-                .thenReturn(
-                    new ImportApiCRDUseCase.Output(
-                        ApiCRDStatus
-                            .builder()
-                            .id("api-id")
-                            .crossId("api-cross-id")
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .build()
-                    )
-                );
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenReturn(
+                new ImportApiCRDUseCase.Output(
+                    ApiCRDStatus.builder()
+                        .id("api-id")
+                        .crossId("api-cross-id")
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                )
+            );
         }
 
         @Test
@@ -86,19 +84,17 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_legacy_id() {
-            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class)))
-                .thenAnswer(call -> {
-                    ImportApiCRDUseCase.Input input = call.getArgument(0, ImportApiCRDUseCase.Input.class);
-                    return new ImportApiCRDUseCase.Output(
-                        ApiCRDStatus
-                            .builder()
-                            .id(input.spec().getHrid())
-                            .crossId("api-cross-id")
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .build()
-                    );
-                });
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenAnswer(call -> {
+                ImportApiCRDUseCase.Input input = call.getArgument(0, ImportApiCRDUseCase.Input.class);
+                return new ImportApiCRDUseCase.Output(
+                    ApiCRDStatus.builder()
+                        .id(input.spec().getHrid())
+                        .crossId("api-cross-id")
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                );
+            });
 
             var state = expectEntity("api-with-hrid.json", false, true);
             SoftAssertions.assertSoftly(soft -> {
@@ -146,9 +142,9 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
             });
 
-            verify(importApiCRDUseCase, atMostOnce())
-                .execute(
-                    argThat(input ->
+            verify(importApiCRDUseCase, atMostOnce()).execute(
+                argThat(
+                    input ->
                         input
                             .spec()
                             .getPlans()
@@ -177,8 +173,8 @@ class ApisResourceTest extends AbstractResourceTest {
                             )
                             .map(Step::getConfiguration)
                             .allMatch(assertion())
-                    )
-                );
+                )
+            );
         }
 
         @Nonnull
@@ -197,8 +193,9 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_hrid() {
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
-                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
 
             var state = expectEntity("api-with-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
@@ -212,8 +209,9 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_cross_id() {
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
-                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
 
             var state = expectEntity("api-with-cross-id-and-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {

@@ -66,8 +66,9 @@ public class CategoryResourceTest extends AbstractResourceTest {
         categoryEntity.setHidden(false);
         when(categoryService.findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment())).thenReturn(categoryEntity);
 
-        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(USER_NAME))
-            .thenReturn(cat -> CATEGORY_ID.equals(cat) ? 1L : 0L);
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(USER_NAME)).thenReturn(cat ->
+            CATEGORY_ID.equals(cat) ? 1L : 0L
+        );
 
         when(categoryMapper.convert(any(), any())).thenCallRealMethod();
 
@@ -94,8 +95,9 @@ public class CategoryResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetCategory() {
-        when(categoryService.findNotHiddenById(UNKNOWN_CATEGORY, GraviteeContext.getCurrentEnvironment()))
-            .thenThrow(new CategoryNotFoundException(UNKNOWN_CATEGORY));
+        when(categoryService.findNotHiddenById(UNKNOWN_CATEGORY, GraviteeContext.getCurrentEnvironment())).thenThrow(
+            new CategoryNotFoundException(UNKNOWN_CATEGORY)
+        );
 
         final Response response = target(UNKNOWN_CATEGORY).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());

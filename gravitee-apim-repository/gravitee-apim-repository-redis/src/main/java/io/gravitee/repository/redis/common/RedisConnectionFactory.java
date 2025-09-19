@@ -109,11 +109,10 @@ public class RedisConnectionFactory {
 
             options.setType(RedisClientType.STANDALONE);
 
-            HostAndPort hostAndPort = HostAndPort
-                .of(
-                    readPropertyValue(propertyPrefix + "host", String.class, "localhost"),
-                    readPropertyValue(propertyPrefix + "port", int.class, 6379)
-                )
+            HostAndPort hostAndPort = HostAndPort.of(
+                readPropertyValue(propertyPrefix + "host", String.class, "localhost"),
+                readPropertyValue(propertyPrefix + "port", int.class, 6379)
+            )
                 .withPassword(readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class))
                 .withSsl(ssl);
 
@@ -149,9 +148,9 @@ public class RedisConnectionFactory {
                 );
 
             // TLS Ciphers
-            StringUtils
-                .commaDelimitedListToSet(readPropertyValue(propertyPrefix + "tlsCiphers", String.class, ""))
-                .forEach(cipherSuite -> options.getNetClientOptions().addEnabledCipherSuite(cipherSuite.strip()));
+            StringUtils.commaDelimitedListToSet(readPropertyValue(propertyPrefix + "tlsCiphers", String.class, "")).forEach(cipherSuite ->
+                options.getNetClientOptions().addEnabledCipherSuite(cipherSuite.strip())
+            );
 
             options.getNetClientOptions().setUseAlpn(readPropertyValue(propertyPrefix + "alpn", boolean.class, false));
 

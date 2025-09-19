@@ -66,9 +66,8 @@ public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPl
         // Retrieve current ReactorPlugin and register it as a singleton in parent application context
         final ReactorFactory<?> reactorFactory = (ReactorFactory<?>) pluginContext.getBean(plugin.clazz());
 
-        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
-            (ConfigurableApplicationContext) applicationContext
-        ).getBeanFactory();
+        DefaultListableBeanFactory beanFactory =
+            (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
         beanFactory.registerSingleton(plugin.clazz(), reactorFactory);
 
         factoryManager.register(reactorFactory);

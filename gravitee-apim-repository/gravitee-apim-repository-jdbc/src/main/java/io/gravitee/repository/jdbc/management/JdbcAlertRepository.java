@@ -52,8 +52,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
 
     @Override
     protected JdbcObjectMapper<AlertTrigger> buildOrm() {
-        return JdbcObjectMapper
-            .builder(AlertTrigger.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(AlertTrigger.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
@@ -85,9 +84,9 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
         try {
             List<AlertTrigger> rows = jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " where reference_type = ? and reference_id in ( " +
-                getOrm().buildInClause(referenceIds) +
-                " )",
+                    " where reference_type = ? and reference_id in ( " +
+                    getOrm().buildInClause(referenceIds) +
+                    " )",
                 (PreparedStatement ps) -> {
                     ps.setString(1, referenceType);
                     getOrm().setArguments(ps, referenceIds, 2);
@@ -141,8 +140,9 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(alert, alert.getId()));
             storeEvents(alert, true);
-            return findById(alert.getId())
-                .orElseThrow(() -> new IllegalStateException(format("No alert found with id [%s]", alert.getId())));
+            return findById(alert.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No alert found with id [%s]", alert.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {

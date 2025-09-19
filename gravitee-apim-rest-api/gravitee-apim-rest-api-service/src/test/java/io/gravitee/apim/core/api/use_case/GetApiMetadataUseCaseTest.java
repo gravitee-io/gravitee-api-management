@@ -183,7 +183,8 @@ public class GetApiMetadataUseCaseTest {
         @Test
         void should_throw_error_if_api_not_found() {
             apiCrudServiceInMemory.initWith(List.of(aMessageApiV4().toBuilder().id("not-to-be-found").environmentId(ENV_ID).build()));
-            var throwable = catchThrowable(() -> getApiMetadataUseCase.execute(new GetApiMetadataUseCase.Input(API_ID, ENV_ID, null, null))
+            var throwable = catchThrowable(() ->
+                getApiMetadataUseCase.execute(new GetApiMetadataUseCase.Input(API_ID, ENV_ID, null, null))
             );
             AssertionsForClassTypes.assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
         }
@@ -191,7 +192,8 @@ public class GetApiMetadataUseCaseTest {
         @Test
         void should_throw_error_if_api_found_and_environment_incorrect() {
             apiCrudServiceInMemory.initWith(List.of(aMessageApiV4().toBuilder().id(API_ID).environmentId("not-to-be-found").build()));
-            var throwable = catchThrowable(() -> getApiMetadataUseCase.execute(new GetApiMetadataUseCase.Input(API_ID, ENV_ID, null, null))
+            var throwable = catchThrowable(() ->
+                getApiMetadataUseCase.execute(new GetApiMetadataUseCase.Input(API_ID, ENV_ID, null, null))
             );
             AssertionsForClassTypes.assertThat(throwable).isInstanceOf(ApiNotFoundException.class);
         }

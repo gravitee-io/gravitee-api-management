@@ -90,13 +90,12 @@ class HelloCommandHandlerTest {
             null
         );
 
-        commandHandler =
-            (HelloCommandHandler) factory
-                .buildCommandHandlers(CONTEXT)
-                .stream()
-                .filter(handler -> handler.supportType().equals(IntegrationCommandType.HELLO.name()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No handler found for type [HELLO]"));
+        commandHandler = (HelloCommandHandler) factory
+            .buildCommandHandlers(CONTEXT)
+            .stream()
+            .filter(handler -> handler.supportType().equals(IntegrationCommandType.HELLO.name()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("No handler found for type [HELLO]"));
 
         environmentCrudService.initWith(List.of(ENVIRONMENT));
     }
@@ -208,8 +207,10 @@ class HelloCommandHandlerTest {
     void should_reply_error_when_exception_occurs() {
         var spied = Mockito.spy(integrationCrudServiceInMemory);
         lenient().when(spied.findById(any())).thenThrow(new TechnicalDomainException("error"));
-        commandHandler =
-            new HelloCommandHandler(new CheckIntegrationUseCase(spied, environmentCrudService, permissionDomainService), CONTEXT);
+        commandHandler = new HelloCommandHandler(
+            new CheckIntegrationUseCase(spied, environmentCrudService, permissionDomainService),
+            CONTEXT
+        );
 
         commandHandler
             .handle(COMMAND)

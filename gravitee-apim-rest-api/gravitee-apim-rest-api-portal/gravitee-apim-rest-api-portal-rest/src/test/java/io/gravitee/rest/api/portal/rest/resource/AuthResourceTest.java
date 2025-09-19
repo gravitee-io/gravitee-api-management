@@ -91,7 +91,6 @@ public class AuthResourceTest extends AbstractResourceTest {
 
         verifyJwtToken(response);
         //APIPortal: can't test Cookie, since servletResponse is mocked
-
     }
 
     private void verifyJwtToken(Response response)

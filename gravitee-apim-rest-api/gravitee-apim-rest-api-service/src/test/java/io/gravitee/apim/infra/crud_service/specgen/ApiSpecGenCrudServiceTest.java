@@ -84,8 +84,7 @@ class ApiSpecGenCrudServiceTest {
     void must_not_deploy_due_to_already_activated_logging() throws TechnicalException, JsonProcessingException {
         var analytics = getCompleteAnalytics();
 
-        var api = Api
-            .builder()
+        var api = Api.builder()
             .id(generateRandom())
             .name("Api name")
             .definitionVersion(V4)
@@ -131,8 +130,9 @@ class ApiSpecGenCrudServiceTest {
 
         when(apiRepository.findById(api.getId())).thenReturn(Optional.of(apiModel));
         when(apiRepository.update(apiModel)).thenReturn(apiModel);
-        when(apiService.deploy(eq(getExecutionContext()), eq(apiSpecGen.id()), eq(userId), eq(PUBLISH_API), any()))
-            .thenReturn(new ApiEntity());
+        when(apiService.deploy(eq(getExecutionContext()), eq(apiSpecGen.id()), eq(userId), eq(PUBLISH_API), any())).thenReturn(
+            new ApiEntity()
+        );
 
         crudService.enableAnalyticsLogging(apiSpecGen, userId);
 

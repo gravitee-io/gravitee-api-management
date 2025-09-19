@@ -85,22 +85,22 @@ public class EndpointHealthcheckResolverTest {
             .when(mockEndpoint.getConfiguration())
             .thenReturn(
                 """
-                    {
-                      "name": "test",
-                      "target": "http://localhost",
-                      "http": {
-                        "connectTimeout": 5000,
-                        "idleTimeout": 60000,
-                        "keepAliveTimeout": 30000,
-                        "keepAlive": true,
-                        "readTimeout": 10000,
-                        "pipelining": false,
-                        "maxConcurrentConnections": 100,
-                        "useCompression": true,
-                        "followRedirects": false
-                      }
-                    }
-                    """
+                {
+                  "name": "test",
+                  "target": "http://localhost",
+                  "http": {
+                    "connectTimeout": 5000,
+                    "idleTimeout": 60000,
+                    "keepAliveTimeout": 30000,
+                    "keepAlive": true,
+                    "readTimeout": 10000,
+                    "pipelining": false,
+                    "maxConcurrentConnections": 100,
+                    "useCompression": true,
+                    "followRedirects": false
+                  }
+                }
+                """
             );
         lenient().when(mockGatewayConfiguration.tenant()).thenReturn(Optional.empty());
     }
@@ -191,7 +191,10 @@ public class EndpointHealthcheckResolverTest {
 
         var api = anApi(services, Set.of(healthcheckNotDefinedEndpoint()));
 
-        assertThat(endpointHealthcheckResolver.resolve(api)).hasSize(1).extracting(rule -> rule.api().getId()).containsExactly("api-id");
+        assertThat(endpointHealthcheckResolver.resolve(api))
+            .hasSize(1)
+            .extracting(rule -> rule.api().getId())
+            .containsExactly("api-id");
     }
 
     @Test
@@ -204,7 +207,10 @@ public class EndpointHealthcheckResolverTest {
 
         var api = anApi(services, Set.of(healthcheckEnabledEndpoint()));
 
-        assertThat(endpointHealthcheckResolver.resolve(api)).hasSize(1).extracting(rule -> rule.api().getId()).containsExactly("api-id");
+        assertThat(endpointHealthcheckResolver.resolve(api))
+            .hasSize(1)
+            .extracting(rule -> rule.api().getId())
+            .containsExactly("api-id");
     }
 
     @Test
@@ -217,7 +223,10 @@ public class EndpointHealthcheckResolverTest {
 
         var api = anApi(services, Set.of(healthcheckEnabledEndpoint()));
 
-        assertThat(endpointHealthcheckResolver.resolve(api)).hasSize(1).extracting(rule -> rule.api().getId()).containsExactly("api-id");
+        assertThat(endpointHealthcheckResolver.resolve(api))
+            .hasSize(1)
+            .extracting(rule -> rule.api().getId())
+            .containsExactly("api-id");
     }
 
     @Test
@@ -227,7 +236,10 @@ public class EndpointHealthcheckResolverTest {
 
         var api = anApi(services, Set.of(healthcheckEnabledEndpoint()));
 
-        assertThat(endpointHealthcheckResolver.resolve(api)).hasSize(1).extracting(rule -> rule.api().getId()).containsExactly("api-id");
+        assertThat(endpointHealthcheckResolver.resolve(api))
+            .hasSize(1)
+            .extracting(rule -> rule.api().getId())
+            .containsExactly("api-id");
     }
 
     @Test

@@ -74,16 +74,15 @@ class DefaultResourceManagerTest {
     void init() {
         classLoader = new DefaultClassLoader(this.classLoader);
 
-        cut =
-            new DefaultResourceManager(
-                classLoader,
-                reactable,
-                resourcePluginManager,
-                resourceClassLoaderFactory,
-                resourceConfigurationFactory,
-                applicationContext,
-                deploymentContext
-            );
+        cut = new DefaultResourceManager(
+            classLoader,
+            reactable,
+            resourcePluginManager,
+            resourceClassLoaderFactory,
+            resourceConfigurationFactory,
+            applicationContext,
+            deploymentContext
+        );
     }
 
     @Test
@@ -134,16 +133,15 @@ class DefaultResourceManagerTest {
 
         doThrow(new IOException("Mock exception")).when(spy).removeClassLoader(anyString());
 
-        cut =
-            new DefaultResourceManager(
-                spy,
-                reactable,
-                resourcePluginManager,
-                resourceClassLoaderFactory,
-                resourceConfigurationFactory,
-                applicationContext,
-                deploymentContext
-            );
+        cut = new DefaultResourceManager(
+            spy,
+            reactable,
+            resourcePluginManager,
+            resourceClassLoaderFactory,
+            resourceConfigurationFactory,
+            applicationContext,
+            deploymentContext
+        );
 
         cut.initialize();
         assertThat(cut.containsResource(resource.getName())).isFalse();

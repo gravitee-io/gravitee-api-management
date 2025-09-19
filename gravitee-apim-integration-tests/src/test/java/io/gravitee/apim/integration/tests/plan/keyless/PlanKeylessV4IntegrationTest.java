@@ -52,8 +52,7 @@ public class PlanKeylessV4IntegrationTest extends PlanKeylessV4EmulationIntegrat
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
         if (isV4Api(definitionClass)) {
             final Api apiDefinition = (Api) api.getDefinition();
-            Plan keylessPlan = Plan
-                .builder()
+            Plan keylessPlan = Plan.builder()
                 .id(PLAN_KEYLESS_ID)
                 .name("plan-name")
                 .security(PlanSecurity.builder().type("key-less").build())

@@ -76,8 +76,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         AccessControl.builder().referenceId(ROLE_ID).referenceType("ROLE").build(),
         AccessControl.builder().referenceId(GROUP_ID).referenceType("GROUP").build()
     );
-    private static final Page PARENT_FOLDER = Page
-        .builder()
+    private static final Page PARENT_FOLDER = Page.builder()
         .id(PARENT_ID)
         .referenceType(Page.ReferenceType.API)
         .referenceId(API_ID)
@@ -85,8 +84,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         .name("parent")
         .type(Page.Type.FOLDER)
         .build();
-    private static final Page OLD_MARKDOWN_PAGE = Page
-        .builder()
+    private static final Page OLD_MARKDOWN_PAGE = Page.builder()
         .id(PAGE_ID)
         .referenceType(Page.ReferenceType.API)
         .referenceId(API_ID)
@@ -103,8 +101,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         .visibility(Page.Visibility.PUBLIC)
         .build();
 
-    private static final Page OLD_SWAGGER_PAGE = Page
-        .builder()
+    private static final Page OLD_SWAGGER_PAGE = Page.builder()
         .id(PAGE_ID)
         .referenceType(Page.ReferenceType.API)
         .referenceId(API_ID)
@@ -120,8 +117,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         .homepage(true)
         .visibility(Page.Visibility.PUBLIC)
         .build();
-    private static final Page OLD_ASYNC_API_PAGE = Page
-        .builder()
+    private static final Page OLD_ASYNC_API_PAGE = Page.builder()
         .id(PAGE_ID)
         .referenceType(Page.ReferenceType.API)
         .referenceId(API_ID)
@@ -138,8 +134,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         .visibility(Page.Visibility.PUBLIC)
         .build();
 
-    private static final Page OLD_FOLDER_PAGE = Page
-        .builder()
+    private static final Page OLD_FOLDER_PAGE = Page.builder()
         .id(PAGE_ID)
         .referenceType(Page.ReferenceType.API)
         .referenceId(API_ID)
@@ -177,50 +172,46 @@ class ApiUpdateDocumentationPageUseCaseTest {
     void setUp() {
         var htmlSanitizer = new HtmlSanitizer(new MockEnvironment());
 
-        documentationValidationDomainService =
-            new DocumentationValidationDomainService(
-                new HtmlSanitizerImpl(htmlSanitizer),
-                new NoopTemplateResolverDomainService(),
-                apiCrudService,
-                new NoopSwaggerOpenApiResolver(),
-                new ApiMetadataQueryServiceInMemory(),
-                new ApiPrimaryOwnerDomainService(
-                    new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                    groupQueryService,
-                    membershipCrudService,
-                    membershipQueryService,
-                    roleQueryService,
-                    userCrudService
-                ),
-                new ApiDocumentationDomainService(pageQueryService, planQueryService),
-                pageCrudService,
-                pageSourceDomainService,
-                groupQueryService,
-                roleQueryService
-            );
-
-        updateApiDocumentationDomainService =
-            new UpdateApiDocumentationDomainService(
-                pageCrudService,
-                pageRevisionCrudService,
+        documentationValidationDomainService = new DocumentationValidationDomainService(
+            new HtmlSanitizerImpl(htmlSanitizer),
+            new NoopTemplateResolverDomainService(),
+            apiCrudService,
+            new NoopSwaggerOpenApiResolver(),
+            new ApiMetadataQueryServiceInMemory(),
+            new ApiPrimaryOwnerDomainService(
                 new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                indexer
-            );
-        apiUpdateDocumentationPageUsecase =
-            new ApiUpdateDocumentationPageUseCase(
-                updateApiDocumentationDomainService,
-                new ApiDocumentationDomainService(pageQueryService, planQueryService),
-                new HomepageDomainService(pageQueryService, pageCrudService),
-                apiCrudService,
-                pageCrudService,
-                pageQueryService,
-                documentationValidationDomainService
-            );
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService
+            ),
+            new ApiDocumentationDomainService(pageQueryService, planQueryService),
+            pageCrudService,
+            pageSourceDomainService,
+            groupQueryService,
+            roleQueryService
+        );
+
+        updateApiDocumentationDomainService = new UpdateApiDocumentationDomainService(
+            pageCrudService,
+            pageRevisionCrudService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            indexer
+        );
+        apiUpdateDocumentationPageUsecase = new ApiUpdateDocumentationPageUseCase(
+            updateApiDocumentationDomainService,
+            new ApiDocumentationDomainService(pageQueryService, planQueryService),
+            new HomepageDomainService(pageQueryService, pageCrudService),
+            apiCrudService,
+            pageCrudService,
+            pageQueryService,
+            documentationValidationDomainService
+        );
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build()));
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .id(ROLE_ID)
                     .scope(Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
@@ -232,8 +223,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         groupQueryService.initWith(List.of(Group.builder().id(GROUP_ID).build()));
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)
@@ -248,18 +238,16 @@ class ApiUpdateDocumentationPageUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                pageQueryService,
-                pageCrudService,
-                pageRevisionCrudService,
-                auditCrudService,
-                userCrudService,
-                roleQueryService,
-                membershipQueryService,
-                groupQueryService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            pageQueryService,
+            pageCrudService,
+            pageRevisionCrudService,
+            auditCrudService,
+            userCrudService,
+            roleQueryService,
+            membershipQueryService,
+            groupQueryService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -271,8 +259,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -313,8 +300,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -338,8 +324,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(OLD_MARKDOWN_PAGE.getOrder())
@@ -365,8 +350,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(OLD_MARKDOWN_PAGE.getOrder())
@@ -392,8 +376,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -412,8 +395,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
 
             final String EXISTING_PAGE_ID = "existing-homepage-id";
-            var existingHomepage = Page
-                .builder()
+            var existingHomepage = Page.builder()
                 .id(EXISTING_PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -424,8 +406,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(OLD_MARKDOWN_PAGE.toBuilder().homepage(false).build(), existingHomepage));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(OLD_MARKDOWN_PAGE.getOrder())
@@ -439,7 +420,12 @@ class ApiUpdateDocumentationPageUseCaseTest {
 
             assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
 
-            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            var formerHomepage = pageCrudService
+                .storage()
+                .stream()
+                .filter(p -> p.getId().equals(EXISTING_PAGE_ID))
+                .toList()
+                .get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
         }
 
@@ -456,8 +442,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             accessControlsWithInvalidEntities.add(AccessControl.builder().referenceType("role").referenceId(ROLE_ID).build());
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -487,8 +472,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             var configuration = Map.of("new", "config");
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .configuration(configuration)
                     .apiId(API_ID)
                     .pageId(OLD_MARKDOWN_PAGE.getId())
@@ -514,8 +498,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             var pageSource = PageSource.builder().type("http-fetcher").configuration("{\"some\": \"config\"}").build();
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .source(pageSource)
                     .apiId(API_ID)
                     .pageId(OLD_MARKDOWN_PAGE.getId())
@@ -535,28 +518,25 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId(API_ID)
-                            .pageId(PAGE_ID)
-                            .order(OLD_MARKDOWN_PAGE.getOrder())
-                            .visibility(OLD_MARKDOWN_PAGE.getVisibility())
-                            .content(getNotSafe())
-                            .name(OLD_MARKDOWN_PAGE.getName())
-                            .homepage(OLD_MARKDOWN_PAGE.isHomepage())
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .order(OLD_MARKDOWN_PAGE.getOrder())
+                        .visibility(OLD_MARKDOWN_PAGE.getVisibility())
+                        .content(getNotSafe())
+                        .name(OLD_MARKDOWN_PAGE.getName())
+                        .homepage(OLD_MARKDOWN_PAGE.isHomepage())
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(PageContentUnsafeException.class);
+            ).isInstanceOf(PageContentUnsafeException.class);
         }
 
         @Test
         void should_throw_error_if_duplicate_name() {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
-            var duplicateName = Page
-                .builder()
+            var duplicateName = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -565,36 +545,28 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .build();
             initPageServices(List.of(OLD_MARKDOWN_PAGE.toBuilder().parentId(null).build(), duplicateName));
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId(API_ID)
-                            .pageId(PAGE_ID)
-                            .order(OLD_MARKDOWN_PAGE.getOrder())
-                            .visibility(OLD_MARKDOWN_PAGE.getVisibility())
-                            .content("new content")
-                            .name("new page")
-                            .homepage(OLD_MARKDOWN_PAGE.isHomepage())
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .order(OLD_MARKDOWN_PAGE.getOrder())
+                        .visibility(OLD_MARKDOWN_PAGE.getVisibility())
+                        .content("new content")
+                        .name("new page")
+                        .homepage(OLD_MARKDOWN_PAGE.isHomepage())
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(ValidationDomainException.class);
+            ).isInstanceOf(ValidationDomainException.class);
         }
 
         @Test
         void should_throw_error_if_api_not_found() {
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId("unknown-api-id")
-                            .pageId(PAGE_ID)
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder().apiId("unknown-api-id").pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                 )
-                .isInstanceOf(ApiNotFoundException.class);
+            ).isInstanceOf(ApiNotFoundException.class);
         }
 
         @Test
@@ -602,11 +574,10 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                 )
-                .isInstanceOf(PageNotFoundException.class);
+            ).isInstanceOf(PageNotFoundException.class);
         }
 
         @Test
@@ -615,11 +586,10 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(OLD_MARKDOWN_PAGE.toBuilder().referenceId("other api").build()));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                 )
-                .isInstanceOf(ValidationDomainException.class);
+            ).isInstanceOf(ValidationDomainException.class);
         }
 
         @ParameterizedTest
@@ -630,21 +600,19 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId(API_ID)
-                            .pageId(PAGE_ID)
-                            .order(OLD_MARKDOWN_PAGE.getOrder())
-                            .visibility(OLD_MARKDOWN_PAGE.getVisibility())
-                            .content("new content")
-                            .name(name)
-                            .homepage(OLD_MARKDOWN_PAGE.isHomepage())
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .order(OLD_MARKDOWN_PAGE.getOrder())
+                        .visibility(OLD_MARKDOWN_PAGE.getVisibility())
+                        .content("new content")
+                        .name(name)
+                        .homepage(OLD_MARKDOWN_PAGE.isHomepage())
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageNameException.class);
+            ).isInstanceOf(InvalidPageNameException.class);
         }
     }
 
@@ -659,8 +627,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -695,8 +662,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -720,8 +686,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(OLD_SWAGGER_PAGE.getOrder())
@@ -747,8 +712,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(OLD_SWAGGER_PAGE.getOrder())
@@ -774,8 +738,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -794,8 +757,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
 
             final String EXISTING_PAGE_ID = "existing-homepage-id";
-            var existingHomepage = Page
-                .builder()
+            var existingHomepage = Page.builder()
                 .id(EXISTING_PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -806,8 +768,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(OLD_SWAGGER_PAGE.toBuilder().homepage(false).build(), existingHomepage));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(OLD_SWAGGER_PAGE.getOrder())
@@ -821,7 +782,12 @@ class ApiUpdateDocumentationPageUseCaseTest {
 
             assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
 
-            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            var formerHomepage = pageCrudService
+                .storage()
+                .stream()
+                .filter(p -> p.getId().equals(EXISTING_PAGE_ID))
+                .toList()
+                .get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
         }
 
@@ -830,28 +796,25 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
             initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId(API_ID)
-                            .pageId(PAGE_ID)
-                            .order(OLD_SWAGGER_PAGE.getOrder())
-                            .visibility(OLD_SWAGGER_PAGE.getVisibility())
-                            .content(getNotSafe())
-                            .name(OLD_SWAGGER_PAGE.getName())
-                            .homepage(OLD_SWAGGER_PAGE.isHomepage())
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .order(OLD_SWAGGER_PAGE.getOrder())
+                        .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                        .content(getNotSafe())
+                        .name(OLD_SWAGGER_PAGE.getName())
+                        .homepage(OLD_SWAGGER_PAGE.isHomepage())
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageContentException.class);
+            ).isInstanceOf(InvalidPageContentException.class);
         }
 
         @Test
         void should_throw_error_if_duplicate_name() {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
-            var duplicateName = Page
-                .builder()
+            var duplicateName = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -860,36 +823,28 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .build();
             initPageServices(List.of(OLD_SWAGGER_PAGE.toBuilder().parentId(null).build(), duplicateName));
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId(API_ID)
-                            .pageId(PAGE_ID)
-                            .order(OLD_SWAGGER_PAGE.getOrder())
-                            .visibility(OLD_SWAGGER_PAGE.getVisibility())
-                            .content(newContent)
-                            .name("new page")
-                            .homepage(OLD_SWAGGER_PAGE.isHomepage())
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .order(OLD_SWAGGER_PAGE.getOrder())
+                        .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                        .content(newContent)
+                        .name("new page")
+                        .homepage(OLD_SWAGGER_PAGE.isHomepage())
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(ValidationDomainException.class);
+            ).isInstanceOf(ValidationDomainException.class);
         }
 
         @Test
         void should_throw_error_if_api_not_found() {
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId("unknown-api-id")
-                            .pageId(PAGE_ID)
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder().apiId("unknown-api-id").pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                 )
-                .isInstanceOf(ApiNotFoundException.class);
+            ).isInstanceOf(ApiNotFoundException.class);
         }
 
         @Test
@@ -897,11 +852,10 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                 )
-                .isInstanceOf(PageNotFoundException.class);
+            ).isInstanceOf(PageNotFoundException.class);
         }
 
         @Test
@@ -910,11 +864,10 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(OLD_SWAGGER_PAGE.toBuilder().referenceId("other api").build()));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                 )
-                .isInstanceOf(ValidationDomainException.class);
+            ).isInstanceOf(ValidationDomainException.class);
         }
 
         @ParameterizedTest
@@ -925,21 +878,19 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId(API_ID)
-                            .pageId(PAGE_ID)
-                            .order(OLD_SWAGGER_PAGE.getOrder())
-                            .visibility(OLD_SWAGGER_PAGE.getVisibility())
-                            .content(newContent)
-                            .name(name)
-                            .homepage(OLD_SWAGGER_PAGE.isHomepage())
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .order(OLD_SWAGGER_PAGE.getOrder())
+                        .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                        .content(newContent)
+                        .name(name)
+                        .homepage(OLD_SWAGGER_PAGE.isHomepage())
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageNameException.class);
+            ).isInstanceOf(InvalidPageNameException.class);
         }
     }
 
@@ -952,8 +903,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -988,8 +938,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -1013,8 +962,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(OLD_ASYNC_API_PAGE.getOrder())
@@ -1040,8 +988,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(OLD_ASYNC_API_PAGE.getOrder())
@@ -1067,8 +1014,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(24)
@@ -1087,8 +1033,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
 
             final String EXISTING_PAGE_ID = "existing-homepage-id";
-            var existingHomepage = Page
-                .builder()
+            var existingHomepage = Page.builder()
                 .id(EXISTING_PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1099,8 +1044,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(OLD_ASYNC_API_PAGE.toBuilder().homepage(false).build(), existingHomepage));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .order(OLD_ASYNC_API_PAGE.getOrder())
@@ -1114,15 +1058,19 @@ class ApiUpdateDocumentationPageUseCaseTest {
 
             assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
 
-            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            var formerHomepage = pageCrudService
+                .storage()
+                .stream()
+                .filter(p -> p.getId().equals(EXISTING_PAGE_ID))
+                .toList()
+                .get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
         }
 
         @Test
         void should_throw_error_if_duplicate_name() {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
-            var duplicateName = Page
-                .builder()
+            var duplicateName = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1131,36 +1079,28 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .build();
             initPageServices(List.of(OLD_ASYNC_API_PAGE.toBuilder().parentId(null).build(), duplicateName));
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId(API_ID)
-                            .pageId(PAGE_ID)
-                            .order(OLD_ASYNC_API_PAGE.getOrder())
-                            .visibility(OLD_ASYNC_API_PAGE.getVisibility())
-                            .content("new content")
-                            .name("new page")
-                            .homepage(OLD_ASYNC_API_PAGE.isHomepage())
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .order(OLD_ASYNC_API_PAGE.getOrder())
+                        .visibility(OLD_ASYNC_API_PAGE.getVisibility())
+                        .content("new content")
+                        .name("new page")
+                        .homepage(OLD_ASYNC_API_PAGE.isHomepage())
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(ValidationDomainException.class);
+            ).isInstanceOf(ValidationDomainException.class);
         }
 
         @Test
         void should_throw_error_if_api_not_found() {
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId("unknown-api-id")
-                            .pageId(PAGE_ID)
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder().apiId("unknown-api-id").pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                 )
-                .isInstanceOf(ApiNotFoundException.class);
+            ).isInstanceOf(ApiNotFoundException.class);
         }
 
         @Test
@@ -1168,11 +1108,10 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                 )
-                .isInstanceOf(PageNotFoundException.class);
+            ).isInstanceOf(PageNotFoundException.class);
         }
 
         @Test
@@ -1181,11 +1120,10 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(OLD_ASYNC_API_PAGE.toBuilder().referenceId("other api").build()));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                 )
-                .isInstanceOf(ValidationDomainException.class);
+            ).isInstanceOf(ValidationDomainException.class);
         }
 
         @ParameterizedTest
@@ -1196,21 +1134,19 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId(API_ID)
-                            .pageId(PAGE_ID)
-                            .order(OLD_ASYNC_API_PAGE.getOrder())
-                            .visibility(OLD_ASYNC_API_PAGE.getVisibility())
-                            .content("new content")
-                            .name(name)
-                            .homepage(OLD_ASYNC_API_PAGE.isHomepage())
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .order(OLD_ASYNC_API_PAGE.getOrder())
+                        .visibility(OLD_ASYNC_API_PAGE.getVisibility())
+                        .content("new content")
+                        .name(name)
+                        .homepage(OLD_ASYNC_API_PAGE.isHomepage())
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(InvalidPageNameException.class);
+            ).isInstanceOf(InvalidPageNameException.class);
         }
     }
 
@@ -1223,8 +1159,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_FOLDER_PAGE, Page.builder().id("child").parentId(PAGE_ID).published(true).build()));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .visibility(Page.Visibility.PRIVATE)
@@ -1254,8 +1189,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_FOLDER_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .visibility(Page.Visibility.PRIVATE)
@@ -1278,8 +1212,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_FOLDER_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
                     .visibility(Page.Visibility.PRIVATE)
@@ -1298,27 +1231,24 @@ class ApiUpdateDocumentationPageUseCaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_FOLDER_PAGE, OLD_FOLDER_PAGE.toBuilder().name("new name").build()));
 
             assertThatThrownBy(() ->
-                    apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input
-                            .builder()
-                            .apiId(API_ID)
-                            .pageId(PAGE_ID)
-                            .visibility(OLD_FOLDER_PAGE.getVisibility())
-                            .order(OLD_FOLDER_PAGE.getOrder())
-                            .name("new name")
-                            .auditInfo(AUDIT_INFO)
-                            .build()
-                    )
+                apiUpdateDocumentationPageUsecase.execute(
+                    ApiUpdateDocumentationPageUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .pageId(PAGE_ID)
+                        .visibility(OLD_FOLDER_PAGE.getVisibility())
+                        .order(OLD_FOLDER_PAGE.getOrder())
+                        .name("new name")
+                        .auditInfo(AUDIT_INFO)
+                        .build()
                 )
-                .isInstanceOf(ValidationDomainException.class);
+            ).isInstanceOf(ValidationDomainException.class);
         }
     }
 
     @Nested
     class UpdateOrderTests {
 
-        Page page_0 = Page
-            .builder()
+        Page page_0 = Page.builder()
             .id("page_0")
             .name("0")
             .type(Page.Type.MARKDOWN)
@@ -1328,8 +1258,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             .updatedAt(DATE)
             .order(0)
             .build();
-        Page page_1 = Page
-            .builder()
+        Page page_1 = Page.builder()
             .id("page_1")
             .name("1")
             .type(Page.Type.MARKDOWN)
@@ -1339,8 +1268,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             .updatedAt(DATE)
             .order(1)
             .build();
-        Page page_2 = Page
-            .builder()
+        Page page_2 = Page.builder()
             .id("page_2")
             .name("2")
             .type(Page.Type.FOLDER)
@@ -1350,8 +1278,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             .updatedAt(DATE)
             .order(2)
             .build();
-        Page page_3 = Page
-            .builder()
+        Page page_3 = Page.builder()
             .id("page_3")
             .name("3")
             .type(Page.Type.MARKDOWN)
@@ -1361,8 +1288,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             .updatedAt(DATE)
             .order(3)
             .build();
-        Page page_4 = Page
-            .builder()
+        Page page_4 = Page.builder()
             .id("page_4")
             .name("4")
             .type(Page.Type.MARKDOWN)
@@ -1383,8 +1309,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         void should_insert_new_page_with_lower_order() {
             // Change page_3 order to 1
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(page_3.getId())
                     .order(1)
@@ -1407,8 +1332,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         void should_insert_new_page_with_higher_order() {
             // Change page_1 order to 3
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(page_1.getId())
                     .order(3)
@@ -1430,8 +1354,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         @Test
         void should_not_change_order_if_the_same() {
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(page_1.getId())
                     .order(1)
@@ -1454,8 +1377,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         void should_update_with_very_high_order() {
             // Change page_1 order to 9999
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(page_1.getId())
                     .order(9999)
@@ -1479,8 +1401,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
             var pageWithDifferentParent = page_0.toBuilder().id("other-page").parentId(null).build();
             initPageServices(List.of(page_0, page_1, page_2, page_3, page_4, pageWithDifferentParent));
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUseCase.Input
-                    .builder()
+                ApiUpdateDocumentationPageUseCase.Input.builder()
                     .apiId(API_ID)
                     .pageId(pageWithDifferentParent.getId())
                     .order(1)

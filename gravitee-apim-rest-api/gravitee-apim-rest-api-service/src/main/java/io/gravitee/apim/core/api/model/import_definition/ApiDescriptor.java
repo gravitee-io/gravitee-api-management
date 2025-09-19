@@ -112,8 +112,7 @@ public sealed interface ApiDescriptor {
         List<Resource> resources,
         ApiServices services,
         Failover failover
-    )
-        implements ApiDescriptor {
+    ) implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override
         public DefinitionVersion definitionVersion() {
@@ -150,8 +149,7 @@ public sealed interface ApiDescriptor {
         List<NativeFlow> flows,
         List<Property> properties,
         List<Resource> resources
-    )
-        implements ApiDescriptor {
+    ) implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override
         public DefinitionVersion definitionVersion() {
@@ -191,8 +189,7 @@ public sealed interface ApiDescriptor {
         String picture,
         String background,
         String providerId
-    )
-        implements ApiDescriptor {
+    ) implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override
         public DefinitionVersion definitionVersion() {
@@ -237,8 +234,7 @@ public sealed interface ApiDescriptor {
         WorkflowState workflowState,
         String picture,
         String background
-    )
-        implements ApiDescriptor {
+    ) implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override
         public DefinitionVersion definitionVersion() {

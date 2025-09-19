@@ -90,8 +90,7 @@ class FailoverV4SolaceEndpointIntegrationTest extends AbstractSolaceEndpointInte
             .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
             .flatMap(response -> {
                 final DirectMessagePublisher publisher = messagingService.createDirectMessagePublisherBuilder().build();
-                return Completable
-                    .fromCompletionStage(publisher.startAsync())
+                return Completable.fromCompletionStage(publisher.startAsync())
                     .andThen(
                         Completable.fromRunnable(() -> {
                             Topic topic1 = Topic.of(topic);

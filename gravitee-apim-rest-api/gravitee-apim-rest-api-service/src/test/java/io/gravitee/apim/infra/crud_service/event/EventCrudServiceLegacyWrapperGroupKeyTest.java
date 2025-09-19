@@ -44,14 +44,13 @@ class EventCrudServiceLegacyWrapperGroupKeyTest {
     @Test
     void should_group_api_events_by_api_id() {
         // Given
-        when(eventRepository.findEventsToClean(anyString()))
-            .thenReturn(
-                Stream.of(
-                    new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("PUBLISH_API", "api123")),
-                    new EventRepository.EventToClean("2", new EventRepository.EventToCleanGroup("PUBLISH_API", "api123")),
-                    new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("PUBLISH_API", "api123"))
-                )
-            );
+        when(eventRepository.findEventsToClean(anyString())).thenReturn(
+            Stream.of(
+                new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("PUBLISH_API", "api123")),
+                new EventRepository.EventToClean("2", new EventRepository.EventToCleanGroup("PUBLISH_API", "api123")),
+                new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("PUBLISH_API", "api123"))
+            )
+        );
 
         // When
         sut.cleanupEvents("env", 2, Duration.ofDays(1));
@@ -70,14 +69,13 @@ class EventCrudServiceLegacyWrapperGroupKeyTest {
     @Test
     void should_group_dictionary_events_by_dictionary_id() {
         // Given
-        when(eventRepository.findEventsToClean(anyString()))
-            .thenReturn(
-                Stream.of(
-                    new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict456")),
-                    new EventRepository.EventToClean("2", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict456")),
-                    new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict456"))
-                )
-            );
+        when(eventRepository.findEventsToClean(anyString())).thenReturn(
+            Stream.of(
+                new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict456")),
+                new EventRepository.EventToClean("2", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict456")),
+                new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict456"))
+            )
+        );
 
         // When
         sut.cleanupEvents("env", 2, Duration.ofDays(1));
@@ -96,14 +94,13 @@ class EventCrudServiceLegacyWrapperGroupKeyTest {
     @Test
     void should_group_gateway_events_by_gateway_id() {
         // Given
-        when(eventRepository.findEventsToClean(anyString()))
-            .thenReturn(
-                Stream.of(
-                    new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("GATEWAY_STARTED", "gw101")),
-                    new EventRepository.EventToClean("2", new EventRepository.EventToCleanGroup("GATEWAY_STARTED", "gw101")),
-                    new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("GATEWAY_STARTED", "gw101"))
-                )
-            );
+        when(eventRepository.findEventsToClean(anyString())).thenReturn(
+            Stream.of(
+                new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("GATEWAY_STARTED", "gw101")),
+                new EventRepository.EventToClean("2", new EventRepository.EventToCleanGroup("GATEWAY_STARTED", "gw101")),
+                new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("GATEWAY_STARTED", "gw101"))
+            )
+        );
 
         // When
         sut.cleanupEvents("env", 2, Duration.ofDays(1));
@@ -122,23 +119,22 @@ class EventCrudServiceLegacyWrapperGroupKeyTest {
     @Test
     void should_handle_mixed_event_types() {
         // Given
-        when(eventRepository.findEventsToClean(anyString()))
-            .thenReturn(
-                Stream.of(
-                    // API events
-                    new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1")),
-                    new EventRepository.EventToClean("2", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1")),
-                    new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1")),
-                    // Dictionary events
-                    new EventRepository.EventToClean("4", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict1")),
-                    new EventRepository.EventToClean("5", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict1")),
-                    new EventRepository.EventToClean("6", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict1")),
-                    // Organization events
-                    new EventRepository.EventToClean("7", new EventRepository.EventToCleanGroup("PUBLISH_ORGANIZATION", "org1")),
-                    new EventRepository.EventToClean("8", new EventRepository.EventToCleanGroup("PUBLISH_ORGANIZATION", "org1")),
-                    new EventRepository.EventToClean("9", new EventRepository.EventToCleanGroup("PUBLISH_ORGANIZATION", "org1"))
-                )
-            );
+        when(eventRepository.findEventsToClean(anyString())).thenReturn(
+            Stream.of(
+                // API events
+                new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1")),
+                new EventRepository.EventToClean("2", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1")),
+                new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1")),
+                // Dictionary events
+                new EventRepository.EventToClean("4", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict1")),
+                new EventRepository.EventToClean("5", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict1")),
+                new EventRepository.EventToClean("6", new EventRepository.EventToCleanGroup("PUBLISH_DICTIONARY", "dict1")),
+                // Organization events
+                new EventRepository.EventToClean("7", new EventRepository.EventToCleanGroup("PUBLISH_ORGANIZATION", "org1")),
+                new EventRepository.EventToClean("8", new EventRepository.EventToCleanGroup("PUBLISH_ORGANIZATION", "org1")),
+                new EventRepository.EventToClean("9", new EventRepository.EventToCleanGroup("PUBLISH_ORGANIZATION", "org1"))
+            )
+        );
 
         // When
         sut.cleanupEvents("env", 2, Duration.ofDays(1));
@@ -157,14 +153,13 @@ class EventCrudServiceLegacyWrapperGroupKeyTest {
     @Test
     void should_handle_events_with_null_group_keys() throws TechnicalException {
         // Given
-        when(eventRepository.findEventsToClean(anyString()))
-            .thenReturn(
-                Stream.of(
-                    new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1")),
-                    new EventRepository.EventToClean("2", null), // Event that can't be grouped
-                    new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1"))
-                )
-            );
+        when(eventRepository.findEventsToClean(anyString())).thenReturn(
+            Stream.of(
+                new EventRepository.EventToClean("1", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1")),
+                new EventRepository.EventToClean("2", null), // Event that can't be grouped
+                new EventRepository.EventToClean("3", new EventRepository.EventToCleanGroup("PUBLISH_API", "api1"))
+            )
+        );
 
         // When
         sut.cleanupEvents("env", 0, Duration.ofDays(1));

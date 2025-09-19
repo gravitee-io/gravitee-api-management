@@ -52,11 +52,11 @@ public class CommandOrganizationUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-                for (Environment environment : environmentRepository.findAll()) {
-                    updateCommands(environment);
-                }
-                return true;
-            });
+            for (Environment environment : environmentRepository.findAll()) {
+                updateCommands(environment);
+            }
+            return true;
+        });
     }
 
     private void updateCommands(Environment environment) throws TechnicalException {

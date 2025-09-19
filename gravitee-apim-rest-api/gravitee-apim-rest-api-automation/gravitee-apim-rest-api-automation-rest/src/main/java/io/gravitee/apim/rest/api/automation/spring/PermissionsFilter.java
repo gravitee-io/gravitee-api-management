@@ -62,16 +62,14 @@ public class PermissionsFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        findRequiredPermissions()
-            .ifPresent(requiredPermissions -> {
-                mustBeAuthenticated();
-                filter(requiredPermissions, requestContext, GraviteeContext.getExecutionContext());
-            });
+        findRequiredPermissions().ifPresent(requiredPermissions -> {
+            mustBeAuthenticated();
+            filter(requiredPermissions, requestContext, GraviteeContext.getExecutionContext());
+        });
     }
 
     protected void filter(Permissions permissions, ContainerRequestContext requestContext, ExecutionContext executionContext) {
-        Stream
-            .of(permissions.value())
+        Stream.of(permissions.value())
             .filter(permission -> hasPermission(permission, requestContext, executionContext))
             .findAny()
             .orElseThrow(ForbiddenAccessException::new);
@@ -120,9 +118,9 @@ public class PermissionsFilter implements ContainerRequestFilter {
     }
 
     private Optional<Permissions> findRequiredPermissions() {
-        return Optional
-            .ofNullable(resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class))
-            .or(() -> Optional.ofNullable(resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class)));
+        return Optional.ofNullable(resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class)).or(() ->
+            Optional.ofNullable(resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class))
+        );
     }
 
     private void mustBeAuthenticated() {

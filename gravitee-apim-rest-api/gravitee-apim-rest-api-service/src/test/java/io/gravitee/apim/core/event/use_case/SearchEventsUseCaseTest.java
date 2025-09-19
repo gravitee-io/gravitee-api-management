@@ -45,8 +45,7 @@ class SearchEventsUseCaseTest {
     public static final String ORGANIZATION_ID = "organization-id";
     public static final String ENVIRONMENT_ID = "environment-id";
 
-    private static final BaseUserEntity USER = BaseUserEntity
-        .builder()
+    private static final BaseUserEntity USER = BaseUserEntity.builder()
         .id("user-id")
         .firstname("John")
         .lastname("Doe")
@@ -106,22 +105,19 @@ class SearchEventsUseCaseTest {
         // Given
         eventQueryService.initWith(
             List.of(
-                EventFixtures
-                    .anEvent()
+                EventFixtures.anEvent()
                     .toBuilder()
                     .id("1")
                     .environments(Set.of(ENVIRONMENT_ID))
                     .createdAt(ZonedDateTime.parse("2020-02-01T20:22:02.00Z"))
                     .build(),
-                EventFixtures
-                    .anEvent()
+                EventFixtures.anEvent()
                     .toBuilder()
                     .id("2")
                     .environments(Set.of(ENVIRONMENT_ID))
                     .createdAt(ZonedDateTime.parse("2020-02-02T20:22:02.00Z"))
                     .build(),
-                EventFixtures
-                    .anEvent()
+                EventFixtures.anEvent()
                     .toBuilder()
                     .id("3")
                     .environments(Set.of(ENVIRONMENT_ID))
@@ -157,8 +153,7 @@ class SearchEventsUseCaseTest {
         var pageNumber = 2;
         var pageSize = 5;
         eventQueryService.initWith(
-            IntStream
-                .range(0, expectedTotal)
+            IntStream.range(0, expectedTotal)
                 .mapToObj(i -> EventFixtures.anEvent().toBuilder().id(String.valueOf(i)).environments(Set.of(ENVIRONMENT_ID)).build())
                 .collect(Collectors.toList())
         );

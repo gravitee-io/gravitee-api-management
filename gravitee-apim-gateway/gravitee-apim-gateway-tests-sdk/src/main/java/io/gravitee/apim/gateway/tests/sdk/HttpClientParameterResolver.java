@@ -64,9 +64,8 @@ public class HttpClientParameterResolver implements GatewayTestParameterResolver
 
     private GatewayDynamicConfig.GatewayDynamicConfigImpl getStoredGatewayConfig(ExtensionContext extensionContext) {
         if (
-            extensionContext
-                .getStore(ExtensionContext.Namespace.GLOBAL)
-                .get(GATEWAY_DYNAMIC_CONFIG_KEY) instanceof GatewayDynamicConfig.GatewayDynamicConfigImpl config
+            extensionContext.getStore(ExtensionContext.Namespace.GLOBAL).get(GATEWAY_DYNAMIC_CONFIG_KEY) instanceof
+                GatewayDynamicConfig.GatewayDynamicConfigImpl config
         ) {
             return config;
         }

@@ -59,8 +59,7 @@ public class UserTokensResourceNotAdminTest extends AbstractResourceTest {
                 anyString(),
                 any(RolePermissionAction[].class)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         reset(tokenService);
     }
 

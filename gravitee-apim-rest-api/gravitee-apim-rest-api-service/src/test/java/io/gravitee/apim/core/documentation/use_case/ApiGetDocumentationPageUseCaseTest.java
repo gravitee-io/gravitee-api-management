@@ -82,8 +82,7 @@ class ApiGetDocumentationPageUseCaseTest {
 
         planQueryService.initWith(
             List.of(
-                PlanFixtures
-                    .aPlanHttpV4()
+                PlanFixtures.aPlanHttpV4()
                     .toBuilder()
                     .id("plan-1")
                     .apiId(API_ID)
@@ -146,8 +145,9 @@ class ApiGetDocumentationPageUseCaseTest {
         initPageServices(
             List.of(Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
-            .isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))).isInstanceOf(
+            ApiNotFoundException.class
+        );
     }
 
     @Test
@@ -155,8 +155,7 @@ class ApiGetDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.API)
                     .referenceId(API_ID + "-bad")
@@ -164,8 +163,9 @@ class ApiGetDocumentationPageUseCaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
-            .isInstanceOf(ValidationDomainException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))).isInstanceOf(
+            ValidationDomainException.class
+        );
     }
 
     @Test
@@ -173,8 +173,7 @@ class ApiGetDocumentationPageUseCaseTest {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .referenceType(Page.ReferenceType.ENVIRONMENT)
                     .referenceId(API_ID)
@@ -182,23 +181,26 @@ class ApiGetDocumentationPageUseCaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
-            .isInstanceOf(ValidationDomainException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))).isInstanceOf(
+            ValidationDomainException.class
+        );
     }
 
     @Test
     void should_throw_error_if_page_does_not_exist() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(List.of());
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
-            .isInstanceOf(PageNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID))).isInstanceOf(
+            PageNotFoundException.class
+        );
     }
 
     @Test
     void should_throw_error_if_page_id_is_root() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, "ROOT")))
-            .isInstanceOf(PageNotFoundException.class);
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, "ROOT"))).isInstanceOf(
+            PageNotFoundException.class
+        );
     }
 
     private void initPageServices(List<Page> pages) {

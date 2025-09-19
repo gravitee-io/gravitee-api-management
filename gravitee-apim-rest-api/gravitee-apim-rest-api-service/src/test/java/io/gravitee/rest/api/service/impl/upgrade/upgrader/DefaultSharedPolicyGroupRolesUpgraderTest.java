@@ -62,21 +62,20 @@ public class DefaultSharedPolicyGroupRolesUpgraderTest {
     public void upgrade_add_default_shared_policy_groups_roles() throws TechnicalException, UpgraderException {
         when(organizationRepository.findAll()).thenReturn(Set.of(Organization.builder().id("DEFAULT").build()));
 
-        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), any(), eq("DEFAULT")))
-            .thenAnswer(args -> {
-                if (args.getArgument(1).equals(DEFAULT_ROLE_ENVIRONMENT_USER.getName())) {
-                    return Optional.of(
-                        RoleEntity.builder().name(DEFAULT_ROLE_ENVIRONMENT_USER.getName()).permissions(new HashMap<>(Map.of())).build()
-                    );
-                }
+        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), any(), eq("DEFAULT"))).thenAnswer(args -> {
+            if (args.getArgument(1).equals(DEFAULT_ROLE_ENVIRONMENT_USER.getName())) {
+                return Optional.of(
+                    RoleEntity.builder().name(DEFAULT_ROLE_ENVIRONMENT_USER.getName()).permissions(new HashMap<>(Map.of())).build()
+                );
+            }
 
-                if (args.getArgument(1).equals(ROLE_ENVIRONMENT_API_PUBLISHER.getName())) {
-                    return Optional.of(
-                        RoleEntity.builder().name(ROLE_ENVIRONMENT_API_PUBLISHER.getName()).permissions(new HashMap<>(Map.of())).build()
-                    );
-                }
-                throw new TechnicalException("error");
-            });
+            if (args.getArgument(1).equals(ROLE_ENVIRONMENT_API_PUBLISHER.getName())) {
+                return Optional.of(
+                    RoleEntity.builder().name(ROLE_ENVIRONMENT_API_PUBLISHER.getName()).permissions(new HashMap<>(Map.of())).build()
+                );
+            }
+            throw new TechnicalException("error");
+        });
 
         when(
             roleService.update(
@@ -94,8 +93,7 @@ public class DefaultSharedPolicyGroupRolesUpgraderTest {
                     );
                 })
             )
-        )
-            .thenReturn(RoleEntity.builder().build());
+        ).thenReturn(RoleEntity.builder().build());
 
         upgrader.upgrade();
 
@@ -106,17 +104,16 @@ public class DefaultSharedPolicyGroupRolesUpgraderTest {
     public void do_nothing_if_role_not_found() throws TechnicalException, UpgraderException {
         when(organizationRepository.findAll()).thenReturn(Set.of(Organization.builder().id("DEFAULT").build()));
 
-        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), any(), eq("DEFAULT")))
-            .thenAnswer(args -> {
-                if (args.getArgument(1).equals(DEFAULT_ROLE_ENVIRONMENT_USER.getName())) {
-                    return Optional.empty();
-                }
+        when(roleService.findByScopeAndName(eq(RoleScope.ENVIRONMENT), any(), eq("DEFAULT"))).thenAnswer(args -> {
+            if (args.getArgument(1).equals(DEFAULT_ROLE_ENVIRONMENT_USER.getName())) {
+                return Optional.empty();
+            }
 
-                if (args.getArgument(1).equals(ROLE_ENVIRONMENT_API_PUBLISHER.getName())) {
-                    return Optional.empty();
-                }
-                throw new TechnicalException("error");
-            });
+            if (args.getArgument(1).equals(ROLE_ENVIRONMENT_API_PUBLISHER.getName())) {
+                return Optional.empty();
+            }
+            throw new TechnicalException("error");
+        });
 
         upgrader.upgrade();
 

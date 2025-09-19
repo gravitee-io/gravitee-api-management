@@ -82,13 +82,14 @@ public class GroupQueryServiceImpl extends AbstractService implements GroupQuery
             Set<io.gravitee.repository.management.model.Group> groups = groupRepository.findAllByEnvironment(environmentId);
             return groups
                 .stream()
-                .filter(g ->
-                    g.getEventRules() != null &&
-                    g
-                        .getEventRules()
-                        .stream()
-                        .map(GroupEventRule::getEvent)
-                        .anyMatch(repoEvent -> repoEvent == GroupAdapter.INSTANCE.mapEvent(event))
+                .filter(
+                    g ->
+                        g.getEventRules() != null &&
+                        g
+                            .getEventRules()
+                            .stream()
+                            .map(GroupEventRule::getEvent)
+                            .anyMatch(repoEvent -> repoEvent == GroupAdapter.INSTANCE.mapEvent(event))
                 )
                 .map(GroupAdapter.INSTANCE::toModel)
                 .sorted(Comparator.comparing(Group::getName))

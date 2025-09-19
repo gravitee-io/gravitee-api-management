@@ -90,8 +90,7 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Bean(name = "indexManagementReactiveMongoTemplate")
     public ReactiveMongoOperations indexReactiveMongoOperations() {
         try {
-            MongoClientSettings build = MongoClientSettings
-                .builder(mongoFactory.buildMongoClientSettings(true))
+            MongoClientSettings build = MongoClientSettings.builder(mongoFactory.buildMongoClientSettings(true))
                 .applyToSocketSettings(b -> b.connectTimeout(1, TimeUnit.HOURS).readTimeout(1, TimeUnit.HOURS)) // long window for slow index builds
                 .applyToConnectionPoolSettings(b -> b.maxSize(5).minSize(0))
                 .build();

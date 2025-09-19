@@ -51,8 +51,7 @@ class MessageSamplingSettingsValidatorTest {
 
     @Test
     void should_accept_valid_message_sampling() {
-        final MessageSampling messageSampling = MessageSampling
-            .builder()
+        final MessageSampling messageSampling = MessageSampling.builder()
             .count(MessageSampling.Count.builder().defaultValue(40).limit(15).build())
             .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.25).limit(0.75).build())
             .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT2S").build())
@@ -64,16 +63,16 @@ class MessageSamplingSettingsValidatorTest {
 
     @Test
     void should_fail_when_count_settings_default_lower_than_limit() {
-        final MessageSampling messageSampling = MessageSampling
-            .builder()
+        final MessageSampling messageSampling = MessageSampling.builder()
             .count(MessageSampling.Count.builder().defaultValue(40).limit(150).build())
             .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.25).limit(0.75).build())
             .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT2S").build())
             .build();
 
         ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
-            .thenReturn(constraintViolationBuilder);
+        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
+            constraintViolationBuilder
+        );
         assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
         verify(constraintViolationBuilder).addConstraintViolation();
         assertThat(violationCaptor.getAllValues())
@@ -84,16 +83,16 @@ class MessageSamplingSettingsValidatorTest {
 
     @Test
     void should_fail_when_probabilistic_settings_default_greater_than_limit() {
-        final MessageSampling messageSampling = MessageSampling
-            .builder()
+        final MessageSampling messageSampling = MessageSampling.builder()
             .count(MessageSampling.Count.builder().defaultValue(40).limit(15).build())
             .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(1.0).limit(0.75).build())
             .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT2S").build())
             .build();
 
         ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
-            .thenReturn(constraintViolationBuilder);
+        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
+            constraintViolationBuilder
+        );
         assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
         verify(constraintViolationBuilder).addConstraintViolation();
         assertThat(violationCaptor.getAllValues())
@@ -107,16 +106,16 @@ class MessageSamplingSettingsValidatorTest {
 
         @Test
         void should_fail_when_temporal_settings_default_is_not_iso_8601() {
-            final MessageSampling messageSampling = MessageSampling
-                .builder()
+            final MessageSampling messageSampling = MessageSampling.builder()
                 .count(MessageSampling.Count.builder().defaultValue(40).limit(15).build())
                 .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.25).limit(0.75).build())
                 .temporal(MessageSampling.Temporal.builder().defaultValue("PT-five-seconds").limit("PT2S").build())
                 .build();
 
             ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-            when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
-                .thenReturn(constraintViolationBuilder);
+            when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
+                constraintViolationBuilder
+            );
             assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
             verify(constraintViolationBuilder).addConstraintViolation();
             assertThat(violationCaptor.getAllValues())
@@ -127,16 +126,16 @@ class MessageSamplingSettingsValidatorTest {
 
         @Test
         void should_fail_when_temporal_settings_limit_is_not_iso_8601() {
-            final MessageSampling messageSampling = MessageSampling
-                .builder()
+            final MessageSampling messageSampling = MessageSampling.builder()
                 .count(MessageSampling.Count.builder().defaultValue(40).limit(15).build())
                 .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.25).limit(0.75).build())
                 .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT-two-seconds").build())
                 .build();
 
             ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-            when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
-                .thenReturn(constraintViolationBuilder);
+            when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
+                constraintViolationBuilder
+            );
             assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
             verify(constraintViolationBuilder).addConstraintViolation();
             assertThat(violationCaptor.getAllValues())
@@ -147,16 +146,16 @@ class MessageSamplingSettingsValidatorTest {
 
         @Test
         void should_fail_when_temporal_settings_default_lower_than_limit() {
-            final MessageSampling messageSampling = MessageSampling
-                .builder()
+            final MessageSampling messageSampling = MessageSampling.builder()
                 .count(MessageSampling.Count.builder().defaultValue(40).limit(15).build())
                 .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(0.25).limit(0.75).build())
                 .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT20S").build())
                 .build();
 
             ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-            when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
-                .thenReturn(constraintViolationBuilder);
+            when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
+                constraintViolationBuilder
+            );
             assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
             verify(constraintViolationBuilder).addConstraintViolation();
             assertThat(violationCaptor.getAllValues())
@@ -168,16 +167,16 @@ class MessageSamplingSettingsValidatorTest {
 
     @Test
     void should_fail_when_multiple_settings_are_not_valid() {
-        final MessageSampling messageSampling = MessageSampling
-            .builder()
+        final MessageSampling messageSampling = MessageSampling.builder()
             .count(MessageSampling.Count.builder().defaultValue(40).limit(105).build())
             .probabilistic(MessageSampling.Probabilistic.builder().defaultValue(1.0).limit(0.75).build())
             .temporal(MessageSampling.Temporal.builder().defaultValue("PT5S").limit("PT20S").build())
             .build();
 
         ArgumentCaptor<String> violationCaptor = ArgumentCaptor.forClass(String.class);
-        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture()))
-            .thenReturn(constraintViolationBuilder);
+        when(constraintValidatorContext.buildConstraintViolationWithTemplate(violationCaptor.capture())).thenReturn(
+            constraintViolationBuilder
+        );
         assertThat(cut.isValid(messageSampling, constraintValidatorContext)).isFalse();
         verify(constraintViolationBuilder, times(3)).addConstraintViolation();
         assertThat(violationCaptor.getAllValues())

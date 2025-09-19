@@ -77,8 +77,7 @@ public class DeleteIngestedApisUseCase {
             )
             .toList();
 
-        Flowable
-            .fromIterable(apisToDelete)
+        Flowable.fromIterable(apisToDelete)
             .subscribe(
                 api -> {
                     if (api.getApiLifecycleState().equals(Api.ApiLifecycleState.PUBLISHED)) {
@@ -144,8 +143,7 @@ public class DeleteIngestedApisUseCase {
 
     private void createAuditLog(AuditInfo auditInfo, Api api) {
         auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(api.getId())

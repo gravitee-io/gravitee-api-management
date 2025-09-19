@@ -161,16 +161,14 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
             List<io.gravitee.repository.management.model.flow.Flow> savedFlows = new ArrayList<>();
             List<io.gravitee.repository.management.model.flow.Flow> toCreate = new ArrayList<>();
             List<io.gravitee.repository.management.model.flow.Flow> toUpdate = new ArrayList<>();
-            IntStream
-                .range(0, flows.size())
-                .forEach(i -> {
-                    var flow = flows.get(i);
-                    if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
-                        toCreate.add(flowConverter.toRepository(flow, flowReferenceType, referenceId, i));
-                    } else {
-                        toUpdate.add(flowConverter.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, i));
-                    }
-                });
+            IntStream.range(0, flows.size()).forEach(i -> {
+                var flow = flows.get(i);
+                if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
+                    toCreate.add(flowConverter.toRepository(flow, flowReferenceType, referenceId, i));
+                } else {
+                    toUpdate.add(flowConverter.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, i));
+                }
+            });
 
             if (!toCreate.isEmpty()) {
                 savedFlows.addAll(flowRepository.createAll(toCreate));

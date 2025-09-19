@@ -61,8 +61,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     void should_receive_all_messages_from_endpoint_with_tenant_1_only(HttpClient client, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection.
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
+        Single.fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
                 publishToKafka(producer, "test-topic-1", "message1")
                     .andThen(publishToKafka(producer, "test-topic-1", "message2"))

@@ -24,8 +24,7 @@ public class NotAllowedDomainExceptionMapper extends AbstractDomainExceptionMapp
 
     @Override
     public Response toResponse(NotAllowedDomainException notAllowedException) {
-        return Response
-            .status(Response.Status.FORBIDDEN)
+        return Response.status(Response.Status.FORBIDDEN)
             .type(MediaType.APPLICATION_JSON_TYPE)
             .entity(toError(notAllowedException))
             .build();

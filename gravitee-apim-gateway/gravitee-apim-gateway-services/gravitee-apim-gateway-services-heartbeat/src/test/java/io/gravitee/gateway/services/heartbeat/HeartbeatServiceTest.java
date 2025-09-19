@@ -95,22 +95,21 @@ class HeartbeatServiceTest {
         when(clusterManager.self()).thenReturn(member);
         when(clusterManager.topic(HEARTBEATS)).thenReturn(topic);
 
-        heartbeatStrategyConfiguration =
-            new HeartbeatStrategyConfiguration(
-                true,
-                1,
-                TimeUnit.SECONDS,
-                true,
-                "8888",
-                new ObjectMapper(),
-                node,
-                environmentRepository,
-                organizationRepository,
-                clusterManager,
-                eventRepository,
-                gatewayConfiguration,
-                pluginRegistry
-            );
+        heartbeatStrategyConfiguration = new HeartbeatStrategyConfiguration(
+            true,
+            1,
+            TimeUnit.SECONDS,
+            true,
+            "8888",
+            new ObjectMapper(),
+            node,
+            environmentRepository,
+            organizationRepository,
+            clusterManager,
+            eventRepository,
+            gatewayConfiguration,
+            pluginRegistry
+        );
         cut = new HeartbeatService(heartbeatStrategyConfiguration);
     }
 
@@ -136,15 +135,14 @@ class HeartbeatServiceTest {
     @Test
     @SneakyThrows
     void should_create_gateway_start_event_with_org_and_env_ids_and_hrids_when_gateway_is_configured_with_org_and_env_hrids() {
-        when(node.metadata())
-            .thenReturn(
-                Map.of(
-                    Node.META_ORGANIZATIONS,
-                    new TreeSet<>(List.of("org-id1", "org-id2")),
-                    Node.META_ENVIRONMENTS,
-                    new TreeSet<>(List.of("env-id1", "env-id2"))
-                )
-            );
+        when(node.metadata()).thenReturn(
+            Map.of(
+                Node.META_ORGANIZATIONS,
+                new TreeSet<>(List.of("org-id1", "org-id2")),
+                Node.META_ENVIRONMENTS,
+                new TreeSet<>(List.of("env-id1", "env-id2"))
+            )
+        );
 
         cut.doStart();
 

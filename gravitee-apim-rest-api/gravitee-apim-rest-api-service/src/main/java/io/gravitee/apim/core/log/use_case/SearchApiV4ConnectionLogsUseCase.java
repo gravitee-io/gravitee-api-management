@@ -69,14 +69,17 @@ public class SearchApiV4ConnectionLogsUseCase {
 
     private Output mapToResponse(ExecutionContext executionContext, SearchLogsResponse<BaseConnectionLog> logs) {
         var total = logs.total();
-        var data = logs.logs().stream().map(log -> mapToModel(executionContext, log)).toList();
+        var data = logs
+            .logs()
+            .stream()
+            .map(log -> mapToModel(executionContext, log))
+            .toList();
 
         return new Output(total, data);
     }
 
     private ConnectionLogModel mapToModel(ExecutionContext executionContext, BaseConnectionLog connectionLog) {
-        return ConnectionLogModel
-            .builder()
+        return ConnectionLogModel.builder()
             .apiId(connectionLog.getApiId())
             .requestId(connectionLog.getRequestId())
             .timestamp(connectionLog.getTimestamp())
@@ -119,6 +122,7 @@ public class SearchApiV4ConnectionLogsUseCase {
         public Input(String apiId, SearchLogsFilters logsFilters) {
             this(apiId, logsFilters, Optional.empty());
         }
+
         public Input(String apiId, SearchLogsFilters logsFilters, Pageable pageable) {
             this(apiId, logsFilters, Optional.of(pageable));
         }

@@ -106,8 +106,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -115,8 +114,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
         assertEquals(FORBIDDEN_403, response.getStatus());
 
@@ -131,8 +129,9 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
 
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
-        when(apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME)))
-            .thenReturn(apiEntity);
+        when(
+            apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
+        ).thenReturn(apiEntity);
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
@@ -142,18 +141,17 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         assertEquals(API, apiV4.getId());
         assertEquals(GenericApi.DeploymentStateEnum.DEPLOYED, apiV4.getDeploymentState());
 
-        verify(apiServiceV4)
-            .update(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API),
-                argThat(updateApiEntity -> {
-                    assertEquals(updateApiV4.getName(), updateApiEntity.getName());
-                    assertEquals(API, updateApiEntity.getId());
-                    return true;
-                }),
-                eq(false),
-                eq(USER_NAME)
-            );
+        verify(apiServiceV4).update(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API),
+            argThat(updateApiEntity -> {
+                assertEquals(updateApiV4.getName(), updateApiEntity.getName());
+                assertEquals(API, updateApiEntity.getId());
+                return true;
+            }),
+            eq(false),
+            eq(USER_NAME)
+        );
     }
 
     @Test
@@ -184,8 +182,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
                 any(io.gravitee.rest.api.model.api.UpdateApiEntity.class),
                 eq(false)
             )
-        )
-            .thenReturn(apiEntity);
+        ).thenReturn(apiEntity);
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(false);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV2));
@@ -195,17 +192,16 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         assertEquals(API, apiV2.getId());
         assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, apiV2.getDeploymentState());
 
-        verify(apiService)
-            .update(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API),
-                argThat(updateApiEntity -> {
-                    assertEquals(updateApiV2.getName(), updateApiEntity.getName());
-                    assertEquals(updateApiEntity.getGraviteeDefinitionVersion(), DefinitionVersion.V2.getLabel());
-                    return true;
-                }),
-                eq(false)
-            );
+        verify(apiService).update(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API),
+            argThat(updateApiEntity -> {
+                assertEquals(updateApiV2.getName(), updateApiEntity.getName());
+                assertEquals(updateApiEntity.getGraviteeDefinitionVersion(), DefinitionVersion.V2.getLabel());
+                return true;
+            }),
+            eq(false)
+        );
     }
 
     @Test
@@ -236,8 +232,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
         groupQueryServiceInMemory.initWith(
             List.of(
-                Group
-                    .builder()
+                Group.builder()
                     .id("group1")
                     .environmentId("environment-id")
                     .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
@@ -246,8 +241,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
             )
         );
 
-        var updateApiFederated = ApiFixtures
-            .anUpdateApiFederated()
+        var updateApiFederated = ApiFixtures.anUpdateApiFederated()
             .name(updatedName)
             .description(updatedDescription)
             .apiVersion(updatedVersion)
@@ -279,8 +273,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
         groupQueryServiceInMemory.initWith(
             List.of(
-                Group
-                    .builder()
+                Group.builder()
                     .id("group1")
                     .environmentId("environment-id")
                     .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
@@ -298,11 +291,11 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
             .visibility(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC)
             .build();
 
-        when(validateApiDomainService.validateAndSanitizeForUpdate(eq(existingApi), any(), any(), any(), any()))
-            .thenReturn(apiWithUpdatedFields);
+        when(validateApiDomainService.validateAndSanitizeForUpdate(eq(existingApi), any(), any(), any(), any())).thenReturn(
+            apiWithUpdatedFields
+        );
 
-        var updateApiV4 = ApiFixtures
-            .anUpdateApiV4()
+        var updateApiV4 = ApiFixtures.anUpdateApiV4()
             .type(ApiType.NATIVE)
             .name(updatedName)
             .description(updatedDescription)
@@ -323,14 +316,12 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     public void should_add_label_and_update_api() {
         String labelToAdd = "new-label";
         primaryOwnerInit();
-        io.gravitee.rest.api.model.PrimaryOwnerEntity expectedPrimaryOwner = io.gravitee.rest.api.model.PrimaryOwnerEntity
-            .builder()
+        io.gravitee.rest.api.model.PrimaryOwnerEntity expectedPrimaryOwner = io.gravitee.rest.api.model.PrimaryOwnerEntity.builder()
             .id(USER_NAME)
             .type(String.valueOf(Membership.Type.USER))
             .displayName("John Doe")
             .build();
-        ApiEntity existingApi = ApiFixtures
-            .aModelHttpApiV4()
+        ApiEntity existingApi = ApiFixtures.aModelHttpApiV4()
             .toBuilder()
             .id(API)
             .labels(List.of())
@@ -341,11 +332,12 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
 
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(existingApi);
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(existingApi))).thenReturn(true);
-        when(apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME)))
-            .thenAnswer(invocation -> {
-                UpdateApiEntity updateEntity = invocation.getArgument(2);
-                return existingApi.toBuilder().labels(updateEntity.getLabels()).primaryOwner(expectedPrimaryOwner).build();
-            });
+        when(
+            apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME))
+        ).thenAnswer(invocation -> {
+            UpdateApiEntity updateEntity = invocation.getArgument(2);
+            return existingApi.toBuilder().labels(updateEntity.getLabels()).primaryOwner(expectedPrimaryOwner).build();
+        });
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
         assertEquals(OK_200, response.getStatus());
@@ -369,8 +361,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         primaryOwnerDomainService.initWith(List.of(entry));
         membershipQueryServiceInMemory.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .memberId(USER_NAME)
                     .referenceId(API_NAME)
                     .roleId(ROLE_ID)

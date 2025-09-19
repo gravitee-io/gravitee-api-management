@@ -62,15 +62,13 @@ class GetConsoleCustomizationUseCaseTest {
                 Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_LOGO.key()).value("logo").build(),
                 Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE.key()).value("menuActive").build(),
                 Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND.key()).value("menuBackground").build(),
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME.key())
                     .value("enterprise name")
                     .build(),
                 Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE.key()).value("cta title").build(),
                 Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS.key()).value("false").build(),
-                Parameter
-                    .builder()
+                Parameter.builder()
                     .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL.key())
                     .value("trial button label")
                     .build(),

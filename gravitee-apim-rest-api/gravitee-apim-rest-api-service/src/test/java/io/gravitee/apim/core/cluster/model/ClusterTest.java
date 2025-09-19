@@ -34,8 +34,7 @@ public class ClusterTest {
         String orgId = "org-1";
         String envId = "env-1";
         Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", "security-data");
-        Cluster cluster = Cluster
-            .builder()
+        Cluster cluster = Cluster.builder()
             .id(id)
             .createdAt(createdAt)
             .name(name)

@@ -142,17 +142,16 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
 
                                 // add missing converters in this newly created environment
                                 // this syntax allows a property of any kind to be converted from a secret. eg. Secret +> String -> Double
-                                this.getConversionService()
-                                    .addConverterFactory(
-                                        new ConverterFactory<Secret, Object>() {
-                                            final ConversionService conversionService = DefaultConversionService.getSharedInstance();
+                                this.getConversionService().addConverterFactory(
+                                    new ConverterFactory<Secret, Object>() {
+                                        final ConversionService conversionService = DefaultConversionService.getSharedInstance();
 
-                                            @Nonnull
-                                            public <C> Converter<Secret, C> getConverter(@Nonnull Class<C> targetType) {
-                                                return source -> conversionService.convert(source.asString(), targetType);
-                                            }
+                                        @Nonnull
+                                        public <C> Converter<Secret, C> getConverter(@Nonnull Class<C> targetType) {
+                                            return source -> conversionService.convert(source.asString(), targetType);
                                         }
-                                    );
+                                    }
+                                );
                                 // byte[] has to be created separately
                                 this.getConversionService().addConverter(Secret.class, String.class, Secret::asString);
                             }

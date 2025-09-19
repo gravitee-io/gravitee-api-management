@@ -266,13 +266,12 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     private String getConsoleUrlFromEnv(final String organizationId) {
         String consoleUrl = consoleUrls.get(organizationId);
         if (consoleUrl == null || consoleUrl.equals(DEFAULT_CONSOLE_URL)) {
-            consoleUrl =
-                parameterService.find(
-                    GraviteeContext.getExecutionContext(),
-                    Key.MANAGEMENT_URL,
-                    organizationId,
-                    ParameterReferenceType.ORGANIZATION
-                );
+            consoleUrl = parameterService.find(
+                GraviteeContext.getExecutionContext(),
+                Key.MANAGEMENT_URL,
+                organizationId,
+                ParameterReferenceType.ORGANIZATION
+            );
             if (consoleUrl == null) {
                 consoleUrl = Key.MANAGEMENT_URL.defaultValue();
             }
@@ -334,13 +333,12 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     private String getPortalUrlFromEnv(final String environmentId) {
         String portalUrl = portalUrls.get(environmentId);
         if (portalUrl == null || portalUrl.equals(DEFAULT_PORTAL_URL)) {
-            portalUrl =
-                parameterService.find(
-                    GraviteeContext.getExecutionContext(),
-                    Key.PORTAL_URL,
-                    environmentId,
-                    ParameterReferenceType.ENVIRONMENT
-                );
+            portalUrl = parameterService.find(
+                GraviteeContext.getExecutionContext(),
+                Key.PORTAL_URL,
+                environmentId,
+                ParameterReferenceType.ENVIRONMENT
+            );
             if (portalUrl == null) {
                 portalUrl = Key.PORTAL_URL.defaultValue();
             }

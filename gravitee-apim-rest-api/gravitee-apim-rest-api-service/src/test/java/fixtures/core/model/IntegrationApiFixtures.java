@@ -23,8 +23,7 @@ public class IntegrationApiFixtures {
     private IntegrationApiFixtures() {}
 
     private static final Supplier<IntegrationApi.IntegrationApiBuilder> BASE = () ->
-        IntegrationApi
-            .builder()
+        IntegrationApi.builder()
             .integrationId("integration-id")
             .uniqueId("asset-uid")
             .id("asset-id")

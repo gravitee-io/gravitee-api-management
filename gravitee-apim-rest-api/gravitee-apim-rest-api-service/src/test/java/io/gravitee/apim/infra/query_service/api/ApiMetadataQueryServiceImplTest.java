@@ -63,13 +63,11 @@ public class ApiMetadataQueryServiceImplTest {
             givenExistingApiMetadata(
                 API_ID,
                 List.of(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("team-contact")
                         .value("team@gravitee.io")
                         .format(io.gravitee.repository.management.model.MetadataFormat.MAIL),
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("homepage")
                         .value("https://gravitee.io")
                         .format(io.gravitee.repository.management.model.MetadataFormat.URL)
@@ -80,13 +78,11 @@ public class ApiMetadataQueryServiceImplTest {
             var result = service.findApiMetadata(ENV_ID, API_ID);
 
             // then
-            Assertions
-                .assertThat(result)
+            Assertions.assertThat(result)
                 .hasSize(2)
                 .containsEntry(
                     "team-contact",
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .apiId(API_ID)
                         .key("team-contact")
                         .value("team@gravitee.io")
@@ -95,8 +91,7 @@ public class ApiMetadataQueryServiceImplTest {
                 )
                 .containsEntry(
                     "homepage",
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .apiId(API_ID)
                         .key("homepage")
                         .value("https://gravitee.io")
@@ -111,8 +106,7 @@ public class ApiMetadataQueryServiceImplTest {
             givenExistingEnvironmentMetadata(
                 ENV_ID,
                 List.of(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("team-contact")
                         .value("admin@gravitee.io")
                         .format(io.gravitee.repository.management.model.MetadataFormat.MAIL),
@@ -122,13 +116,11 @@ public class ApiMetadataQueryServiceImplTest {
             givenExistingApiMetadata(
                 API_ID,
                 List.of(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("team-contact")
                         .value("team@gravitee.io")
                         .format(io.gravitee.repository.management.model.MetadataFormat.MAIL),
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("homepage")
                         .value("https://gravitee.io")
                         .format(io.gravitee.repository.management.model.MetadataFormat.URL)
@@ -139,13 +131,11 @@ public class ApiMetadataQueryServiceImplTest {
             var result = service.findApiMetadata(ENV_ID, API_ID);
 
             // then
-            Assertions
-                .assertThat(result)
+            Assertions.assertThat(result)
                 .hasSize(3)
                 .containsEntry(
                     "team-contact",
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .apiId(API_ID)
                         .key("team-contact")
                         .value("team@gravitee.io")
@@ -155,8 +145,7 @@ public class ApiMetadataQueryServiceImplTest {
                 )
                 .containsEntry(
                     "homepage",
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .apiId(API_ID)
                         .key("homepage")
                         .value("https://gravitee.io")
@@ -165,8 +154,7 @@ public class ApiMetadataQueryServiceImplTest {
                 )
                 .containsEntry(
                     "brand",
-                    ApiMetadata
-                        .builder()
+                    ApiMetadata.builder()
                         .key("brand")
                         .defaultValue("Gravitee")
                         .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING)
@@ -179,8 +167,7 @@ public class ApiMetadataQueryServiceImplTest {
             givenExistingEnvironmentMetadata(
                 ENV_ID,
                 List.of(
-                    Metadata
-                        .builder()
+                    Metadata.builder()
                         .key("team-contact")
                         .value("admin@gravitee.io")
                         .format(io.gravitee.repository.management.model.MetadataFormat.MAIL),
@@ -212,7 +199,12 @@ public class ApiMetadataQueryServiceImplTest {
 
         lenient()
             .when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), eq(envId)))
-            .thenReturn(metadata.stream().map(m -> m.referenceType(MetadataReferenceType.API).build()).toList());
+            .thenReturn(
+                metadata
+                    .stream()
+                    .map(m -> m.referenceType(MetadataReferenceType.API).build())
+                    .toList()
+            );
     }
 
     @SneakyThrows
@@ -221,18 +213,25 @@ public class ApiMetadataQueryServiceImplTest {
 
         lenient()
             .when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), eq(apiId)))
-            .thenReturn(metadata.stream().map(m -> m.referenceType(MetadataReferenceType.API).referenceId(apiId).build()).toList());
+            .thenReturn(
+                metadata
+                    .stream()
+                    .map(m -> m.referenceType(MetadataReferenceType.API).referenceId(apiId).build())
+                    .toList()
+            );
     }
 
     @SneakyThrows
     private void givenApiMetadataFailToBeFetched(String message) {
-        when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), any()))
-            .thenThrow(new TechnicalException(message));
+        when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), any())).thenThrow(
+            new TechnicalException(message)
+        );
     }
 
     @SneakyThrows
     private void givenEnvironmentMetadataFailToBeFetched(String message) {
-        when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), any()))
-            .thenThrow(new TechnicalException(message));
+        when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.ENVIRONMENT), any())).thenThrow(
+            new TechnicalException(message)
+        );
     }
 }

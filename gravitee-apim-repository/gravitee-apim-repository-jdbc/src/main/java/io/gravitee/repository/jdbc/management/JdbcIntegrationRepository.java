@@ -55,16 +55,15 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
         LOGGER.debug("JdbcIntegrationRepository.findAllByEnvironment({}, {})", environmentId, pageable);
         final List<Integration> integrations;
         try {
-            integrations =
-                jdbcTemplate
-                    .query(
-                        getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
-                        getOrm().getRowMapper(),
-                        environmentId
-                    )
-                    .stream()
-                    .flatMap(this::toEntityIntegration)
-                    .toList();
+            integrations = jdbcTemplate
+                .query(
+                    getOrm().getSelectAllSql() + " where environment_id = ? order by updated_at desc",
+                    getOrm().getRowMapper(),
+                    environmentId
+                )
+                .stream()
+                .flatMap(this::toEntityIntegration)
+                .toList();
 
             integrations.forEach(this::addGroups);
         } catch (final Exception ex) {
@@ -86,17 +85,20 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
         List<Integration> integrations;
         try {
             String query = "%s where environment_id = ? order by updated_at desc".formatted(getOrm().getSelectAllSql());
-            integrations =
-                jdbcTemplate.query(query, getOrm().getRowMapper(), environmentId).stream().flatMap(this::toEntityIntegration).toList();
+            integrations = jdbcTemplate
+                .query(query, getOrm().getRowMapper(), environmentId)
+                .stream()
+                .flatMap(this::toEntityIntegration)
+                .toList();
 
-            integrations =
-                integrations
-                    .stream()
-                    .peek(this::addGroups)
-                    .filter(integration ->
+            integrations = integrations
+                .stream()
+                .peek(this::addGroups)
+                .filter(
+                    integration ->
                         integrationIds.contains(integration.getId()) || stream(integration.getGroups()).anyMatch(groups::contains)
-                    )
-                    .toList();
+                )
+                .toList();
         } catch (final Exception ex) {
             final String message =
                 "Failed to find integrations of environment: " + environmentId + " and groups: " + groups + ": " + ex.getMessage();
@@ -216,8 +218,7 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
 
     @Override
     protected JdbcObjectMapper<JdbcIntegration> buildOrm() {
-        return JdbcObjectMapper
-            .builder(JdbcIntegration.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(JdbcIntegration.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)

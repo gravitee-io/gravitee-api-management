@@ -30,8 +30,7 @@ public class FromUserCollationEnIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("tickets")
             .name("fu1en")
             .key("fromUser", ascending())
@@ -40,8 +39,7 @@ public class FromUserCollationEnIndexUpgrader extends IndexUpgrader {
     }
 
     private static Collation collation() {
-        return Collation
-            .builder()
+        return Collation.builder()
             .locale(Locale.ENGLISH.getLanguage())
             .collationStrength(CollationStrength.SECONDARY)
             .build();

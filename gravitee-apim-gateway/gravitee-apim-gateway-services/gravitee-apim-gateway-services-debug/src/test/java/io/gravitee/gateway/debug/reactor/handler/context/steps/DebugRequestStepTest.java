@@ -228,15 +228,15 @@ public class DebugRequestStepTest {
     }
 
     private void applyDifferentValuesForFields(List<String> fields) {
-        when(afterRequest.headers())
-            .thenReturn(
-                fields.contains(DebugStep.DIFF_KEY_HEADERS)
-                    ? HttpHeaders.create().add("Other-Header", "other-value")
-                    : HttpHeaders.create().add("Header", "header-value")
-            );
+        when(afterRequest.headers()).thenReturn(
+            fields.contains(DebugStep.DIFF_KEY_HEADERS)
+                ? HttpHeaders.create().add("Other-Header", "other-value")
+                : HttpHeaders.create().add("Header", "header-value")
+        );
 
-        when(afterRequest.contextPath())
-            .thenReturn(fields.contains(DebugStep.DIFF_KEY_CONTEXT_PATH) ? "otherContextPath" : DebugStep.DIFF_KEY_CONTEXT_PATH);
+        when(afterRequest.contextPath()).thenReturn(
+            fields.contains(DebugStep.DIFF_KEY_CONTEXT_PATH) ? "otherContextPath" : DebugStep.DIFF_KEY_CONTEXT_PATH
+        );
 
         when(afterRequest.path()).thenReturn(fields.contains(DebugStep.DIFF_KEY_PATH) ? "otherPath" : DebugStep.DIFF_KEY_PATH);
 
@@ -256,7 +256,8 @@ public class DebugRequestStepTest {
         final LinkedMultiValueMap<String, String> modifiedPathParameters = new LinkedMultiValueMap<>();
         modifiedPathParameters.add("otherpath-param1", "path-value1");
         modifiedPathParameters.add("otherpath-param2", "path-value2");
-        when(afterRequest.pathParameters())
-            .thenReturn(fields.contains(DebugStep.DIFF_KEY_PATH_PARAMETERS) ? modifiedPathParameters : originPathParameters);
+        when(afterRequest.pathParameters()).thenReturn(
+            fields.contains(DebugStep.DIFF_KEY_PATH_PARAMETERS) ? modifiedPathParameters : originPathParameters
+        );
     }
 }

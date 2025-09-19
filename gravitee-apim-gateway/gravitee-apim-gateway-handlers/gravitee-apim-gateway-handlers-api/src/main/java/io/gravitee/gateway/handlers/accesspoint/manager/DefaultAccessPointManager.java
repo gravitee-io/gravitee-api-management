@@ -37,18 +37,15 @@ public class DefaultAccessPointManager implements AccessPointManager {
     @Override
     public void register(ReactableAccessPoint reactableAccessPoint) {
         AtomicBoolean added = new AtomicBoolean(false);
-        accessPoints.compute(
-            reactableAccessPoint.getEnvironmentId(),
-            (k, v) -> {
-                if (v == null) {
-                    v = new CopyOnWriteArrayList<>();
-                }
-                if (!v.contains(reactableAccessPoint)) {
-                    added.set(v.add(reactableAccessPoint));
-                }
-                return v;
+        accessPoints.compute(reactableAccessPoint.getEnvironmentId(), (k, v) -> {
+            if (v == null) {
+                v = new CopyOnWriteArrayList<>();
             }
-        );
+            if (!v.contains(reactableAccessPoint)) {
+                added.set(v.add(reactableAccessPoint));
+            }
+            return v;
+        });
         if (added.get()) {
             eventManager.publishEvent(AccessPointEvent.DEPLOY, reactableAccessPoint);
         } else {
@@ -59,16 +56,13 @@ public class DefaultAccessPointManager implements AccessPointManager {
     @Override
     public void unregister(ReactableAccessPoint reactableAccessPoint) {
         AtomicBoolean removed = new AtomicBoolean(false);
-        accessPoints.computeIfPresent(
-            reactableAccessPoint.getEnvironmentId(),
-            (k, v) -> {
-                removed.set(v.remove(reactableAccessPoint));
-                if (v.isEmpty()) {
-                    return null;
-                }
-                return v;
+        accessPoints.computeIfPresent(reactableAccessPoint.getEnvironmentId(), (k, v) -> {
+            removed.set(v.remove(reactableAccessPoint));
+            if (v.isEmpty()) {
+                return null;
             }
-        );
+            return v;
+        });
         if (removed.get()) {
             eventManager.publishEvent(AccessPointEvent.UNDEPLOY, reactableAccessPoint);
         } else {

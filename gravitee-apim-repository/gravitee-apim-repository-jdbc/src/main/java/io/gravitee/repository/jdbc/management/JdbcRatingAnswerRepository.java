@@ -42,8 +42,7 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
 
     @Override
     protected JdbcObjectMapper<RatingAnswer> buildOrm() {
-        return JdbcObjectMapper
-            .builder(RatingAnswer.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(RatingAnswer.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("rating", Types.NVARCHAR, String.class)
             .addColumn("user", Types.NVARCHAR, String.class)

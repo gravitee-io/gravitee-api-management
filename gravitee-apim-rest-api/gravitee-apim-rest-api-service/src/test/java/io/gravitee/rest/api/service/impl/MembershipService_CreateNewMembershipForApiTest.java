@@ -101,31 +101,30 @@ public class MembershipService_CreateNewMembershipForApiTest {
     public void setUp() throws Exception {
         reset(membershipRepository, apiSearchService, userService, auditService, roleService, identityService);
 
-        membershipService =
-            new MembershipServiceImpl(
-                identityService,
-                userService,
-                null,
-                null,
-                null,
-                null,
-                membershipRepository,
-                roleService,
-                null,
-                null,
-                apiSearchService,
-                null,
-                apiRepository,
-                null,
-                auditService,
-                null,
-                null,
-                node,
-                objectMapper,
-                commandRepository,
-                null,
-                null
-            );
+        membershipService = new MembershipServiceImpl(
+            identityService,
+            userService,
+            null,
+            null,
+            null,
+            null,
+            membershipRepository,
+            roleService,
+            null,
+            null,
+            apiSearchService,
+            null,
+            apiRepository,
+            null,
+            auditService,
+            null,
+            null,
+            node,
+            objectMapper,
+            commandRepository,
+            null,
+            null
+        );
 
         mockRole();
         mockApi();
@@ -149,8 +148,7 @@ public class MembershipService_CreateNewMembershipForApiTest {
                 io.gravitee.repository.management.model.MembershipReferenceType.API,
                 API_ID
             )
-        )
-            .thenReturn(Collections.emptySet(), Set.of(newMembership));
+        ).thenReturn(Collections.emptySet(), Set.of(newMembership));
 
         MemberEntity createdMember = membershipService.createNewMembershipForApi(
             GraviteeContext.getExecutionContext(),
@@ -181,13 +179,11 @@ public class MembershipService_CreateNewMembershipForApiTest {
                 io.gravitee.repository.management.model.MembershipReferenceType.API,
                 API_ID
             )
-        )
-            .thenReturn(Set.of(existingMembership));
+        ).thenReturn(Set.of(existingMembership));
 
         assertThatThrownBy(() ->
-                membershipService.createNewMembershipForApi(GraviteeContext.getExecutionContext(), API_ID, existingUserId, null, "OWNER")
-            )
-            .isInstanceOf(MembershipAlreadyExistsException.class);
+            membershipService.createNewMembershipForApi(GraviteeContext.getExecutionContext(), API_ID, existingUserId, null, "OWNER")
+        ).isInstanceOf(MembershipAlreadyExistsException.class);
     }
 
     @Test
@@ -208,8 +204,7 @@ public class MembershipService_CreateNewMembershipForApiTest {
                 io.gravitee.repository.management.model.MembershipReferenceType.API,
                 API_ID
             )
-        )
-            .thenReturn(Set.of(newMembership));
+        ).thenReturn(Set.of(newMembership));
 
         MemberEntity createdMember = membershipService.createNewMembershipForApi(
             GraviteeContext.getExecutionContext(),
