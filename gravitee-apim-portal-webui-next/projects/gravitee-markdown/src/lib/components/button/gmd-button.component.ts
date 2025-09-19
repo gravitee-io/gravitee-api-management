@@ -21,10 +21,10 @@ export type ButtonAppearance = 'filled' | 'outlined' | 'text';
 @Component({
   selector: 'gmd-button',
   imports: [CommonModule],
-  templateUrl: './button.component.html',
-  styleUrl: './button.component.scss',
+  templateUrl: './gmd-button.component.html',
+  styleUrl: './gmd-button.component.scss',
 })
-export class ButtonComponent {
+export class GmdButtonComponent {
   @Input() appearance: ButtonAppearance = 'filled';
 }
 

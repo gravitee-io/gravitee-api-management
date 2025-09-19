@@ -19,14 +19,14 @@ import { applicationConfig, Args, Meta, moduleMetadata, StoryObj } from '@storyb
 
 import { GraviteeMarkdownEditorComponent } from './gravitee-markdown-editor.component';
 import { GraviteeMarkdownEditorModule } from './gravitee-markdown-editor.module';
-import { ButtonComponent } from '../components/button/button.component';
+import { GmdButtonComponent } from '../components/button/gmd-button.component';
 
 export default {
   title: 'Gravitee Markdown/Gravitee Markdown Editor',
   component: GraviteeMarkdownEditorComponent,
   decorators: [
     moduleMetadata({
-      imports: [GraviteeMarkdownEditorModule, ReactiveFormsModule, ButtonComponent],
+      imports: [GraviteeMarkdownEditorModule, ReactiveFormsModule, GmdButtonComponent],
     }),
     applicationConfig({
       providers: [importProvidersFrom(GraviteeMarkdownEditorModule.forRoot({ theme: 'vs', baseUrl: '.' }))],
@@ -236,7 +236,7 @@ This editor demonstrates the integration of **button components** with the markd
 The editor includes three types of buttons:
 
 - **Filled Button** - Primary action (Save)
-- **Outlined Button** - Secondary action (Preview)  
+- **Outlined Button** - Secondary action (Preview)
 - **Text Button** - Tertiary action (Cancel)
 
 ## Features

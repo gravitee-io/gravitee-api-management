@@ -17,12 +17,12 @@ import type { Meta, StoryObj } from '@storybook/angular';
 import { importProvidersFrom } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { applicationConfig, moduleMetadata } from '@storybook/angular';
-import { ButtonComponent } from './button.component';
+import { GmdButtonComponent } from './gmd-button.component';
 import { GraviteeMarkdownEditorModule } from '../../gravitee-markdown-editor/gravitee-markdown-editor.module';
 
 export default {
   title: 'Components/Button',
-  component: ButtonComponent,
+  component: GmdButtonComponent,
   parameters: {
     layout: 'centered',
   },
@@ -34,16 +34,16 @@ export default {
   },
   decorators: [
     moduleMetadata({
-      imports: [ButtonComponent, GraviteeMarkdownEditorModule, ReactiveFormsModule],
+      imports: [GmdButtonComponent, GraviteeMarkdownEditorModule, ReactiveFormsModule],
     }),
     applicationConfig({
       providers: [importProvidersFrom(GraviteeMarkdownEditorModule.forRoot({ theme: 'vs', baseUrl: '.' }))],
     }),
   ],
-} as Meta<ButtonComponent>;
+} as Meta<GmdButtonComponent>;
 
 
-export const DefaultAppearances: StoryObj<ButtonComponent> = {
+export const DefaultAppearances: StoryObj<GmdButtonComponent> = {
   render: () => ({
     template: `
       <div style="display: flex; gap: 16px; align-items: center;">
@@ -55,7 +55,7 @@ export const DefaultAppearances: StoryObj<ButtonComponent> = {
   }),
 };
 
-export const WithCustomTheming: StoryObj<ButtonComponent> = {
+export const WithCustomTheming: StoryObj<GmdButtonComponent> = {
   render: () => ({
     template: `
       <div style="
@@ -112,12 +112,12 @@ export const WithCustomTheming: StoryObj<ButtonComponent> = {
   }),
 };
 
-export const WithMarkdownEditor: StoryObj<ButtonComponent> = {
+export const WithMarkdownEditor: StoryObj<GmdButtonComponent> = {
   render: () => ({
     template: `
       <div style="height: 700px; display: flex; flex-direction: column;">
         <h3 style="margin: 0 0 16px 0; color: #333;">Button Component in Markdown Editor</h3>
-        
+
         <!-- Button Controls -->
         <div style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
           <gmd-button appearance="filled">Save Document</gmd-button>

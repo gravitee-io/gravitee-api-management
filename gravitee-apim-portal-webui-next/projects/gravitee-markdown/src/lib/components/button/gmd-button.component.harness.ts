@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { ButtonComponent } from './button.component';
+import { GmdButtonComponent } from './gmd-button.component';
 
-export class ButtonComponentHarness extends ComponentHarness {
+export class GmdButtonComponentHarness extends ComponentHarness {
   static hostSelector = 'gmd-button';
 
   async getText(): Promise<string> {
@@ -37,7 +37,7 @@ export class ButtonComponentHarness extends ComponentHarness {
   async getAppearance(): Promise<string> {
     const button = await this.locatorFor('button')();
     const classList = await button.getAttribute('class');
-    
+
     if (classList?.includes('gmd-button--filled')) {
       return 'filled';
     } else if (classList?.includes('gmd-button--outlined')) {
@@ -45,7 +45,7 @@ export class ButtonComponentHarness extends ComponentHarness {
     } else if (classList?.includes('gmd-button--text')) {
       return 'text';
     }
-    
+
     return 'unknown';
   }
 }
