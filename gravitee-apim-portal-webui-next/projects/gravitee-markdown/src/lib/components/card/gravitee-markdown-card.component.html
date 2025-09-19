@@ -26,6 +26,6 @@
   </div>
 
   @if (parsedContent) {
-    <gmd-viewer class="viewer__overrides" [content]="parsedContent" />
+    <div class="viewer__overrides" [innerHTML]="parsedContent"></div>
   }
 </div>

@@ -16,14 +16,13 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 
-import { GraviteeMarkdownCardComponent } from './gravitee-markdown-card.component';
-import { GraviteeMarkdownViewerModule } from '../../gravitee-markdown-viewer/gravitee-markdown-viewer.module';
 import { GraviteeMarkdownCardTitleComponent } from './components/card-title/gravitee-markdown-card-title.component';
+import { GraviteeMarkdownCardComponent } from './gravitee-markdown-card.component';
 import { GraviteeMarkdownRendererService } from '../../services/gravitee-markdown-renderer.service';
 import { GraviteeMarkdownCardSubtitleComponent } from './components/card-subtitle/gravitee-markdown-card-subtitle.component';
 
 @NgModule({
-  imports: [CommonModule, GraviteeMarkdownViewerModule],
+  imports: [CommonModule],
   providers: [GraviteeMarkdownRendererService],
   declarations: [GraviteeMarkdownCardComponent, GraviteeMarkdownCardTitleComponent, GraviteeMarkdownCardSubtitleComponent],
   exports: [GraviteeMarkdownCardComponent, GraviteeMarkdownCardTitleComponent, GraviteeMarkdownCardSubtitleComponent],

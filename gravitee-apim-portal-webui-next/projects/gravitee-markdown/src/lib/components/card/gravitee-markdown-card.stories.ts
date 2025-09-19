@@ -19,7 +19,7 @@ import { GraviteeMarkdownCardComponent } from './gravitee-markdown-card.componen
 import { GraviteeMarkdownCardModule } from './gravitee-markdown-card.module';
 
 export default {
-  title: 'Gravitee Markdown/Gravitee Markdown Card',
+  title: 'Gravitee Markdown/Components/Card',
   component: GraviteeMarkdownCardComponent,
   decorators: [
     moduleMetadata({

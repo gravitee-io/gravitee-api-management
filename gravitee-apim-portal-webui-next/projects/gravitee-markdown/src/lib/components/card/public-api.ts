@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-markdown
- */
 
-export * from './lib/gravitee-markdown.service';
-export * from './lib/gravitee-markdown.component';
-export * from './lib/gravitee-markdown-editor/public-api';
-export * from './lib/gravitee-markdown-viewer/public-api';
-export * from './lib/components/card/public-api';
+// Module
+export * from './gravitee-markdown-card.module';
+
+// Components
+export * from './gravitee-markdown-card.component';
+export * from './components/card-title/gravitee-markdown-card-title.component';
+export * from './components/card-subtitle/gravitee-markdown-card-subtitle.component';
+
+// Testing
+export * from './gravitee-markdown-card.harness';
