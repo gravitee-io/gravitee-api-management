@@ -51,4 +51,24 @@ class PortalPageAdapterTest {
         assertThat(repoPage.getId()).isEqualTo("123e4567-e89b-12d3-a456-426614174000");
         assertThat(repoPage.getContent()).isEqualTo("markdown content");
     }
+
+    @Test
+    void should_map_pageId_and_portalPageView_to_portalPageContext() {
+        var pageId = io.gravitee.apim.core.portal_page.model.PageId.of("123e4567-e89b-12d3-a456-426614174000");
+        var portalPageView = new io.gravitee.apim.core.portal_page.model.PortalPageView(
+            io.gravitee.apim.core.portal_page.model.PortalViewContext.HOMEPAGE,
+            true
+        );
+
+        var context = PortalPageAdapter.INSTANCE.map(pageId, portalPageView);
+        assertThat(context).isNotNull();
+        assertThat(context.getPageId()).isEqualTo(pageId.toString());
+        assertThat(context.getContextType().name()).isEqualTo(portalPageView.context().name());
+        assertThat(context.isPublished()).isEqualTo(portalPageView.published());
+    }
+
+    @Test
+    void should_return_null_when_both_pageId_and_portalPageView_are_null() {
+        assertThat(PortalPageAdapter.INSTANCE.map(null, null)).isNull();
+    }
 }
