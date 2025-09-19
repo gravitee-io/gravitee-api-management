@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,11 +45,14 @@ public class PortalNotificationConfigService_FindByIdTest {
     @Mock
     private PortalNotificationConfigRepository portalNotificationConfigRepository;
 
+    @Mock
+    GroupService groupService;
+
     private PortalNotificationConfigServiceImpl underTest;
 
     @Before
     public void setup() {
-        underTest = new PortalNotificationConfigServiceImpl(portalNotificationConfigRepository, null);
+        underTest = new PortalNotificationConfigServiceImpl(portalNotificationConfigRepository, null, groupService);
     }
 
     @Test

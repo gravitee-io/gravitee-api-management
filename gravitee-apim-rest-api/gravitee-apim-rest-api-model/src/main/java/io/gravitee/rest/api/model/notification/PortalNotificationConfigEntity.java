@@ -20,6 +20,7 @@ import io.gravitee.definition.model.Origin;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,6 +51,7 @@ public class PortalNotificationConfigEntity {
     private String referenceId;
     private String user;
     private List<String> hooks;
+    private Set<String> groupHooks;
     private List<String> groups;
     private Origin origin;
     private String organizationId;

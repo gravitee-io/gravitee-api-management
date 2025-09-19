@@ -132,13 +132,15 @@ const categoryToGroup = (notification: NotificationSettings, readonly: boolean) 
   return group;
 };
 
+
 const addHookToGroup = (notification: NotificationSettings, readonly: boolean) => (group: FormGroup, hook: Hooks) => {
   group.addControl(
     hook.id,
     new FormControl({
-      value: notification.hooks.includes(hook.id),
-      disabled: readonly,
+      value: notification.hooks.includes(hook.id) || notification.groupHooks.includes(hook.id),
+      disabled: readonly || notification.groupHooks.includes(hook.id),
     }),
   );
   return group;
 };
+

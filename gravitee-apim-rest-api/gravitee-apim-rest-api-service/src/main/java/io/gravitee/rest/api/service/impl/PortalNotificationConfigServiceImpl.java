@@ -15,13 +15,16 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
+import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -31,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -47,13 +51,16 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
 
     private final PortalNotificationConfigRepository portalNotificationConfigRepository;
     private final MembershipService membershipService;
+    private final GroupService groupService;
 
     public PortalNotificationConfigServiceImpl(
         @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
-        MembershipService membershipService
+        MembershipService membershipService,
+        GroupService groupService
     ) {
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
         this.membershipService = membershipService;
+        this.groupService = groupService;
     }
 
     @Override
@@ -108,12 +115,14 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             if (optionalConfig.isPresent()) {
                 return convert(optionalConfig.get());
             }
-            return PortalNotificationConfigEntity.newDefaultEmpty(
+            var notif = PortalNotificationConfigEntity.newDefaultEmpty(
                 user,
                 referenceType.name(),
                 referenceId,
                 GraviteeContext.getExecutionContext().getOrganizationId()
             );
+            notif.setGroupHooks(findGroupHooks(user, referenceType, referenceId));
+            return notif;
         } catch (TechnicalException te) {
             LOGGER.error("An error occurs while trying to get the notification settings {}/{}/{}", user, referenceType, referenceId, te);
             throw new TechnicalManagementException(
@@ -200,6 +209,28 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         entity.setGroups(List.copyOf(portalNotificationConfig.getGroups()));
         entity.setOrigin(portalNotificationConfig.getOrigin());
         entity.setOrganizationId(portalNotificationConfig.getOrganizationId());
+        entity.setGroupHooks(
+            findGroupHooks(
+                portalNotificationConfig.getUser(),
+                portalNotificationConfig.getReferenceType(),
+                portalNotificationConfig.getReferenceId()
+            )
+        );
         return entity;
+    }
+
+    private Set<String> findGroupHooks(String userId, NotificationReferenceType referenceType, String referenceId) {
+        try {
+            var groupIds = groupService.findByUser(userId).stream().map(GroupEntity::getId).toList();
+            var groupNotifs = portalNotificationConfigRepository.findByReferenceAndGroupIn(groupIds, referenceType, referenceId);
+
+            return groupNotifs
+                .stream()
+                .filter(notif -> CollectionUtils.isNotEmpty(notif.getGroups()))
+                .flatMap(notif -> notif.getHooks().stream())
+                .collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
     }
 }

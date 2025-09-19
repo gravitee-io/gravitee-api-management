@@ -262,6 +262,15 @@ public class JdbcPortalNotificationConfigRepository
     }
 
     @Override
+    public List<PortalNotificationConfig> findByReferenceAndGroupIn(
+        List<String> groupIds,
+        NotificationReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
     public void delete(PortalNotificationConfig portalNotificationConfig) throws TechnicalException {
         LOGGER.debug("JdbcPortalNotificationConfigRepository.delete({})", portalNotificationConfig);
         try {

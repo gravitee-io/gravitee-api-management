@@ -82,6 +82,15 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     }
 
     @Override
+    public List<PortalNotificationConfig> findByReferenceAndGroupIn(
+        List<String> groupIds,
+        NotificationReferenceType referenceType,
+        String referenceId
+    ) {
+        return internalRepo.findByReferenceAndGroupIn(groupIds, referenceType, referenceId).stream().map(this::map).toList();
+    }
+
+    @Override
     public List<PortalNotificationConfig> findByHookAndOrganizationId(String hook, String orgId) {
         log.debug("Find PortalNotificationConfigs by hook and orgId [{}, {}]", hook, orgId);
         return internalRepo.findByHookAndOrganizationId(hook, orgId).stream().map(this::map).collect(Collectors.toList());
