@@ -28,6 +28,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -62,10 +63,22 @@ public interface ApplicationMapper {
     @Mapping(target = "errors", source = "status.errors")
     @Mapping(target = "organizationId", source = "status.organizationId")
     @Mapping(target = "environmentId", source = "status.environmentId")
+    @Mapping(
+        target = "settings.tls.clientCertificate",
+        expression = "java(applicationTLSSettings.getClientCertificate() != null ? applicationTLSSettings.getClientCertificate().stripTrailing() : null)"
+    )
     ApplicationState applicationSpecAndStatusToApplicationState(ApplicationSpec spec, ApplicationCRDStatus status);
 
     @Mapping(target = "pictureUrl", source = "picture")
     @Mapping(target = "notifyMembers", expression = "java(!applicationEntity.isDisableMembershipNotifications())")
+    @Mapping(
+        target = "settings.oauth.applicationType",
+        expression = "java(ApplicationOAuthClientSettings.ApplicationTypeEnum.fromValue(oAuthClientSettings.getApplicationType()))"
+    )
+    @Mapping(
+        target = "settings.oauth.grantTypes",
+        expression = "java(oAuthClientSettings.getGrantTypes().stream().map(ApplicationOAuthClientSettings.GrantTypesEnum::fromValue).collect(java.util.stream.Collectors.toSet()))"
+    )
     ApplicationSpec applicationEntityToApplicationSpec(ApplicationEntity applicationEntity);
 
     default String returnNullIfEmpty(String value) {
