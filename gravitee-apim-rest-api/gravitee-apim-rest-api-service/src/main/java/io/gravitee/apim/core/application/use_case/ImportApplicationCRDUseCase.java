@@ -143,7 +143,7 @@ public class ImportApplicationCRDUseCase {
                 .organizationId(sanitizedInput.auditInfo.organizationId())
                 .environmentId(sanitizedInput.auditInfo.environmentId())
                 .build();
-        } catch (AbstractDomainException e) {
+        } catch (AbstractDomainException | AbstractManagementException e) {
             throw e;
         } catch (Exception e) {
             throw new TechnicalManagementException(e);
