@@ -74,11 +74,8 @@ public class UserResource extends AbstractResource {
         try {
             UserEntity userEntity = userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), authenticatedUser);
             User currentUser = userMapper.convert(userEntity);
-            boolean withManagement =
-                (
-                    authenticatedUser != null &&
-                    permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), authenticatedUser)
-                );
+            boolean withManagement = (authenticatedUser != null &&
+                permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), authenticatedUser));
             if (withManagement) {
                 Management managementConfig = this.configService.getConsoleSettings(GraviteeContext.getExecutionContext()).getManagement();
                 if (managementConfig != null && managementConfig.getUrl() != null) {

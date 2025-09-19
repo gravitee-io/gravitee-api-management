@@ -27,8 +27,7 @@ public class ReferenceIdReferenceTypeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("rating")
             .name("referenceId+1_referenceType+1_type+1")
             .key("referenceId", ascending())

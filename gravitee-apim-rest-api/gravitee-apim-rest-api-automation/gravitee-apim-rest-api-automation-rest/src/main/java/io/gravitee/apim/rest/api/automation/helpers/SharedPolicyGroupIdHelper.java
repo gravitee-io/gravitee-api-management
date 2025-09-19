@@ -41,8 +41,7 @@ public class SharedPolicyGroupIdHelper {
     public static void addSPGIDFromHrid(ApiV4Spec spec, AuditInfo audit) {
         CollectionUtils.stream(spec.getFlows()).forEach(f -> addSPGIDFromHrid(f, audit));
         if (spec.getPlans() != null) {
-            CollectionUtils
-                .stream(spec.getPlans())
+            CollectionUtils.stream(spec.getPlans())
                 .flatMap(p -> CollectionUtils.stream(p.getFlows()))
                 .forEach(f -> addSPGIDFromHrid(f, audit));
         }
@@ -74,8 +73,7 @@ public class SharedPolicyGroupIdHelper {
     public static void removeSPGID(ApiV4Spec spec) {
         CollectionUtils.stream(spec.getFlows()).forEach(SharedPolicyGroupIdHelper::removeSPGID);
         if (spec.getPlans() != null) {
-            CollectionUtils
-                .stream(spec.getPlans())
+            CollectionUtils.stream(spec.getPlans())
                 .flatMap(p -> CollectionUtils.stream(p.getFlows()))
                 .forEach(SharedPolicyGroupIdHelper::removeSPGID);
         }

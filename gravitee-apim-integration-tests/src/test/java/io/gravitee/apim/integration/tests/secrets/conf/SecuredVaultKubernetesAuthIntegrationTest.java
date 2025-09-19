@@ -45,21 +45,20 @@ class SecuredVaultKubernetesAuthIntegrationTest extends AbstractSecuredVaultSecr
 
     @BeforeAll
     static void createKubeContainer() throws IOException, InterruptedException {
-        kubeContainer =
-            new K3sContainer() {
-                @SneakyThrows
-                @Override
-                public void start() {
-                    // copied the generic container start to dodge k3s start()
-                    // that does not let configure --tls-san the way it is required for this test
-                    if (getContainerId() != null) {
-                        return;
-                    }
-                    Startables.deepStart(dependencies).get();
-                    dockerClient.authConfig();
-                    doStart();
+        kubeContainer = new K3sContainer() {
+            @SneakyThrows
+            @Override
+            public void start() {
+                // copied the generic container start to dodge k3s start()
+                // that does not let configure --tls-san the way it is required for this test
+                if (getContainerId() != null) {
+                    return;
                 }
-            };
+                Startables.deepStart(dependencies).get();
+                dockerClient.authConfig();
+                doStart();
+            }
+        };
         kubeContainer
             .withCommand(
                 "server",
@@ -75,9 +74,9 @@ class SecuredVaultKubernetesAuthIntegrationTest extends AbstractSecuredVaultSecr
         KubernetesHelper.apply(kubeContainer, "src/test/resources/vault/kube-auth/resources.yaml");
 
         // write config so the secret provider can pick it up
-        Path kubeConfigFile = Files
-            .createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName())
-            .resolve("kube_config.yml");
+        Path kubeConfigFile = Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName()).resolve(
+            "kube_config.yml"
+        );
         Files.writeString(kubeConfigFile, kubeContainer.getKubeconfig());
 
         // get the reviewer token from vault service account
@@ -99,9 +98,9 @@ class SecuredVaultKubernetesAuthIntegrationTest extends AbstractSecuredVaultSecr
         @Override
         protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) {
             String graviteeKubeAuthToken = KubernetesHelper.createToken(kubeContainer, "gravitee");
-            Path kubeAuthTokenPath = Files
-                .createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName())
-                .resolve("token");
+            Path kubeAuthTokenPath = Files.createTempDirectory(KubernetesSecretProviderIntegrationTest.class.getSimpleName()).resolve(
+                "token"
+            );
             Files.writeString(kubeAuthTokenPath, graviteeKubeAuthToken);
 
             return Map.of(

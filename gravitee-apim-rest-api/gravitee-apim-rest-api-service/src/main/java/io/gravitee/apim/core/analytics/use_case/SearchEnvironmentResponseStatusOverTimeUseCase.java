@@ -68,8 +68,7 @@ public class SearchEnvironmentResponseStatusOverTimeUseCase {
     private Map<DefinitionVersion, List<String>> apisIdsForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria
-                    .builder()
+                ApiSearchCriteria.builder()
                     .environmentId(envId)
                     .definitionVersion(EnumSet.of(DefinitionVersion.V4, DefinitionVersion.V2))
                     .build(),

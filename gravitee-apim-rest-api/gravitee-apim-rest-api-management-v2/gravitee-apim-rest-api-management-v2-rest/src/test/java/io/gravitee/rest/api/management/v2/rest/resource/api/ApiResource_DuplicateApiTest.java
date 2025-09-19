@@ -67,11 +67,11 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
         delimiterString = "|",
         useHeadersInDisplayName = true,
         textBlock = """
-        API_DEFINITION[READ] |  ENVIRONMENT_API[CREATE]
-        false                  |  false
-        true                   |  false
-        false                  |  true
-     """
+           API_DEFINITION[READ] |  ENVIRONMENT_API[CREATE]
+           false                  |  false
+           true                   |  false
+           false                  |  true
+        """
     )
     void should_return_403_if_incorrect_permissions(boolean apiDefinitionRead, boolean currentEnvironmentApiCreate) {
         when(
@@ -81,8 +81,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
                 eq(API),
                 eq(RolePermissionAction.READ)
             )
-        )
-            .thenReturn(apiDefinitionRead);
+        ).thenReturn(apiDefinitionRead);
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -90,8 +89,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
                 eq(ENVIRONMENT),
                 eq(RolePermissionAction.CREATE)
             )
-        )
-            .thenReturn(currentEnvironmentApiCreate);
+        ).thenReturn(currentEnvironmentApiCreate);
         final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
 
@@ -125,8 +123,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
                 eq(apiEntity),
                 eq(DuplicateApiMapper.INSTANCE.map(duplicateOptions))
             )
-        )
-            .thenThrow(new ApiDuplicateException("duplication exception message"));
+        ).thenThrow(new ApiDuplicateException("duplication exception message"));
 
         final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
@@ -148,8 +145,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
                 eq(apiEntity),
                 eq(DuplicateApiMapper.INSTANCE.map(duplicateOptions))
             )
-        )
-            .thenReturn(ApiFixtures.aModelHttpApiV4().toBuilder().id("duplicate").build());
+        ).thenReturn(ApiFixtures.aModelHttpApiV4().toBuilder().id("duplicate").build());
 
         final Response response = rootTarget().request().post(Entity.json(duplicateOptions));
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -172,8 +168,7 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
                 eq(apiEntity),
                 eq(DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions))
             )
-        )
-            .thenReturn(ApiFixtures.aModelApiV2().toBuilder().id("duplicate").build());
+        ).thenReturn(ApiFixtures.aModelApiV2().toBuilder().id("duplicate").build());
 
         final Response response = rootTarget().request().post(Entity.json(duplicateOptions));
         assertThat(response.getStatus()).isEqualTo(OK_200);

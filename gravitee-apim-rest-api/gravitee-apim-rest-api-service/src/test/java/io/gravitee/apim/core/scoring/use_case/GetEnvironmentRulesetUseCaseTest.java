@@ -65,20 +65,18 @@ class GetEnvironmentRulesetUseCaseTest {
         var result = useCase.execute(new GetEnvironmentRulesetUseCase.Input(rulesetId, AUDIT_INFO));
 
         // Then
-        assertThat(result.scoringRuleset())
-            .isEqualTo(
-                ScoringRuleset
-                    .builder()
-                    .id(rulesetId)
-                    .name("ruleset-name")
-                    .description("ruleset-description")
-                    .format(ScoringRuleset.Format.GRAVITEE_PROXY)
-                    .referenceId(ENVIRONMENT_ID)
-                    .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
-                    .payload("payload-ruleset-id")
-                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(result.scoringRuleset()).isEqualTo(
+            ScoringRuleset.builder()
+                .id(rulesetId)
+                .name("ruleset-name")
+                .description("ruleset-description")
+                .format(ScoringRuleset.Format.GRAVITEE_PROXY)
+                .referenceId(ENVIRONMENT_ID)
+                .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                .payload("payload-ruleset-id")
+                .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test

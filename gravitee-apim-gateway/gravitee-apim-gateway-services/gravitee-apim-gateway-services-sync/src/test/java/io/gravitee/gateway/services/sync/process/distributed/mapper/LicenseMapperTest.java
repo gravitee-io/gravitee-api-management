@@ -47,15 +47,13 @@ public class LicenseMapperTest {
         var id = "id";
         var content = "license-content";
 
-        distributedEvent =
-            DistributedEvent
-                .builder()
-                .id(id)
-                .payload(content)
-                .updatedAt(new Date())
-                .type(DistributedEventType.LICENSE)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .build();
+        distributedEvent = DistributedEvent.builder()
+            .id(id)
+            .payload(content)
+            .updatedAt(new Date())
+            .type(DistributedEventType.LICENSE)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
 
         licenseDeployable = LicenseDeployable.builder().id(id).license(content).syncAction(SyncAction.DEPLOY).build();
     }

@@ -137,8 +137,7 @@ class PageQueryServiceImplTest {
             String PARENT_ID = "parent-id";
 
             var repositoryPage = aPage(API_ID, PAGE_ID, "duplicate name");
-            var expectedPage = io.gravitee.apim.core.documentation.model.Page
-                .builder()
+            var expectedPage = io.gravitee.apim.core.documentation.model.Page.builder()
                 .id(PAGE_ID)
                 .referenceId(API_ID)
                 .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
@@ -170,8 +169,7 @@ class PageQueryServiceImplTest {
             String PARENT_ID = null;
 
             var repositoryPage = aPage(API_ID, PAGE_ID, "duplicate name");
-            var expectedPage = io.gravitee.apim.core.documentation.model.Page
-                .builder()
+            var expectedPage = io.gravitee.apim.core.documentation.model.Page.builder()
                 .id(PAGE_ID)
                 .referenceId(API_ID)
                 .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
@@ -229,8 +227,7 @@ class PageQueryServiceImplTest {
 
         @Test
         void should_find_a_page() throws TechnicalException {
-            var exisitingPage = io.gravitee.repository.management.model.Page
-                .builder()
+            var exisitingPage = io.gravitee.repository.management.model.Page.builder()
                 .id(PAGE_ID)
                 .type("MARKDOWN")
                 .name(PAGE_NAME)
@@ -252,11 +249,9 @@ class PageQueryServiceImplTest {
                 pageRepository.search(
                     new PageCriteria.Builder().name(exisitingPage.getName()).referenceId(exisitingPage.getReferenceId()).build()
                 )
-            )
-                .thenReturn(List.of(exisitingPage));
+            ).thenReturn(List.of(exisitingPage));
 
-            var expectedPage = io.gravitee.apim.core.documentation.model.Page
-                .builder()
+            var expectedPage = io.gravitee.apim.core.documentation.model.Page.builder()
                 .id(PAGE_ID)
                 .type(io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN)
                 .name(PAGE_NAME)
@@ -290,8 +285,7 @@ class PageQueryServiceImplTest {
 
         @Test
         void should_throw_exception_if_more_than_one_page_found() throws TechnicalException {
-            var exisitingPage = io.gravitee.repository.management.model.Page
-                .builder()
+            var exisitingPage = io.gravitee.repository.management.model.Page.builder()
                 .id(PAGE_ID)
                 .type("MARKDOWN")
                 .name(PAGE_NAME)
@@ -309,8 +303,7 @@ class PageQueryServiceImplTest {
                 .parentId("parent-id")
                 .build();
 
-            var anotherExistingPageWithSameName = io.gravitee.repository.management.model.Page
-                .builder()
+            var anotherExistingPageWithSameName = io.gravitee.repository.management.model.Page.builder()
                 .id(PAGE_ID + "2")
                 .type("MARKDOWN")
                 .name(PAGE_NAME)
@@ -332,8 +325,7 @@ class PageQueryServiceImplTest {
                 pageRepository.search(
                     new PageCriteria.Builder().name(exisitingPage.getName()).referenceId(exisitingPage.getReferenceId()).build()
                 )
-            )
-                .thenReturn(List.of(exisitingPage, anotherExistingPageWithSameName));
+            ).thenReturn(List.of(exisitingPage, anotherExistingPageWithSameName));
 
             assertThatThrownBy(() -> service.findByNameAndReferenceId(PAGE_NAME, API_ID))
                 .isInstanceOf(IllegalStateException.class)

@@ -62,12 +62,11 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
 
     @Override
     protected List<Step> getSteps(Flow flow, ExecutionPhase phase) {
-        final List<Step> steps =
-            switch (phase) {
-                case REQUEST -> flow.getRequest();
-                case RESPONSE -> flow.getResponse();
-                default -> new ArrayList<>();
-            };
+        final List<Step> steps = switch (phase) {
+            case REQUEST -> flow.getRequest();
+            case RESPONSE -> flow.getResponse();
+            default -> new ArrayList<>();
+        };
 
         return steps != null ? steps : new ArrayList<>();
     }

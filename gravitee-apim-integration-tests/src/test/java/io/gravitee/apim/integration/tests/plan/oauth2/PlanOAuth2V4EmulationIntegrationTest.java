@@ -90,21 +90,20 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
     }
 
     protected Stream<Arguments> provideWrongSecurityHeaders() {
-        return provideApis()
-            .flatMap(arguments -> {
-                String apiId = (String) arguments.get()[0];
-                return Stream.of(
-                    Arguments.of(apiId, null, null),
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                    Arguments.of(apiId, "Authorization", ""),
-                    Arguments.of(apiId, "Authorization", "Bearer"),
-                    Arguments.of(apiId, "Authorization", "Bearer "),
-                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"),
-                    Arguments.of(apiId, "Authorization", "Bearer " + OAUTH2_UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID),
-                    Arguments.of(apiId, "Authorization", "Bearer " + OAUTH2_UNAUTHORIZED_WITH_INVALID_PAYLOAD),
-                    Arguments.of(apiId, "Authorization", "Bearer " + OAUTH2_UNAUTHORIZED_TOKEN)
-                );
-            });
+        return provideApis().flatMap(arguments -> {
+            String apiId = (String) arguments.get()[0];
+            return Stream.of(
+                Arguments.of(apiId, null, null),
+                Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                Arguments.of(apiId, "Authorization", ""),
+                Arguments.of(apiId, "Authorization", "Bearer"),
+                Arguments.of(apiId, "Authorization", "Bearer "),
+                Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"),
+                Arguments.of(apiId, "Authorization", "Bearer " + OAUTH2_UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID),
+                Arguments.of(apiId, "Authorization", "Bearer " + OAUTH2_UNAUTHORIZED_WITH_INVALID_PAYLOAD),
+                Arguments.of(apiId, "Authorization", "Bearer " + OAUTH2_UNAUTHORIZED_TOKEN)
+            );
+        });
     }
 
     @ParameterizedTest
@@ -115,8 +114,9 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
         final HttpClient client,
         GatewayDynamicConfig.HttpConfig httpConfig
     ) throws Exception {
-        whenSearchingSubscription(apiId, OAUTH2_CLIENT_ID, PLAN_OAUTH2_ID)
-            .thenReturn(Optional.of(createSubscription(apiId, PLAN_OAUTH2_ID, false)));
+        whenSearchingSubscription(apiId, OAUTH2_CLIENT_ID, PLAN_OAUTH2_ID).thenReturn(
+            Optional.of(createSubscription(apiId, PLAN_OAUTH2_ID, false))
+        );
 
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
@@ -217,15 +217,15 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
 
     protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
         return when(
-            getBean(SubscriptionService.class)
-                .getByApiAndSecurityToken(
-                    eq(api),
-                    argThat(securityToken ->
+            getBean(SubscriptionService.class).getByApiAndSecurityToken(
+                eq(api),
+                argThat(
+                    securityToken ->
                         securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) &&
                         securityToken.getTokenValue().equals(clientId)
-                    ),
-                    eq(plan)
-                )
+                ),
+                eq(plan)
+            )
         );
     }
 }

@@ -174,8 +174,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_UpdateTest {
 
-    public static final String API_DEFINITION =
-        """
+    public static final String API_DEFINITION = """
         {
           "id" : "id-api",
           "name" : "myAPI",
@@ -395,11 +394,13 @@ public class ApiService_UpdateTest {
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
         reset(searchEngineService);
 
-        when(verifyApiPathDomainService.validateAndSanitize(any()))
-            .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
+        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(invocation ->
+            Validator.Result.ofValue(invocation.getArgument(0))
+        );
 
-        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class))).thenAnswer(invocation ->
+            invocation.getArgument(1)
+        );
     }
 
     @After
@@ -428,13 +429,13 @@ public class ApiService_UpdateTest {
         assertEquals(API_NAME, apiEntity.getName());
 
         // Picture management as a dedicated service, so we should reuse the same picture as the one saved
-        verify(apiRepository)
-            .update(
-                argThat(apiToUpdate ->
+        verify(apiRepository).update(
+            argThat(
+                apiToUpdate ->
                     Objects.equals(apiToUpdate.getPicture(), api.getPicture()) &&
                     Objects.equals(apiToUpdate.getBackground(), api.getBackground())
-                )
-            );
+            )
+        );
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
@@ -462,8 +463,9 @@ public class ApiService_UpdateTest {
         updateApiEntity.setGroups(Set.of("group1"));
 
         when(groupService.findByIds(Set.of("group1"))).thenReturn(Set.of(GroupEntity.builder().id("group1").build()));
-        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), eq(api.getId())))
-            .thenReturn(MembershipEntity.builder().memberType(MembershipMemberType.GROUP).build());
+        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), eq(api.getId()))).thenReturn(
+            MembershipEntity.builder().memberType(MembershipMemberType.GROUP).build()
+        );
 
         final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
@@ -575,8 +577,7 @@ public class ApiService_UpdateTest {
         EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
         Endpoint endpoint2 = Endpoint.builder().name("endpointGroupName").build();
         EndpointGroup endpointGroup2 = EndpointGroup.builder().name("endpointName").endpoints(singleton(endpoint2)).build();
-        Proxy proxy = Proxy
-            .builder()
+        Proxy proxy = Proxy.builder()
             .groups(Set.of(endpointGroup, endpointGroup2))
             .virtualHosts(singletonList(new VirtualHost("/context")))
             .build();
@@ -636,12 +637,12 @@ public class ApiService_UpdateTest {
         if (existingAPIDefinitionVersion != null) {
             api.setDefinition(
                 "{\"id\": \"" +
-                API_ID +
-                "\",\"name\": \"" +
-                API_NAME +
-                "\",\"gravitee\": \"" +
-                existingAPIDefinitionVersion.getLabel() +
-                "\",\"proxy\": {\"context_path\": \"/old\"}}"
+                    API_ID +
+                    "\",\"name\": \"" +
+                    API_NAME +
+                    "\",\"gravitee\": \"" +
+                    existingAPIDefinitionVersion.getLabel() +
+                    "\",\"proxy\": {\"context_path\": \"/old\"}}"
             );
         }
         if (updateAPIDefinitionVersion != null) {
@@ -671,8 +672,9 @@ public class ApiService_UpdateTest {
     public void shouldUpdateNotRemovingGroupsWhenGroupPOisApiPO() throws TechnicalException {
         prepareUpdate();
 
-        when(membershipService.getPrimaryOwner(GraviteeContext.getDefaultOrganization(), MembershipReferenceType.API, API_ID))
-            .thenReturn(MembershipEntity.builder().memberId("api-po").memberType(MembershipMemberType.USER).build());
+        when(membershipService.getPrimaryOwner(GraviteeContext.getDefaultOrganization(), MembershipReferenceType.API, API_ID)).thenReturn(
+            MembershipEntity.builder().memberId("api-po").memberType(MembershipMemberType.USER).build()
+        );
 
         GroupEntity groupWithApiPOasPO = GroupEntity.builder().id("group-with-po").apiPrimaryOwner("api-po").build();
 
@@ -753,8 +755,9 @@ public class ApiService_UpdateTest {
             .when(tagsValidationService)
             .validatePlanTagsAgainstApiTags(any(Set.class), any(Set.class));
 
-        assertThatThrownBy(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true))
-            .isInstanceOf(InvalidDataException.class);
+        assertThatThrownBy(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true)).isInstanceOf(
+            InvalidDataException.class
+        );
 
         verify(apiRepository, never()).update(any());
     }
@@ -787,8 +790,9 @@ public class ApiService_UpdateTest {
             "{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
         );
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-        when(verifyApiPathDomainService.validateAndSanitize(any()))
-            .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
+        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(invocation ->
+            Validator.Result.ofValue(invocation.getArgument(0))
+        );
         when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
         assertNotNull(apiEntity);
@@ -826,10 +830,10 @@ public class ApiService_UpdateTest {
         updateApiEntity.setTags(newSet("public", "private"));
         api.setDefinition(
             "{\"id\": \"" +
-            API_ID +
-            "\",\"name\": \"" +
-            API_NAME +
-            "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}"
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}"
         );
         final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
         assertNotNull(apiEntity);
@@ -960,10 +964,10 @@ public class ApiService_UpdateTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         api.setDefinition(
             "{\"id\": \"" +
-            API_ID +
-            "\",\"name\": \"" +
-            API_NAME +
-            "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}"
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}"
         );
         updateApiEntity.setTags(emptySet());
 
@@ -1110,16 +1114,15 @@ public class ApiService_UpdateTest {
         reviewEntity.setMessage("Test Review msg");
         apiService.rejectReview(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, reviewEntity);
 
-        verify(auditService)
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(apiId -> apiId.equals(API_ID)),
-                anyMap(),
-                argThat(Workflow.AuditEvent.API_REVIEW_REJECTED::equals),
-                any(),
-                any(),
-                any()
-            );
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(apiId -> apiId.equals(API_ID)),
+            anyMap(),
+            argThat(Workflow.AuditEvent.API_REVIEW_REJECTED::equals),
+            any(),
+            any(),
+            any()
+        );
         verify(apiNotificationService, times(0)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class));
     }
 
@@ -1127,16 +1130,18 @@ public class ApiService_UpdateTest {
     public void shouldTraceReviewAsked() throws TechnicalException {
         prepareReviewAuditTest();
 
-        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Collections.singletonList(mock(RoleEntity.class)));
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(
+            Collections.singletonList(mock(RoleEntity.class))
+        );
         final RolePermissionAction[] acls = { RolePermissionAction.UPDATE };
         when(roleService.hasPermission(any(), eq(ApiPermission.REVIEWS), eq(acls))).thenReturn(true);
 
         MembershipEntity membershipEntity = mock(MembershipEntity.class);
         when(membershipEntity.getMemberType()).thenReturn(MembershipMemberType.USER);
         when(membershipEntity.getMemberId()).thenReturn("reviewerID");
-        when(membershipService.getMembershipsByReferenceAndRole(eq(MembershipReferenceType.API), eq(API_ID), any()))
-            .thenReturn(Sets.newSet(membershipEntity));
+        when(membershipService.getMembershipsByReferenceAndRole(eq(MembershipReferenceType.API), eq(API_ID), any())).thenReturn(
+            Sets.newSet(membershipEntity)
+        );
 
         UserEntity reviewerEntity = mock(UserEntity.class);
         when(reviewerEntity.getEmail()).thenReturn("Reviewer@ema.il");
@@ -1145,27 +1150,26 @@ public class ApiService_UpdateTest {
         final ReviewEntity reviewEntity = new ReviewEntity();
         reviewEntity.setMessage("Test Review msg");
         apiService.askForReview(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, reviewEntity);
-        verify(auditService)
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(apiId -> apiId.equals(API_ID)),
-                anyMap(),
-                argThat(evt -> Workflow.AuditEvent.API_REVIEW_ASKED.equals(evt)),
-                any(),
-                any(),
-                any()
-            );
-        verify(emailService)
-            .sendAsyncEmailNotification(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(emailNotification ->
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(apiId -> apiId.equals(API_ID)),
+            anyMap(),
+            argThat(evt -> Workflow.AuditEvent.API_REVIEW_ASKED.equals(evt)),
+            any(),
+            any(),
+            any()
+        );
+        verify(emailService).sendAsyncEmailNotification(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                emailNotification ->
                     emailNotification
                         .getTemplate()
                         .equals(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW.getLinkedHook().getTemplate()) &&
                     emailNotification.getTo().length == 1 &&
                     emailNotification.getTo()[0].equals("Reviewer@ema.il")
-                )
-            );
+            )
+        );
         verify(roleService).findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization());
         verify(apiNotificationService, times(0)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class));
     }
@@ -1177,16 +1181,15 @@ public class ApiService_UpdateTest {
         final ReviewEntity reviewEntity = new ReviewEntity();
         reviewEntity.setMessage("Test Review msg");
         apiService.acceptReview(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, reviewEntity);
-        verify(auditService)
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(apiId -> apiId.equals(API_ID)),
-                anyMap(),
-                argThat(evt -> Workflow.AuditEvent.API_REVIEW_ACCEPTED.equals(evt)),
-                any(),
-                any(),
-                any()
-            );
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(apiId -> apiId.equals(API_ID)),
+            anyMap(),
+            argThat(evt -> Workflow.AuditEvent.API_REVIEW_ACCEPTED.equals(evt)),
+            any(),
+            any(),
+            any()
+        );
         verify(apiNotificationService, times(0)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class));
     }
 
@@ -1203,8 +1206,9 @@ public class ApiService_UpdateTest {
 
         try {
             URL defaultEntrypoint = new URL(Key.PORTAL_ENTRYPOINT.defaultValue());
-            when(apiEntrypointService.getApiEntrypoints(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
-                .thenReturn(List.of(new ApiEntrypointEntity(defaultEntrypoint.getPath(), defaultEntrypoint.getHost())));
+            when(apiEntrypointService.getApiEntrypoints(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class))).thenReturn(
+                List.of(new ApiEntrypointEntity(defaultEntrypoint.getPath(), defaultEntrypoint.getHost()))
+            );
         } catch (MalformedURLException e) {
             // Ignore this anyway
         }
@@ -1220,8 +1224,7 @@ public class ApiService_UpdateTest {
                 "DEFAULT",
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         final Workflow workflow = new Workflow();
         workflow.setState("IN_REVIEW");
         when(workflowService.findByReferenceAndType(API, API_ID, REVIEW)).thenReturn(singletonList(workflow));
@@ -1239,11 +1242,11 @@ public class ApiService_UpdateTest {
         updateApiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
         api.setDefinition(
             "{\"id\": \"" +
-            API_ID +
-            "\",\"name\": \"" +
-            API_NAME +
-            "\",\"gravitee\": \"2.0.0\"" +
-            ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\",\"gravitee\": \"2.0.0\"" +
+                ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
         );
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
@@ -1257,11 +1260,11 @@ public class ApiService_UpdateTest {
         updateApiEntity.setGraviteeDefinitionVersion("0.0.0");
         api.setDefinition(
             "{\"id\": \"" +
-            API_ID +
-            "\",\"name\": \"" +
-            API_NAME +
-            "\",\"gravitee\": \"2.0.0\"" +
-            ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\",\"gravitee\": \"2.0.0\"" +
+                ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
         );
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
@@ -1289,21 +1292,20 @@ public class ApiService_UpdateTest {
                 Key.LOGGING_AUDIT_TRAIL_ENABLED,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         api.setDefinition(
             "{\"id\": \"" +
-            API_ID +
-            "\",\"name\": \"" +
-            API_NAME +
-            "\"," +
-            "   \"proxy\": {" +
-            "    \"logging\": {\n" +
-            "      \"mode\":\"CLIENT_PROXY\",\n" +
-            "      \"condition\":\"condition\"\n" +
-            "    },\n" +
-            "\"context_path\": \"/old\"}}"
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\"," +
+                "   \"proxy\": {" +
+                "    \"logging\": {\n" +
+                "      \"mode\":\"CLIENT_PROXY\",\n" +
+                "      \"condition\":\"condition\"\n" +
+                "    },\n" +
+                "\"context_path\": \"/old\"}}"
         );
         updatedApi.setDefinition("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
 
@@ -1313,16 +1315,15 @@ public class ApiService_UpdateTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        verify(auditService)
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API_ID),
-                eq(emptyMap()),
-                eq(Api.AuditEvent.API_LOGGING_DISABLED),
-                any(Date.class),
-                any(),
-                any()
-            );
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API_ID),
+            eq(emptyMap()),
+            eq(Api.AuditEvent.API_LOGGING_DISABLED),
+            any(Date.class),
+            any(),
+            any()
+        );
     }
 
     @Test
@@ -1333,22 +1334,21 @@ public class ApiService_UpdateTest {
                 Key.LOGGING_AUDIT_TRAIL_ENABLED,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         api.setDefinition("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
         updatedApi.setDefinition(
             "{\"id\": \"" +
-            API_ID +
-            "\",\"name\": \"" +
-            API_NAME +
-            "\"," +
-            "   \"proxy\": {" +
-            "    \"logging\": {\n" +
-            "      \"mode\":\"CLIENT_PROXY\",\n" +
-            "      \"condition\":\"condition\"\n" +
-            "    },\n" +
-            "\"context_path\": \"/old\"}}"
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\"," +
+                "   \"proxy\": {" +
+                "    \"logging\": {\n" +
+                "      \"mode\":\"CLIENT_PROXY\",\n" +
+                "      \"condition\":\"condition\"\n" +
+                "    },\n" +
+                "\"context_path\": \"/old\"}}"
         );
 
         prepareUpdate();
@@ -1357,16 +1357,15 @@ public class ApiService_UpdateTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        verify(auditService)
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API_ID),
-                eq(emptyMap()),
-                eq(Api.AuditEvent.API_LOGGING_ENABLED),
-                any(Date.class),
-                any(),
-                any()
-            );
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API_ID),
+            eq(emptyMap()),
+            eq(Api.AuditEvent.API_LOGGING_ENABLED),
+            any(Date.class),
+            any(),
+            any()
+        );
     }
 
     @Test
@@ -1377,34 +1376,33 @@ public class ApiService_UpdateTest {
                 Key.LOGGING_AUDIT_TRAIL_ENABLED,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         api.setDefinition(
             "{\"id\": \"" +
-            API_ID +
-            "\",\"name\": \"" +
-            API_NAME +
-            "\"," +
-            "   \"proxy\": {" +
-            "    \"logging\": {\n" +
-            "      \"mode\":\"CLIENT_PROXY\",\n" +
-            "      \"condition\":\"condition\"\n" +
-            "    },\n" +
-            "\"context_path\": \"/old\"}}"
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\"," +
+                "   \"proxy\": {" +
+                "    \"logging\": {\n" +
+                "      \"mode\":\"CLIENT_PROXY\",\n" +
+                "      \"condition\":\"condition\"\n" +
+                "    },\n" +
+                "\"context_path\": \"/old\"}}"
         );
         updatedApi.setDefinition(
             "{\"id\": \"" +
-            API_ID +
-            "\",\"name\": \"" +
-            API_NAME +
-            "\"," +
-            "   \"proxy\": {" +
-            "    \"logging\": {\n" +
-            "      \"mode\":\"CLIENT_PROXY\",\n" +
-            "      \"condition\":\"condition2\"\n" +
-            "    },\n" +
-            "\"context_path\": \"/old\"}}"
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\"," +
+                "   \"proxy\": {" +
+                "    \"logging\": {\n" +
+                "      \"mode\":\"CLIENT_PROXY\",\n" +
+                "      \"condition\":\"condition2\"\n" +
+                "    },\n" +
+                "\"context_path\": \"/old\"}}"
         );
 
         prepareUpdate();
@@ -1413,16 +1411,15 @@ public class ApiService_UpdateTest {
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        verify(auditService)
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API_ID),
-                eq(emptyMap()),
-                eq(Api.AuditEvent.API_LOGGING_UPDATED),
-                any(Date.class),
-                any(),
-                any()
-            );
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API_ID),
+            eq(emptyMap()),
+            eq(Api.AuditEvent.API_LOGGING_UPDATED),
+            any(Date.class),
+            any(),
+            any()
+        );
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
@@ -1467,15 +1464,15 @@ public class ApiService_UpdateTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        verify(apiRepository)
-            .update(
-                argThat(api ->
+        verify(apiRepository).update(
+            argThat(
+                api ->
                     api.getId().equals(API_ID) &&
                     api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
                     api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
                     api.getLifecycleState().equals(LifecycleState.STARTED)
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -1490,15 +1487,15 @@ public class ApiService_UpdateTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        verify(apiRepository)
-            .update(
-                argThat(api ->
+        verify(apiRepository).update(
+            argThat(
+                api ->
                     api.getId().equals(API_ID) &&
                     api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
                     api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
                     api.getLifecycleState().equals(LifecycleState.STOPPED)
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -1512,15 +1509,15 @@ public class ApiService_UpdateTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        verify(apiRepository)
-            .update(
-                argThat(api ->
+        verify(apiRepository).update(
+            argThat(
+                api ->
                     api.getId().equals(API_ID) &&
                     api.getOrigin().equals(Api.ORIGIN_KUBERNETES) &&
                     api.getMode().equals(Api.MODE_FULLY_MANAGED) &&
                     api.getLifecycleState().equals(LifecycleState.STARTED)
-                )
-            );
+            )
+        );
     }
 
     @Test(expected = ApiDefinitionVersionNotSupportedException.class)

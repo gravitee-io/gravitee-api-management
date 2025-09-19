@@ -61,8 +61,7 @@ public class UpdateClusterGroupsUseCase {
         AuditInfo auditInfo
     ) {
         auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity
-                .builder()
+            EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(ClusterAuditEvent.CLUSTER_GROUPS_UPDATED)

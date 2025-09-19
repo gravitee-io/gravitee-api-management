@@ -53,9 +53,9 @@ public class SecurityPolicyChainProviderTest {
 
     @Test
     public void shouldReturnRequestPolicyChain() {
-        Mockito
-            .when(policyResolver.resolve(StreamType.ON_REQUEST, executionContext))
-            .thenReturn(Collections.singletonList(Mockito.mock(Policy.class)));
+        Mockito.when(policyResolver.resolve(StreamType.ON_REQUEST, executionContext)).thenReturn(
+            Collections.singletonList(Mockito.mock(Policy.class))
+        );
         StreamableProcessor<ExecutionContext, Buffer> processor = securityPolicyChainResolver.provide(executionContext);
 
         Assert.assertEquals(OrderedPolicyChain.class, processor.getClass());

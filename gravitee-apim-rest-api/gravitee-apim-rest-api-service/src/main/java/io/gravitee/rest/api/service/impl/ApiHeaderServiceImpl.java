@@ -183,7 +183,8 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
         //the new header order must be between 1 and numbers of current headers
         if (headerToReorder.getOrder() < 1) {
             headerToReorder.setOrder(1);
-        } else if (headerToReorder.getOrder() > headers.length + 1) { // +1 because we have filtered headers
+        } else if (headerToReorder.getOrder() > headers.length + 1) {
+            // +1 because we have filtered headers
             headerToReorder.setOrder(headers.length + 1);
         }
 

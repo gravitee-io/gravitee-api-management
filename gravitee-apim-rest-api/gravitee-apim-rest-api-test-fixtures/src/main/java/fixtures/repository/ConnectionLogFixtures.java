@@ -21,8 +21,7 @@ import java.util.UUID;
 
 public class ConnectionLogFixtures {
 
-    private static final BaseConnectionLog.BaseConnectionLogBuilder<?, ?> BASE = BaseConnectionLog
-        .builder()
+    private static final BaseConnectionLog.BaseConnectionLogBuilder<?, ?> BASE = BaseConnectionLog.builder()
         .apiId("api-id")
         .applicationId("app-id")
         .planId("plan-id")

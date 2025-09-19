@@ -71,8 +71,12 @@ public class MongoMediaRepository implements MediaRepository {
 
         GridFSUploadOptions options = new GridFSUploadOptions().metadata(doc);
 
-        getGridFs()
-            .uploadFromStream(new BsonString(media.getId()), media.getFileName(), new ByteArrayInputStream(media.getData()), options);
+        getGridFs().uploadFromStream(
+            new BsonString(media.getId()),
+            media.getFileName(),
+            new ByteArrayInputStream(media.getData()),
+            options
+        );
 
         return media;
     }

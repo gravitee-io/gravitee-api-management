@@ -70,8 +70,9 @@ public class V3OrganizationReactorFactory implements OrganizationReactorFactory 
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
         );
 
-        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager =
-            (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(beanNamesForType[0]);
+        ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager = (ConfigurablePluginManager<
+            PolicyPlugin<?>
+        >) applicationContext.getBean(beanNamesForType[0]);
 
         PolicyFactory policyFactory = factoryCreator.create();
         CachedPolicyConfigurationFactory policyConfigurationFactory = new CachedPolicyConfigurationFactory();

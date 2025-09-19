@@ -42,9 +42,12 @@ public class SearchGroupByAnalyticsUseCase {
     private final List<AnalyticsMetadataProvider> metadataProviders;
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        ApiAnalyticsSpecification
-            .forSearchGroupByAnalytics()
-            .throwIfNotSatisfied(apiCrudService.get(input.api()), executionContext, input.from(), input.to());
+        ApiAnalyticsSpecification.forSearchGroupByAnalytics().throwIfNotSatisfied(
+            apiCrudService.get(input.api()),
+            executionContext,
+            input.from(),
+            input.to()
+        );
 
         var groupByQuery = new AnalyticsQueryService.GroupByQuery(
             AnalyticsQueryService.SearchTermId.forApi(input.api()),
@@ -61,12 +64,14 @@ public class SearchGroupByAnalyticsUseCase {
             return new Output(null, null);
         }
 
-        var provider = metadataProviders.stream().filter(p -> p.appliesTo(AnalyticsMetadataProvider.Field.of(input.field()))).findFirst();
+        var provider = metadataProviders
+            .stream()
+            .filter(p -> p.appliesTo(AnalyticsMetadataProvider.Field.of(input.field())))
+            .findFirst();
 
         if (provider.isEmpty()) {
             // If no provider is found, create metadata with just the order information
-            var metadata = Stream
-                .iterate(0, i -> i + 1)
+            var metadata = Stream.iterate(0, i -> i + 1)
                 .limit(result.getOrder().size())
                 .collect(
                     Collectors.toMap(
@@ -85,8 +90,7 @@ public class SearchGroupByAnalyticsUseCase {
         Map<String, Map<String, String>> batchMetadata = provider.get().provide(result.getOrder(), executionContext.getEnvironmentId());
 
         // Add order information to each metadata entry
-        var metadata = Stream
-            .iterate(0, i -> i + 1)
+        var metadata = Stream.iterate(0, i -> i + 1)
             .limit(result.getOrder().size())
             .collect(
                 Collectors.toMap(

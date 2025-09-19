@@ -58,8 +58,7 @@ public class ThemeResource extends AbstractResource {
         }
         var result = getCurrentThemeUseCase
             .execute(
-                GetCurrentThemeUseCase.Input
-                    .builder()
+                GetCurrentThemeUseCase.Input.builder()
                     .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(themeType.name()))
                     .executionContext(GraviteeContext.getExecutionContext())
                     .build()

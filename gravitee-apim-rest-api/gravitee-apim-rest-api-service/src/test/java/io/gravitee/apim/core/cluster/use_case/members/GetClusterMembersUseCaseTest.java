@@ -54,36 +54,31 @@ class GetClusterMembersUseCaseTest {
 
     private void initMembers() {
         List<MemberEntity> members = List.of(
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-5")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-1")
                 .type(MembershipMemberType.USER)
                 .build(),
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-2")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-1")
                 .type(MembershipMemberType.USER)
                 .build(),
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-3")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-2")
                 .type(MembershipMemberType.USER)
                 .build(),
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-4")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-2")
                 .type(MembershipMemberType.USER)
                 .build(),
-            MemberEntity
-                .builder()
+            MemberEntity.builder()
                 .id("member-1")
                 .referenceType(MembershipReferenceType.CLUSTER)
                 .referenceId("cluster-1")

@@ -72,8 +72,9 @@ class ApiResourceTest extends AbstractResourceTest {
         void should_get_api_from_known_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                    .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build()));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
+                    new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build())
+                );
                 var state = expectEntity(HRID, false);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(API_ID);
@@ -89,8 +90,9 @@ class ApiResourceTest extends AbstractResourceTest {
         void should_get_api_from_known_legacy_id() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                    .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(API_ID).build()));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
+                    new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(API_ID).build())
+                );
                 var state = expectEntity(API_ID, true);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(API_ID);
@@ -106,18 +108,16 @@ class ApiResourceTest extends AbstractResourceTest {
         void should_get_api_with_null_plan_type() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                    .thenReturn(
-                        new ExportApiCRDUseCase.Output(
-                            ApiCRDSpec
-                                .builder()
-                                .id(API_ID)
-                                .crossId(API_CROSS_ID)
-                                .hrid(HRID)
-                                .plans(Map.of("apikey", PlanCRD.builder().security(PlanSecurity.builder().type("API_KEY").build()).build()))
-                                .build()
-                        )
-                    );
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
+                    new ExportApiCRDUseCase.Output(
+                        ApiCRDSpec.builder()
+                            .id(API_ID)
+                            .crossId(API_CROSS_ID)
+                            .hrid(HRID)
+                            .plans(Map.of("apikey", PlanCRD.builder().security(PlanSecurity.builder().type("API_KEY").build()).build()))
+                            .build()
+                    )
+                );
                 var state = expectEntity(HRID, false);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(API_ID);
@@ -137,8 +137,9 @@ class ApiResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                .thenThrow(new NotFoundException("No API found with hrid: unknown"));
+            when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenThrow(
+                new NotFoundException("No API found with hrid: unknown")
+            );
 
             expectNotFound("unknown");
         }

@@ -203,8 +203,7 @@ public class AccessControlServiceTest {
 
         when(
             apiAuthorizationService.canConsumeApi(eq(GraviteeContext.getExecutionContext()), any(String.class), any(GenericApiEntity.class))
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         connectUser();
 
@@ -223,18 +222,25 @@ public class AccessControlServiceTest {
                 any(),
                 eq(USERNAME)
             )
-        )
-            .thenReturn(null);
+        ).thenReturn(null);
         final PageEntity pageEntity = mock(PageEntity.class);
         connectUser();
 
         boolean canAccess = accessControlService.canAccessPageFromConsole(GraviteeContext.getExecutionContext(), apiEntity, pageEntity);
 
         assertFalse(canAccess);
-        verify(membershipServiceMock, times(1))
-            .getUserMember(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), any(), eq(USERNAME));
-        verify(membershipServiceMock, never())
-            .getUserMember(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.GROUP), any(), any());
+        verify(membershipServiceMock, times(1)).getUserMember(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(MembershipReferenceType.API),
+            any(),
+            eq(USERNAME)
+        );
+        verify(membershipServiceMock, never()).getUserMember(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(MembershipReferenceType.GROUP),
+            any(),
+            any()
+        );
     }
 
     @Test
@@ -249,8 +255,7 @@ public class AccessControlServiceTest {
                 any(),
                 eq(USERNAME)
             )
-        )
-            .thenReturn(memberEntity);
+        ).thenReturn(memberEntity);
         final PageEntity pageEntity = mock(PageEntity.class);
         connectUser();
         when(
@@ -259,16 +264,23 @@ public class AccessControlServiceTest {
                 ApiPermission.DOCUMENTATION,
                 new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE }
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         boolean canAccess = accessControlService.canAccessPageFromConsole(GraviteeContext.getExecutionContext(), apiEntity, pageEntity);
 
         assertTrue(canAccess);
-        verify(membershipServiceMock, times(1))
-            .getUserMember(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), any(), eq(USERNAME));
-        verify(membershipServiceMock, never())
-            .getUserMember(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.GROUP), any(), any());
+        verify(membershipServiceMock, times(1)).getUserMember(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(MembershipReferenceType.API),
+            any(),
+            eq(USERNAME)
+        );
+        verify(membershipServiceMock, never()).getUserMember(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(MembershipReferenceType.GROUP),
+            any(),
+            any()
+        );
     }
 
     @Test
@@ -283,8 +295,7 @@ public class AccessControlServiceTest {
                 any(),
                 eq(USERNAME)
             )
-        )
-            .thenReturn(null);
+        ).thenReturn(null);
         when(
             membershipServiceMock.getUserMember(
                 eq(GraviteeContext.getExecutionContext()),
@@ -292,8 +303,7 @@ public class AccessControlServiceTest {
                 any(),
                 eq(USERNAME)
             )
-        )
-            .thenReturn(memberEntity);
+        ).thenReturn(memberEntity);
 
         when(
             roleService.hasPermission(
@@ -301,8 +311,7 @@ public class AccessControlServiceTest {
                 ApiPermission.DOCUMENTATION,
                 new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE }
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         final PageEntity pageEntity = mock(PageEntity.class);
         connectUser();
@@ -310,10 +319,18 @@ public class AccessControlServiceTest {
         boolean canAccess = accessControlService.canAccessPageFromConsole(GraviteeContext.getExecutionContext(), apiEntity, pageEntity);
 
         assertTrue(canAccess);
-        verify(membershipServiceMock, times(1))
-            .getUserMember(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.API), any(), eq(USERNAME));
-        verify(membershipServiceMock, times(1))
-            .getUserMember(eq(GraviteeContext.getExecutionContext()), eq(MembershipReferenceType.GROUP), any(), eq(USERNAME));
+        verify(membershipServiceMock, times(1)).getUserMember(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(MembershipReferenceType.API),
+            any(),
+            eq(USERNAME)
+        );
+        verify(membershipServiceMock, times(1)).getUserMember(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(MembershipReferenceType.GROUP),
+            any(),
+            eq(USERNAME)
+        );
     }
 
     @Test
@@ -363,8 +380,7 @@ public class AccessControlServiceTest {
                 MembershipMemberType.USER,
                 USERNAME
             )
-        )
-            .thenReturn(new HashSet(Collections.singleton(roleEntity)));
+        ).thenReturn(new HashSet(Collections.singleton(roleEntity)));
 
         boolean canAccess = accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity);
 
@@ -390,8 +406,7 @@ public class AccessControlServiceTest {
                 MembershipMemberType.USER,
                 USERNAME
             )
-        )
-            .thenReturn(new HashSet(Collections.singleton(roleEntity)));
+        ).thenReturn(new HashSet(Collections.singleton(roleEntity)));
 
         boolean canAccess = accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity);
 
@@ -417,8 +432,7 @@ public class AccessControlServiceTest {
                 MembershipMemberType.USER,
                 USERNAME
             )
-        )
-            .thenReturn(new HashSet(Collections.singleton(roleEntity)));
+        ).thenReturn(new HashSet(Collections.singleton(roleEntity)));
 
         boolean canAccess = accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity);
 
@@ -499,8 +513,9 @@ public class AccessControlServiceTest {
         roles.add(roleEntity);
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setRoles(roles);
-        when(membershipServiceMock.getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID, USERNAME))
-            .thenReturn(memberEntity);
+        when(
+            membershipServiceMock.getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID, USERNAME)
+        ).thenReturn(memberEntity);
 
         boolean canAccess = accessControlService.canAccessPageFromConsole(GraviteeContext.getExecutionContext(), apiEntity, pageEntity);
 

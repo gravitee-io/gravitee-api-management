@@ -53,20 +53,18 @@ class SharedPolicyGroupsResourcePutTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(createSharedPolicyGroupUseCase.execute(any(CreateSharedPolicyGroupUseCase.Input.class)))
-                .thenAnswer(invocation -> {
-                    CreateSharedPolicyGroupUseCase.Input argument = invocation.getArgument(0);
-                    var spgToCreate = argument.sharedPolicyGroupToCreate();
-                    return new CreateSharedPolicyGroupUseCase.Output(
-                        SharedPolicyGroup
-                            .builder()
-                            .id(spgToCreate.getId())
-                            .crossId(spgToCreate.getCrossId())
-                            .hrid(spgToCreate.getHrid())
-                            .environmentId(ENVIRONMENT)
-                            .build()
-                    );
-                });
+            when(createSharedPolicyGroupUseCase.execute(any(CreateSharedPolicyGroupUseCase.Input.class))).thenAnswer(invocation -> {
+                CreateSharedPolicyGroupUseCase.Input argument = invocation.getArgument(0);
+                var spgToCreate = argument.sharedPolicyGroupToCreate();
+                return new CreateSharedPolicyGroupUseCase.Output(
+                    SharedPolicyGroup.builder()
+                        .id(spgToCreate.getId())
+                        .crossId(spgToCreate.getCrossId())
+                        .hrid(spgToCreate.getHrid())
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                );
+            });
         }
 
         @Test

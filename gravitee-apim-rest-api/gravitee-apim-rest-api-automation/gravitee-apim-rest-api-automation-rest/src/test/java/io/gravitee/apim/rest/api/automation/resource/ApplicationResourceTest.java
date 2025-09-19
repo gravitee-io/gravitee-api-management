@@ -62,8 +62,9 @@ class ApplicationResourceTest extends AbstractResourceTest {
         void should_get_application_from_known_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(applicationService.findById(any(), any()))
-                    .thenReturn(ApplicationEntity.builder().id(APPLICATION_ID).hrid(HRID).build());
+                when(applicationService.findById(any(), any())).thenReturn(
+                    ApplicationEntity.builder().id(APPLICATION_ID).hrid(HRID).build()
+                );
                 var state = expectEntity(HRID);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(APPLICATION_ID);
@@ -78,8 +79,9 @@ class ApplicationResourceTest extends AbstractResourceTest {
         void should_get_application_from_known_legacy_id() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(applicationService.findById(any(), any()))
-                    .thenReturn(ApplicationEntity.builder().id(APPLICATION_ID).hrid(APPLICATION_ID).build());
+                when(applicationService.findById(any(), any())).thenReturn(
+                    ApplicationEntity.builder().id(APPLICATION_ID).hrid(APPLICATION_ID).build()
+                );
                 var state = expectEntity(APPLICATION_ID, true);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(APPLICATION_ID);
@@ -92,8 +94,9 @@ class ApplicationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            when(applicationService.findById(any(), any()))
-                .thenThrow(new ApplicationNotFoundException("No Application found with hrid: unknown"));
+            when(applicationService.findById(any(), any())).thenThrow(
+                new ApplicationNotFoundException("No Application found with hrid: unknown")
+            );
 
             expectNotFound("unknown");
         }

@@ -60,8 +60,8 @@ public class GroupsResource extends AbstractResource {
     @Operation(
         summary = "Find groups",
         description = "Find all groups, or a specific type of groups." +
-        "Only administrators could see all groups." +
-        "Only users with MANAGE_API permissions could see API groups."
+            "Only administrators could see all groups." +
+            "Only users with MANAGE_API permissions could see API groups."
     )
     @ApiResponse(
         responseCode = "200",
@@ -82,8 +82,8 @@ public class GroupsResource extends AbstractResource {
     @Operation(
         summary = "Find paginated groups",
         description = "Find paginated groups based on a size and a page query params. Results can be filtered based on a searchTerm query param." +
-        "Only administrators could see all groups." +
-        "Only users with MANAGE_API permissions could see API groups."
+            "Only administrators could see all groups." +
+            "Only users with MANAGE_API permissions could see API groups."
     )
     @ApiResponse(
         responseCode = "200",

@@ -60,8 +60,7 @@ public class ClosePlanDomainService {
 
     private void createAuditLog(Plan planToClose, Plan planUpdated, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(planToClose.getApiId())

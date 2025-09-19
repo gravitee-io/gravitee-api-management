@@ -31,18 +31,17 @@ class SearchMessageLogQueryAdapterTest {
     void should_build_query_without_filter(MessageLogQuery.Filter filter) {
         var result = SearchMessageLogQueryAdapter.adapt(MessageLogQuery.builder().page(1).size(20).filter(filter).build());
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
-                         {
-                           "from": 0,
-                           "size": 20,
-                           "sort": {
-                             "@timestamp": { "order": "desc" }
-                           }
-                         }
-                         """
-            );
+        assertThatJson(result).isEqualTo(
+            """
+            {
+              "from": 0,
+              "size": 20,
+              "sort": {
+                "@timestamp": { "order": "desc" }
+              }
+            }
+            """
+        );
     }
 
     @ParameterizedTest
@@ -62,71 +61,69 @@ class SearchMessageLogQueryAdapterTest {
             Arguments.of(
                 MessageLogQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build(),
                 """
-                        {
-                          "from": 0,
-                          "size": 20,
-                          "query": {
-                            "bool": {
-                              "must": [
-                                { "term": { "api-id":"f1608475-dd77-4603-a084-75dd775603e9" } }
-                              ]
-                            }
-                          },
-                          "sort": {
-                            "@timestamp": { "order": "desc" }
-                          }
-                        }
-                        """
+                {
+                  "from": 0,
+                  "size": 20,
+                  "query": {
+                    "bool": {
+                      "must": [
+                        { "term": { "api-id":"f1608475-dd77-4603-a084-75dd775603e9" } }
+                      ]
+                    }
+                  },
+                  "sort": {
+                    "@timestamp": { "order": "desc" }
+                  }
+                }
+                """
             ),
             Arguments.of(
-                MessageLogQuery.Filter
-                    .builder()
+                MessageLogQuery.Filter.builder()
                     .apiId("f1608475-dd77-4603-a084-75dd775603e9")
                     .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
                     .build(),
                 """
-                        {
-                          "from": 0,
-                          "size": 20,
-                          "query": {
-                            "bool": {
-                              "must": [
-                                { "term": { "api-id":"f1608475-dd77-4603-a084-75dd775603e9" } },
-                                { "term": { "request-id":"8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48" } }
-                              ]
-                            }
-                          },
-                          "sort": {
-                            "@timestamp": { "order": "desc" }
-                          }
-                        }
-                        """
+                {
+                  "from": 0,
+                  "size": 20,
+                  "query": {
+                    "bool": {
+                      "must": [
+                        { "term": { "api-id":"f1608475-dd77-4603-a084-75dd775603e9" } },
+                        { "term": { "request-id":"8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48" } }
+                      ]
+                    }
+                  },
+                  "sort": {
+                    "@timestamp": { "order": "desc" }
+                  }
+                }
+                """
             ),
             Arguments.of(
-                MessageLogQuery.Filter
-                    .builder()
+                MessageLogQuery.Filter.builder()
                     .apiId("f1608475-dd77-4603-a084-75dd775603e9")
                     .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
                     .connectorType("entrypoint")
                     .build(),
                 """
-                        {
-                          "from": 0,
-                          "size": 20,
-                          "query": {
-                            "bool": {
-                              "must": [
-                                { "term": { "api-id":"f1608475-dd77-4603-a084-75dd775603e9" } },
-                                { "term": { "request-id":"8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48" } },
-                                { "term": { "connector-type":"entrypoint" } }
-                              ]
-                            }
-                          },
-                          "sort": {
-                            "@timestamp": { "order": "desc" }
-                          }
-                        }
-                        """
+                {
+                  "from": 0,
+                  "size": 20,
+                  "query": {
+                    "bool": {
+                      "must": [
+                        { "term": { "api-id":"f1608475-dd77-4603-a084-75dd775603e9" } },
+                        { "term": { "request-id":"8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48" } },
+                        { "term": { "connector-type":"entrypoint" } }
+                      ]
+                    }
+                  },
+                  "sort": {
+                    "@timestamp": { "order": "desc" }
+                  }
+                }
+                """
             )
         );
     }

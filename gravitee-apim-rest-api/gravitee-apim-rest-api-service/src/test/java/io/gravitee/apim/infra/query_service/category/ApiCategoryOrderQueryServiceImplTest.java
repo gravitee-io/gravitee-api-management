@@ -50,19 +50,17 @@ class ApiCategoryOrderQueryServiceImplTest {
 
         @Test
         void should_return_list() {
-            when(apiCategoryOrderRepository.findAllByCategoryId(CAT_ID))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().categoryId(CAT_ID).apiId("api-1").order(0).build(),
-                        ApiCategoryOrder.builder().categoryId(CAT_ID).apiId("api-2").order(1).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(CAT_ID)).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().categoryId(CAT_ID).apiId("api-1").order(0).build(),
+                    ApiCategoryOrder.builder().categoryId(CAT_ID).apiId("api-2").order(1).build()
+                )
+            );
 
             var foundApiCategories = service.findAllByCategoryId(CAT_ID);
 
             verify(apiCategoryOrderRepository, times(1)).findAllByCategoryId(CAT_ID);
-            Assertions
-                .assertThat(foundApiCategories)
+            Assertions.assertThat(foundApiCategories)
                 .isNotNull()
                 .hasSize(2)
                 .usingRecursiveComparison()

@@ -65,8 +65,9 @@ public class ConnectionLogsCrudServiceImplTest {
 
         @Test
         void should_search_api_connection_log_detail() throws AnalyticsException {
-            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any()))
-                .thenReturn(Optional.of(ConnectionLogDetail.builder().build()));
+            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any())).thenReturn(
+                Optional.of(ConnectionLogDetail.builder().build())
+            );
 
             logCrudService.searchApiConnectionLog(GraviteeContext.getExecutionContext(), "apiId", "requestId");
 
@@ -78,13 +79,11 @@ public class ConnectionLogsCrudServiceImplTest {
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogDetailQuery.getValue())
-                .isEqualTo(
-                    ConnectionLogDetailQuery
-                        .builder()
-                        .filter(ConnectionLogDetailQuery.Filter.builder().apiIds(Set.of("apiId")).requestIds(Set.of("requestId")).build())
-                        .build()
-                );
+            assertThat(captorConnectionLogDetailQuery.getValue()).isEqualTo(
+                ConnectionLogDetailQuery.builder()
+                    .filter(ConnectionLogDetailQuery.Filter.builder().apiIds(Set.of("apiId")).requestIds(Set.of("requestId")).build())
+                    .build()
+            );
         }
 
         @Test
@@ -96,152 +95,146 @@ public class ConnectionLogsCrudServiceImplTest {
 
         @Test
         void should_return_api_connection_log_detail() throws AnalyticsException {
-            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any()))
-                .thenReturn(
-                    Optional.of(
-                        ConnectionLogDetail
-                            .builder()
-                            .timestamp("2023-10-27T07:41:39.317+02:00")
-                            .apiId("apiId")
-                            .requestId("requestId")
-                            .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
-                            .requestEnded(true)
-                            .entrypointRequest(
-                                ConnectionLogDetail.Request
-                                    .builder()
-                                    .method("GET")
-                                    .uri("/test?param=paramValue")
-                                    .headers(
-                                        Map.of(
-                                            "Accept-Encoding",
-                                            List.of("gzip, deflate, br"),
-                                            "Host",
-                                            List.of("localhost:8082"),
-                                            "X-Gravitee-Transaction-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                            "X-Gravitee-Request-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                        )
+            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any())).thenReturn(
+                Optional.of(
+                    ConnectionLogDetail.builder()
+                        .timestamp("2023-10-27T07:41:39.317+02:00")
+                        .apiId("apiId")
+                        .requestId("requestId")
+                        .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
+                        .requestEnded(true)
+                        .entrypointRequest(
+                            ConnectionLogDetail.Request.builder()
+                                .method("GET")
+                                .uri("/test?param=paramValue")
+                                .headers(
+                                    Map.of(
+                                        "Accept-Encoding",
+                                        List.of("gzip, deflate, br"),
+                                        "Host",
+                                        List.of("localhost:8082"),
+                                        "X-Gravitee-Transaction-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                        "X-Gravitee-Request-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                                     )
-                                    .build()
-                            )
-                            .endpointRequest(
-                                ConnectionLogDetail.Request
-                                    .builder()
-                                    .method("GET")
-                                    .uri("")
-                                    .headers(
-                                        Map.of(
-                                            "Accept-Encoding",
-                                            List.of("gzip, deflate, br"),
-                                            "Host",
-                                            List.of("localhost:8082"),
-                                            "X-Gravitee-Request-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                            "X-Gravitee-Transaction-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                        )
+                                )
+                                .build()
+                        )
+                        .endpointRequest(
+                            ConnectionLogDetail.Request.builder()
+                                .method("GET")
+                                .uri("")
+                                .headers(
+                                    Map.of(
+                                        "Accept-Encoding",
+                                        List.of("gzip, deflate, br"),
+                                        "Host",
+                                        List.of("localhost:8082"),
+                                        "X-Gravitee-Request-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                        "X-Gravitee-Transaction-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                                     )
-                                    .build()
-                            )
-                            .entrypointResponse(
-                                ConnectionLogDetail.Response
-                                    .builder()
-                                    .status(200)
-                                    .headers(
-                                        Map.of(
-                                            "Content-Type",
-                                            List.of("text/plain"),
-                                            "X-Gravitee-Client-Identifier",
-                                            List.of("8eec8b53-edae-4954-ac8b-53edae1954e4"),
-                                            "X-Gravitee-Request-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                            "X-Gravitee-Transaction-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                        )
+                                )
+                                .build()
+                        )
+                        .entrypointResponse(
+                            ConnectionLogDetail.Response.builder()
+                                .status(200)
+                                .headers(
+                                    Map.of(
+                                        "Content-Type",
+                                        List.of("text/plain"),
+                                        "X-Gravitee-Client-Identifier",
+                                        List.of("8eec8b53-edae-4954-ac8b-53edae1954e4"),
+                                        "X-Gravitee-Request-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                        "X-Gravitee-Transaction-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                                     )
-                                    .build()
-                            )
-                            .endpointResponse(ConnectionLogDetail.Response.builder().status(200).headers(Map.of()).build())
-                            .build()
-                    )
-                );
+                                )
+                                .build()
+                        )
+                        .endpointResponse(ConnectionLogDetail.Response.builder().status(200).headers(Map.of()).build())
+                        .build()
+                )
+            );
 
             var result = logCrudService.searchApiConnectionLog(GraviteeContext.getExecutionContext(), "apiId", "requestId");
 
             SoftAssertions.assertSoftly(soft -> {
-                assertThat(result)
-                    .hasValueSatisfying(connectionLogDetail -> {
-                        assertThat(connectionLogDetail)
-                            .hasFieldOrPropertyWithValue("apiId", "apiId")
-                            .hasFieldOrPropertyWithValue("requestId", "requestId")
-                            .hasFieldOrPropertyWithValue("timestamp", "2023-10-27T07:41:39.317+02:00")
-                            .hasFieldOrPropertyWithValue("clientIdentifier", "8eec8b53-edae-4954-ac8b-53edae1954e4")
-                            .hasFieldOrPropertyWithValue("requestEnded", true);
-                        assertThat(connectionLogDetail.getEntrypointRequest())
-                            .hasFieldOrPropertyWithValue("method", "GET")
-                            .hasFieldOrPropertyWithValue("uri", "/test?param=paramValue")
-                            .extracting(
-                                io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Request::getHeaders,
-                                as(InstanceOfAssertFactories.map(String.class, List.class))
+                assertThat(result).hasValueSatisfying(connectionLogDetail -> {
+                    assertThat(connectionLogDetail)
+                        .hasFieldOrPropertyWithValue("apiId", "apiId")
+                        .hasFieldOrPropertyWithValue("requestId", "requestId")
+                        .hasFieldOrPropertyWithValue("timestamp", "2023-10-27T07:41:39.317+02:00")
+                        .hasFieldOrPropertyWithValue("clientIdentifier", "8eec8b53-edae-4954-ac8b-53edae1954e4")
+                        .hasFieldOrPropertyWithValue("requestEnded", true);
+                    assertThat(connectionLogDetail.getEntrypointRequest())
+                        .hasFieldOrPropertyWithValue("method", "GET")
+                        .hasFieldOrPropertyWithValue("uri", "/test?param=paramValue")
+                        .extracting(
+                            io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Request::getHeaders,
+                            as(InstanceOfAssertFactories.map(String.class, List.class))
+                        )
+                        .containsAllEntriesOf(
+                            Map.of(
+                                "Accept-Encoding",
+                                List.of("gzip, deflate, br"),
+                                "Host",
+                                List.of("localhost:8082"),
+                                "X-Gravitee-Transaction-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                "X-Gravitee-Request-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                             )
-                            .containsAllEntriesOf(
-                                Map.of(
-                                    "Accept-Encoding",
-                                    List.of("gzip, deflate, br"),
-                                    "Host",
-                                    List.of("localhost:8082"),
-                                    "X-Gravitee-Transaction-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                    "X-Gravitee-Request-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                )
-                            );
-                        assertThat(connectionLogDetail.getEndpointRequest())
-                            .hasFieldOrPropertyWithValue("method", "GET")
-                            .hasFieldOrPropertyWithValue("uri", "")
-                            .extracting(
-                                io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Request::getHeaders,
-                                as(InstanceOfAssertFactories.map(String.class, List.class))
+                        );
+                    assertThat(connectionLogDetail.getEndpointRequest())
+                        .hasFieldOrPropertyWithValue("method", "GET")
+                        .hasFieldOrPropertyWithValue("uri", "")
+                        .extracting(
+                            io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Request::getHeaders,
+                            as(InstanceOfAssertFactories.map(String.class, List.class))
+                        )
+                        .containsAllEntriesOf(
+                            Map.of(
+                                "Accept-Encoding",
+                                List.of("gzip, deflate, br"),
+                                "Host",
+                                List.of("localhost:8082"),
+                                "X-Gravitee-Request-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                "X-Gravitee-Transaction-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                             )
-                            .containsAllEntriesOf(
-                                Map.of(
-                                    "Accept-Encoding",
-                                    List.of("gzip, deflate, br"),
-                                    "Host",
-                                    List.of("localhost:8082"),
-                                    "X-Gravitee-Request-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                    "X-Gravitee-Transaction-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                )
-                            );
-                        assertThat(connectionLogDetail.getEntrypointResponse())
-                            .hasFieldOrPropertyWithValue("status", 200)
-                            .extracting(
-                                io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Response::getHeaders,
-                                as(InstanceOfAssertFactories.map(String.class, List.class))
+                        );
+                    assertThat(connectionLogDetail.getEntrypointResponse())
+                        .hasFieldOrPropertyWithValue("status", 200)
+                        .extracting(
+                            io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Response::getHeaders,
+                            as(InstanceOfAssertFactories.map(String.class, List.class))
+                        )
+                        .containsAllEntriesOf(
+                            Map.of(
+                                "Content-Type",
+                                List.of("text/plain"),
+                                "X-Gravitee-Client-Identifier",
+                                List.of("8eec8b53-edae-4954-ac8b-53edae1954e4"),
+                                "X-Gravitee-Request-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                "X-Gravitee-Transaction-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                             )
-                            .containsAllEntriesOf(
-                                Map.of(
-                                    "Content-Type",
-                                    List.of("text/plain"),
-                                    "X-Gravitee-Client-Identifier",
-                                    List.of("8eec8b53-edae-4954-ac8b-53edae1954e4"),
-                                    "X-Gravitee-Request-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                    "X-Gravitee-Transaction-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                )
-                            );
-                        assertThat(connectionLogDetail.getEndpointResponse())
-                            .hasFieldOrPropertyWithValue("status", 200)
-                            .extracting(
-                                io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Response::getHeaders,
-                                as(InstanceOfAssertFactories.map(String.class, List.class))
-                            )
-                            .isEmpty();
-                    });
+                        );
+                    assertThat(connectionLogDetail.getEndpointResponse())
+                        .hasFieldOrPropertyWithValue("status", 200)
+                        .extracting(
+                            io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Response::getHeaders,
+                            as(InstanceOfAssertFactories.map(String.class, List.class))
+                        )
+                        .isEmpty();
+                });
             });
         }
     }
@@ -253,8 +246,7 @@ public class ConnectionLogsCrudServiceImplTest {
         void should_search_connection_logs_with_empty_query() throws AnalyticsException {
             when(
                 logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
-            )
-                .thenReturn(new LogResponse<>(1, List.of()));
+            ).thenReturn(new LogResponse<>(1, List.of()));
 
             logCrudService.searchApplicationConnectionLogs(
                 GraviteeContext.getExecutionContext(),
@@ -265,38 +257,33 @@ public class ConnectionLogsCrudServiceImplTest {
 
             var captorQueryContext = ArgumentCaptor.forClass(QueryContext.class);
             var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
-            verify(logRepository)
-                .searchConnectionLogs(
-                    captorQueryContext.capture(),
-                    captorConnectionLogQuery.capture(),
-                    eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
-                );
+            verify(logRepository).searchConnectionLogs(
+                captorQueryContext.capture(),
+                captorConnectionLogQuery.capture(),
+                eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+            );
 
             final QueryContext queryContext = captorQueryContext.getValue();
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogQuery.getValue())
-                .isEqualTo(
-                    ConnectionLogQuery
-                        .builder()
-                        .filter(ConnectionLogQuery.Filter.builder().applicationIds(Set.of("application-id")).build())
-                        .build()
-                );
+            assertThat(captorConnectionLogQuery.getValue()).isEqualTo(
+                ConnectionLogQuery.builder()
+                    .filter(ConnectionLogQuery.Filter.builder().applicationIds(Set.of("application-id")).build())
+                    .build()
+            );
         }
 
         @Test
         void should_search_connection_logs_with_query() throws AnalyticsException {
             when(
                 logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
-            )
-                .thenReturn(new LogResponse<>(1, List.of()));
+            ).thenReturn(new LogResponse<>(1, List.of()));
 
             logCrudService.searchApplicationConnectionLogs(
                 GraviteeContext.getExecutionContext(),
                 "application-id",
-                SearchLogsFilters
-                    .builder()
+                SearchLogsFilters.builder()
                     .to(1L)
                     .from(0L)
                     .apiIds(Set.of("api-1"))
@@ -311,36 +298,32 @@ public class ConnectionLogsCrudServiceImplTest {
 
             var captorQueryContext = ArgumentCaptor.forClass(QueryContext.class);
             var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
-            verify(logRepository)
-                .searchConnectionLogs(
-                    captorQueryContext.capture(),
-                    captorConnectionLogQuery.capture(),
-                    eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
-                );
+            verify(logRepository).searchConnectionLogs(
+                captorQueryContext.capture(),
+                captorConnectionLogQuery.capture(),
+                eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+            );
 
             final QueryContext queryContext = captorQueryContext.getValue();
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogQuery.getValue())
-                .isEqualTo(
-                    ConnectionLogQuery
-                        .builder()
-                        .filter(
-                            ConnectionLogQuery.Filter
-                                .builder()
-                                .to(1L)
-                                .from(0L)
-                                .apiIds(Set.of("api-1"))
-                                .applicationIds(Set.of("application-id"))
-                                .entrypointIds(Set.of("entrypoint-id"))
-                                .planIds(Set.of("plan-1"))
-                                .methods(Set.of(HttpMethod.GET))
-                                .statuses(Set.of(3))
-                                .build()
-                        )
-                        .build()
-                );
+            assertThat(captorConnectionLogQuery.getValue()).isEqualTo(
+                ConnectionLogQuery.builder()
+                    .filter(
+                        ConnectionLogQuery.Filter.builder()
+                            .to(1L)
+                            .from(0L)
+                            .apiIds(Set.of("api-1"))
+                            .applicationIds(Set.of("application-id"))
+                            .entrypointIds(Set.of("entrypoint-id"))
+                            .planIds(Set.of("plan-1"))
+                            .methods(Set.of(HttpMethod.GET))
+                            .statuses(Set.of(3))
+                            .build()
+                    )
+                    .build()
+            );
         }
 
         @Test
@@ -350,8 +333,7 @@ public class ConnectionLogsCrudServiceImplTest {
             logCrudService.searchApplicationConnectionLogs(
                 GraviteeContext.getExecutionContext(),
                 "application-id",
-                SearchLogsFilters
-                    .builder()
+                SearchLogsFilters.builder()
                     .to(1L)
                     .from(0L)
                     .apiIds(Set.of("api-1"))
@@ -367,8 +349,10 @@ public class ConnectionLogsCrudServiceImplTest {
 
             var captorConnectionLogDetailQueryContext = ArgumentCaptor.forClass(QueryContext.class);
             var captorConnectionLogDetailQuery = ArgumentCaptor.forClass(ConnectionLogDetailQuery.class);
-            verify(logRepository)
-                .searchConnectionLogDetails(captorConnectionLogDetailQueryContext.capture(), captorConnectionLogDetailQuery.capture());
+            verify(logRepository).searchConnectionLogDetails(
+                captorConnectionLogDetailQueryContext.capture(),
+                captorConnectionLogDetailQuery.capture()
+            );
 
             verify(logRepository, never()).searchConnectionLogs(any(), any(), any());
 
@@ -376,60 +360,54 @@ public class ConnectionLogsCrudServiceImplTest {
             assertThat(captorConnectionLogDetailQueryContextValue.getOrgId()).isEqualTo("DEFAULT");
             assertThat(captorConnectionLogDetailQueryContextValue.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogDetailQuery.getValue())
-                .isEqualTo(
-                    ConnectionLogDetailQuery
-                        .builder()
-                        .size(3)
-                        .projectionFields(List.of("_id", "request-id"))
-                        .filter(
-                            ConnectionLogDetailQuery.Filter
-                                .builder()
-                                .to(1L)
-                                .from(0L)
-                                .apiIds(Set.of("api-1"))
-                                .methods(Set.of(HttpMethod.GET))
-                                .statuses(Set.of(3))
-                                .bodyText("curl")
-                                .build()
-                        )
-                        .build()
-                );
+            assertThat(captorConnectionLogDetailQuery.getValue()).isEqualTo(
+                ConnectionLogDetailQuery.builder()
+                    .size(3)
+                    .projectionFields(List.of("_id", "request-id"))
+                    .filter(
+                        ConnectionLogDetailQuery.Filter.builder()
+                            .to(1L)
+                            .from(0L)
+                            .apiIds(Set.of("api-1"))
+                            .methods(Set.of(HttpMethod.GET))
+                            .statuses(Set.of(3))
+                            .bodyText("curl")
+                            .build()
+                    )
+                    .build()
+            );
         }
 
         @Test
         void should_search_connection_logs_with_body_text_filter() throws AnalyticsException {
-            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any()))
-                .thenReturn(
-                    new LogResponse<>(
-                        3,
-                        List.of(
-                            ConnectionLogDetail.builder().requestId("r-1").build(),
-                            ConnectionLogDetail.builder().requestId("r-2").build(),
-                            ConnectionLogDetail.builder().requestId("r-3").build()
-                        )
+            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any())).thenReturn(
+                new LogResponse<>(
+                    3,
+                    List.of(
+                        ConnectionLogDetail.builder().requestId("r-1").build(),
+                        ConnectionLogDetail.builder().requestId("r-2").build(),
+                        ConnectionLogDetail.builder().requestId("r-3").build()
                     )
-                );
+                )
+            );
 
             when(
                 logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
-            )
-                .thenReturn(
-                    new LogResponse<>(
-                        3,
-                        List.of(
-                            ConnectionLog.builder().requestId("r-1").build(),
-                            ConnectionLog.builder().requestId("r-2").build(),
-                            ConnectionLog.builder().requestId("r-3").build()
-                        )
+            ).thenReturn(
+                new LogResponse<>(
+                    3,
+                    List.of(
+                        ConnectionLog.builder().requestId("r-1").build(),
+                        ConnectionLog.builder().requestId("r-2").build(),
+                        ConnectionLog.builder().requestId("r-3").build()
                     )
-                );
+                )
+            );
 
             logCrudService.searchApplicationConnectionLogs(
                 GraviteeContext.getExecutionContext(),
                 "application-id",
-                SearchLogsFilters
-                    .builder()
+                SearchLogsFilters.builder()
                     .to(1L)
                     .from(0L)
                     .apiIds(Set.of("api-1"))
@@ -445,100 +423,92 @@ public class ConnectionLogsCrudServiceImplTest {
 
             var captorConnectionLogDetailQueryContext = ArgumentCaptor.forClass(QueryContext.class);
             var captorConnectionLogDetailQuery = ArgumentCaptor.forClass(ConnectionLogDetailQuery.class);
-            verify(logRepository)
-                .searchConnectionLogDetails(captorConnectionLogDetailQueryContext.capture(), captorConnectionLogDetailQuery.capture());
+            verify(logRepository).searchConnectionLogDetails(
+                captorConnectionLogDetailQueryContext.capture(),
+                captorConnectionLogDetailQuery.capture()
+            );
 
             var captorConnectionLogQueryContext = ArgumentCaptor.forClass(QueryContext.class);
             var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
-            verify(logRepository)
-                .searchConnectionLogs(
-                    captorConnectionLogQueryContext.capture(),
-                    captorConnectionLogQuery.capture(),
-                    eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
-                );
+            verify(logRepository).searchConnectionLogs(
+                captorConnectionLogQueryContext.capture(),
+                captorConnectionLogQuery.capture(),
+                eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+            );
 
             final QueryContext captorConnectionLogDetailQueryContextValue = captorConnectionLogDetailQueryContext.getValue();
             assertThat(captorConnectionLogDetailQueryContextValue.getOrgId()).isEqualTo("DEFAULT");
             assertThat(captorConnectionLogDetailQueryContextValue.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogDetailQuery.getValue())
-                .isEqualTo(
-                    ConnectionLogDetailQuery
-                        .builder()
-                        .projectionFields(List.of("_id", "request-id"))
-                        .filter(
-                            ConnectionLogDetailQuery.Filter
-                                .builder()
-                                .to(1L)
-                                .from(0L)
-                                .apiIds(Set.of("api-1"))
-                                .methods(Set.of(HttpMethod.GET))
-                                .statuses(Set.of(3))
-                                .bodyText("curl")
-                                .build()
-                        )
-                        .build()
-                );
+            assertThat(captorConnectionLogDetailQuery.getValue()).isEqualTo(
+                ConnectionLogDetailQuery.builder()
+                    .projectionFields(List.of("_id", "request-id"))
+                    .filter(
+                        ConnectionLogDetailQuery.Filter.builder()
+                            .to(1L)
+                            .from(0L)
+                            .apiIds(Set.of("api-1"))
+                            .methods(Set.of(HttpMethod.GET))
+                            .statuses(Set.of(3))
+                            .bodyText("curl")
+                            .build()
+                    )
+                    .build()
+            );
 
             final QueryContext queryContext = captorConnectionLogQueryContext.getValue();
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogQuery.getValue())
-                .isEqualTo(
-                    ConnectionLogQuery
-                        .builder()
-                        .filter(
-                            ConnectionLogQuery.Filter
-                                .builder()
-                                .to(1L)
-                                .from(0L)
-                                .apiIds(Set.of("api-1"))
-                                .applicationIds(Set.of("application-id"))
-                                .entrypointIds(Set.of("entrypoint-id"))
-                                .planIds(Set.of("plan-1"))
-                                .methods(Set.of(HttpMethod.GET))
-                                .statuses(Set.of(3))
-                                .requestIds(Set.of("r-1", "r-2", "r-3"))
-                                .build()
-                        )
-                        .build()
-                );
+            assertThat(captorConnectionLogQuery.getValue()).isEqualTo(
+                ConnectionLogQuery.builder()
+                    .filter(
+                        ConnectionLogQuery.Filter.builder()
+                            .to(1L)
+                            .from(0L)
+                            .apiIds(Set.of("api-1"))
+                            .applicationIds(Set.of("application-id"))
+                            .entrypointIds(Set.of("entrypoint-id"))
+                            .planIds(Set.of("plan-1"))
+                            .methods(Set.of(HttpMethod.GET))
+                            .statuses(Set.of(3))
+                            .requestIds(Set.of("r-1", "r-2", "r-3"))
+                            .build()
+                    )
+                    .build()
+            );
         }
 
         @Test
         void should_search_connection_logs_with_body_text_filter_and_on_full_page_return_log_details_total() throws AnalyticsException {
-            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any()))
-                .thenReturn(
-                    new LogResponse<>(
-                        5,
-                        List.of(
-                            ConnectionLogDetail.builder().requestId("r-1").build(),
-                            ConnectionLogDetail.builder().requestId("r-2").build(),
-                            ConnectionLogDetail.builder().requestId("r-3").build()
-                        )
+            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any())).thenReturn(
+                new LogResponse<>(
+                    5,
+                    List.of(
+                        ConnectionLogDetail.builder().requestId("r-1").build(),
+                        ConnectionLogDetail.builder().requestId("r-2").build(),
+                        ConnectionLogDetail.builder().requestId("r-3").build()
                     )
-                );
+                )
+            );
 
             when(
                 logRepository.searchConnectionLogs(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4)))
-            )
-                .thenReturn(
-                    new LogResponse<>(
-                        3,
-                        List.of(
-                            ConnectionLog.builder().requestId("r-1").build(),
-                            ConnectionLog.builder().requestId("r-2").build(),
-                            ConnectionLog.builder().requestId("r-3").build()
-                        )
+            ).thenReturn(
+                new LogResponse<>(
+                    3,
+                    List.of(
+                        ConnectionLog.builder().requestId("r-1").build(),
+                        ConnectionLog.builder().requestId("r-2").build(),
+                        ConnectionLog.builder().requestId("r-3").build()
                     )
-                );
+                )
+            );
 
             logCrudService.searchApplicationConnectionLogs(
                 GraviteeContext.getExecutionContext(),
                 "application-id",
-                SearchLogsFilters
-                    .builder()
+                SearchLogsFilters.builder()
                     .to(1L)
                     .from(0L)
                     .apiIds(Set.of("api-1"))
@@ -554,67 +524,62 @@ public class ConnectionLogsCrudServiceImplTest {
 
             var captorConnectionLogDetailQueryContext = ArgumentCaptor.forClass(QueryContext.class);
             var captorConnectionLogDetailQuery = ArgumentCaptor.forClass(ConnectionLogDetailQuery.class);
-            verify(logRepository)
-                .searchConnectionLogDetails(captorConnectionLogDetailQueryContext.capture(), captorConnectionLogDetailQuery.capture());
+            verify(logRepository).searchConnectionLogDetails(
+                captorConnectionLogDetailQueryContext.capture(),
+                captorConnectionLogDetailQuery.capture()
+            );
 
             var captorConnectionLogQueryContext = ArgumentCaptor.forClass(QueryContext.class);
             var captorConnectionLogQuery = ArgumentCaptor.forClass(ConnectionLogQuery.class);
-            verify(logRepository)
-                .searchConnectionLogs(
-                    captorConnectionLogQueryContext.capture(),
-                    captorConnectionLogQuery.capture(),
-                    eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
-                );
+            verify(logRepository).searchConnectionLogs(
+                captorConnectionLogQueryContext.capture(),
+                captorConnectionLogQuery.capture(),
+                eq(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+            );
 
             final QueryContext captorConnectionLogDetailQueryContextValue = captorConnectionLogDetailQueryContext.getValue();
             assertThat(captorConnectionLogDetailQueryContextValue.getOrgId()).isEqualTo("DEFAULT");
             assertThat(captorConnectionLogDetailQueryContextValue.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogDetailQuery.getValue())
-                .isEqualTo(
-                    ConnectionLogDetailQuery
-                        .builder()
-                        .size(3)
-                        .projectionFields(List.of("_id", "request-id"))
-                        .filter(
-                            ConnectionLogDetailQuery.Filter
-                                .builder()
-                                .to(1L)
-                                .from(0L)
-                                .apiIds(Set.of("api-1"))
-                                .methods(Set.of(HttpMethod.GET))
-                                .statuses(Set.of(3))
-                                .bodyText("curl")
-                                .build()
-                        )
-                        .build()
-                );
+            assertThat(captorConnectionLogDetailQuery.getValue()).isEqualTo(
+                ConnectionLogDetailQuery.builder()
+                    .size(3)
+                    .projectionFields(List.of("_id", "request-id"))
+                    .filter(
+                        ConnectionLogDetailQuery.Filter.builder()
+                            .to(1L)
+                            .from(0L)
+                            .apiIds(Set.of("api-1"))
+                            .methods(Set.of(HttpMethod.GET))
+                            .statuses(Set.of(3))
+                            .bodyText("curl")
+                            .build()
+                    )
+                    .build()
+            );
 
             final QueryContext queryContext = captorConnectionLogQueryContext.getValue();
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogQuery.getValue())
-                .isEqualTo(
-                    ConnectionLogQuery
-                        .builder()
-                        .filter(
-                            ConnectionLogQuery.Filter
-                                .builder()
-                                .to(1L)
-                                .from(0L)
-                                .apiIds(Set.of("api-1"))
-                                .applicationIds(Set.of("application-id"))
-                                .entrypointIds(Set.of("entrypoint-id"))
-                                .planIds(Set.of("plan-1"))
-                                .methods(Set.of(HttpMethod.GET))
-                                .statuses(Set.of(3))
-                                .requestIds(Set.of("r-1", "r-2", "r-3"))
-                                .build()
-                        )
-                        .size(3)
-                        .build()
-                );
+            assertThat(captorConnectionLogQuery.getValue()).isEqualTo(
+                ConnectionLogQuery.builder()
+                    .filter(
+                        ConnectionLogQuery.Filter.builder()
+                            .to(1L)
+                            .from(0L)
+                            .apiIds(Set.of("api-1"))
+                            .applicationIds(Set.of("application-id"))
+                            .entrypointIds(Set.of("entrypoint-id"))
+                            .planIds(Set.of("plan-1"))
+                            .methods(Set.of(HttpMethod.GET))
+                            .statuses(Set.of(3))
+                            .requestIds(Set.of("r-1", "r-2", "r-3"))
+                            .build()
+                    )
+                    .size(3)
+                    .build()
+            );
         }
     }
 }

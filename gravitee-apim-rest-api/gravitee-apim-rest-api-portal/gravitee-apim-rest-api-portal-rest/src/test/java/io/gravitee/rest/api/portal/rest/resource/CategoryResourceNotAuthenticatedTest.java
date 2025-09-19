@@ -60,8 +60,9 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
         when(categoryService.findNotHiddenById(CATEGORY_ID, GraviteeContext.getCurrentEnvironment())).thenReturn(categoryEntity);
 
         Map<String, Long> countByCategory = Map.of(CATEGORY_ID, 5L);
-        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(null))
-            .thenReturn(cat -> countByCategory.getOrDefault(cat, 0L));
+        when(apiCategoryService.countApisPublishedGroupedByCategoriesForUser(null)).thenReturn(cat ->
+            countByCategory.getOrDefault(cat, 0L)
+        );
 
         when(categoryMapper.convert(any(), any())).thenCallRealMethod();
     }

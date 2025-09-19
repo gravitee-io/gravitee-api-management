@@ -68,8 +68,7 @@ public class IntegrationAgentImpl implements IntegrationAgent {
 
     @Override
     public Single<Status> getAgentStatusFor(String integrationId) {
-        return Maybe
-            .fromOptional(exchangeController)
+        return Maybe.fromOptional(exchangeController)
             .flatMap(controller -> controller.channelsMetricsForTarget(integrationId).toList().toMaybe())
             .map(metrics -> metrics != null && metrics.stream().anyMatch(ChannelMetric::active) ? Status.CONNECTED : Status.DISCONNECTED)
             .switchIfEmpty(Single.just(Status.DISCONNECTED));
@@ -123,8 +122,7 @@ public class IntegrationAgentImpl implements IntegrationAgent {
         }
         var payload = new SubscribeCommand.Payload(
             api.getProviderId(),
-            Subscription
-                .builder()
+            Subscription.builder()
                 .graviteeSubscriptionId(subscriptionId)
                 .graviteeApplicationId(application.getId())
                 .graviteeApplicationName(application.getName())
@@ -133,20 +131,19 @@ public class IntegrationAgentImpl implements IntegrationAgent {
                 .build()
         );
 
-        return sendSubscribeCommand(new SubscribeCommand(payload), integrationId)
-            .flatMap(reply -> {
-                if (reply.getCommandStatus() == CommandStatus.ERROR) {
-                    return Single.error(new IntegrationSubscriptionException(reply.getErrorDetails()));
-                }
-                var subscriptionResult = reply.getPayload().subscription();
-                return switch (payload.subscription().type()) {
-                    case API_KEY -> Single.just(apiKey(integrationId, subscriptionResult.apiKey(), subscriptionResult.metadata()));
-                    case OAUTH -> Single.just(oAuth(integrationId, subscriptionResult.metadata()));
-                    default -> Single.error(
-                        new IntegrationSubscriptionException("Unsupported subscription type: " + payload.subscription().type())
-                    );
-                };
-            });
+        return sendSubscribeCommand(new SubscribeCommand(payload), integrationId).flatMap(reply -> {
+            if (reply.getCommandStatus() == CommandStatus.ERROR) {
+                return Single.error(new IntegrationSubscriptionException(reply.getErrorDetails()));
+            }
+            var subscriptionResult = reply.getPayload().subscription();
+            return switch (payload.subscription().type()) {
+                case API_KEY -> Single.just(apiKey(integrationId, subscriptionResult.apiKey(), subscriptionResult.metadata()));
+                case OAUTH -> Single.just(oAuth(integrationId, subscriptionResult.metadata()));
+                default -> Single.error(
+                    new IntegrationSubscriptionException("Unsupported subscription type: " + payload.subscription().type())
+                );
+            };
+        });
     }
 
     @Override
@@ -167,12 +164,11 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             Subscription.builder().graviteeSubscriptionId(subscription.getId()).metadata(metadata).build()
         );
 
-        return sendUnsubscribeCommand(new UnsubscribeCommand(payload), integrationId)
-            .flatMapCompletable(reply ->
-                reply.getCommandStatus() == CommandStatus.ERROR
-                    ? Completable.error(new IntegrationSubscriptionException(reply.getErrorDetails()))
-                    : Completable.complete()
-            );
+        return sendUnsubscribeCommand(new UnsubscribeCommand(payload), integrationId).flatMapCompletable(reply ->
+            reply.getCommandStatus() == CommandStatus.ERROR
+                ? Completable.error(new IntegrationSubscriptionException(reply.getErrorDetails()))
+                : Completable.complete()
+        );
     }
 
     @Override
@@ -180,28 +176,27 @@ public class IntegrationAgentImpl implements IntegrationAgent {
         var command = new DiscoverCommand();
 
         log.debug("Discover all assets for [integrationId={}]", integrationId);
-        return sendDiscoverCommand(command, integrationId)
-            .flatMap(discoverReply -> {
-                if (discoverReply.getCommandStatus() == CommandStatus.ERROR) {
-                    return Single.error(new IntegrationDiscoveryException(discoverReply.getErrorDetails()));
-                }
-                boolean isPartialDiscovery = discoverReply.getPayload().isPartialDiscovery();
+        return sendDiscoverCommand(command, integrationId).flatMap(discoverReply -> {
+            if (discoverReply.getCommandStatus() == CommandStatus.ERROR) {
+                return Single.error(new IntegrationDiscoveryException(discoverReply.getErrorDetails()));
+            }
+            boolean isPartialDiscovery = discoverReply.getPayload().isPartialDiscovery();
 
-                List<IntegrationApi> integrationApis = discoverReply
-                    .getPayload()
-                    .apis()
-                    .stream()
-                    .map(api -> IntegrationAdapter.INSTANCE.map(api, integrationId))
-                    .toList();
+            List<IntegrationApi> integrationApis = discoverReply
+                .getPayload()
+                .apis()
+                .stream()
+                .map(api -> IntegrationAdapter.INSTANCE.map(api, integrationId))
+                .toList();
 
-                log.debug(
-                    "Discovered APIs for [integrationId={}] total: [{}], partial discovery: [{}]",
-                    integrationId,
-                    integrationApis.size(),
-                    isPartialDiscovery
-                );
-                return Single.just(new DiscoveredApis(integrationApis, isPartialDiscovery));
-            });
+            log.debug(
+                "Discovered APIs for [integrationId={}] total: [{}], partial discovery: [{}]",
+                integrationId,
+                integrationApis.size(),
+                isPartialDiscovery
+            );
+            return Single.just(new DiscoveredApis(integrationApis, isPartialDiscovery));
+        });
     }
 
     private Single<StartIngestReply> sendStartIngestCommand(StartIngestCommand startIngestCommand, String integrationId) {

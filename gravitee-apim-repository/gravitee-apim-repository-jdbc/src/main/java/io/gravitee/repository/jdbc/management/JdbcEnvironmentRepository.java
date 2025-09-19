@@ -48,8 +48,7 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
     @Override
     protected JdbcObjectMapper<Environment> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Environment.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Environment.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("cockpit_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)

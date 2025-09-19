@@ -71,28 +71,22 @@ public class ImportGroupCRDUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        cut =
-            new ImportGroupCRDUseCase(
-                new ValidateGroupCRDDomainServiceImpl(
-                    new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-                    roleService
-                ),
-                groupQueryService,
-                groupCrudService,
-                membersService
-            );
+        cut = new ImportGroupCRDUseCase(
+            new ValidateGroupCRDDomainServiceImpl(new ValidateCRDMembersDomainService(userDomainService, roleQueryService), roleService),
+            groupQueryService,
+            groupCrudService,
+            membersService
+        );
     }
 
     @Test
     void should_create_group_setting_origin_to_kubernetes() {
-        var spec = GroupCRDSpec
-            .builder()
+        var spec = GroupCRDSpec.builder()
             .id("abc0a85b-9924-4981-bd71-69295353f5ff")
             .name("kubernetes-spec")
             .members(
                 Set.of(
-                    GroupCRDSpec.Member
-                        .builder()
+                    GroupCRDSpec.Member.builder()
                         .source("memory")
                         .sourceId("api1")
                         .roles(Map.of(RoleScope.API, "OWNER", RoleScope.APPLICATION, "OWNER", RoleScope.INTEGRATION, "OWNER"))

@@ -43,11 +43,18 @@ public class PortalPageQueryServiceInMemory implements PortalPageQueryService, I
 
     @Override
     public List<PortalPageWithViewDetails> findByEnvironmentIdAndContext(String environmentId, PortalViewContext context) {
-        return storage.stream().filter(pageWithViewDetails -> pageWithViewDetails.viewDetails().context().equals(context)).toList();
+        return storage
+            .stream()
+            .filter(pageWithViewDetails -> pageWithViewDetails.viewDetails().context().equals(context))
+            .toList();
     }
 
     @Override
     public PortalPageWithViewDetails findById(PageId pageId) {
-        return storage.stream().filter(p -> p.page().getId().equals(pageId)).findFirst().orElse(null);
+        return storage
+            .stream()
+            .filter(p -> p.page().getId().equals(pageId))
+            .findFirst()
+            .orElse(null);
     }
 }

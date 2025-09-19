@@ -267,11 +267,10 @@ class FlowPhaseExecutionV3IntegrationTest {
                 .awaitDone(2, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
-                    assertThat(response)
-                        .hasToString(
-                            "The template evaluation returns an error. Expression:\n" +
+                    assertThat(response).hasToString(
+                        "The template evaluation returns an error. Expression:\n" +
                             "{##request.headers['X-Condition-Flow-Selection'][0] == 'root-condition'} "
-                        );
+                    );
                     return true;
                 });
         }

@@ -25,7 +25,12 @@ public class ThemeDefinitionInvalidException extends ValidationDomainException {
     public ThemeDefinitionInvalidException(String themeType, Object definition) {
         super(
             "Theme definition invalid for theme type [" + themeType + "]",
-            Map.of("themeDefinition", Optional.ofNullable(definition).map(def -> definition.toString()).orElse(""))
+            Map.of(
+                "themeDefinition",
+                Optional.ofNullable(definition)
+                    .map(def -> definition.toString())
+                    .orElse("")
+            )
         );
     }
 }

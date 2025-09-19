@@ -54,8 +54,7 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
 
     @Override
     protected JdbcObjectMapper<Role> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Role.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Role.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
@@ -187,12 +186,12 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
             JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " r" +
-                " left join " +
-                ROLE_PERMISSIONS +
-                " rp on rp.role_id = r.id" +
-                " where r.id = ?" +
-                " order by r.reference_type, r.reference_id, r.scope,r.name",
+                    " r" +
+                    " left join " +
+                    ROLE_PERMISSIONS +
+                    " rp on rp.role_id = r.id" +
+                    " where r.id = ?" +
+                    " order by r.reference_type, r.reference_id, r.scope,r.name",
                 rowMapper,
                 roleId
             );
@@ -217,12 +216,12 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
             JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " r " +
-                " left join " +
-                ROLE_PERMISSIONS +
-                " rp on rp.role_id = r.id" +
-                " where r.scope = ? and r.name = ? and r.reference_id = ? and r.reference_type = ?" +
-                " order by r.reference_type, r.reference_id, r.scope, r.name",
+                    " r " +
+                    " left join " +
+                    ROLE_PERMISSIONS +
+                    " rp on rp.role_id = r.id" +
+                    " where r.scope = ? and r.name = ? and r.reference_id = ? and r.reference_type = ?" +
+                    " order by r.reference_type, r.reference_id, r.scope, r.name",
                 rowMapper,
                 scope.name(),
                 name,
@@ -250,11 +249,11 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
             JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " r " +
-                " left join " +
-                ROLE_PERMISSIONS +
-                " rp on rp.role_id = r.id" +
-                " order by r.reference_type, r.reference_id, r.scope, r.name",
+                    " r " +
+                    " left join " +
+                    ROLE_PERMISSIONS +
+                    " rp on rp.role_id = r.id" +
+                    " order by r.reference_type, r.reference_id, r.scope, r.name",
                 rowMapper
             );
             return new HashSet<>(rowMapper.getRows());
@@ -271,12 +270,12 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
             JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " r " +
-                " left join " +
-                ROLE_PERMISSIONS +
-                " rp on rp.role_id = r.id" +
-                " where r.reference_id = ? and r.reference_type = ?" +
-                " order by r.reference_type, r.reference_id, r.scope, r.name",
+                    " r " +
+                    " left join " +
+                    ROLE_PERMISSIONS +
+                    " rp on rp.role_id = r.id" +
+                    " where r.reference_id = ? and r.reference_type = ?" +
+                    " order by r.reference_type, r.reference_id, r.scope, r.name",
                 rowMapper,
                 referenceId,
                 referenceType.name()
@@ -327,11 +326,11 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
             JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " r " +
-                " left join " +
-                ROLE_PERMISSIONS +
-                " rp on rp.role_id = r.id" +
-                " where r.id = ? and r.reference_id = ? and r.reference_type = ?",
+                    " r " +
+                    " left join " +
+                    ROLE_PERMISSIONS +
+                    " rp on rp.role_id = r.id" +
+                    " where r.id = ? and r.reference_id = ? and r.reference_type = ?",
                 rowMapper,
                 roleId,
                 referenceId,
@@ -376,12 +375,12 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
             JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " r " +
-                " left join " +
-                ROLE_PERMISSIONS +
-                " rp on rp.role_id = r.id" +
-                " where r.scope = ? and r.reference_id = ? and r.reference_type = ?" +
-                " order by r.reference_type, r.reference_id, r.scope, r.name",
+                    " r " +
+                    " left join " +
+                    ROLE_PERMISSIONS +
+                    " rp on rp.role_id = r.id" +
+                    " where r.scope = ? and r.reference_id = ? and r.reference_type = ?" +
+                    " order by r.reference_type, r.reference_id, r.scope, r.name",
                 rowMapper,
                 scope.name(),
                 referenceId,

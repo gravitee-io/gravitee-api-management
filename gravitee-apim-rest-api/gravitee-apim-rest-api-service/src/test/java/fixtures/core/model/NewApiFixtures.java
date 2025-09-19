@@ -43,14 +43,12 @@ public class NewApiFixtures {
         NewNativeApi.builder().name("My API").apiVersion("1.0");
 
     public static NewHttpApi aProxyApiV4() {
-        return BASE_HTTP
-            .get()
+        return BASE_HTTP.get()
             .definitionVersion(DefinitionVersion.V4)
             .type(ApiType.PROXY)
             .listeners(
                 List.of(
-                    HttpListener
-                        .builder()
+                    HttpListener.builder()
                         .paths(List.of(Path.builder().path("/http_proxy").build()))
                         .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                         .build()
@@ -58,15 +56,13 @@ public class NewApiFixtures {
             )
             .endpointGroups(
                 List.of(
-                    EndpointGroup
-                        .builder()
+                    EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
                         .endpoints(
                             List.of(
-                                Endpoint
-                                    .builder()
+                                Endpoint.builder()
                                     .name("default-endpoint")
                                     .type("http-proxy")
                                     .inheritConfiguration(true)
@@ -81,29 +77,25 @@ public class NewApiFixtures {
     }
 
     public static NewNativeApi aNativeApiV4() {
-        return BASE_NATIVE
-            .get()
+        return BASE_NATIVE.get()
             .definitionVersion(DefinitionVersion.V4)
             .type(ApiType.NATIVE)
             .listeners(
                 List.of(
-                    KafkaListener
-                        .builder()
+                    KafkaListener.builder()
                         .entrypoints(List.of(NativeEntrypoint.builder().type("native-entrypoint-type").configuration("{}").build()))
                         .build()
                 )
             )
             .endpointGroups(
                 List.of(
-                    NativeEndpointGroup
-                        .builder()
+                    NativeEndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
                         .endpoints(
                             List.of(
-                                NativeEndpoint
-                                    .builder()
+                                NativeEndpoint.builder()
                                     .name("default-endpoint")
                                     .type("http-proxy")
                                     .inheritConfiguration(true)

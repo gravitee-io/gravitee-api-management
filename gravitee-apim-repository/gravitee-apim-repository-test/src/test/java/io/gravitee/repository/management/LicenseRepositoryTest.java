@@ -36,8 +36,7 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldCreate() throws Exception {
         var date = new Date();
-        final License license = License
-            .builder()
+        final License license = License.builder()
             .referenceId("my-org")
             .referenceType(License.ReferenceType.ORGANIZATION)
             .license("a-great-license")
@@ -61,8 +60,7 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
 
         final License orgLicenseBeforeUpdate = optional.get();
 
-        final License license = License
-            .builder()
+        final License license = License.builder()
             .referenceId(orgLicenseBeforeUpdate.getReferenceId())
             .referenceType(orgLicenseBeforeUpdate.getReferenceType())
             .license("new license")
@@ -124,8 +122,7 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindByReferenceTypeAndId() throws Exception {
         final Collection<License> licenses = licenseRepository
             .findByCriteria(
-                LicenseCriteria
-                    .builder()
+                LicenseCriteria.builder()
                     .referenceType(License.ReferenceType.ORGANIZATION)
                     .referenceIds(Set.of("cockpitId-org-find-by-id"))
                     .build(),

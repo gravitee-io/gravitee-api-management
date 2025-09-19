@@ -98,8 +98,7 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         PortalPageContext existing = portalPageContextRepository.findById("test-portal-page-context-id").orElse(null);
         assertThat(existing).isNotNull();
 
-        PortalPageContext duplicate = PortalPageContext
-            .builder()
+        PortalPageContext duplicate = PortalPageContext.builder()
             .id("new-id-for-duplicate")
             .pageId(existing.getPageId())
             .contextType(existing.getContextType())

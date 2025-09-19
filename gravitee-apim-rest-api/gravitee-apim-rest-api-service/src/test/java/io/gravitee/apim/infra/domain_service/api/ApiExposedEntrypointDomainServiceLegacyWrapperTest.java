@@ -47,10 +47,9 @@ class ApiExposedEntrypointDomainServiceLegacyWrapperTest {
     void should_call_legacy_service() {
         service.get(ORGANIZATION_ID, ENVIRONMENT_ID, ApiFixtures.aProxyApiV4());
 
-        verify(apiEntrypointService)
-            .getApiEntrypoints(
-                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-                ApiAdapter.INSTANCE.toApiEntity(ApiFixtures.aProxyApiV4())
-            );
+        verify(apiEntrypointService).getApiEntrypoints(
+            new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+            ApiAdapter.INSTANCE.toApiEntity(ApiFixtures.aProxyApiV4())
+        );
     }
 }

@@ -56,8 +56,7 @@ public class JdbcGenericNotificationConfigRepository
 
     @Override
     protected JdbcObjectMapper<GenericNotificationConfig> buildOrm() {
-        return JdbcObjectMapper
-            .builder(GenericNotificationConfig.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(GenericNotificationConfig.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("notifier", Types.NVARCHAR, String.class)
@@ -123,10 +122,10 @@ public class JdbcGenericNotificationConfigRepository
             if (!notificationConfigIds.isEmpty()) {
                 jdbcTemplate.update(
                     "delete from " +
-                    GENERIC_NOTIFICATION_CONFIG_HOOKS +
-                    " where id IN (" +
-                    getOrm().buildInClause(notificationConfigIds) +
-                    ")",
+                        GENERIC_NOTIFICATION_CONFIG_HOOKS +
+                        " where id IN (" +
+                        getOrm().buildInClause(notificationConfigIds) +
+                        ")",
                     notificationConfigIds.toArray()
                 );
 

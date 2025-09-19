@@ -59,8 +59,7 @@ public class MetadataFixtures {
         Object value,
         Metadata.MetadataFormat format
     ) {
-        return Metadata
-            .builder()
+        return Metadata.builder()
             .referenceId(referenceId)
             .referenceType(referenceType)
             .key(key)

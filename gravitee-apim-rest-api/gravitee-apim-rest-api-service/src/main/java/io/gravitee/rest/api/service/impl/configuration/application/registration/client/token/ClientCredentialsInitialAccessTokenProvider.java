@@ -95,50 +95,43 @@ public class ClientCredentialsInitialAccessTokenProvider implements InitialAcces
 
             httpClient = SecureHttpClientUtils.createHttpClient(trustStore, keyStore);
 
-            return httpClient.execute(
-                tokenRequest,
-                response -> {
-                    int status = response.getStatusLine().getStatusCode();
-                    if (status >= 200 && status < 300) {
-                        HttpEntity entity = response.getEntity();
+            return httpClient.execute(tokenRequest, response -> {
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+                    HttpEntity entity = response.getEntity();
 
-                        if (entity != null) {
-                            TokenResponse token = mapper.readValue(EntityUtils.toString(entity), TokenResponse.class);
+                    if (entity != null) {
+                        TokenResponse token = mapper.readValue(EntityUtils.toString(entity), TokenResponse.class);
 
-                            return token.getAccessToken();
-                        } else {
-                            throw new DynamicClientRegistrationException("Token response does not contain any body");
-                        }
+                        return token.getAccessToken();
                     } else {
-                        String responsePayload = EntityUtils.toString(response.getEntity());
-                        if (responsePayload != null && !responsePayload.isEmpty()) {
-                            try {
-                                JsonNode node = mapper.readTree(responsePayload);
-                                String error = node.path("error").asText();
-                                String description = node.path("error_description").asText();
-                                logger.error("Unexpected response from OIDC Token endpoint: error[{}] description[{}]", error, description);
-                                throw new DynamicClientRegistrationException(
-                                    "Unexpected response from OIDC Token endpoint: error[" + error + "] description[" + description + "]"
-                                );
-                            } catch (JsonProcessingException ex) {
-                                logger.error(
-                                    "Unexpected response from OIDC Token endpoint: status[{}] message[{}]",
-                                    status,
-                                    responsePayload
-                                );
-                                throw new DynamicClientRegistrationException(
-                                    "Unexpected response from OIDC Token endpoint: status[" + status + "] message[" + responsePayload + "]"
-                                );
-                            }
-                        } else {
-                            logger.error("Unexpected response from OIDC Token endpoint: status[{}]", status);
+                        throw new DynamicClientRegistrationException("Token response does not contain any body");
+                    }
+                } else {
+                    String responsePayload = EntityUtils.toString(response.getEntity());
+                    if (responsePayload != null && !responsePayload.isEmpty()) {
+                        try {
+                            JsonNode node = mapper.readTree(responsePayload);
+                            String error = node.path("error").asText();
+                            String description = node.path("error_description").asText();
+                            logger.error("Unexpected response from OIDC Token endpoint: error[{}] description[{}]", error, description);
                             throw new DynamicClientRegistrationException(
-                                "Unexpected response from OIDC Token endpoint: status[" + status + "]"
+                                "Unexpected response from OIDC Token endpoint: error[" + error + "] description[" + description + "]"
+                            );
+                        } catch (JsonProcessingException ex) {
+                            logger.error("Unexpected response from OIDC Token endpoint: status[{}] message[{}]", status, responsePayload);
+                            throw new DynamicClientRegistrationException(
+                                "Unexpected response from OIDC Token endpoint: status[" + status + "] message[" + responsePayload + "]"
                             );
                         }
+                    } else {
+                        logger.error("Unexpected response from OIDC Token endpoint: status[{}]", status);
+                        throw new DynamicClientRegistrationException(
+                            "Unexpected response from OIDC Token endpoint: status[" + status + "]"
+                        );
                     }
                 }
-            );
+            });
         } catch (Exception ex) {
             logger.error("Unexpected error while generating an access_token: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException("Unexpected error while generating an access_token: " + ex.getMessage(), ex);

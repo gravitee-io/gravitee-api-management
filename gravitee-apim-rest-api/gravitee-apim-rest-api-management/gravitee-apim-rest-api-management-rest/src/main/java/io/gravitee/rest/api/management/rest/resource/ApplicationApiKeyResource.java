@@ -69,13 +69,11 @@ public class ApplicationApiKeyResource extends AbstractApiKeyResource {
             new RevokeApplicationApiKeyUseCase.Input(
                 apikey,
                 application,
-                AuditInfo
-                    .builder()
+                AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
                     .environmentId(executionContext.getEnvironmentId())
                     .actor(
-                        AuditActor
-                            .builder()
+                        AuditActor.builder()
                             .userId(user.getUsername())
                             .userSource(user.getSource())
                             .userSourceId(user.getSourceId())

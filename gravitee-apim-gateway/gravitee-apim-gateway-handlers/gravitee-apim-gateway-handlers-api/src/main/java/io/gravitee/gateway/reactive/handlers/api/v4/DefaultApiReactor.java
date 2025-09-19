@@ -207,8 +207,11 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.node = node;
         this.lifecycleState = Lifecycle.State.INITIALIZED;
         this.validateSubscriptionEnabled = configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true);
-        this.loggingExcludedResponseType =
-            configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
+        this.loggingExcludedResponseType = configuration.getProperty(
+            REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY,
+            String.class,
+            null
+        );
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
 
         this.processorChainHooks = new ArrayList<>();
@@ -320,19 +323,15 @@ public class DefaultApiReactor extends AbstractApiReactor {
         if (!tracingContext.isEnabled()) {
             return Completable.complete();
         }
-        return Completable
-            .fromRunnable(() -> {
-                String phaseSpanAttribute = getExecutionPhaseSpanAttribute(executionPhase);
-                if (phaseSpanAttribute != null) {
-                    Span executionPhaseSpan = ctx
-                        .getTracer()
-                        .startSpanFrom(
-                            InternalRequest.builder().name(executionPhase == REQUEST ? "Request phase" : "Response phase").build()
-                        );
-                    ctx.putInternalAttribute(phaseSpanAttribute, executionPhaseSpan);
-                }
-            })
-            .onErrorComplete();
+        return Completable.fromRunnable(() -> {
+            String phaseSpanAttribute = getExecutionPhaseSpanAttribute(executionPhase);
+            if (phaseSpanAttribute != null) {
+                Span executionPhaseSpan = ctx
+                    .getTracer()
+                    .startSpanFrom(InternalRequest.builder().name(executionPhase == REQUEST ? "Request phase" : "Response phase").build());
+                ctx.putInternalAttribute(phaseSpanAttribute, executionPhaseSpan);
+            }
+        }).onErrorComplete();
     }
 
     protected CompletableSource endRequestPhaseTracing(final Completable upstream, final MutableExecutionContext ctx) {
@@ -402,13 +401,17 @@ public class DefaultApiReactor extends AbstractApiReactor {
                         ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.ENDPOINT);
                         ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, invoker.getId());
 
-                        return HookHelper
-                            .hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, endpointExecutionPhase())
-                            .doFinally(() -> {
-                                // Clean up component attributes after completion
-                                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
-                                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
-                            });
+                        return HookHelper.hook(
+                            () -> invoker.invoke(ctx),
+                            invoker.getId(),
+                            invokerHooks,
+                            ctx,
+                            endpointExecutionPhase()
+                        ).doFinally(() -> {
+                            // Clean up component attributes after completion
+                            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
+                            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
+                        });
                     })
                     .orElse(Completable.complete());
             }
@@ -567,13 +570,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         endpointManager.start();
 
-        services =
-            apiServicePluginManager
-                .getAllFactories()
-                .stream()
-                .map(apiServiceFactory -> apiServiceFactory.createService(deploymentContext))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        services = apiServicePluginManager
+            .getAllFactories()
+            .stream()
+            .map(apiServiceFactory -> apiServiceFactory.createService(deploymentContext))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
         Completable.concat(services.stream().map(ApiService::start).collect(Collectors.toList())).blockingAwait();
 
@@ -588,8 +590,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}
 
     protected AnalyticsContext createAnalyticsContext() {
-        LoggingContext loggingContext = Optional
-            .ofNullable(api.getDefinition().getAnalytics())
+        LoggingContext loggingContext = Optional.ofNullable(api.getDefinition().getAnalytics())
             .map(analytics -> {
                 var context = new LoggingContext(analytics.getLogging());
                 context.setMaxSizeLogMessage(loggingMaxSize);

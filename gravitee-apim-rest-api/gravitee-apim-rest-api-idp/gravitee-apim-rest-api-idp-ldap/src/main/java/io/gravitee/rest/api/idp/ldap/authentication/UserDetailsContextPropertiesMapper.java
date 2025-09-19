@@ -100,7 +100,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
     public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
         throw new UnsupportedOperationException(
             "UserDetailsContextPropertiesMapper only supports reading from a context. Please" +
-            "use a subclass if mapUserToContext() is required."
+                "use a subclass if mapUserToContext() is required."
         );
     }
 

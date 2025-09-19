@@ -50,13 +50,13 @@ public class ClientIdInApiKeySubscriptionsUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-                SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder();
-                criteriaBuilder.planSecurityTypes(List.of(Plan.PlanSecurityType.API_KEY.name()));
-                for (Subscription subscription : subscriptionRepository.search(criteriaBuilder.build())) {
-                    updateApiKeySubscriptions(subscription);
-                }
-                return true;
-            });
+            SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder();
+            criteriaBuilder.planSecurityTypes(List.of(Plan.PlanSecurityType.API_KEY.name()));
+            for (Subscription subscription : subscriptionRepository.search(criteriaBuilder.build())) {
+                updateApiKeySubscriptions(subscription);
+            }
+            return true;
+        });
     }
 
     @SuppressWarnings("removal")

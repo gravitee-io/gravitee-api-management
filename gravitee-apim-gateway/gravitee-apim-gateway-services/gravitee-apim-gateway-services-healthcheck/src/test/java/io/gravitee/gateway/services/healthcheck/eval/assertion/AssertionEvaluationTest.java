@@ -39,11 +39,11 @@ public class AssertionEvaluationTest {
         quoteCharacter = '"',
         delimiterString = "->",
         textBlock = """
-            "'toto' == 'tata'" -> false
-            "'toto' == 'toto'" -> true
-            "'toto' != 'tata'" -> true
-            "'toto' != 'toto'" -> false
-            """
+        "'toto' == 'tata'" -> false
+        "'toto' == 'toto'" -> true
+        "'toto' != 'tata'" -> true
+        "'toto' != 'toto'" -> false
+        """
     )
     public void should_validate_assertion_using_single_condition(String assertion, Boolean expected) throws EvaluationException {
         AssertionEvaluation evaluation = new AssertionEvaluation(assertion);
@@ -57,11 +57,11 @@ public class AssertionEvaluationTest {
         quoteCharacter = '"',
         delimiterString = "->",
         textBlock = """
-            "'toto' == 'toto' && 1 == 2" -> false
-            "'toto' == 'toto' && 1 == 1" -> true
-            "'toto' == 'tata' && 1 == 1" -> false
-            "'toto' == 'tata' && 1 == 2" -> false
-            """
+        "'toto' == 'toto' && 1 == 2" -> false
+        "'toto' == 'toto' && 1 == 1" -> true
+        "'toto' == 'tata' && 1 == 1" -> false
+        "'toto' == 'tata' && 1 == 2" -> false
+        """
     )
     public void should_validate_assertion_using_multiple_condition(String assertion, Boolean expected) throws EvaluationException {
         AssertionEvaluation evaluation = new AssertionEvaluation(assertion);
@@ -75,11 +75,11 @@ public class AssertionEvaluationTest {
         quoteCharacter = '"',
         delimiterString = "->",
         textBlock = """
-            "#response.status == 200" -> true
-            "#response.status == 400" -> false
-            "#response.status != 200" -> false
-            "#response.status != 400" -> true
-            """
+        "#response.status == 200" -> true
+        "#response.status == 400" -> false
+        "#response.status != 200" -> false
+        "#response.status != 400" -> true
+        """
     )
     public void should_validate_assertion_using_simple_el(String assertion, Boolean expected) throws EvaluationException {
         AssertionEvaluation evaluation = new AssertionEvaluation(assertion);
@@ -94,9 +94,9 @@ public class AssertionEvaluationTest {
         quoteCharacter = '"',
         delimiterString = "->",
         textBlock = """
-            "#jsonPath(#response.content, '$.status') == 'green'" -> true
-            "#jsonPath(#response.content, '$.status') == 'red'" -> false
-            """
+        "#jsonPath(#response.content, '$.status') == 'green'" -> true
+        "#jsonPath(#response.content, '$.status') == 'red'" -> false
+        """
     )
     public void should_validate_assertion_using_el_with_json_path_condition(String assertion, Boolean expected) throws EvaluationException {
         AssertionEvaluation evaluation = new AssertionEvaluation(assertion);

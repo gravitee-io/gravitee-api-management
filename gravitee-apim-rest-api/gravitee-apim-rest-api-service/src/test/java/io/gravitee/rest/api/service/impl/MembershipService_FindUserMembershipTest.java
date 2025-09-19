@@ -85,31 +85,30 @@ public class MembershipService_FindUserMembershipTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        membershipService =
-            new MembershipServiceImpl(
-                null,
-                null,
-                mockApplicationRepository,
-                null,
-                null,
-                null,
-                mockMembershipRepository,
-                mockRoleService,
-                null,
-                null,
-                null,
-                null,
-                mockApiRepository,
-                mockGroupService,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            );
+        membershipService = new MembershipServiceImpl(
+            null,
+            null,
+            mockApplicationRepository,
+            null,
+            null,
+            null,
+            mockMembershipRepository,
+            mockRoleService,
+            null,
+            null,
+            null,
+            null,
+            mockApiRepository,
+            mockGroupService,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
     }
 
     @Test
@@ -132,8 +131,7 @@ public class MembershipService_FindUserMembershipTest {
                 eq(MembershipMemberType.USER),
                 eq(MembershipReferenceType.API)
             )
-        )
-            .thenReturn(Collections.emptySet());
+        ).thenReturn(Collections.emptySet());
 
         doReturn(Collections.emptySet()).when(mockGroupService).findByUser(USER_ID);
 
@@ -165,8 +163,7 @@ public class MembershipService_FindUserMembershipTest {
                 eq(MembershipMemberType.USER),
                 eq(MembershipReferenceType.API)
             )
-        )
-            .thenReturn(Collections.singleton(mApi));
+        ).thenReturn(Collections.singleton(mApi));
         doReturn(Collections.emptySet()).when(mockGroupService).findByUser(USER_ID);
 
         List<UserMembership> references = membershipService.findUserMembership(
@@ -191,8 +188,7 @@ public class MembershipService_FindUserMembershipTest {
                 eq(MembershipMemberType.USER),
                 eq(MembershipReferenceType.API)
             )
-        )
-            .thenReturn(Collections.emptySet());
+        ).thenReturn(Collections.emptySet());
 
         GroupEntity group1 = new GroupEntity();
         group1.setId("Group1Id");
@@ -200,8 +196,7 @@ public class MembershipService_FindUserMembershipTest {
 
         when(
             mockApiRepository.searchIds(eq(List.of((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull())
-        )
-            .thenReturn(new Page<>(List.of("apiGroup1Id"), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of("apiGroup1Id"), 0, 1, 1));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -232,8 +227,7 @@ public class MembershipService_FindUserMembershipTest {
                 eq(MembershipMemberType.USER),
                 eq(MembershipReferenceType.API)
             )
-        )
-            .thenReturn(Collections.singleton(mApi));
+        ).thenReturn(Collections.singleton(mApi));
 
         GroupEntity group1 = new GroupEntity();
         group1.setId("Group1Id");
@@ -241,8 +235,7 @@ public class MembershipService_FindUserMembershipTest {
 
         when(
             mockApiRepository.searchIds(eq(List.of((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull())
-        )
-            .thenReturn(new Page<>(List.of("apiGroup1Id"), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of("apiGroup1Id"), 0, 1, 1));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -285,8 +278,7 @@ public class MembershipService_FindUserMembershipTest {
                 eq(MembershipReferenceType.GROUP),
                 eq("oauth2")
             )
-        )
-            .thenReturn(Sets.newHashSet(mApi, mApp));
+        ).thenReturn(Sets.newHashSet(mApi, mApp));
 
         List<UserMembership> references = membershipService.findUserMembershipBySource(
             GraviteeContext.getExecutionContext(),
@@ -311,8 +303,7 @@ public class MembershipService_FindUserMembershipTest {
                 eq(MembershipMemberType.USER),
                 eq(MembershipReferenceType.APPLICATION)
             )
-        )
-            .thenReturn(Collections.emptySet());
+        ).thenReturn(Collections.emptySet());
 
         GroupEntity group1 = new GroupEntity();
         group1.setId("Group1Id");
@@ -343,8 +334,7 @@ public class MembershipService_FindUserMembershipTest {
                 eq(MembershipMemberType.USER),
                 eq(MembershipReferenceType.APPLICATION)
             )
-        )
-            .thenReturn(Collections.emptySet());
+        ).thenReturn(Collections.emptySet());
 
         doReturn(Collections.emptySet()).when(mockGroupService).findByUser(USER_ID);
 

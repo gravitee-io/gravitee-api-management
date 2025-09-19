@@ -72,8 +72,7 @@ class ApplicationPrimaryOwnerDomainServiceTest {
             );
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.APPLICATION)
                         .referenceId("application-id")
                         .memberType(Membership.Type.USER)
@@ -85,17 +84,14 @@ class ApplicationPrimaryOwnerDomainServiceTest {
 
             var result = service.getApplicationPrimaryOwner(ORGANIZATION_ID, "application-id");
 
-            Assertions
-                .assertThat(result)
-                .isEqualTo(
-                    PrimaryOwnerEntity
-                        .builder()
-                        .id("user-id")
-                        .displayName("Jane Doe")
-                        .email("jane.doe@gravitee.io")
-                        .type(PrimaryOwnerEntity.Type.USER)
-                        .build()
-                );
+            Assertions.assertThat(result).isEqualTo(
+                PrimaryOwnerEntity.builder()
+                    .id("user-id")
+                    .displayName("Jane Doe")
+                    .email("jane.doe@gravitee.io")
+                    .type(PrimaryOwnerEntity.Type.USER)
+                    .build()
+            );
         }
 
         @Test
@@ -107,16 +103,14 @@ class ApplicationPrimaryOwnerDomainServiceTest {
             givenExistingGroup(List.of(Group.builder().id("group-id").name("Group name").build()));
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.APPLICATION)
                         .referenceId("application-id")
                         .memberType(Membership.Type.GROUP)
                         .memberId("group-id")
                         .roleId(APPLICATION_PRIMARY_OWNER_ROLE_ID)
                         .build(),
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.GROUP)
                         .referenceId("group-id")
                         .memberType(Membership.Type.USER)
@@ -128,17 +122,14 @@ class ApplicationPrimaryOwnerDomainServiceTest {
 
             var result = service.getApplicationPrimaryOwner(ORGANIZATION_ID, "application-id");
 
-            Assertions
-                .assertThat(result)
-                .isEqualTo(
-                    PrimaryOwnerEntity
-                        .builder()
-                        .id("group-id")
-                        .displayName("Group name")
-                        .email("jane.doe@gravitee.io")
-                        .type(PrimaryOwnerEntity.Type.GROUP)
-                        .build()
-                );
+            Assertions.assertThat(result).isEqualTo(
+                PrimaryOwnerEntity.builder()
+                    .id("group-id")
+                    .displayName("Group name")
+                    .email("jane.doe@gravitee.io")
+                    .type(PrimaryOwnerEntity.Type.GROUP)
+                    .build()
+            );
         }
 
         @Test
@@ -147,8 +138,7 @@ class ApplicationPrimaryOwnerDomainServiceTest {
             givenExistingGroup(List.of(Group.builder().id("group-id").name("Group name").build()));
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.APPLICATION)
                         .referenceId("application-id")
                         .memberType(Membership.Type.GROUP)
@@ -160,11 +150,9 @@ class ApplicationPrimaryOwnerDomainServiceTest {
 
             var result = service.getApplicationPrimaryOwner(ORGANIZATION_ID, "application-id");
 
-            Assertions
-                .assertThat(result)
-                .isEqualTo(
-                    PrimaryOwnerEntity.builder().id("group-id").displayName("Group name").type(PrimaryOwnerEntity.Type.GROUP).build()
-                );
+            Assertions.assertThat(result).isEqualTo(
+                PrimaryOwnerEntity.builder().id("group-id").displayName("Group name").type(PrimaryOwnerEntity.Type.GROUP).build()
+            );
         }
 
         @Test
@@ -172,8 +160,7 @@ class ApplicationPrimaryOwnerDomainServiceTest {
             givenExistingUsers(List.of());
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.APPLICATION)
                         .referenceId("application-id")
                         .memberType(Membership.Type.USER)

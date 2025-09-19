@@ -57,7 +57,10 @@ public class ImportGroupCRDUseCase {
     }
 
     public Output execute(Input input) {
-        return queryService.findById(input.spec.getId()).map(existing -> this.update(input)).orElseGet(() -> this.create(input));
+        return queryService
+            .findById(input.spec.getId())
+            .map(existing -> this.update(input))
+            .orElseGet(() -> this.create(input));
     }
 
     private Output create(Input input) {

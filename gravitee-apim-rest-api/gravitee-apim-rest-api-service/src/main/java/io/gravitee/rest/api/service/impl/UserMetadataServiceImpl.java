@@ -80,15 +80,13 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
 
     @Override
     public List<UserMetadataEntity> findAllByUserId(String userId) {
-        return GraviteeContext
-            .getCurrentUsersMetadata()
-            .computeIfAbsent(
-                userId,
-                k -> {
-                    final List<ReferenceMetadataEntity> allMetadata = findAllByReference(USER, userId, Optional.empty());
-                    return allMetadata.stream().map(m -> convert(m, userId)).collect(toList());
-                }
-            );
+        return GraviteeContext.getCurrentUsersMetadata().computeIfAbsent(userId, k -> {
+            final List<ReferenceMetadataEntity> allMetadata = findAllByReference(USER, userId, Optional.empty());
+            return allMetadata
+                .stream()
+                .map(m -> convert(m, userId))
+                .collect(toList());
+        });
     }
 
     @Override
@@ -121,7 +119,7 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
                     } catch (MetadataNotFoundException e) {
                         LOGGER.debug(
                             "Metadata key={}, refType={}, refId={} not found," +
-                            " ignore error because we want to delete it and user may not have this metadata",
+                                " ignore error because we want to delete it and user may not have this metadata",
                             key,
                             USER,
                             user.getId()

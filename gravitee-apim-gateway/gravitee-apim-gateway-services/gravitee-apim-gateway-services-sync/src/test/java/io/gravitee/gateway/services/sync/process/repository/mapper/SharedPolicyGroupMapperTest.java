@@ -79,8 +79,7 @@ class SharedPolicyGroupMapperTest {
         final Date date = new Date();
         event.setPayload(
             objectMapper.writeValueAsString(
-                SharedPolicyGroup
-                    .builder()
+                SharedPolicyGroup.builder()
                     .phase(SharedPolicyGroup.Phase.REQUEST)
                     .policies(List.of())
                     .id("spg_id")
@@ -102,13 +101,12 @@ class SharedPolicyGroupMapperTest {
                 assertThat(reactableSharedPolicyGroup.getOrganizationHrid()).isEqualTo("orga-hrid");
                 assertThat(reactableSharedPolicyGroup.getDeployedAt()).isEqualTo(date);
                 assertThat(reactableSharedPolicyGroup.enabled()).isTrue();
-                assertThat(reactableSharedPolicyGroup.getDefinition())
-                    .satisfies(definition -> {
-                        assertThat(definition.getId()).isEqualTo("spg_id");
-                        assertThat(definition.getName()).isEqualTo("name");
-                        assertThat(definition.getPolicies()).isEmpty();
-                        assertThat(definition.getPhase()).isEqualTo(SharedPolicyGroup.Phase.REQUEST);
-                    });
+                assertThat(reactableSharedPolicyGroup.getDefinition()).satisfies(definition -> {
+                    assertThat(definition.getId()).isEqualTo("spg_id");
+                    assertThat(definition.getName()).isEqualTo("name");
+                    assertThat(definition.getPolicies()).isEmpty();
+                    assertThat(definition.getPhase()).isEqualTo(SharedPolicyGroup.Phase.REQUEST);
+                });
 
                 return true;
             })

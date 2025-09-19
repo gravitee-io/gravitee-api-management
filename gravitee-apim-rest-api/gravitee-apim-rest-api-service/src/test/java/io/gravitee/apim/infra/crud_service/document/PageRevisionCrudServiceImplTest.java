@@ -58,8 +58,7 @@ public class PageRevisionCrudServiceImplTest {
             String PAGE_ID = "page-id";
             service.create(Page.builder().id(PAGE_ID).name("page name").createdAt(date).updatedAt(date).content("nice content").build());
 
-            var expectedPageRevision = PageRevision
-                .builder()
+            var expectedPageRevision = PageRevision.builder()
                 .createdAt(date)
                 .pageId(PAGE_ID)
                 .name("page name")
@@ -68,8 +67,7 @@ public class PageRevisionCrudServiceImplTest {
                 .build();
 
             verify(pageRevisionRepository).create(pageRevisionArgumentCaptor.capture());
-            Assertions
-                .assertThat(pageRevisionArgumentCaptor.getValue())
+            Assertions.assertThat(pageRevisionArgumentCaptor.getValue())
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("name", expectedPageRevision.getName())
                 .hasFieldOrPropertyWithValue("createdAt", expectedPageRevision.getCreatedAt())

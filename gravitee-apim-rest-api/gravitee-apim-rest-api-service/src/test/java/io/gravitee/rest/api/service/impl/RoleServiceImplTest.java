@@ -89,8 +89,9 @@ class RoleServiceImplTest {
         @SneakyThrows
         void should_give_the_role() {
             // Given
-            when(roleRepository.findAllByReferenceIdAndReferenceType("organization", RoleReferenceType.ORGANIZATION))
-                .thenReturn(Set.of(Role.builder().name("Groudon").build()));
+            when(roleRepository.findAllByReferenceIdAndReferenceType("organization", RoleReferenceType.ORGANIZATION)).thenReturn(
+                Set.of(Role.builder().name("Groudon").build())
+            );
 
             // When
             List<RoleEntity> roles = sut.findAllByOrganization("organization");
@@ -123,10 +124,9 @@ class RoleServiceImplTest {
         void forbidden_delete_default_or_system_role(boolean system, boolean def) {
             // Given
             ExecutionContext ctx = new ExecutionContext("orgId");
-            when(roleRepository.findById(anyString()))
-                .thenReturn(
-                    Optional.of(Role.builder().name("Groudon").defaultRole(def).system(system).scope(RoleScope.INTEGRATION).build())
-                );
+            when(roleRepository.findById(anyString())).thenReturn(
+                Optional.of(Role.builder().name("Groudon").defaultRole(def).system(system).scope(RoleScope.INTEGRATION).build())
+            );
 
             // When
             Throwable throwable = catchThrowable(() -> sut.delete(ctx, "roleId"));
@@ -141,10 +141,12 @@ class RoleServiceImplTest {
             // Given
             RoleScope scope = RoleScope.INTEGRATION;
             ExecutionContext ctx = new ExecutionContext("orgId");
-            when(roleRepository.findById(anyString()))
-                .thenReturn(Optional.of(Role.builder().name("Groudon").defaultRole(false).system(false).scope(scope).build()));
-            when(roleRepository.findByScopeAndReferenceIdAndReferenceType(scope, "orgId", RoleReferenceType.ORGANIZATION))
-                .thenReturn(Set.of());
+            when(roleRepository.findById(anyString())).thenReturn(
+                Optional.of(Role.builder().name("Groudon").defaultRole(false).system(false).scope(scope).build())
+            );
+            when(roleRepository.findByScopeAndReferenceIdAndReferenceType(scope, "orgId", RoleReferenceType.ORGANIZATION)).thenReturn(
+                Set.of()
+            );
 
             // When
             Throwable throwable = catchThrowable(() -> sut.delete(ctx, "roleId"));
@@ -160,10 +162,12 @@ class RoleServiceImplTest {
             String roleId = "Dimoret";
             RoleScope scope = RoleScope.INTEGRATION;
             ExecutionContext ctx = new ExecutionContext("orgId");
-            when(roleRepository.findById(anyString()))
-                .thenReturn(Optional.of(Role.builder().name("Groudon").defaultRole(false).system(false).scope(scope).build()));
-            when(roleRepository.findByScopeAndReferenceIdAndReferenceType(scope, "orgId", RoleReferenceType.ORGANIZATION))
-                .thenReturn(Set.of(Role.builder().id("default role").defaultRole(true).build()));
+            when(roleRepository.findById(anyString())).thenReturn(
+                Optional.of(Role.builder().name("Groudon").defaultRole(false).system(false).scope(scope).build())
+            );
+            when(roleRepository.findByScopeAndReferenceIdAndReferenceType(scope, "orgId", RoleReferenceType.ORGANIZATION)).thenReturn(
+                Set.of(Role.builder().id("default role").defaultRole(true).build())
+            );
 
             // When
             sut.delete(ctx, roleId);
@@ -174,16 +178,15 @@ class RoleServiceImplTest {
 
             verify(roleRepository).delete(roleId);
 
-            verify(auditService)
-                .createOrganizationAuditLog(
-                    any(),
-                    eq("orgId"),
-                    eq(Map.of(ROLE, scope + ":" + "Groudon")),
-                    eq(ROLE_DELETED),
-                    any(),
-                    any(),
-                    any()
-                );
+            verify(auditService).createOrganizationAuditLog(
+                any(),
+                eq("orgId"),
+                eq(Map.of(ROLE, scope + ":" + "Groudon")),
+                eq(ROLE_DELETED),
+                any(),
+                any(),
+                any()
+            );
         }
     }
 
@@ -195,14 +198,13 @@ class RoleServiceImplTest {
         void success() {
             // Given
             RoleScope scope = RoleScope.INTEGRATION;
-            when(roleRepository.findByScopeAndReferenceIdAndReferenceType(scope, "orgId", RoleReferenceType.ORGANIZATION))
-                .thenReturn(
-                    Set.of(
-                        Role.builder().id("Necrozma").name("Necrozma").build(),
-                        Role.builder().id("Feurisson").name("Feurisson").build(),
-                        Role.builder().id("Kangourex").name("Kangourex").build()
-                    )
-                );
+            when(roleRepository.findByScopeAndReferenceIdAndReferenceType(scope, "orgId", RoleReferenceType.ORGANIZATION)).thenReturn(
+                Set.of(
+                    Role.builder().id("Necrozma").name("Necrozma").build(),
+                    Role.builder().id("Feurisson").name("Feurisson").build(),
+                    Role.builder().id("Kangourex").name("Kangourex").build()
+                )
+            );
 
             // When
             List<RoleEntity> roles = sut.findByScope(io.gravitee.rest.api.model.permissions.RoleScope.INTEGRATION, "orgId");
@@ -222,8 +224,9 @@ class RoleServiceImplTest {
             // Given
             String roleId = "roleId";
             String organizationId = "orgId";
-            when(roleRepository.findByIdAndReferenceIdAndReferenceType(roleId, organizationId, RoleReferenceType.ORGANIZATION))
-                .thenReturn(Optional.of(Role.builder().name("Hyporoi").build()));
+            when(roleRepository.findByIdAndReferenceIdAndReferenceType(roleId, organizationId, RoleReferenceType.ORGANIZATION)).thenReturn(
+                Optional.of(Role.builder().name("Hyporoi").build())
+            );
 
             // When
             Optional<RoleEntity> roles = sut.findByIdAndOrganizationId(roleId, organizationId);
@@ -238,8 +241,9 @@ class RoleServiceImplTest {
             // Given
             String roleId = "roleId";
             String organizationId = "orgId";
-            when(roleRepository.findByIdAndReferenceIdAndReferenceType(roleId, organizationId, RoleReferenceType.ORGANIZATION))
-                .thenReturn(Optional.empty());
+            when(roleRepository.findByIdAndReferenceIdAndReferenceType(roleId, organizationId, RoleReferenceType.ORGANIZATION)).thenReturn(
+                Optional.empty()
+            );
 
             // When
             Optional<RoleEntity> roles = sut.findByIdAndOrganizationId(roleId, organizationId);
@@ -266,8 +270,7 @@ class RoleServiceImplTest {
                     organizationId,
                     RoleReferenceType.ORGANIZATION
                 )
-            )
-                .thenReturn(Optional.of(Role.builder().name("Hyporoi").build()));
+            ).thenReturn(Optional.of(Role.builder().name("Hyporoi").build()));
 
             // When
             Optional<RoleEntity> roles = sut.findByScopeAndName(scope, name, organizationId);
@@ -290,8 +293,7 @@ class RoleServiceImplTest {
                     organizationId,
                     RoleReferenceType.ORGANIZATION
                 )
-            )
-                .thenReturn(Optional.empty());
+            ).thenReturn(Optional.empty());
 
             // When
             Optional<RoleEntity> roles = sut.findByScopeAndName(scope, name, organizationId);

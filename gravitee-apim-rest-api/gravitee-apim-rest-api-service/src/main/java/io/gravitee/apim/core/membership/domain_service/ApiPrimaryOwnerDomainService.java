@@ -53,35 +53,32 @@ public class ApiPrimaryOwnerDomainService {
     public PrimaryOwnerEntity getApiPrimaryOwner(final String organizationId, String apiId) throws ApiPrimaryOwnerNotFoundException {
         return findPrimaryOwnerRole(organizationId)
             .flatMap(role ->
-                findApiPrimaryOwnerMembership(apiId, role)
-                    .flatMap(membership ->
-                        switch (membership.getMemberType()) {
-                            case USER -> findUserPrimaryOwner(membership);
-                            case GROUP -> findGroupPrimaryOwner(membership, role.getId());
-                        }
-                    )
+                findApiPrimaryOwnerMembership(apiId, role).flatMap(membership ->
+                    switch (membership.getMemberType()) {
+                        case USER -> findUserPrimaryOwner(membership);
+                        case GROUP -> findGroupPrimaryOwner(membership, role.getId());
+                    }
+                )
             )
             .orElseThrow(() -> new ApiPrimaryOwnerNotFoundException(apiId));
     }
 
     public void createApiPrimaryOwnerMembership(String apiId, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo) {
-        findPrimaryOwnerRole(auditInfo.organizationId())
-            .ifPresent(role -> {
-                var membership = Membership
-                    .builder()
-                    .id(UuidString.generateRandom())
-                    .referenceId(apiId)
-                    .referenceType(Membership.ReferenceType.API)
-                    .roleId(role.getId())
-                    .memberId(primaryOwner.id())
-                    .memberType(Membership.Type.valueOf(primaryOwner.type().name()))
-                    .createdAt(TimeProvider.now())
-                    .updatedAt(TimeProvider.now())
-                    .build();
-                membershipCrudService.create(membership);
+        findPrimaryOwnerRole(auditInfo.organizationId()).ifPresent(role -> {
+            var membership = Membership.builder()
+                .id(UuidString.generateRandom())
+                .referenceId(apiId)
+                .referenceType(Membership.ReferenceType.API)
+                .roleId(role.getId())
+                .memberId(primaryOwner.id())
+                .memberType(Membership.Type.valueOf(primaryOwner.type().name()))
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .build();
+            membershipCrudService.create(membership);
 
-                createAuditLog(membership, auditInfo);
-            });
+            createAuditLog(membership, auditInfo);
+        });
     }
 
     private Optional<Role> findPrimaryOwnerRole(String organizationId) {
@@ -99,8 +96,7 @@ public class ApiPrimaryOwnerDomainService {
         return userCrudService
             .findBaseUserById(membership.getMemberId())
             .map(user ->
-                PrimaryOwnerEntity
-                    .builder()
+                PrimaryOwnerEntity.builder()
                     .id(user.getId())
                     .displayName(user.displayName())
                     .email(user.getEmail())
@@ -111,12 +107,12 @@ public class ApiPrimaryOwnerDomainService {
 
     private Optional<PrimaryOwnerEntity> findGroupPrimaryOwner(Membership membership, String primaryOwnerRoleId) {
         var group = groupQueryService.findById(membership.getMemberId());
-        var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId)
-            .flatMap(m -> userCrudService.findBaseUserById(m.getMemberId()));
+        var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId).flatMap(m ->
+            userCrudService.findBaseUserById(m.getMemberId())
+        );
 
         return group.map(value ->
-            PrimaryOwnerEntity
-                .builder()
+            PrimaryOwnerEntity.builder()
                 .id(value.getId())
                 .displayName(value.getName())
                 .type(PrimaryOwnerEntity.Type.GROUP)
@@ -133,15 +129,13 @@ public class ApiPrimaryOwnerDomainService {
     }
 
     private void createAuditLog(Membership membership, AuditInfo auditInfo) {
-        Map<AuditProperties, String> properties =
-            switch (membership.getMemberType()) {
-                case USER -> Map.of(AuditProperties.USER, membership.getMemberId());
-                case GROUP -> Map.of(AuditProperties.GROUP, membership.getMemberId());
-            };
+        Map<AuditProperties, String> properties = switch (membership.getMemberType()) {
+            case USER -> Map.of(AuditProperties.USER, membership.getMemberId());
+            case GROUP -> Map.of(AuditProperties.GROUP, membership.getMemberId());
+        };
 
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(membership.getReferenceId())

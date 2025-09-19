@@ -45,8 +45,7 @@ public class ApiCRDFixtures {
     public static final String PLAN_ID = "plan-id";
 
     public static ApiCRDSpecBuilder newBaseSpec() {
-        return ApiCRDSpec
-            .builder()
+        return ApiCRDSpec.builder()
             .id(API_ID)
             .crossId(API_CROSS_ID)
             .name(API_NAME)
@@ -55,15 +54,13 @@ public class ApiCRDFixtures {
             .state("STARTED")
             .endpointGroups(
                 List.of(
-                    EndpointGroup
-                        .builder()
+                    EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
                         .endpoints(
                             List.of(
-                                Endpoint
-                                    .builder()
+                                Endpoint.builder()
                                     .name("default-endpoint")
                                     .type("http-proxy")
                                     .inheritConfiguration(true)
@@ -77,8 +74,7 @@ public class ApiCRDFixtures {
     }
 
     public static ApiCRDSpecBuilder newBaseNaticeSpec() {
-        return ApiCRDSpec
-            .builder()
+        return ApiCRDSpec.builder()
             .id(API_ID)
             .type("native")
             .crossId(API_CROSS_ID)
@@ -88,15 +84,13 @@ public class ApiCRDFixtures {
             .state("STARTED")
             .endpointGroups(
                 List.of(
-                    NativeEndpointGroup
-                        .builder()
+                    NativeEndpointGroup.builder()
                         .name("default-group")
                         .type("native-kafka")
                         .sharedConfiguration("{\"security\":{\"protocol\":\"PLAINTEXT\"}}")
                         .endpoints(
                             List.of(
-                                NativeEndpoint
-                                    .builder()
+                                NativeEndpoint.builder()
                                     .name("default-endpoint")
                                     .type("native-kafka")
                                     .inheritConfiguration(true)

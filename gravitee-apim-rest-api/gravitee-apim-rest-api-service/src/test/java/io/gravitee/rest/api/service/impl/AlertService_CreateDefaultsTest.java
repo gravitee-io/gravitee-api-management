@@ -67,8 +67,9 @@ public class AlertService_CreateDefaultsTest extends AlertServiceTest {
         when(alertTriggerRepository.findAll()).thenReturn(alertTriggers);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
-        when(alertTriggerRepository.create(any()))
-            .thenReturn(getAlertTriggerFromNew(getNewAlertTriggerEntity(), executionContext.getEnvironmentId()));
+        when(alertTriggerRepository.create(any())).thenReturn(
+            getAlertTriggerFromNew(getNewAlertTriggerEntity(), executionContext.getEnvironmentId())
+        );
 
         alertService.createDefaults(executionContext, AlertReferenceType.API, "apiId");
 

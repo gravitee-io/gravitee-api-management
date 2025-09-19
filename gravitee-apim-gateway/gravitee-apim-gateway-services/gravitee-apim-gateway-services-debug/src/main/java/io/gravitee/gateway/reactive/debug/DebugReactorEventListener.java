@@ -96,8 +96,9 @@ public class DebugReactorEventListener extends ReactorEventListener {
     public void onEvent(final Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
             logger.info("Deploying api for debug");
-            ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent =
-                (ReactableEvent<io.gravitee.repository.management.model.Event>) reactorEvent.content();
+            ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent = (ReactableEvent<
+                io.gravitee.repository.management.model.Event
+            >) reactorEvent.content();
             io.gravitee.repository.management.model.Event debugEvent = reactableEvent.getContent();
             ReactableDebugApi<?> debugApi = toDebugApi(reactableEvent);
             if (debugApi != null) {
@@ -182,7 +183,11 @@ public class DebugReactorEventListener extends ReactorEventListener {
             }
 
             eventDebugApi.setPlans(
-                eventDebugApi.getPlans().stream().filter(plan -> !PlanStatus.CLOSED.name().equalsIgnoreCase(plan.getStatus())).toList()
+                eventDebugApi
+                    .getPlans()
+                    .stream()
+                    .filter(plan -> !PlanStatus.CLOSED.name().equalsIgnoreCase(plan.getStatus()))
+                    .toList()
             );
 
             var debugApi = new io.gravitee.gateway.debug.definition.DebugApiV2(reactableEvent.getId(), eventDebugApi);

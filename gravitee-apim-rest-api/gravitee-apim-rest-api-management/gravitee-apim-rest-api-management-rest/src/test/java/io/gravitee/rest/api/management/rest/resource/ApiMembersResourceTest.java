@@ -79,14 +79,12 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
             MembershipService.MembershipMember.class
         );
 
-        Mockito
-            .verify(membershipService)
-            .addRoleToMemberOnReference(
-                eq(GraviteeContext.getExecutionContext()),
-                memberShipRefCaptor.capture(),
-                memberShipUserCaptor.capture(),
-                memberShipRoleCaptor.capture()
-            );
+        Mockito.verify(membershipService).addRoleToMemberOnReference(
+            eq(GraviteeContext.getExecutionContext()),
+            memberShipRefCaptor.capture(),
+            memberShipUserCaptor.capture(),
+            memberShipRoleCaptor.capture()
+        );
         assertEquals(API, memberShipRefCaptor.getValue().getId());
         assertEquals("my-api-membership-role", memberShipRoleCaptor.getValue().getName());
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());

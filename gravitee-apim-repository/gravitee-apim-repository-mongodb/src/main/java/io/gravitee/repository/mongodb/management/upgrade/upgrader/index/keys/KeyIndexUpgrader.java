@@ -27,8 +27,7 @@ public class KeyIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("keys")
             .name("k1")
             .key("key", ascending())

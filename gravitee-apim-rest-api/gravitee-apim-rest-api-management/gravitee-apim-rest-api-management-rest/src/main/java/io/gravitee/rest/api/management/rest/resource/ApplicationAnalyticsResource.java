@@ -76,16 +76,14 @@ public class ApplicationAnalyticsResource extends AbstractResource {
     public Response getApplicationAnalyticsHits(@BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
 
-        return Response
-            .ok(
-                switch (analyticsParam.getType()) {
-                    case DATE_HISTO -> executeDateHisto(application, analyticsParam);
-                    case GROUP_BY -> executeGroupBy(application, analyticsParam);
-                    case COUNT -> executeCount(application, analyticsParam);
-                    case STATS -> executeStats(application, analyticsParam);
-                }
-            )
-            .build();
+        return Response.ok(
+            switch (analyticsParam.getType()) {
+                case DATE_HISTO -> executeDateHisto(application, analyticsParam);
+                case GROUP_BY -> executeGroupBy(application, analyticsParam);
+                case COUNT -> executeCount(application, analyticsParam);
+                case STATS -> executeStats(application, analyticsParam);
+            }
+        ).build();
     }
 
     private Analytics executeStats(String application, AnalyticsParam analyticsParam) {

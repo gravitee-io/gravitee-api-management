@@ -62,8 +62,9 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(15),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
             () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(initClusters().stream().map(Cluster::getName).sorted().limit(10).toList())
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
+                    initClusters().stream().map(Cluster::getName).sorted().limit(10).toList()
+                )
         );
     }
 
@@ -77,8 +78,9 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(3),
             () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(List.of("Cluster 1", "Cluster 4", "Cluster 8"))
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
+                    List.of("Cluster 1", "Cluster 4", "Cluster 8")
+                )
         );
     }
 
@@ -106,8 +108,9 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(15),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(5),
             () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(initClusters().stream().map(Cluster::getName).sorted().toList().subList(5, 10))
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
+                    initClusters().stream().map(Cluster::getName).sorted().toList().subList(5, 10)
+                )
         );
     }
 
@@ -122,10 +125,9 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(15),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(10),
             () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(
-                        initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).limit(10).toList()
-                    )
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
+                    initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).limit(10).toList()
+                )
         );
     }
 
@@ -141,10 +143,9 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(15),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(5),
             () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(
-                        initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).toList().subList(5, 10)
-                    )
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
+                    initClusters().stream().sorted(Comparator.comparing(Cluster::getId)).map(Cluster::getName).toList().subList(5, 10)
+                )
         );
     }
 
@@ -160,8 +161,9 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
             () -> assertThat(result.pageResult().getPageElements()).isEqualTo(3),
             () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(List.of("Cluster 1", "Cluster 12", "Cluster 13"))
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).isEqualTo(
+                    List.of("Cluster 1", "Cluster 12", "Cluster 13")
+                )
         );
     }
 
@@ -207,8 +209,11 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
         assertAll(
             () -> assertThat(result.pageResult().getTotalElements()).isEqualTo(3),
             () ->
-                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList())
-                    .containsExactlyInAnyOrder("Cluster 1", "Cluster 4", "Cluster 8"),
+                assertThat(result.pageResult().getContent().stream().map(Cluster::getName).toList()).containsExactlyInAnyOrder(
+                    "Cluster 1",
+                    "Cluster 4",
+                    "Cluster 8"
+                ),
             () ->
                 assertThat(
                     result
@@ -219,8 +224,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                         .findFirst()
                         .get()
                         .getConfiguration()
-                )
-                    .isNotNull(),
+                ).isNotNull(),
             () ->
                 assertThat(
                     result
@@ -231,8 +235,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                         .findFirst()
                         .get()
                         .getConfiguration()
-                )
-                    .isNull(),
+                ).isNull(),
             () ->
                 assertThat(
                     result
@@ -243,14 +246,12 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                         .findFirst()
                         .get()
                         .getConfiguration()
-                )
-                    .isNull()
+                ).isNull()
         );
     }
 
     private List<Cluster> initClusters() {
-        Cluster cluster1 = Cluster
-            .builder()
+        Cluster cluster1 = Cluster.builder()
             .id("cluster-1")
             .name("Cluster 1")
             .createdAt(INSTANT_NOW)
@@ -259,8 +260,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster2 = Cluster
-            .builder()
+        Cluster cluster2 = Cluster.builder()
             .id("cluster-2")
             .name("2 - Cluster")
             .createdAt(INSTANT_NOW)
@@ -269,8 +269,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster3 = Cluster
-            .builder()
+        Cluster cluster3 = Cluster.builder()
             .id("cluster-3")
             .name("Cluster no 3")
             .createdAt(INSTANT_NOW)
@@ -279,8 +278,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster4 = Cluster
-            .builder()
+        Cluster cluster4 = Cluster.builder()
             .id("cluster-4")
             .name("Cluster 4")
             .createdAt(INSTANT_NOW)
@@ -289,8 +287,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster5 = Cluster
-            .builder()
+        Cluster cluster5 = Cluster.builder()
             .id("cluster-5")
             .name("Cluster 5")
             .createdAt(INSTANT_NOW)
@@ -299,8 +296,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster6 = Cluster
-            .builder()
+        Cluster cluster6 = Cluster.builder()
             .id("cluster-6")
             .name("6 Cluster")
             .createdAt(INSTANT_NOW)
@@ -309,8 +305,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster7 = Cluster
-            .builder()
+        Cluster cluster7 = Cluster.builder()
             .id("cluster-7")
             .name("7 - Cluster")
             .createdAt(INSTANT_NOW)
@@ -319,8 +314,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster8 = Cluster
-            .builder()
+        Cluster cluster8 = Cluster.builder()
             .id("cluster-8")
             .name("Cluster 8")
             .createdAt(INSTANT_NOW)
@@ -329,8 +323,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster9 = Cluster
-            .builder()
+        Cluster cluster9 = Cluster.builder()
             .id("cluster-9")
             .name("Cluster - 9")
             .createdAt(INSTANT_NOW)
@@ -339,8 +332,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster10 = Cluster
-            .builder()
+        Cluster cluster10 = Cluster.builder()
             .id("cluster-10")
             .name("10 - Cluster")
             .createdAt(INSTANT_NOW)
@@ -349,8 +341,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster11 = Cluster
-            .builder()
+        Cluster cluster11 = Cluster.builder()
             .id("cluster-11")
             .name("11 Cluster")
             .createdAt(INSTANT_NOW)
@@ -359,8 +350,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster12 = Cluster
-            .builder()
+        Cluster cluster12 = Cluster.builder()
             .id("cluster-12")
             .name("Cluster 12")
             .createdAt(INSTANT_NOW)
@@ -369,8 +359,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster13 = Cluster
-            .builder()
+        Cluster cluster13 = Cluster.builder()
             .id("cluster-13")
             .name("Cluster 13")
             .createdAt(INSTANT_NOW)
@@ -379,8 +368,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster14 = Cluster
-            .builder()
+        Cluster cluster14 = Cluster.builder()
             .id("cluster-14")
             .name("14 Cluster")
             .createdAt(INSTANT_NOW)
@@ -389,8 +377,7 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
             .organizationId(ORG_ID)
             .configuration(Map.of("bootstrapServers", "localhost:9092"))
             .build();
-        Cluster cluster15 = Cluster
-            .builder()
+        Cluster cluster15 = Cluster.builder()
             .id("cluster-15")
             .name("15 - Cluster")
             .createdAt(INSTANT_NOW)
@@ -422,71 +409,61 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
 
     private void initMemberships() {
         List<Membership> memberships = List.of(
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("cluster-1")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .memberType(Membership.Type.USER)
                 .memberId("member-1")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("group-1")
                 .referenceType(Membership.ReferenceType.GROUP)
                 .memberType(Membership.Type.USER)
                 .memberId("member-1")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("cluster-4")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .memberType(Membership.Type.USER)
                 .memberId("member-1")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("cluster-2")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .memberType(Membership.Type.USER)
                 .memberId("member-2")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("api-1")
                 .referenceType(Membership.ReferenceType.API)
                 .memberType(Membership.Type.USER)
                 .memberId("member-1")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("cluster-3")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .memberType(Membership.Type.USER)
                 .memberId("member-3")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("cluster-5")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .memberType(Membership.Type.USER)
                 .memberId("member-3")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("cluster-8")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .memberType(Membership.Type.USER)
                 .memberId("member-1")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("cluster-9")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .memberType(Membership.Type.USER)
                 .memberId("member-4")
                 .build(),
-            Membership
-                .builder()
+            Membership.builder()
                 .referenceId("cluster-15")
                 .referenceType(Membership.ReferenceType.CLUSTER)
                 .memberType(Membership.Type.USER)

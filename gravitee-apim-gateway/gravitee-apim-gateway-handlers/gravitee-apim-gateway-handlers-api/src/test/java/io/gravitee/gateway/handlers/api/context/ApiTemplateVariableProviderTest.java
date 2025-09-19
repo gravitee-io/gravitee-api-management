@@ -60,8 +60,7 @@ class ApiTemplateVariableProviderTest {
         var apiDefinition = anApiV2()
             .toBuilder()
             .properties(
-                Properties
-                    .builder()
+                Properties.builder()
                     .propertiesList(
                         List.of(
                             Property.builder().key("prop1").value("value1").build(),
@@ -84,8 +83,7 @@ class ApiTemplateVariableProviderTest {
         var apiDefinition = anApiV2()
             .toBuilder()
             .properties(
-                Properties
-                    .builder()
+                Properties.builder()
                     .propertiesList(
                         List.of(
                             Property.builder().key("prop1").value("value1").build(),

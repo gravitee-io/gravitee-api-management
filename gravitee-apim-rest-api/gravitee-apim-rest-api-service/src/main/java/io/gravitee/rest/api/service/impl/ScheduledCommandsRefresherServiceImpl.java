@@ -44,8 +44,7 @@ public class ScheduledCommandsRefresherServiceImpl
     implements ScheduledCommandService<ScheduledCommandsRefresherServiceImpl>, Runnable {
 
     // We exclude the DATA_TO_INDEX tag because it is processed by another service
-    public static final List<CommandTags> SUPPORTED_COMMAND_TAGS = Arrays
-        .stream(CommandTags.values())
+    public static final List<CommandTags> SUPPORTED_COMMAND_TAGS = Arrays.stream(CommandTags.values())
         .filter(commandTags -> commandTags != CommandTags.DATA_TO_INDEX)
         .toList();
 

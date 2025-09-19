@@ -127,8 +127,7 @@ public class CreateApiDomainService {
 
     private void createAuditLog(Api created, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(created.getId())

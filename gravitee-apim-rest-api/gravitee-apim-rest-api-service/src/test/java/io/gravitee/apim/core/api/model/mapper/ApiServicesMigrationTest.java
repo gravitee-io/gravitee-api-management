@@ -55,24 +55,23 @@ class ApiServicesMigrationTest {
         v2.setSchedule("*/10 * * * * *");
         v2.setSteps(null);
         var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
-        assertThat(get(result))
-            .satisfies(v4 -> {
-                assertThat(v4).isNotNull();
-                assertThat(v4.getType()).isEqualTo("http-health-check");
-                assertThat(v4.isEnabled()).isTrue();
-                assertThat(v4.isOverrideConfiguration()).isFalse();
+        assertThat(get(result)).satisfies(v4 -> {
+            assertThat(v4).isNotNull();
+            assertThat(v4.getType()).isEqualTo("http-health-check");
+            assertThat(v4.isEnabled()).isTrue();
+            assertThat(v4.isOverrideConfiguration()).isFalse();
 
-                JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
-                assertThat(cfg.get("schedule").asText()).isEqualTo("*/10 * * * * *");
-                assertThat(cfg.get("failureThreshold").asInt()).isEqualTo(2);
-                assertThat(cfg.get("successThreshold").asInt()).isEqualTo(2);
+            JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
+            assertThat(cfg.get("schedule").asText()).isEqualTo("*/10 * * * * *");
+            assertThat(cfg.get("failureThreshold").asInt()).isEqualTo(2);
+            assertThat(cfg.get("successThreshold").asInt()).isEqualTo(2);
 
-                assertThat(cfg.get("headers")).isNull();
-                assertThat(cfg.get("method")).isNull();
-                assertThat(cfg.get("target")).isNull();
-                assertThat(cfg.get("assertion")).isNull();
-                assertThat(cfg.get("overrideEndpointPath")).isNull();
-            });
+            assertThat(cfg.get("headers")).isNull();
+            assertThat(cfg.get("method")).isNull();
+            assertThat(cfg.get("target")).isNull();
+            assertThat(cfg.get("assertion")).isNull();
+            assertThat(cfg.get("overrideEndpointPath")).isNull();
+        });
     }
 
     @Test
@@ -83,12 +82,11 @@ class ApiServicesMigrationTest {
         v2.setSteps(null);
 
         var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
-        assertThat(get(result))
-            .satisfies(v4 -> {
-                assertThat(v4).isNotNull();
-                JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
-                assertThat(cfg.get("schedule").isNull()).isTrue();
-            });
+        assertThat(get(result)).satisfies(v4 -> {
+            assertThat(v4).isNotNull();
+            JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
+            assertThat(cfg.get("schedule").isNull()).isTrue();
+        });
     }
 
     @Test
@@ -116,28 +114,27 @@ class ApiServicesMigrationTest {
         var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
 
         // then
-        assertThat(get(result))
-            .satisfies(v4 -> {
-                assertThat(v4).isNotNull();
-                assertThat(v4.getType()).isEqualTo("http-health-check");
-                assertThat(v4.isOverrideConfiguration()).isFalse();
+        assertThat(get(result)).satisfies(v4 -> {
+            assertThat(v4).isNotNull();
+            assertThat(v4.getType()).isEqualTo("http-health-check");
+            assertThat(v4.isOverrideConfiguration()).isFalse();
 
-                JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
-                assertThat(cfg.get("schedule").asText()).isEqualTo("*/30 * * * * *");
-                assertThat(cfg.get("failureThreshold").asInt()).isEqualTo(2);
-                assertThat(cfg.get("successThreshold").asInt()).isEqualTo(2);
+            JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
+            assertThat(cfg.get("schedule").asText()).isEqualTo("*/30 * * * * *");
+            assertThat(cfg.get("failureThreshold").asInt()).isEqualTo(2);
+            assertThat(cfg.get("successThreshold").asInt()).isEqualTo(2);
 
-                // Step-derived fields
-                assertThat(cfg.get("method").asText()).isEqualTo("GET");
-                assertThat(cfg.get("target").asText()).isEqualTo("/_health");
-                assertThat(cfg.get("overrideEndpointPath").asBoolean()).isTrue();
+            // Step-derived fields
+            assertThat(cfg.get("method").asText()).isEqualTo("GET");
+            assertThat(cfg.get("target").asText()).isEqualTo("/_health");
+            assertThat(cfg.get("overrideEndpointPath").asBoolean()).isTrue();
 
-                assertThat(cfg.get("headers")).isNotNull();
-                assertThat(cfg.get("headers").get(0).get("name").asText()).isEqualTo("X-Test");
-                assertThat(cfg.get("headers").get(0).get("value").asText()).isEqualTo("1");
-                assertThat(cfg.get("assertion")).isNotNull();
-                assertThat(cfg.get("assertion").asText()).isEqualTo("{" + assertStr + "}");
-            });
+            assertThat(cfg.get("headers")).isNotNull();
+            assertThat(cfg.get("headers").get(0).get("name").asText()).isEqualTo("X-Test");
+            assertThat(cfg.get("headers").get(0).get("value").asText()).isEqualTo("1");
+            assertThat(cfg.get("assertion")).isNotNull();
+            assertThat(cfg.get("assertion").asText()).isEqualTo("{" + assertStr + "}");
+        });
     }
 
     @Test
@@ -188,18 +185,17 @@ class ApiServicesMigrationTest {
 
         var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
 
-        assertThat(get(result))
-            .satisfies(v4 -> {
-                assertThat(v4).isNotNull();
-                assertThat(v4.getType()).isEqualTo("http-health-check");
-                assertThat(v4.isEnabled()).isTrue();
-                assertThat(v4.isOverrideConfiguration()).isTrue(); // flipped because inherit=false
+        assertThat(get(result)).satisfies(v4 -> {
+            assertThat(v4).isNotNull();
+            assertThat(v4.getType()).isEqualTo("http-health-check");
+            assertThat(v4.isEnabled()).isTrue();
+            assertThat(v4.isOverrideConfiguration()).isTrue(); // flipped because inherit=false
 
-                JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
-                assertThat(cfg.get("schedule").asText()).isEqualTo("0 */1 * * * *");
-                assertThat(cfg.get("method").asText()).isEqualTo("HEAD");
-                assertThat(cfg.get("target").asText()).isEqualTo("/hc");
-            });
+            JsonNode cfg = jsonMapper.readTree(v4.getConfiguration());
+            assertThat(cfg.get("schedule").asText()).isEqualTo("0 */1 * * * *");
+            assertThat(cfg.get("method").asText()).isEqualTo("HEAD");
+            assertThat(cfg.get("target").asText()).isEqualTo("/hc");
+        });
     }
 
     @Test
@@ -212,11 +208,10 @@ class ApiServicesMigrationTest {
         v2.setInherit(true);
 
         var result = apiServicesMigration.convert(v2, "ENDPOINT", "testEndpoint");
-        assertThat(get(result))
-            .satisfies(v4 -> {
-                assertThat(v4).isNotNull();
-                assertThat(v4.isOverrideConfiguration()).isFalse();
-            });
+        assertThat(get(result)).satisfies(v4 -> {
+            assertThat(v4).isNotNull();
+            assertThat(v4.isOverrideConfiguration()).isFalse();
+        });
     }
 
     @Test
@@ -228,8 +223,7 @@ class ApiServicesMigrationTest {
         config.setUseSystemProxy(true);
         config.setSpecification("JSON");
         config.setUrl("https://example.com/api");
-        DynamicPropertyService v2DynamicPropertyService = DynamicPropertyService
-            .builder()
+        DynamicPropertyService v2DynamicPropertyService = DynamicPropertyService.builder()
             .schedule("*/5 * * * * *")
             .provider(DynamicPropertyProvider.HTTP)
             .configuration(config)
@@ -238,19 +232,18 @@ class ApiServicesMigrationTest {
         // Act
         var result = apiServicesMigration.convert(v2DynamicPropertyService, null, null);
         // Assert
-        assertThat(get(result))
-            .satisfies(v4 -> {
-                assertThat(v4).isNotNull();
-                assertThat(v4.isOverrideConfiguration()).isFalse();
-                assertThat(v4.getType()).isEqualTo("http-dynamic-properties");
-                assertThat(v4.getConfiguration()).isNotNull();
-                assertThat(
-                    v4
-                        .getConfiguration()
-                        .equals(
-                            "{\"schedule\":\"*/5 * * * * *\",\"headers\":[{\"name\":\"key\",\"value\":\"value\"}],\"method\":\"GET\",\"systemProxy\":true,\"transformation\":\"JSON\",\"url\":\"https://example.com/api\"}"
-                        )
-                );
-            });
+        assertThat(get(result)).satisfies(v4 -> {
+            assertThat(v4).isNotNull();
+            assertThat(v4.isOverrideConfiguration()).isFalse();
+            assertThat(v4.getType()).isEqualTo("http-dynamic-properties");
+            assertThat(v4.getConfiguration()).isNotNull();
+            assertThat(
+                v4
+                    .getConfiguration()
+                    .equals(
+                        "{\"schedule\":\"*/5 * * * * *\",\"headers\":[{\"name\":\"key\",\"value\":\"value\"}],\"method\":\"GET\",\"systemProxy\":true,\"transformation\":\"JSON\",\"url\":\"https://example.com/api\"}"
+                    )
+            );
+        });
     }
 }

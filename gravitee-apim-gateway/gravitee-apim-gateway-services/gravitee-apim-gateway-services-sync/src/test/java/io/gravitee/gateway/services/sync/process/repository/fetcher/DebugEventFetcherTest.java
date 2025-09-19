@@ -61,7 +61,11 @@ class DebugEventFetcherTest {
     void should_fetch_debug_event() {
         Event event = new Event();
         when(eventRepository.search(any())).thenReturn(List.of(event));
-        cut.fetchLatest(null, null, Set.of()).test().assertValueCount(1).assertValue(apiKeys -> apiKeys.contains(event));
+        cut
+            .fetchLatest(null, null, Set.of())
+            .test()
+            .assertValueCount(1)
+            .assertValue(apiKeys -> apiKeys.contains(event));
     }
 
     @Test
@@ -71,18 +75,18 @@ class DebugEventFetcherTest {
         Event event = new Event();
         when(
             eventRepository.search(
-                argThat(argument ->
-                    argument.getTypes().size() == 1 &&
-                    argument.getTypes().contains(EventType.DEBUG_API) &&
-                    argument.getProperties().containsKey(Event.EventProperties.API_DEBUG_STATUS.getValue()) &&
-                    argument.getProperties().containsKey(Event.EventProperties.GATEWAY_ID.getValue()) &&
-                    argument.getEnvironments().contains("env") &&
-                    argument.getFrom() < from.toEpochMilli() &&
-                    argument.getTo() > to.toEpochMilli()
+                argThat(
+                    argument ->
+                        argument.getTypes().size() == 1 &&
+                        argument.getTypes().contains(EventType.DEBUG_API) &&
+                        argument.getProperties().containsKey(Event.EventProperties.API_DEBUG_STATUS.getValue()) &&
+                        argument.getProperties().containsKey(Event.EventProperties.GATEWAY_ID.getValue()) &&
+                        argument.getEnvironments().contains("env") &&
+                        argument.getFrom() < from.toEpochMilli() &&
+                        argument.getTo() > to.toEpochMilli()
                 )
             )
-        )
-            .thenReturn(List.of(event));
+        ).thenReturn(List.of(event));
         cut
             .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
             .test()

@@ -24,8 +24,7 @@ public class EnvironmentsCreatedAtIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("events")
             .name("e1ua")
             .key("environments", descending())

@@ -45,8 +45,10 @@ public class SharedPolicyGroupMongoRepositoryImpl implements SharedPolicyGroupMo
         }
         if (criteria.getQuery() != null) {
             query.addCriteria(
-                new Criteria()
-                    .orOperator(where("name").regex(criteria.getQuery(), "i"), where("description").regex(criteria.getQuery(), "i"))
+                new Criteria().orOperator(
+                    where("name").regex(criteria.getQuery(), "i"),
+                    where("description").regex(criteria.getQuery(), "i")
+                )
             );
         }
         if (criteria.getLifecycleState() != null) {

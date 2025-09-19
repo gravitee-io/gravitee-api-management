@@ -68,8 +68,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
 
     @Override
     protected JdbcObjectMapper<Dictionary> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Dictionary.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Dictionary.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
@@ -305,8 +304,9 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         try {
             jdbcTemplate.update(buildUpdatePreparedStatementCreator(dictionary));
             storeProperties(dictionary, true);
-            return findById(dictionary.getId())
-                .orElseThrow(() -> new IllegalStateException(format("No dictionary found with id [%s]", dictionary.getId())));
+            return findById(dictionary.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No dictionary found with id [%s]", dictionary.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -375,11 +375,11 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " d left join " +
-                DICTIONARY_PROPERTY +
-                " dp on d.id = dp.dictionary_id where d." +
-                escapeReservedWord("key") +
-                " = ? and d.environment_id = ?",
+                    " d left join " +
+                    DICTIONARY_PROPERTY +
+                    " dp on d.id = dp.dictionary_id where d." +
+                    escapeReservedWord("key") +
+                    " = ? and d.environment_id = ?",
                 rowMapper,
                 key,
                 environmentId

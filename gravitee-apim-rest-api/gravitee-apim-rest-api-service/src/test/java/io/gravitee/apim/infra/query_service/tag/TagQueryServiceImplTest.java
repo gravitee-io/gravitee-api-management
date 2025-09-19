@@ -50,13 +50,12 @@ class TagQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_groups_matching_the_event_provided() {
-            when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION)))
-                .thenAnswer(invocation ->
-                    Set.of(
-                        aTag("1").referenceId(invocation.getArgument(0)).name("tag-1").build(),
-                        aTag("2").referenceId(invocation.getArgument(0)).name("tag-2").build()
-                    )
-                );
+            when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION))).thenAnswer(invocation ->
+                Set.of(
+                    aTag("1").referenceId(invocation.getArgument(0)).name("tag-1").build(),
+                    aTag("2").referenceId(invocation.getArgument(0)).name("tag-2").build()
+                )
+            );
 
             var tags = service.findByName(ORGANIZATION_ID, "tag-2");
 
@@ -66,17 +65,16 @@ class TagQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_adapt_groups() {
-            when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION)))
-                .thenAnswer(invocation -> Set.of(aTag("1").referenceId(invocation.getArgument(0)).name("tag-1").build()));
+            when(tagRepository.findByReference(any(String.class), eq(TagReferenceType.ORGANIZATION))).thenAnswer(invocation ->
+                Set.of(aTag("1").referenceId(invocation.getArgument(0)).name("tag-1").build())
+            );
 
             var tags = service.findByName(ORGANIZATION_ID, "tag-1");
 
-            Assertions
-                .assertThat(tags)
+            Assertions.assertThat(tags)
                 .hasSize(1)
                 .containsExactly(
-                    Tag
-                        .builder()
+                    Tag.builder()
                         .id("1")
                         .name("tag-1")
                         .description("group-1-description")
@@ -89,8 +87,7 @@ class TagQueryServiceImplTest {
     }
 
     private io.gravitee.repository.management.model.Tag.TagBuilder aTag(String id) {
-        return io.gravitee.repository.management.model.Tag
-            .builder()
+        return io.gravitee.repository.management.model.Tag.builder()
             .id(id)
             .name("group-1")
             .description("group-1-description")

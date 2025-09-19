@@ -39,10 +39,9 @@ class SharedPolicyGroupReactorFactoryManagerTest {
 
     @Test
     void should_create_reactable_using_the_corresponding_factory() {
-        cut =
-            new SharedPolicyGroupReactorFactoryManager(
-                List.of(new FakeSharedPolicyGroupReactorFactory("fake-1"), new FakeSharedPolicyGroupReactorFactory("fake-2"))
-            );
+        cut = new SharedPolicyGroupReactorFactoryManager(
+            List.of(new FakeSharedPolicyGroupReactorFactory("fake-1"), new FakeSharedPolicyGroupReactorFactory("fake-2"))
+        );
         final SharedPolicyGroupReactor expectedFake1 = cut.create(
             new ReactableSharedPolicyGroup(SharedPolicyGroup.builder().id("fake-1").build())
         );

@@ -47,8 +47,8 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
     public Optional<Page> findHomepageByApiId(String apiId) {
         return pages
             .stream()
-            .filter(page ->
-                apiId.equals(page.getReferenceId()) && Page.ReferenceType.API.equals(page.getReferenceType()) && page.isHomepage()
+            .filter(
+                page -> apiId.equals(page.getReferenceId()) && Page.ReferenceType.API.equals(page.getReferenceType()) && page.isHomepage()
             )
             .findFirst();
     }
@@ -58,19 +58,21 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
         if (Objects.isNull(parentId) || parentId.isEmpty()) {
             return pages
                 .stream()
-                .filter(page ->
-                    apiId.equals(page.getReferenceId()) &&
-                    Page.ReferenceType.API.equals(page.getReferenceType()) &&
-                    (Objects.isNull(page.getParentId()) || page.getParentId().isEmpty())
+                .filter(
+                    page ->
+                        apiId.equals(page.getReferenceId()) &&
+                        Page.ReferenceType.API.equals(page.getReferenceType()) &&
+                        (Objects.isNull(page.getParentId()) || page.getParentId().isEmpty())
                 )
                 .toList();
         }
         return pages
             .stream()
-            .filter(page ->
-                apiId.equals(page.getReferenceId()) &&
-                Page.ReferenceType.API.equals(page.getReferenceType()) &&
-                parentId.equals(page.getParentId())
+            .filter(
+                page ->
+                    apiId.equals(page.getReferenceId()) &&
+                    Page.ReferenceType.API.equals(page.getReferenceType()) &&
+                    parentId.equals(page.getParentId())
             )
             .toList();
     }
@@ -83,23 +85,30 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
             .filter(page ->
                 noParentId ? Objects.isNull(page.getParentId()) || page.getParentId().isEmpty() : parentId.equals(page.getParentId())
             )
-            .filter(page ->
-                apiId.equals(page.getReferenceId()) &&
-                Page.ReferenceType.API.equals(page.getReferenceType()) &&
-                type.equals(page.getType()) &&
-                name.equals(page.getName())
+            .filter(
+                page ->
+                    apiId.equals(page.getReferenceId()) &&
+                    Page.ReferenceType.API.equals(page.getReferenceType()) &&
+                    type.equals(page.getType()) &&
+                    name.equals(page.getName())
             )
             .findFirst();
     }
 
     @Override
     public Optional<Page> findByNameAndReferenceId(String name, String referenceId) {
-        return pages.stream().filter(p -> p.getName().equals(name) && p.getReferenceId().equals(referenceId)).findFirst();
+        return pages
+            .stream()
+            .filter(p -> p.getName().equals(name) && p.getReferenceId().equals(referenceId))
+            .findFirst();
     }
 
     @Override
     public long countByParentIdAndIsPublished(String parentId) {
-        return pages.stream().filter(page -> Objects.equals(page.getParentId(), parentId) && page.isPublished()).count();
+        return pages
+            .stream()
+            .filter(page -> Objects.equals(page.getParentId(), parentId) && page.isPublished())
+            .count();
     }
 
     @Override

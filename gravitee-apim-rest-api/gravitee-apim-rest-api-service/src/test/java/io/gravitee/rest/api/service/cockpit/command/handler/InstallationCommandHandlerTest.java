@@ -69,8 +69,7 @@ public class InstallationCommandHandlerTest extends TestCase {
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        InstallationCommandPayload installationPayload = InstallationCommandPayload
-            .builder()
+        InstallationCommandPayload installationPayload = InstallationCommandPayload.builder()
             .id(INSTALLATION_ID)
             .status("ACCEPTED")
             .build();
@@ -95,8 +94,7 @@ public class InstallationCommandHandlerTest extends TestCase {
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        InstallationCommandPayload installationPayload = InstallationCommandPayload
-            .builder()
+        InstallationCommandPayload installationPayload = InstallationCommandPayload.builder()
             .id(INSTALLATION_ID)
             .status("ACCEPTED")
             .build();

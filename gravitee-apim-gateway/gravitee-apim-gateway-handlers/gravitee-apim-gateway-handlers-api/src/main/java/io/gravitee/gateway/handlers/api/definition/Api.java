@@ -167,10 +167,11 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.Api> 
         return definition
             .getPlans()
             .stream()
-            .filter(plan ->
-                OAUTH2.name().equalsIgnoreCase(plan.getSecurity()) ||
-                JWT.name().equalsIgnoreCase(plan.getSecurity()) ||
-                API_KEY.name().equalsIgnoreCase(plan.getSecurity())
+            .filter(
+                plan ->
+                    OAUTH2.name().equalsIgnoreCase(plan.getSecurity()) ||
+                    JWT.name().equalsIgnoreCase(plan.getSecurity()) ||
+                    API_KEY.name().equalsIgnoreCase(plan.getSecurity())
             )
             .map(Plan::getId)
             .collect(Collectors.toSet());

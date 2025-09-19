@@ -37,8 +37,10 @@ class GetResourcePluginsUseCaseTest {
     @BeforeEach
     void setup() {
         licenseManager = mock(LicenseManager.class);
-        getResourcePluginsUseCase =
-            new GetResourcePluginsUseCase(resourcePluginQueryServiceInMemory, new PluginFilterByLicenseDomainService(licenseManager));
+        getResourcePluginsUseCase = new GetResourcePluginsUseCase(
+            resourcePluginQueryServiceInMemory,
+            new PluginFilterByLicenseDomainService(licenseManager)
+        );
     }
 
     @Test
@@ -57,11 +59,12 @@ class GetResourcePluginsUseCaseTest {
         when(license.isFeatureEnabled("feature-resource-2")).thenReturn(true);
         when(license.isFeatureEnabled("feature-resource-3")).thenReturn(true);
 
-        assertThat(getResourcePluginsUseCase.getResourcesByOrganization(new GetResourcePluginsUseCase.Input("org-id")).plugins())
-            .containsExactly(
-                ResourcePlugin.builder().id("resource-1").name("Resource 1").feature("feature-resource-1").deployed(false).build(),
-                ResourcePlugin.builder().id("resource-2").name("Resource 2").feature("feature-resource-2").deployed(true).build(),
-                ResourcePlugin.builder().id("resource-3").name("Resource 3").feature("feature-resource-3").deployed(false).build()
-            );
+        assertThat(
+            getResourcePluginsUseCase.getResourcesByOrganization(new GetResourcePluginsUseCase.Input("org-id")).plugins()
+        ).containsExactly(
+            ResourcePlugin.builder().id("resource-1").name("Resource 1").feature("feature-resource-1").deployed(false).build(),
+            ResourcePlugin.builder().id("resource-2").name("Resource 2").feature("feature-resource-2").deployed(true).build(),
+            ResourcePlugin.builder().id("resource-3").name("Resource 3").feature("feature-resource-3").deployed(false).build()
+        );
     }
 }

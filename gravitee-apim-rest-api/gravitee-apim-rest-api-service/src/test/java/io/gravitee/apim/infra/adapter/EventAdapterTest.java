@@ -57,8 +57,7 @@ class EventAdapterTest {
 
     @Test
     void should_convert_event_to_entity() {
-        Event event = Event
-            .builder()
+        Event event = Event.builder()
             .id("id")
             .environments(Set.of("env1", "env2"))
             .payload("payload")

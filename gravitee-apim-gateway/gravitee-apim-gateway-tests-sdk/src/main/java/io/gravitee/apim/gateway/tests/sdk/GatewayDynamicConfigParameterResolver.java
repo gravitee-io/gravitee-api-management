@@ -40,9 +40,8 @@ public class GatewayDynamicConfigParameterResolver implements GatewayTestParamet
     @Override
     public Object resolve(ExtensionContext extensionContext, ParameterContext parameterContext, AbstractGatewayTest gatewayTest) {
         if (
-            extensionContext
-                .getStore(ExtensionContext.Namespace.GLOBAL)
-                .get(GATEWAY_DYNAMIC_CONFIG_KEY) instanceof GatewayDynamicConfig.GatewayDynamicConfigImpl config
+            extensionContext.getStore(ExtensionContext.Namespace.GLOBAL).get(GATEWAY_DYNAMIC_CONFIG_KEY) instanceof
+                GatewayDynamicConfig.GatewayDynamicConfigImpl config
         ) {
             return config;
         }

@@ -49,8 +49,7 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
 
     @Override
     protected JdbcObjectMapper<Tenant> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Tenant.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Tenant.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)

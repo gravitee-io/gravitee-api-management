@@ -55,7 +55,10 @@ public interface ApiAuditMapper {
     }
 
     default List<Audit> map(List<AuditEntity> source, Map<String, String> metadata) {
-        return source.stream().map(audit -> map(audit, metadata)).toList();
+        return source
+            .stream()
+            .map(audit -> map(audit, metadata))
+            .toList();
     }
 
     @Named("adaptProperties")

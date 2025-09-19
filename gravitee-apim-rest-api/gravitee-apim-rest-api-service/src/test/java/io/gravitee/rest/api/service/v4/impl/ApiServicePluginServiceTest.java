@@ -80,12 +80,13 @@ public class ApiServicePluginServiceTest {
         assertThat(plugins)
             .isNotNull()
             .isNotEmpty()
-            .allMatch(plugin ->
-                plugin.getId().equals(API_SERVICE_PLUGIN_ID) &&
-                plugin.getDescription().equals(API_SERVICE_PLUGIN_DESCRIPTION) &&
-                plugin.getName().equals(API_SERVICE_PLUGIN_NAME) &&
-                plugin.getVersion().equals(API_SERVICE_PLUGIN_VERSION) &&
-                plugin.getCategory().equals(API_SERVICE_PLUGIN_CATEGORY)
+            .allMatch(
+                plugin ->
+                    plugin.getId().equals(API_SERVICE_PLUGIN_ID) &&
+                    plugin.getDescription().equals(API_SERVICE_PLUGIN_DESCRIPTION) &&
+                    plugin.getName().equals(API_SERVICE_PLUGIN_NAME) &&
+                    plugin.getVersion().equals(API_SERVICE_PLUGIN_VERSION) &&
+                    plugin.getCategory().equals(API_SERVICE_PLUGIN_CATEGORY)
             );
     }
 
@@ -97,12 +98,13 @@ public class ApiServicePluginServiceTest {
 
         assertThat(plugin)
             .isNotNull()
-            .matches(p ->
-                p.getId().equals(API_SERVICE_PLUGIN_ID) &&
-                p.getDescription().equals(API_SERVICE_PLUGIN_DESCRIPTION) &&
-                p.getName().equals(API_SERVICE_PLUGIN_NAME) &&
-                p.getVersion().equals(API_SERVICE_PLUGIN_VERSION) &&
-                p.getCategory().equals(API_SERVICE_PLUGIN_CATEGORY)
+            .matches(
+                p ->
+                    p.getId().equals(API_SERVICE_PLUGIN_ID) &&
+                    p.getDescription().equals(API_SERVICE_PLUGIN_DESCRIPTION) &&
+                    p.getName().equals(API_SERVICE_PLUGIN_NAME) &&
+                    p.getVersion().equals(API_SERVICE_PLUGIN_VERSION) &&
+                    p.getCategory().equals(API_SERVICE_PLUGIN_CATEGORY)
             );
     }
 

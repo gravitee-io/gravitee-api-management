@@ -72,8 +72,9 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         environment = mock(Environment.class);
         templateEngine = mock(TemplateEngine.class);
         when(environment.getProperty("http.ssl.openssl", Boolean.class, false)).thenReturn(useOpenSsl());
-        when(templateEngine.getValue(anyString(), eq(String.class)))
-            .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0, String.class));
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(invocationOnMock ->
+            invocationOnMock.getArgument(0, String.class)
+        );
     }
 
     protected abstract Boolean useOpenSsl();
@@ -163,8 +164,9 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
         // Prepare
         EndpointRule rule = createEndpointRule("{#properties['backend’]}");
-        when(templateEngine.getValue(eq(wm.baseUrl() + "{#properties['backend’]}"), eq(String.class)))
-            .thenReturn(wm.baseUrl() + "/withProperties");
+        when(templateEngine.getValue(eq(wm.baseUrl() + "{#properties['backend’]}"), eq(String.class))).thenReturn(
+            wm.baseUrl() + "/withProperties"
+        );
 
         HealthCheckStep step = new HealthCheckStep();
         HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);

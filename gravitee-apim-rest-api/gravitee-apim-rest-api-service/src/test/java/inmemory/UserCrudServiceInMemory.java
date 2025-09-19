@@ -31,12 +31,18 @@ public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlterna
 
     @Override
     public Optional<BaseUserEntity> findBaseUserById(String userId) {
-        return storage.stream().filter(user -> userId.equals(user.getId())).findFirst();
+        return storage
+            .stream()
+            .filter(user -> userId.equals(user.getId()))
+            .findFirst();
     }
 
     @Override
     public Set<BaseUserEntity> findBaseUsersByIds(List<String> userIds) {
-        return storage.stream().filter(user -> userIds.contains(user.getId())).collect(Collectors.toSet());
+        return storage
+            .stream()
+            .filter(user -> userIds.contains(user.getId()))
+            .collect(Collectors.toSet());
     }
 
     @Override

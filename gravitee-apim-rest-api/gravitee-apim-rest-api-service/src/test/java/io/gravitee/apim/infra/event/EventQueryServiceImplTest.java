@@ -88,39 +88,35 @@ public class EventQueryServiceImplTest {
             var queryCaptor = ArgumentCaptor.forClass(EventCriteria.class);
             var pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
             verify(eventRepository).search(queryCaptor.capture(), pageableCaptor.capture());
-            assertThat(queryCaptor.getValue())
-                .satisfies(criteria -> {
-                    assertThat(criteria.getEnvironments()).isEqualTo(Set.of("environment-id"));
-                    assertThat(criteria.getTypes()).isEqualTo(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API));
-                    assertThat(criteria.getProperties())
-                        .containsExactlyInAnyOrderEntriesOf(
-                            Map.ofEntries(
-                                Map.entry(Event.EventProperties.ID.getLabel(), "id"),
-                                Map.entry(Event.EventProperties.API_ID.getLabel(), "api-id"),
-                                Map.entry(Event.EventProperties.USER.getLabel(), "user-id")
-                            )
-                        );
-                    assertThat(criteria.getFrom()).isEqualTo(2L);
-                    assertThat(criteria.getTo()).isEqualTo(100L);
-                });
+            assertThat(queryCaptor.getValue()).satisfies(criteria -> {
+                assertThat(criteria.getEnvironments()).isEqualTo(Set.of("environment-id"));
+                assertThat(criteria.getTypes()).isEqualTo(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API));
+                assertThat(criteria.getProperties()).containsExactlyInAnyOrderEntriesOf(
+                    Map.ofEntries(
+                        Map.entry(Event.EventProperties.ID.getLabel(), "id"),
+                        Map.entry(Event.EventProperties.API_ID.getLabel(), "api-id"),
+                        Map.entry(Event.EventProperties.USER.getLabel(), "user-id")
+                    )
+                );
+                assertThat(criteria.getFrom()).isEqualTo(2L);
+                assertThat(criteria.getTo()).isEqualTo(100L);
+            });
 
-            assertThat(pageableCaptor.getValue())
-                .satisfies(pageParam -> {
-                    assertThat(pageParam.pageNumber()).isZero();
-                    assertThat(pageParam.pageSize()).isEqualTo(50);
-                });
+            assertThat(pageableCaptor.getValue()).satisfies(pageParam -> {
+                assertThat(pageParam.pageNumber()).isZero();
+                assertThat(pageParam.pageSize()).isEqualTo(50);
+            });
         }
 
         @SneakyThrows
         @Test
         void should_return_events() {
             // Given
-            when(eventRepository.search(any(), any()))
-                .thenAnswer(invocation -> {
-                    var criteria = invocation.getArgument(0, EventCriteria.class);
-                    var list = List.of(anEvent().environments(new HashSet<>(criteria.getEnvironments())).build());
-                    return new Page<>(list, 0, list.size(), list.size());
-                });
+            when(eventRepository.search(any(), any())).thenAnswer(invocation -> {
+                var criteria = invocation.getArgument(0, EventCriteria.class);
+                var list = List.of(anEvent().environments(new HashSet<>(criteria.getEnvironments())).build());
+                return new Page<>(list, 0, list.size(), list.size());
+            });
 
             var query = new EventQueryService.SearchQuery(
                 "environment-id",
@@ -142,8 +138,7 @@ public class EventQueryServiceImplTest {
                 softly
                     .assertThat(result.events())
                     .containsExactly(
-                        Event
-                            .builder()
+                        Event.builder()
                             .id("event-id")
                             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -165,8 +160,7 @@ public class EventQueryServiceImplTest {
         }
 
         private io.gravitee.repository.management.model.Event.EventBuilder anEvent() {
-            return io.gravitee.repository.management.model.Event
-                .builder()
+            return io.gravitee.repository.management.model.Event.builder()
                 .id("event-id")
                 .createdAt(Date.from(INSTANT_NOW))
                 .updatedAt(Date.from(INSTANT_NOW))

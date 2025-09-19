@@ -59,11 +59,11 @@ public class ClusterQueryServiceInMemory extends AbstractQueryServiceInMemory<Cl
         }
 
         if (criteria.getQuery() != null && !criteria.getQuery().isBlank()) {
-            stream =
-                stream.filter(cluster ->
+            stream = stream.filter(
+                cluster ->
                     cluster.getName().toLowerCase().contains(criteria.getQuery().toLowerCase()) ||
                     (cluster.getDescription() != null && cluster.getDescription().toLowerCase().contains(criteria.getQuery().toLowerCase()))
-                );
+            );
         }
 
         stream = stream.sorted(sortClusters(sortable));

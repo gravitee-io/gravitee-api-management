@@ -62,8 +62,7 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
                 ENVIRONMENT_ID,
                 RolePermissionAction.CREATE
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         Response response = rootTarget().request().post(null);
         assertEquals(FORBIDDEN_403, response.getStatus());
     }

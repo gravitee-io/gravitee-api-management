@@ -69,14 +69,12 @@ class SubscriptionAppenderTest {
 
     @Test
     void should_do_nothing_when_no_subscriptions_for_given_deployable() {
-        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable.builder()
             .apiId("api1")
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("plan1"))
             .build();
-        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable.builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("plan2"))
@@ -89,8 +87,7 @@ class SubscriptionAppenderTest {
 
     @Test
     void should_appends_subscriptions_for_given_deployable() throws TechnicalException {
-        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable.builder()
             .apiId("api1")
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("plan1"))
@@ -106,10 +103,8 @@ class SubscriptionAppenderTest {
                 argThat(argument -> argument.getPlans().contains("plan1") && argument.getEnvironments().contains("env")),
                 any()
             )
-        )
-            .thenReturn(List.of(subscription1, subscription2));
-        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable
-            .builder()
+        ).thenReturn(List.of(subscription1, subscription2));
+        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable.builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("nosubscriptionplan"))
@@ -123,8 +118,7 @@ class SubscriptionAppenderTest {
     @Test
     void should_ignore_and_log_subscriptions_with_missing_deployable() throws TechnicalException {
         configureMemoryAppender();
-        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable.builder()
             .apiId("api1")
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("plan1"))
@@ -139,8 +133,7 @@ class SubscriptionAppenderTest {
         subscription3.setId("sub3");
         subscription3.setApi("api3");
         when(subscriptionRepository.search(any(), any())).thenReturn(List.of(subscription1, subscription2, subscription3));
-        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable.builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("nosubscriptionplan"))

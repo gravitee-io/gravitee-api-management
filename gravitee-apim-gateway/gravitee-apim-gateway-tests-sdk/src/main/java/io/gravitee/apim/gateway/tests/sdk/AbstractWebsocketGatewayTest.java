@@ -44,22 +44,21 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
         final HttpServerOptions httpServerOptions = new HttpServerOptions();
         final int serverPort = getAvailablePort();
         httpServerOptions.setPort(serverPort);
-        serverDispose =
-            vertx
-                .createHttpServer(httpServerOptions)
-                .webSocketHandler(serverWebSocket -> {
-                    if (null != websocketServerHandler) {
-                        websocketServerHandler.handle(serverWebSocket);
-                    }
-                })
-                .listen(serverPort)
-                .subscribe(
-                    server -> {
-                        httpServer = server;
-                        context.completeNow();
-                    },
-                    context::failNow
-                );
+        serverDispose = vertx
+            .createHttpServer(httpServerOptions)
+            .webSocketHandler(serverWebSocket -> {
+                if (null != websocketServerHandler) {
+                    websocketServerHandler.handle(serverWebSocket);
+                }
+            })
+            .listen(serverPort)
+            .subscribe(
+                server -> {
+                    httpServer = server;
+                    context.completeNow();
+                },
+                context::failNow
+            );
     }
 
     @AfterAll

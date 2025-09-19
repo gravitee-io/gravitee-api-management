@@ -51,18 +51,19 @@ class DictionaryMapperTest {
         Dictionary dictionary = new Dictionary();
         dictionary.setId("id");
 
-        distributedEvent =
-            DistributedEvent
-                .builder()
-                .id(dictionary.getId())
-                .payload(objectMapper.writeValueAsString(dictionary))
-                .updatedAt(new Date())
-                .type(DistributedEventType.DICTIONARY)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .build();
+        distributedEvent = DistributedEvent.builder()
+            .id(dictionary.getId())
+            .payload(objectMapper.writeValueAsString(dictionary))
+            .updatedAt(new Date())
+            .type(DistributedEventType.DICTIONARY)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
 
-        dictionaryDeployable =
-            DictionaryDeployable.builder().id(dictionary.getId()).dictionary(dictionary).syncAction(SyncAction.DEPLOY).build();
+        dictionaryDeployable = DictionaryDeployable.builder()
+            .id(dictionary.getId())
+            .dictionary(dictionary)
+            .syncAction(SyncAction.DEPLOY)
+            .build();
     }
 
     @Test

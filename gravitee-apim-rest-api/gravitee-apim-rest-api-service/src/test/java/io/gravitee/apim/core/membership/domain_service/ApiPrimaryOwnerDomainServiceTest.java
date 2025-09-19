@@ -89,15 +89,14 @@ class ApiPrimaryOwnerDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-            new ApiPrimaryOwnerDomainService(
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            );
+        service = new ApiPrimaryOwnerDomainService(
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
     }
@@ -118,8 +117,7 @@ class ApiPrimaryOwnerDomainServiceTest {
             );
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.API)
                         .referenceId("api-id")
                         .memberType(Membership.Type.USER)
@@ -131,17 +129,14 @@ class ApiPrimaryOwnerDomainServiceTest {
 
             var result = service.getApiPrimaryOwner(ORGANIZATION_ID, "api-id");
 
-            Assertions
-                .assertThat(result)
-                .isEqualTo(
-                    PrimaryOwnerEntity
-                        .builder()
-                        .id(MEMBER_ID)
-                        .displayName("Jane Doe")
-                        .email("jane.doe@gravitee.io")
-                        .type(PrimaryOwnerEntity.Type.USER)
-                        .build()
-                );
+            Assertions.assertThat(result).isEqualTo(
+                PrimaryOwnerEntity.builder()
+                    .id(MEMBER_ID)
+                    .displayName("Jane Doe")
+                    .email("jane.doe@gravitee.io")
+                    .type(PrimaryOwnerEntity.Type.USER)
+                    .build()
+            );
         }
 
         @Test
@@ -153,16 +148,14 @@ class ApiPrimaryOwnerDomainServiceTest {
             givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("Group name").build()));
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.API)
                         .referenceId("api-id")
                         .memberType(Membership.Type.GROUP)
                         .memberId(GROUP_ID)
                         .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .build(),
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.GROUP)
                         .referenceId(GROUP_ID)
                         .memberType(Membership.Type.USER)
@@ -174,17 +167,14 @@ class ApiPrimaryOwnerDomainServiceTest {
 
             var result = service.getApiPrimaryOwner(ORGANIZATION_ID, "api-id");
 
-            Assertions
-                .assertThat(result)
-                .isEqualTo(
-                    PrimaryOwnerEntity
-                        .builder()
-                        .id(GROUP_ID)
-                        .displayName("Group name")
-                        .email("jane.doe@gravitee.io")
-                        .type(PrimaryOwnerEntity.Type.GROUP)
-                        .build()
-                );
+            Assertions.assertThat(result).isEqualTo(
+                PrimaryOwnerEntity.builder()
+                    .id(GROUP_ID)
+                    .displayName("Group name")
+                    .email("jane.doe@gravitee.io")
+                    .type(PrimaryOwnerEntity.Type.GROUP)
+                    .build()
+            );
         }
 
         @Test
@@ -193,8 +183,7 @@ class ApiPrimaryOwnerDomainServiceTest {
             givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("Group name").build()));
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.API)
                         .referenceId("api-id")
                         .memberType(Membership.Type.GROUP)
@@ -206,9 +195,9 @@ class ApiPrimaryOwnerDomainServiceTest {
 
             var result = service.getApiPrimaryOwner(ORGANIZATION_ID, "api-id");
 
-            Assertions
-                .assertThat(result)
-                .isEqualTo(PrimaryOwnerEntity.builder().id(GROUP_ID).displayName("Group name").type(PrimaryOwnerEntity.Type.GROUP).build());
+            Assertions.assertThat(result).isEqualTo(
+                PrimaryOwnerEntity.builder().id(GROUP_ID).displayName("Group name").type(PrimaryOwnerEntity.Type.GROUP).build()
+            );
         }
 
         @Test
@@ -216,8 +205,7 @@ class ApiPrimaryOwnerDomainServiceTest {
             givenExistingUsers(List.of());
             givenExistingMemberships(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .referenceType(Membership.ReferenceType.API)
                         .referenceId("api-id")
                         .memberType(Membership.Type.USER)
@@ -249,21 +237,19 @@ class ApiPrimaryOwnerDomainServiceTest {
                 );
 
                 // Then
-                assertThat(membershipCrudService.storage())
-                    .containsExactly(
-                        Membership
-                            .builder()
-                            .id("generated-id")
-                            .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
-                            .memberId(MEMBER_ID)
-                            .memberType(Membership.Type.USER)
-                            .referenceId(API_ID)
-                            .referenceType(Membership.ReferenceType.API)
-                            .source("system")
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .build()
-                    );
+                assertThat(membershipCrudService.storage()).containsExactly(
+                    Membership.builder()
+                        .id("generated-id")
+                        .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .memberId(MEMBER_ID)
+                        .memberType(Membership.Type.USER)
+                        .referenceId(API_ID)
+                        .referenceType(Membership.ReferenceType.API)
+                        .source("system")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                );
             }
 
             @Test
@@ -279,8 +265,7 @@ class ApiPrimaryOwnerDomainServiceTest {
                 assertThat(auditCrudService.storage())
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
                     .containsExactly(
-                        AuditEntity
-                            .builder()
+                        AuditEntity.builder()
                             .id("generated-id")
                             .organizationId(ORGANIZATION_ID)
                             .environmentId(ENVIRONMENT_ID)
@@ -308,21 +293,19 @@ class ApiPrimaryOwnerDomainServiceTest {
                 );
 
                 // Then
-                assertThat(membershipCrudService.storage())
-                    .containsExactly(
-                        Membership
-                            .builder()
-                            .id("generated-id")
-                            .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
-                            .memberId(GROUP_ID)
-                            .memberType(Membership.Type.GROUP)
-                            .referenceId(API_ID)
-                            .referenceType(Membership.ReferenceType.API)
-                            .source("system")
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .build()
-                    );
+                assertThat(membershipCrudService.storage()).containsExactly(
+                    Membership.builder()
+                        .id("generated-id")
+                        .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
+                        .memberId(GROUP_ID)
+                        .memberType(Membership.Type.GROUP)
+                        .referenceId(API_ID)
+                        .referenceType(Membership.ReferenceType.API)
+                        .source("system")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                );
             }
 
             @Test
@@ -338,8 +321,7 @@ class ApiPrimaryOwnerDomainServiceTest {
                 assertThat(auditCrudService.storage())
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
                     .containsExactly(
-                        AuditEntity
-                            .builder()
+                        AuditEntity.builder()
                             .id("generated-id")
                             .organizationId(ORGANIZATION_ID)
                             .environmentId(ENVIRONMENT_ID)

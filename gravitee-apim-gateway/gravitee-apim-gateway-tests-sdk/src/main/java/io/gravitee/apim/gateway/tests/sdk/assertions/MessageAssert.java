@@ -56,10 +56,12 @@ public class MessageAssert extends AbstractAssert<MessageAssert, Message> {
 
     public MessageAssert hasHeaders(Map<String, Object> expectedHeaders) {
         var actualHeaders = new HashMap<String, Object>();
-        actual.headers().iterator().forEachRemaining(h -> actualHeaders.put(h.getKey(), h.getValue()));
+        actual
+            .headers()
+            .iterator()
+            .forEachRemaining(h -> actualHeaders.put(h.getKey(), h.getValue()));
 
-        Assertions
-            .assertThat(actualHeaders)
+        Assertions.assertThat(actualHeaders)
             .describedAs("\nExpecting headers to contains:\n  <%s>\nbut was:\n  <%s>", expectedHeaders, actualHeaders)
             .containsAllEntriesOf(expectedHeaders);
         return this;
@@ -68,8 +70,7 @@ public class MessageAssert extends AbstractAssert<MessageAssert, Message> {
     public MessageAssert hasMetadata(Map<String, Object> expectedMetadata) {
         var actualMetadata = actual.metadata();
 
-        Assertions
-            .assertThat(actual.metadata())
+        Assertions.assertThat(actual.metadata())
             .describedAs("\nExpecting metadata to contains:\n  <%s>\nbut was:\n  <%s>", expectedMetadata, actualMetadata)
             .containsAllEntriesOf(expectedMetadata);
         return this;
@@ -78,8 +79,7 @@ public class MessageAssert extends AbstractAssert<MessageAssert, Message> {
     public MessageAssert hasOnlyMetadataKey(List<String> expectedMetadataKey) {
         var actualMetadata = actual.metadata();
 
-        Assertions
-            .assertThat(actual.metadata())
+        Assertions.assertThat(actual.metadata())
             .describedAs(
                 "\nExpecting metadata to contains only the keys:\n  <%s>\nbut was:\n  <%s>",
                 expectedMetadataKey,

@@ -110,23 +110,24 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         Date now = new Date();
         setCurrentUserDetails(now, userDetails);
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.GROUP))
-            .thenReturn(
-                Set.of(
-                    MembershipEntity
-                        .builder()
-                        .id("id")
-                        .memberId(ID)
-                        .memberType(MembershipMemberType.USER)
-                        .referenceId(GROUP_ID)
-                        .referenceType(MembershipReferenceType.GROUP)
-                        .roleId(ROLE_ID)
-                        .build()
-                )
-            );
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.GROUP)
+        ).thenReturn(
+            Set.of(
+                MembershipEntity.builder()
+                    .id("id")
+                    .memberId(ID)
+                    .memberType(MembershipMemberType.USER)
+                    .referenceId(GROUP_ID)
+                    .referenceType(MembershipReferenceType.GROUP)
+                    .roleId(ROLE_ID)
+                    .build()
+            )
+        );
 
-        when(environmentService.findByUser(anyString(), anyString()))
-            .thenReturn(List.of(EnvironmentEntity.builder().id(ENV).organizationId(ORG).build()));
+        when(environmentService.findByUser(anyString(), anyString())).thenReturn(
+            List.of(EnvironmentEntity.builder().id(ENV).organizationId(ORG).build())
+        );
         when(groupRepository.findAllByEnvironment(ENV)).thenReturn(Set.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));
 
         final Response response = orgTarget().request().get();

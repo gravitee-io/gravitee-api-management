@@ -172,7 +172,8 @@ public interface ApiMapper {
                 ) {
                     return new Selector(map(channelSelector));
                 } else if (
-                    selector.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.ConditionSelector conditionSelector
+                    selector.getActualInstance() instanceof
+                        io.gravitee.rest.api.management.v2.rest.model.ConditionSelector conditionSelector
                 ) {
                     return new Selector(map(conditionSelector));
                 }

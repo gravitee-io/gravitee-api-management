@@ -41,8 +41,7 @@ public class JdbcScoringRulesetRepository extends JdbcAbstractCrudRepository<Sco
 
     @Override
     protected JdbcObjectMapper<ScoringRuleset> buildOrm() {
-        return JdbcObjectMapper
-            .builder(ScoringRuleset.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(ScoringRuleset.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)

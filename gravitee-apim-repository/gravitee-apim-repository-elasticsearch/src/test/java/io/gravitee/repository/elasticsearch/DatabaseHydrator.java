@@ -65,8 +65,7 @@ public class DatabaseHydrator {
     }
 
     private Completable createTemplate(List<String> types) {
-        return Flowable
-            .fromIterable(types)
+        return Flowable.fromIterable(types)
             .map(type -> {
                 String indexName = "gravitee-" + type;
                 Map<String, Object> data = Map.ofEntries(
@@ -96,25 +95,21 @@ public class DatabaseHydrator {
                     data.putIfAbsent("index", indexTemplate(type, this.timeProvider.getTodayWithDot()));
                     this.timeProvider.setTimestamps(data);
                 } else {
-                    data =
-                        Map.ofEntries(
-                            Map.entry("dateToday", this.timeProvider.getDateToday()),
-                            Map.entry("dateYesterday", this.timeProvider.getDateYesterday()),
-                            Map.entry("dateTimeToday", this.timeProvider.getDateTimeToday()),
-                            Map.entry("dateTimeYesterday", this.timeProvider.getDateTimeYesterday()),
-                            Map.entry("indexNameToday", indexTemplate(type, this.timeProvider.getTodayWithDot())),
-                            Map.entry("indexNameTodayEntrypoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "entrypoint")),
-                            Map.entry("indexNameTodayEndpoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "endpoint")),
-                            Map.entry("indexNameYesterday", indexTemplate(type, this.timeProvider.getYesterdayWithDot())),
-                            Map.entry(
-                                "indexNameYesterdayEntrypoint",
-                                indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "entrypoint")
-                            ),
-                            Map.entry(
-                                "indexNameYesterdayEndpoint",
-                                indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "endpoint")
-                            )
-                        );
+                    data = Map.ofEntries(
+                        Map.entry("dateToday", this.timeProvider.getDateToday()),
+                        Map.entry("dateYesterday", this.timeProvider.getDateYesterday()),
+                        Map.entry("dateTimeToday", this.timeProvider.getDateTimeToday()),
+                        Map.entry("dateTimeYesterday", this.timeProvider.getDateTimeYesterday()),
+                        Map.entry("indexNameToday", indexTemplate(type, this.timeProvider.getTodayWithDot())),
+                        Map.entry("indexNameTodayEntrypoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "entrypoint")),
+                        Map.entry("indexNameTodayEndpoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "endpoint")),
+                        Map.entry("indexNameYesterday", indexTemplate(type, this.timeProvider.getYesterdayWithDot())),
+                        Map.entry(
+                            "indexNameYesterdayEntrypoint",
+                            indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "entrypoint")
+                        ),
+                        Map.entry("indexNameYesterdayEndpoint", indexTemplate(type, this.timeProvider.getYesterdayWithDot(), "endpoint"))
+                    );
                 }
                 var filename = type + ".ftl";
                 return freeMarkerComponent.generateFromTemplate(filename, data);

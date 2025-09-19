@@ -65,10 +65,11 @@ public class MemberQueryServiceInMemory implements MemberQueryService, InMemoryA
     public Member getUserMember(MembershipReferenceType referenceType, String referenceId, String userId) {
         return storage
             .stream()
-            .filter(member ->
-                member.getReferenceType().name().equals(referenceType.name()) &&
-                member.getReferenceId().equals(referenceId) &&
-                member.getId().equals(userId)
+            .filter(
+                member ->
+                    member.getReferenceType().name().equals(referenceType.name()) &&
+                    member.getReferenceId().equals(referenceId) &&
+                    member.getId().equals(userId)
             )
             .findFirst()
             .orElse(null);
@@ -76,7 +77,10 @@ public class MemberQueryServiceInMemory implements MemberQueryService, InMemoryA
 
     @Override
     public Member updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role) {
-        Optional<Member> memberOptional = storage.stream().filter(m -> m.getId().equals(member.getMemberId())).findFirst();
+        Optional<Member> memberOptional = storage
+            .stream()
+            .filter(m -> m.getId().equals(member.getMemberId()))
+            .findFirst();
 
         if (memberOptional.isPresent()) {
             memberOptional

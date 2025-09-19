@@ -62,15 +62,15 @@ class ApiKeyFetcherTest {
         ApiKey apiKey = new ApiKey();
         when(
             apiKeyRepository.findByCriteria(
-                argThat(argument ->
-                    argument.getEnvironments().contains("env") &&
-                    argument.getFrom() < from.toEpochMilli() &&
-                    argument.getTo() > to.toEpochMilli()
+                argThat(
+                    argument ->
+                        argument.getEnvironments().contains("env") &&
+                        argument.getFrom() < from.toEpochMilli() &&
+                        argument.getTo() > to.toEpochMilli()
                 ),
                 any()
             )
-        )
-            .thenReturn(List.of(apiKey));
+        ).thenReturn(List.of(apiKey));
         cut
             .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
             .test()
@@ -85,13 +85,13 @@ class ApiKeyFetcherTest {
         ApiKey apiKey = new ApiKey();
         when(
             apiKeyRepository.findByCriteria(
-                argThat(argument ->
-                    argument.isIncludeRevoked() && argument.getFrom() < from.toEpochMilli() && argument.getTo() > to.toEpochMilli()
+                argThat(
+                    argument ->
+                        argument.isIncludeRevoked() && argument.getFrom() < from.toEpochMilli() && argument.getTo() > to.toEpochMilli()
                 ),
                 argThat(argument -> argument.field().equals("updatedAt") && argument.order().equals(Order.ASC))
             )
-        )
-            .thenReturn(List.of(apiKey));
+        ).thenReturn(List.of(apiKey));
         cut
             .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of())
             .test()

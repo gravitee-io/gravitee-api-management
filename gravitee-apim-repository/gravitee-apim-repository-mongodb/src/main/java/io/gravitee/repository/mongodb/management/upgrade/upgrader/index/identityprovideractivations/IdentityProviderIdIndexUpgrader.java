@@ -27,8 +27,7 @@ public class IdentityProviderIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("identity_provider_activations")
             .name("ipi1")
             .key("_id.identityProviderId", ascending())

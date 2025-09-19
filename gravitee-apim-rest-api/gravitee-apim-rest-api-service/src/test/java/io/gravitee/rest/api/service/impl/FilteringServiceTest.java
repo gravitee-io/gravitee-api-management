@@ -136,16 +136,9 @@ public class FilteringServiceTest {
         publishedApi5.setName("6");
         publishedApi5.setId("6");
 
-        mockApis =
-            new HashSet<>(
-                Arrays.asList(
-                    publishedApi5.getId(),
-                    publishedApi2.getId(),
-                    publishedApi1.getId(),
-                    publishedApi3.getId(),
-                    publishedApi4.getId()
-                )
-            );
+        mockApis = new HashSet<>(
+            Arrays.asList(publishedApi5.getId(), publishedApi2.getId(), publishedApi1.getId(), publishedApi3.getId(), publishedApi4.getId())
+        );
     }
 
     @Test

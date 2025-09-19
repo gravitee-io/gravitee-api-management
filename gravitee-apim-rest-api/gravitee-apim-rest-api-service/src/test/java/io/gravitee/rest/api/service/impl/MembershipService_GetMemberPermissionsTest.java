@@ -82,31 +82,30 @@ public class MembershipService_GetMemberPermissionsTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        membershipService =
-            new MembershipServiceImpl(
-                null,
-                userService,
-                null,
-                null,
-                null,
-                null,
-                membershipRepository,
-                roleService,
-                null,
-                null,
-                null,
-                null,
-                apiRepository,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            );
+        membershipService = new MembershipServiceImpl(
+            null,
+            userService,
+            null,
+            null,
+            null,
+            null,
+            membershipRepository,
+            roleService,
+            null,
+            null,
+            null,
+            null,
+            apiRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
     }
 
     @Test
@@ -132,13 +131,12 @@ public class MembershipService_GetMemberPermissionsTest {
         );
 
         assertThat(permissions).isEmpty();
-        verify(membershipRepository, times(1))
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                USERNAME,
-                MembershipMemberType.USER,
-                MembershipReferenceType.API,
-                API_ID
-            );
+        verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            USERNAME,
+            MembershipMemberType.USER,
+            MembershipReferenceType.API,
+            API_ID
+        );
         verify(apiRepository, times(1)).findById(API_ID);
     }
 
@@ -181,20 +179,18 @@ public class MembershipService_GetMemberPermissionsTest {
 
         assertThat(permissions).isNotNull();
         assertPermissions(rolePerms, permissions);
-        verify(membershipRepository, times(1))
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                USERNAME,
-                MembershipMemberType.USER,
-                MembershipReferenceType.API,
-                API_ID
-            );
-        verify(membershipRepository, never())
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                USERNAME,
-                MembershipMemberType.USER,
-                MembershipReferenceType.GROUP,
-                GROUP_ID1
-            );
+        verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            USERNAME,
+            MembershipMemberType.USER,
+            MembershipReferenceType.API,
+            API_ID
+        );
+        verify(membershipRepository, never()).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            USERNAME,
+            MembershipMemberType.USER,
+            MembershipReferenceType.GROUP,
+            GROUP_ID1
+        );
         verify(apiRepository, times(1)).findById(API_ID);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USERNAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME);
@@ -249,20 +245,18 @@ public class MembershipService_GetMemberPermissionsTest {
 
         assertThat(permissions).isNotNull();
         assertPermissions(rolePerms, permissions);
-        verify(membershipRepository, times(1))
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                USERNAME,
-                MembershipMemberType.USER,
-                MembershipReferenceType.API,
-                API_ID
-            );
-        verify(membershipRepository, times(1))
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                USERNAME,
-                MembershipMemberType.USER,
-                MembershipReferenceType.GROUP,
-                GROUP_ID1
-            );
+        verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            USERNAME,
+            MembershipMemberType.USER,
+            MembershipReferenceType.API,
+            API_ID
+        );
+        verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            USERNAME,
+            MembershipMemberType.USER,
+            MembershipReferenceType.GROUP,
+            GROUP_ID1
+        );
         verify(apiRepository, times(1)).findById(API_ID);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USERNAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME);
@@ -340,20 +334,18 @@ public class MembershipService_GetMemberPermissionsTest {
         );
         expectedPermissions.put(ApiPermission.PLAN.getName(), new char[] { RolePermissionAction.READ.getId() });
         assertPermissions(expectedPermissions, permissions);
-        verify(membershipRepository, times(1))
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                USERNAME,
-                MembershipMemberType.USER,
-                MembershipReferenceType.API,
-                API_ID
-            );
-        verify(membershipRepository, times(1))
-            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                USERNAME,
-                MembershipMemberType.USER,
-                MembershipReferenceType.GROUP,
-                GROUP_ID1
-            );
+        verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            USERNAME,
+            MembershipMemberType.USER,
+            MembershipReferenceType.API,
+            API_ID
+        );
+        verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            USERNAME,
+            MembershipMemberType.USER,
+            MembershipReferenceType.GROUP,
+            GROUP_ID1
+        );
         verify(apiRepository, times(1)).findById(API_ID);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USERNAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME);

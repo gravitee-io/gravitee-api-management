@@ -66,8 +66,7 @@ class NotificationConfigCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.GenericNotificationConfig
-                        .builder()
+                    io.gravitee.repository.management.model.GenericNotificationConfig.builder()
                         .id("config-id")
                         .name("Default Mail Notifications")
                         .notifier("default-email")
@@ -108,8 +107,7 @@ class NotificationConfigCrudServiceImplTest {
     }
 
     private static NotificationConfig aNotificationConfig() {
-        return NotificationConfig
-            .defaultMailNotificationConfigFor("api-id")
+        return NotificationConfig.defaultMailNotificationConfigFor("api-id")
             .toBuilder()
             .id("config-id")
             .hooks(List.of("hook1"))

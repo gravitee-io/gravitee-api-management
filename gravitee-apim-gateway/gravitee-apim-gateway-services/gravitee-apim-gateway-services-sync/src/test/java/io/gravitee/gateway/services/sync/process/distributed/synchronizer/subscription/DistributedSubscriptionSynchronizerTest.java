@@ -70,14 +70,13 @@ class DistributedSubscriptionSynchronizerTest {
 
     @BeforeEach
     public void beforeEach() {
-        cut =
-            new DistributedSubscriptionSynchronizer(
-                eventsFetcher,
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                deployerFactory,
-                new SubscriptionMapper(objectMapper)
-            );
+        cut = new DistributedSubscriptionSynchronizer(
+            eventsFetcher,
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            deployerFactory,
+            new SubscriptionMapper(objectMapper)
+        );
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createSubscriptionDeployer()).thenReturn(subscriptionDeployer);
         lenient().when(subscriptionDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -100,21 +99,24 @@ class DistributedSubscriptionSynchronizerTest {
         void should_fetch_init_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher)
-                .fetchLatest(eq(-1L), any(), eq(DistributedEventType.SUBSCRIPTION), eq(Set.of(DistributedSyncAction.DEPLOY)));
+            verify(eventsFetcher).fetchLatest(
+                eq(-1L),
+                any(),
+                eq(DistributedEventType.SUBSCRIPTION),
+                eq(Set.of(DistributedSyncAction.DEPLOY))
+            );
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher)
-                .fetchLatest(
-                    any(),
-                    any(),
-                    eq(DistributedEventType.SUBSCRIPTION),
-                    eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
-                );
+            verify(eventsFetcher).fetchLatest(
+                any(),
+                any(),
+                eq(DistributedEventType.SUBSCRIPTION),
+                eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
+            );
         }
     }
 
@@ -131,8 +133,7 @@ class DistributedSubscriptionSynchronizerTest {
 
         @Test
         void should_deploy_subscriptions_when_fetching_deployed_events() throws InterruptedException, JsonProcessingException {
-            DistributedEvent distributedEvent = DistributedEvent
-                .builder()
+            DistributedEvent distributedEvent = DistributedEvent.builder()
                 .id("subscription")
                 .payload(objectMapper.writeValueAsString(subscription))
                 .type(DistributedEventType.SUBSCRIPTION)
@@ -149,8 +150,7 @@ class DistributedSubscriptionSynchronizerTest {
 
         @Test
         void should_undeploy_api_keys_when_fetching_undeployed_events() throws InterruptedException, JsonProcessingException {
-            DistributedEvent distributedEvent = DistributedEvent
-                .builder()
+            DistributedEvent distributedEvent = DistributedEvent.builder()
                 .id("subscription")
                 .payload(objectMapper.writeValueAsString(subscription))
                 .type(DistributedEventType.SUBSCRIPTION)

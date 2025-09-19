@@ -38,7 +38,11 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Token> tokens = tokenRepository.findAll();
         assertNotNull(tokens);
         assertEquals(6, tokens.size());
-        final Token token123 = tokens.stream().filter(token -> "token123".equals(token.getId())).findAny().get();
+        final Token token123 = tokens
+            .stream()
+            .filter(token -> "token123".equals(token.getId()))
+            .findAny()
+            .get();
         assertToken(token123);
     }
 
@@ -47,7 +51,11 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         final List<Token> tokens = tokenRepository.findByReference("USER", "123");
         assertNotNull(tokens);
         assertEquals(2, tokens.size());
-        final Token token123 = tokens.stream().filter(token -> "token123".equals(token.getId())).findAny().get();
+        final Token token123 = tokens
+            .stream()
+            .filter(token -> "token123".equals(token.getId()))
+            .findAny()
+            .get();
         assertToken(token123);
     }
 

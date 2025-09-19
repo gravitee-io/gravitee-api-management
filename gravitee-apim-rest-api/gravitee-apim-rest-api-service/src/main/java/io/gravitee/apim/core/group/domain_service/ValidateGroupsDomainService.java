@@ -47,8 +47,7 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
         String definitionVersion,
         Group.GroupEvent groupEvent,
         boolean addDefaultGroups
-    )
-        implements Validator.Input {
+    ) implements Validator.Input {
         Input sanitized(Set<String> sanitizedGroups) {
             return new Input(environmentId, sanitizedGroups, definitionVersion, groupEvent, addDefaultGroups);
         }
@@ -118,7 +117,10 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
 
     private Result<List<Group>> validateAndSanitizeNoPrimaryOwners(List<Group> groups, Function<Group, String> idMapper) {
         var sanitized = new ArrayList<>(groups);
-        var groupsWithPrimaryOwner = sanitized.stream().filter(group -> StringUtils.isNotEmpty(group.getApiPrimaryOwner())).toList();
+        var groupsWithPrimaryOwner = sanitized
+            .stream()
+            .filter(group -> StringUtils.isNotEmpty(group.getApiPrimaryOwner()))
+            .toList();
         sanitized.removeAll(groupsWithPrimaryOwner);
         var errors = buildPrimaryOwnerErrors(groupsWithPrimaryOwner, idMapper);
         return Result.ofBoth(sanitized, errors);

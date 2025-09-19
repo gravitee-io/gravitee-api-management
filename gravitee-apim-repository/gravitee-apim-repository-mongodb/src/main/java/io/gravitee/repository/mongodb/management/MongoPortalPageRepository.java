@@ -100,8 +100,7 @@ public class MongoPortalPageRepository implements PortalPageRepository {
     }
 
     private PortalPage map(PortalPageMongo portalPageMongo) {
-        return PortalPage
-            .builder()
+        return PortalPage.builder()
             .id(portalPageMongo.getId())
             .environmentId(portalPageMongo.getEnvironmentId())
             .name(portalPageMongo.getName())

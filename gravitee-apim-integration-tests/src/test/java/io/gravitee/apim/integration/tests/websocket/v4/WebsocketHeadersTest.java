@@ -45,29 +45,27 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
 
         Promise<Void> clientReady = Promise.promise();
 
-        websocketServerHandler =
-            serverWebSocket ->
-                Completable
-                    .fromRunnable(() -> {
-                        serverConnected.flag();
-                        serverWebSocket.accept();
+        websocketServerHandler = serverWebSocket ->
+            Completable.fromRunnable(() -> {
+                serverConnected.flag();
+                serverWebSocket.accept();
 
-                        String customHeader = serverWebSocket.headers().get(customHeaderName);
-                        testContext.verify(() -> assertThat(customHeader).isNotNull());
-                        testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
+                String customHeader = serverWebSocket.headers().get(customHeaderName);
+                testContext.verify(() -> assertThat(customHeader).isNotNull());
+                testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
 
-                        clientReady
-                            .future()
-                            .onSuccess(__ ->
-                                serverWebSocket
-                                    .writeTextMessage("PING")
-                                    .doOnComplete(serverMessageSent::flag)
-                                    .doOnError(testContext::failNow)
-                                    .subscribe()
-                            );
-                    })
-                    .subscribeOn(Schedulers.io())
-                    .subscribe();
+                clientReady
+                    .future()
+                    .onSuccess(__ ->
+                        serverWebSocket
+                            .writeTextMessage("PING")
+                            .doOnComplete(serverMessageSent::flag)
+                            .doOnError(testContext::failNow)
+                            .subscribe()
+                    );
+            })
+                .subscribeOn(Schedulers.io())
+                .subscribe();
 
         httpClient
             .webSocket(options)

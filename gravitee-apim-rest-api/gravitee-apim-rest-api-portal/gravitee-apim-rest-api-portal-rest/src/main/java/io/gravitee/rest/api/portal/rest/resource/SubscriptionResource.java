@@ -120,13 +120,11 @@ public class SubscriptionResource extends AbstractResource {
             closeSubscriptionUsecase.execute(
                 new CloseSubscriptionUseCase.Input(
                     subscriptionId,
-                    AuditInfo
-                        .builder()
+                    AuditInfo.builder()
                         .organizationId(executionContext.getOrganizationId())
                         .environmentId(executionContext.getEnvironmentId())
                         .actor(
-                            AuditActor
-                                .builder()
+                            AuditActor.builder()
                                 .userId(user.getUsername())
                                 .userSource(user.getSource())
                                 .userSourceId(user.getSourceId())

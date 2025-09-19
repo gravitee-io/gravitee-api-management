@@ -179,8 +179,12 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             Iterator<String> groupIdIterator = genericApiEntity.getGroups().iterator();
             while (!canEditApiPage && groupIdIterator.hasNext()) {
                 String groupId = groupIdIterator.next();
-                member =
-                    membershipService.getUserMember(executionContext, MembershipReferenceType.GROUP, groupId, getAuthenticatedUsername());
+                member = membershipService.getUserMember(
+                    executionContext,
+                    MembershipReferenceType.GROUP,
+                    groupId,
+                    getAuthenticatedUsername()
+                );
                 canEditApiPage = canEditApiPage(member);
             }
         } else {
@@ -209,13 +213,12 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
         final String environmentId
     ) {
         if (genericApiEntity != null) {
-            Set<RoleEntity> roles =
-                this.membershipService.getRoles(
-                        MembershipReferenceType.API,
-                        genericApiEntity.getId(),
-                        MembershipMemberType.USER,
-                        getAuthenticatedUsername()
-                    );
+            Set<RoleEntity> roles = this.membershipService.getRoles(
+                MembershipReferenceType.API,
+                genericApiEntity.getId(),
+                MembershipMemberType.USER,
+                getAuthenticatedUsername()
+            );
 
             if (genericApiEntity.getGroups() != null && !genericApiEntity.getGroups().isEmpty()) {
                 genericApiEntity
@@ -235,11 +238,11 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             return roles;
         } else {
             return this.membershipService.getRoles(
-                    MembershipReferenceType.ENVIRONMENT,
-                    environmentId,
-                    MembershipMemberType.USER,
-                    getAuthenticatedUsername()
-                );
+                MembershipReferenceType.ENVIRONMENT,
+                environmentId,
+                MembershipMemberType.USER,
+                getAuthenticatedUsername()
+            );
         }
     }
 }

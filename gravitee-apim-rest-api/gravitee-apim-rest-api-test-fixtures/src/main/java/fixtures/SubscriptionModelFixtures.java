@@ -28,8 +28,7 @@ public class SubscriptionModelFixtures {
 
     private SubscriptionModelFixtures() {}
 
-    private static final SubscriptionEntity.SubscriptionEntityBuilder BASE_SUBSCRIPTION_ENTITY = SubscriptionEntity
-        .builder()
+    private static final SubscriptionEntity.SubscriptionEntityBuilder BASE_SUBSCRIPTION_ENTITY = SubscriptionEntity.builder()
         .id("my-subscription")
         .api("my-api")
         .plan("my-plan")
@@ -46,8 +45,7 @@ public class SubscriptionModelFixtures {
         .daysToExpirationOnLastNotification(12)
         .security("api-key")
         .configuration(
-            SubscriptionConfigurationEntity
-                .builder()
+            SubscriptionConfigurationEntity.builder()
                 .entrypointConfiguration("{\"nice\": \"config\"}")
                 .entrypointId("entrypoint-id")
                 .channel("channel")
@@ -59,8 +57,7 @@ public class SubscriptionModelFixtures {
         .subscribedBy("subscribed-by")
         .processedBy("processed-by");
 
-    protected static final ApiKeyEntity.ApiKeyEntityBuilder BASE_API_KEY_ENTITY = ApiKeyEntity
-        .builder()
+    protected static final ApiKeyEntity.ApiKeyEntityBuilder BASE_API_KEY_ENTITY = ApiKeyEntity.builder()
         .id("my-api-key")
         .key("custom")
         .application(ApplicationModelFixtures.anApplicationEntity())

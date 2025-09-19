@@ -47,16 +47,14 @@ public class ValidateThemeDomainServiceTest {
     void setUp() {
         themeCrudService.initWith(
             List.of(
-                Theme
-                    .builder()
+                Theme.builder()
                     .id(PORTAL_NEXT_THEME_ID)
                     .type(ThemeType.PORTAL_NEXT)
                     .referenceType(Theme.ReferenceType.ENVIRONMENT)
                     .referenceId(ENV_ID)
                     .definitionPortalNext(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder().build())
                     .build(),
-                Theme
-                    .builder()
+                Theme.builder()
                     .id(PORTAL_THEME_ID)
                     .type(ThemeType.PORTAL)
                     .referenceType(Theme.ReferenceType.ENVIRONMENT)
@@ -79,76 +77,64 @@ public class ValidateThemeDomainServiceTest {
 
         @Test
         void should_throw_error_if_theme_does_not_exist() {
-            assertThatThrownBy(() -> cut.validateUpdateTheme(UpdateTheme.builder().id("does-not-exist").build(), EXECUTION_CONTEXT))
-                .isInstanceOf(ThemeNotFoundException.class);
+            assertThatThrownBy(() ->
+                cut.validateUpdateTheme(UpdateTheme.builder().id("does-not-exist").build(), EXECUTION_CONTEXT)
+            ).isInstanceOf(ThemeNotFoundException.class);
         }
 
         @Test
         void should_throw_error_if_theme_is_not_in_scope() {
             assertThatThrownBy(() ->
-                    cut.validateUpdateTheme(
-                        UpdateTheme.builder().id(PORTAL_THEME_ID).build(),
-                        new ExecutionContext("org-id", "out-of-scope")
-                    )
-                )
-                .isInstanceOf(ThemeNotFoundException.class);
+                cut.validateUpdateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).build(), new ExecutionContext("org-id", "out-of-scope"))
+            ).isInstanceOf(ThemeNotFoundException.class);
         }
 
         @Test
         void should_throw_error_if_theme_type_different() {
             assertThatThrownBy(() ->
-                    cut.validateUpdateTheme(
-                        UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL_NEXT).build(),
-                        EXECUTION_CONTEXT
-                    )
-                )
-                .isInstanceOf(ThemeTypeInvalidException.class);
+                cut.validateUpdateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL_NEXT).build(), EXECUTION_CONTEXT)
+            ).isInstanceOf(ThemeTypeInvalidException.class);
         }
 
         @Test
         void should_throw_error_if_portal_theme_definition_missing() {
             assertThatThrownBy(() ->
-                    cut.validateUpdateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL).build(), EXECUTION_CONTEXT)
-                )
-                .isInstanceOf(ThemeDefinitionInvalidException.class);
+                cut.validateUpdateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL).build(), EXECUTION_CONTEXT)
+            ).isInstanceOf(ThemeDefinitionInvalidException.class);
         }
 
         @Test
         void should_throw_error_if_portal_next_theme_definition_missing() {
             assertThatThrownBy(() ->
-                    cut.validateUpdateTheme(
-                        UpdateTheme.builder().id(PORTAL_NEXT_THEME_ID).type(ThemeType.PORTAL_NEXT).build(),
-                        EXECUTION_CONTEXT
-                    )
+                cut.validateUpdateTheme(
+                    UpdateTheme.builder().id(PORTAL_NEXT_THEME_ID).type(ThemeType.PORTAL_NEXT).build(),
+                    EXECUTION_CONTEXT
                 )
-                .isInstanceOf(ThemeDefinitionInvalidException.class);
+            ).isInstanceOf(ThemeDefinitionInvalidException.class);
         }
 
         @Test
         void should_validate_portal_theme() {
-            assertThatNoException()
-                .isThrownBy(() ->
-                    cut.validateUpdateTheme(
-                        UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL).definitionPortal(new ThemeDefinition()).build(),
-                        EXECUTION_CONTEXT
-                    )
-                );
+            assertThatNoException().isThrownBy(() ->
+                cut.validateUpdateTheme(
+                    UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL).definitionPortal(new ThemeDefinition()).build(),
+                    EXECUTION_CONTEXT
+                )
+            );
         }
 
         @Test
         void should_validate_portal_next_theme() {
-            assertThatNoException()
-                .isThrownBy(() ->
-                    cut.validateUpdateTheme(
-                        UpdateTheme
-                            .builder()
-                            .id(PORTAL_NEXT_THEME_ID)
-                            .type(ThemeType.PORTAL_NEXT)
-                            .definitionPortalNext(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder().build())
-                            .build(),
-                        EXECUTION_CONTEXT
-                    )
-                );
+            assertThatNoException().isThrownBy(() ->
+                cut.validateUpdateTheme(
+                    UpdateTheme.builder()
+                        .id(PORTAL_NEXT_THEME_ID)
+                        .type(ThemeType.PORTAL_NEXT)
+                        .definitionPortalNext(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder().build())
+                        .build(),
+                    EXECUTION_CONTEXT
+                )
+            );
         }
     }
 }

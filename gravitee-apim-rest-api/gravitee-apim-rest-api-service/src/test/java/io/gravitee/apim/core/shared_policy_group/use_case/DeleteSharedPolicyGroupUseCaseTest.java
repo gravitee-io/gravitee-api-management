@@ -57,8 +57,7 @@ public class DeleteSharedPolicyGroupUseCaseTest {
     private final String ORG_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getOrganizationId();
     private final String ENV_ID = SharedPolicyGroupFixtures.aSharedPolicyGroup().getEnvironmentId();
     private final String USER_ID = "user-id";
-    private final AuditInfo AUDIT_INFO = AuditInfo
-        .builder()
+    private final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .organizationId(ORG_ID)
         .environmentId(ENV_ID)
         .actor(AuditActor.builder().userId(USER_ID).build())
@@ -91,14 +90,13 @@ public class DeleteSharedPolicyGroupUseCaseTest {
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
 
-        deleteSharedPolicyGroupUseCase =
-            new DeleteSharedPolicyGroupUseCase(
-                sharedPolicyGroupCrudService,
-                sharedPolicyGroupHistoryCrudService,
-                auditService,
-                eventCrudInMemory,
-                eventLatestCrudInMemory
-            );
+        deleteSharedPolicyGroupUseCase = new DeleteSharedPolicyGroupUseCase(
+            sharedPolicyGroupCrudService,
+            sharedPolicyGroupHistoryCrudService,
+            auditService,
+            eventCrudInMemory,
+            eventLatestCrudInMemory
+        );
     }
 
     @Test
@@ -129,8 +127,7 @@ public class DeleteSharedPolicyGroupUseCaseTest {
         deleteSharedPolicyGroupUseCase.execute(new DeleteSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), AUDIT_INFO));
 
         // Then
-        AuditEntity deletedAudit = AuditEntity
-            .builder()
+        AuditEntity deletedAudit = AuditEntity.builder()
             .id("generated-id")
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)

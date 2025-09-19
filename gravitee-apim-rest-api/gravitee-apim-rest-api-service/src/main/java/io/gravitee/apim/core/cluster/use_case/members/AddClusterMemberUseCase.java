@@ -49,8 +49,7 @@ public class AddClusterMemberUseCase {
             .findByScopeAndName(Role.Scope.CLUSTER, input.addMember.getRoleName(), input.audit.organizationId())
             .orElseThrow();
         ZonedDateTime now = TimeProvider.now();
-        Membership membership = Membership
-            .builder()
+        Membership membership = Membership.builder()
             .id(UuidString.generateRandom())
             .referenceType(Membership.ReferenceType.CLUSTER)
             .referenceId(input.clusterId)

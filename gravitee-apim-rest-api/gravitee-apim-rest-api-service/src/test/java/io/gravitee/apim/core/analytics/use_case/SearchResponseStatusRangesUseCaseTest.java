@@ -185,8 +185,7 @@ class SearchResponseStatusRangesUseCaseTest {
     void should_return_status_ranges_for_specified_date_range() {
         //Given
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
-        var expectedResponseStatusRanges = ResponseStatusRanges
-            .builder()
+        var expectedResponseStatusRanges = ResponseStatusRanges.builder()
             .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
             .build();
         analyticsQueryService.responseStatusRanges = expectedResponseStatusRanges;
@@ -207,22 +206,20 @@ class SearchResponseStatusRangesUseCaseTest {
 
         var queryCaptor = ArgumentCaptor.forClass(AnalyticsQueryParameters.class);
         verify(analyticsQueryService).searchResponseStatusRanges(any(), queryCaptor.capture());
-        assertThat(queryCaptor.getValue())
-            .satisfies(query ->
-                assertSoftly(softly -> {
-                    softly.assertThat(query.getApiIds()).isEqualTo(List.of(MY_API));
-                    softly.assertThat(query.getFrom()).isEqualTo(INSTANT_NOW.minus(3, ChronoUnit.DAYS).toEpochMilli());
-                    softly.assertThat(query.getTo()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli());
-                })
-            );
+        assertThat(queryCaptor.getValue()).satisfies(query ->
+            assertSoftly(softly -> {
+                softly.assertThat(query.getApiIds()).isEqualTo(List.of(MY_API));
+                softly.assertThat(query.getFrom()).isEqualTo(INSTANT_NOW.minus(3, ChronoUnit.DAYS).toEpochMilli());
+                softly.assertThat(query.getTo()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli());
+            })
+        );
     }
 
     @Test
     void should_return_status_ranges_for_default_date_range() {
         //Given
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
-        var expectedResponseStatusRanges = ResponseStatusRanges
-            .builder()
+        var expectedResponseStatusRanges = ResponseStatusRanges.builder()
             .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
             .build();
         analyticsQueryService.responseStatusRanges = expectedResponseStatusRanges;
@@ -238,13 +235,12 @@ class SearchResponseStatusRangesUseCaseTest {
 
         var queryCaptor = ArgumentCaptor.forClass(AnalyticsQueryParameters.class);
         verify(analyticsQueryService).searchResponseStatusRanges(any(), queryCaptor.capture());
-        assertThat(queryCaptor.getValue())
-            .satisfies(query ->
-                assertSoftly(softly -> {
-                    softly.assertThat(query.getApiIds()).isEqualTo(List.of(MY_API));
-                    softly.assertThat(query.getFrom()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli());
-                    softly.assertThat(query.getTo()).isEqualTo(INSTANT_NOW.toEpochMilli());
-                })
-            );
+        assertThat(queryCaptor.getValue()).satisfies(query ->
+            assertSoftly(softly -> {
+                softly.assertThat(query.getApiIds()).isEqualTo(List.of(MY_API));
+                softly.assertThat(query.getFrom()).isEqualTo(INSTANT_NOW.minus(1, ChronoUnit.DAYS).toEpochMilli());
+                softly.assertThat(query.getTo()).isEqualTo(INSTANT_NOW.toEpochMilli());
+            })
+        );
     }
 }

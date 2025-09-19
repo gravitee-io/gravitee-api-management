@@ -22,8 +22,7 @@ public class RuleModelFixtures {
 
     private RuleModelFixtures() {}
 
-    private static final io.gravitee.definition.model.Rule.RuleBuilder BASE_MODEL_RULE = io.gravitee.definition.model.Rule
-        .builder()
+    private static final io.gravitee.definition.model.Rule.RuleBuilder BASE_MODEL_RULE = io.gravitee.definition.model.Rule.builder()
         .description("description")
         .enabled(true)
         .methods(Set.of(io.gravitee.common.http.HttpMethod.GET, io.gravitee.common.http.HttpMethod.POST))

@@ -86,14 +86,12 @@ class ValidateFederatedApiDomainServiceTest {
     @Test
     void should_validate_and_sanitize_api_for_update() {
         var existingApi = ApiFixtures.aFederatedApi().toBuilder().categories(Set.of("oldcat")).build();
-        var updateApi = ApiFixtures
-            .aFederatedApi()
+        var updateApi = ApiFixtures.aFederatedApi()
             .toBuilder()
             .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
             .categories(Set.of("cat"))
             .build();
-        var primaryOwner = PrimaryOwnerEntity
-            .builder()
+        var primaryOwner = PrimaryOwnerEntity.builder()
             .id("primary-owner-id")
             .displayName("primary-owner-displayName")
             .email("primary-owner-email")
@@ -103,14 +101,8 @@ class ValidateFederatedApiDomainServiceTest {
 
         var result = service.validateAndSanitizeForUpdate(updateApi, existingApi, primaryOwner);
 
-        assertThat(result)
-            .isEqualTo(
-                ApiFixtures
-                    .aFederatedApi()
-                    .toBuilder()
-                    .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
-                    .categories(Set.of("catId"))
-                    .build()
-            );
+        assertThat(result).isEqualTo(
+            ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).categories(Set.of("catId")).build()
+        );
     }
 }

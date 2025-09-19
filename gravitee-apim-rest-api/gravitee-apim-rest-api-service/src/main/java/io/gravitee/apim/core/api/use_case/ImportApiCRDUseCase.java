@@ -234,8 +234,7 @@ public class ImportApiCRDUseCase {
                 apiStateDomainService.start(createdApi, input.auditInfo);
             }
 
-            return ApiCRDStatus
-                .builder()
+            return ApiCRDStatus.builder()
                 .id(createdApi.getId())
                 .crossId(createdApi.getCrossId())
                 .environmentId(environmentId)
@@ -254,10 +253,9 @@ public class ImportApiCRDUseCase {
         try {
             Api updatedApi;
             if (existingApi.isNative()) {
-                updatedApi =
-                    updateNativeApiUseCase
-                        .execute(new UpdateNativeApiUseCase.Input(ApiModelFactory.toUpdateNativeApi(input.spec), input.auditInfo))
-                        .updatedApi();
+                updatedApi = updateNativeApiUseCase
+                    .execute(new UpdateNativeApiUseCase.Input(ApiModelFactory.toUpdateNativeApi(input.spec), input.auditInfo))
+                    .updatedApi();
             } else {
                 updatedApi = updateApiDomainService.update(existingApi.getId(), input.spec, input.auditInfo);
             }
@@ -331,8 +329,7 @@ public class ImportApiCRDUseCase {
                 input.spec.getConsoleNotificationConfiguration()
             );
 
-            return ApiCRDStatus
-                .builder()
+            return ApiCRDStatus.builder()
                 .id(api.getId())
                 .crossId(api.getCrossId())
                 .environmentId(api.getEnvironmentId())
@@ -369,8 +366,7 @@ public class ImportApiCRDUseCase {
     }
 
     private Plan initPlanFromCRD(String hrid, PlanCRD planCRD, Api api) {
-        Plan plan = Plan
-            .builder()
+        Plan plan = Plan.builder()
             .id(planCRD.getId())
             .hrid(hrid)
             .name(planCRD.getName())
@@ -389,8 +385,7 @@ public class ImportApiCRDUseCase {
 
         if (ApiType.NATIVE.equals(api.getType())) {
             plan.setPlanDefinitionNativeV4(
-                NativePlan
-                    .builder()
+                NativePlan.builder()
                     .security(planCRD.getSecurity())
                     .selectionRule(planCRD.getSelectionRule())
                     .status(planCRD.getStatus())
@@ -401,8 +396,7 @@ public class ImportApiCRDUseCase {
             );
         } else {
             plan.setPlanDefinitionHttpV4(
-                io.gravitee.definition.model.v4.plan.Plan
-                    .builder()
+                io.gravitee.definition.model.v4.plan.Plan.builder()
                     .security(planCRD.getSecurity())
                     .selectionRule(planCRD.getSelectionRule())
                     .status(planCRD.getStatus())

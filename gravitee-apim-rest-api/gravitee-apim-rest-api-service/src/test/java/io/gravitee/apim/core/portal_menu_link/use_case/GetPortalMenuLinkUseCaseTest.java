@@ -55,9 +55,8 @@ class GetPortalMenuLinkUseCaseTest {
         PortalMenuLink expectedPortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink();
         portalMenuLinkCrudService.initWith(List.of(expectedPortalMenuLink));
         // When
-        var throwable = assertThrows(
-            PortalMenuLinkNotFoundException.class,
-            () -> getPortalMenuLinkUseCase.execute(new GetPortalMenuLinkUseCase.Input("unknown", expectedPortalMenuLink.getEnvironmentId()))
+        var throwable = assertThrows(PortalMenuLinkNotFoundException.class, () ->
+            getPortalMenuLinkUseCase.execute(new GetPortalMenuLinkUseCase.Input("unknown", expectedPortalMenuLink.getEnvironmentId()))
         );
         // Then
         assertEquals("PortalMenuLink [ unknown ] not found", throwable.getMessage());
@@ -69,9 +68,8 @@ class GetPortalMenuLinkUseCaseTest {
         PortalMenuLink expectedPortalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink();
         portalMenuLinkCrudService.initWith(List.of(expectedPortalMenuLink));
         // When
-        var throwable = assertThrows(
-            PortalMenuLinkNotFoundException.class,
-            () -> getPortalMenuLinkUseCase.execute(new GetPortalMenuLinkUseCase.Input(expectedPortalMenuLink.getId(), "unknown"))
+        var throwable = assertThrows(PortalMenuLinkNotFoundException.class, () ->
+            getPortalMenuLinkUseCase.execute(new GetPortalMenuLinkUseCase.Input(expectedPortalMenuLink.getId(), "unknown"))
         );
         // Then
         assertEquals("PortalMenuLink [ portalMenuLinkId ] not found", throwable.getMessage());

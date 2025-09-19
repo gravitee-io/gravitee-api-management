@@ -87,8 +87,7 @@ public class AbstractListener<E extends AbstractEntrypoint> implements Serializa
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Optional
-            .ofNullable(this.entrypoints)
+        return Optional.ofNullable(this.entrypoints)
             .map(e -> e.stream().map(AbstractEntrypoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
             .orElse(List.of());
     }

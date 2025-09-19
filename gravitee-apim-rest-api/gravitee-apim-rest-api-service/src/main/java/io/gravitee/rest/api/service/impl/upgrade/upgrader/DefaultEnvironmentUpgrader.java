@@ -37,12 +37,12 @@ public class DefaultEnvironmentUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-                if (environmentService.findByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
-                    log.info("    No environment found. Add default one.");
-                    environmentService.initialize();
-                }
-                return true;
-            });
+            if (environmentService.findByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
+                log.info("    No environment found. Add default one.");
+                environmentService.initialize();
+            }
+            return true;
+        });
     }
 
     @Override

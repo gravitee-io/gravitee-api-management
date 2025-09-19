@@ -65,16 +65,13 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
         BaseApplicationEntity application,
         Map<String, String> providerMetadata
     ) {
-        subscriptions.compute(
-            integrationId,
-            (integration, subscriptionIds) -> {
-                if (subscriptionIds == null) {
-                    subscriptionIds = new ArrayList<>();
-                }
-                subscriptionIds.add(subscriptionId);
-                return subscriptionIds;
+        subscriptions.compute(integrationId, (integration, subscriptionIds) -> {
+            if (subscriptionIds == null) {
+                subscriptionIds = new ArrayList<>();
             }
-        );
+            subscriptionIds.add(subscriptionId);
+            return subscriptionIds;
+        });
         IntegrationSubscription.Type type;
         if (subscriptionParameter instanceof SubscriptionParameter.ApiKey) {
             type = IntegrationSubscription.Type.API_KEY;
@@ -107,8 +104,7 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
 
     @Override
     public Single<DiscoveredApis> discoverApis(String integrationId) {
-        return Flowable
-            .fromIterable(storage)
+        return Flowable.fromIterable(storage)
             .filter(asset -> asset.integrationId().equals(integrationId))
             .toList()
             .map(discoveredApis -> new DiscoveredApis(discoveredApis, false));

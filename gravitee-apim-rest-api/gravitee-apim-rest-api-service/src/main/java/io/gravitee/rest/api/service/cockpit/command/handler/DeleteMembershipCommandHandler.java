@@ -91,11 +91,11 @@ public class DeleteMembershipCommandHandler implements CommandHandler<DeleteMemb
         } catch (Exception e) {
             String errorDetails =
                 "Error occurred when trying to delete member on %s [%s] for cockpit user [%s] and organization [%s].".formatted(
-                        membershipPayload.referenceType(),
-                        membershipPayload.referenceId(),
-                        membershipPayload.userId(),
-                        membershipPayload.organizationId()
-                    );
+                    membershipPayload.referenceType(),
+                    membershipPayload.referenceId(),
+                    membershipPayload.userId(),
+                    membershipPayload.organizationId()
+                );
             log.error(errorDetails, e);
             return Single.just(new DeleteMembershipReply(command.getId(), errorDetails));
         }

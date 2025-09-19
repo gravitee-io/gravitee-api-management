@@ -97,65 +97,55 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_LOG, clusters);
 
-        var entrypointMessages =
-            this.client.search(
-                    index,
-                    null,
-                    SearchMessageLogQueryAdapter.adapt(
-                        query.toBuilder().filter(query.getFilter().toBuilder().connectorType("entrypoint").build()).build()
-                    )
-                )
-                .map(response -> {
-                    var result = response.getSearchHits();
-                    if (result == null) {
-                        SearchHits searchHits = new SearchHits();
-                        searchHits.setTotal(new TotalHits(0));
-                        return searchHits;
-                    }
-                    return result;
-                });
-
-        var endpointMessages =
-            this.client.search(
-                    index,
-                    null,
-                    SearchMessageLogQueryAdapter.adapt(
-                        query.toBuilder().filter(query.getFilter().toBuilder().connectorType("endpoint").build()).build()
-                    )
-                )
-                .map(response -> {
-                    var result = response.getSearchHits();
-                    if (result == null) {
-                        SearchHits searchHits = new SearchHits();
-                        searchHits.setTotal(new TotalHits(0));
-                        return searchHits;
-                    }
-                    return result;
-                });
-
-        return Single
-            .zip(
-                entrypointMessages,
-                endpointMessages,
-                (entrypointResponse, endpointResponse) -> {
-                    var totalEntrypointMessages = entrypointResponse.getTotal().getValue();
-                    var totalEndpointMessages = endpointResponse.getTotal().getValue();
-
-                    if (totalEndpointMessages == 0) {
-                        return new LogResponse<>((int) totalEntrypointMessages, SearchMessageLogResponseAdapter.adapt(entrypointResponse));
-                    }
-
-                    if (totalEntrypointMessages == 0) {
-                        return new LogResponse<>((int) totalEndpointMessages, SearchMessageLogResponseAdapter.adapt(endpointResponse));
-                    }
-
-                    return new LogResponse<>(
-                        (int) totalEntrypointMessages,
-                        SearchMessageLogResponseAdapter.adapt(entrypointResponse, endpointResponse)
-                    );
-                }
+        var entrypointMessages = this.client.search(
+            index,
+            null,
+            SearchMessageLogQueryAdapter.adapt(
+                query.toBuilder().filter(query.getFilter().toBuilder().connectorType("entrypoint").build()).build()
             )
-            .blockingGet();
+        ).map(response -> {
+            var result = response.getSearchHits();
+            if (result == null) {
+                SearchHits searchHits = new SearchHits();
+                searchHits.setTotal(new TotalHits(0));
+                return searchHits;
+            }
+            return result;
+        });
+
+        var endpointMessages = this.client.search(
+            index,
+            null,
+            SearchMessageLogQueryAdapter.adapt(
+                query.toBuilder().filter(query.getFilter().toBuilder().connectorType("endpoint").build()).build()
+            )
+        ).map(response -> {
+            var result = response.getSearchHits();
+            if (result == null) {
+                SearchHits searchHits = new SearchHits();
+                searchHits.setTotal(new TotalHits(0));
+                return searchHits;
+            }
+            return result;
+        });
+
+        return Single.zip(entrypointMessages, endpointMessages, (entrypointResponse, endpointResponse) -> {
+            var totalEntrypointMessages = entrypointResponse.getTotal().getValue();
+            var totalEndpointMessages = endpointResponse.getTotal().getValue();
+
+            if (totalEndpointMessages == 0) {
+                return new LogResponse<>((int) totalEntrypointMessages, SearchMessageLogResponseAdapter.adapt(entrypointResponse));
+            }
+
+            if (totalEntrypointMessages == 0) {
+                return new LogResponse<>((int) totalEndpointMessages, SearchMessageLogResponseAdapter.adapt(endpointResponse));
+            }
+
+            return new LogResponse<>(
+                (int) totalEntrypointMessages,
+                SearchMessageLogResponseAdapter.adapt(entrypointResponse, endpointResponse)
+            );
+        }).blockingGet();
     }
 
     private String getQueryIndexesFromDefinitionVersions(

@@ -67,8 +67,7 @@ public class ApiMetadataDomainService {
     public void createDefaultApiMetadata(String apiId, AuditInfo auditInfo) {
         var now = TimeProvider.now();
         var emailSupportMetadata = metadataCrudService.create(
-            Metadata
-                .builder()
+            Metadata.builder()
                 .key(IdGenerator.generate(EMAIL_SUPPORT_NAME))
                 .format(Metadata.MetadataFormat.MAIL)
                 .name(EMAIL_SUPPORT_NAME)
@@ -125,8 +124,7 @@ public class ApiMetadataDomainService {
                 existing -> update(existing.toBuilder().name(metadataEntry.getName()).value(metadataEntry.getValue()).build(), auditInfo),
                 () ->
                     create(
-                        NewApiMetadata
-                            .builder()
+                        NewApiMetadata.builder()
                             .apiId(apiId)
                             .key(metadataEntry.getKey())
                             .value(metadataEntry.getValue())
@@ -141,8 +139,7 @@ public class ApiMetadataDomainService {
     public ApiMetadata create(NewApiMetadata newApiMetadata, AuditInfo auditInfo) {
         var now = TimeProvider.now();
         var createdMetadata = metadataCrudService.create(
-            Metadata
-                .builder()
+            Metadata.builder()
                 .key(newApiMetadata.getKey() != null ? newApiMetadata.getKey() : IdGenerator.generate(newApiMetadata.getName()))
                 .format(newApiMetadata.getFormat())
                 .name(newApiMetadata.getName())
@@ -167,8 +164,7 @@ public class ApiMetadataDomainService {
 
     private void createAuditLog(Metadata created, ApiAuditEvent apiAuditEvent, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(created.getReferenceId())
@@ -190,8 +186,7 @@ public class ApiMetadataDomainService {
     }
 
     private ApiMetadata toApiMetadata(String environmentId, Metadata metadata) {
-        return ApiMetadata
-            .builder()
+        return ApiMetadata.builder()
             .key(metadata.getKey())
             .format(metadata.getFormat())
             .name(metadata.getName())
@@ -210,8 +205,7 @@ public class ApiMetadataDomainService {
     }
 
     private MetadataId toMetadataId(ApiMetadata apiMetadata) {
-        return MetadataId
-            .builder()
+        return MetadataId.builder()
             .key(apiMetadata.getKey())
             .referenceId(apiMetadata.getApiId())
             .referenceType(Metadata.ReferenceType.API)
@@ -220,8 +214,7 @@ public class ApiMetadataDomainService {
 
     private void createMetadataDeletedAuditLog(ApiMetadata apiMetadata, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(apiMetadata.getApiId())

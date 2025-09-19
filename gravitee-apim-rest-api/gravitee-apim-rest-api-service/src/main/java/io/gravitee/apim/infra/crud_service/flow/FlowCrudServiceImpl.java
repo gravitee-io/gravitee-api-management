@@ -207,10 +207,14 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
                 flowRepository.deleteByReferenceIdAndReferenceType(referenceId, flowReferenceType);
                 return;
             }
-            var dbFlowsById = stream(flowRepository.findByReference(flowReferenceType, referenceId))
-                .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
+            var dbFlowsById = stream(flowRepository.findByReference(flowReferenceType, referenceId)).collect(
+                Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity())
+            );
 
-            var flowIdsToSave = flows.stream().flatMap(f -> Stream.ofNullable(f.getId())).collect(Collectors.toSet());
+            var flowIdsToSave = flows
+                .stream()
+                .flatMap(f -> Stream.ofNullable(f.getId()))
+                .collect(Collectors.toSet());
 
             var flowIdsToDelete = dbFlowsById.keySet().stream().filter(Predicate.not(flowIdsToSave::contains)).collect(Collectors.toSet());
             if (!flowIdsToDelete.isEmpty()) {

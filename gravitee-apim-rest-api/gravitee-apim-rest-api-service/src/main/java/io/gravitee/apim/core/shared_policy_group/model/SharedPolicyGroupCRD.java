@@ -78,8 +78,7 @@ public class SharedPolicyGroupCRD {
     private String sharedPolicyGroupId;
 
     public SharedPolicyGroup toSharedPolicyGroup() {
-        return SharedPolicyGroup
-            .builder()
+        return SharedPolicyGroup.builder()
             .hrid(hrid)
             .crossId(crossId)
             .id(sharedPolicyGroupId)
@@ -94,8 +93,7 @@ public class SharedPolicyGroupCRD {
     }
 
     public CreateSharedPolicyGroup toCreateSharedPolicyGroup() {
-        return CreateSharedPolicyGroup
-            .builder()
+        return CreateSharedPolicyGroup.builder()
             .id(sharedPolicyGroupId)
             .hrid(hrid)
             .crossId(crossId)
@@ -110,8 +108,7 @@ public class SharedPolicyGroupCRD {
     }
 
     public SharedPolicyGroupCRD fromCreateSharedPolicyGroup(CreateSharedPolicyGroup createSharedPolicyGroup) {
-        return SharedPolicyGroupCRD
-            .builder()
+        return SharedPolicyGroupCRD.builder()
             .hrid(createSharedPolicyGroup.getHrid())
             .crossId(createSharedPolicyGroup.getCrossId())
             .name(createSharedPolicyGroup.getName())
@@ -125,8 +122,7 @@ public class SharedPolicyGroupCRD {
     }
 
     public UpdateSharedPolicyGroup toUpdateSharedPolicyGroup() {
-        return UpdateSharedPolicyGroup
-            .builder()
+        return UpdateSharedPolicyGroup.builder()
             .hrid(hrid)
             .crossId(crossId)
             .name(name)
@@ -137,8 +133,7 @@ public class SharedPolicyGroupCRD {
     }
 
     public SharedPolicyGroupCRD fromUpdateSharedPolicyGroup(UpdateSharedPolicyGroup updateSharedPolicyGroup) {
-        return SharedPolicyGroupCRD
-            .builder()
+        return SharedPolicyGroupCRD.builder()
             .hrid(updateSharedPolicyGroup.getHrid())
             .crossId(updateSharedPolicyGroup.getCrossId())
             .name(updateSharedPolicyGroup.getName())

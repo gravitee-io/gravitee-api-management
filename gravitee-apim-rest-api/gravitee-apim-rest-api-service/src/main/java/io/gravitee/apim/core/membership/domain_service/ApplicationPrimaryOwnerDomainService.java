@@ -54,13 +54,12 @@ public class ApplicationPrimaryOwnerDomainService {
         throws ApiPrimaryOwnerNotFoundException {
         return findPrimaryOwnerRole(organizationId)
             .flatMap(role ->
-                findApplicationPrimaryOwnerMembership(applicationId, role)
-                    .flatMap(membership ->
-                        switch (membership.getMemberType()) {
-                            case USER -> findUserPrimaryOwner(membership);
-                            case GROUP -> findGroupPrimaryOwner(membership, role.getId());
-                        }
-                    )
+                findApplicationPrimaryOwnerMembership(applicationId, role).flatMap(membership ->
+                    switch (membership.getMemberType()) {
+                        case USER -> findUserPrimaryOwner(membership);
+                        case GROUP -> findGroupPrimaryOwner(membership, role.getId());
+                    }
+                )
             )
             .orElseThrow(() -> new ApplicationPrimaryOwnerNotFoundException(applicationId));
     }
@@ -83,8 +82,7 @@ public class ApplicationPrimaryOwnerDomainService {
         return userCrudService
             .findBaseUserById(membership.getMemberId())
             .map(user ->
-                PrimaryOwnerEntity
-                    .builder()
+                PrimaryOwnerEntity.builder()
                     .id(user.getId())
                     .displayName(user.displayName())
                     .email(user.getEmail())
@@ -95,12 +93,12 @@ public class ApplicationPrimaryOwnerDomainService {
 
     private Optional<PrimaryOwnerEntity> findGroupPrimaryOwner(Membership membership, String primaryOwnerRoleId) {
         var group = groupQueryService.findById(membership.getMemberId());
-        var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId)
-            .flatMap(m -> userCrudService.findBaseUserById(m.getMemberId()));
+        var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId).flatMap(m ->
+            userCrudService.findBaseUserById(m.getMemberId())
+        );
 
         return group.map(value ->
-            PrimaryOwnerEntity
-                .builder()
+            PrimaryOwnerEntity.builder()
                 .id(value.getId())
                 .displayName(value.getName())
                 .type(PrimaryOwnerEntity.Type.GROUP)

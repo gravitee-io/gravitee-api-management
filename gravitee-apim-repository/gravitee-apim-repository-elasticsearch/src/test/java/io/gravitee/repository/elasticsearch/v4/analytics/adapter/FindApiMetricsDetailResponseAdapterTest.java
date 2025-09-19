@@ -45,33 +45,31 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
             final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics.json");
             final Optional<ApiMetricsDetail> apiMetricsDetail = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse);
 
-            assertThat(apiMetricsDetail)
-                .isEqualTo(
-                    Optional.of(
-                        ApiMetricsDetail
-                            .builder()
-                            .timestamp("2025-08-01T17:29:20.385+02:00")
-                            .apiId("2ebe3deb-1859-4d5b-be3d-eb1859dd5b16")
-                            .requestId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
-                            .transactionId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
-                            .host("localhost:8082")
-                            .applicationId("1")
-                            .planId("ccefeab8-2f7c-45dc-afea-b82f7c75dc1a")
-                            .gateway("b504bb7b-8b6e-426f-84bb-7b8b6e626f3f")
-                            .status(202)
-                            .uri("/v4/echo")
-                            .requestContentLength(0L)
-                            .responseContentLength(276L)
-                            .remoteAddress("0:0:0:0:0:0:0:1")
-                            .gatewayLatency(3L)
-                            .gatewayResponseTime(19L)
-                            .endpointResponseTime(16L)
-                            .method(HttpMethod.GET)
-                            .endpoint("https://api.gravitee.io/echo")
-                            .warnings(List.of())
-                            .build()
-                    )
-                );
+            assertThat(apiMetricsDetail).isEqualTo(
+                Optional.of(
+                    ApiMetricsDetail.builder()
+                        .timestamp("2025-08-01T17:29:20.385+02:00")
+                        .apiId("2ebe3deb-1859-4d5b-be3d-eb1859dd5b16")
+                        .requestId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
+                        .transactionId("39107cc9-b8bf-4f16-907c-c9b8bf8f16fb")
+                        .host("localhost:8082")
+                        .applicationId("1")
+                        .planId("ccefeab8-2f7c-45dc-afea-b82f7c75dc1a")
+                        .gateway("b504bb7b-8b6e-426f-84bb-7b8b6e626f3f")
+                        .status(202)
+                        .uri("/v4/echo")
+                        .requestContentLength(0L)
+                        .responseContentLength(276L)
+                        .remoteAddress("0:0:0:0:0:0:0:1")
+                        .gatewayLatency(3L)
+                        .gatewayResponseTime(19L)
+                        .endpointResponseTime(16L)
+                        .method(HttpMethod.GET)
+                        .endpoint("https://api.gravitee.io/echo")
+                        .warnings(List.of())
+                        .build()
+                )
+            );
         }
     }
 }

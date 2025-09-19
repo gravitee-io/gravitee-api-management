@@ -27,8 +27,7 @@ public class EnvironmentIdCrossIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("sharedpolicygroups")
             .name("e1c1")
             .key("environmentId", ascending())

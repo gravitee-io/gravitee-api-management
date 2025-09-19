@@ -78,12 +78,11 @@ public class ApiUpdateDocumentationPageUseCase {
         var pageToUpdate = newPage.build();
 
         if (!Objects.equals(oldPage.getContent(), input.content) || !Objects.equals(oldPage.getSource(), input.source)) {
-            pageToUpdate =
-                this.documentationValidationDomainService.validateAndSanitizeForUpdate(
-                        pageToUpdate,
-                        input.auditInfo().organizationId(),
-                        true
-                    );
+            pageToUpdate = this.documentationValidationDomainService.validateAndSanitizeForUpdate(
+                pageToUpdate,
+                input.auditInfo().organizationId(),
+                true
+            );
         }
 
         var updatedPage = this.updateApiDocumentationDomainService.updatePage(pageToUpdate, oldPage, input.auditInfo);
@@ -96,10 +95,9 @@ public class ApiUpdateDocumentationPageUseCase {
             this.updatePageOrders(oldPage.getOrder(), updatedPage, input.auditInfo);
         }
 
-        updatedPage =
-            updatedPage
-                .withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage))
-                .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(updatedPage, api));
+        updatedPage = updatedPage
+            .withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage))
+            .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(updatedPage, api));
 
         return new Output(updatedPage);
     }

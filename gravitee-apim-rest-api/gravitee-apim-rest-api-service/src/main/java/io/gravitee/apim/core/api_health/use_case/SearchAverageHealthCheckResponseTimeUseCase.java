@@ -54,8 +54,7 @@ public class SearchAverageHealthCheckResponseTimeUseCase {
     }
 
     private Single<Api> validateApiRequirements(Input input) {
-        return Single
-            .fromCallable(() -> apiCrudService.get(input.apiId()))
+        return Single.fromCallable(() -> apiCrudService.get(input.apiId()))
             .flatMap(api -> validateApiMultiTenancyAccess(api, input.environmentId()))
             .flatMap(this::validateApiIsNotTcp);
     }

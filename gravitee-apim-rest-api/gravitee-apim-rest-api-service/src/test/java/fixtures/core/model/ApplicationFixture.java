@@ -27,8 +27,7 @@ public class ApplicationFixture {
     private ApplicationFixture() {}
 
     public static final Supplier<Application.ApplicationBuilder> BASE = () ->
-        Application
-            .builder()
+        Application.builder()
             .id("app-id")
             .name("Test App name")
             .description("Test App description")

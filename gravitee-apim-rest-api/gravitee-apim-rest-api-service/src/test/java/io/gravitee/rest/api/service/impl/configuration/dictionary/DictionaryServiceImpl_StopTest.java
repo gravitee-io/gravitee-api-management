@@ -78,30 +78,27 @@ public class DictionaryServiceImpl_StopTest {
             dictionaryRepository.update(
                 argThat(arg -> arg.getId().equals(dictionaryInDb.getId()) && arg.getState().equals(updatedDictionary.getState()))
             )
-        )
-            .thenReturn(updatedDictionary);
+        ).thenReturn(updatedDictionary);
 
         DictionaryEntity dictionaryEntityStarted = dictionaryService.stop(GraviteeContext.getExecutionContext(), dictionaryInDb.getId());
         assertNotNull(dictionaryEntityStarted);
 
         verify(dictionaryRepository, times(1)).update(any(Dictionary.class));
-        verify(eventService, times(1))
-            .createDynamicDictionaryEvent(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Collections.singleton(ENVIRONMENT_ID)),
-                eq(ORGANIZATION_ID),
-                eq(EventType.STOP_DICTIONARY),
-                eq("dictionaryId")
-            );
-        verify(auditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
-                eq(updatedDictionary.getUpdatedAt()),
-                any(),
-                any()
-            );
+        verify(eventService, times(1)).createDynamicDictionaryEvent(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(Collections.singleton(ENVIRONMENT_ID)),
+            eq(ORGANIZATION_ID),
+            eq(EventType.STOP_DICTIONARY),
+            eq("dictionaryId")
+        );
+        verify(auditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
+            eq(updatedDictionary.getUpdatedAt()),
+            any(),
+            any()
+        );
     }
 
     @Test(expected = DictionaryNotFoundException.class)
@@ -117,23 +114,21 @@ public class DictionaryServiceImpl_StopTest {
         dictionaryService.stop(GraviteeContext.getExecutionContext(), dictionaryInDb.getId());
 
         verify(dictionaryRepository, never()).update(any(Dictionary.class));
-        verify(eventService, never())
-            .createDynamicDictionaryEvent(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Collections.singleton(ENVIRONMENT_ID)),
-                eq(ORGANIZATION_ID),
-                eq(EventType.STOP_DICTIONARY),
-                eq("dictionaryId")
-            );
-        verify(auditService, never())
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
-                any(),
-                any(),
-                any()
-            );
+        verify(eventService, never()).createDynamicDictionaryEvent(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(Collections.singleton(ENVIRONMENT_ID)),
+            eq(ORGANIZATION_ID),
+            eq(EventType.STOP_DICTIONARY),
+            eq("dictionaryId")
+        );
+        verify(auditService, never()).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
+            any(),
+            any(),
+            any()
+        );
     }
 
     @Test(expected = DictionaryNotFoundException.class)

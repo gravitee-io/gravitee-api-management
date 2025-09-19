@@ -40,8 +40,7 @@ public class ValidatePortalNotificationDomainService implements Validator<Valida
         String definitionVersion,
         Set<String> allowedGroups,
         AuditInfo auditInfo
-    )
-        implements Validator.Input {}
+    ) implements Validator.Input {}
 
     private final ValidateGroupsDomainService groupsValidator;
 

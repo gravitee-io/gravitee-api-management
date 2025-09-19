@@ -48,16 +48,14 @@ public class ApiLifecycleStateDomainServiceTest {
     void setUp() {
         workflowQueryService.initWith(
             List.of(
-                Workflow
-                    .builder()
+                Workflow.builder()
                     .id("workflow-draft")
                     .referenceId(API_ID_DRAFT)
                     .referenceType(Workflow.ReferenceType.API)
                     .type(Workflow.Type.REVIEW)
                     .state(Workflow.State.DRAFT)
                     .build(),
-                Workflow
-                    .builder()
+                Workflow.builder()
                     .id("workflow-review")
                     .referenceId(API_ID_REVIEW)
                     .referenceType(Workflow.ReferenceType.API)

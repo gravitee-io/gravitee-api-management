@@ -77,10 +77,12 @@ class ResponseTimeRangeQueryAdapterTest {
         assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/field").asText()).isEqualTo("@timestamp");
         assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/fixed_interval").asText()).isEqualTo("1800000ms");
         // timestamp is in ms so we need to truncate
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/min").asLong()))
-            .isEqualTo(start.truncatedTo(ChronoUnit.MILLIS));
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/max").asLong()))
-            .isEqualTo(end.truncatedTo(ChronoUnit.MILLIS));
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/min").asLong())).isEqualTo(
+            start.truncatedTo(ChronoUnit.MILLIS)
+        );
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/max").asLong())).isEqualTo(
+            end.truncatedTo(ChronoUnit.MILLIS)
+        );
     }
 
     @SneakyThrows
@@ -120,10 +122,12 @@ class ResponseTimeRangeQueryAdapterTest {
         assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/field").asText()).isEqualTo("@timestamp");
         assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/interval").asText()).isEqualTo("1800000ms");
         // timestamp is in ms so we need to truncate
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/min").asLong()))
-            .isEqualTo(start.truncatedTo(ChronoUnit.MILLIS));
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/max").asLong()))
-            .isEqualTo(end.truncatedTo(ChronoUnit.MILLIS));
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/min").asLong())).isEqualTo(
+            start.truncatedTo(ChronoUnit.MILLIS)
+        );
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/aggregations/by_date/date_histogram/extended_bounds/max").asLong())).isEqualTo(
+            end.truncatedTo(ChronoUnit.MILLIS)
+        );
     }
 
     @SneakyThrows
@@ -148,231 +152,230 @@ class ResponseTimeRangeQueryAdapterTest {
         assertThat(result.getAverageBy().get("2024-10-17T09:00:00.000Z")).isEqualTo(262.961164, within(0.001));
     }
 
-    private static final String RESPONSE =
-        """
-            {
-              "took": 27,
-              "timed_out": false,
-              "_shards": {
-                "total": 2,
-                "successful": 2,
-                "skipped": 0,
-                "failed": 0
-              },
-              "hits": {
-                "total": {
-                  "value": 10000,
-                  "relation": "gte"
+    private static final String RESPONSE = """
+        {
+          "took": 27,
+          "timed_out": false,
+          "_shards": {
+            "total": 2,
+            "successful": 2,
+            "skipped": 0,
+            "failed": 0
+          },
+          "hits": {
+            "total": {
+              "value": 10000,
+              "relation": "gte"
+            },
+            "max_score": null,
+            "hits": []
+          },
+          "aggregations": {
+            "by_date": {
+              "buckets": [
+                {
+                  "key_as_string": "2024-10-17T08:30:00.000Z",
+                  "key": 1729153800000,
+                  "doc_count": 1800,
+                  "avg_gateway-response-time-ms": {
+                    "value": 262.46222222222224
+                  }
                 },
-                "max_score": null,
-                "hits": []
-              },
-              "aggregations": {
-                "by_date": {
-                  "buckets": [
-                    {
-                      "key_as_string": "2024-10-17T08:30:00.000Z",
-                      "key": 1729153800000,
-                      "doc_count": 1800,
-                      "avg_gateway-response-time-ms": {
-                        "value": 262.46222222222224
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T09:00:00.000Z",
-                      "key": 1729155600000,
-                      "doc_count": 20651,
-                      "avg_gateway-response-time-ms": {
-                        "value": 262.9611641082756
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T09:30:00.000Z",
-                      "key": 1729157400000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T10:00:00.000Z",
-                      "key": 1729159200000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T10:30:00.000Z",
-                      "key": 1729161000000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T11:00:00.000Z",
-                      "key": 1729162800000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T11:30:00.000Z",
-                      "key": 1729164600000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T12:00:00.000Z",
-                      "key": 1729166400000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T12:30:00.000Z",
-                      "key": 1729168200000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T13:00:00.000Z",
-                      "key": 1729170000000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T13:30:00.000Z",
-                      "key": 1729171800000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T14:00:00.000Z",
-                      "key": 1729173600000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T14:30:00.000Z",
-                      "key": 1729175400000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T15:00:00.000Z",
-                      "key": 1729177200000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T15:30:00.000Z",
-                      "key": 1729179000000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T16:00:00.000Z",
-                      "key": 1729180800000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T16:30:00.000Z",
-                      "key": 1729182600000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T17:00:00.000Z",
-                      "key": 1729184400000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T17:30:00.000Z",
-                      "key": 1729186200000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T18:00:00.000Z",
-                      "key": 1729188000000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T18:30:00.000Z",
-                      "key": 1729189800000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T19:00:00.000Z",
-                      "key": 1729191600000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T19:30:00.000Z",
-                      "key": 1729193400000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T20:00:00.000Z",
-                      "key": 1729195200000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    },
-                    {
-                      "key_as_string": "2024-10-17T20:30:00.000Z",
-                      "key": 1729197000000,
-                      "doc_count": 0,
-                      "avg_gateway-response-time-ms": {
-                        "value": null
-                      }
-                    }
-                  ]
+                {
+                  "key_as_string": "2024-10-17T09:00:00.000Z",
+                  "key": 1729155600000,
+                  "doc_count": 20651,
+                  "avg_gateway-response-time-ms": {
+                    "value": 262.9611641082756
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T09:30:00.000Z",
+                  "key": 1729157400000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T10:00:00.000Z",
+                  "key": 1729159200000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T10:30:00.000Z",
+                  "key": 1729161000000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T11:00:00.000Z",
+                  "key": 1729162800000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T11:30:00.000Z",
+                  "key": 1729164600000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T12:00:00.000Z",
+                  "key": 1729166400000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T12:30:00.000Z",
+                  "key": 1729168200000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T13:00:00.000Z",
+                  "key": 1729170000000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T13:30:00.000Z",
+                  "key": 1729171800000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T14:00:00.000Z",
+                  "key": 1729173600000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T14:30:00.000Z",
+                  "key": 1729175400000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T15:00:00.000Z",
+                  "key": 1729177200000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T15:30:00.000Z",
+                  "key": 1729179000000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T16:00:00.000Z",
+                  "key": 1729180800000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T16:30:00.000Z",
+                  "key": 1729182600000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T17:00:00.000Z",
+                  "key": 1729184400000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T17:30:00.000Z",
+                  "key": 1729186200000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T18:00:00.000Z",
+                  "key": 1729188000000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T18:30:00.000Z",
+                  "key": 1729189800000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T19:00:00.000Z",
+                  "key": 1729191600000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T19:30:00.000Z",
+                  "key": 1729193400000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T20:00:00.000Z",
+                  "key": 1729195200000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
+                },
+                {
+                  "key_as_string": "2024-10-17T20:30:00.000Z",
+                  "key": 1729197000000,
+                  "doc_count": 0,
+                  "avg_gateway-response-time-ms": {
+                    "value": null
+                  }
                 }
-              }
+              ]
             }
-            """;
+          }
+        }
+        """;
 }

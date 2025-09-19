@@ -126,23 +126,20 @@ class ApiCRDAdapterTest {
         var export = exportEntity(false);
         var then = Instant.now();
         var plansWithConflictingNames = Set.of(
-            PlanEntity
-                .builder()
+            PlanEntity.builder()
                 .createdAt(Date.from(then))
                 .id("api-123-plan-1")
                 .hrid("plan-1")
                 .name("api key")
                 .security(PlanSecurity.builder().type("API_KEY").build())
                 .build(),
-            PlanEntity
-                .builder()
+            PlanEntity.builder()
                 .createdAt(Date.from(then.plusMillis(1)))
                 .id("api-123-plan-2")
                 .name("api key")
                 .security(PlanSecurity.builder().type("API_KEY").build())
                 .build(),
-            PlanEntity
-                .builder()
+            PlanEntity.builder()
                 .createdAt(Date.from(then.plusMillis(2)))
                 .id("api-123-plan-3")
                 .name("api key")
@@ -156,11 +153,9 @@ class ApiCRDAdapterTest {
     }
 
     private static ExportApiEntity exportEntity(boolean withHrid) {
-        return ExportApiEntity
-            .builder()
+        return ExportApiEntity.builder()
             .apiEntity(
-                ApiEntity
-                    .builder()
+                ApiEntity.builder()
                     .name("api-name")
                     .id("api-id")
                     .crossId("api-cross-id")
@@ -168,15 +163,13 @@ class ApiCRDAdapterTest {
                     .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
                     .endpointGroups(
                         List.of(
-                            EndpointGroup
-                                .builder()
+                            EndpointGroup.builder()
                                 .name("default-group")
                                 .type("http-proxy")
                                 .sharedConfiguration("{}")
                                 .endpoints(
                                     List.of(
-                                        Endpoint
-                                            .builder()
+                                        Endpoint.builder()
                                             .name("default-endpoint")
                                             .type("http-proxy")
                                             .inheritConfiguration(true)
@@ -191,8 +184,7 @@ class ApiCRDAdapterTest {
             )
             .plans(
                 Set.of(
-                    PlanEntity
-                        .builder()
+                    PlanEntity.builder()
                         .hrid(withHrid ? "plan-hrid" : null)
                         .name("plan-name")
                         .id("plan-id")
@@ -204,11 +196,9 @@ class ApiCRDAdapterTest {
     }
 
     private static ExportApiEntity exportNativeApiEntity(boolean withHrid) {
-        return ExportApiEntity
-            .builder()
+        return ExportApiEntity.builder()
             .apiEntity(
-                NativeApiEntity
-                    .builder()
+                NativeApiEntity.builder()
                     .name("api-name")
                     .id("api-id")
                     .crossId("api-cross-id")
@@ -216,15 +206,13 @@ class ApiCRDAdapterTest {
                     .listeners(List.of(KafkaListener.builder().host("myapi").build()))
                     .endpointGroups(
                         List.of(
-                            NativeEndpointGroup
-                                .builder()
+                            NativeEndpointGroup.builder()
                                 .name("default-group")
                                 .type("kafka")
                                 .sharedConfiguration("{}")
                                 .endpoints(
                                     List.of(
-                                        NativeEndpoint
-                                            .builder()
+                                        NativeEndpoint.builder()
                                             .name("default-endpoint")
                                             .type("kafka")
                                             .inheritConfiguration(true)
@@ -239,8 +227,7 @@ class ApiCRDAdapterTest {
             )
             .plans(
                 Set.of(
-                    NativePlanEntity
-                        .builder()
+                    NativePlanEntity.builder()
                         .hrid(withHrid ? "plan-hrid" : null)
                         .name("plan-name")
                         .id("plan-id")

@@ -224,8 +224,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @BeforeEach
     void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any(RolePermissionAction[].class))).thenReturn(true);
-        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT))
-            .thenReturn(EnvironmentEntity.builder().id(ENVIRONMENT).build());
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT)).thenReturn(
+            EnvironmentEntity.builder().id(ENVIRONMENT).build()
+        );
     }
 
     @AfterEach

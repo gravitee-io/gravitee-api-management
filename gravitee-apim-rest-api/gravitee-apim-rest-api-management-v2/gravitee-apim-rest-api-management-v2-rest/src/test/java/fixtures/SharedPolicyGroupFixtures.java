@@ -41,8 +41,7 @@ public class SharedPolicyGroupFixtures {
         return UPDATE_BASE.get();
     }
 
-    private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD
-        .builder()
+    private static final SharedPolicyGroupCRD.SharedPolicyGroupCRDBuilder CRD_BASE = SharedPolicyGroupCRD.builder()
         .crossId(UUID.random().toString())
         .name("My Shared Policy Group CRD")
         .apiType(io.gravitee.definition.model.v4.ApiType.PROXY)

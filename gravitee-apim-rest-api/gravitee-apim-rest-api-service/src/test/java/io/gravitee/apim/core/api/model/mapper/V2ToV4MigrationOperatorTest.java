@@ -85,7 +85,11 @@ class V2ToV4MigrationOperatorTest {
         void should_preserve_api_metadata_when_mapping() {
             // Given
             var originalApi = ApiFixtures.aProxyApiV2();
-            originalApi.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+            originalApi
+                .getApiDefinition()
+                .getProxy()
+                .getGroups()
+                .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
             // When
             var result = get(mapper.mapApi(originalApi));
@@ -116,7 +120,11 @@ class V2ToV4MigrationOperatorTest {
         @Test
         void should_upgrade_definition_version_to_v4() {
             var v2Api = ApiFixtures.aProxyApiV2().toBuilder().definitionVersion(DefinitionVersion.V2).build();
-            v2Api.getApiDefinition().getProxy().getGroups().forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+            v2Api
+                .getApiDefinition()
+                .getProxy()
+                .getGroups()
+                .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
             var result = get(mapper.mapApi(v2Api));
 
@@ -636,8 +644,7 @@ class V2ToV4MigrationOperatorTest {
         HealthCheckResponse response = new HealthCheckResponse();
         response.setAssertions(java.util.List.of("#status == 200"));
         step.setResponse(response);
-        HealthCheckService healthCheckService = HealthCheckService
-            .builder()
+        HealthCheckService healthCheckService = HealthCheckService.builder()
             .enabled(true) // comes from ScheduledService (superclass)
             .schedule("*/30 * * * * *") // run every 30s, for example
             .steps(List.of(step))
@@ -807,8 +814,7 @@ class V2ToV4MigrationOperatorTest {
             planDef.setTags(Set.of("tag1", "tag2"));
 
             var now = TimeProvider.now();
-            var plan = PlanFixtures
-                .aPlanV2()
+            var plan = PlanFixtures.aPlanV2()
                 .toBuilder()
                 .id("plan-id")
                 .name("Test Plan")

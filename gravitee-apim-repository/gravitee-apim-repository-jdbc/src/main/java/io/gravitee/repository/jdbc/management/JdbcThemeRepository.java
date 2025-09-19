@@ -50,8 +50,7 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
 
     @Override
     protected JdbcObjectMapper<Theme> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Theme.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Theme.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, ThemeType.class)
@@ -86,9 +85,9 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
             return new HashSet(
                 jdbcTemplate.query(
                     getOrm().getSelectAllSql() +
-                    " where reference_id = ? and reference_type = ? and " +
-                    escapeReservedWord("type") +
-                    " = ?",
+                        " where reference_id = ? and reference_type = ? and " +
+                        escapeReservedWord("type") +
+                        " = ?",
                     getOrm().getRowMapper(),
                     referenceId,
                     referenceType,
@@ -124,20 +123,19 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
 
                 query.append(" order by name ");
 
-                result =
-                    jdbcTemplate.query(
-                        query.toString(),
-                        (PreparedStatement ps) -> {
-                            int idx = 1;
-                            if (criteria.getEnabled() != null) {
-                                idx = getOrm().setArguments(ps, List.of(criteria.getEnabled()), idx);
-                            }
-                            if (criteria.getType() != null) {
-                                getOrm().setArguments(ps, List.of(criteria.getType().name()), idx);
-                            }
-                        },
-                        getOrm().getRowMapper()
-                    );
+                result = jdbcTemplate.query(
+                    query.toString(),
+                    (PreparedStatement ps) -> {
+                        int idx = 1;
+                        if (criteria.getEnabled() != null) {
+                            idx = getOrm().setArguments(ps, List.of(criteria.getEnabled()), idx);
+                        }
+                        if (criteria.getType() != null) {
+                            getOrm().setArguments(ps, List.of(criteria.getType().name()), idx);
+                        }
+                    },
+                    getOrm().getRowMapper()
+                );
             }
             return getResultAsPage(pageable, result);
         } catch (final Exception ex) {
