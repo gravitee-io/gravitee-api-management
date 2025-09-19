@@ -93,6 +93,22 @@ class PortalPageCrudServiceImplTest {
     }
 
     @Test
+    void should_update_page_and_return_updated_page() throws TechnicalException {
+        PageId pageId = PageId.random();
+        var updatedPage = new PortalPage(pageId, new GraviteeMarkdown("new-content"));
+
+        var repoPageUpdated = io.gravitee.repository.management.model.PortalPage.builder()
+            .id(pageId.toString())
+            .content(updatedPage.getPageContent().content())
+            .build();
+
+        doReturn(repoPageUpdated).when(pageRepository).update(any());
+
+        var result = service.update(updatedPage);
+        assertThat(result).isEqualTo(updatedPage);
+    }
+
+    @Test
     void should_throw_technical_domain_exception_when_update_fails() throws TechnicalException {
         PageId pageId = PageId.random();
         var page = new PortalPage(pageId, new GraviteeMarkdown("content-error"));
