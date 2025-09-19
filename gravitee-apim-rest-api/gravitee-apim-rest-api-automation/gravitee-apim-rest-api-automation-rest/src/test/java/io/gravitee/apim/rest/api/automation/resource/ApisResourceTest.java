@@ -74,8 +74,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 eq(RolePermissionAction.CREATE),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         when(
             permissionService.hasPermission(
@@ -85,8 +84,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 eq(RolePermissionAction.CREATE),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         when(
             permissionService.hasPermission(
@@ -96,8 +94,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 eq(RolePermissionAction.CREATE),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     @Nested
@@ -105,18 +102,16 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class)))
-                .thenReturn(
-                    new ImportApiCRDUseCase.Output(
-                        ApiCRDStatus
-                            .builder()
-                            .id("api-id")
-                            .crossId("api-cross-id")
-                            .organizationId(ORGANIZATION)
-                            .environmentId(ENVIRONMENT)
-                            .build()
-                    )
-                );
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenReturn(
+                new ImportApiCRDUseCase.Output(
+                    ApiCRDStatus.builder()
+                        .id("api-id")
+                        .crossId("api-cross-id")
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .build()
+                )
+            );
         }
 
         @Test
@@ -129,8 +124,7 @@ class ApisResourceTest extends AbstractResourceTest {
                     eq(RolePermissionAction.CREATE),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             expectForbidden("api-with-hrid.json");
         }
@@ -183,9 +177,9 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
             });
 
-            verify(importApiCRDUseCase, atMostOnce())
-                .execute(
-                    argThat(input ->
+            verify(importApiCRDUseCase, atMostOnce()).execute(
+                argThat(
+                    input ->
                         input
                             .spec()
                             .getPlans()
@@ -214,8 +208,8 @@ class ApisResourceTest extends AbstractResourceTest {
                             )
                             .map(Step::getConfiguration)
                             .allMatch(assertion())
-                    )
-                );
+                )
+            );
         }
 
         @Nonnull
@@ -242,16 +236,16 @@ class ApisResourceTest extends AbstractResourceTest {
                     eq(RolePermissionAction.CREATE),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             expectForbidden("api-with-hrid.json", dryRun);
         }
 
         @Test
         void should_return_state_from_hrid() {
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
-                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
 
             var state = expectEntity("api-with-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
@@ -265,8 +259,9 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_state_from_cross_id() {
-            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class)))
-                .thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
 
             var state = expectEntity("api-with-cross-id-and-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {

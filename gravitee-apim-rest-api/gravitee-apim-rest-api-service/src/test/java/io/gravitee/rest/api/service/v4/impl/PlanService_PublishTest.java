@@ -121,8 +121,7 @@ public class PlanService_PublishTest {
 
     @Test
     public void shouldPublishWithExistingKeylessPlan() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -142,8 +141,7 @@ public class PlanService_PublishTest {
 
     @Test(expected = KeylessPlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseExistingKeylessPlan() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -161,8 +159,7 @@ public class PlanService_PublishTest {
 
     @Test
     public void shouldPublish() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -179,8 +176,7 @@ public class PlanService_PublishTest {
 
     @Test
     public void shouldPublishAndUpdatePlan() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -197,8 +193,7 @@ public class PlanService_PublishTest {
 
     @Test
     public void shouldPublishAndUpdateNativePlan() throws TechnicalException {
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .apiType(ApiType.NATIVE)
@@ -218,8 +213,7 @@ public class PlanService_PublishTest {
 
     @Test
     public void shouldPublishAndUpdateApiKeyPlanWithOtherAuthPlansPublished() throws TechnicalException {
-        var apiKeyPlanToPublish = Plan
-            .builder()
+        var apiKeyPlanToPublish = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .apiType(ApiType.NATIVE)
@@ -228,8 +222,7 @@ public class PlanService_PublishTest {
             .security(Plan.PlanSecurityType.API_KEY)
             .build();
 
-        var publishedOAuthPlan = Plan
-            .builder()
+        var publishedOAuthPlan = Plan.builder()
             .id("oauth-plan")
             .api(API_ID)
             .status(Plan.Status.PUBLISHED)
@@ -249,8 +242,7 @@ public class PlanService_PublishTest {
 
     @Test(expected = NativePlanAuthenticationConflictException.class)
     public void shouldNotPublishKeylessNativePlanIfAuthPlanPublished() throws TechnicalException {
-        var stagedKeylessPlan = Plan
-            .builder()
+        var stagedKeylessPlan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .apiType(ApiType.NATIVE)
@@ -260,8 +252,7 @@ public class PlanService_PublishTest {
             .apiType(ApiType.NATIVE)
             .build();
 
-        var publishedApiKeyPlan = Plan
-            .builder()
+        var publishedApiKeyPlan = Plan.builder()
             .id("published-api-key")
             .api(API_ID)
             .security(Plan.PlanSecurityType.API_KEY)
@@ -276,8 +267,7 @@ public class PlanService_PublishTest {
 
     @Test(expected = NativePlanAuthenticationConflictException.class)
     public void shouldNotPublishAuthNativePlanIfKeylessPlanPublished() throws TechnicalException {
-        var stagedApiKeyPlan = Plan
-            .builder()
+        var stagedApiKeyPlan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .apiType(ApiType.NATIVE)
@@ -287,8 +277,7 @@ public class PlanService_PublishTest {
             .apiType(ApiType.NATIVE)
             .build();
 
-        var publishedKeylessPlan = Plan
-            .builder()
+        var publishedKeylessPlan = Plan.builder()
             .id("published-keyless")
             .api(API_ID)
             .security(Plan.PlanSecurityType.KEY_LESS)
@@ -304,8 +293,7 @@ public class PlanService_PublishTest {
     @Test
     public void shouldPublish_WithPublishGCPage() throws TechnicalException {
         final String GC_PAGE_ID = "GC_PAGE_ID";
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)
@@ -329,8 +317,7 @@ public class PlanService_PublishTest {
     @Test(expected = PlanGeneralConditionStatusException.class)
     public void shouldNotPublish_WithNotPublishGCPage() throws TechnicalException {
         final String GC_PAGE_ID = "GC_PAGE_ID";
-        var plan = Plan
-            .builder()
+        var plan = Plan.builder()
             .status(Plan.Status.STAGING)
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO)

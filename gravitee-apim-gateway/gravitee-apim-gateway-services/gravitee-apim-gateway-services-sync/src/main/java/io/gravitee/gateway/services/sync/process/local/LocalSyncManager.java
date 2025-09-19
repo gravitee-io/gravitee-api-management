@@ -83,25 +83,22 @@ public class LocalSyncManager extends AbstractService<SyncManager> implements Sy
                             StandardWatchEventKinds.ENTRY_MODIFY
                         );
 
-                        watcherDisposable =
-                            sync(localRegistryDir)
-                                .doOnComplete(() -> {
-                                    log.debug("Moving to ready state as all resources have been synchronized");
-                                    synced.set(true);
-                                })
-                                .andThen(watch(registry, watcher))
-                                .doOnError(throwable ->
-                                    log.error("An error occurred during local synchronization. Restarting ...", throwable)
+                        watcherDisposable = sync(localRegistryDir)
+                            .doOnComplete(() -> {
+                                log.debug("Moving to ready state as all resources have been synchronized");
+                                synced.set(true);
+                            })
+                            .andThen(watch(registry, watcher))
+                            .doOnError(throwable -> log.error("An error occurred during local synchronization. Restarting ...", throwable))
+                            .retryWhen(
+                                RxHelper.retryExponentialBackoff(
+                                    EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS,
+                                    EXPONENTIAL_BACKOFF_RETRY_MAX_DELAY_MS,
+                                    TimeUnit.MILLISECONDS,
+                                    EXPONENTIAL_BACKOFF_RETRY_FACTOR
                                 )
-                                .retryWhen(
-                                    RxHelper.retryExponentialBackoff(
-                                        EXPONENTIAL_BACKOFF_RETRY_INITIAL_DELAY_MS,
-                                        EXPONENTIAL_BACKOFF_RETRY_MAX_DELAY_MS,
-                                        TimeUnit.MILLISECONDS,
-                                        EXPONENTIAL_BACKOFF_RETRY_FACTOR
-                                    )
-                                )
-                                .subscribe();
+                            )
+                            .subscribe();
                     } catch (IOException ex) {
                         log.error("An error occurred during local synchronization", ex);
                     }
@@ -129,15 +126,13 @@ public class LocalSyncManager extends AbstractService<SyncManager> implements Sy
     }
 
     private Completable sync(File localRegistryDir) {
-        return Flowable
-            .fromIterable(synchronizers)
+        return Flowable.fromIterable(synchronizers)
             .doOnNext(sync -> log.debug("{} will synchronize all resources ...", sync))
             .concatMapCompletable(sync -> sync.synchronize(localRegistryDir));
     }
 
     private Completable watch(Path localRegistryPath, WatchService watcher) {
-        return Flowable
-            .fromIterable(synchronizers)
+        return Flowable.fromIterable(synchronizers)
             .doOnNext(sync -> log.debug("{} will start watching on resources ...", sync))
             .concatMapCompletable(sync -> sync.watch(localRegistryPath, watcher));
     }

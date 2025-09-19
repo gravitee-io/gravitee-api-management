@@ -28,8 +28,7 @@ class IntegrationAdapterTest {
     @Test
     void mapMetadata() {
         // Given
-        var source = Api
-            .builder()
+        var source = Api.builder()
             .metadata(List.of(Metadata.builder().name("name1").format(Metadata.Format.STRING).value("value1").build()))
             .build();
         String integrationId = "My ID";
@@ -38,9 +37,8 @@ class IntegrationAdapterTest {
         IntegrationApi integrationApi = IntegrationAdapter.INSTANCE.map(source, integrationId);
 
         // Then
-        assertThat(integrationApi.metadata())
-            .containsExactly(
-                new IntegrationApi.Metadata("name1", "value1", io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING)
-            );
+        assertThat(integrationApi.metadata()).containsExactly(
+            new IntegrationApi.Metadata("name1", "value1", io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING)
+        );
     }
 }

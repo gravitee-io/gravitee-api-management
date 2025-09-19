@@ -63,8 +63,7 @@ public class SearchEnvironmentRequestResponseTimeUseCase {
     private Map<DefinitionVersion, List<String>> getAllV4ApisIdsForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria
-                    .builder()
+                ApiSearchCriteria.builder()
                     .environmentId(envId)
                     .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
                     .build(),

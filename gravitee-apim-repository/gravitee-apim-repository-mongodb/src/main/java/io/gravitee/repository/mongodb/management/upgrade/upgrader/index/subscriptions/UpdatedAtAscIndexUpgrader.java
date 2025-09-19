@@ -24,8 +24,7 @@ public class UpdatedAtAscIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("subscriptions")
             .name("ua1")
             .key("updatedAt", ascending())

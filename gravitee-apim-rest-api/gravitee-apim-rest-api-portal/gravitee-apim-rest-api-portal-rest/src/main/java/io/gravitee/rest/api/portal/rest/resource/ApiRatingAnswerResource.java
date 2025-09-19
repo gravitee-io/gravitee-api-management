@@ -55,7 +55,12 @@ public class ApiRatingAnswerResource extends AbstractResource {
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
             RatingEntity ratingEntity = ratingService.findById(executionContext, ratingId);
             if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
-                if (ratingEntity.getAnswers().stream().anyMatch(answer -> answer.getId().equals(answerId))) {
+                if (
+                    ratingEntity
+                        .getAnswers()
+                        .stream()
+                        .anyMatch(answer -> answer.getId().equals(answerId))
+                ) {
                     ratingService.deleteAnswer(executionContext, ratingId, answerId);
                     return Response.status(Status.NO_CONTENT).build();
                 }

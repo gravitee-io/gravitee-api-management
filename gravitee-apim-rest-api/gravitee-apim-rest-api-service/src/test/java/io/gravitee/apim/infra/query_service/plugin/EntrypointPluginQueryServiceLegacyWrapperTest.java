@@ -50,28 +50,26 @@ class EntrypointPluginQueryServiceLegacyWrapperTest {
 
         @Test
         void should_return_plugins_list_supported_by_the_given_api_type() {
-            when(entrypointConnectorPluginService.findBySupportedApi(any()))
-                .thenAnswer(invocation -> {
-                    var entity = new ConnectorPluginEntity();
-                    entity.setId("id1");
-                    entity.setName("Plugin 1");
-                    entity.setVersion("1.0.0");
-                    entity.setDescription("description1");
-                    entity.setSupportedApiType(invocation.getArgument(0));
-                    entity.setSupportedListenerType(ListenerType.HTTP);
-                    entity.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
-                    entity.setSupportedQos(Set.of(Qos.AUTO));
-                    entity.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
-                    return Set.of(entity);
-                });
+            when(entrypointConnectorPluginService.findBySupportedApi(any())).thenAnswer(invocation -> {
+                var entity = new ConnectorPluginEntity();
+                entity.setId("id1");
+                entity.setName("Plugin 1");
+                entity.setVersion("1.0.0");
+                entity.setDescription("description1");
+                entity.setSupportedApiType(invocation.getArgument(0));
+                entity.setSupportedListenerType(ListenerType.HTTP);
+                entity.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
+                entity.setSupportedQos(Set.of(Qos.AUTO));
+                entity.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
+                return Set.of(entity);
+            });
 
             var result = service.findBySupportedApi(ApiType.PROXY);
 
             assertThat(result)
                 .hasSize(1)
                 .containsExactly(
-                    ConnectorPlugin
-                        .builder()
+                    ConnectorPlugin.builder()
                         .id("id1")
                         .name("Plugin 1")
                         .version("1.0.0")
@@ -91,43 +89,41 @@ class EntrypointPluginQueryServiceLegacyWrapperTest {
 
         @Test
         void should_return_plugins_list_with_deployed_status_depending_on_license() {
-            when(entrypointConnectorPluginService.findAll())
-                .thenAnswer(invocation -> {
-                    var plugin1 = new ConnectorPluginEntity();
-                    plugin1.setId("id1");
-                    plugin1.setName("Plugin 1");
-                    plugin1.setVersion("1.0.0");
-                    plugin1.setDescription("description1");
-                    plugin1.setFeature("apim-feature-plugin1");
-                    plugin1.setDeployed(true);
-                    plugin1.setSupportedApiType(ApiType.MESSAGE);
-                    plugin1.setSupportedListenerType(ListenerType.HTTP);
-                    plugin1.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
-                    plugin1.setSupportedQos(Set.of(Qos.AUTO));
-                    plugin1.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
+            when(entrypointConnectorPluginService.findAll()).thenAnswer(invocation -> {
+                var plugin1 = new ConnectorPluginEntity();
+                plugin1.setId("id1");
+                plugin1.setName("Plugin 1");
+                plugin1.setVersion("1.0.0");
+                plugin1.setDescription("description1");
+                plugin1.setFeature("apim-feature-plugin1");
+                plugin1.setDeployed(true);
+                plugin1.setSupportedApiType(ApiType.MESSAGE);
+                plugin1.setSupportedListenerType(ListenerType.HTTP);
+                plugin1.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
+                plugin1.setSupportedQos(Set.of(Qos.AUTO));
+                plugin1.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
 
-                    var plugin2 = new ConnectorPluginEntity();
-                    plugin2.setId("id2");
-                    plugin2.setName("Plugin 2");
-                    plugin2.setVersion("2.0.0");
-                    plugin2.setDescription("description2");
-                    plugin2.setFeature("apim-feature-plugin2");
-                    plugin2.setDeployed(true);
-                    plugin2.setSupportedApiType(ApiType.MESSAGE);
-                    plugin2.setSupportedListenerType(ListenerType.HTTP);
-                    plugin2.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
-                    plugin2.setSupportedQos(Set.of(Qos.AUTO));
-                    plugin2.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
-                    return Set.of(plugin1, plugin2);
-                });
+                var plugin2 = new ConnectorPluginEntity();
+                plugin2.setId("id2");
+                plugin2.setName("Plugin 2");
+                plugin2.setVersion("2.0.0");
+                plugin2.setDescription("description2");
+                plugin2.setFeature("apim-feature-plugin2");
+                plugin2.setDeployed(true);
+                plugin2.setSupportedApiType(ApiType.MESSAGE);
+                plugin2.setSupportedListenerType(ListenerType.HTTP);
+                plugin2.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
+                plugin2.setSupportedQos(Set.of(Qos.AUTO));
+                plugin2.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
+                return Set.of(plugin1, plugin2);
+            });
 
             var result = service.findAll();
 
             assertThat(result)
                 .hasSize(2)
                 .containsExactlyInAnyOrder(
-                    ConnectorPlugin
-                        .builder()
+                    ConnectorPlugin.builder()
                         .id("id1")
                         .name("Plugin 1")
                         .version("1.0.0")
@@ -140,8 +136,7 @@ class EntrypointPluginQueryServiceLegacyWrapperTest {
                         .supportedQos(Set.of(Qos.AUTO))
                         .availableFeatures(Set.of(ConnectorFeature.LIMIT))
                         .build(),
-                    ConnectorPlugin
-                        .builder()
+                    ConnectorPlugin.builder()
                         .id("id2")
                         .name("Plugin 2")
                         .version("2.0.0")

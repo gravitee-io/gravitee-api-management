@@ -41,8 +41,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     public void before() throws TechnicalException {
         for (int i = 0; i < 10; i++) {
             var date = new Date(new Date(172321739410L).getTime() + i * 1000);
-            final SharedPolicyGroup sharedPolicyGroup = SharedPolicyGroup
-                .builder()
+            final SharedPolicyGroup sharedPolicyGroup = SharedPolicyGroup.builder()
                 .id("id_search_test_" + i)
                 .name("name search_test " + i)
                 .version(1)
@@ -65,8 +64,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_create() throws Exception {
         var date = new Date();
-        final SharedPolicyGroup sharedPolicyGroup = SharedPolicyGroup
-            .builder()
+        final SharedPolicyGroup sharedPolicyGroup = SharedPolicyGroup.builder()
             .id("id_create_test")
             .name("name")
             .version(1)
@@ -105,8 +103,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
     @Test
     public void should_update() throws Exception {
         var date = new Date();
-        final SharedPolicyGroup toUpdate = SharedPolicyGroup
-            .builder()
+        final SharedPolicyGroup toUpdate = SharedPolicyGroup.builder()
             .id("id_update_test")
             .name("new name")
             .version(2)
@@ -261,8 +258,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
 
     @Test
     public void should_search_with_lifecycle_state_criteria() throws TechnicalException {
-        final var criteria = SharedPolicyGroupCriteria
-            .builder()
+        final var criteria = SharedPolicyGroupCriteria.builder()
             .environmentId("environmentId")
             .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .build();

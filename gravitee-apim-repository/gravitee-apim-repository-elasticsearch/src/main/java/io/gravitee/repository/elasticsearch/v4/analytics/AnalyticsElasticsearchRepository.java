@@ -163,7 +163,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var esQuery = adapter.adaptQuery(queryCriteria);
 
         log.debug("Search request response time query: {}", esQuery);
-        return client.search(indices, null, esQuery).map(response -> adapter.adaptResponse(response, queryCriteria)).blockingGet();
+        return client
+            .search(indices, null, esQuery)
+            .map(response -> adapter.adaptResponse(response, queryCriteria))
+            .blockingGet();
     }
 
     @Override

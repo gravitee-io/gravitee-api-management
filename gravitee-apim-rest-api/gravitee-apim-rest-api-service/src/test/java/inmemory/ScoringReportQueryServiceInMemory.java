@@ -43,7 +43,10 @@ public class ScoringReportQueryServiceInMemory implements ScoringReportQueryServ
 
     @Override
     public Optional<ScoringReport> findLatestByApiId(String apiId) {
-        return storage.stream().filter(report -> report.apiId().equals(apiId)).max(Comparator.comparing(ScoringReport::createdAt));
+        return storage
+            .stream()
+            .filter(report -> report.apiId().equals(apiId))
+            .max(Comparator.comparing(ScoringReport::createdAt));
     }
 
     @Override

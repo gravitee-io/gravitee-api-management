@@ -84,8 +84,9 @@ public class PageService_FindByIdTest {
         when(page1.getReferenceId()).thenReturn("envId");
         when(page1.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-        when(pageRepository.search(argThat(p -> "TRANSLATION".equals(p.getType()) && PAGE_ID.equals(p.getParent()))))
-            .thenReturn(Arrays.asList(translationPage));
+        when(pageRepository.search(argThat(p -> "TRANSLATION".equals(p.getType()) && PAGE_ID.equals(p.getParent())))).thenReturn(
+            Arrays.asList(translationPage)
+        );
 
         final PageRevisionEntity pageRevision = new PageRevisionEntity();
         pageRevision.setRevision(5);

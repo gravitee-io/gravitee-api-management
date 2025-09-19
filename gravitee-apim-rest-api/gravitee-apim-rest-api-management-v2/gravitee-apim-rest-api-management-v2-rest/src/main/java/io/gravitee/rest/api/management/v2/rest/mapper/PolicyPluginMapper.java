@@ -46,7 +46,10 @@ public interface PolicyPluginMapper {
 
     @Named("flowPhaseCompatibility")
     default PolicyPluginAllOfFlowPhaseCompatibility mapToFlowPhaseCompatibility(
-        Map<io.gravitee.rest.api.model.v4.policy.ApiProtocolType, Set<io.gravitee.rest.api.model.v4.policy.FlowPhase>> flowPhaseCompatibility
+        Map<
+            io.gravitee.rest.api.model.v4.policy.ApiProtocolType,
+            Set<io.gravitee.rest.api.model.v4.policy.FlowPhase>
+        > flowPhaseCompatibility
     ) {
         if (flowPhaseCompatibility == null) {
             return null;

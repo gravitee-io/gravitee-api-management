@@ -64,8 +64,7 @@ public class QualityRuleServiceTest {
 
     @Test
     public void shouldFindByReferenceAndId() throws TechnicalException {
-        QualityRule qualityRule = QualityRule
-            .builder()
+        QualityRule qualityRule = QualityRule.builder()
             .id(QUALITY_RULE_ID)
             .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
             .referenceId(GraviteeContext.getCurrentEnvironment())
@@ -95,8 +94,7 @@ public class QualityRuleServiceTest {
 
     @Test(expected = QualityRuleNotFoundException.class)
     public void shouldNotFindByIdBecauseDoesNotBelongToEnvironment() throws TechnicalException {
-        QualityRule qualityRule = QualityRule
-            .builder()
+        QualityRule qualityRule = QualityRule.builder()
             .id(QUALITY_RULE_ID)
             .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
             .referenceId("Another_environment")
@@ -130,8 +128,7 @@ public class QualityRuleServiceTest {
 
     @Test
     public void shouldFindAll() throws TechnicalException {
-        QualityRule qualityRule = QualityRule
-            .builder()
+        QualityRule qualityRule = QualityRule.builder()
             .id(QUALITY_RULE_ID)
             .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
             .referenceId(GraviteeContext.getCurrentEnvironment())
@@ -156,8 +153,7 @@ public class QualityRuleServiceTest {
 
     @Test
     public void shouldFindByReference() throws TechnicalException {
-        QualityRule qualityRule = QualityRule
-            .builder()
+        QualityRule qualityRule = QualityRule.builder()
             .id(QUALITY_RULE_ID)
             .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
             .referenceId(GraviteeContext.getCurrentEnvironment())
@@ -173,8 +169,7 @@ public class QualityRuleServiceTest {
                 io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT,
                 GraviteeContext.getCurrentEnvironment()
             )
-        )
-            .thenReturn(List.of(qualityRule));
+        ).thenReturn(List.of(qualityRule));
 
         final List<QualityRuleEntity> qualityRules = qualityRuleService.findByReference(
             QualityRuleReferenceType.ENVIRONMENT,
@@ -226,9 +221,9 @@ public class QualityRuleServiceTest {
         qualityRule.setDescription("DESC");
         qualityRule.setWeight(1);
 
-        verify(qualityRuleRepository, times(1))
-            .create(
-                argThat(argument ->
+        verify(qualityRuleRepository, times(1)).create(
+            argThat(
+                argument ->
                     "NAME".equals(argument.getName()) &&
                     "DESC".equals(argument.getDescription()) &&
                     io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT.equals(argument.getReferenceType()) &&
@@ -237,17 +232,16 @@ public class QualityRuleServiceTest {
                     !argument.getId().isEmpty() &&
                     argument.getCreatedAt() != null &&
                     argument.getUpdatedAt() != null
-                )
-            );
-        verify(auditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-                eq(QualityRule.AuditEvent.QUALITY_RULE_CREATED),
-                any(Date.class),
-                isNull(),
-                any()
-            );
+            )
+        );
+        verify(auditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
+            eq(QualityRule.AuditEvent.QUALITY_RULE_CREATED),
+            any(Date.class),
+            isNull(),
+            any()
+        );
     }
 
     @Test
@@ -287,9 +281,9 @@ public class QualityRuleServiceTest {
         qualityRule.setDescription("DESC");
         qualityRule.setWeight(1);
 
-        verify(qualityRuleRepository, times(1))
-            .update(
-                argThat(argument ->
+        verify(qualityRuleRepository, times(1)).update(
+            argThat(
+                argument ->
                     "NAME".equals(argument.getName()) &&
                     "DESC".equals(argument.getDescription()) &&
                     io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT.equals(argument.getReferenceType()) &&
@@ -298,17 +292,16 @@ public class QualityRuleServiceTest {
                     QUALITY_RULE_ID.equals(argument.getId()) &&
                     argument.getCreatedAt() != null &&
                     argument.getUpdatedAt() != null
-                )
-            );
-        verify(auditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-                eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
-                any(Date.class),
-                any(),
-                any()
-            );
+            )
+        );
+        verify(auditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
+            eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
+            any(Date.class),
+            any(),
+            any()
+        );
     }
 
     @Test(expected = QualityRuleNotFoundException.class)
@@ -336,15 +329,14 @@ public class QualityRuleServiceTest {
         );
 
         verify(qualityRuleRepository, never()).update(any());
-        verify(auditService, never())
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-                eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
-                any(Date.class),
-                any(),
-                any()
-            );
+        verify(auditService, never()).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
+            eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
+            any(Date.class),
+            any(),
+            any()
+        );
     }
 
     @Test(expected = QualityRuleNotFoundException.class)
@@ -367,15 +359,14 @@ public class QualityRuleServiceTest {
         qualityRuleService.delete(GraviteeContext.getExecutionContext(), QUALITY_RULE_ID);
 
         verify(qualityRuleRepository, times(1)).delete(QUALITY_RULE_ID);
-        verify(auditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-                eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
-                any(Date.class),
-                isNull(),
-                eq(qualityRule)
-            );
+        verify(auditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
+            eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
+            any(Date.class),
+            isNull(),
+            eq(qualityRule)
+        );
         verify(apiQualityRuleRepository, times(1)).deleteByQualityRule(QUALITY_RULE_ID);
     }
 
@@ -389,15 +380,14 @@ public class QualityRuleServiceTest {
         qualityRuleService.delete(GraviteeContext.getExecutionContext(), QUALITY_RULE_ID);
 
         verify(qualityRuleRepository, never()).delete(any());
-        verify(auditService, never())
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-                eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
-                any(Date.class),
-                isNull(),
-                eq(qualityRule)
-            );
+        verify(auditService, never()).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
+            eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
+            any(Date.class),
+            isNull(),
+            eq(qualityRule)
+        );
         verify(apiQualityRuleRepository, never()).deleteByQualityRule(any());
     }
 }

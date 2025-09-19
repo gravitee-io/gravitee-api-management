@@ -86,17 +86,9 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getMetadata()).isNull();
         assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(updateApi.getLifecycleState().name());
         assertThat(updateApiEntity.isDisableMembershipNotifications()).isEqualTo(updateApi.getDisableMembershipNotifications());
-        assertThat(updateApiEntity.getFailover())
-            .isEqualTo(
-                Failover
-                    .builder()
-                    .enabled(true)
-                    .perSubscription(false)
-                    .maxFailures(3)
-                    .openStateDuration(11000)
-                    .slowCallDuration(500)
-                    .build()
-            );
+        assertThat(updateApiEntity.getFailover()).isEqualTo(
+            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+        );
     }
 
     @Test

@@ -124,8 +124,9 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                                 .infos(1)
                                 .hints(1)
                         );
-                    assertThat(result.getPagination())
-                        .isEqualTo(new Pagination().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L));
+                    assertThat(result.getPagination()).isEqualTo(
+                        new Pagination().page(1).perPage(10).pageItemsCount(1).pageCount(1).totalCount(1L)
+                    );
                 });
         }
 
@@ -137,7 +138,10 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             var pageSize = 5;
 
             scoringReportQueryService.initWith(
-                IntStream.range(0, expectedTotal).mapToObj(String::valueOf).map(id -> aReport(id).withApiId(id)).toList()
+                IntStream.range(0, expectedTotal)
+                    .mapToObj(String::valueOf)
+                    .map(id -> aReport(id).withApiId(id))
+                    .toList()
             );
 
             // When
@@ -166,7 +170,10 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
             var pageSize = 5;
 
             scoringReportQueryService.initWith(
-                IntStream.range(0, expectedTotal).mapToObj(String::valueOf).map(id -> aReport(id).withApiId(id)).toList()
+                IntStream.range(0, expectedTotal)
+                    .mapToObj(String::valueOf)
+                    .map(id -> aReport(id).withApiId(id))
+                    .toList()
             );
 
             // When
@@ -214,8 +221,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
     }
 
     private static ScoringReport aReport(String id) {
-        return ScoringReportFixture
-            .aScoringReport()
+        return ScoringReportFixture.aScoringReport()
             .toBuilder()
             .id(id)
             .environmentId(ENVIRONMENT)

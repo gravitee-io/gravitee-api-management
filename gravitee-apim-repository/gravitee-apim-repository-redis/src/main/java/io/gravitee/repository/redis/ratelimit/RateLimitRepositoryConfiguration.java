@@ -41,8 +41,7 @@ public class RateLimitRepositoryConfiguration {
             vertx,
             Scope.RATE_LIMIT.getName(),
             Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
-        )
-            .createRedisClient();
+        ).createRedisClient();
     }
 
     @Bean

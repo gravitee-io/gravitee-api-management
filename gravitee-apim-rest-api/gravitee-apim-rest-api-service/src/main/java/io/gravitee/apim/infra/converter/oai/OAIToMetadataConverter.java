@@ -36,8 +36,7 @@ public class OAIToMetadataConverter {
         return metadatumList
             .stream()
             .map(metadatum ->
-                NewApiMetadata
-                    .builder()
+                NewApiMetadata.builder()
                     .key(IdGenerator.generate(metadatum.getName()))
                     .name(metadatum.getName())
                     .value(metadatum.getValue())

@@ -79,9 +79,10 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
         }
 
         return policies
-            .filter(policyPlugin ->
-                StringUtils.isEmpty(policyPlugin.manifest().properties().get("message")) ||
-                StringUtils.isNotEmpty(policyPlugin.manifest().properties().get("proxy"))
+            .filter(
+                policyPlugin ->
+                    StringUtils.isEmpty(policyPlugin.manifest().properties().get("message")) ||
+                    StringUtils.isNotEmpty(policyPlugin.manifest().properties().get("proxy"))
             )
             .map(policyDefinition -> convert(policyDefinition, true))
             .collect(Collectors.toSet());
@@ -180,31 +181,31 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
                         try {
                             policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policy);
 
-                            scan =
-                                new ClassGraph()
-                                    .enableMethodInfo()
-                                    .enableAnnotationInfo()
-                                    .acceptClasses(policy.policy().getName())
-                                    .ignoreParentClassLoaders()
-                                    .overrideClassLoaders(policyClassLoader)
-                                    .scan(1);
+                            scan = new ClassGraph()
+                                .enableMethodInfo()
+                                .enableAnnotationInfo()
+                                .acceptClasses(policy.policy().getName())
+                                .ignoreParentClassLoaders()
+                                .overrideClassLoaders(policyClassLoader)
+                                .scan(1);
 
                             MethodInfoList methodInfo = scan.getClassInfo(policy.policy().getName()).getMethodInfo();
 
-                            MethodInfoList filter = methodInfo.filter(methodInfo1 ->
-                                methodInfo1.hasAnnotation(OnRequest.class.getName()) ||
-                                methodInfo1.hasAnnotation(OnRequestContent.class.getName())
+                            MethodInfoList filter = methodInfo.filter(
+                                methodInfo1 ->
+                                    methodInfo1.hasAnnotation(OnRequest.class.getName()) ||
+                                    methodInfo1.hasAnnotation(OnRequestContent.class.getName())
                             );
 
                             if (!filter.isEmpty()) {
                                 developmentEntity.setOnRequestMethod(filter.get(0).getName());
                             }
 
-                            filter =
-                                methodInfo.filter(methodInfo12 ->
+                            filter = methodInfo.filter(
+                                methodInfo12 ->
                                     methodInfo12.hasAnnotation(OnResponse.class.getName()) ||
                                     methodInfo12.hasAnnotation(OnResponseContent.class.getName())
-                                );
+                            );
 
                             if (!filter.isEmpty()) {
                                 developmentEntity.setOnResponseMethod(filter.get(0).getName());

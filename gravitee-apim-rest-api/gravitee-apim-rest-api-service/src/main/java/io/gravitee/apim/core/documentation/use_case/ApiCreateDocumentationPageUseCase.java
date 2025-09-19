@@ -43,8 +43,10 @@ public class ApiCreateDocumentationPageUseCase {
         pageToCreate.setCreatedAt(new Date());
         pageToCreate.setUpdatedAt(pageToCreate.getCreatedAt());
 
-        Page validatedPage =
-            this.documentationValidationDomainService.validateAndSanitizeForCreation(pageToCreate, input.auditInfo().organizationId());
+        Page validatedPage = this.documentationValidationDomainService.validateAndSanitizeForCreation(
+            pageToCreate,
+            input.auditInfo().organizationId()
+        );
 
         this.calculateOrder(validatedPage);
 

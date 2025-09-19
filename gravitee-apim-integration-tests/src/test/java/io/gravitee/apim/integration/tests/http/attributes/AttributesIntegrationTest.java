@@ -59,14 +59,13 @@ public class AttributesIntegrationTest {
                 .flatMap(HttpClientRequest::rxSend)
                 .flatMapPublisher(response -> {
                     assertThat(response.statusCode()).isEqualTo(200);
-                    assertThat(extractHeaders(response))
-                        .contains(
-                            Map.entry(ExecutionContext.ATTR_APPLICATION, "1"),
-                            Map.entry(ExecutionContext.ATTR_API, "attributes-to-headers"),
-                            Map.entry(ExecutionContext.ATTR_CONTEXT_PATH, "/attributes-to-headers/"),
-                            Map.entry(ExecutionContext.ATTR_PLAN, "default_plan"),
-                            Map.entry(ExecutionContext.ATTR_SUBSCRIPTION_ID, "127.0.0.1")
-                        );
+                    assertThat(extractHeaders(response)).contains(
+                        Map.entry(ExecutionContext.ATTR_APPLICATION, "1"),
+                        Map.entry(ExecutionContext.ATTR_API, "attributes-to-headers"),
+                        Map.entry(ExecutionContext.ATTR_CONTEXT_PATH, "/attributes-to-headers/"),
+                        Map.entry(ExecutionContext.ATTR_PLAN, "default_plan"),
+                        Map.entry(ExecutionContext.ATTR_SUBSCRIPTION_ID, "127.0.0.1")
+                    );
 
                     return response.toFlowable();
                 })
@@ -112,8 +111,9 @@ public class AttributesIntegrationTest {
             wiremock.stubFor(get("/endpoint").willReturn(ok()));
 
             when(getBean(ApiKeyService.class).getByApiAndKey(any(), any())).thenReturn(Optional.of(apiKey));
-            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(apiKey.getApi()), any(), eq(apiKey.getPlan())))
-                .thenReturn(Optional.of(aSubscription()));
+            when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(apiKey.getApi()), any(), eq(apiKey.getPlan()))).thenReturn(
+                Optional.of(aSubscription())
+            );
 
             httpClient
                 .rxRequest(HttpMethod.GET, "/attributes-to-headers")

@@ -75,14 +75,13 @@ public class UpdateCategoryApiOrderUseCase {
         String apiId
     ) {
         if (!isAdmin) {
-            var apiIdsInUserScope =
-                this.apiAuthorizationDomainService.findIdsByUser(
-                        executionContext,
-                        userId,
-                        ApiQueryCriteria.builder().ids(List.of(apiId)).category(categoryId).build(),
-                        null,
-                        false
-                    );
+            var apiIdsInUserScope = this.apiAuthorizationDomainService.findIdsByUser(
+                executionContext,
+                userId,
+                ApiQueryCriteria.builder().ids(List.of(apiId)).category(categoryId).build(),
+                null,
+                false
+            );
             if (apiIdsInUserScope.contains(apiId)) {
                 return;
             }

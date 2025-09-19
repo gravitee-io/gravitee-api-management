@@ -128,30 +128,24 @@ public class Api extends AbstractApi {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Stream
-            .of(
-                Optional
-                    .ofNullable(this.getResources())
-                    .map(r -> r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).toList())
-                    .orElse(List.of()),
-                Optional
-                    .ofNullable(this.getFlows())
-                    .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
-                    .orElse(List.of()),
-                Optional
-                    .ofNullable(this.getPlans())
-                    .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
-                    .orElse(List.of()),
-                Optional
-                    .ofNullable(this.getListeners())
-                    .map(l -> l.stream().map(Listener::getPlugins).flatMap(List::stream).toList())
-                    .orElse(List.of()),
-                Optional
-                    .ofNullable(this.getEndpointGroups())
-                    .map(r -> r.stream().map(EndpointGroup::getPlugins).flatMap(List::stream).toList())
-                    .orElse(List.of()),
-                Optional.ofNullable(this.getServices()).map(ApiServices::getPlugins).orElse(List.of())
-            )
+        return Stream.of(
+            Optional.ofNullable(this.getResources())
+                .map(r -> r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).toList())
+                .orElse(List.of()),
+            Optional.ofNullable(this.getFlows())
+                .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
+                .orElse(List.of()),
+            Optional.ofNullable(this.getPlans())
+                .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
+                .orElse(List.of()),
+            Optional.ofNullable(this.getListeners())
+                .map(l -> l.stream().map(Listener::getPlugins).flatMap(List::stream).toList())
+                .orElse(List.of()),
+            Optional.ofNullable(this.getEndpointGroups())
+                .map(r -> r.stream().map(EndpointGroup::getPlugins).flatMap(List::stream).toList())
+                .orElse(List.of()),
+            Optional.ofNullable(this.getServices()).map(ApiServices::getPlugins).orElse(List.of())
+        )
             .flatMap(List::stream)
             .collect(Collectors.toList());
     }

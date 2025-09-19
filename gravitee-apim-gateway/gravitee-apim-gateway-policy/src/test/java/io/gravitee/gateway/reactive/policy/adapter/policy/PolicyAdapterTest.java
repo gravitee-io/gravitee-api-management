@@ -140,19 +140,19 @@ class PolicyAdapterTest {
 
         // Simulate a policy that produces multiple buffers in the stream.
         doAnswer(invocation -> {
-                Handler<Buffer> bodyHandler = invocation.getArgument(0);
-                bodyHandler.handle(policyChunk1);
-                bodyHandler.handle(policyChunk2);
-                return null;
-            })
+            Handler<Buffer> bodyHandler = invocation.getArgument(0);
+            bodyHandler.handle(policyChunk1);
+            bodyHandler.handle(policyChunk2);
+            return null;
+        })
             .when(stream)
             .bodyHandler(any(Handler.class));
 
         doAnswer(invocation -> {
-                Handler<Void> endHandler = invocation.getArgument(0);
-                endHandler.handle(null);
-                return null;
-            })
+            Handler<Void> endHandler = invocation.getArgument(0);
+            endHandler.handle(null);
+            return null;
+        })
             .when(stream)
             .endHandler(any(Handler.class));
 
@@ -187,19 +187,19 @@ class PolicyAdapterTest {
 
         // Simulate a policy that produces multiple buffers in the stream.
         doAnswer(invocation -> {
-                Handler<Buffer> bodyHandler = invocation.getArgument(0);
-                bodyHandler.handle(policyChunk1);
-                bodyHandler.handle(policyChunk2);
-                return null;
-            })
+            Handler<Buffer> bodyHandler = invocation.getArgument(0);
+            bodyHandler.handle(policyChunk1);
+            bodyHandler.handle(policyChunk2);
+            return null;
+        })
             .when(stream)
             .bodyHandler(any(Handler.class));
 
         doAnswer(invocation -> {
-                Handler<Void> endHandler = invocation.getArgument(0);
-                endHandler.handle(null);
-                return null;
-            })
+            Handler<Void> endHandler = invocation.getArgument(0);
+            endHandler.handle(null);
+            return null;
+        })
             .when(stream)
             .endHandler(any(Handler.class));
 
@@ -300,10 +300,10 @@ class PolicyAdapterTest {
 
     private void mockPolicyExecution(Policy policy) throws PolicyException {
         doAnswer(invocation -> {
-                PolicyChainAdapter policyChain = invocation.getArgument(0);
-                policyChain.doNext(mock(Request.class), mock(Response.class));
-                return null;
-            })
+            PolicyChainAdapter policyChain = invocation.getArgument(0);
+            policyChain.doNext(mock(Request.class), mock(Response.class));
+            return null;
+        })
             .when(policy)
             .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
     }

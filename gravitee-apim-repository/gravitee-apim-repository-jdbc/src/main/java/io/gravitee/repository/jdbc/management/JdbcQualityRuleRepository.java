@@ -42,8 +42,7 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
 
     @Override
     protected JdbcObjectMapper<QualityRule> buildOrm() {
-        return JdbcObjectMapper
-            .builder(QualityRule.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(QualityRule.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, QualityRule.ReferenceType.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)

@@ -112,8 +112,7 @@ public class RoleFixtures {
     }
 
     private static Role.RoleBuilder systemRoleBuilder() {
-        return Role
-            .builder()
+        return Role.builder()
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .defaultRole(false)

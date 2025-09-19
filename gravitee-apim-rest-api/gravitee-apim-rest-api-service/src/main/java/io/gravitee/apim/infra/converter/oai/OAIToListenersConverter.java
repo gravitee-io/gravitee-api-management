@@ -37,8 +37,7 @@ public class OAIToListenersConverter {
 
     List<Listener> convert(XGraviteeIODefinition xGraviteeIODefinition, String apiName, String defaultEndpoint) {
         var listener = HttpListener.builder().entrypoints(singletonList(Entrypoint.builder().type(DEFAULT_ENTRYPOINT_TYPE).build()));
-        var paths = Optional
-            .ofNullable(xGraviteeIODefinition)
+        var paths = Optional.ofNullable(xGraviteeIODefinition)
             .map(XGraviteeIODefinition::getVirtualHosts)
             .map(this::createPathsFromVirtualHosts)
             .orElseGet(() -> singletonList(createDefaultPath(apiName, defaultEndpoint)));
@@ -50,8 +49,7 @@ public class OAIToListenersConverter {
         return virtualHosts
             .stream()
             .map(vHost ->
-                Path
-                    .builder()
+                Path.builder()
                     .host(vHost.getHost())
                     .path(vHost.getPath())
                     .overrideAccess(vHost.getOverrideEntrypoint() != null ? vHost.getOverrideEntrypoint() : false)

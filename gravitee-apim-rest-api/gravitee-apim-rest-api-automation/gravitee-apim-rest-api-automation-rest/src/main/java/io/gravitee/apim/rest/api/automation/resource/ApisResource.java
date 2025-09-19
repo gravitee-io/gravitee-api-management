@@ -86,13 +86,11 @@ public class ApisResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo
-            .builder()
+        AuditInfo audit = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(userDetails.getUsername())
                     .userSource(userDetails.getSource())
                     .userSourceId(userDetails.getSourceId())
@@ -185,8 +183,7 @@ public class ApisResource extends AbstractResource {
     private void mapSharedPolicyGroupHrid(ApiV4Spec spec, AuditInfo audit) {
         CollectionUtils.stream(spec.getFlows()).forEach(f -> mapSharedPolicyGroupHrid(f, audit));
         if (spec.getPlans() != null) {
-            CollectionUtils
-                .stream(spec.getPlans().values())
+            CollectionUtils.stream(spec.getPlans().values())
                 .flatMap(p -> CollectionUtils.stream(p.getFlows()))
                 .forEach(f -> mapSharedPolicyGroupHrid(f, audit));
         }

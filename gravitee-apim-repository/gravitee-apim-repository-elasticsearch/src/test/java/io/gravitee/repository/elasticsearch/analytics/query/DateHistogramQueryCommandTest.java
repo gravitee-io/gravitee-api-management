@@ -93,15 +93,14 @@ public class DateHistogramQueryCommandTest {
         when(dateRange.to()).thenReturn(to);
         dateHistogramQueryCommand.executeQuery(new QueryContext("org#1", "env#1"), dateHistogramQuery);
 
-        verify(freeMarkerComponent)
-            .generateFromTemplate(
-                anyString(),
-                argThat(argument -> {
-                    final Long roundedFrom = (Long) argument.get("roundedFrom");
-                    final Long roundedTo = (Long) argument.get("roundedTo");
-                    return roundedFrom.compareTo(from) <= 0 && roundedTo.compareTo(to) >= 0;
-                })
-            );
+        verify(freeMarkerComponent).generateFromTemplate(
+            anyString(),
+            argThat(argument -> {
+                final Long roundedFrom = (Long) argument.get("roundedFrom");
+                final Long roundedTo = (Long) argument.get("roundedTo");
+                return roundedFrom.compareTo(from) <= 0 && roundedTo.compareTo(to) >= 0;
+            })
+        );
         clearInvocations(freeMarkerComponent);
     }
 }

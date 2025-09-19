@@ -40,10 +40,11 @@ public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemor
     public Optional<Metadata> findById(MetadataId id) {
         return storage
             .stream()
-            .filter(m ->
-                Objects.equals(m.getKey(), id.getKey()) &&
-                Objects.equals(m.getReferenceId(), id.getReferenceId()) &&
-                Objects.equals(m.getReferenceType(), id.getReferenceType())
+            .filter(
+                m ->
+                    Objects.equals(m.getKey(), id.getKey()) &&
+                    Objects.equals(m.getReferenceId(), id.getReferenceId()) &&
+                    Objects.equals(m.getReferenceType(), id.getReferenceType())
             )
             .findFirst();
     }
@@ -59,19 +60,21 @@ public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemor
     }
 
     private Collection<Metadata> findByReferenceId(Metadata.ReferenceType reference, String id) {
-        return storage.stream().filter(m -> reference == m.getReferenceType() && id.equals(m.getReferenceId())).toList();
+        return storage
+            .stream()
+            .filter(m -> reference == m.getReferenceType() && id.equals(m.getReferenceId()))
+            .toList();
     }
 
     @Override
     public Metadata update(Metadata metadata) {
-        OptionalInt index =
-            this.findIndex(
-                    this.storage,
-                    m ->
-                        m.getKey().equals(metadata.getKey()) &&
-                        m.getReferenceId().equals(metadata.getReferenceId()) &&
-                        m.getReferenceType().equals(metadata.getReferenceType())
-                );
+        OptionalInt index = this.findIndex(
+            this.storage,
+            m ->
+                m.getKey().equals(metadata.getKey()) &&
+                m.getReferenceId().equals(metadata.getReferenceId()) &&
+                m.getReferenceType().equals(metadata.getReferenceType())
+        );
         if (index.isPresent()) {
             storage.set(index.getAsInt(), metadata);
             return metadata;
@@ -82,10 +85,11 @@ public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemor
 
     @Override
     public void delete(MetadataId metadataId) {
-        storage.removeIf(m ->
-            m.getReferenceId().equals(metadataId.getReferenceId()) &&
-            m.getReferenceType().equals(metadataId.getReferenceType()) &&
-            m.getKey().equals(metadataId.getKey())
+        storage.removeIf(
+            m ->
+                m.getReferenceId().equals(metadataId.getReferenceId()) &&
+                m.getReferenceType().equals(metadataId.getReferenceType()) &&
+                m.getKey().equals(metadataId.getKey())
         );
     }
 

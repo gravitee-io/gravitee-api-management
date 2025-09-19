@@ -126,8 +126,10 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId) {
         EnvironmentEntity environmentEntity = environmentService.findById(environmentId);
 
-        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply =
-            this.cockpitPromotionService.listPromotionTargets(organizationId, environmentId);
+        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = this.cockpitPromotionService.listPromotionTargets(
+            organizationId,
+            environmentId
+        );
         if (listCockpitReply.getStatus() == CockpitReplyStatus.SUCCEEDED) {
             return listCockpitReply
                 .getReply()
@@ -297,8 +299,11 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                         throw new ForbiddenAccessException();
                     }
 
-                    promoted =
-                        apiDuplicatorService.updateWithImportedDefinition(targetExecutionContext, apiIdToUpdate, apiDefinition.toString());
+                    promoted = apiDuplicatorService.updateWithImportedDefinition(
+                        targetExecutionContext,
+                        apiIdToUpdate,
+                        apiDefinition.toString()
+                    );
                 }
                 promotion.setTargetApiId(promoted.getId());
             }
@@ -443,8 +448,9 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         JsonNode apiDefinition
     ) {
         // find target API by crossId first, then fallback on last promotion target ID
-        return findAlreadyPromotedApiByCrossId(environment, apiDefinition)
-            .orElseGet(() -> findAlreadyPromotedApiFromLastPromotion(executionContext, promotion));
+        return findAlreadyPromotedApiByCrossId(environment, apiDefinition).orElseGet(() ->
+            findAlreadyPromotedApiFromLastPromotion(executionContext, promotion)
+        );
     }
 
     private Optional<String> findAlreadyPromotedApiByCrossId(EnvironmentEntity environment, JsonNode apiDefinition) {

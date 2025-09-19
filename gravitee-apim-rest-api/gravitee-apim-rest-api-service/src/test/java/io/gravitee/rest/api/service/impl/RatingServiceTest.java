@@ -153,8 +153,7 @@ public class RatingServiceTest {
                 Key.PORTAL_RATING_ENABLED,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
     }
 
     @Test(expected = RatingAlreadyExistsException.class)
@@ -163,8 +162,12 @@ public class RatingServiceTest {
         when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(of(rating));
 
         ratingService.create(GraviteeContext.getExecutionContext(), newRatingEntity);
-        verify(mockNotifierService, never())
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
+        verify(mockNotifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.NEW_RATING_ANSWER),
+            eq(API_ID),
+            any()
+        );
     }
 
     @Test
@@ -185,8 +188,12 @@ public class RatingServiceTest {
         assertEquals(RATE, ratingEntity.getRate(), 0);
         assertEquals(ratingEntity.getCreatedAt(), ratingEntity.getUpdatedAt());
         verify(mockNotifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING), eq(API_ID), any());
-        verify(mockNotifierService, never())
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
+        verify(mockNotifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.NEW_RATING_ANSWER),
+            eq(API_ID),
+            any()
+        );
     }
 
     @Test(expected = RatingNotFoundException.class)
@@ -196,8 +203,12 @@ public class RatingServiceTest {
 
         ratingService.createAnswer(GraviteeContext.getExecutionContext(), newRatingAnswerEntity);
         verify(mockNotifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING), eq(API_ID), any());
-        verify(mockNotifierService, never())
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
+        verify(mockNotifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.NEW_RATING_ANSWER),
+            eq(API_ID),
+            any()
+        );
     }
 
     @Test
@@ -225,8 +236,12 @@ public class RatingServiceTest {
         assertEquals(ANSWER, ratingEntity.getAnswers().get(0).getComment());
         assertEquals(USER, ratingEntity.getAnswers().get(0).getUser());
         assertNotNull(ratingEntity.getAnswers().get(0).getCreatedAt());
-        verify(mockNotifierService, times(1))
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
+        verify(mockNotifierService, times(1)).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiHook.NEW_RATING_ANSWER),
+            eq(API_ID),
+            any()
+        );
     }
 
     @Test
@@ -242,8 +257,7 @@ public class RatingServiceTest {
                 eq(RatingReferenceType.API),
                 eq(new PageableBuilder().pageNumber(0).pageSize(1).build())
             )
-        )
-            .thenReturn(pageRating);
+        ).thenReturn(pageRating);
 
         final Page<RatingEntity> pageRatingEntity = ratingService.findByApi(GraviteeContext.getExecutionContext(), API_ID, pageable);
 

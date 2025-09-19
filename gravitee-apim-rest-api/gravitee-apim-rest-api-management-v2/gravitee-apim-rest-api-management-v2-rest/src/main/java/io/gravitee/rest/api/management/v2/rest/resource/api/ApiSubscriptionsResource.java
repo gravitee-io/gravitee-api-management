@@ -216,8 +216,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             metadata = new HashMap<>();
         }
 
-        return Response
-            .ok(subscriptionService.exportAsCsv(subscriptionPage.getContent(), metadata))
+        return Response.ok(subscriptionService.exportAsCsv(subscriptionPage.getContent(), metadata))
             .header(
                 HttpHeaders.CONTENT_DISPOSITION,
                 format("attachment;filename=subscriptions-%s-%s.csv", apiId, System.currentTimeMillis())
@@ -258,8 +257,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             StringUtils.isNotEmpty(createSubscription.getCustomApiKey()) &&
             !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
         ) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
+            return Response.status(Response.Status.BAD_REQUEST)
                 .entity(subscriptionInvalid("You are not allowed to provide a custom API Key"))
                 .build();
         }
@@ -274,8 +272,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         if (created.getStatus() == io.gravitee.rest.api.model.SubscriptionStatus.PENDING) {
             var result = acceptSubscriptionUsecase.execute(
-                AcceptSubscriptionUseCase.Input
-                    .builder()
+                AcceptSubscriptionUseCase.Input.builder()
                     .subscriptionId(created.getId())
                     .apiId(apiId)
                     .auditInfo(getAuditInfo())
@@ -311,8 +308,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         PaginationParam paginationParam,
         ExecutionContext executionContext
     ) {
-        final SubscriptionQuery subscriptionQuery = SubscriptionQuery
-            .builder()
+        final SubscriptionQuery subscriptionQuery = SubscriptionQuery.builder()
             .apis(List.of(apiId))
             .applications(applicationIds)
             .plans(planIds)
@@ -372,8 +368,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         final UpdateSubscriptionEntity updateSubscriptionEntity = subscriptionMapper.map(updateSubscription, subscriptionId);
-        return Response
-            .status(Response.Status.OK)
+        return Response.status(Response.Status.OK)
             .entity(subscriptionMapper.map(subscriptionService.update(executionContext, updateSubscriptionEntity)))
             .build();
     }
@@ -422,18 +417,15 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final var user = getAuthenticatedUserDetails();
 
         var result = closeSubscriptionUsecase.execute(
-            CloseSubscriptionUseCase.Input
-                .builder()
+            CloseSubscriptionUseCase.Input.builder()
                 .subscriptionId(subscriptionId)
                 .apiId(apiId)
                 .auditInfo(
-                    AuditInfo
-                        .builder()
+                    AuditInfo.builder()
                         .organizationId(executionContext.getOrganizationId())
                         .environmentId(executionContext.getEnvironmentId())
                         .actor(
-                            AuditActor
-                                .builder()
+                            AuditActor.builder()
                                 .userId(user.getUsername())
                                 .userSource(user.getSource())
                                 .userSourceId(user.getSourceId())
@@ -492,9 +484,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         final TransferSubscriptionEntity transferSubscriptionEntity = subscriptionMapper.map(transferSubscription, subscriptionId);
-        return Response
-            .ok(subscriptionMapper.map(subscriptionService.transfer(executionContext, transferSubscriptionEntity, getAuthenticatedUser())))
-            .build();
+        return Response.ok(
+            subscriptionMapper.map(subscriptionService.transfer(executionContext, transferSubscriptionEntity, getAuthenticatedUser()))
+        ).build();
     }
 
     private void expandData(Subscription subscription, Set<String> expands) {
@@ -578,14 +570,12 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         final List<ApiKey> apiKeysSubList = computePaginationData(apiKeys, paginationParam);
 
-        return Response
-            .ok(
-                new SubscriptionApiKeysResponse()
-                    .data(apiKeysSubList)
-                    .pagination(PaginationInfo.computePaginationInfo(apiKeys.size(), apiKeysSubList.size(), paginationParam))
-                    .links(computePaginationLinks(apiKeys.size(), paginationParam))
-            )
-            .build();
+        return Response.ok(
+            new SubscriptionApiKeysResponse()
+                .data(apiKeysSubList)
+                .pagination(PaginationInfo.computePaginationInfo(apiKeys.size(), apiKeysSubList.size(), paginationParam))
+                .links(computePaginationLinks(apiKeys.size(), paginationParam))
+        ).build();
     }
 
     @POST
@@ -601,8 +591,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             StringUtils.isNotEmpty(renewApiKey.getCustomApiKey()) &&
             !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
         ) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
+            return Response.status(Response.Status.BAD_REQUEST)
                 .entity(subscriptionInvalid("You are not allowed to provide a custom API Key"))
                 .build();
         }
@@ -665,13 +654,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 apiKeyId,
                 apiId,
                 subscriptionId,
-                AuditInfo
-                    .builder()
+                AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
                     .environmentId(executionContext.getEnvironmentId())
                     .actor(
-                        AuditActor
-                            .builder()
+                        AuditActor.builder()
                             .userId(user.getUsername())
                             .userSource(user.getSource())
                             .userSourceId(user.getSourceId())

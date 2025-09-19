@@ -79,15 +79,14 @@ public class ApiPolicyValidatorDomainService {
             pathsStream = api.getPaths().values().stream().flatMap(Collection::stream);
         }
         if (plans != null && pathsStream != null) {
-            pathsStream =
-                Stream.concat(
-                    pathsStream,
-                    plans
-                        .stream()
-                        .flatMap(plan ->
-                            plan.getPaths() != null ? plan.getPaths().values().stream().flatMap(Collection::stream) : Stream.empty()
-                        )
-                );
+            pathsStream = Stream.concat(
+                pathsStream,
+                plans
+                    .stream()
+                    .flatMap(plan ->
+                        plan.getPaths() != null ? plan.getPaths().values().stream().flatMap(Collection::stream) : Stream.empty()
+                    )
+            );
         }
         return pathsStream;
     }
@@ -114,11 +113,10 @@ public class ApiPolicyValidatorDomainService {
             flowsStream = api.getFlows().stream();
         }
         if (plans != null && flowsStream != null) {
-            flowsStream =
-                Stream.concat(
-                    flowsStream,
-                    plans.stream().flatMap(plan -> plan.getFlows() != null ? plan.getFlows().stream() : Stream.empty())
-                );
+            flowsStream = Stream.concat(
+                flowsStream,
+                plans.stream().flatMap(plan -> plan.getFlows() != null ? plan.getFlows().stream() : Stream.empty())
+            );
         }
 
         if (flowsStream == null) {
@@ -147,18 +145,15 @@ public class ApiPolicyValidatorDomainService {
 
     private static Stream<io.gravitee.definition.model.v4.flow.step.Step> flowSteps(io.gravitee.definition.model.v4.Api api) {
         var apiFlows = Optional.ofNullable(api.getFlows()).stream().flatMap(Collection::stream);
-        var plansFlows = Optional
-            .ofNullable(api.getPlans())
+        var plansFlows = Optional.ofNullable(api.getPlans())
             .stream()
             .flatMap(plans -> plans.stream().flatMap(plan -> Optional.ofNullable(plan.getFlows()).stream().flatMap(Collection::stream)));
 
-        return Stream
-            .concat(apiFlows, plansFlows)
-            .flatMap(flow ->
-                Stream.concat(
-                    Optional.ofNullable(flow.getRequest()).stream().flatMap(Collection::stream),
-                    Optional.ofNullable(flow.getResponse()).stream().flatMap(Collection::stream)
-                )
-            );
+        return Stream.concat(apiFlows, plansFlows).flatMap(flow ->
+            Stream.concat(
+                Optional.ofNullable(flow.getRequest()).stream().flatMap(Collection::stream),
+                Optional.ofNullable(flow.getResponse()).stream().flatMap(Collection::stream)
+            )
+        );
     }
 }

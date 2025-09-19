@@ -111,8 +111,7 @@ public class GraviteeContext {
 
     public static ReferenceContext getCurrentContext() {
         if (getCurrentEnvironment() == null) {
-            return ReferenceContext
-                .builder()
+            return ReferenceContext.builder()
                 .referenceType(ReferenceContext.Type.ORGANIZATION)
                 .referenceId(getCurrentOrganization())
                 .build();

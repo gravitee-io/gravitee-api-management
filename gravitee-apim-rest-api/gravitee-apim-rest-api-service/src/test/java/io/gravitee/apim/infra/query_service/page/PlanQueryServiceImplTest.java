@@ -51,8 +51,7 @@ class PlanQueryServiceImplTest {
         @Test
         @SneakyThrows
         void search_should_return_matching_pages() {
-            Plan plan_published = Plan
-                .builder()
+            Plan plan_published = Plan.builder()
                 .id("published-id")
                 .api(API_ID)
                 .generalConditions(PAGE_ID)
@@ -61,8 +60,7 @@ class PlanQueryServiceImplTest {
                 .build();
             Plan plan_closed = Plan.builder().id("closed-id").api(API_ID).generalConditions(PAGE_ID).status(Plan.Status.CLOSED).build();
             Plan plan_staging = Plan.builder().id("staging-id").api(API_ID).generalConditions(PAGE_ID).status(Plan.Status.STAGING).build();
-            Plan plan_different_page = Plan
-                .builder()
+            Plan plan_different_page = Plan.builder()
                 .id("different-page-id")
                 .api(API_ID)
                 .generalConditions("another-page")
@@ -96,8 +94,7 @@ class PlanQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_return_all_plans_of_an_api() {
-            Plan plan1 = Plan
-                .builder()
+            Plan plan1 = Plan.builder()
                 .id("plan1")
                 .api(API_ID)
                 .status(Plan.Status.PUBLISHED)

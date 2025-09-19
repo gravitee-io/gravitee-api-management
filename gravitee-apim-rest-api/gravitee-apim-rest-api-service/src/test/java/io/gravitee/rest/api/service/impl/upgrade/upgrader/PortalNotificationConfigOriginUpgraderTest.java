@@ -77,12 +77,15 @@ public class PortalNotificationConfigOriginUpgraderTest {
         assertTrue(upgrader.upgrade());
         verify(portalNotificationConfigRepository, never()).delete(any());
         verify(portalNotificationConfigRepository, never()).create(any());
-        verify(portalNotificationConfigRepository, atMostOnce())
-            .update(aPortalNotificationConfig("api#1", NotificationReferenceType.API, "user#1", null));
-        verify(portalNotificationConfigRepository, atMostOnce())
-            .update(aPortalNotificationConfig("app#1", NotificationReferenceType.APPLICATION, "user#1", null));
-        verify(portalNotificationConfigRepository, atMostOnce())
-            .update(aPortalNotificationConfig("env#1", NotificationReferenceType.PORTAL, "user#1", null));
+        verify(portalNotificationConfigRepository, atMostOnce()).update(
+            aPortalNotificationConfig("api#1", NotificationReferenceType.API, "user#1", null)
+        );
+        verify(portalNotificationConfigRepository, atMostOnce()).update(
+            aPortalNotificationConfig("app#1", NotificationReferenceType.APPLICATION, "user#1", null)
+        );
+        verify(portalNotificationConfigRepository, atMostOnce()).update(
+            aPortalNotificationConfig("env#1", NotificationReferenceType.PORTAL, "user#1", null)
+        );
     }
 
     private PortalNotificationConfig aPortalNotificationConfig(
@@ -91,8 +94,7 @@ public class PortalNotificationConfigOriginUpgraderTest {
         String user,
         Origin origin
     ) {
-        return PortalNotificationConfig
-            .builder()
+        return PortalNotificationConfig.builder()
             .referenceId(referenceId)
             .referenceType(referenceType)
             .user(user)

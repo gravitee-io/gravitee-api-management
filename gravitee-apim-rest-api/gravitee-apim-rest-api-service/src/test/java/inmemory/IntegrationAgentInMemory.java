@@ -63,16 +63,13 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
         String subscriptionId,
         BaseApplicationEntity application
     ) {
-        subscriptions.compute(
-            integrationId,
-            (integration, subscriptionIds) -> {
-                if (subscriptionIds == null) {
-                    subscriptionIds = new ArrayList<>();
-                }
-                subscriptionIds.add(subscriptionId);
-                return subscriptionIds;
+        subscriptions.compute(integrationId, (integration, subscriptionIds) -> {
+            if (subscriptionIds == null) {
+                subscriptionIds = new ArrayList<>();
             }
-        );
+            subscriptionIds.add(subscriptionId);
+            return subscriptionIds;
+        });
         IntegrationSubscription.Type type;
         if (subscriptionParameter instanceof SubscriptionParameter.ApiKey) {
             type = IntegrationSubscription.Type.API_KEY;

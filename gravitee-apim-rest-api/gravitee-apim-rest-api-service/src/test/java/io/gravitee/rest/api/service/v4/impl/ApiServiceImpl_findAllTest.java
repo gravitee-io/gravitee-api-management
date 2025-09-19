@@ -248,39 +248,38 @@ public class ApiServiceImpl_findAllTest {
         );
 
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
-        apiService =
-            new ApiServiceImpl(
-                apiRepository,
-                apiMapper,
-                genericApiMapper,
-                primaryOwnerService,
-                apiValidationService,
-                parameterService,
-                workflowService,
-                auditService,
-                membershipService,
-                genericNotificationConfigService,
-                apiMetadataService,
-                flowCrudService,
-                searchEngineService,
-                planService,
-                planSearchService,
-                subscriptionService,
-                eventService,
-                pageService,
-                topApiService,
-                portalNotificationConfigService,
-                alertService,
-                apiQualityRuleRepository,
-                null,
-                mediaService,
-                propertiesService,
-                apiNotificationService,
-                tagsValidationService,
-                apiAuthorizationService,
-                groupService,
-                apiCategoryService
-            );
+        apiService = new ApiServiceImpl(
+            apiRepository,
+            apiMapper,
+            genericApiMapper,
+            primaryOwnerService,
+            apiValidationService,
+            parameterService,
+            workflowService,
+            auditService,
+            membershipService,
+            genericNotificationConfigService,
+            apiMetadataService,
+            flowCrudService,
+            searchEngineService,
+            planService,
+            planSearchService,
+            subscriptionService,
+            eventService,
+            pageService,
+            topApiService,
+            portalNotificationConfigService,
+            alertService,
+            apiQualityRuleRepository,
+            null,
+            mediaService,
+            propertiesService,
+            apiNotificationService,
+            tagsValidationService,
+            apiAuthorizationService,
+            groupService,
+            apiCategoryService
+        );
     }
 
     @Test
@@ -294,8 +293,7 @@ public class ApiServiceImpl_findAllTest {
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
             )
-        )
-            .thenReturn(new Page<>(List.of(), 1, 0, 0));
+        ).thenReturn(new Page<>(List.of(), 1, 0, 0));
 
         final Page<GenericApiEntity> apis = apiService.findAll(
             GraviteeContext.getExecutionContext(),
@@ -329,8 +327,7 @@ public class ApiServiceImpl_findAllTest {
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
             )
-        )
-            .thenReturn(new Page<>(List.of(api1, api2), 1, 2, 2));
+        ).thenReturn(new Page<>(List.of(api1, api2), 1, 2, 2));
 
         final Page<GenericApiEntity> apis = apiService.findAll(
             GraviteeContext.getExecutionContext(),
@@ -357,8 +354,9 @@ public class ApiServiceImpl_findAllTest {
         var api2 = new Api();
         api2.setId("API_2");
 
-        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
-            .thenReturn(Set.of("API_1"));
+        when(
+            apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true))
+        ).thenReturn(Set.of("API_1"));
 
         when(
             apiRepository.search(
@@ -372,8 +370,7 @@ public class ApiServiceImpl_findAllTest {
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
             )
-        )
-            .thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
 
         final Page<GenericApiEntity> apis = apiService.findAll(
             GraviteeContext.getExecutionContext(),
@@ -393,8 +390,9 @@ public class ApiServiceImpl_findAllTest {
 
     @Test
     public void should_return_empty_page_and_not_call_repository_if_not_admin_and_no_apis() {
-        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
-            .thenReturn(Set.of());
+        when(
+            apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true))
+        ).thenReturn(Set.of());
 
         final Page<GenericApiEntity> apis = apiService.findAll(
             GraviteeContext.getExecutionContext(),
@@ -426,11 +424,11 @@ public class ApiServiceImpl_findAllTest {
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
             )
-        )
-            .thenReturn(new Page<>(List.of(api1), 1, 1, 1));
+        ).thenReturn(new Page<>(List.of(api1), 1, 1, 1));
 
-        when(primaryOwnerService.getPrimaryOwner(anyString(), anyString()))
-            .thenReturn(PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build());
+        when(primaryOwnerService.getPrimaryOwner(anyString(), anyString())).thenReturn(
+            PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build()
+        );
 
         final Page<GenericApiEntity> apis = apiService.findAll(
             GraviteeContext.getExecutionContext(),

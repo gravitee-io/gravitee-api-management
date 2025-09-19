@@ -89,8 +89,7 @@ public class UpdateDynamicPropertiesUseCase {
         final AuditInfo auditInfo = buildAuditInfo(input, apiForUpdate);
 
         auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .apiId(updated.getId())
                 .environmentId(auditInfo.environmentId())
                 .organizationId(auditInfo.organizationId())
@@ -155,8 +154,7 @@ public class UpdateDynamicPropertiesUseCase {
     }
 
     private AuditInfo buildAuditInfo(Input input, Api apiForUpdate) {
-        return AuditInfo
-            .builder()
+        return AuditInfo.builder()
             .environmentId(apiForUpdate.getEnvironmentId())
             .organizationId(environmentCrudService.get(apiForUpdate.getEnvironmentId()).getOrganizationId())
             .actor(AuditActor.builder().userId(String.format("%s-management-api-service", input.pluginId())).build())

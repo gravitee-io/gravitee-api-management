@@ -65,8 +65,10 @@ public class PolicyFactoryManager {
         Set<PolicyFactory> policyFactories
     ) {
         this.defaultPolicyFactoryClass = debugPolicyFactoryClass;
-        this.policyFactories =
-            policyFactories.stream().filter(factory -> !factory.getClass().equals(excludedPolicyFactoryClass)).collect(Collectors.toSet());
+        this.policyFactories = policyFactories
+            .stream()
+            .filter(factory -> !factory.getClass().equals(excludedPolicyFactoryClass))
+            .collect(Collectors.toSet());
         defaultPolicyFactory = extractDefaultPolicyFactory(policyFactories);
     }
 
@@ -76,7 +78,11 @@ public class PolicyFactoryManager {
      * @return the {@link PolicyFactory}
      */
     public PolicyFactory get(PolicyManifest manifest) {
-        return policyFactories.stream().filter(policyFactory -> policyFactory.accept(manifest)).findFirst().orElse(defaultPolicyFactory);
+        return policyFactories
+            .stream()
+            .filter(policyFactory -> policyFactory.accept(manifest))
+            .findFirst()
+            .orElse(defaultPolicyFactory);
     }
 
     public void cleanup(PolicyManifest policyManifest) {

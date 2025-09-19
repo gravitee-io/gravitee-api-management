@@ -42,8 +42,7 @@ public class AvailabilityUseCase {
     }
 
     private Single<Api> validateApiRequirements(AvailabilityUseCase.Input input) {
-        return Single
-            .fromCallable(() -> apiCrudService.get(input.api()))
+        return Single.fromCallable(() -> apiCrudService.get(input.api()))
             .flatMap(api -> validateApiMultiTenancyAccess(api, input.ctx().getEnvironmentId()))
             .flatMap(this::validateApiIsNotTcp);
     }

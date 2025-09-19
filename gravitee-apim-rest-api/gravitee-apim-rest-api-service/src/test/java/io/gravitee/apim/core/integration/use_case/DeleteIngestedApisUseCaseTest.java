@@ -206,53 +206,50 @@ class DeleteIngestedApisUseCaseTest {
             indexer
         );
 
-        useCase =
-            new DeleteIngestedApisUseCase(
-                apiQueryServiceInMemory,
-                planQueryService,
-                subscriptionQueryService,
-                closeSubscriptionDomainService,
-                deleteSubscriptionDomainService,
-                deletePlanDomainService,
-                pageQueryService,
-                deleteApiDocumentationDomainService,
-                auditDomainService,
-                apiMetadataDomainService,
-                deleteMembershipDomainService,
-                apiCrudServiceInMemory,
-                apiIndexerDomainService
-            );
+        useCase = new DeleteIngestedApisUseCase(
+            apiQueryServiceInMemory,
+            planQueryService,
+            subscriptionQueryService,
+            closeSubscriptionDomainService,
+            deleteSubscriptionDomainService,
+            deletePlanDomainService,
+            pageQueryService,
+            deleteApiDocumentationDomainService,
+            auditDomainService,
+            apiMetadataDomainService,
+            deleteMembershipDomainService,
+            apiCrudServiceInMemory,
+            apiIndexerDomainService
+        );
         initializePrimaryOwnerData();
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                planCrudService,
-                planQueryService,
-                subscriptionCrudService,
-                subscriptionQueryService,
-                applicationService,
-                auditCrudService,
-                userCrudService,
-                pageCrudService,
-                pageQueryService,
-                pageRevisionCrudServiceInMemory,
-                indexer,
-                apiKeyCrudServiceInMemory,
-                apiKeyQueryServiceInMemory,
-                apiCrudServiceInMemory,
-                apiQueryServiceInMemory,
-                metadataCrudServiceInMemory,
-                apiMetadataQueryServiceInMemory,
-                membershipCrudServiceInMemory,
-                membershipQueryServiceInMemory,
-                roleQueryServiceInMemory,
-                groupQueryServiceInMemory,
-                apiCategoryQueryServiceInMemory
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            planCrudService,
+            planQueryService,
+            subscriptionCrudService,
+            subscriptionQueryService,
+            applicationService,
+            auditCrudService,
+            userCrudService,
+            pageCrudService,
+            pageQueryService,
+            pageRevisionCrudServiceInMemory,
+            indexer,
+            apiKeyCrudServiceInMemory,
+            apiKeyQueryServiceInMemory,
+            apiCrudServiceInMemory,
+            apiQueryServiceInMemory,
+            metadataCrudServiceInMemory,
+            apiMetadataQueryServiceInMemory,
+            membershipCrudServiceInMemory,
+            membershipQueryServiceInMemory,
+            roleQueryServiceInMemory,
+            groupQueryServiceInMemory,
+            apiCategoryQueryServiceInMemory
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @AfterAll
@@ -331,8 +328,7 @@ class DeleteIngestedApisUseCaseTest {
     @ParameterizedTest
     @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.INCLUDE, names = { "ACCEPTED", "PAUSED" })
     public void should_close_active_subscriptions(SubscriptionEntity.Status subscriptionStatus) {
-        var activeSubscription = SubscriptionFixtures
-            .aSubscription()
+        var activeSubscription = SubscriptionFixtures.aSubscription()
             .toBuilder()
             .apiId(MY_API)
             .planId("federated")
@@ -355,8 +351,7 @@ class DeleteIngestedApisUseCaseTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch", "createdAt")
             .contains(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
@@ -372,8 +367,7 @@ class DeleteIngestedApisUseCaseTest {
     @Test
     public void should_delete_all_subscriptions() {
         var api = givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build());
-        var allSubscriptions = Stream
-            .of(SubscriptionEntity.Status.values())
+        var allSubscriptions = Stream.of(SubscriptionEntity.Status.values())
             .map(value -> SubscriptionFixtures.aSubscription().toBuilder().apiId(api.getId()).planId("federated").status(value).build())
             .toList();
         subscriptionCrudService.initWith(allSubscriptions);
@@ -435,8 +429,7 @@ class DeleteIngestedApisUseCaseTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .contains(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
@@ -503,8 +496,7 @@ class DeleteIngestedApisUseCaseTest {
         roleQueryServiceInMemory.resetSystemRoles(ORGANIZATION_ID);
         membershipCrudServiceInMemory.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)
@@ -518,8 +510,7 @@ class DeleteIngestedApisUseCaseTest {
 
         applicationService.initWith(
             List.of(
-                ApplicationModelFixtures
-                    .anApplicationEntity()
+                ApplicationModelFixtures.anApplicationEntity()
                     .toBuilder()
                     .id(APPLICATION_ID)
                     .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())

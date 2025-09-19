@@ -69,16 +69,14 @@ public class DeleteIntegrationUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                integrationCrudServiceInMemory,
-                apiQueryServiceInMemory,
-                membershipCrudService,
-                membershipQueryService,
-                auditCrudService,
-                userCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            integrationCrudServiceInMemory,
+            apiQueryServiceInMemory,
+            membershipCrudService,
+            membershipQueryService,
+            auditCrudService,
+            userCrudService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -93,8 +91,7 @@ public class DeleteIntegrationUseCaseTest {
 
     @Test
     void should_delete_integration_memberships() {
-        var integrationMember = Membership
-            .builder()
+        var integrationMember = Membership.builder()
             .id("membership-id")
             .roleId("role-id")
             .referenceId(INTEGRATION_ID)

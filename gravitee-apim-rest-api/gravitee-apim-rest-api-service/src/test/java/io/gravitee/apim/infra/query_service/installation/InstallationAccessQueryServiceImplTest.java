@@ -72,15 +72,14 @@ class InstallationAccessQueryServiceImplTest {
     @BeforeEach
     void setUp() {
         environment = new MockEnvironment();
-        cut =
-            new InstallationAccessQueryServiceImpl(
-                environment,
-                installationTypeDomainService,
-                accessPointQueryService,
-                parameterService,
-                organizationService,
-                environmentService
-            );
+        cut = new InstallationAccessQueryServiceImpl(
+            environment,
+            installationTypeDomainService,
+            accessPointQueryService,
+            parameterService,
+            organizationService,
+            environmentService
+        );
         setValue("consoleApiUrl", null);
         setValue("portalApiUrl", null);
         setValue("managementProxyPath", "/management");
@@ -92,8 +91,9 @@ class InstallationAccessQueryServiceImplTest {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
         setValue("consoleApiUrl", "wrong");
 
-        assertThatThrownBy(() -> cut.afterPropertiesSet())
-            .isInstanceOf(InstallationAccessQueryServiceImpl.InvalidInstallationUrlException.class);
+        assertThatThrownBy(() -> cut.afterPropertiesSet()).isInstanceOf(
+            InstallationAccessQueryServiceImpl.InvalidInstallationUrlException.class
+        );
     }
 
     @Test
@@ -120,10 +120,12 @@ class InstallationAccessQueryServiceImplTest {
         EnvironmentEntity anyEnv = new EnvironmentEntity();
         anyEnv.setId("any");
         when(environmentService.findAllOrInitialize()).thenReturn(Set.of(anyEnv));
-        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION)))
-            .thenReturn("http://custom_console_url");
-        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn("http://custom_portal_url");
+        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(
+            "http://custom_console_url"
+        );
+        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "http://custom_portal_url"
+        );
         cut.afterPropertiesSet();
         assertThat(cut.getConsoleUrls()).containsOnly("http://custom_console_url");
 
@@ -146,10 +148,12 @@ class InstallationAccessQueryServiceImplTest {
     @Test
     void should_retrieve_parameter_urls_for_DEFAULT_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq(DEFAULT_ORGANIZATION_ID), eq(ParameterReferenceType.ORGANIZATION)))
-            .thenReturn("http://custom_console_url");
-        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq(DEFAULT_ENVIRONMENT_ID), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn("http://custom_portal_url");
+        when(
+            parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq(DEFAULT_ORGANIZATION_ID), eq(ParameterReferenceType.ORGANIZATION))
+        ).thenReturn("http://custom_console_url");
+        when(
+            parameterService.find(any(), eq(Key.PORTAL_URL), eq(DEFAULT_ENVIRONMENT_ID), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn("http://custom_portal_url");
         cut.afterPropertiesSet();
 
         assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
@@ -176,10 +180,12 @@ class InstallationAccessQueryServiceImplTest {
     @Test
     void should_retrieve_parameter_urls_for_any_organization_when_installation_is_not_multi_tenant_but_without_configuration() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION)))
-            .thenReturn("http://custom_console_url");
-        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn("http://custom_portal_url");
+        when(parameterService.find(any(), eq(Key.MANAGEMENT_URL), eq("any"), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(
+            "http://custom_console_url"
+        );
+        when(parameterService.find(any(), eq(Key.PORTAL_URL), eq("any"), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(
+            "http://custom_portal_url"
+        );
         cut.afterPropertiesSet();
 
         assertThat(cut.getConsoleAPIUrl("any")).isNull();

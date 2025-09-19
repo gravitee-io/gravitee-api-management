@@ -132,8 +132,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     }
 
     private boolean isApiManagementPermission(String permissionAsString) {
-        return Arrays
-            .stream(ApiPermission.values())
+        return Arrays.stream(ApiPermission.values())
             .filter(permission -> permission != ApiPermission.RATING && permission != ApiPermission.RATING_ANSWER)
             .anyMatch(permission -> permission.name().equals(permissionAsString));
     }
@@ -226,8 +225,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         }
         if (query.getDefinitionVersions() != null && !query.getDefinitionVersions().isEmpty()) {
             var allPossibleDefinitionVersions = DefinitionVersion.values();
-            List<String> definitionVersionsToExclude = Arrays
-                .stream(allPossibleDefinitionVersions)
+            List<String> definitionVersionsToExclude = Arrays.stream(allPossibleDefinitionVersions)
                 .filter(definitionVersion -> !query.getDefinitionVersions().contains(definitionVersion))
                 .map(DefinitionVersion::getLabel)
                 .collect(toList());

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.query_service.cockpit;/*
+package io.gravitee.apim.infra.query_service.cockpit; /*
 
 import com.google.common.base.Strings;
 import com.google.common.net.InternetDomainName;

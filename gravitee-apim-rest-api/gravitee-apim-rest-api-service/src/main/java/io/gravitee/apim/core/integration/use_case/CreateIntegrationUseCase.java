@@ -45,11 +45,10 @@ public class CreateIntegrationUseCase {
             throw noLicenseForFederation();
         }
 
-        var integrationToCreate =
-            switch (input.integration()) {
-                case Integration.ApiIntegration apiIntegration -> Integration.create(apiIntegration);
-                case Integration.A2aIntegration a2aIntegration -> Integration.create(a2aIntegration);
-            };
+        var integrationToCreate = switch (input.integration()) {
+            case Integration.ApiIntegration apiIntegration -> Integration.create(apiIntegration);
+            case Integration.A2aIntegration a2aIntegration -> Integration.create(a2aIntegration);
+        };
 
         var integrationCreated = integrationCrudService.create(integrationToCreate);
 

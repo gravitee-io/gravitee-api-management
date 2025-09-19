@@ -79,8 +79,7 @@ public class ManagementApiServicesManager extends AbstractService {
             )
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-        Completable
-            .concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
+        Completable.concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
             .doOnError(throwable -> log.error("Unable to start management-api-service: {}", throwable.getMessage(), throwable))
             .blockingAwait();
         if (!services.isEmpty()) {
@@ -104,14 +103,12 @@ public class ManagementApiServicesManager extends AbstractService {
         log.debug("Restarting services for api: {}", api.getId());
         final List<ManagementApiService> managedApi = servicesByApi.get(api.getId());
         if (managedApi != null && !managedApi.isEmpty()) {
-            Completable
-                .concat(
-                    managedApi
-                        .stream()
-                        .map(managementApiService -> managementApiService.update(api.getApiDefinitionHttpV4()))
-                        .collect(Collectors.toList())
-                )
-                .blockingAwait();
+            Completable.concat(
+                managedApi
+                    .stream()
+                    .map(managementApiService -> managementApiService.update(api.getApiDefinitionHttpV4()))
+                    .collect(Collectors.toList())
+            ).blockingAwait();
             return;
         }
         deployServices(api);

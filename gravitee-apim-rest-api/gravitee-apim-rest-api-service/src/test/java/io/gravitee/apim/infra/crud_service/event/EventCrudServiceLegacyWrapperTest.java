@@ -52,21 +52,20 @@ class EventCrudServiceLegacyWrapperTest {
     @Test
     void should_remove_old_events() {
         // Given
-        when(eventRepository.findGatewayEvents(anyString()))
-            .thenReturn(
-                Stream.of(
-                    new EventRepository.EventToClean("11", "api1"),
-                    new EventRepository.EventToClean("12", "api1"),
-                    new EventRepository.EventToClean("13", "api1"),
-                    new EventRepository.EventToClean("14", "api1"),
-                    new EventRepository.EventToClean("15", "api1"),
-                    new EventRepository.EventToClean("21", "api2"),
-                    new EventRepository.EventToClean("22", "api2"),
-                    new EventRepository.EventToClean("23", "api2"),
-                    new EventRepository.EventToClean("24", "api2"),
-                    new EventRepository.EventToClean("25", "api2")
-                )
-            );
+        when(eventRepository.findGatewayEvents(anyString())).thenReturn(
+            Stream.of(
+                new EventRepository.EventToClean("11", "api1"),
+                new EventRepository.EventToClean("12", "api1"),
+                new EventRepository.EventToClean("13", "api1"),
+                new EventRepository.EventToClean("14", "api1"),
+                new EventRepository.EventToClean("15", "api1"),
+                new EventRepository.EventToClean("21", "api2"),
+                new EventRepository.EventToClean("22", "api2"),
+                new EventRepository.EventToClean("23", "api2"),
+                new EventRepository.EventToClean("24", "api2"),
+                new EventRepository.EventToClean("25", "api2")
+            )
+        );
 
         // When
         sut.cleanupEvents("env", 2, Duration.ofDays(1));

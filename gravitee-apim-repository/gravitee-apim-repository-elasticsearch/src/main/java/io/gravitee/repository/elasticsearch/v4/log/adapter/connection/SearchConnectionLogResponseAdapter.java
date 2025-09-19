@@ -39,13 +39,16 @@ public class SearchConnectionLogResponseAdapter {
 
         return new LogResponse<>(
             (int) hits.getTotal().getValue(),
-            hits.getHits().stream().map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource())).toList()
+            hits
+                .getHits()
+                .stream()
+                .map(h -> buildFromSource(h.getIndex(), h.getId(), h.getSource()))
+                .toList()
         );
     }
 
     private static ConnectionLog buildFromSource(String index, String id, JsonNode json) {
-        var connectionLog = ConnectionLog
-            .builder()
+        var connectionLog = ConnectionLog.builder()
             .timestamp(asTextOrNull(json.get(ConnectionLogField.TIMESTAMP)))
             .status(asIntOr(json.get(ConnectionLogField.STATUS), 0))
             .gateway(asTextOrNull(json.get(ConnectionLogField.GATEWAY)))

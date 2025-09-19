@@ -114,8 +114,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 return distributedSyncStateRepository.createOrUpdate(
-                    DistributedSyncState
-                        .builder()
+                    DistributedSyncState.builder()
                         .clusterId(clusterManager.clusterId())
                         .nodeId(node.id())
                         .nodeVersion(Version.RUNTIME_VERSION.toString())

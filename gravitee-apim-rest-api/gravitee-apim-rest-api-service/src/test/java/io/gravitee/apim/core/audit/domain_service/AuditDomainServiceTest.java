@@ -70,8 +70,7 @@ public class AuditDomainServiceTest {
 
         @Test
         void should_create_an_api_audit_log() {
-            var audit = ApiAuditLogEntity
-                .builder()
+            var audit = ApiAuditLogEntity.builder()
                 .apiId("api-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -85,8 +84,7 @@ public class AuditDomainServiceTest {
 
             service.createApiAuditLog(audit);
 
-            var expectedAudit = AuditEntity
-                .builder()
+            var expectedAudit = AuditEntity.builder()
                 .id("audit-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -104,15 +102,13 @@ public class AuditDomainServiceTest {
 
         @Test
         void should_calculate_json_patch() {
-            SubscriptionEntity originalSubscription = SubscriptionEntity
-                .builder()
+            SubscriptionEntity originalSubscription = SubscriptionEntity.builder()
                 .id("sub-id")
                 .apiId("api-id")
                 .status(SubscriptionEntity.Status.PENDING)
                 .requestMessage("request-message")
                 .build();
-            var audit = ApiAuditLogEntity
-                .builder()
+            var audit = ApiAuditLogEntity.builder()
                 .apiId("api-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -126,8 +122,7 @@ public class AuditDomainServiceTest {
 
             service.createApiAuditLog(audit);
 
-            var expectedAudit = AuditEntity
-                .builder()
+            var expectedAudit = AuditEntity.builder()
                 .id("audit-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -149,8 +144,7 @@ public class AuditDomainServiceTest {
         void should_fetch_user_display_name_when_using_a_token() {
             userCrudService.initWith(List.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").build()));
 
-            var audit = ApiAuditLogEntity
-                .builder()
+            var audit = ApiAuditLogEntity.builder()
                 .apiId("api-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -162,8 +156,7 @@ public class AuditDomainServiceTest {
 
             service.createApiAuditLog(audit);
 
-            var expectedAudit = AuditEntity
-                .builder()
+            var expectedAudit = AuditEntity.builder()
                 .id("audit-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -185,8 +178,7 @@ public class AuditDomainServiceTest {
 
         @Test
         void should_create_an_application_audit_log() {
-            var audit = ApplicationAuditLogEntity
-                .builder()
+            var audit = ApplicationAuditLogEntity.builder()
                 .applicationId("application-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -200,8 +192,7 @@ public class AuditDomainServiceTest {
 
             service.createApplicationAuditLog(audit);
 
-            var expectedAudit = AuditEntity
-                .builder()
+            var expectedAudit = AuditEntity.builder()
                 .id("audit-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -219,15 +210,13 @@ public class AuditDomainServiceTest {
 
         @Test
         void should_calculate_json_patch() {
-            SubscriptionEntity originalSubscription = SubscriptionEntity
-                .builder()
+            SubscriptionEntity originalSubscription = SubscriptionEntity.builder()
                 .id("sub-id")
                 .apiId("api-id")
                 .status(SubscriptionEntity.Status.PENDING)
                 .requestMessage("request-message")
                 .build();
-            var audit = ApplicationAuditLogEntity
-                .builder()
+            var audit = ApplicationAuditLogEntity.builder()
                 .applicationId("application-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -241,8 +230,7 @@ public class AuditDomainServiceTest {
 
             service.createApplicationAuditLog(audit);
 
-            var expectedAudit = AuditEntity
-                .builder()
+            var expectedAudit = AuditEntity.builder()
                 .id("audit-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -264,8 +252,7 @@ public class AuditDomainServiceTest {
         void should_fetch_user_display_name_when_using_a_token() {
             userCrudService.initWith(List.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").build()));
 
-            var audit = ApplicationAuditLogEntity
-                .builder()
+            var audit = ApplicationAuditLogEntity.builder()
                 .applicationId("application-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -277,8 +264,7 @@ public class AuditDomainServiceTest {
 
             service.createApplicationAuditLog(audit);
 
-            var expectedAudit = AuditEntity
-                .builder()
+            var expectedAudit = AuditEntity.builder()
                 .id("audit-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")
@@ -300,8 +286,7 @@ public class AuditDomainServiceTest {
 
         @Test
         void should_create_an_environment_audit_log() {
-            var audit = EnvironmentAuditLogEntity
-                .builder()
+            var audit = EnvironmentAuditLogEntity.builder()
                 .environmentId("environment-id")
                 .organizationId("organization-id")
                 .actor(AuditActor.builder().userId("system").build())
@@ -314,8 +299,7 @@ public class AuditDomainServiceTest {
 
             service.createEnvironmentAuditLog(audit);
 
-            var expectedAudit = AuditEntity
-                .builder()
+            var expectedAudit = AuditEntity.builder()
                 .id("audit-id")
                 .organizationId("organization-id")
                 .environmentId("environment-id")

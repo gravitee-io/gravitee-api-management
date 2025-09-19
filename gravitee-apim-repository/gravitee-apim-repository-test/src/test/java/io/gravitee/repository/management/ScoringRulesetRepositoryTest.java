@@ -108,8 +108,7 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     private static ScoringRuleset aRuleset(String uuid, Date date) {
-        return ScoringRuleset
-            .builder()
+        return ScoringRuleset.builder()
             .id(uuid)
             .name("ruleset-name")
             .description("ruleset-description")
@@ -132,8 +131,7 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
         var date = new Date(1_470_157_767_000L);
         var updateDate = new Date(1_712_660_289L);
 
-        var ruleset = ScoringRuleset
-            .builder()
+        var ruleset = ScoringRuleset.builder()
             .id(id)
             .name("updated-name")
             .description("updated-description")

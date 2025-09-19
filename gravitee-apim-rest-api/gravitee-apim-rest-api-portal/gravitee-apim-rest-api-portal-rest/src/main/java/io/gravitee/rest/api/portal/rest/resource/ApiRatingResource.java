@@ -96,8 +96,7 @@ public class ApiRatingResource extends AbstractResource {
 
                 RatingEntity updatedRating = ratingService.update(GraviteeContext.getExecutionContext(), rating);
 
-                return Response
-                    .status(Status.OK)
+                return Response.status(Status.OK)
                     .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), updatedRating, uriInfo))
                     .build();
             }

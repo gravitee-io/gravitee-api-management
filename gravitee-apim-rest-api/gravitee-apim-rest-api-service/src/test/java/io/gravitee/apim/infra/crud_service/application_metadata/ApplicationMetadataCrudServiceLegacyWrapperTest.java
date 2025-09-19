@@ -85,7 +85,10 @@ class ApplicationMetadataCrudServiceLegacyWrapperTest {
 
         service.delete(metadata);
 
-        verify(applicationMetadataService)
-            .delete(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID), metadata.getKey(), metadata.getApplicationId());
+        verify(applicationMetadataService).delete(
+            new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+            metadata.getKey(),
+            metadata.getApplicationId()
+        );
     }
 }

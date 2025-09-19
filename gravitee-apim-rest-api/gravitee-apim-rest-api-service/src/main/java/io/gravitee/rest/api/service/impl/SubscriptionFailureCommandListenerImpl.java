@@ -61,8 +61,9 @@ public class SubscriptionFailureCommandListenerImpl implements SubscriptionComma
             event.content().getTags().contains(CommandTags.SUBSCRIPTION_FAILURE)
         ) {
             LOGGER.debug("Command event: {}", event.content().getContent());
-            getSubscriptionCommand(event)
-                .ifPresent(command -> subscriptionService.fail(command.getSubscriptionId(), command.getFailureCause()));
+            getSubscriptionCommand(event).ifPresent(command ->
+                subscriptionService.fail(command.getSubscriptionId(), command.getFailureCause())
+            );
         }
     }
 

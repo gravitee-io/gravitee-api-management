@@ -58,7 +58,13 @@ public abstract class AbstractQueryBuilder<QB extends AbstractQueryBuilder, Q ex
 
     public QB terms(Map<String, Set<String>> terms) {
         if (terms != null && !terms.isEmpty()) {
-            this.query.terms(terms.keySet().stream().map(field -> new TermsFilter(field, terms.get(field))).toList());
+            this.query.terms(
+                terms
+                    .keySet()
+                    .stream()
+                    .map(field -> new TermsFilter(field, terms.get(field)))
+                    .toList()
+            );
         }
 
         return (QB) this;

@@ -43,8 +43,7 @@ public class JdbcPortalMenuLinkRepository extends JdbcAbstractCrudRepository<Por
 
     @Override
     protected JdbcObjectMapper<PortalMenuLink> buildOrm() {
-        return JdbcObjectMapper
-            .builder(PortalMenuLink.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(PortalMenuLink.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)

@@ -84,8 +84,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchAverageMessagesPerRequest(executionContext.getQueryContext(), new AverageMessagesPerRequestQuery(apiId, from, to))
             .map(averageAggregate ->
-                AverageMessagesPerRequest
-                    .builder()
+                AverageMessagesPerRequest.builder()
                     .globalAverage(averageAggregate.getAverage())
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
@@ -104,8 +103,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             responseStatusQueryParameters
         );
         return queryResult.map(analytics ->
-            ResponseStatusRanges
-                .builder()
+            ResponseStatusRanges.builder()
                 .ranges(analytics.getRanges())
                 .statusRangesCountByEntrypoint(analytics.getStatusRangesCountByEntrypoint())
                 .build()
@@ -140,8 +138,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchAverageConnectionDuration(executionContext.getQueryContext(), new AverageConnectionDurationQuery(apiId, from, to))
             .map(averageAggregate ->
-                AverageConnectionDuration
-                    .builder()
+                AverageConnectionDuration.builder()
                     .globalAverage(averageAggregate.getAverage())
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
@@ -177,8 +174,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 query.versions()
             )
         );
-        return ResponseStatusOvertime
-            .builder()
+        return ResponseStatusOvertime.builder()
             .data(result.getStatusCount())
             .timeRange(new ResponseStatusOvertime.TimeRange(query.from(), query.to(), query.interval()))
             .build();
@@ -214,8 +210,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             )
         );
 
-        return RequestResponseTime
-            .builder()
+        return RequestResponseTime.builder()
             .requestsPerSecond(result.getRequestsPerSecond())
             .requestsTotal(result.getRequestsTotal())
             .responseMinTime(result.getResponseMinTime())
@@ -237,8 +232,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                     .entrySet()
                     .stream()
                     .map(entry ->
-                        TopFailedApis.TopFailedApi
-                            .builder()
+                        TopFailedApis.TopFailedApi.builder()
                             .id(entry.getKey())
                             .failedCalls(entry.getValue().failedCalls())
                             .failedCallsRatio(entry.getValue().failedCallsRatio())

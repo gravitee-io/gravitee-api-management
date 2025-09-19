@@ -63,16 +63,14 @@ public class PermissionsFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        findRequiredPermissions()
-            .ifPresent(requiredPermissions -> {
-                mustBeAuthenticated();
-                filter(requiredPermissions, requestContext, GraviteeContext.getExecutionContext());
-            });
+        findRequiredPermissions().ifPresent(requiredPermissions -> {
+            mustBeAuthenticated();
+            filter(requiredPermissions, requestContext, GraviteeContext.getExecutionContext());
+        });
     }
 
     protected void filter(Permissions permissions, ContainerRequestContext requestContext, ExecutionContext executionContext) {
-        Stream
-            .of(permissions.value())
+        Stream.of(permissions.value())
             .filter(permission -> hasPermission(permission, requestContext, executionContext))
             .findAny()
             .orElseThrow(ForbiddenAccessException::new);
@@ -81,9 +79,8 @@ public class PermissionsFilter implements ContainerRequestFilter {
     private boolean hasPermission(Permission permission, ContainerRequestContext requestContext, ExecutionContext executionContext) {
         return switch (permission.value().getScope()) {
             case ORGANIZATION -> hasPermission(executionContext, permission, executionContext.getOrganizationId());
-            case ENVIRONMENT -> (
-                executionContext.hasEnvironmentId() && hasPermission(executionContext, permission, executionContext.getEnvironmentId())
-            );
+            case ENVIRONMENT -> (executionContext.hasEnvironmentId() &&
+                hasPermission(executionContext, permission, executionContext.getEnvironmentId()));
             case APPLICATION -> hasPermission(executionContext, permission, getApplicationId(requestContext));
             case API -> hasPermission(executionContext, permission, getApiId(requestContext));
             case GROUP -> hasPermission(executionContext, permission, getGroupId(requestContext));
@@ -124,9 +121,9 @@ public class PermissionsFilter implements ContainerRequestFilter {
     }
 
     private Optional<Permissions> findRequiredPermissions() {
-        return Optional
-            .ofNullable(resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class))
-            .or(() -> Optional.ofNullable(resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class)));
+        return Optional.ofNullable(resourceInfo.getResourceMethod().getDeclaredAnnotation(Permissions.class)).or(() ->
+            Optional.ofNullable(resourceInfo.getResourceClass().getDeclaredAnnotation(Permissions.class))
+        );
     }
 
     private void mustBeAuthenticated() {

@@ -77,8 +77,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
 
     @Override
     protected JdbcObjectMapper<Event> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Event.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Event.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("type", Types.NVARCHAR, EventType.class)
@@ -246,8 +245,9 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             storeProperties(event, true);
             storeEnvironments(event, true);
             storeOrganizations(event, true);
-            return findById(event.getId())
-                .orElseThrow(() -> new IllegalStateException(format("No event found with id [%s]", event.getId())));
+            return findById(event.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No event found with id [%s]", event.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -355,33 +355,24 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
 
             String propertiesDeleteQuery =
                 "delete from " + EVENT_PROPERTIES + " where event_id in (" + getOrm().buildInClause(eventToDelete) + ")";
-            jdbcTemplate.update(
-                propertiesDeleteQuery,
-                (PreparedStatement ps) -> {
-                    getOrm().setArguments(ps, eventToDelete, 1);
-                }
-            );
+            jdbcTemplate.update(propertiesDeleteQuery, (PreparedStatement ps) -> {
+                getOrm().setArguments(ps, eventToDelete, 1);
+            });
 
             String environmentsDeleteQuery =
                 "delete from " + EVENT_ENVIRONMENTS + " where event_id in (" + getOrm().buildInClause(eventToDelete) + ")";
-            jdbcTemplate.update(
-                environmentsDeleteQuery,
-                (PreparedStatement ps) -> {
-                    getOrm().setArguments(ps, eventToDelete, 1);
-                }
-            );
+            jdbcTemplate.update(environmentsDeleteQuery, (PreparedStatement ps) -> {
+                getOrm().setArguments(ps, eventToDelete, 1);
+            });
 
             String organizationsDeleteQuery =
                 "delete from " + EVENT_ORGANIZATIONS + " where event_id in (" + getOrm().buildInClause(eventToDelete) + ")";
             jdbcTemplate.update(organizationsDeleteQuery, (PreparedStatement ps) -> getOrm().setArguments(ps, eventToDelete, 1));
 
             String eventsDeleteQuery = "delete from " + this.tableName + " where id in (" + getOrm().buildInClause(eventToDelete) + ")";
-            return jdbcTemplate.update(
-                eventsDeleteQuery,
-                (PreparedStatement ps) -> {
-                    getOrm().setArguments(ps, eventToDelete, 1);
-                }
-            );
+            return jdbcTemplate.update(eventsDeleteQuery, (PreparedStatement ps) -> {
+                getOrm().setArguments(ps, eventToDelete, 1);
+            });
         } catch (final Exception ex) {
             String error = String.format("An error occurred when deleting all events of API %s", apiId);
             log.error(error, apiId);
@@ -419,17 +410,12 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             "STOP_DICTIONARY",
             "PUBLISH_ORGANIZATION"
         );
-        String sql =
-            """
+        String sql = """
                 SELECT e.id as id, ep.property_value as api
                 FROM %s e left join %s ev on e.id = ev.event_id left join %s ep on ep.event_id = e.id
                 WHERE type NOT IN (?) AND ev.environment_id = ? AND ep.property_key = 'api_id'
                 ORDER BY e.updated_at DESC
-            """.formatted(
-                    tableName,
-                    EVENT_ENVIRONMENTS,
-                    EVENT_PROPERTIES
-                );
+            """.formatted(tableName, EVENT_ENVIRONMENTS, EVENT_PROPERTIES);
         String inClause = String.join(",", Collections.nCopies(nonApiEventTypes.size(), "?"));
         sql = sql.replace("(?)", "(" + inClause + ")");
         var params = new ArrayList<Object>(nonApiEventTypes);
@@ -549,14 +535,24 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             started = true;
         }
         if (!isEmpty(filter.getEnvironments())) {
-            started =
-                addStringsWhereClause(filter.getEnvironments(), eventEnvironmentTableAlias + ".environment_id", args, builder, started);
+            started = addStringsWhereClause(
+                filter.getEnvironments(),
+                eventEnvironmentTableAlias + ".environment_id",
+                args,
+                builder,
+                started
+            );
             builder.insert(builder.lastIndexOf(")"), " or " + eventEnvironmentTableAlias + ".environment_id IS NULL");
         }
 
         if (!isEmpty(filter.getOrganizations())) {
-            started =
-                addStringsWhereClause(filter.getOrganizations(), eventOrganizationTableAlias + ".organization_id", args, builder, started);
+            started = addStringsWhereClause(
+                filter.getOrganizations(),
+                eventOrganizationTableAlias + ".organization_id",
+                args,
+                builder,
+                started
+            );
             builder.insert(builder.lastIndexOf(")"), " or " + eventOrganizationTableAlias + ".organization_id IS NULL");
         }
 

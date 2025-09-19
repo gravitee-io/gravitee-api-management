@@ -39,8 +39,7 @@ public class DebugEventFetcher {
 
     public Flowable<List<Event>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
         return Flowable.generate(emitter -> {
-            EventCriteria eventCriteria = EventCriteria
-                .builder()
+            EventCriteria eventCriteria = EventCriteria.builder()
                 .type(EventType.DEBUG_API)
                 .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
                 .property(Event.EventProperties.GATEWAY_ID.getValue(), node.id())

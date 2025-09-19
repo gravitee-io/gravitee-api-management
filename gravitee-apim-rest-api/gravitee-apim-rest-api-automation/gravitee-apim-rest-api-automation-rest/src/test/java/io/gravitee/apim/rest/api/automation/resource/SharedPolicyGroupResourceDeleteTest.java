@@ -59,8 +59,7 @@ class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
         IdBuilder builder = IdBuilder.builder(new ExecutionContext(ORGANIZATION, ENVIRONMENT), HRID);
         sharedPolicyGroupCrudService.initWith(
             List.of(
-                SharedPolicyGroup
-                    .builder()
+                SharedPolicyGroup.builder()
                     .id(builder.buildId())
                     .crossId(builder.buildCrossId())
                     .hrid(HRID)
@@ -80,8 +79,7 @@ class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
                 eq(ENVIRONMENT),
                 any(RolePermissionAction.class)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     @AfterEach
@@ -101,8 +99,7 @@ class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     any(RolePermissionAction.class)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             expectForbidden(HRID);
         }
@@ -135,8 +132,7 @@ class SharedPolicyGroupResourceDeleteTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     any(RolePermissionAction.class)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             expectForbidden(HRID, dryRun);
         }

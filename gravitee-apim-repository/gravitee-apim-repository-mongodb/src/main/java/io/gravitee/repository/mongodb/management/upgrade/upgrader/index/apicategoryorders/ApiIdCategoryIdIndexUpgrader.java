@@ -27,8 +27,7 @@ public class ApiIdCategoryIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("api_category_orders")
             .name("aco1aici")
             .key("_id.apiId", ascending())

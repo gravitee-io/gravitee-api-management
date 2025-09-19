@@ -113,8 +113,7 @@ public class UpdatePortalMenuLinkUseCaseTest {
         );
 
         // Then
-        Assertions
-            .assertThat(throwable)
+        Assertions.assertThat(throwable)
             .isInstanceOf(PortalMenuLinkNotFoundException.class)
             .hasMessage("PortalMenuLink [ unknown ] not found");
     }

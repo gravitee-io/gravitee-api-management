@@ -58,8 +58,9 @@ public class ApiResource_DeleteTest extends ApiResourceTest {
 
     @Test
     public void shouldNotDeleteApiWithInsufficientRights() {
-        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any()))
-            .thenReturn(false);
+        when(
+            permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any())
+        ).thenReturn(false);
         final Response response = rootTarget(API).request().delete();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }

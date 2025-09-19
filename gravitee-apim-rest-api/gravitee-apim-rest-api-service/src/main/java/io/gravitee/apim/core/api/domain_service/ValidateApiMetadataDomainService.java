@@ -45,11 +45,10 @@ public class ValidateApiMetadataDomainService {
 
     public void validateUniqueKey(String apiId, String key) {
         this.metadataCrudService.findById(
-                MetadataId.builder().key(key).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build()
-            )
-            .ifPresent(m -> {
-                throw new DuplicateApiMetadataKeyException(apiId, key);
-            });
+            MetadataId.builder().key(key).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build()
+        ).ifPresent(m -> {
+            throw new DuplicateApiMetadataKeyException(apiId, key);
+        });
     }
 
     public void validateUniqueName(String environmentId, String apiId, String name) {

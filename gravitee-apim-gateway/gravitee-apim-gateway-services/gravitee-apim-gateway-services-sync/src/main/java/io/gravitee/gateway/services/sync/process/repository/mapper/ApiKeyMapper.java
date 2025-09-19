@@ -24,8 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ApiKeyMapper {
 
     public ApiKey to(io.gravitee.repository.management.model.ApiKey apiKeyModel, Subscription subscription) {
-        ApiKey.ApiKeyBuilder apiKeyBuilder = ApiKey
-            .builder()
+        ApiKey.ApiKeyBuilder apiKeyBuilder = ApiKey.builder()
             .id(apiKeyModel.getId())
             .key(apiKeyModel.getKey())
             .application(apiKeyModel.getApplication())
@@ -39,8 +38,8 @@ public class ApiKeyMapper {
                 .subscription(subscription.getId())
                 .active(
                     !apiKeyModel.isPaused() &&
-                    !apiKeyModel.isRevoked() &&
-                    io.gravitee.repository.management.model.Subscription.Status.ACCEPTED.name().equals(subscription.getStatus())
+                        !apiKeyModel.isRevoked() &&
+                        io.gravitee.repository.management.model.Subscription.Status.ACCEPTED.name().equals(subscription.getStatus())
                 );
         } else {
             apiKeyBuilder.active(false);

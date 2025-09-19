@@ -71,8 +71,7 @@ class ApiResourceTest extends AbstractResourceTest {
                 eq(API_ID),
                 any(RolePermissionAction.class)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     @Nested
@@ -87,8 +86,7 @@ class ApiResourceTest extends AbstractResourceTest {
                     API_ID,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             expectForbidden(HRID);
         }
@@ -97,8 +95,9 @@ class ApiResourceTest extends AbstractResourceTest {
         void should_get_api_from_known_hrid() {
             try (var ctx = mockStatic(GraviteeContext.class)) {
                 ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
-                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                    .thenReturn(new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build()));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(
+                    new ExportApiCRDUseCase.Output(ApiCRDSpec.builder().id(API_ID).crossId(API_CROSS_ID).hrid(HRID).build())
+                );
                 var state = expectEntity(HRID);
                 SoftAssertions.assertSoftly(soft -> {
                     assertThat(state.getId()).isEqualTo(API_ID);
@@ -112,8 +111,9 @@ class ApiResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class)))
-                .thenThrow(new NotFoundException("No API found with hrid: unknown"));
+            when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenThrow(
+                new NotFoundException("No API found with hrid: unknown")
+            );
 
             expectNotFound("unknown");
         }
@@ -149,8 +149,7 @@ class ApiResourceTest extends AbstractResourceTest {
                     API_ID,
                     RolePermissionAction.DELETE
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             expectForbidden(HRID);
         }

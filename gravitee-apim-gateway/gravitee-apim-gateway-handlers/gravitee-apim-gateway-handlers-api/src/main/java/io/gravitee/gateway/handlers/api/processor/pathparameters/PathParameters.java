@@ -65,10 +65,9 @@ public class PathParameters {
             }
         }
 
-        pathPattern =
-            operator.equals(Operator.STARTS_WITH)
-                ? Pattern.compile("^" + patternizedPath + "(?:/.*)?$")
-                : Pattern.compile("^" + patternizedPath + "/?$");
+        pathPattern = operator.equals(Operator.STARTS_WITH)
+            ? Pattern.compile("^" + patternizedPath + "(?:/.*)?$")
+            : Pattern.compile("^" + patternizedPath + "/?$");
     }
 
     public Pattern getPathPattern() {

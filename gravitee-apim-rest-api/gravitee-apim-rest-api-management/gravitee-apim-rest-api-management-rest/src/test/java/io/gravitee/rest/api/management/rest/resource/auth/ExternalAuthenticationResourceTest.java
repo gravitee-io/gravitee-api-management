@@ -113,8 +113,9 @@ public class ExternalAuthenticationResourceTest extends AbstractResourceTest {
     public void init() {
         System.setProperty("auth.external.enabled", "true");
         System.setProperty("auth.external.issuer", JWT_ISSUER);
-        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID))
-            .thenReturn(rootTarget(".well-known/jwks.json").getUri().toString());
+        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION_ID)).thenReturn(
+            rootTarget(".well-known/jwks.json").getUri().toString()
+        );
 
         reset(userService);
     }

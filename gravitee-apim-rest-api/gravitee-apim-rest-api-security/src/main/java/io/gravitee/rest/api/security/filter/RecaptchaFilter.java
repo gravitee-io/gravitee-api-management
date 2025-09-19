@@ -70,11 +70,9 @@ public class RecaptchaFilter extends GenericFilterBean {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         if (
-            RESTRICTED_PATHS
-                .stream()
-                .anyMatch(path ->
-                    httpRequest.getPathInfo().contains(path) || MNG_CHANGE_PASSWORD.matcher(httpRequest.getPathInfo()).matches()
-                )
+            RESTRICTED_PATHS.stream().anyMatch(
+                path -> httpRequest.getPathInfo().contains(path) || MNG_CHANGE_PASSWORD.matcher(httpRequest.getPathInfo()).matches()
+            )
         ) {
             LOGGER.debug("Checking captcha");
 

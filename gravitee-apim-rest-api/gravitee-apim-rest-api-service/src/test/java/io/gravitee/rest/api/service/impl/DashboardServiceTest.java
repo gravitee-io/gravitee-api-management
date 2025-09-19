@@ -82,8 +82,7 @@ class DashboardServiceTest {
 
     @Test
     void should_find_by_reference_and_type() throws TechnicalException {
-        final Dashboard dashboard = Dashboard
-            .builder()
+        final Dashboard dashboard = Dashboard.builder()
             .id(DASHBOARD_ID)
             .name("NAME")
             .definition("DEFINITION")
@@ -113,8 +112,7 @@ class DashboardServiceTest {
 
     @Test
     void should_find_by_reference_and_id() throws TechnicalException {
-        final Dashboard dashboard = Dashboard
-            .builder()
+        final Dashboard dashboard = Dashboard.builder()
             .id(DASHBOARD_ID)
             .name("NAME")
             .definition("DEFINITION")
@@ -144,15 +142,14 @@ class DashboardServiceTest {
     @Test
     void should_not_find_by_id() throws TechnicalException {
         when(dashboardRepository.findByReferenceAndId(ENVIRONMENT.name(), "ENV_ID", DASHBOARD_ID)).thenReturn(empty());
-        Assertions
-            .assertThatThrownBy(() -> dashboardService.findByReferenceAndId(ENVIRONMENT, "ENV_ID", DASHBOARD_ID))
-            .isInstanceOf(DashboardNotFoundException.class);
+        Assertions.assertThatThrownBy(() -> dashboardService.findByReferenceAndId(ENVIRONMENT, "ENV_ID", DASHBOARD_ID)).isInstanceOf(
+            DashboardNotFoundException.class
+        );
     }
 
     @Test
     void should_find_all() throws TechnicalException {
-        final Dashboard dashboard = Dashboard
-            .builder()
+        final Dashboard dashboard = Dashboard.builder()
             .id(DASHBOARD_ID)
             .name("NAME")
             .definition("DEFINITION")
@@ -182,8 +179,7 @@ class DashboardServiceTest {
 
     @Test
     void should_create() throws TechnicalException {
-        final NewDashboardEntity newDashboardEntity = NewDashboardEntity
-            .builder()
+        final NewDashboardEntity newDashboardEntity = NewDashboardEntity.builder()
             .name("NAME")
             .definition("DEFINITION")
             .referenceId("REF_ID")
@@ -192,8 +188,7 @@ class DashboardServiceTest {
             .queryFilter("QUERY FILTER")
             .build();
 
-        final Dashboard createdDashboard = Dashboard
-            .builder()
+        final Dashboard createdDashboard = Dashboard.builder()
             .id(DASHBOARD_ID)
             .name("NAME")
             .definition("DEFINITION")
@@ -224,9 +219,9 @@ class DashboardServiceTest {
         assertThat(dashboardEntity.getCreatedAt()).isNotNull();
         assertThat(dashboardEntity.getUpdatedAt()).isNotNull();
 
-        verify(dashboardRepository, times(1))
-            .create(
-                argThat(argument ->
+        verify(dashboardRepository, times(1)).create(
+            argThat(
+                argument ->
                     "NAME".equals(argument.getName()) &&
                     "DEFINITION".equals(argument.getDefinition()) &&
                     "REF_ID".equals(argument.getReferenceId()) &&
@@ -237,23 +232,21 @@ class DashboardServiceTest {
                     !argument.getId().isEmpty() &&
                     argument.getCreatedAt() != null &&
                     argument.getUpdatedAt() != null
-                )
-            );
-        verify(auditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
-                eq(Dashboard.AuditEvent.DASHBOARD_CREATED),
-                any(Date.class),
-                isNull(),
-                any()
-            );
+            )
+        );
+        verify(auditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
+            eq(Dashboard.AuditEvent.DASHBOARD_CREATED),
+            any(Date.class),
+            isNull(),
+            any()
+        );
     }
 
     @Test
     void should_update() throws TechnicalException {
-        final UpdateDashboardEntity updateDashboardEntity = UpdateDashboardEntity
-            .builder()
+        final UpdateDashboardEntity updateDashboardEntity = UpdateDashboardEntity.builder()
             .id(DASHBOARD_ID)
             .name("NAME")
             .definition("DEFINITION")
@@ -264,8 +257,7 @@ class DashboardServiceTest {
             .queryFilter("QUERY FILTER")
             .build();
 
-        final Dashboard updatedDashboard = Dashboard
-            .builder()
+        final Dashboard updatedDashboard = Dashboard.builder()
             .id(DASHBOARD_ID)
             .name("NAME")
             .definition("DEFINITION")
@@ -298,9 +290,9 @@ class DashboardServiceTest {
         assertThat(dashboardEntity.getCreatedAt()).isNotNull();
         assertThat(dashboardEntity.getUpdatedAt()).isNotNull();
 
-        verify(dashboardRepository, times(1))
-            .update(
-                argThat(argument ->
+        verify(dashboardRepository, times(1)).update(
+            argThat(
+                argument ->
                     "NAME".equals(argument.getName()) &&
                     "DEFINITION".equals(argument.getDefinition()) &&
                     "REF_ID".equals(argument.getReferenceId()) &&
@@ -311,17 +303,16 @@ class DashboardServiceTest {
                     DASHBOARD_ID.equals(argument.getId()) &&
                     argument.getCreatedAt() == null &&
                     argument.getUpdatedAt() != null
-                )
-            );
-        verify(auditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
-                eq(Dashboard.AuditEvent.DASHBOARD_UPDATED),
-                any(Date.class),
-                any(),
-                any()
-            );
+            )
+        );
+        verify(auditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
+            eq(Dashboard.AuditEvent.DASHBOARD_UPDATED),
+            any(Date.class),
+            any(),
+            any()
+        );
     }
 
     @Test
@@ -330,11 +321,9 @@ class DashboardServiceTest {
 
         when(dashboardRepository.findByReferenceAndId(ENVIRONMENT.name(), "REF_ID", DASHBOARD_ID)).thenReturn(empty());
 
-        Assertions
-            .assertThatThrownBy(() ->
-                dashboardService.update(GraviteeContext.getExecutionContext(), ENVIRONMENT, "REF_ID", updateDashboardEntity)
-            )
-            .isInstanceOf(DashboardNotFoundException.class);
+        Assertions.assertThatThrownBy(() ->
+            dashboardService.update(GraviteeContext.getExecutionContext(), ENVIRONMENT, "REF_ID", updateDashboardEntity)
+        ).isInstanceOf(DashboardNotFoundException.class);
     }
 
     @Test
@@ -345,22 +334,20 @@ class DashboardServiceTest {
         dashboardService.delete(GraviteeContext.getExecutionContext(), ENVIRONMENT, "REF_ID", DASHBOARD_ID);
 
         verify(dashboardRepository, times(1)).delete(DASHBOARD_ID);
-        verify(auditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
-                eq(Dashboard.AuditEvent.DASHBOARD_DELETED),
-                any(Date.class),
-                isNull(),
-                eq(dashboard)
-            );
+        verify(auditService, times(1)).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
+            eq(Dashboard.AuditEvent.DASHBOARD_DELETED),
+            any(Date.class),
+            isNull(),
+            eq(dashboard)
+        );
     }
 
     @SneakyThrows
     @Test
     void should_find_all_by_reference() {
-        var firstApiDashboard = Dashboard
-            .builder()
+        var firstApiDashboard = Dashboard.builder()
             .id("firstApiDashboard")
             .referenceType(ENVIRONMENT.name())
             .referenceId("ENV_ID")

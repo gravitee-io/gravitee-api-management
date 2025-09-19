@@ -69,110 +69,108 @@ class SearchRequestResponseTimeAdapterTest {
             assertThatJson(result).isEqualTo(REQUEST_RESPONSE_TIME_QUERY_WITH_EMPTY_ID_LIST);
         }
 
-        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_API_IDS_AND_TIME_RANGES =
-            """
-                {
-                   "size": 0,
-                   "query": {
-                     "bool": {
-                       "filter": [
-                         {
-                           "bool": {
-                             "minimum_should_match": 1,
-                             "should": [
-                               {
-                                 "bool": {
-                                   "must": [
-                                     {"terms": {"api-id": ["api-id-1", "api-id-2"]}},
-                                     {"terms": {"entrypoint-id": ["http-post", "http-get", "http-proxy"]}}
-                                   ]
-                                 }
-                               },
-                               {"terms": {"api": ["api-id-1", "api-id-2"]}}
-                             ]
-                           }
-                         },
-                         {"range": {"@timestamp": {"gte": 1728992401566, "lte": 1729078801566}}}
-                       ]
+        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_API_IDS_AND_TIME_RANGES = """
+            {
+               "size": 0,
+               "query": {
+                 "bool": {
+                   "filter": [
+                     {
+                       "bool": {
+                         "minimum_should_match": 1,
+                         "should": [
+                           {
+                             "bool": {
+                               "must": [
+                                 {"terms": {"api-id": ["api-id-1", "api-id-2"]}},
+                                 {"terms": {"entrypoint-id": ["http-post", "http-get", "http-proxy"]}}
+                               ]
+                             }
+                           },
+                           {"terms": {"api": ["api-id-1", "api-id-2"]}}
+                         ]
+                       }
+                     },
+                     {"range": {"@timestamp": {"gte": 1728992401566, "lte": 1729078801566}}}
+                   ]
+                 }
+               },
+               "aggs": {
+                 "max_response_time": {
+                   "max": {
+                     "script": {
+                       "lang": "painless",
+                       "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
                      }
-                   },
-                   "aggs": {
-                     "max_response_time": {
-                       "max": {
-                         "script": {
-                           "lang": "painless",
-                           "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                         }
-                       }
-                     },
-                     "min_response_time": {
-                       "min": {
-                         "script": {
-                           "lang": "painless",
-                           "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                         }
-                       }
-                     },
-                     "avg_response_time": {
-                       "avg": {
-                         "script": {
-                           "lang": "painless",
-                           "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                         }
-                       }
+                   }
+                 },
+                 "min_response_time": {
+                   "min": {
+                     "script": {
+                       "lang": "painless",
+                       "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                     }
+                   }
+                 },
+                 "avg_response_time": {
+                   "avg": {
+                     "script": {
+                       "lang": "painless",
+                       "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
                      }
                    }
                  }
-                """;
+               }
+             }
+            """;
 
-        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_EMPTY_ID_LIST =
-            """
-                    {
-                        "size": 0,
-                        "query": {
-                          "bool": {
-                            "filter": [
-                              {
-                                "bool": {
-                                  "minimum_should_match": 1,
-                                  "should": [
-                                    {"bool": {"must": [{"terms": {"api-id": []}}, {"terms": {"entrypoint-id": ["http-post", "http-get", "http-proxy"]}}]}},
-                                    {"terms": {"api": []}}
-                                  ]
-                                }
-                              },
-                              {"range": {"@timestamp": {"gte": 1728992401566, "lte": 1729078801566}}}
-                            ]
+        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_EMPTY_ID_LIST = """
+                {
+                    "size": 0,
+                    "query": {
+                      "bool": {
+                        "filter": [
+                          {
+                            "bool": {
+                              "minimum_should_match": 1,
+                              "should": [
+                                {"bool": {"must": [{"terms": {"api-id": []}}, {"terms": {"entrypoint-id": ["http-post", "http-get", "http-proxy"]}}]}},
+                                {"terms": {"api": []}}
+                              ]
+                            }
+                          },
+                          {"range": {"@timestamp": {"gte": 1728992401566, "lte": 1729078801566}}}
+                        ]
+                      }
+                    },
+                    "aggs": {
+                      "max_response_time": {
+                        "max": {
+                          "script": {
+                            "lang": "painless",
+                            "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
                           }
-                        },
-                        "aggs": {
-                          "max_response_time": {
-                            "max": {
-                              "script": {
-                                "lang": "painless",
-                                "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                              }
-                            }
-                          },
-                          "min_response_time": {
-                            "min": {
-                              "script": {
-                                "lang": "painless",
-                                "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                              }
-                            }
-                          },
-                          "avg_response_time": {
-                            "avg": {
-                              "script": {
-                                "lang": "painless",
-                                "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
-                              }
-                            }
+                        }
+                      },
+                      "min_response_time": {
+                        "min": {
+                          "script": {
+                            "lang": "painless",
+                            "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
+                          }
+                        }
+                      },
+                      "avg_response_time": {
+                        "avg": {
+                          "script": {
+                            "lang": "painless",
+                            "source": "if (doc.containsKey('gateway-response-time-ms')) { return doc.get('gateway-response-time-ms').value; } else if (doc.containsKey('response-time')) { return doc.get('response-time').value; }"
                           }
                         }
                       }
-                """;
+                    }
+                  }
+            """;
     }
 
     @Nested

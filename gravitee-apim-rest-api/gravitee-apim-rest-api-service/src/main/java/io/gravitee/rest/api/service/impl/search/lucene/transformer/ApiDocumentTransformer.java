@@ -208,11 +208,11 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         return switch (api) {
             case FederatedApiEntity fed -> false;
             case NativeApiEntity nat -> false;
-            case io.gravitee.rest.api.model.v4.api.ApiEntity v4 -> stream(v4.getEndpointGroups())
-                .anyMatch(eg ->
+            case io.gravitee.rest.api.model.v4.api.ApiEntity v4 -> stream(v4.getEndpointGroups()).anyMatch(
+                eg ->
                     hasHealthCheckEnabled(eg.getServices(), EndpointGroupServices::getHealthCheck) ||
                     stream(eg.getEndpoints()).anyMatch(e -> hasHealthCheckEnabled(e.getServices(), EndpointServices::getHealthCheck))
-                );
+            );
             case ApiEntity v2 -> apiService.hasHealthCheckEnabled(v2, false);
             default -> false;
         };

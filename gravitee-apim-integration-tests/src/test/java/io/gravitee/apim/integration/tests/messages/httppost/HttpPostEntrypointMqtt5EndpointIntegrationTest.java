@@ -92,12 +92,11 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
                 assertThat(message.isRetain()).isFalse();
                 assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
 
-                assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                    .containsAnyOf(
-                        "(content-length, " + requestBody.toString().length() + ")",
-                        "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                        "(X-Test-Header, header-value)"
-                    );
+                assertThat(message.getUserProperties().asList().stream().map(Object::toString)).containsAnyOf(
+                    "(content-length, " + requestBody.toString().length() + ")",
+                    "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                    "(X-Test-Header, header-value)"
+                );
                 return true;
             });
 
@@ -125,22 +124,18 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
         // Check if message is present in Mqtt
         testSubscriber
             .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(
-                0,
-                message -> {
-                    assertThat(message.getTopic()).hasToString(TEST_TOPIC_RETAINED);
-                    assertThat(message.getResponseTopic()).isEmpty();
-                    assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
+            .assertValueAt(0, message -> {
+                assertThat(message.getTopic()).hasToString(TEST_TOPIC_RETAINED);
+                assertThat(message.getResponseTopic()).isEmpty();
+                assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
 
-                    assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                        .containsAnyOf(
-                            "(content-length, " + requestBody.toString().length() + ")",
-                            "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                            "(X-Test-Header, header-value)"
-                        );
-                    return true;
-                }
-            )
+                assertThat(message.getUserProperties().asList().stream().map(Object::toString)).containsAnyOf(
+                    "(content-length, " + requestBody.toString().length() + ")",
+                    "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                    "(X-Test-Header, header-value)"
+                );
+                return true;
+            })
             .assertComplete();
 
         // Verify the message is still present because it is retained
@@ -148,22 +143,18 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
             .take(1)
             .test()
             .awaitDone(10, TimeUnit.SECONDS)
-            .assertValueAt(
-                0,
-                message -> {
-                    assertThat(message.getTopic()).hasToString(TEST_TOPIC_RETAINED);
-                    assertThat(message.getResponseTopic()).isEmpty();
-                    assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
+            .assertValueAt(0, message -> {
+                assertThat(message.getTopic()).hasToString(TEST_TOPIC_RETAINED);
+                assertThat(message.getResponseTopic()).isEmpty();
+                assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
 
-                    assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                        .containsAnyOf(
-                            "(content-length, " + requestBody.toString().length() + ")",
-                            "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                            "(X-Test-Header, header-value)"
-                        );
-                    return true;
-                }
-            )
+                assertThat(message.getUserProperties().asList().stream().map(Object::toString)).containsAnyOf(
+                    "(content-length, " + requestBody.toString().length() + ")",
+                    "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                    "(X-Test-Header, header-value)"
+                );
+                return true;
+            })
             .assertComplete();
     }
 
@@ -181,8 +172,7 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
         final TestSubscriber<Mqtt5Publish> mqttTestSubscriberAttribute = subscribeToMqtt5(TEST_TOPIC_ATTRIBUTE, readyObs1).take(1).test();
         final TestSubscriber<Mqtt5Publish> mqttTestSubscriber = subscribeToMqtt5(TEST_TOPIC, readyObs2).take(1).test();
 
-        Completable
-            .mergeArray(readyObs1.ignoreElements(), readyObs2.ignoreElements())
+        Completable.mergeArray(readyObs1.ignoreElements(), readyObs2.ignoreElements())
             .andThen(
                 Completable.mergeArray(
                     // Post a message with the header allowing to override topic
@@ -197,41 +187,33 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
         // Check if message is present in Mqtt test-topic-attribute
         mqttTestSubscriberAttribute
             .awaitDone(30, TimeUnit.SECONDS)
-            .assertValueAt(
-                0,
-                message -> {
-                    assertThat(message.getTopic()).hasToString(TEST_TOPIC_ATTRIBUTE);
-                    assertThat(message.getResponseTopic()).isEmpty();
-                    assertThat(message.getPayloadAsBytes()).isEqualTo(requestBodyAttribute.toBuffer().getBytes());
+            .assertValueAt(0, message -> {
+                assertThat(message.getTopic()).hasToString(TEST_TOPIC_ATTRIBUTE);
+                assertThat(message.getResponseTopic()).isEmpty();
+                assertThat(message.getPayloadAsBytes()).isEqualTo(requestBodyAttribute.toBuffer().getBytes());
 
-                    assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                        .containsAnyOf(
-                            "(content-length, " + requestBodyAttribute.toString().length() + ")",
-                            "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                            "(X-New-Topic, " + TEST_TOPIC_ATTRIBUTE + ")"
-                        );
-                    return true;
-                }
-            )
+                assertThat(message.getUserProperties().asList().stream().map(Object::toString)).containsAnyOf(
+                    "(content-length, " + requestBodyAttribute.toString().length() + ")",
+                    "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                    "(X-New-Topic, " + TEST_TOPIC_ATTRIBUTE + ")"
+                );
+                return true;
+            })
             .assertComplete();
 
         mqttTestSubscriber
             .awaitDone(10, TimeUnit.SECONDS)
-            .assertValueAt(
-                0,
-                message -> {
-                    assertThat(message.getTopic()).hasToString(TEST_TOPIC);
-                    assertThat(message.getResponseTopic()).isEmpty();
-                    assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
+            .assertValueAt(0, message -> {
+                assertThat(message.getTopic()).hasToString(TEST_TOPIC);
+                assertThat(message.getResponseTopic()).isEmpty();
+                assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
 
-                    assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                        .containsAnyOf(
-                            "(content-length, " + requestBody.toString().length() + ")",
-                            "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")"
-                        );
-                    return true;
-                }
-            )
+                assertThat(message.getUserProperties().asList().stream().map(Object::toString)).containsAnyOf(
+                    "(content-length, " + requestBody.toString().length() + ")",
+                    "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")"
+                );
+                return true;
+            })
             .assertComplete();
     }
 

@@ -124,7 +124,10 @@ public class MongoDashboardRepository implements DashboardRepository {
     @Override
     public List<Dashboard> findByReference(String referenceType, String referenceId) throws TechnicalException {
         final List<DashboardMongo> dashboards = internalDashboardRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
-        return dashboards.stream().map(dashboardMongo -> mapper.map(dashboardMongo)).toList();
+        return dashboards
+            .stream()
+            .map(dashboardMongo -> mapper.map(dashboardMongo))
+            .toList();
     }
 
     @Override
@@ -134,7 +137,10 @@ public class MongoDashboardRepository implements DashboardRepository {
             referenceId,
             type
         );
-        return dashboards.stream().map(dashboardMongo -> mapper.map(dashboardMongo)).toList();
+        return dashboards
+            .stream()
+            .map(dashboardMongo -> mapper.map(dashboardMongo))
+            .toList();
     }
 
     @Override

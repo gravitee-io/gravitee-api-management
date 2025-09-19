@@ -75,27 +75,18 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
         startSseStream(httpClient)
             // expect 3 chunks: retry, two messages
             .awaitCount(3)
-            .assertValueAt(
-                0,
-                chunk -> {
-                    assertRetry(chunk);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                chunk -> {
-                    assertOnMessage(chunk, 0L, MESSAGE);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                chunk -> {
-                    assertOnMessage(chunk, 1L, MESSAGE);
-                    return true;
-                }
-            );
+            .assertValueAt(0, chunk -> {
+                assertRetry(chunk);
+                return true;
+            })
+            .assertValueAt(1, chunk -> {
+                assertOnMessage(chunk, 0L, MESSAGE);
+                return true;
+            })
+            .assertValueAt(2, chunk -> {
+                assertOnMessage(chunk, 1L, MESSAGE);
+                return true;
+            });
     }
 
     @Test
@@ -104,27 +95,18 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
         startSseStream(httpClient)
             // expect 3 chunks: retry, two messages
             .awaitCount(3)
-            .assertValueAt(
-                0,
-                chunk -> {
-                    assertRetry(chunk);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                chunk -> {
-                    assertOnMessage(chunk, 0L, MESSAGE, "greeting: mate", "type: informal");
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                chunk -> {
-                    assertOnMessage(chunk, 1L, MESSAGE, "greeting: mate", "type: informal");
-                    return true;
-                }
-            );
+            .assertValueAt(0, chunk -> {
+                assertRetry(chunk);
+                return true;
+            })
+            .assertValueAt(1, chunk -> {
+                assertOnMessage(chunk, 0L, MESSAGE, "greeting: mate", "type: informal");
+                return true;
+            })
+            .assertValueAt(2, chunk -> {
+                assertOnMessage(chunk, 1L, MESSAGE, "greeting: mate", "type: informal");
+                return true;
+            });
     }
 
     @Test
@@ -133,27 +115,18 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
         startSseStream(httpClient)
             // expect 3 chunks: retry,  1 heartbeat, 1 message,
             .awaitCount(3)
-            .assertValueAt(
-                0,
-                chunk -> {
-                    assertRetry(chunk);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                chunk -> {
-                    assertHeartbeat(chunk);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                chunk -> {
-                    assertOnMessage(chunk, 0L, MESSAGE);
-                    return true;
-                }
-            );
+            .assertValueAt(0, chunk -> {
+                assertRetry(chunk);
+                return true;
+            })
+            .assertValueAt(1, chunk -> {
+                assertHeartbeat(chunk);
+                return true;
+            })
+            .assertValueAt(2, chunk -> {
+                assertOnMessage(chunk, 0L, MESSAGE);
+                return true;
+            });
     }
 
     @NotNull

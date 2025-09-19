@@ -198,14 +198,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
             subscription = convert(executionContext, output.subscription());
         }
 
-        return Response
-            .created(
-                this.getRequestUriBuilder()
-                    .path(subscription.getId())
-                    .replaceQueryParam("application", null)
-                    .replaceQueryParam("plan", null)
-                    .build()
-            )
+        return Response.created(
+            this.getRequestUriBuilder()
+                .path(subscription.getId())
+                .replaceQueryParam("application", null)
+                .replaceQueryParam("plan", null)
+                .build()
+        )
             .entity(subscription)
             .build();
     }
@@ -230,8 +229,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         subscriptionsPageable.setSize(exportPageable.getSize());
 
         final SubscriptionEntityPageResult subscriptions = getApiSubscriptions(subscriptionParam, subscriptionsPageable, null);
-        return Response
-            .ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
+        return Response.ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", api, System.currentTimeMillis()))
             .build();
     }

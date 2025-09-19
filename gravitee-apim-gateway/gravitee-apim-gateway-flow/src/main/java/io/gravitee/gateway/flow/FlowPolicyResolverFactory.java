@@ -34,8 +34,7 @@ public class FlowPolicyResolverFactory {
     final Cache<Flow, FlowPolicyResolver> cache;
 
     public FlowPolicyResolverFactory() {
-        final CacheConfiguration cacheConfiguration = CacheConfiguration
-            .builder()
+        final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
             .distributed(false)
             .maxSize(CACHE_MAX_SIZE)
             .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)

@@ -80,15 +80,14 @@ public class GraviteeCorsEnvironmentConfigurationTest {
             .when(parameterService.find(eq(GraviteeContext.getExecutionContext()), any(), eq(ENVIRONMENT_ID), eq(ENVIRONMENT_TYPE)))
             .thenReturn(null);
         eventManager = new EventManagerImpl();
-        cut =
-            new GraviteeCorsConfiguration(
-                environment,
-                parameterService,
-                installationAccessQueryService,
-                eventManager,
-                ENVIRONMENT_ID,
-                ENVIRONMENT_TYPE
-            );
+        cut = new GraviteeCorsConfiguration(
+            environment,
+            parameterService,
+            installationAccessQueryService,
+            eventManager,
+            ENVIRONMENT_ID,
+            ENVIRONMENT_TYPE
+        );
     }
 
     @AfterEach
@@ -98,30 +97,49 @@ public class GraviteeCorsEnvironmentConfigurationTest {
 
     @Test
     void should_initialize_fields_from_default_value() {
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN, ENVIRONMENT_ID, ENVIRONMENT_TYPE);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.PORTAL_HTTP_CORS_ALLOW_HEADERS, ENVIRONMENT_ID, ENVIRONMENT_TYPE);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.PORTAL_HTTP_CORS_ALLOW_METHODS, ENVIRONMENT_ID, ENVIRONMENT_TYPE);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS, ENVIRONMENT_ID, ENVIRONMENT_TYPE);
-        verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.PORTAL_HTTP_CORS_MAX_AGE, ENVIRONMENT_ID, ENVIRONMENT_TYPE);
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN,
+            ENVIRONMENT_ID,
+            ENVIRONMENT_TYPE
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.PORTAL_HTTP_CORS_ALLOW_HEADERS,
+            ENVIRONMENT_ID,
+            ENVIRONMENT_TYPE
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.PORTAL_HTTP_CORS_ALLOW_METHODS,
+            ENVIRONMENT_ID,
+            ENVIRONMENT_TYPE
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS,
+            ENVIRONMENT_ID,
+            ENVIRONMENT_TYPE
+        );
+        verify(parameterService, times(1)).find(
+            GraviteeContext.getExecutionContext(),
+            Key.PORTAL_HTTP_CORS_MAX_AGE,
+            ENVIRONMENT_ID,
+            ENVIRONMENT_TYPE
+        );
 
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
-        assertThat(cut.getAllowedHeaders())
-            .containsOnly(
-                "Cache-Control",
-                "Pragma",
-                "Origin",
-                "Authorization",
-                "Content-Type",
-                "X-Requested-With",
-                "If-Match",
-                "X-Xsrf-Token",
-                "X-Recaptcha-Token"
-            );
+        assertThat(cut.getAllowedHeaders()).containsOnly(
+            "Cache-Control",
+            "Pragma",
+            "Origin",
+            "Authorization",
+            "Content-Type",
+            "X-Requested-With",
+            "If-Match",
+            "X-Xsrf-Token",
+            "X-Recaptcha-Token"
+        );
         assertThat(cut.getAllowedMethods()).containsOnly("OPTIONS", "GET", "POST", "PUT", "DELETE", "PATCH");
         assertThat(cut.getExposedHeaders()).containsOnly("ETag", "X-Xsrf-Token");
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);
@@ -184,8 +202,7 @@ public class GraviteeCorsEnvironmentConfigurationTest {
         eventManager.publishEvent(
             new SimpleEvent<>(
                 AccessPointEvent.CREATED,
-                AccessPoint
-                    .builder()
+                AccessPoint.builder()
                     .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
                     .referenceId(ENVIRONMENT_ID)
                     .host("origin1")
@@ -202,8 +219,7 @@ public class GraviteeCorsEnvironmentConfigurationTest {
         eventManager.publishEvent(
             new SimpleEvent<>(
                 AccessPointEvent.CREATED,
-                AccessPoint
-                    .builder()
+                AccessPoint.builder()
                     .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
                     .referenceId(ENVIRONMENT_ID)
                     .host("origin1")
@@ -220,8 +236,7 @@ public class GraviteeCorsEnvironmentConfigurationTest {
         eventManager.publishEvent(
             new SimpleEvent<>(
                 AccessPointEvent.CREATED,
-                AccessPoint
-                    .builder()
+                AccessPoint.builder()
                     .referenceType(AccessPoint.ReferenceType.ENVIRONMENT)
                     .referenceId("ANOTHER_ENV")
                     .host("origin1")

@@ -57,42 +57,36 @@ public class DefaultDashboardsInitializerTest {
 
     @Test
     void should_create_dashboards() {
-        when(environmentService.findAllOrInitialize())
-            .thenReturn(
-                Set.of(
-                    EnvironmentEntity
-                        .builder()
-                        .organizationId("FAKE_ORG_1")
-                        .id("ENV_WITH_DASHBOARDS")
-                        .description("Contains dashboard")
-                        .build(),
-                    EnvironmentEntity
-                        .builder()
-                        .organizationId("FAKE_ORG_1")
-                        .id("ENV_WITHOUT_DASHBOARDS_1")
-                        .description("Must initialize dashboards")
-                        .build(),
-                    EnvironmentEntity
-                        .builder()
-                        .organizationId("FAKE_ORG_1")
-                        .id("ENV_WITHOUT_DASHBOARDS_2")
-                        .description("Must initialize dashboards")
-                        .build(),
-                    EnvironmentEntity
-                        .builder()
-                        .organizationId("FAKE_ORG_2")
-                        .id("ENV_WITHOUT_DASHBOARDS_1")
-                        .description("Must initialize dashboards")
-                        .build()
-                )
-            );
-        when(dashboardService.findAll())
-            .thenReturn(
-                List.of(
-                    DashboardEntity.builder().referenceType("ENVIRONMENT").referenceId("ENV_WITH_DASHBOARDS").build(),
-                    DashboardEntity.builder().referenceType("ORGANIZATION").referenceId("ENV_WITH_DASHBOARDS").build()
-                )
-            );
+        when(environmentService.findAllOrInitialize()).thenReturn(
+            Set.of(
+                EnvironmentEntity.builder()
+                    .organizationId("FAKE_ORG_1")
+                    .id("ENV_WITH_DASHBOARDS")
+                    .description("Contains dashboard")
+                    .build(),
+                EnvironmentEntity.builder()
+                    .organizationId("FAKE_ORG_1")
+                    .id("ENV_WITHOUT_DASHBOARDS_1")
+                    .description("Must initialize dashboards")
+                    .build(),
+                EnvironmentEntity.builder()
+                    .organizationId("FAKE_ORG_1")
+                    .id("ENV_WITHOUT_DASHBOARDS_2")
+                    .description("Must initialize dashboards")
+                    .build(),
+                EnvironmentEntity.builder()
+                    .organizationId("FAKE_ORG_2")
+                    .id("ENV_WITHOUT_DASHBOARDS_1")
+                    .description("Must initialize dashboards")
+                    .build()
+            )
+        );
+        when(dashboardService.findAll()).thenReturn(
+            List.of(
+                DashboardEntity.builder().referenceType("ENVIRONMENT").referenceId("ENV_WITH_DASHBOARDS").build(),
+                DashboardEntity.builder().referenceType("ORGANIZATION").referenceId("ENV_WITH_DASHBOARDS").build()
+            )
+        );
         cut.initialize();
         verify(dashboardService).initialize(eq(new ExecutionContext("FAKE_ORG_1", "ENV_WITHOUT_DASHBOARDS_1")));
         verify(dashboardService).initialize(eq(new ExecutionContext("FAKE_ORG_1", "ENV_WITHOUT_DASHBOARDS_2")));

@@ -43,54 +43,53 @@ class AverageHealthCheckResponseTimeAdapterTest {
             var result = adapter.adaptQuery(query);
 
             // Then
-            assertThatJson(result)
-                .isEqualTo(
-                    """
+            assertThatJson(result).isEqualTo(
+                """
+                  {
+                    "size": 0,
+                    "query": {
+                      "bool": {
+                        "filter": [
+                          {
+                            "term": { "api": "api-id" }
+                          }
+                        ]
+                      }
+                    },
+                    "aggregations": {
+                      "terms": {
+                        "aggregations": {
+                          "ranges": {
+                            "aggregations": {
+                              "results": {
+                                "avg": { "field": "response-time" }
+                              }
+                            },
+                            "date_range": {
+                              "field": "@timestamp",
+                              "keyed": false,
+                              "ranges": [
                                 {
-                                  "size": 0,
-                                  "query": {
-                                    "bool": {
-                                      "filter": [
-                                        {
-                                          "term": { "api": "api-id" }
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "aggregations": {
-                                    "terms": {
-                                      "aggregations": {
-                                        "ranges": {
-                                          "aggregations": {
-                                            "results": {
-                                              "avg": { "field": "response-time" }
-                                            }
-                                          },
-                                          "date_range": {
-                                            "field": "@timestamp",
-                                            "keyed": false,
-                                            "ranges": [
-                                              {
-                                                "from": 1697883330000,
-                                                "to": 1697969730000,
-                                                "key": "period"
-                                              }
-                                            ]
-                                          }
-                                        }
-                                      },
-                                      "terms": {
-                                        "field" : "endpoint",
-                                        "order": [
-                                          { "_count": "desc" },
-                                          { "_key": "asc" }
-                                        ],
-                                        "size": 100
-                                      }
-                                   }
+                                  "from": 1697883330000,
+                                  "to": 1697969730000,
+                                  "key": "period"
                                 }
-                              }"""
-                );
+                              ]
+                            }
+                          }
+                        },
+                        "terms": {
+                          "field" : "endpoint",
+                          "order": [
+                            { "_count": "desc" },
+                            { "_key": "asc" }
+                          ],
+                          "size": 100
+                        }
+                     }
+                  }
+                }"""
+            );
         }
     }
 }

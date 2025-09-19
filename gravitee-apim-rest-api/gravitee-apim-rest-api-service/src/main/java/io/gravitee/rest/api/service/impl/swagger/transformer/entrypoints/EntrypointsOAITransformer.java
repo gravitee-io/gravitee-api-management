@@ -78,8 +78,7 @@ public class EntrypointsOAITransformer extends AbstractPageConfigurationSwaggerT
                                 this.contextPath,
                                 newURI.getQuery(),
                                 newURI.getFragment()
-                            )
-                                .toString()
+                            ).toString()
                         );
                     } catch (URISyntaxException e) {
                         logger.error(e.getMessage(), e);

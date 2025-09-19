@@ -91,12 +91,11 @@ public class SharedPolicyGroupsResource_CreateCRDTest extends AbstractResourceTe
         crd.setApiType(ApiType.PROXY);
         crd.setPhase(FlowPhase.REQUEST);
 
-        when(importSharedPolicyGroupCRDCRDUseCase.execute(any()))
-            .thenReturn(
-                new ImportSharedPolicyGroupCRDCRDUseCase.Output(
-                    new SharedPolicyGroupCRDStatus(crd.getCrossId(), "API_ID", "organizationId", "environmentId", null)
-                )
-            );
+        when(importSharedPolicyGroupCRDCRDUseCase.execute(any())).thenReturn(
+            new ImportSharedPolicyGroupCRDCRDUseCase.Output(
+                new SharedPolicyGroupCRDStatus(crd.getCrossId(), "API_ID", "organizationId", "environmentId", null)
+            )
+        );
 
         final Response response = rootTarget().request().put(json(crd));
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -156,13 +155,11 @@ public class SharedPolicyGroupsResource_CreateCRDTest extends AbstractResourceTe
                 eq(ENV_ID),
                 eq(RolePermissionAction.CREATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().put(json(aSharedPolicyGroupCRD()));
 
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(FORBIDDEN_403)
             .asError()
             .hasHttpStatus(FORBIDDEN_403)

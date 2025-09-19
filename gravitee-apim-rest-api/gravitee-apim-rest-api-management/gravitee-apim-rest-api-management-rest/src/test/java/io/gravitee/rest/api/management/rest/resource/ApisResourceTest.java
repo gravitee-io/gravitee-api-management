@@ -135,12 +135,11 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        verify(swaggerService)
-            .createAPI(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(argument -> argument.getPayload().equalsIgnoreCase(swaggerDescriptor.getPayload())),
-                eq(DefinitionVersion.valueOfLabel("2.0.0"))
-            );
+        verify(swaggerService).createAPI(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(argument -> argument.getPayload().equalsIgnoreCase(swaggerDescriptor.getPayload())),
+            eq(DefinitionVersion.valueOfLabel("2.0.0"))
+        );
     }
 
     @Test
@@ -203,15 +202,14 @@ public class ApisResourceTest extends AbstractResourceTest {
     @Test
     public void put_import_crd_shouldImportApi_calling_apiDuplicator() {
         reset(apiDuplicatorService);
-        String apiCRD =
-            """
-                {
-                    "id": "c4dc6225-715e-43e2-a15a-64313f25fbe1",
-                    "crossId": "ea1e3f3b-cf1d-4786-9c6d-349ae4d932e4",
-                    "name": "test",
-                    "description": "test",
-                    "version": "1.0"
-                }""";
+        String apiCRD = """
+            {
+                "id": "c4dc6225-715e-43e2-a15a-64313f25fbe1",
+                "crossId": "ea1e3f3b-cf1d-4786-9c6d-349ae4d932e4",
+                "name": "test",
+                "description": "test",
+                "version": "1.0"
+            }""";
 
         ExecutionContext ec = GraviteeContext.getExecutionContext();
         ApiCRDStatusEntity apiCRDStatus = new ApiCRDStatusEntity(
@@ -252,13 +250,12 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals("api2", resultList.get(1).getId());
         assertEquals("api15", resultList.get(2).getId());
 
-        verify(apiService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(apiQuery -> searchedCrossId.equals(apiQuery.getCrossId())),
-                isNull(),
-                isNull()
-            );
+        verify(apiService, times(1)).search(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(apiQuery -> searchedCrossId.equals(apiQuery.getCrossId())),
+            isNull(),
+            isNull()
+        );
     }
 
     @Test

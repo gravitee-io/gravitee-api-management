@@ -33,13 +33,11 @@ public class PlanModelFixtures {
 
     private PlanModelFixtures() {}
 
-    private static final PlanSecurity.PlanSecurityBuilder BASE_PLAN_SECURITY_V4 = PlanSecurity
-        .builder()
+    private static final PlanSecurity.PlanSecurityBuilder BASE_PLAN_SECURITY_V4 = PlanSecurity.builder()
         .type(PlanSecurityType.API_KEY.getLabel())
         .configuration("{\"nice\": \"config\"}");
 
-    private static final PlanEntity.PlanEntityBuilder<?, ?> BASE_PLAN_ENTITY_V4 = PlanEntity
-        .builder()
+    private static final PlanEntity.PlanEntityBuilder<?, ?> BASE_PLAN_ENTITY_V4 = PlanEntity.builder()
         .id("my-plan")
         .definitionVersion(DefinitionVersion.V4)
         .apiId("my-api")
@@ -62,8 +60,7 @@ public class PlanModelFixtures {
         .selectionRule("{#request.attribute['selectionRule'] != null}")
         .flows(List.of(FlowModelFixtures.aModelFlowHttpV4()));
 
-    private static final NativePlanEntity.NativePlanEntityBuilder<?, ?> BASE_NATIVE_PLAN_ENTITY_V4 = NativePlanEntity
-        .builder()
+    private static final NativePlanEntity.NativePlanEntityBuilder<?, ?> BASE_NATIVE_PLAN_ENTITY_V4 = NativePlanEntity.builder()
         .id("my-plan")
         .definitionVersion(DefinitionVersion.V4)
         .apiId("my-api")
@@ -87,8 +84,7 @@ public class PlanModelFixtures {
         .flows(List.of(FlowModelFixtures.aModelFlowNativeV4()));
 
     private static final io.gravitee.rest.api.model.PlanEntity.PlanEntityBuilder<?, ?> BASE_PLAN_ENTITY_V2 =
-        io.gravitee.rest.api.model.PlanEntity
-            .builder()
+        io.gravitee.rest.api.model.PlanEntity.builder()
             .id("my-plan")
             .api("my-api")
             .name("My plan")
@@ -118,8 +114,7 @@ public class PlanModelFixtures {
     }
 
     public static PlanEntity aKeylessPlanV4() {
-        return PlanEntity
-            .builder()
+        return PlanEntity.builder()
             .id("keyless-id")
             .name("keyless")
             .apiId("my-api")

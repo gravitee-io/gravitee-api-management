@@ -150,8 +150,7 @@ public class JwtPlanBasedAuthenticationHandlerTest {
         when(authenticationContext.get("jwt")).thenReturn(token);
         when(
             authenticationContext.getInternalAttribute(AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE)
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         assertFalse(authenticationHandler.preCheckSubscription(authenticationContext));
         verify(subscriptionService).getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID);
@@ -163,8 +162,7 @@ public class JwtPlanBasedAuthenticationHandlerTest {
         when(authenticationContext.get("jwt")).thenReturn(token);
         when(
             authenticationContext.getInternalAttribute(AuthenticationContext.ATTR_INTERNAL_LAST_SECURITY_HANDLER_SUPPORTING_SAME_TOKEN_TYPE)
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         assertTrue(authenticationHandler.preCheckSubscription(authenticationContext));
         verifyNoInteractions(subscriptionService);

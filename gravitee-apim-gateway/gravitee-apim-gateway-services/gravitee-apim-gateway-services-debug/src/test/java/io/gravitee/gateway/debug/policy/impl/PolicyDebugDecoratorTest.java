@@ -92,12 +92,9 @@ public class PolicyDebugDecoratorTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        policyFactory =
-            spy(
-                new PolicyDebugDecoratorFactory(
-                    new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator())
-                )
-            );
+        policyFactory = spy(
+            new PolicyDebugDecoratorFactory(new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator()))
+        );
 
         when(context.request()).thenReturn(request);
         when(context.response()).thenReturn(response);

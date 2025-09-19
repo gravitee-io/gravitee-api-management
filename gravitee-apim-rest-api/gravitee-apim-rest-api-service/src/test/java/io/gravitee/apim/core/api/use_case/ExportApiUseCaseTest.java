@@ -112,36 +112,33 @@ class ExportApiUseCaseTest {
     @BeforeEach
     void setUp() {
         auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        apiPrimaryOwnerDomainService =
-            new ApiPrimaryOwnerDomainService(
-                auditService,
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            );
-        apiExportDomainService =
-            new ApiExportDomainServiceImpl(
-                permissionService,
-                mediaService,
-                workflowCrudService,
-                membershipCrudService,
-                userCrudService,
-                roleQueryService,
-                metadataCrudService,
-                pageQueryService,
-                apiCrudService,
-                apiPrimaryOwnerDomainService,
-                planCrudService,
-                integrationCrudService,
-                flowCrudService
-            );
+        apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
+            auditService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
+        apiExportDomainService = new ApiExportDomainServiceImpl(
+            permissionService,
+            mediaService,
+            workflowCrudService,
+            membershipCrudService,
+            userCrudService,
+            roleQueryService,
+            metadataCrudService,
+            pageQueryService,
+            apiCrudService,
+            apiPrimaryOwnerDomainService,
+            planCrudService,
+            integrationCrudService,
+            flowCrudService
+        );
         sut = new ExportApiUseCase(apiExportDomainService);
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .id("role-id")
                     .scope(Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
@@ -152,8 +149,7 @@ class ExportApiUseCaseTest {
         );
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .referenceType(Membership.ReferenceType.API)
                     .referenceId(API_ID)
                     .roleId("role-id")
@@ -168,32 +164,30 @@ class ExportApiUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService,
-                workflowCrudService,
-                metadataCrudService,
-                pageQueryService,
-                apiCrudService,
-                planCrudService,
-                integrationCrudService,
-                flowCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService,
+            workflowCrudService,
+            metadataCrudService,
+            pageQueryService,
+            apiCrudService,
+            planCrudService,
+            integrationCrudService,
+            flowCrudService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @ParameterizedTest
     @CsvSource(
         delimiterString = "|",
         textBlock = """
-        MyAPI     |  3.14.159  | myapi-3.14.159.json
-        My API    |  3.14 .159 | my-api-3.14-.159.json
-        My    API |  3.14.159  | my-api-3.14.159.json
-     """
+           MyAPI     |  3.14.159  | myapi-3.14.159.json
+           My API    |  3.14 .159 | my-api-3.14-.159.json
+           My    API |  3.14.159  | my-api-3.14.159.json
+        """
     )
     void should_generate_excepted_filename(String name, String version, String expectedFilename) {
         // Given
@@ -251,8 +245,7 @@ class ExportApiUseCaseTest {
     }
 
     private static Api federatedApi() {
-        return Api
-            .builder()
+        return Api.builder()
             .id(API_ID)
             .version(API_VERSION)
             .name(API_NAME)
@@ -263,8 +256,7 @@ class ExportApiUseCaseTest {
     }
 
     private static Api v4Api(String name, String version) {
-        return Api
-            .builder()
+        return Api.builder()
             .id(API_ID)
             .version(version)
             .name(name)
@@ -275,8 +267,7 @@ class ExportApiUseCaseTest {
     }
 
     private static Api nativeApi() {
-        return Api
-            .builder()
+        return Api.builder()
             .id(API_ID)
             .version(API_VERSION)
             .name(API_NAME)

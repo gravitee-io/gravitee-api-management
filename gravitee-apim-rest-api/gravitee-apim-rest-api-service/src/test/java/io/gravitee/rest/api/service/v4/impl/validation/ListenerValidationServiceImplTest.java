@@ -111,14 +111,13 @@ class ListenerValidationServiceImplTest {
         lenient()
             .when(entrypointService.validateConnectorConfiguration(any(String.class), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
-        listenerValidationService =
-            new ListenerValidationServiceImpl(
-                new VerifyApiPathDomainService(apiQueryService, installationAccessQueryService, apiHostValidatorDomainService),
-                entrypointService,
-                endpointService,
-                corsValidationService,
-                verifyApiHostsDomainService
-            );
+        listenerValidationService = new ListenerValidationServiceImpl(
+            new VerifyApiPathDomainService(apiQueryService, installationAccessQueryService, apiHostValidatorDomainService),
+            entrypointService,
+            endpointService,
+            corsValidationService,
+            verifyApiHostsDomainService
+        );
     }
 
     @Nested
@@ -149,10 +148,9 @@ class ListenerValidationServiceImplTest {
             httpListener1.setEntrypoints(List.of(e2));
             List<Listener> listeners = List.of(httpListener1, httpListener2);
             // When
-            assertThatExceptionOfType(ListenersDuplicatedException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, listeners, emptyList())
-                );
+            assertThatExceptionOfType(ListenersDuplicatedException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, listeners, emptyList())
+            );
         }
 
         @Test
@@ -220,15 +218,14 @@ class ListenerValidationServiceImplTest {
             // Given
             HttpListener httpListener = new HttpListener();
             // When
-            assertThatExceptionOfType(InvalidPathsException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(InvalidPathsException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -237,15 +234,14 @@ class ListenerValidationServiceImplTest {
             HttpListener httpListener = new HttpListener();
             httpListener.setPaths(List.of(new Path("/path")));
             // When
-            assertThatExceptionOfType(ListenerEntrypointMissingException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointMissingException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -255,15 +251,14 @@ class ListenerValidationServiceImplTest {
             httpListener.setPaths(List.of(new Path("/path")));
             httpListener.setEntrypoints(List.of(new Entrypoint()));
             // When
-            assertThatExceptionOfType(ListenerEntrypointMissingTypeException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointMissingTypeException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -275,15 +270,14 @@ class ListenerValidationServiceImplTest {
             entrypoint.setType("type");
             httpListener.setEntrypoints(List.of(entrypoint, entrypoint));
             // When
-            assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -315,15 +309,14 @@ class ListenerValidationServiceImplTest {
             // Given
             SubscriptionListener subscriptionListener = new SubscriptionListener();
             // When
-            assertThatExceptionOfType(ListenerEntrypointMissingException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(subscriptionListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointMissingException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(subscriptionListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -334,15 +327,14 @@ class ListenerValidationServiceImplTest {
             subscriptionListener.setEntrypoints(List.of(entrypoint));
 
             // When
-            assertThatExceptionOfType(ListenerEntrypointMissingTypeException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(subscriptionListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointMissingTypeException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(subscriptionListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -354,15 +346,14 @@ class ListenerValidationServiceImplTest {
             subscriptionListener.setEntrypoints(List.of(entrypoint, entrypoint));
 
             // When
-            assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(subscriptionListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(subscriptionListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -378,15 +369,14 @@ class ListenerValidationServiceImplTest {
             when(connectorPluginEntity.getSupportedApiType()).thenReturn(ApiType.MESSAGE);
             when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
             // When
-            assertThatExceptionOfType(ListenerEntrypointUnsupportedQosException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointUnsupportedQosException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -409,15 +399,14 @@ class ListenerValidationServiceImplTest {
 
             final EndpointGroup endpointGroup = buildEndpointGroup();
 
-            assertThatExceptionOfType(ListenerEntrypointInvalidQosException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        List.of(endpointGroup)
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointInvalidQosException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
+            );
         }
 
         @Test
@@ -437,15 +426,14 @@ class ListenerValidationServiceImplTest {
 
             final EndpointGroup endpointGroup = buildEndpointGroup();
 
-            assertThatExceptionOfType(ListenerEntrypointInvalidQosException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        List.of(endpointGroup)
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointInvalidQosException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
+            );
         }
 
         @Test
@@ -489,15 +477,14 @@ class ListenerValidationServiceImplTest {
             when(connectorPluginEntity.getAvailableFeatures()).thenReturn(emptySet());
             when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
 
-            assertThatExceptionOfType(ListenerEntrypointUnsupportedDlqException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointUnsupportedDlqException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -512,15 +499,14 @@ class ListenerValidationServiceImplTest {
             when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
             when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
 
-            assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -536,15 +522,14 @@ class ListenerValidationServiceImplTest {
             when(entrypointService.findById("type")).thenReturn(connectorPluginEntity);
             when(connectorPluginEntity.getAvailableFeatures()).thenReturn(Set.of(ConnectorFeature.DLQ));
 
-            assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -566,15 +551,14 @@ class ListenerValidationServiceImplTest {
 
             final EndpointGroup endpointGroup = buildEndpointGroup();
 
-            assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        List.of(endpointGroup)
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
+            );
         }
 
         @Test
@@ -593,15 +577,14 @@ class ListenerValidationServiceImplTest {
 
             final EndpointGroup endpointGroup = buildEndpointGroup();
 
-            assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        List.of(endpointGroup)
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointInvalidDlqException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
+            );
         }
 
         @Test
@@ -672,31 +655,30 @@ class ListenerValidationServiceImplTest {
 
             final EndpointGroup endpointGroup = buildEndpointGroup();
 
-            assertThatExceptionOfType(ListenerEntrypointUnsupportedListenerTypeException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(httpListener),
-                        List.of(endpointGroup)
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointUnsupportedListenerTypeException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(httpListener),
+                    List.of(endpointGroup)
+                )
+            );
         }
 
         @Test
         void should_throw_error_when_tcp_listener_hosts_are_not_valid() {
-            when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any(), any()))
-                .thenThrow(new InvalidHostException("invalid hosts"));
+            when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any(), any())).thenThrow(
+                new InvalidHostException("invalid hosts")
+            );
 
-            assertThatExceptionOfType(InvalidHostException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeHttpV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(TcpListener.builder().hosts(List.of("")).build()),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(InvalidHostException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(TcpListener.builder().hosts(List.of("")).build()),
+                    emptyList()
+                )
+            );
         }
     }
 
@@ -728,15 +710,9 @@ class ListenerValidationServiceImplTest {
             kafkaListener1.setEntrypoints(List.of(e2));
             List<NativeListener> listeners = List.of(kafkaListener1, kafkaListener2);
             // When
-            assertThatExceptionOfType(ListenersDuplicatedException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeNativeV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        listeners,
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenersDuplicatedException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeNativeV4(GraviteeContext.getExecutionContext(), null, listeners, emptyList())
+            );
         }
 
         @Test
@@ -770,18 +746,18 @@ class ListenerValidationServiceImplTest {
 
         @Test
         void should_throw_error_when_kafka_listener_host_is_not_valid() {
-            when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any(), any()))
-                .thenThrow(new InvalidHostException("invalid hosts"));
+            when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any(), any())).thenThrow(
+                new InvalidHostException("invalid hosts")
+            );
 
-            assertThatExceptionOfType(InvalidHostException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeNativeV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(KafkaListener.builder().host("").build()),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(InvalidHostException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeNativeV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(KafkaListener.builder().host("").build()),
+                    emptyList()
+                )
+            );
         }
 
         @Test
@@ -794,15 +770,14 @@ class ListenerValidationServiceImplTest {
             kafkaListener.setEntrypoints(List.of(entrypoint, entrypoint));
 
             // When
-            assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class)
-                .isThrownBy(() ->
-                    listenerValidationService.validateAndSanitizeNativeV4(
-                        GraviteeContext.getExecutionContext(),
-                        null,
-                        List.of(kafkaListener),
-                        emptyList()
-                    )
-                );
+            assertThatExceptionOfType(ListenerEntrypointDuplicatedException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeNativeV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(kafkaListener),
+                    emptyList()
+                )
+            );
         }
     }
 

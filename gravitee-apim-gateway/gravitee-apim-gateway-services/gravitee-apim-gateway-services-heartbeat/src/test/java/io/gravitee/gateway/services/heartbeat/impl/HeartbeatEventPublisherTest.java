@@ -73,19 +73,17 @@ class HeartbeatEventPublisherTest {
     @Test
     void should_publish_light_event() {
         cut.run();
-        verify(topic)
-            .publish(
-                argThat(eventPublish -> {
-                    assertThat(eventPublish.getCreatedAt()).isNull();
-                    assertThat(eventPublish.getUpdatedAt()).isNotNull();
-                    assertThat(eventPublish.getProperties())
-                        .containsOnly(
-                            entry(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(eventPublish.getUpdatedAt().getTime())),
-                            entry(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.TRUE.toString())
-                        );
-                    return true;
-                })
-            );
+        verify(topic).publish(
+            argThat(eventPublish -> {
+                assertThat(eventPublish.getCreatedAt()).isNull();
+                assertThat(eventPublish.getUpdatedAt()).isNotNull();
+                assertThat(eventPublish.getProperties()).containsOnly(
+                    entry(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(eventPublish.getUpdatedAt().getTime())),
+                    entry(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.TRUE.toString())
+                );
+                return true;
+            })
+        );
     }
 
     @Test

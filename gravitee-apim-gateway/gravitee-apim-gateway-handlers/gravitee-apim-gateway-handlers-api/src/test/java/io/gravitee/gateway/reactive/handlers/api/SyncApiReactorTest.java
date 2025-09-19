@@ -279,35 +279,35 @@ class SyncApiReactorTest {
         lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(REQUEST_TIMEOUT_GRACE_DELAY);
 
         templateVariableProviders = new ArrayList<>();
-        cut =
-            new SyncApiReactor(
-                api,
-                componentProvider,
-                templateVariableProviders,
-                defaultInvoker,
-                resourceLifecycleManager,
-                apiProcessorChainFactory,
-                policyManager,
-                flowChainFactory,
-                groupLifecycleManager,
-                configuration,
-                node,
-                requestTimeoutConfiguration,
-                accessPointManager,
-                eventManager,
-                new HttpAcceptorFactory(false),
-                tracingContext
-            );
+        cut = new SyncApiReactor(
+            api,
+            componentProvider,
+            templateVariableProviders,
+            defaultInvoker,
+            resourceLifecycleManager,
+            apiProcessorChainFactory,
+            policyManager,
+            flowChainFactory,
+            groupLifecycleManager,
+            configuration,
+            node,
+            requestTimeoutConfiguration,
+            accessPointManager,
+            eventManager,
+            new HttpAcceptorFactory(false),
+            tracingContext
+        );
 
         lenient().when(ctx.getInternalAttribute(ATTR_INTERNAL_INVOKER)).thenReturn(invokerAdapter);
         lenient()
             .when(
                 ctx.interruptWith(
-                    argThat(argument ->
-                        argument != null &&
-                        argument.statusCode() == 504 &&
-                        argument.message().equals("Request timeout") &&
-                        argument.key().equals("REQUEST_TIMEOUT")
+                    argThat(
+                        argument ->
+                            argument != null &&
+                            argument.statusCode() == 504 &&
+                            argument.message().equals("Request timeout") &&
+                            argument.key().equals("REQUEST_TIMEOUT")
                     )
                 )
             )

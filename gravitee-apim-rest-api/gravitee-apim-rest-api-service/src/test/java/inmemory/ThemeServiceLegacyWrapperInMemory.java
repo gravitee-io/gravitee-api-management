@@ -50,16 +50,16 @@ public class ThemeServiceLegacyWrapperInMemory implements ThemeServiceLegacyWrap
     public Theme getCurrentOrCreateDefaultPortalTheme(ExecutionContext executionContext) {
         return storage
             .stream()
-            .filter(theme ->
-                Objects.equals(ThemeType.PORTAL, theme.getType()) &&
-                Objects.equals(true, theme.isEnabled()) &&
-                Theme.ReferenceType.ENVIRONMENT.equals(theme.getReferenceType()) &&
-                Objects.equals(executionContext.getEnvironmentId(), theme.getReferenceId())
+            .filter(
+                theme ->
+                    Objects.equals(ThemeType.PORTAL, theme.getType()) &&
+                    Objects.equals(true, theme.isEnabled()) &&
+                    Theme.ReferenceType.ENVIRONMENT.equals(theme.getReferenceType()) &&
+                    Objects.equals(executionContext.getEnvironmentId(), theme.getReferenceId())
             )
             .findFirst()
             .orElseGet(() ->
-                Theme
-                    .builder()
+                Theme.builder()
                     .id("portal-default-theme")
                     .type(ThemeType.PORTAL)
                     .referenceId(executionContext.getEnvironmentId())

@@ -21,8 +21,7 @@ public class CorsModelFixtures {
 
     private CorsModelFixtures() {}
 
-    private static final io.gravitee.definition.model.Cors.CorsBuilder BASE_MODEL_CORS = io.gravitee.definition.model.Cors
-        .builder()
+    private static final io.gravitee.definition.model.Cors.CorsBuilder BASE_MODEL_CORS = io.gravitee.definition.model.Cors.builder()
         .accessControlAllowCredentials(true)
         .accessControlAllowHeaders(Set.of("header1", "header2"))
         .accessControlAllowMethods(Set.of("method1", "method2"))

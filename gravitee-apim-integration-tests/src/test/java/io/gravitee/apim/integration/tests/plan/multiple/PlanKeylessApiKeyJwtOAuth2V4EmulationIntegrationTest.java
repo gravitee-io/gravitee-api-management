@@ -146,17 +146,16 @@ public class PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest {
         }
 
         protected Stream<Arguments> provideWrongSecurityHeaders() {
-            return provideApis()
-                .flatMap(arguments -> {
-                    String apiId = (String) arguments.get()[0];
-                    return Stream.of(
-                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                        Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
-                        Arguments.of(apiId, "Authorization", "Bearer"),
-                        Arguments.of(apiId, "Authorization", "Bearer "),
-                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                    );
-                });
+            return provideApis().flatMap(arguments -> {
+                String apiId = (String) arguments.get()[0];
+                return Stream.of(
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
+                    Arguments.of(apiId, "Authorization", "Bearer"),
+                    Arguments.of(apiId, "Authorization", "Bearer "),
+                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
+                );
+            });
         }
     }
 
@@ -183,16 +182,15 @@ public class PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest {
         }
 
         protected Stream<Arguments> provideWrongSecurityHeaders() {
-            return provideApis()
-                .flatMap(arguments -> {
-                    String apiId = (String) arguments.get()[0];
-                    return Stream.of(
-                        Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                        Arguments.of(apiId, "Authorization", "Bearer"),
-                        Arguments.of(apiId, "Authorization", "Bearer "),
-                        Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                    );
-                });
+            return provideApis().flatMap(arguments -> {
+                String apiId = (String) arguments.get()[0];
+                return Stream.of(
+                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                    Arguments.of(apiId, "Authorization", "Bearer"),
+                    Arguments.of(apiId, "Authorization", "Bearer "),
+                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
+                );
+            });
         }
     }
 

@@ -41,8 +41,7 @@ public class SubscriptionApplicationNameUpgrader extends MongoUpgrader {
         Function<List<WriteModel<Document>>, Boolean> bulkWriteFunction = bulkActions ->
             getCollection("subscriptions").bulkWrite(bulkActions).wasAcknowledged();
 
-        return StreamSupport
-            .stream(applicationDocs.spliterator(), false)
+        return StreamSupport.stream(applicationDocs.spliterator(), false)
             .map(applicationDoc -> {
                 String applicationId = applicationDoc.get("_id").toString();
                 String applicationName = applicationDoc.getString("name");

@@ -73,9 +73,10 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
 
         var optional = savedEntities
             .stream()
-            .filter(apiCategoryOrder1 ->
-                Objects.equals(apiCategoryOrder.getApiId(), apiCategoryOrder1.getApiId()) &&
-                Objects.equals(apiCategoryOrder.getCategoryId(), apiCategoryOrder1.getCategoryId())
+            .filter(
+                apiCategoryOrder1 ->
+                    Objects.equals(apiCategoryOrder.getApiId(), apiCategoryOrder1.getApiId()) &&
+                    Objects.equals(apiCategoryOrder.getCategoryId(), apiCategoryOrder1.getCategoryId())
             )
             .findFirst();
         assertThat(optional).contains(apiCategoryOrder);
@@ -87,8 +88,9 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
 
         var optional = savedEntities
             .stream()
-            .filter(apiCategoryOrder1 ->
-                Objects.equals("api-1", apiCategoryOrder1.getApiId()) && Objects.equals("category-1", apiCategoryOrder1.getCategoryId())
+            .filter(
+                apiCategoryOrder1 ->
+                    Objects.equals("api-1", apiCategoryOrder1.getApiId()) && Objects.equals("category-1", apiCategoryOrder1.getCategoryId())
             )
             .findFirst();
         assertThat(optional).isPresent();
@@ -104,8 +106,9 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
 
         var savedOptional = savedEntities
             .stream()
-            .filter(apiCategoryOrder1 ->
-                Objects.equals("api-1", apiCategoryOrder1.getApiId()) && Objects.equals("category-1", apiCategoryOrder1.getCategoryId())
+            .filter(
+                apiCategoryOrder1 ->
+                    Objects.equals("api-1", apiCategoryOrder1.getApiId()) && Objects.equals("category-1", apiCategoryOrder1.getCategoryId())
             )
             .findFirst();
         assertThat(savedOptional).contains(apiCategoryOrder);

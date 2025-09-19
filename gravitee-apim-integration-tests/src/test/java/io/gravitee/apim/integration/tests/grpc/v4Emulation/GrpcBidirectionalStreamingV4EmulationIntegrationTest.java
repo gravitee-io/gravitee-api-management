@@ -71,28 +71,25 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
 
         // Backend service
         GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
-        grpcServer.callHandler(
-            StreamingGreeterGrpc.getSayHelloStreamingMethod(),
-            request -> {
-                GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
-                request.handler(hello -> {
-                    // send back 3 messages on each request
-                    for (int i = 0; i < REPLIES; i++) {
-                        response.write(HelloReply.newBuilder().setMessage("Reply %d to %s".formatted(i, hello.getName())).build());
-                        try {
-                            // not ideal, but enough to handle backpressure
-                            Thread.sleep(STREAM_SLEEP_MILLIS);
-                        } catch (InterruptedException e) {
-                            response.status(GrpcStatus.ABORTED);
-                        }
+        grpcServer.callHandler(StreamingGreeterGrpc.getSayHelloStreamingMethod(), request -> {
+            GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
+            request.handler(hello -> {
+                // send back 3 messages on each request
+                for (int i = 0; i < REPLIES; i++) {
+                    response.write(HelloReply.newBuilder().setMessage("Reply %d to %s".formatted(i, hello.getName())).build());
+                    try {
+                        // not ideal, but enough to handle backpressure
+                        Thread.sleep(STREAM_SLEEP_MILLIS);
+                    } catch (InterruptedException e) {
+                        response.status(GrpcStatus.ABORTED);
                     }
-                    // stop the stream when enough request wher sent
-                    if (replyCount.incrementAndGet() == TOTAL_REPLY) {
-                        response.end();
-                    }
-                });
-            }
-        );
+                }
+                // stop the stream when enough request wher sent
+                if (replyCount.incrementAndGet() == TOTAL_REPLY) {
+                    response.end();
+                }
+            });
+        });
 
         // Need a new Vertx to avoid side effects with connection pools from previous tests
         AtomicLong timerId = new AtomicLong();
@@ -112,12 +109,9 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
                     .onSuccess(request -> {
                         AtomicInteger i = new AtomicInteger();
                         // request each 100ms, with a new message
-                        long id = vertx.setPeriodic(
-                            100,
-                            ignore -> {
-                                request.write(HelloRequest.newBuilder().setName("Request " + i.getAndIncrement()).build());
-                            }
-                        );
+                        long id = vertx.setPeriodic(100, ignore -> {
+                            request.write(HelloRequest.newBuilder().setName("Request " + i.getAndIncrement()).build());
+                        });
                         timerId.set(id);
                     })
                     .compose(GrpcClientRequest::response)

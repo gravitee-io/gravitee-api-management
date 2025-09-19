@@ -101,12 +101,10 @@ class SearchSharedPolicyGroupHistoryUseCaseTest {
         sharedPolicyGroupHistoryQueryService.initWith(List.of());
 
         // When
-        var throwable = assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                searchSharedPolicyGroupHistoryUseCase.execute(
-                    new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, "sharedPolicyGroupId", new PageableImpl(1, 2), "invalid")
-                )
+        var throwable = assertThrows(IllegalArgumentException.class, () ->
+            searchSharedPolicyGroupHistoryUseCase.execute(
+                new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, "sharedPolicyGroupId", new PageableImpl(1, 2), "invalid")
+            )
         );
 
         // Then
@@ -119,12 +117,10 @@ class SearchSharedPolicyGroupHistoryUseCaseTest {
         sharedPolicyGroupHistoryQueryService.initWith(List.of());
 
         // When
-        var throwable = assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                searchSharedPolicyGroupHistoryUseCase.execute(
-                    new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "version")
-                )
+        var throwable = assertThrows(IllegalArgumentException.class, () ->
+            searchSharedPolicyGroupHistoryUseCase.execute(
+                new SearchSharedPolicyGroupHistoryUseCase.Input(ENV_ID, null, new PageableImpl(1, 2), "version")
+            )
         );
 
         // Then

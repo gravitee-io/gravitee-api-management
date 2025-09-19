@@ -62,14 +62,12 @@ class HttpProtocolVerticleTest {
             new DefaultKeyStoreLoaderFactoryRegistry<>(),
             new DefaultKeyStoreLoaderFactoryRegistry<>()
         );
-        httpOptions =
-            VertxHttpServerOptions
-                .builder()
-                .id("UnitTest")
-                .port(randomPort)
-                .keyStoreLoaderOptions(KeyStoreLoaderOptions.builder().build())
-                .trustStoreLoaderOptions(TrustStoreLoaderOptions.builder().build())
-                .build();
+        httpOptions = VertxHttpServerOptions.builder()
+            .id("UnitTest")
+            .port(randomPort)
+            .keyStoreLoaderOptions(KeyStoreLoaderOptions.builder().build())
+            .trustStoreLoaderOptions(TrustStoreLoaderOptions.builder().build())
+            .build();
         serverManager.register(vertxHttpServerFactory.create(httpOptions));
 
         mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());
@@ -142,13 +140,13 @@ class HttpProtocolVerticleTest {
     @Test
     void http_server_should_ignore_already_ended_response_on_error(Vertx vertx, VertxTestContext testContext) {
         doAnswer(invocation -> {
-                HttpServerRequest httpServerRequest = invocation.getArgument(0);
-                return httpServerRequest
-                    .response()
-                    .setStatusCode(SERVICE_UNAVAILABLE_503)
-                    .rxEnd()
-                    .andThen(Completable.error(new RuntimeException("error")));
-            })
+            HttpServerRequest httpServerRequest = invocation.getArgument(0);
+            return httpServerRequest
+                .response()
+                .setStatusCode(SERVICE_UNAVAILABLE_503)
+                .rxEnd()
+                .andThen(Completable.error(new RuntimeException("error")));
+        })
             .doCallRealMethod()
             .when(mockRequestDispatcher)
             .dispatch(any(), anyString());

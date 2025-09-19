@@ -100,16 +100,15 @@ public class ApiCategoryServiceImplTest {
     @BeforeEach
     public void before() {
         categoryService = new CategoryServiceInMemory();
-        apiCategoryService =
-            new ApiCategoryServiceImpl(
-                apiRepository,
-                apiCategoryOrderRepository,
-                categoryService,
-                apiNotificationService,
-                auditService,
-                membershipService,
-                roleService
-            );
+        apiCategoryService = new ApiCategoryServiceImpl(
+            apiRepository,
+            apiCategoryOrderRepository,
+            categoryService,
+            apiNotificationService,
+            auditService,
+            membershipService,
+            roleService
+        );
     }
 
     @Nested
@@ -153,8 +152,9 @@ public class ApiCategoryServiceImplTest {
             secondOrphan.setId(UuidString.generateRandom());
             secondOrphan.setCategories(new HashSet<>(Set.of(UuidString.generateRandom(), categoryId)));
 
-            when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields()))
-                .thenReturn(Stream.of(firstOrphan, secondOrphan));
+            when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields())).thenReturn(
+                Stream.of(firstOrphan, secondOrphan)
+            );
             apiCategoryService.deleteCategoryFromAPIs(GraviteeContext.getExecutionContext(), categoryId);
 
             verify(apiRepository, times(1)).update(firstOrphan);
@@ -179,8 +179,9 @@ public class ApiCategoryServiceImplTest {
             secondOrphan.setId(UuidString.generateRandom());
             secondOrphan.setCategories(new HashSet<>(Set.of(UuidString.generateRandom(), categoryId)));
 
-            when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields()))
-                .thenReturn(Stream.of(firstOrphan, secondOrphan));
+            when(apiRepository.search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields())).thenReturn(
+                Stream.of(firstOrphan, secondOrphan)
+            );
 
             apiCategoryService.deleteCategoryFromAPIs(GraviteeContext.getExecutionContext(), categoryId);
 
@@ -188,26 +189,24 @@ public class ApiCategoryServiceImplTest {
             verify(apiRepository, times(1)).update(firstOrphan);
             verify(apiNotificationService, times(1)).triggerUpdateNotification(GraviteeContext.getExecutionContext(), firstOrphan);
             verify(apiNotificationService, times(1)).triggerUpdateNotification(GraviteeContext.getExecutionContext(), secondOrphan);
-            verify(auditService, times(1))
-                .createApiAuditLog(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(firstOrphan.getId()),
-                    eq(Collections.emptyMap()),
-                    eq(Api.AuditEvent.API_UPDATED),
-                    any(),
-                    any(),
-                    any()
-                );
-            verify(auditService, times(1))
-                .createApiAuditLog(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(secondOrphan.getId()),
-                    eq(Collections.emptyMap()),
-                    eq(Api.AuditEvent.API_UPDATED),
-                    any(),
-                    any(),
-                    any()
-                );
+            verify(auditService, times(1)).createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(firstOrphan.getId()),
+                eq(Collections.emptyMap()),
+                eq(Api.AuditEvent.API_UPDATED),
+                any(),
+                any(),
+                any()
+            );
+            verify(auditService, times(1)).createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(secondOrphan.getId()),
+                eq(Collections.emptyMap()),
+                eq(Api.AuditEvent.API_UPDATED),
+                any(),
+                any(),
+                any()
+            );
 
             assertThat(firstOrphan.getCategories()).isEmpty();
             assertThat(secondOrphan.getCategories()).hasSize(1);
@@ -243,10 +242,12 @@ public class ApiCategoryServiceImplTest {
             final Api api4 = new Api();
             api4.setId("api-4");
 
-            when(apiRepository.searchIds(anyList(), isA(Pageable.class), eq(null)))
-                .thenReturn(new Page<>(Arrays.asList(api1.getId(), api2.getId(), api3.getId(), api4.getId()), 0, 4, 4));
-            when(apiRepository.search(any(ApiCriteria.class), isNull(), any(ApiFieldFilter.class)))
-                .thenReturn(Stream.of(api1, api2, api3, api4));
+            when(apiRepository.searchIds(anyList(), isA(Pageable.class), eq(null))).thenReturn(
+                new Page<>(Arrays.asList(api1.getId(), api2.getId(), api3.getId(), api4.getId()), 0, 4, 4)
+            );
+            when(apiRepository.search(any(ApiCriteria.class), isNull(), any(ApiFieldFilter.class))).thenReturn(
+                Stream.of(api1, api2, api3, api4)
+            );
 
             Map<String, Long> expectedCounts = Map.of(category1.getId(), 3L, category2.getId(), 2L, category3.getId(), 1L);
             var counts = apiCategoryService.countApisPublishedGroupedByCategoriesForUser("user-1");
@@ -263,28 +264,30 @@ public class ApiCategoryServiceImplTest {
         void shouldAddApiIfNoApiCategoryOrdersExist() throws Exception {
             when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(Set.of());
             apiCategoryService.addApiToCategories(API_ID, Set.of(CATEGORY_ID));
-            verify(apiCategoryOrderRepository, times(1))
-                .create(eq(ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(CATEGORY_ID).build()));
+            verify(apiCategoryOrderRepository, times(1)).create(
+                eq(ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(CATEGORY_ID).build())
+            );
         }
 
         @Test
         void shouldAddApiToEndIfApiCategoryOrdersExist() throws Exception {
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId("api1").order(0).build(),
-                        ApiCategoryOrder.builder().categoryId(CATEGORY_ID).order(1).apiId("api2").build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId("api1").order(0).build(),
+                    ApiCategoryOrder.builder().categoryId(CATEGORY_ID).order(1).apiId("api2").build()
+                )
+            );
             apiCategoryService.addApiToCategories(API_ID, Set.of(CATEGORY_ID));
-            verify(apiCategoryOrderRepository, times(1))
-                .create(eq(ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build()));
+            verify(apiCategoryOrderRepository, times(1)).create(
+                eq(ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build())
+            );
         }
 
         @Test
         void shouldNotAddApiToCategoryIfAlreadyExists() throws Exception {
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(Set.of(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build()));
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build())
+            );
             apiCategoryService.addApiToCategories(API_ID, Set.of(CATEGORY_ID));
             verify(apiCategoryOrderRepository, never()).create(any());
         }
@@ -292,15 +295,19 @@ public class ApiCategoryServiceImplTest {
         @Test
         void shouldAddApiToMultipleCategories() throws Exception {
             var OTHER_CATEGORY = "other-category";
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(Set.of(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId("api1").order(0).build()));
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(OTHER_CATEGORY)))
-                .thenReturn(Set.of(ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId("api1").order(0).build()));
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId("api1").order(0).build())
+            );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(OTHER_CATEGORY))).thenReturn(
+                Set.of(ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId("api1").order(0).build())
+            );
             apiCategoryService.addApiToCategories(API_ID, Set.of(CATEGORY_ID, OTHER_CATEGORY));
-            verify(apiCategoryOrderRepository, times(1))
-                .create(eq(ApiCategoryOrder.builder().order(1).apiId(API_ID).categoryId(CATEGORY_ID).build()));
-            verify(apiCategoryOrderRepository, times(1))
-                .create(eq(ApiCategoryOrder.builder().order(1).apiId(API_ID).categoryId(OTHER_CATEGORY).build()));
+            verify(apiCategoryOrderRepository, times(1)).create(
+                eq(ApiCategoryOrder.builder().order(1).apiId(API_ID).categoryId(CATEGORY_ID).build())
+            );
+            verify(apiCategoryOrderRepository, times(1)).create(
+                eq(ApiCategoryOrder.builder().order(1).apiId(API_ID).categoryId(OTHER_CATEGORY).build())
+            );
         }
 
         @Test
@@ -316,92 +323,97 @@ public class ApiCategoryServiceImplTest {
 
         @Test
         void shouldMoveApiCategoryDownMultiplePlaces() throws Exception {
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(1).apiId("api2").categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(2).apiId("api3").categoryId(CATEGORY_ID).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(1).apiId("api2").categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(2).apiId("api3").categoryId(CATEGORY_ID).build()
+                )
+            );
             apiCategoryService.changeApiOrderInCategory(API_ID, CATEGORY_ID, 2);
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build()));
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build()));
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(1).apiId("api3").categoryId(CATEGORY_ID).build()));
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build())
+            );
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build())
+            );
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(1).apiId("api3").categoryId(CATEGORY_ID).build())
+            );
         }
 
         @Test
         void shouldMoveApiCategoryUpMultiplePlaces() throws Exception {
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(1).apiId("api3").categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(1).apiId("api3").categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build()
+                )
+            );
             apiCategoryService.changeApiOrderInCategory(API_ID, CATEGORY_ID, 0);
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(CATEGORY_ID).build()));
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(1).apiId("api2").categoryId(CATEGORY_ID).build()));
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(2).apiId("api3").categoryId(CATEGORY_ID).build()));
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(CATEGORY_ID).build())
+            );
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(1).apiId("api2").categoryId(CATEGORY_ID).build())
+            );
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(2).apiId("api3").categoryId(CATEGORY_ID).build())
+            );
         }
 
         @Test
         void shouldMoveApiCategoryDownByOnePlace() throws Exception {
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(1).apiId("api2").categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(2).apiId("api3").categoryId(CATEGORY_ID).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(1).apiId("api2").categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(2).apiId("api3").categoryId(CATEGORY_ID).build()
+                )
+            );
             apiCategoryService.changeApiOrderInCategory(API_ID, CATEGORY_ID, 1);
 
             verify(apiCategoryOrderRepository, times(2)).update(any());
 
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(1).apiId(API_ID).categoryId(CATEGORY_ID).build()));
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build()));
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(1).apiId(API_ID).categoryId(CATEGORY_ID).build())
+            );
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build())
+            );
         }
 
         @Test
         void shouldMoveApiCategoryUpOnePlace() throws Exception {
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(1).apiId("api3").categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(1).apiId("api3").categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build()
+                )
+            );
             apiCategoryService.changeApiOrderInCategory(API_ID, CATEGORY_ID, 1);
 
             verify(apiCategoryOrderRepository, times(2)).update(any());
 
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(1).apiId(API_ID).categoryId(CATEGORY_ID).build()));
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(2).apiId("api3").categoryId(CATEGORY_ID).build()));
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(1).apiId(API_ID).categoryId(CATEGORY_ID).build())
+            );
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(2).apiId("api3").categoryId(CATEGORY_ID).build())
+            );
         }
 
         @Test
         void shouldDoNothingIfNewOrderIsTheSame() throws Exception {
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(1).apiId("api3").categoryId(CATEGORY_ID).build(),
-                        ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().order(0).apiId("api2").categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(1).apiId("api3").categoryId(CATEGORY_ID).build(),
+                    ApiCategoryOrder.builder().order(2).apiId(API_ID).categoryId(CATEGORY_ID).build()
+                )
+            );
             apiCategoryService.changeApiOrderInCategory(API_ID, CATEGORY_ID, 2);
             verify(apiCategoryOrderRepository, never()).update(any());
         }
@@ -419,33 +431,33 @@ public class ApiCategoryServiceImplTest {
         @Test
         void shouldAddApiToCategories() throws Exception {
             when(apiCategoryOrderRepository.findAllByApiId(eq(API_ID))).thenReturn(Set.of());
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(Set.of(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId("api2").order(0).build()));
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId("api2").order(0).build())
+            );
 
             apiCategoryService.updateApiCategories(API_ID, Set.of(CATEGORY_ID));
-            verify(apiCategoryOrderRepository, times(1))
-                .create(eq(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(1).build()));
+            verify(apiCategoryOrderRepository, times(1)).create(
+                eq(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(1).build())
+            );
         }
 
         @Test
         void shouldRemoveApiFromCategories() throws Exception {
             var OTHER_CATEGORY = "other-cat";
             var OTHER_API = "other-api";
-            when(apiCategoryOrderRepository.findAllByApiId(eq(API_ID)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build(),
-                        ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(API_ID).order(0).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByApiId(eq(API_ID))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build(),
+                    ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(API_ID).order(0).build()
+                )
+            );
 
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(OTHER_CATEGORY)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(API_ID).order(0).build(),
-                        ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(OTHER_API).order(1).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(OTHER_CATEGORY))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(API_ID).order(0).build(),
+                    ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(OTHER_API).order(1).build()
+                )
+            );
 
             apiCategoryService.updateApiCategories(API_ID, Set.of(CATEGORY_ID));
             verify(apiCategoryOrderRepository, never()).findAllByCategoryId(eq(CATEGORY_ID));
@@ -454,8 +466,9 @@ public class ApiCategoryServiceImplTest {
             verify(apiCategoryOrderRepository, times(1)).delete(eq(API_ID), eq(OTHER_CATEGORY));
 
             verify(apiCategoryOrderRepository, times(1)).update(any());
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(0).apiId(OTHER_API).categoryId(OTHER_CATEGORY).build()));
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(0).apiId(OTHER_API).categoryId(OTHER_CATEGORY).build())
+            );
         }
 
         @Test
@@ -463,21 +476,19 @@ public class ApiCategoryServiceImplTest {
             var OTHER_CATEGORY = "other-cat";
             var YET_ANOTHER_CATEGORY = "yet-another-cat";
             var OTHER_API = "other-api";
-            when(apiCategoryOrderRepository.findAllByApiId(eq(API_ID)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build(),
-                        ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(API_ID).order(0).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByApiId(eq(API_ID))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build(),
+                    ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(API_ID).order(0).build()
+                )
+            );
 
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(OTHER_CATEGORY)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(API_ID).order(0).build(),
-                        ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(OTHER_API).order(1).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(OTHER_CATEGORY))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(API_ID).order(0).build(),
+                    ApiCategoryOrder.builder().categoryId(OTHER_CATEGORY).apiId(OTHER_API).order(1).build()
+                )
+            );
 
             when(apiCategoryOrderRepository.findAllByCategoryId(eq(YET_ANOTHER_CATEGORY))).thenReturn(Set.of());
 
@@ -488,12 +499,14 @@ public class ApiCategoryServiceImplTest {
             verify(apiCategoryOrderRepository, times(1)).delete(eq(API_ID), eq(OTHER_CATEGORY));
 
             verify(apiCategoryOrderRepository, times(1)).update(any());
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(0).apiId(OTHER_API).categoryId(OTHER_CATEGORY).build()));
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(0).apiId(OTHER_API).categoryId(OTHER_CATEGORY).build())
+            );
 
             verify(apiCategoryOrderRepository, times(1)).create(any());
-            verify(apiCategoryOrderRepository, times(1))
-                .create(eq(ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(YET_ANOTHER_CATEGORY).build()));
+            verify(apiCategoryOrderRepository, times(1)).create(
+                eq(ApiCategoryOrder.builder().order(0).apiId(API_ID).categoryId(YET_ANOTHER_CATEGORY).build())
+            );
         }
 
         @Test
@@ -511,16 +524,16 @@ public class ApiCategoryServiceImplTest {
         @Test
         void shouldRemoveApiFromCategories() throws Exception {
             var OTHER_API = "other-api";
-            when(apiCategoryOrderRepository.findAllByApiId(eq(API_ID)))
-                .thenReturn(Set.of(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build()));
+            when(apiCategoryOrderRepository.findAllByApiId(eq(API_ID))).thenReturn(
+                Set.of(ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build())
+            );
 
-            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID)))
-                .thenReturn(
-                    Set.of(
-                        ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build(),
-                        ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(OTHER_API).order(1).build()
-                    )
-                );
+            when(apiCategoryOrderRepository.findAllByCategoryId(eq(CATEGORY_ID))).thenReturn(
+                Set.of(
+                    ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(API_ID).order(0).build(),
+                    ApiCategoryOrder.builder().categoryId(CATEGORY_ID).apiId(OTHER_API).order(1).build()
+                )
+            );
 
             apiCategoryService.deleteApiFromCategories(API_ID);
 
@@ -528,8 +541,9 @@ public class ApiCategoryServiceImplTest {
             verify(apiCategoryOrderRepository, times(1)).delete(eq(API_ID), eq(CATEGORY_ID));
 
             verify(apiCategoryOrderRepository, times(1)).update(any());
-            verify(apiCategoryOrderRepository, times(1))
-                .update(eq(ApiCategoryOrder.builder().order(0).apiId(OTHER_API).categoryId(CATEGORY_ID).build()));
+            verify(apiCategoryOrderRepository, times(1)).update(
+                eq(ApiCategoryOrder.builder().order(0).apiId(OTHER_API).categoryId(CATEGORY_ID).build())
+            );
         }
 
         @Test

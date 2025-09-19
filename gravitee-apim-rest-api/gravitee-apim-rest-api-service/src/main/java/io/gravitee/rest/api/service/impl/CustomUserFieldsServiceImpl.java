@@ -80,8 +80,11 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
             final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             LOGGER.debug("Create custom user field [key={}, refId={}]", newFieldEntity.getKey(), refId);
-            Optional<CustomUserField> existingRecord =
-                this.customUserFieldsRepository.findById(formatKeyValue(newFieldEntity.getKey()), refId, refType);
+            Optional<CustomUserField> existingRecord = this.customUserFieldsRepository.findById(
+                formatKeyValue(newFieldEntity.getKey()),
+                refId,
+                refType
+            );
             if (existingRecord.isPresent()) {
                 throw new CustomUserFieldAlreadyExistException(newFieldEntity.getKey());
             } else {
@@ -109,8 +112,11 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
             final String refId = executionContext.getOrganizationId();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             LOGGER.debug("Update custom user field [key={}, refId={}]", updateFieldEntity.getKey(), refId);
-            Optional<CustomUserField> existingRecord =
-                this.customUserFieldsRepository.findById(formatKeyValue(updateFieldEntity.getKey()), refId, refType);
+            Optional<CustomUserField> existingRecord = this.customUserFieldsRepository.findById(
+                formatKeyValue(updateFieldEntity.getKey()),
+                refId,
+                refType
+            );
             if (existingRecord.isPresent()) {
                 CustomUserField fieldToUpdate = map(updateFieldEntity);
                 fieldToUpdate.setKey(existingRecord.get().getKey());
@@ -145,11 +151,11 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
                 createAuditLog(executionContext, CUSTOM_USER_FIELD_DELETED, new Date(), existingRecord.get(), null);
                 // remove all instance of this field from UserMetadata
                 this.userMetadataService.deleteAllByCustomFieldId(
-                        executionContext,
-                        existingRecord.get().getKey(),
-                        existingRecord.get().getReferenceId(),
-                        existingRecord.get().getReferenceType()
-                    );
+                    executionContext,
+                    existingRecord.get().getKey(),
+                    existingRecord.get().getReferenceId(),
+                    existingRecord.get().getReferenceType()
+                );
             }
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to create CustomUserField", e);

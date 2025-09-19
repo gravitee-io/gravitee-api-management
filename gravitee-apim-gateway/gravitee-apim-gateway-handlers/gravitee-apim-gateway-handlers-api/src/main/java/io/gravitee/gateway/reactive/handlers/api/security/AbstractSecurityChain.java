@@ -43,7 +43,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public abstract class AbstractSecurityChain<
-    P extends AbstractSecurityPlan<? extends BaseSecurityPolicy, C>, C extends BaseExecutionContext
+    P extends AbstractSecurityPlan<? extends BaseSecurityPolicy, C>,
+    C extends BaseExecutionContext
 > {
 
     protected static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";

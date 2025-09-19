@@ -119,20 +119,19 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), isNull()))
-            .thenAnswer(
-                (Answer<List<PageEntity>>) invocation -> {
-                    PageQuery pq = invocation.getArgument(1);
-                    if (PageType.SYSTEM_FOLDER.equals(pq.getType())) {
-                        return Arrays.asList(sysFolder);
-                    } else if ("SYS_FOLDER".equals(pq.getParent())) {
-                        return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
-                    } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent())) {
-                        return Arrays.asList(markdownFolderSysFolder);
-                    }
-                    return null;
+        when(pageService.search(eq(GraviteeContext.getCurrentEnvironment()), any(PageQuery.class), isNull())).thenAnswer(
+            (Answer<List<PageEntity>>) invocation -> {
+                PageQuery pq = invocation.getArgument(1);
+                if (PageType.SYSTEM_FOLDER.equals(pq.getType())) {
+                    return Arrays.asList(sysFolder);
+                } else if ("SYS_FOLDER".equals(pq.getParent())) {
+                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
+                } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent())) {
+                    return Arrays.asList(markdownFolderSysFolder);
                 }
-            );
+                return null;
+            }
+        );
 
         when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(true);
 
@@ -239,8 +238,9 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         appRoleEntity.setDefaultRole(true);
         appRoleEntity.setName("appRole");
         appRoleEntity.setSystem(false);
-        when(roleService.findByScope(RoleScope.APPLICATION, GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Collections.singletonList(appRoleEntity));
+        when(roleService.findByScope(RoleScope.APPLICATION, GraviteeContext.getCurrentOrganization())).thenReturn(
+            Collections.singletonList(appRoleEntity)
+        );
 
         final Response response = target().path("applications").path("roles").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

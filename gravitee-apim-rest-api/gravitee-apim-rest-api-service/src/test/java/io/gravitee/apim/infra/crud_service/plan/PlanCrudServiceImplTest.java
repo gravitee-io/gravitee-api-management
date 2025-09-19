@@ -77,12 +77,12 @@ public class PlanCrudServiceImplTest {
             // Given
             var planId = "plan-id";
             var apiId = "api-id";
-            when(planRepository.findById(planId))
-                .thenAnswer(invocation -> Optional.of(planV4().id(invocation.getArgument(0)).api(apiId).build()));
-            when(apiRepository.findById(any(String.class)))
-                .thenAnswer(invocation ->
-                    Optional.of(Api.builder().id(invocation.getArgument(0)).definitionVersion(DefinitionVersion.V4).build())
-                );
+            when(planRepository.findById(planId)).thenAnswer(invocation ->
+                Optional.of(planV4().id(invocation.getArgument(0)).api(apiId).build())
+            );
+            when(apiRepository.findById(any(String.class))).thenAnswer(invocation ->
+                Optional.of(Api.builder().id(invocation.getArgument(0)).definitionVersion(DefinitionVersion.V4).build())
+            );
 
             // When
             var plan = service.getById(planId);
@@ -123,12 +123,12 @@ public class PlanCrudServiceImplTest {
             // Given
             var planId = "plan-id";
             var apiId = "api-id";
-            when(planRepository.findById(planId))
-                .thenAnswer(invocation -> Optional.of(planV2().id(invocation.getArgument(0)).api(apiId).build()));
-            when(apiRepository.findById(any(String.class)))
-                .thenAnswer(invocation ->
-                    Optional.of(Api.builder().id(invocation.getArgument(0)).definitionVersion(DefinitionVersion.V2).build())
-                );
+            when(planRepository.findById(planId)).thenAnswer(invocation ->
+                Optional.of(planV2().id(invocation.getArgument(0)).api(apiId).build())
+            );
+            when(apiRepository.findById(any(String.class))).thenAnswer(invocation ->
+                Optional.of(Api.builder().id(invocation.getArgument(0)).definitionVersion(DefinitionVersion.V2).build())
+            );
 
             // When
             var plan = service.getById(planId);
@@ -202,8 +202,9 @@ public class PlanCrudServiceImplTest {
             var planId = "plan-id";
             var apiId = "api-id";
 
-            when(planRepository.findById(planId))
-                .thenAnswer(invocation -> Optional.of(planV4().id(invocation.getArgument(0)).api(apiId).build()));
+            when(planRepository.findById(planId)).thenAnswer(invocation ->
+                Optional.of(planV4().id(invocation.getArgument(0)).api(apiId).build())
+            );
             var foundPlan = service.findById(planId);
 
             // Then
@@ -274,8 +275,7 @@ public class PlanCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_create_a_v4_plan() {
-            var plan = PlanFixtures.HttpV4
-                .aKeyless()
+            var plan = PlanFixtures.HttpV4.aKeyless()
                 .toBuilder()
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
@@ -312,8 +312,7 @@ public class PlanCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_an_existing_v4_plan() {
-            var plan = PlanFixtures
-                .aPlanHttpV4()
+            var plan = PlanFixtures.aPlanHttpV4()
                 .toBuilder()
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
@@ -326,8 +325,7 @@ public class PlanCrudServiceImplTest {
                 .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
                 .generalConditions("General conditions")
                 .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures.HttpV4Definition
-                        .aKeylessV4()
+                    fixtures.definition.PlanFixtures.HttpV4Definition.aKeylessV4()
                         .toBuilder()
                         .security(PlanSecurity.builder().type("key-less").configuration("{\"nice\": \"config\"}").build())
                         .selectionRule("{#request.attribute['selectionRule'] != null}")
@@ -343,8 +341,7 @@ public class PlanCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id("my-plan")
                         .api("my-api")
                         .crossId("my-plan-crossId")
@@ -378,8 +375,7 @@ public class PlanCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_an_existing_v2_plan() {
-            var plan = PlanFixtures
-                .aPlanV2()
+            var plan = PlanFixtures.aPlanV2()
                 .toBuilder()
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
@@ -392,8 +388,7 @@ public class PlanCrudServiceImplTest {
                 .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
                 .generalConditions("General conditions")
                 .planDefinitionV2(
-                    fixtures.definition.PlanFixtures
-                        .aKeylessV2()
+                    fixtures.definition.PlanFixtures.aKeylessV2()
                         .toBuilder()
                         .selectionRule("{#request.attribute['selectionRule'] != null}")
                         .tags(Set.of("tag1", "tag2"))
@@ -408,8 +403,7 @@ public class PlanCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id("my-plan")
                         .api("my-api")
                         .crossId("my-plan-crossId")
@@ -493,8 +487,7 @@ public class PlanCrudServiceImplTest {
     }
 
     private Plan.PlanBuilder planV4() {
-        return Plan
-            .builder()
+        return Plan.builder()
             .definitionVersion(DefinitionVersion.V4)
             .crossId("cross-id")
             .name("plan-name")
@@ -521,8 +514,7 @@ public class PlanCrudServiceImplTest {
     }
 
     private Plan.PlanBuilder planV2() {
-        return Plan
-            .builder()
+        return Plan.builder()
             .crossId("cross-id")
             .name("plan-name")
             .description("plan-description")

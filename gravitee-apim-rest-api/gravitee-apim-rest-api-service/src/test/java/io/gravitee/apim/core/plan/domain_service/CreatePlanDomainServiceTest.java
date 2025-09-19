@@ -124,14 +124,13 @@ class CreatePlanDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-            new CreatePlanDomainService(
-                new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
-                new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
-                planCrudService,
-                flowCrudService,
-                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
-            );
+        service = new CreatePlanDomainService(
+            new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
+            new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
+            planCrudService,
+            flowCrudService,
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
+        );
 
         parametersQueryService.initWith(
             List.of(
@@ -139,15 +138,16 @@ class CreatePlanDomainServiceTest {
                 new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
             )
         );
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
+            invocation.getArgument(1)
+        );
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService).forEach(
+            InMemoryAlternative::reset
+        );
         reset(policyValidationDomainService);
     }
 
@@ -173,8 +173,9 @@ class CreatePlanDomainServiceTest {
         void should_throw_when_security_configuration_is_invalid() {
             // Given
             var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey().toBuilder().build();
-            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-                .thenThrow(new InvalidDataException("invalid"));
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenThrow(
+                new InvalidDataException("invalid")
+            );
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
@@ -190,8 +191,7 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_invalid() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.HttpV4
-                .aPushPlan()
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
                 .toBuilder()
                 .planDefinitionHttpV4(
                     PlanFixtures.HttpV4Definition.aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build()
@@ -409,8 +409,7 @@ class CreatePlanDomainServiceTest {
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
                 .containsExactly(
-                    AuditEntity
-                        .builder()
+                    AuditEntity.builder()
                         .id("generated-id")
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
@@ -438,8 +437,7 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_allow_keyless_plan_creation_to_tcp_api() {
             // Given
-            var plan = fixtures.core.model.PlanFixtures.HttpV4
-                .aKeyless()
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.aKeyless()
                 .toBuilder()
                 .apiId(API_ID)
                 .build()
@@ -468,8 +466,7 @@ class CreatePlanDomainServiceTest {
             return Stream.of(
                 Arguments.of(
                     HTTP_PROXY_API_V4,
-                    fixtures.core.model.PlanFixtures.HttpV4
-                        .anApiKey()
+                    fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
                         .toBuilder()
                         .apiId(API_ID)
                         .build()
@@ -479,8 +476,7 @@ class CreatePlanDomainServiceTest {
                 ),
                 Arguments.of(
                     API_MESSAGE_V4,
-                    fixtures.core.model.PlanFixtures.HttpV4
-                        .aPushPlan()
+                    fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
                         .toBuilder()
                         .apiId(API_ID)
                         .build()
@@ -490,8 +486,7 @@ class CreatePlanDomainServiceTest {
                 ),
                 Arguments.of(
                     API_NATIVE_V4,
-                    fixtures.core.model.PlanFixtures.NativeV4
-                        .aKeyless()
+                    fixtures.core.model.PlanFixtures.NativeV4.aKeyless()
                         .toBuilder()
                         .apiId(API_ID)
                         .build()
@@ -506,8 +501,7 @@ class CreatePlanDomainServiceTest {
             return Stream.of(
                 Arguments.of(
                     HTTP_PROXY_API_V4,
-                    fixtures.core.model.PlanFixtures.HttpV4
-                        .anApiKey()
+                    fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
                         .toBuilder()
                         .apiId(API_ID)
                         .build()
@@ -516,8 +510,7 @@ class CreatePlanDomainServiceTest {
                 ),
                 Arguments.of(
                     API_MESSAGE_V4,
-                    fixtures.core.model.PlanFixtures.HttpV4
-                        .aPushPlan()
+                    fixtures.core.model.PlanFixtures.HttpV4.aPushPlan()
                         .toBuilder()
                         .apiId(API_ID)
                         .build()

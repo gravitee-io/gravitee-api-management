@@ -218,8 +218,7 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotFindByIdAndOrganisationIdWhenReferenceTypeIsWrong() throws TechnicalException {
         assertThat(
             roleRepository.findByIdAndReferenceIdAndReferenceType("API_find_by_id_and_org_id", REFERENCE_ID, RoleReferenceType.ENVIRONMENT)
-        )
-            .isEmpty();
+        ).isEmpty();
     }
 
     @Test

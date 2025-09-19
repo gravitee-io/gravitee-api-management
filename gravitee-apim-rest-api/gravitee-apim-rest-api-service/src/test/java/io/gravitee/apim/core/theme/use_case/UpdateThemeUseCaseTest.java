@@ -51,13 +51,12 @@ public class UpdateThemeUseCaseTest {
     @BeforeEach
     void setUp() {
         themeCrudService.initWith(List.of(aPortalTheme(false), aPortalNextTheme(false)));
-        cut =
-            new UpdateThemeUseCase(
-                new ValidateThemeDomainService(themeCrudService),
-                new ThemeDomainService(themeCrudService),
-                new CurrentThemeDomainService(themeQueryServiceInMemory, themeCrudService),
-                themeCrudService
-            );
+        cut = new UpdateThemeUseCase(
+            new ValidateThemeDomainService(themeCrudService),
+            new ThemeDomainService(themeCrudService),
+            new CurrentThemeDomainService(themeQueryServiceInMemory, themeCrudService),
+            themeCrudService
+        );
     }
 
     @AfterEach
@@ -68,71 +67,61 @@ public class UpdateThemeUseCaseTest {
     @Test
     void should_throw_error_if_theme_does_not_exist() {
         assertThatThrownBy(() ->
-                cut.execute(
-                    UpdateThemeUseCase.Input
-                        .builder()
-                        .updateTheme(UpdateTheme.builder().id("does-not-exist").build())
-                        .executionContext(EXECUTION_CONTEXT)
-                        .build()
-                )
+            cut.execute(
+                UpdateThemeUseCase.Input.builder()
+                    .updateTheme(UpdateTheme.builder().id("does-not-exist").build())
+                    .executionContext(EXECUTION_CONTEXT)
+                    .build()
             )
-            .isInstanceOf(ThemeNotFoundException.class);
+        ).isInstanceOf(ThemeNotFoundException.class);
     }
 
     @Test
     void should_throw_error_if_theme_is_not_in_scope() {
         assertThatThrownBy(() ->
-                cut.execute(
-                    UpdateThemeUseCase.Input
-                        .builder()
-                        .updateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).build())
-                        .executionContext(new ExecutionContext("org-id", "out-of-scope"))
-                        .build()
-                )
+            cut.execute(
+                UpdateThemeUseCase.Input.builder()
+                    .updateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).build())
+                    .executionContext(new ExecutionContext("org-id", "out-of-scope"))
+                    .build()
             )
-            .isInstanceOf(ThemeNotFoundException.class);
+        ).isInstanceOf(ThemeNotFoundException.class);
     }
 
     @Test
     void should_throw_error_if_theme_type_different() {
         assertThatThrownBy(() ->
-                cut.execute(
-                    UpdateThemeUseCase.Input
-                        .builder()
-                        .updateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL_NEXT).build())
-                        .executionContext(EXECUTION_CONTEXT)
-                        .build()
-                )
+            cut.execute(
+                UpdateThemeUseCase.Input.builder()
+                    .updateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL_NEXT).build())
+                    .executionContext(EXECUTION_CONTEXT)
+                    .build()
             )
-            .isInstanceOf(ThemeTypeInvalidException.class);
+        ).isInstanceOf(ThemeTypeInvalidException.class);
     }
 
     @Test
     void should_throw_error_if_portal_theme_definition_missing() {
         assertThatThrownBy(() ->
-                cut.execute(
-                    UpdateThemeUseCase.Input
-                        .builder()
-                        .updateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL).build())
-                        .executionContext(EXECUTION_CONTEXT)
-                        .build()
-                )
+            cut.execute(
+                UpdateThemeUseCase.Input.builder()
+                    .updateTheme(UpdateTheme.builder().id(PORTAL_THEME_ID).type(ThemeType.PORTAL).build())
+                    .executionContext(EXECUTION_CONTEXT)
+                    .build()
             )
-            .isInstanceOf(ThemeDefinitionInvalidException.class);
+        ).isInstanceOf(ThemeDefinitionInvalidException.class);
     }
 
     @Test
     void should_throw_error_if_portal_next_theme_definition_missing() {
         assertThatThrownBy(() ->
-                cut.execute(
-                    UpdateThemeUseCase.Input
-                        .builder()
-                        .updateTheme(UpdateTheme.builder().id(PORTAL_NEXT_THEME_ID).type(ThemeType.PORTAL_NEXT).build())
-                        .executionContext(EXECUTION_CONTEXT)
-                        .build()
-                )
+            cut.execute(
+                UpdateThemeUseCase.Input.builder()
+                    .updateTheme(UpdateTheme.builder().id(PORTAL_NEXT_THEME_ID).type(ThemeType.PORTAL_NEXT).build())
+                    .executionContext(EXECUTION_CONTEXT)
+                    .build()
             )
-            .isInstanceOf(ThemeDefinitionInvalidException.class);
+        ).isInstanceOf(ThemeDefinitionInvalidException.class);
     }
 
     @Test
@@ -148,8 +137,7 @@ public class UpdateThemeUseCaseTest {
         var newPortalDefinition = new io.gravitee.rest.api.model.theme.portal.ThemeDefinition();
         newPortalDefinition.setData(List.of(componentDefinition));
 
-        var updateTheme = UpdateTheme
-            .builder()
+        var updateTheme = UpdateTheme.builder()
             .id(PORTAL_THEME_ID)
             .type(ThemeType.PORTAL)
             .name("my new name")
@@ -173,8 +161,7 @@ public class UpdateThemeUseCaseTest {
 
     @Test
     public void should_update_portal_next_theme() {
-        var updateTheme = UpdateTheme
-            .builder()
+        var updateTheme = UpdateTheme.builder()
             .id(PORTAL_NEXT_THEME_ID)
             .type(ThemeType.PORTAL_NEXT)
             .name("my new name")
@@ -207,8 +194,7 @@ public class UpdateThemeUseCaseTest {
         themeCrudService.initWith(
             List.of(
                 aPortalNextTheme(false),
-                Theme
-                    .builder()
+                Theme.builder()
                     .id(currentThemeId)
                     .type(ThemeType.PORTAL_NEXT)
                     .referenceId(ENV_ID)
@@ -218,8 +204,7 @@ public class UpdateThemeUseCaseTest {
             )
         );
 
-        var updateTheme = UpdateTheme
-            .builder()
+        var updateTheme = UpdateTheme.builder()
             .id(PORTAL_NEXT_THEME_ID)
             .type(ThemeType.PORTAL_NEXT)
             .name("my new name")
@@ -266,8 +251,7 @@ public class UpdateThemeUseCaseTest {
         var portalDefinition = new io.gravitee.rest.api.model.theme.portal.ThemeDefinition();
         portalDefinition.setData(List.of());
 
-        return Theme
-            .builder()
+        return Theme.builder()
             .id(PORTAL_THEME_ID)
             .name("a portal theme")
             .type(ThemeType.PORTAL)
@@ -279,8 +263,7 @@ public class UpdateThemeUseCaseTest {
     }
 
     private Theme aPortalNextTheme(boolean enabled) {
-        return Theme
-            .builder()
+        return Theme.builder()
             .id(PORTAL_NEXT_THEME_ID)
             .name("a portal next theme")
             .type(ThemeType.PORTAL_NEXT)

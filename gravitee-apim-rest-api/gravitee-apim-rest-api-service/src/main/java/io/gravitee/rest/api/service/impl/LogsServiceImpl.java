@@ -135,8 +135,7 @@ public class LogsServiceImpl implements LogsService {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
                 executionContext.getQueryContext(),
-                QueryBuilders
-                    .tabular()
+                QueryBuilders.tabular()
                     .page(query.getPage())
                     .size(query.getSize())
                     .query(query.getQuery())
@@ -225,8 +224,7 @@ public class LogsServiceImpl implements LogsService {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
                 executionContext.getQueryContext(),
-                QueryBuilders
-                    .tabular()
+                QueryBuilders.tabular()
                     .page(query.getPage())
                     .size(query.getSize())
                     .query(query.getQuery())
@@ -279,8 +277,7 @@ public class LogsServiceImpl implements LogsService {
             final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
                 executionContext.getQueryContext(),
-                QueryBuilders
-                    .tabular()
+                QueryBuilders.tabular()
                     .page(query.getPage())
                     .size(query.getSize())
                     .query(query.getQuery())
@@ -498,7 +495,11 @@ public class LogsServiceImpl implements LogsService {
             throw new IllegalStateException("Found more than one subscription for the same application and plan");
         }
 
-        return subscriptions.stream().findFirst().map(SubscriptionEntity::getId).orElseThrow(() -> new SubscriptionNotFoundException(null));
+        return subscriptions
+            .stream()
+            .findFirst()
+            .map(SubscriptionEntity::getId)
+            .orElseThrow(() -> new SubscriptionNotFoundException(null));
     }
 
     @Override

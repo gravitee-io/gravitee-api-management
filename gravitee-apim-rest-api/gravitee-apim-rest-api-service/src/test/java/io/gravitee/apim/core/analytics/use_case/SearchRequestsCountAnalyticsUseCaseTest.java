@@ -70,37 +70,31 @@ class SearchRequestsCountAnalyticsUseCaseTest {
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
         assertThatThrownBy(() ->
-                cut.execute(
-                    GraviteeContext.getExecutionContext(),
-                    new Input(MY_API, "another-environment", Optional.of(FROM), Optional.of(TO))
-                )
-            )
-            .isInstanceOf(ApiNotFoundException.class);
+            cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment", Optional.of(FROM), Optional.of(TO)))
+        ).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_no_api_found() {
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
-            )
-            .isInstanceOf(ApiNotFoundException.class);
+            cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+        ).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
-            )
-            .isInstanceOf(ApiInvalidDefinitionVersionException.class);
+            cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+        ).isInstanceOf(ApiInvalidDefinitionVersionException.class);
     }
 
     @Test
     void should_throw_if_api_is_tcp() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aTcpApiV4()));
         assertThatThrownBy(() ->
-                cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
-            )
+            cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
+        )
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Analytics are not supported for TCP Proxy APIs");
     }
@@ -113,27 +107,25 @@ class SearchRequestsCountAnalyticsUseCaseTest {
             GraviteeContext.getExecutionContext(),
             new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO))
         );
-        assertThat(result.requestsCount())
-            .hasValueSatisfying(requestsCount -> {
-                assertThat(requestsCount)
-                    .extracting(RequestsCount::getCountsByEntrypoint, RequestsCount::getTotal)
-                    .containsExactly(null, null);
-            });
+        assertThat(result.requestsCount()).hasValueSatisfying(requestsCount -> {
+            assertThat(requestsCount).extracting(RequestsCount::getCountsByEntrypoint, RequestsCount::getTotal).containsExactly(null, null);
+        });
     }
 
     @Test
     void should_get_requests_count_for_a_v4_api() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        analyticsQueryService.requestsCount =
-            RequestsCount.builder().total(56L).countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L)).build();
+        analyticsQueryService.requestsCount = RequestsCount.builder()
+            .total(56L)
+            .countsByEntrypoint(Map.of("http-get", 26L, "http-post", 30L))
+            .build();
         final Output result = cut.execute(
             GraviteeContext.getExecutionContext(),
             new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO))
         );
-        assertThat(result.requestsCount())
-            .hasValueSatisfying(requestsCount -> {
-                assertThat(requestsCount.getTotal()).isEqualTo(56);
-                assertThat(requestsCount.getCountsByEntrypoint()).isEqualTo(Map.of("http-get", 26L, "http-post", 30L));
-            });
+        assertThat(result.requestsCount()).hasValueSatisfying(requestsCount -> {
+            assertThat(requestsCount.getTotal()).isEqualTo(56);
+            assertThat(requestsCount.getCountsByEntrypoint()).isEqualTo(Map.of("http-get", 26L, "http-post", 30L));
+        });
     }
 }

@@ -52,13 +52,12 @@ public class UpdateCategoryApiDomainServiceInMemory implements UpdateCategoryApi
 
     @Override
     public void changeOrder(ApiCategoryOrder apiCategoryOrder, int newOrder) {
-        OptionalInt index =
-            this.findIndex(
-                    this.storage,
-                    apiCategoryOrder1 ->
-                        Objects.equals(apiCategoryOrder.getCategoryId(), apiCategoryOrder1.getCategoryId()) &&
-                        Objects.equals(apiCategoryOrder.getApiId(), apiCategoryOrder1.getApiId())
-                );
+        OptionalInt index = this.findIndex(
+            this.storage,
+            apiCategoryOrder1 ->
+                Objects.equals(apiCategoryOrder.getCategoryId(), apiCategoryOrder1.getCategoryId()) &&
+                Objects.equals(apiCategoryOrder.getApiId(), apiCategoryOrder1.getApiId())
+        );
         if (index.isPresent()) {
             apiCategoryOrder.setOrder(newOrder);
             storage.set(index.getAsInt(), apiCategoryOrder);

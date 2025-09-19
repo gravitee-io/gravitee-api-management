@@ -210,20 +210,18 @@ public abstract class AbstractResource<T, K> {
                     final String querySize = queryParameters.getFirst(PaginationParam.SIZE_QUERY_PARAM_NAME);
 
                     if (queryPage != null) {
-                        linkTemplate =
-                            linkTemplate.replaceFirst(
-                                PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
-                                PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken
-                            );
+                        linkTemplate = linkTemplate.replaceFirst(
+                            PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
+                            PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken
+                        );
                     } else {
                         linkTemplate += "&" + PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken;
                     }
                     if (querySize != null) {
-                        linkTemplate =
-                            linkTemplate.replaceFirst(
-                                PaginationParam.SIZE_QUERY_PARAM_NAME + "=(\\w*)",
-                                PaginationParam.SIZE_QUERY_PARAM_NAME + "=" + sizeToken
-                            );
+                        linkTemplate = linkTemplate.replaceFirst(
+                            PaginationParam.SIZE_QUERY_PARAM_NAME + "=(\\w*)",
+                            PaginationParam.SIZE_QUERY_PARAM_NAME + "=" + sizeToken
+                        );
                     }
                 }
 
@@ -232,13 +230,12 @@ public abstract class AbstractResource<T, K> {
                 Integer nextPage = Math.min(page + 1, lastPage);
                 Integer prevPage = Math.max(firstPage, page - 1);
 
-                paginatedLinks =
-                    new Links()
-                        .first(linkTemplate.replace(pageToken, String.valueOf(firstPage)).replace(sizeToken, String.valueOf(size)))
-                        .last(linkTemplate.replace(pageToken, String.valueOf(lastPage)).replace(sizeToken, String.valueOf(size)))
-                        .next(linkTemplate.replace(pageToken, String.valueOf(nextPage)).replace(sizeToken, String.valueOf(size)))
-                        .prev(linkTemplate.replace(pageToken, String.valueOf(prevPage)).replace(sizeToken, String.valueOf(size)))
-                        .self(uriInfo.getRequestUri().toString());
+                paginatedLinks = new Links()
+                    .first(linkTemplate.replace(pageToken, String.valueOf(firstPage)).replace(sizeToken, String.valueOf(size)))
+                    .last(linkTemplate.replace(pageToken, String.valueOf(lastPage)).replace(sizeToken, String.valueOf(size)))
+                    .next(linkTemplate.replace(pageToken, String.valueOf(nextPage)).replace(sizeToken, String.valueOf(size)))
+                    .prev(linkTemplate.replace(pageToken, String.valueOf(prevPage)).replace(sizeToken, String.valueOf(size)))
+                    .self(uriInfo.getRequestUri().toString());
 
                 if (page == 1) {
                     paginatedLinks.setPrev(null);
@@ -296,8 +293,13 @@ public abstract class AbstractResource<T, K> {
 
         List pageContent;
         if (withPagination && totalItems > 0 && paginationParam.getSize() > 0) {
-            pageContent =
-                this.paginateResultList(dataList, totalItems, paginationParam.getPage(), paginationParam.getSize(), paginationMetadata);
+            pageContent = this.paginateResultList(
+                dataList,
+                totalItems,
+                paginationParam.getPage(),
+                paginationParam.getSize(),
+                paginationMetadata
+            );
         } else {
             if (paginationParam.getSize() < -1) {
                 throw new BadRequestException("Pagination size is not valid");
@@ -420,8 +422,7 @@ public abstract class AbstractResource<T, K> {
             return builder.cacheControl(cc).build();
         }
 
-        return Response
-            .ok(media.getData())
+        return Response.ok(media.getData())
             // Add header to force download, so avoid browser to display the media and maybe render malicious attachments
             .header("Content-Disposition", "attachment; filename=\"" + media.getFileName() + "\"")
             .cacheControl(cc)

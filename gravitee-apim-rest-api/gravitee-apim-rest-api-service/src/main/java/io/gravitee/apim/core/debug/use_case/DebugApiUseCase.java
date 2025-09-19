@@ -123,35 +123,30 @@ public class DebugApiUseCase {
         var api = apiCrudService.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
         return switch (api.getDefinitionVersion()) {
-            case V4:
-                {
-                    if (api.getType() != ApiType.PROXY) {
-                        throw new DebugApiInvalidDefinitionVersionException(apiId);
-                    }
-                    var plans = planQueryService
-                        .findAllByApiId(apiId)
-                        .stream()
-                        .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
-                        .map(plan -> plan.flows(flowCrudService.getPlanV4Flows(plan.getId())))
-                        .toList();
+            case V4: {
+                if (api.getType() != ApiType.PROXY) {
+                    throw new DebugApiInvalidDefinitionVersionException(apiId);
+                }
+                var plans = planQueryService
+                    .findAllByApiId(apiId)
+                    .stream()
+                    .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
+                    .map(plan -> plan.flows(flowCrudService.getPlanV4Flows(plan.getId())))
+                    .toList();
 
-                    validatePlans(apiId, null, plans);
-                    yield new DebugApiV4(
-                        api.getApiDefinitionHttpV4().plans(plans).flow(flowCrudService.getApiV4Flows(apiId)),
-                        debugApiRequest
-                    );
-                }
-            case V2:
-                {
-                    var plans = planQueryService
-                        .findAllByApiId(apiId)
-                        .stream()
-                        .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionV2)
-                        .map(plan -> plan.flows(flowCrudService.getPlanV2Flows(plan.getId())))
-                        .toList();
-                    validatePlans(apiId, plans, null);
-                    yield new DebugApiV2(api.getApiDefinition().plans(plans).flows(flowCrudService.getApiV2Flows(apiId)), debugApiRequest);
-                }
+                validatePlans(apiId, null, plans);
+                yield new DebugApiV4(api.getApiDefinitionHttpV4().plans(plans).flow(flowCrudService.getApiV4Flows(apiId)), debugApiRequest);
+            }
+            case V2: {
+                var plans = planQueryService
+                    .findAllByApiId(apiId)
+                    .stream()
+                    .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionV2)
+                    .map(plan -> plan.flows(flowCrudService.getPlanV2Flows(plan.getId())))
+                    .toList();
+                validatePlans(apiId, plans, null);
+                yield new DebugApiV2(api.getApiDefinition().plans(plans).flows(flowCrudService.getApiV2Flows(apiId)), debugApiRequest);
+            }
             default:
                 throw new DebugApiInvalidDefinitionVersionException(apiId);
         };
@@ -182,9 +177,10 @@ public class DebugApiUseCase {
         if (plansV2 != null) {
             boolean hasValidPlan = plansV2
                 .stream()
-                .anyMatch(plan ->
-                    PlanStatus.STAGING.name().equalsIgnoreCase(plan.getStatus()) ||
-                    PlanStatus.PUBLISHED.name().equalsIgnoreCase(plan.getStatus())
+                .anyMatch(
+                    plan ->
+                        PlanStatus.STAGING.name().equalsIgnoreCase(plan.getStatus()) ||
+                        PlanStatus.PUBLISHED.name().equalsIgnoreCase(plan.getStatus())
                 );
 
             if (!hasValidPlan) {
@@ -196,9 +192,10 @@ public class DebugApiUseCase {
             boolean hasValidPlan = plansV4
                 .stream()
                 .map(Plan::getStatus)
-                .anyMatch(status ->
-                    status == io.gravitee.definition.model.v4.plan.PlanStatus.STAGING ||
-                    status == io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED
+                .anyMatch(
+                    status ->
+                        status == io.gravitee.definition.model.v4.plan.PlanStatus.STAGING ||
+                        status == io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED
                 );
 
             if (!hasValidPlan) {

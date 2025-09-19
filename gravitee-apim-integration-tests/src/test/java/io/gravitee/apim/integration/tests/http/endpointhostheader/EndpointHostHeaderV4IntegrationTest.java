@@ -44,12 +44,9 @@ class EndpointHostHeaderV4IntegrationTest {
         @Test
         void should_return_200_and_call_endpoint_with_client_host_header(HttpClient httpClient) throws InterruptedException {
             wiremock.stubFor(
-                get("/endpoint")
-                    .willReturn(
-                        ok("response from backend")
-                            .withBody("Host header was: {{request.headers.Host}}")
-                            .withTransformers("response-template")
-                    )
+                get("/endpoint").willReturn(
+                    ok("response from backend").withBody("Host header was: {{request.headers.Host}}").withTransformers("response-template")
+                )
             );
 
             httpClient
@@ -79,12 +76,9 @@ class EndpointHostHeaderV4IntegrationTest {
         @Test
         void should_return_200_and_call_endpoint_with_target_host_header(HttpClient httpClient) throws InterruptedException {
             wiremock.stubFor(
-                get("/endpoint")
-                    .willReturn(
-                        ok("response from backend")
-                            .withBody("Host header was: {{request.headers.Host}}")
-                            .withTransformers("response-template")
-                    )
+                get("/endpoint").willReturn(
+                    ok("response from backend").withBody("Host header was: {{request.headers.Host}}").withTransformers("response-template")
+                )
             );
 
             httpClient

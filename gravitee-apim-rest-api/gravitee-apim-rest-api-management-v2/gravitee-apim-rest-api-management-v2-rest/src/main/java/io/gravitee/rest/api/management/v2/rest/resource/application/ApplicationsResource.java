@@ -60,13 +60,11 @@ public class ApplicationsResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
 
         var input = new ImportApplicationCRDUseCase.Input(
-            AuditInfo
-                .builder()
+            AuditInfo.builder()
                 .organizationId(executionContext.getOrganizationId())
                 .environmentId(executionContext.getEnvironmentId())
                 .actor(
-                    AuditActor
-                        .builder()
+                    AuditActor.builder()
                         .userId(userDetails.getUsername())
                         .userSource(userDetails.getSource())
                         .userSourceId(userDetails.getSourceId())

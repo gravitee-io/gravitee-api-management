@@ -58,8 +58,7 @@ class SharedPolicyGroupDeployerTest {
         @Test
         void should_deploy_shared_policy_group() {
             ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup.builder().id("id").build();
-            SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable
-                .builder()
+            SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
                 .sharedPolicyGroupId("id")
                 .reactableSharedPolicyGroup(reactable)
                 .build();
@@ -70,13 +69,11 @@ class SharedPolicyGroupDeployerTest {
 
         @Test
         void should_return_error_when_shared_policy_group_manager_throw_exception() {
-            ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup
-                .builder()
+            ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup.builder()
                 .id("id")
                 .definition(SharedPolicyGroup.builder().build())
                 .build();
-            SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable
-                .builder()
+            SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
                 .sharedPolicyGroupId("id")
                 .reactableSharedPolicyGroup(reactable)
                 .build();
@@ -98,8 +95,7 @@ class SharedPolicyGroupDeployerTest {
         @Test
         void should_undeploy_shared_policy_group() {
             ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup.builder().id("id").build();
-            SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable
-                .builder()
+            SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
                 .sharedPolicyGroupId("id")
                 .reactableSharedPolicyGroup(reactable)
                 .build();
@@ -109,13 +105,11 @@ class SharedPolicyGroupDeployerTest {
 
         @Test
         void should_complete_on_error_when_shared_policy_group_manager_throw_exception() {
-            ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup
-                .builder()
+            ReactableSharedPolicyGroup reactable = ReactableSharedPolicyGroup.builder()
                 .id("id")
                 .definition(SharedPolicyGroup.builder().build())
                 .build();
-            SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable
-                .builder()
+            SharedPolicyGroupReactorDeployable sharedPolicyGroup = SharedPolicyGroupReactorDeployable.builder()
                 .sharedPolicyGroupId("id")
                 .reactableSharedPolicyGroup(reactable)
                 .build();

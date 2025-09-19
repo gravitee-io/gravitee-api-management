@@ -88,8 +88,9 @@ public class SwaggerService_CreateAPITest {
             io.gravitee.policy.api.swagger.v3.OAIOperationVisitor.class
         );
 
-        when(policyOperationVisitorManager.getPolicyVisitors())
-            .thenReturn(asList(swaggerPolicyOperationVisitor, oaiPolicyOperationVisitor));
+        when(policyOperationVisitorManager.getPolicyVisitors()).thenReturn(
+            asList(swaggerPolicyOperationVisitor, oaiPolicyOperationVisitor)
+        );
 
         OAIOperationVisitor op = mock(OAIPolicyOperationVisitor.class);
         when(op.visit(any(), any())).thenReturn(Optional.of(new Policy()));
