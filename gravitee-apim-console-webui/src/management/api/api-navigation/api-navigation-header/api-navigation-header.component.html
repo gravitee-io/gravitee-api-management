@@ -32,6 +32,10 @@
           <a mat-raised-button [href]="menuItemHeader.action.targetUrl" target="_blank" [disabled]="menuItemHeader.action.disabled">{{
             menuItemHeader.action.text
           }}</a>
+        } @else if (menuItemHeader.action.navigateTo) {
+          <a mat-raised-button (click)="navigateToURL(menuItemHeader.action.navigateTo)" [disabled]="menuItemHeader.action.disabled">{{
+            menuItemHeader.action.text
+          }}</a>
         }
       </div>
     }

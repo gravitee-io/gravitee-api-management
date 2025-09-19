@@ -44,4 +44,5 @@ export interface MenuItemHeaderAction {
   targetUrl?: string;
   disabled: boolean;
   disabledTooltip?: string;
+  navigateTo?: string;
 }

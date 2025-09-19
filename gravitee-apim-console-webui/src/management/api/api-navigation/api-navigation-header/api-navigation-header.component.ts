@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { MenuItemHeader } from '../MenuGroupItem';
+import { timeFrames } from '../../../../shared/utils/timeFrameRanges';
 
 @Component({
   selector: 'api-navigation-header',
@@ -26,4 +28,47 @@ import { MenuItemHeader } from '../MenuGroupItem';
 export class ApiNavigationHeaderComponent {
   @Input()
   public menuItemHeader: MenuItemHeader;
+
+  constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
+  ) {}
+
+  public navigateToURL(url: string) {
+    if (url.includes('runtime-logs')) {
+      this.navigateToLogs(url);
+    }
+  }
+
+  private navigateToLogs(url: string) {
+    const queryParams = this.activatedRoute.snapshot.queryParams;
+
+    const queryParamsForLogs = {
+      from: this.getFromAndToTimestamps(queryParams).fromTimestamp,
+      to: this.getFromAndToTimestamps(queryParams).toTimestamp,
+      statuses: queryParams.httpStatuses,
+      planIds: queryParams.plans,
+      applicationIds: queryParams.applications,
+    };
+
+    this.router.navigate([url], {
+      relativeTo: this.activatedRoute,
+      queryParams: queryParamsForLogs,
+    });
+  }
+
+  private getFromAndToTimestamps(queryParams) {
+    let fromTimestamp: number;
+    let toTimestamp: number;
+    if (queryParams.period === 'custom' && queryParams.from && queryParams.to) {
+      fromTimestamp = +queryParams.from;
+      toTimestamp = +queryParams.to;
+    } else {
+      const timeFrame = timeFrames.find((tf) => tf.id === queryParams.period);
+      const timeRangeParams = timeFrame.timeFrameRangesParams();
+      fromTimestamp = timeRangeParams.from;
+      toTimestamp = timeRangeParams.to;
+    }
+    return { fromTimestamp, toTimestamp };
+  }
 }
