@@ -58,7 +58,10 @@ public class PathParamToHeaderPolicy implements Policy {
     public Completable onRequest(HttpExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
             if (ctx.request().pathParameters() != null) {
-                ctx.request().pathParameters().forEach((key, value) -> ctx.request().headers().add(X_PATH_PARAM + key, value.get(0)));
+                ctx
+                    .request()
+                    .pathParameters()
+                    .forEach((key, value) -> ctx.request().headers().add(X_PATH_PARAM + key, value.get(0)));
             }
         });
     }
@@ -67,7 +70,10 @@ public class PathParamToHeaderPolicy implements Policy {
     public Completable onResponse(HttpExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
             if (ctx.request().pathParameters() != null) {
-                ctx.request().pathParameters().forEach((key, value) -> ctx.response().headers().add(X_PATH_PARAM + key, value.get(0)));
+                ctx
+                    .request()
+                    .pathParameters()
+                    .forEach((key, value) -> ctx.response().headers().add(X_PATH_PARAM + key, value.get(0)));
             }
         });
     }

@@ -58,8 +58,7 @@ public class TcpClientFactory {
         final TcpProxyEndpointConnectorConfiguration configuration,
         final TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
-        return VertxTcpClientFactory
-            .builder()
+        return VertxTcpClientFactory.builder()
             .vertx(ctx.getComponent(Vertx.class))
             .tcpTarget(TcpTargetMapper.INSTANCE.map(configuration.getTcpTarget()))
             .sslOptions(SslOptionsMapper.INSTANCE.map(sharedConfiguration.getSslOptions()))

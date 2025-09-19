@@ -50,11 +50,10 @@ class DefaultEntrypointConnectorPluginManagerTest {
 
     @BeforeEach
     public void beforeEach() {
-        cut =
-            new DefaultEntrypointConnectorPluginManager(
-                new DefaultEntrypointConnectorConnectorClassLoaderFactory(),
-                new PluginConfigurationHelper(null, new ObjectMapper())
-            );
+        cut = new DefaultEntrypointConnectorPluginManager(
+            new DefaultEntrypointConnectorConnectorClassLoaderFactory(),
+            new PluginConfigurationHelper(null, new ObjectMapper())
+        );
     }
 
     @Test

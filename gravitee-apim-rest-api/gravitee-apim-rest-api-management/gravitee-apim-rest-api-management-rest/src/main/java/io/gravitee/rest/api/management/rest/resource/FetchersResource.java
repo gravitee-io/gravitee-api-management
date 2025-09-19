@@ -71,11 +71,10 @@ public class FetchersResource {
             for (String s : params.getExpand()) {
                 switch (s) {
                     case "schema":
-                        stream =
-                            stream.map(fetcherListItem -> {
-                                fetcherListItem.setSchema(fetcherService.getSchema(fetcherListItem.getId()));
-                                return fetcherListItem;
-                            });
+                        stream = stream.map(fetcherListItem -> {
+                            fetcherListItem.setSchema(fetcherService.getSchema(fetcherListItem.getId()));
+                            return fetcherListItem;
+                        });
                         break;
                     default:
                         break;

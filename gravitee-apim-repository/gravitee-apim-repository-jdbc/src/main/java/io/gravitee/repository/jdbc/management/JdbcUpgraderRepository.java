@@ -43,8 +43,7 @@ public class JdbcUpgraderRepository extends JdbcAbstractRepository<UpgradeRecord
 
     @Override
     protected JdbcObjectMapper<UpgradeRecord> buildOrm() {
-        return JdbcObjectMapper
-            .builder(UpgradeRecord.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(UpgradeRecord.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("applied_at", Types.TIMESTAMP, Date.class)
             .build();

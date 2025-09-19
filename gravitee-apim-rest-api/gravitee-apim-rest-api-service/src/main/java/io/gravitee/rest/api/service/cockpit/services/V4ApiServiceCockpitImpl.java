@@ -90,15 +90,14 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
         final ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
         var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, userId);
 
-        return Single
-            .just(
-                createApiDomainService.create(
-                    deserializeApi(node, environmentId),
-                    primaryOwner,
-                    new AuditInfo(organizationId, environmentId, AuditActor.builder().userId(userId).build()),
-                    api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
-                )
+        return Single.just(
+            createApiDomainService.create(
+                deserializeApi(node, environmentId),
+                primaryOwner,
+                new AuditInfo(organizationId, environmentId, AuditActor.builder().userId(userId).build()),
+                api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
             )
+        )
             .flatMap(api -> publishApi(executionContext, api, userId, updateApiEntity))
             .flatMap(apiEntity -> syncDeployment(executionContext, apiEntity.getId(), userId));
     }

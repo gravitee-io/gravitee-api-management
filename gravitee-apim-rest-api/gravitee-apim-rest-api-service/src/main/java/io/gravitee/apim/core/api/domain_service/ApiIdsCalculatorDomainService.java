@@ -58,11 +58,10 @@ public class ApiIdsCalculatorDomainService {
     public ImportDefinition recalculateApiDefinitionIds(String environmentId, ImportDefinition toRecalculate) {
         Objects.requireNonNull(toRecalculate.getApiExport(), "Api is mandatory");
         if (toRecalculate.getApiExport().getId() == null || toRecalculate.getApiExport().getId().isEmpty()) {
-            findApiByEnvironmentAndCrossId(environmentId, toRecalculate.getApiExport().getCrossId())
-                .ifPresentOrElse(
-                    api -> recalculateIdsFromCrossId(environmentId, toRecalculate, api),
-                    () -> recalculateIdsFromDefinitionIds(environmentId, toRecalculate)
-                );
+            findApiByEnvironmentAndCrossId(environmentId, toRecalculate.getApiExport().getCrossId()).ifPresentOrElse(
+                api -> recalculateIdsFromCrossId(environmentId, toRecalculate, api),
+                () -> recalculateIdsFromDefinitionIds(environmentId, toRecalculate)
+            );
         }
         return generateEmptyIdsForPlansAndPages(toRecalculate);
     }
@@ -123,7 +122,10 @@ public class ApiIdsCalculatorDomainService {
     }
 
     private void updatePagesHierarchy(List<Page> pages, String parentId, String newParentId) {
-        pages.stream().filter(page -> isChildPageOf(page, parentId)).forEach(child -> child.setParentId(newParentId));
+        pages
+            .stream()
+            .filter(page -> isChildPageOf(page, parentId))
+            .forEach(child -> child.setParentId(newParentId));
     }
 
     private boolean isChildPageOf(Page page, String parentPageId) {

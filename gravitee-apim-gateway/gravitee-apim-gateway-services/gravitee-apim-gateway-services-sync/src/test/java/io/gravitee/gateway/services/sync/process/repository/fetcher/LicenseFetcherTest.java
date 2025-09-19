@@ -64,7 +64,11 @@ class LicenseFetcherTest {
     void should_fetch_license() throws TechnicalException {
         License license = new License();
         when(licenseRepository.findByCriteria(any(), any())).thenReturn(new Page<>(List.of(license), 0, 1, 1)).thenReturn(null);
-        cut.fetchLatest(null, null, null).test().assertValueCount(1).assertValue(events -> events.contains(license));
+        cut
+            .fetchLatest(null, null, null)
+            .test()
+            .assertValueCount(1)
+            .assertValue(events -> events.contains(license));
     }
 
     @Test
@@ -72,7 +76,12 @@ class LicenseFetcherTest {
         cut = new LicenseFetcher(licenseRepository, 10);
         License license = new License();
         when(licenseRepository.findByCriteria(any(), any())).thenReturn(new Page<>(List.of(license), 0, 1, 1)).thenReturn(null);
-        cut.fetchLatest(null, null, null).test().assertValueCount(1).assertValue(events -> events.contains(license)).assertComplete();
+        cut
+            .fetchLatest(null, null, null)
+            .test()
+            .assertValueCount(1)
+            .assertValue(events -> events.contains(license))
+            .assertComplete();
     }
 
     @Test
@@ -83,16 +92,16 @@ class LicenseFetcherTest {
         License license = new License();
         when(
             licenseRepository.findByCriteria(
-                argThat(argument ->
-                    argument.getReferenceType() == License.ReferenceType.ORGANIZATION &&
-                    argument.getReferenceIds().contains("orga-id") &&
-                    argument.getFrom() < from.toEpochMilli() &&
-                    argument.getTo() > to.toEpochMilli()
+                argThat(
+                    argument ->
+                        argument.getReferenceType() == License.ReferenceType.ORGANIZATION &&
+                        argument.getReferenceIds().contains("orga-id") &&
+                        argument.getFrom() < from.toEpochMilli() &&
+                        argument.getTo() > to.toEpochMilli()
                 ),
                 eq(new PageableBuilder().pageNumber(0).pageSize(1).build())
             )
-        )
-            .thenReturn(new Page<>(List.of(license), 0, 1, 1));
+        ).thenReturn(new Page<>(List.of(license), 0, 1, 1));
         cut
             .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("orga-id"))
             .test()

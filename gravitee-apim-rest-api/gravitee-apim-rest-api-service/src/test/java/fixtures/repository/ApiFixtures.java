@@ -28,8 +28,7 @@ public class ApiFixtures {
 
     private ApiFixtures() {}
 
-    private static final Api.ApiBuilder BASE = Api
-        .builder()
+    private static final Api.ApiBuilder BASE = Api.builder()
         .id("api-id")
         .name("api-name")
         .description("api-description")
@@ -45,16 +44,14 @@ public class ApiFixtures {
 
     @SneakyThrows
     public static Api aV2Api() {
-        return BASE
-            .definitionVersion(DefinitionVersion.V2)
+        return BASE.definitionVersion(DefinitionVersion.V2)
             .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV2()))
             .build();
     }
 
     @SneakyThrows
     public static Api aV4Api() {
-        return BASE
-            .definitionVersion(DefinitionVersion.V4)
+        return BASE.definitionVersion(DefinitionVersion.V4)
             .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV4()))
             .build();
     }

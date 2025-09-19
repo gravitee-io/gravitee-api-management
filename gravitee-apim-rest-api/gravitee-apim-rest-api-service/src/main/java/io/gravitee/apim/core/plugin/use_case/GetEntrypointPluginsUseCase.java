@@ -38,9 +38,9 @@ public class GetEntrypointPluginsUseCase {
     public Output getEntrypointPluginsByOrganization(Input input) {
         return new Output(
             this.pluginFilterByLicenseDomainService.setPluginDeployedStatusDependingOnLicense(
-                    this.entrypointPluginQueryService.findAll(),
-                    input.organizationId
-                )
+                this.entrypointPluginQueryService.findAll(),
+                input.organizationId
+            )
         );
     }
 

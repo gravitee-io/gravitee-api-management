@@ -160,8 +160,7 @@ class AcceptSubscriptionUseCaseTest {
         membershipQueryService.initWith(List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, USER_ID, ORGANIZATION_ID)));
         applicationCrudService.initWith(
             List.of(
-                ApplicationModelFixtures
-                    .anApplicationEntity()
+                ApplicationModelFixtures.anApplicationEntity()
                     .toBuilder()
                     .id(APPLICATION_ID)
                     .primaryOwner(PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
@@ -176,18 +175,16 @@ class AcceptSubscriptionUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                apiCrudService,
-                apiKeyCrudService,
-                applicationCrudService,
-                auditCrudServiceInMemory,
-                integrationAgent,
-                planCrudService,
-                subscriptionCrudService,
-                userCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiCrudService,
+            apiKeyCrudService,
+            applicationCrudService,
+            auditCrudServiceInMemory,
+            integrationAgent,
+            planCrudService,
+            subscriptionCrudService,
+            userCrudService
+        ).forEach(InMemoryAlternative::reset);
         triggerNotificationDomainService.reset();
     }
 
@@ -255,19 +252,17 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId(), STARTING_AT, ENDING_AT, "custom_key");
 
         // Then
-        assertThat(apiKeyCrudService.storage())
-            .containsOnly(
-                ApiKeyEntity
-                    .builder()
-                    .id("generated-id")
-                    .applicationId(subscription.getApplicationId())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .key("custom_key")
-                    .subscriptions(List.of(subscription.getId()))
-                    .expireAt(ENDING_AT)
-                    .build()
-            );
+        assertThat(apiKeyCrudService.storage()).containsOnly(
+            ApiKeyEntity.builder()
+                .id("generated-id")
+                .applicationId(subscription.getApplicationId())
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .key("custom_key")
+                .subscriptions(List.of(subscription.getId()))
+                .expireAt(ENDING_AT)
+                .build()
+        );
     }
 
     @Test
@@ -389,19 +384,17 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId());
 
         // Then
-        assertThat(apiKeyCrudService.storage())
-            .containsOnly(
-                ApiKeyEntity
-                    .builder()
-                    .id("generated-id")
-                    .applicationId(subscription.getApplicationId())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .key("generated-id")
-                    .subscriptions(List.of(subscription.getId()))
-                    .expireAt(ENDING_AT)
-                    .build()
-            );
+        assertThat(apiKeyCrudService.storage()).containsOnly(
+            ApiKeyEntity.builder()
+                .id("generated-id")
+                .applicationId(subscription.getApplicationId())
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .key("generated-id")
+                .subscriptions(List.of(subscription.getId()))
+                .expireAt(ENDING_AT)
+                .build()
+        );
     }
 
     @Test
@@ -416,28 +409,26 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId());
 
         // Then
-        assertThat(apiKeyCrudService.storage())
-            .containsOnly(
-                ApiKeyEntity
-                    .builder()
-                    .id("generated-id")
-                    .applicationId(subscription.getApplicationId())
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .key(
-                        String.join(
-                            "-",
-                            IntegrationSubscription.Type.API_KEY.name(),
-                            subscription.getId(),
-                            application.getId(),
-                            application.getName()
-                        )
+        assertThat(apiKeyCrudService.storage()).containsOnly(
+            ApiKeyEntity.builder()
+                .id("generated-id")
+                .applicationId(subscription.getApplicationId())
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .key(
+                    String.join(
+                        "-",
+                        IntegrationSubscription.Type.API_KEY.name(),
+                        subscription.getId(),
+                        application.getId(),
+                        application.getName()
                     )
-                    .subscriptions(List.of(subscription.getId()))
-                    .expireAt(null)
-                    .federated(true)
-                    .build()
-            );
+                )
+                .subscriptions(List.of(subscription.getId()))
+                .expireAt(null)
+                .federated(true)
+                .build()
+        );
     }
 
     @Test
@@ -468,23 +459,15 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationDomainService.getApiNotifications())
-            .containsExactly(
-                new SubscriptionAcceptedApiHookContext("api-id", application.getId(), plan.getId(), subscription.getId(), null)
-            );
+        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+            new SubscriptionAcceptedApiHookContext("api-id", application.getId(), plan.getId(), subscription.getId(), null)
+        );
 
-        assertThat(triggerNotificationDomainService.getApplicationNotifications())
-            .containsExactly(
-                new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                    new SubscriptionAcceptedApplicationHookContext(
-                        application.getId(),
-                        "api-id",
-                        plan.getId(),
-                        subscription.getId(),
-                        USER_ID
-                    )
-                )
-            );
+        assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
+            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                new SubscriptionAcceptedApplicationHookContext(application.getId(), "api-id", plan.getId(), subscription.getId(), USER_ID)
+            )
+        );
     }
 
     @ParameterizedTest
@@ -496,8 +479,7 @@ class AcceptSubscriptionUseCaseTest {
         var application = givenExistingApplication();
         var subscriber = givenExistingUser(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build());
         var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .subscribedBy(subscriber.getId())
                 .apiId(api.getId())
@@ -511,19 +493,12 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationDomainService.getApplicationNotifications())
-            .contains(
-                new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
-                    new Recipient("EMAIL", "subscriber@mail.fake"),
-                    new SubscriptionAcceptedApplicationHookContext(
-                        application.getId(),
-                        "api-id",
-                        plan.getId(),
-                        subscription.getId(),
-                        USER_ID
-                    )
-                )
-            );
+        assertThat(triggerNotificationDomainService.getApplicationNotifications()).contains(
+            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                new Recipient("EMAIL", "subscriber@mail.fake"),
+                new SubscriptionAcceptedApplicationHookContext(application.getId(), "api-id", plan.getId(), subscription.getId(), USER_ID)
+            )
+        );
     }
 
     @Test
@@ -570,8 +545,7 @@ class AcceptSubscriptionUseCaseTest {
         var application = givenExistingApplication();
         var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.CLOSED));
         var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .planId(plan.getId())
                 .applicationId(application.getId())
@@ -642,8 +616,7 @@ class AcceptSubscriptionUseCaseTest {
     }
 
     private SubscriptionEntity givenExistingPendingSubscriptionFor(Api api, Plan plan, BaseApplicationEntity application) {
-        var subscription = SubscriptionFixtures
-            .aSubscription()
+        var subscription = SubscriptionFixtures.aSubscription()
             .toBuilder()
             .subscribedBy("subscriber")
             .apiId(api.getId())

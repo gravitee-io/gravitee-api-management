@@ -31,13 +31,11 @@ public class PlanModelFixtures {
 
     private PlanModelFixtures() {}
 
-    private static final PlanSecurity.PlanSecurityBuilder BASE_PLAN_SECURITY_V4 = PlanSecurity
-        .builder()
+    private static final PlanSecurity.PlanSecurityBuilder BASE_PLAN_SECURITY_V4 = PlanSecurity.builder()
         .type(PlanSecurityType.API_KEY.getLabel())
         .configuration("{\"nice\": \"config\"}");
 
-    private static final PlanEntity.PlanEntityBuilder<?, ?> BASE_PLAN_ENTITY_V4 = PlanEntity
-        .builder()
+    private static final PlanEntity.PlanEntityBuilder<?, ?> BASE_PLAN_ENTITY_V4 = PlanEntity.builder()
         .id("my-plan")
         .apiId("my-api")
         .name("My plan")
@@ -60,8 +58,7 @@ public class PlanModelFixtures {
         .flows(List.of(FlowModelFixtures.aModelFlowV4()));
 
     private static final io.gravitee.rest.api.model.PlanEntity.PlanEntityBuilder<?, ?> BASE_PLAN_ENTITY_V2 =
-        io.gravitee.rest.api.model.PlanEntity
-            .builder()
+        io.gravitee.rest.api.model.PlanEntity.builder()
             .id("my-plan")
             .api("my-api")
             .name("My plan")
@@ -87,8 +84,7 @@ public class PlanModelFixtures {
     }
 
     public static PlanEntity aKeylessPlanV4() {
-        return PlanEntity
-            .builder()
+        return PlanEntity.builder()
             .id("keyless-id")
             .name("keyless")
             .apiId("my-api")

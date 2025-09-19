@@ -27,8 +27,7 @@ public class ReferenceIdReferenceTypeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("metadata")
             .name("_id.referenceId+1__id.referenceType+1")
             .key("_id.referenceId", ascending())

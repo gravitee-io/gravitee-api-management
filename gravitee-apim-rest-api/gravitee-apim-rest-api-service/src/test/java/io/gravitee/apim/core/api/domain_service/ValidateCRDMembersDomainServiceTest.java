@@ -44,8 +44,7 @@ class ValidateCRDMembersDomainServiceTest {
     static final String ACTOR_USER_ID = "ACTOR";
     static final String ROLE_ID = UUID.randomUUID().toString();
 
-    static final AuditInfo AUDIT_INFO = AuditInfo
-        .builder()
+    static final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .actor(AuditActor.builder().userSource(USER_SOURCE).userSourceId(ACTOR_USER_ID).userId(ACTOR_USER_ID).build())
         .environmentId(ENV_ID)
         .organizationId(ORG_ID)
@@ -66,32 +65,28 @@ class ValidateCRDMembersDomainServiceTest {
         );
         roleQueryService.initWith(
             List.of(
-                Role
-                    .builder()
+                Role.builder()
                     .name("USER")
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORG_ID)
                     .id(ROLE_ID)
                     .scope(Role.Scope.APPLICATION)
                     .build(),
-                Role
-                    .builder()
+                Role.builder()
                     .name("USER")
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORG_ID)
                     .id(ROLE_ID)
                     .scope(Role.Scope.API)
                     .build(),
-                Role
-                    .builder()
+                Role.builder()
                     .name("PRIMARY_OWNER")
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORG_ID)
                     .id("user_role_id")
                     .scope(Role.Scope.APPLICATION)
                     .build(),
-                Role
-                    .builder()
+                Role.builder()
                     .name("PRIMARY_OWNER")
                     .referenceType(Role.ReferenceType.ORGANIZATION)
                     .referenceId(ORG_ID)
@@ -130,10 +125,9 @@ class ValidateCRDMembersDomainServiceTest {
         result.peek(
             sanitized -> assertThat(Set.copyOf(sanitized.members())).isEqualTo(expectedMembers),
             errors ->
-                assertThat(errors)
-                    .isEqualTo(
-                        List.of(Validator.Error.warning("member [unknown-id] of source [MEMORY] could not be found in organization [TEST]"))
-                    )
+                assertThat(errors).isEqualTo(
+                    List.of(Validator.Error.warning("member [unknown-id] of source [MEMORY] could not be found in organization [TEST]"))
+                )
         );
     }
 

@@ -37,7 +37,7 @@ public class ConnectionTimeoutTest extends AbstractWiremockGatewayTest {
 
         assertTrue(
             response.getStatusLine().getStatusCode() == HttpStatus.SC_GATEWAY_TIMEOUT ||
-            response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_GATEWAY
+                response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_GATEWAY
         );
     }
 }

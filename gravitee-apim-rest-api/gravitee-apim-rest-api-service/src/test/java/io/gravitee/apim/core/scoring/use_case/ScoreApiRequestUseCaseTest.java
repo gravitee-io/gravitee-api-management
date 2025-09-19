@@ -85,14 +85,13 @@ class ScoreApiRequestUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        scoreApiRequestUseCase =
-            new ScoreApiRequestUseCase(
-                apiCrudService,
-                new ApiDocumentationDomainService(pageQueryService, new PlanQueryServiceInMemory()),
-                scoringProvider,
-                asyncJobCrudService,
-                scoringRulesetQueryService
-            );
+        scoreApiRequestUseCase = new ScoreApiRequestUseCase(
+            apiCrudService,
+            new ApiDocumentationDomainService(pageQueryService, new PlanQueryServiceInMemory()),
+            scoringProvider,
+            asyncJobCrudService,
+            scoringRulesetQueryService
+        );
     }
 
     @AfterEach
@@ -117,31 +116,28 @@ class ScoreApiRequestUseCaseTest {
             .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests())
-            .containsExactly(
-                new ScoreRequest(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    api.getId(),
-                    List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.SWAGGER, page.getName(), page.getContent()))
-                )
-            );
-        assertThat(asyncJobCrudService.storage())
-            .containsExactly(
-                AsyncJob
-                    .builder()
-                    .id("generated-id")
-                    .sourceId(api.getId())
-                    .environmentId(ENVIRONMENT_ID)
-                    .initiatorId(USER_ID)
-                    .type(AsyncJob.Type.SCORING_REQUEST)
-                    .status(AsyncJob.Status.PENDING)
-                    .upperLimit(1L)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(scoringProvider.pendingRequests()).containsExactly(
+            new ScoreRequest(
+                "generated-id",
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                api.getId(),
+                List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.SWAGGER, page.getName(), page.getContent()))
+            )
+        );
+        assertThat(asyncJobCrudService.storage()).containsExactly(
+            AsyncJob.builder()
+                .id("generated-id")
+                .sourceId(api.getId())
+                .environmentId(ENVIRONMENT_ID)
+                .initiatorId(USER_ID)
+                .type(AsyncJob.Type.SCORING_REQUEST)
+                .status(AsyncJob.Status.PENDING)
+                .upperLimit(1L)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -160,31 +156,28 @@ class ScoreApiRequestUseCaseTest {
             .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests())
-            .containsExactly(
-                new ScoreRequest(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    api.getId(),
-                    List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.ASYNCAPI, page.getName(), page.getContent()))
-                )
-            );
-        assertThat(asyncJobCrudService.storage())
-            .containsExactly(
-                AsyncJob
-                    .builder()
-                    .id("generated-id")
-                    .sourceId(api.getId())
-                    .environmentId(ENVIRONMENT_ID)
-                    .initiatorId(USER_ID)
-                    .type(AsyncJob.Type.SCORING_REQUEST)
-                    .status(AsyncJob.Status.PENDING)
-                    .upperLimit(1L)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(scoringProvider.pendingRequests()).containsExactly(
+            new ScoreRequest(
+                "generated-id",
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                api.getId(),
+                List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.ASYNCAPI, page.getName(), page.getContent()))
+            )
+        );
+        assertThat(asyncJobCrudService.storage()).containsExactly(
+            AsyncJob.builder()
+                .id("generated-id")
+                .sourceId(api.getId())
+                .environmentId(ENVIRONMENT_ID)
+                .initiatorId(USER_ID)
+                .type(AsyncJob.Type.SCORING_REQUEST)
+                .status(AsyncJob.Status.PENDING)
+                .upperLimit(1L)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -220,17 +213,16 @@ class ScoreApiRequestUseCaseTest {
             .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests())
-            .containsExactly(
-                new ScoreRequest(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    api.getId(),
-                    List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.SWAGGER, page.getName(), page.getContent())),
-                    List.of(CUSTOM_RULESET_1.payload(), CUSTOM_RULESET_2.payload())
-                )
-            );
+        assertThat(scoringProvider.pendingRequests()).containsExactly(
+            new ScoreRequest(
+                "generated-id",
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                api.getId(),
+                List.of(new ScoreRequest.AssetToScore(page.getId(), ScoringAssetType.SWAGGER, page.getName(), page.getContent())),
+                List.of(CUSTOM_RULESET_1.payload(), CUSTOM_RULESET_2.payload())
+            )
+        );
     }
 
     @ParameterizedTest

@@ -170,14 +170,10 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
                 .dispatchSubscription(subscription)
                 .mergeWith(Completable.merge(readyObs).andThen(Completable.fromRunnable(testScheduler::triggerActions)))
                 .takeUntil(
-                    webhookActions.waitForRequestsOnCallback(
-                        messageCount,
-                        callbackPath,
-                        () -> {
-                            testScheduler.advanceTimeBy(3000, MILLISECONDS);
-                            testScheduler.triggerActions();
-                        }
-                    )
+                    webhookActions.waitForRequestsOnCallback(messageCount, callbackPath, () -> {
+                        testScheduler.advanceTimeBy(3000, MILLISECONDS);
+                        testScheduler.triggerActions();
+                    })
                 )
                 .test();
 
@@ -230,14 +226,10 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
                 .dispatchSubscription(subscription)
                 .mergeWith(Completable.merge(readyObs).andThen(Completable.fromRunnable(testScheduler::triggerActions)))
                 .takeUntil(
-                    webhookActions.waitForRequestsOnCallback(
-                        messageCount,
-                        callbackPath,
-                        () -> {
-                            testScheduler.advanceTimeBy(3000, MILLISECONDS);
-                            testScheduler.triggerActions();
-                        }
-                    )
+                    webhookActions.waitForRequestsOnCallback(messageCount, callbackPath, () -> {
+                        testScheduler.advanceTimeBy(3000, MILLISECONDS);
+                        testScheduler.triggerActions();
+                    })
                 )
                 .test()
                 .awaitDone(10, SECONDS)
@@ -443,12 +435,12 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
                 .willReturn(
                     ok(
                         "{\"" +
-                        TOKEN_TYPE_KEY +
-                        "\":\"Bearer\",\"" +
-                        ACCESS_TOKEN_KEY +
-                        "\":\"token-from-oauth2-server-first\", \"" +
-                        EXPIRES_IN_KEY +
-                        "\": 0}"
+                            TOKEN_TYPE_KEY +
+                            "\":\"Bearer\",\"" +
+                            ACCESS_TOKEN_KEY +
+                            "\":\"token-from-oauth2-server-first\", \"" +
+                            EXPIRES_IN_KEY +
+                            "\": 0}"
                     )
                 )
                 .willSetStateTo("Second call")
@@ -470,15 +462,19 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         // Make sure webhook has been call once with the first token which then expires.
         wiremock.verify(
             1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-oauth2-server-first"))
+            postRequestedFor(urlPathEqualTo(callbackPath)).withHeader(
+                "Authorization",
+                equalToIgnoreCase("Bearer token-from-oauth2-server-first")
+            )
         );
 
         // Then other calls with the new second token.
         wiremock.verify(
             2,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-oauth2-server-second"))
+            postRequestedFor(urlPathEqualTo(callbackPath)).withHeader(
+                "Authorization",
+                equalToIgnoreCase("Bearer token-from-oauth2-server-second")
+            )
         );
     }
 

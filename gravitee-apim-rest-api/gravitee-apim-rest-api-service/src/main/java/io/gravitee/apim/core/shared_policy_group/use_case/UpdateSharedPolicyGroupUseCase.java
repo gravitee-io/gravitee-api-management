@@ -44,8 +44,10 @@ public class UpdateSharedPolicyGroupUseCase {
     private final AuditDomainService auditService;
 
     public Output execute(Input input) {
-        var existingSharedPolicyGroup =
-            this.sharedPolicyGroupCrudService.getByEnvironmentId(input.auditInfo().environmentId(), input.sharedPolicyGroupId());
+        var existingSharedPolicyGroup = this.sharedPolicyGroupCrudService.getByEnvironmentId(
+            input.auditInfo().environmentId(),
+            input.sharedPolicyGroupId()
+        );
 
         var sharedPolicyGroupToUpdate = existingSharedPolicyGroup.update(input.sharedPolicyGroupToUpdate());
 
@@ -94,8 +96,7 @@ public class UpdateSharedPolicyGroupUseCase {
 
     private void createAuditLog(SharedPolicyGroup oldSharedPolicyGroup, SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
         auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity
-                .builder()
+            EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_UPDATED)

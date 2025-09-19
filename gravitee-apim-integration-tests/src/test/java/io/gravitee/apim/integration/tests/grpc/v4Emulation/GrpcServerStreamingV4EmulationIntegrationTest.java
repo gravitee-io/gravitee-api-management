@@ -61,25 +61,22 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
     void should_request_grpc_server(VertxTestContext testContext) {
         // start the backend
         GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
-        grpcServer.callHandler(
-            StreamingGreeterGrpc.getSayHelloStreamingMethod(),
-            request -> {
-                GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
-                // end back three replies...
-                request.handler(hello -> {
-                    for (int i = 0; i < STREAM_MESSAGE_NUMBER; i++) {
-                        response.write(HelloReply.newBuilder().setMessage("Hello " + hello.getName() + " part " + i).build());
-                        try {
-                            Thread.sleep(STREAM_SLEEP_MILLIS);
-                        } catch (InterruptedException e) {
-                            response.status(GrpcStatus.ABORTED);
-                        }
+        grpcServer.callHandler(StreamingGreeterGrpc.getSayHelloStreamingMethod(), request -> {
+            GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
+            // end back three replies...
+            request.handler(hello -> {
+                for (int i = 0; i < STREAM_MESSAGE_NUMBER; i++) {
+                    response.write(HelloReply.newBuilder().setMessage("Hello " + hello.getName() + " part " + i).build());
+                    try {
+                        Thread.sleep(STREAM_SLEEP_MILLIS);
+                    } catch (InterruptedException e) {
+                        response.status(GrpcStatus.ABORTED);
                     }
-                    //.. and end the stream
-                    response.end();
-                });
-            }
-        );
+                }
+                //.. and end the stream
+                response.end();
+            });
+        });
 
         // Message count checkpoint
         Checkpoint messageCounter = testContext.checkpoint(STREAM_MESSAGE_NUMBER);

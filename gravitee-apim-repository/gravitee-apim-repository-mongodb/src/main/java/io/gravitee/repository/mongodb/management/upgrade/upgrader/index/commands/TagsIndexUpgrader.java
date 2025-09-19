@@ -27,8 +27,7 @@ public class TagsIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("commands")
             .name("t1")
             .key("tags", ascending())

@@ -70,9 +70,10 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             LOGGER.debug("Find quality rule by id : {}", id);
             return qualityRuleRepository
                 .findById(id)
-                .filter(qr ->
-                    qr.getReferenceType() == QualityRule.ReferenceType.valueOf(referenceType.name()) &&
-                    qr.getReferenceId().equalsIgnoreCase(referenceId)
+                .filter(
+                    qr ->
+                        qr.getReferenceType() == QualityRule.ReferenceType.valueOf(referenceType.name()) &&
+                        qr.getReferenceId().equalsIgnoreCase(referenceId)
                 )
                 .map(this::convert)
                 .orElseThrow(() -> new QualityRuleNotFoundException(id));
@@ -142,9 +143,10 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
         try {
             final QualityRule qualityRule = qualityRuleRepository
                 .findById(updateEntity.getId())
-                .filter(qr ->
-                    qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT &&
-                    qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                .filter(
+                    qr ->
+                        qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT &&
+                        qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
                 )
                 .orElseThrow(() -> new QualityRuleNotFoundException(updateEntity.getId()));
             final QualityRule updatedQualityRule = qualityRuleRepository.update(convert(updateEntity, qualityRule));
@@ -168,9 +170,10 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
         try {
             final Optional<QualityRule> qualityRuleOptional = qualityRuleRepository
                 .findById(qualityRule)
-                .filter(qr ->
-                    qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT &&
-                    qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                .filter(
+                    qr ->
+                        qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT &&
+                        qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
                 );
             if (qualityRuleOptional.isPresent()) {
                 qualityRuleRepository.delete(qualityRule);
@@ -192,8 +195,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     }
 
     private QualityRuleEntity convert(QualityRule qualityRule) {
-        return QualityRuleEntity
-            .builder()
+        return QualityRuleEntity.builder()
             .id(qualityRule.getId())
             .referenceType(QualityRuleReferenceType.valueOf(qualityRule.getReferenceType().name()))
             .referenceId(qualityRule.getReferenceId())
@@ -207,8 +209,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
 
     private QualityRule convert(final NewQualityRuleEntity qualityRuleEntity, QualityRuleReferenceType referenceType, String referenceId) {
         final Date now = new Date();
-        return QualityRule
-            .builder()
+        return QualityRule.builder()
             .id(UuidString.generateRandom())
             .referenceType(repoQualityRuleReferenceType(referenceType))
             .referenceId(referenceId)
@@ -221,8 +222,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     }
 
     private QualityRule convert(final UpdateQualityRuleEntity qualityRuleEntity, final QualityRule qr) {
-        return QualityRule
-            .builder()
+        return QualityRule.builder()
             .id(qualityRuleEntity.getId())
             .referenceType(qr.getReferenceType())
             .referenceId(qr.getReferenceId())

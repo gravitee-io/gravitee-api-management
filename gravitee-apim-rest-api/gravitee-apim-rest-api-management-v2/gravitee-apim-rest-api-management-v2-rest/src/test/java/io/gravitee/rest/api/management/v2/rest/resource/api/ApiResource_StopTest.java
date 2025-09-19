@@ -70,8 +70,9 @@ public class ApiResource_StopTest extends ApiResourceTest {
 
     @Test
     public void should_not_stop_api_if_not_found() {
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API)))
-            .thenThrow(new ApiNotFoundException(API));
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenThrow(
+            new ApiNotFoundException(API)
+        );
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());

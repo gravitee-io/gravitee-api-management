@@ -51,8 +51,7 @@ public class Workflow {
     }
 
     public static Workflow newApiReviewWorkflow(String apiId, String userId) {
-        return Workflow
-            .builder()
+        return Workflow.builder()
             .id(UuidString.generateRandom())
             .referenceType(Workflow.ReferenceType.API)
             .referenceId(apiId)

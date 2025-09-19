@@ -59,8 +59,7 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void shouldCreate() throws Exception {
-        final QualityRule qualityRule = QualityRule
-            .builder()
+        final QualityRule qualityRule = QualityRule.builder()
             .id("new-qualityRule")
             .referenceType(QualityRule.ReferenceType.ENVIRONMENT)
             .referenceId("4b78f2219-890d-4344-8f22-19890d83444")
@@ -77,16 +76,15 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
         assertThat(nbQualityRulesAfterCreation).isEqualTo(nbQualityRulesBeforeCreation + 1);
 
         Optional<QualityRule> optional = qualityRuleRepository.findById("new-qualityRule");
-        assertThat(optional)
-            .hasValueSatisfying(savedQualityRule -> {
-                assertThat(savedQualityRule.getName()).isEqualTo(qualityRule.getName());
-                assertThat(savedQualityRule.getDescription()).isEqualTo(qualityRule.getDescription());
-                assertThat(savedQualityRule.getWeight()).isEqualTo(qualityRule.getWeight());
-                assertThat(savedQualityRule.getReferenceType()).isEqualTo(qualityRule.getReferenceType());
-                assertThat(savedQualityRule.getReferenceId()).isEqualTo(qualityRule.getReferenceId());
-                assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getCreatedAt())).isTrue();
-                assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getUpdatedAt())).isTrue();
-            });
+        assertThat(optional).hasValueSatisfying(savedQualityRule -> {
+            assertThat(savedQualityRule.getName()).isEqualTo(qualityRule.getName());
+            assertThat(savedQualityRule.getDescription()).isEqualTo(qualityRule.getDescription());
+            assertThat(savedQualityRule.getWeight()).isEqualTo(qualityRule.getWeight());
+            assertThat(savedQualityRule.getReferenceType()).isEqualTo(qualityRule.getReferenceType());
+            assertThat(savedQualityRule.getReferenceId()).isEqualTo(qualityRule.getReferenceId());
+            assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getCreatedAt())).isTrue();
+            assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getUpdatedAt())).isTrue();
+        });
     }
 
     @Test
@@ -109,16 +107,15 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
         assertThat(nbQualityRulesAfterUpdate).isEqualTo(nbQualityRulesBeforeUpdate);
 
         Optional<QualityRule> optionalUpdated = qualityRuleRepository.findById("quality-rule1");
-        assertThat(optionalUpdated)
-            .hasValueSatisfying(updatedQualityRule -> {
-                assertThat(updatedQualityRule.getName()).isEqualTo("New name");
-                assertThat(updatedQualityRule.getDescription()).isEqualTo("New description");
-                assertThat(updatedQualityRule.getWeight()).isEqualTo(5);
-                assertThat(updatedQualityRule.getReferenceType()).isEqualTo(QualityRule.ReferenceType.ENVIRONMENT);
-                assertThat(updatedQualityRule.getReferenceId()).isEqualTo("b78f2219-890d-4344-8f22-19890d834442");
-                assertThat(compareDate(DATE, updatedQualityRule.getCreatedAt())).isTrue();
-                assertThat(compareDate(DATE, updatedQualityRule.getUpdatedAt())).isTrue();
-            });
+        assertThat(optionalUpdated).hasValueSatisfying(updatedQualityRule -> {
+            assertThat(updatedQualityRule.getName()).isEqualTo("New name");
+            assertThat(updatedQualityRule.getDescription()).isEqualTo("New description");
+            assertThat(updatedQualityRule.getWeight()).isEqualTo(5);
+            assertThat(updatedQualityRule.getReferenceType()).isEqualTo(QualityRule.ReferenceType.ENVIRONMENT);
+            assertThat(updatedQualityRule.getReferenceId()).isEqualTo("b78f2219-890d-4344-8f22-19890d834442");
+            assertThat(compareDate(DATE, updatedQualityRule.getCreatedAt())).isTrue();
+            assertThat(compareDate(DATE, updatedQualityRule.getUpdatedAt())).isTrue();
+        });
     }
 
     @Test

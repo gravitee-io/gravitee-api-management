@@ -86,6 +86,10 @@ public class MongoTicketRepository implements TicketRepository {
 
     @Override
     public Set<Ticket> findAll() throws TechnicalException {
-        return internalTicketRepo.findAll().stream().map(ticketMongo -> mapper.map(ticketMongo)).collect(Collectors.toSet());
+        return internalTicketRepo
+            .findAll()
+            .stream()
+            .map(ticketMongo -> mapper.map(ticketMongo))
+            .collect(Collectors.toSet());
     }
 }

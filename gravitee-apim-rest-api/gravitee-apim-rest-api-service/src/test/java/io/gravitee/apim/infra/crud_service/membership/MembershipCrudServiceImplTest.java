@@ -64,8 +64,7 @@ class MembershipCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Membership
-                        .builder()
+                    io.gravitee.repository.management.model.Membership.builder()
                         .id("membership-id")
                         .referenceType(io.gravitee.repository.management.model.MembershipReferenceType.API)
                         .referenceId("api-id")

@@ -291,17 +291,18 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         // Delete related access points
         this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
 
-        this.dictionaryService.findAll(executionContext)
-            .forEach(dictionaryEntity -> dictionaryService.stop(executionContext, dictionaryEntity.getId()));
+        this.dictionaryService.findAll(executionContext).forEach(dictionaryEntity ->
+            dictionaryService.stop(executionContext, dictionaryEntity.getId())
+        );
 
         // Deactivate all identity providers
         this.identityProviderActivationService.removeAllIdpsFromTarget(
-                executionContext,
-                new IdentityProviderActivationService.ActivationTarget(
-                    executionContext.getEnvironmentId(),
-                    IdentityProviderActivationReferenceType.ENVIRONMENT
-                )
-            );
+            executionContext,
+            new IdentityProviderActivationService.ActivationTarget(
+                executionContext.getEnvironmentId(),
+                IdentityProviderActivationReferenceType.ENVIRONMENT
+            )
+        );
     }
 
     private void deleteEnvironment(ExecutionContext executionContext, EnvironmentEntity environment) throws TechnicalException {

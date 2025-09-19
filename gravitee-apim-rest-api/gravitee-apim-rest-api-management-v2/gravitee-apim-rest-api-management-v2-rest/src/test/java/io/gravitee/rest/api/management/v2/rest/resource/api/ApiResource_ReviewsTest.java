@@ -53,19 +53,17 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
 
         when(
             apiWorkflowStateService.askForReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
-        )
-            .thenReturn(apiEntity);
+        ).thenReturn(apiEntity);
 
         final Response response = rootTarget("_ask").request().post(Entity.json(apiReview));
 
         assertEquals(NO_CONTENT_204, response.getStatus());
-        verify(apiWorkflowStateService)
-            .askForReview(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API),
-                eq(USER_NAME),
-                argThat(reviewEntity -> reviewEntity.getMessage().equals(apiReview.getMessage()))
-            );
+        verify(apiWorkflowStateService).askForReview(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API),
+            eq(USER_NAME),
+            argThat(reviewEntity -> reviewEntity.getMessage().equals(apiReview.getMessage()))
+        );
     }
 
     @Test
@@ -87,8 +85,7 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
         ApiReview apiReview = new ApiReview();
         apiReview.setMessage("My comment");
 
-        var apiEntity = ApiFixtures
-            .aModelApiV4()
+        var apiEntity = ApiFixtures.aModelApiV4()
             .toBuilder()
             .id(API)
             .lifecycleState(ApiLifecycleState.ARCHIVED)
@@ -112,19 +109,17 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
 
         when(
             apiWorkflowStateService.acceptReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
-        )
-            .thenReturn(apiEntity);
+        ).thenReturn(apiEntity);
 
         final Response response = rootTarget("_accept").request().post(Entity.json(apiReview));
 
         assertEquals(NO_CONTENT_204, response.getStatus());
-        verify(apiWorkflowStateService)
-            .acceptReview(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API),
-                eq(USER_NAME),
-                argThat(reviewEntity -> reviewEntity.getMessage().equals(apiReview.getMessage()))
-            );
+        verify(apiWorkflowStateService).acceptReview(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API),
+            eq(USER_NAME),
+            argThat(reviewEntity -> reviewEntity.getMessage().equals(apiReview.getMessage()))
+        );
     }
 
     @Test
@@ -151,19 +146,17 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
 
         when(
             apiWorkflowStateService.rejectReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
-        )
-            .thenReturn(apiEntity);
+        ).thenReturn(apiEntity);
 
         final Response response = rootTarget("_reject").request().post(Entity.json(apiReview));
 
         assertEquals(NO_CONTENT_204, response.getStatus());
-        verify(apiWorkflowStateService)
-            .rejectReview(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API),
-                eq(USER_NAME),
-                argThat(reviewEntity -> reviewEntity.getMessage().equals(apiReview.getMessage()))
-            );
+        verify(apiWorkflowStateService).rejectReview(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(API),
+            eq(USER_NAME),
+            argThat(reviewEntity -> reviewEntity.getMessage().equals(apiReview.getMessage()))
+        );
     }
 
     @Test

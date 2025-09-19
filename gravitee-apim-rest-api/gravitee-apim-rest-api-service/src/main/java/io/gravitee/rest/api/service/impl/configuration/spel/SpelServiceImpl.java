@@ -99,8 +99,7 @@ public class SpelServiceImpl implements SpelService {
 
     private void buildType(ObjectNode type, Class<?> classz) {
         final ArrayNode methodsNode = type.putArray("methods");
-        Arrays
-            .stream(securedMethodResolver.getMethods(classz))
+        Arrays.stream(securedMethodResolver.getMethods(classz))
             .filter(f -> Modifier.isPublic(f.getModifiers()))
             .forEach(method -> {
                 ObjectNode methodNode = methodsNode.addObject();
@@ -115,12 +114,10 @@ public class SpelServiceImpl implements SpelService {
         final Parameter[] parameters = method.getParameters();
         if (parameters.length > 0) {
             final ArrayNode paramsNode = methodNode.putArray("params");
-            Arrays
-                .stream(parameters)
-                .forEach(parameter -> {
-                    ObjectNode paramNode = paramsNode.addObject();
-                    fillParameter(paramNode, parameter);
-                });
+            Arrays.stream(parameters).forEach(parameter -> {
+                ObjectNode paramNode = paramsNode.addObject();
+                fillParameter(paramNode, parameter);
+            });
         }
     }
 

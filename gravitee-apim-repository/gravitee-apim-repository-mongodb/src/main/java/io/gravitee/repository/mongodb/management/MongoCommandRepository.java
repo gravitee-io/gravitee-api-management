@@ -135,6 +135,10 @@ public class MongoCommandRepository implements CommandRepository {
 
     @Override
     public Set<Command> findAll() throws TechnicalException {
-        return internalMessageRepo.findAll().stream().map(commandMongo -> mapper.map(commandMongo)).collect(Collectors.toSet());
+        return internalMessageRepo
+            .findAll()
+            .stream()
+            .map(commandMongo -> mapper.map(commandMongo))
+            .collect(Collectors.toSet());
     }
 }

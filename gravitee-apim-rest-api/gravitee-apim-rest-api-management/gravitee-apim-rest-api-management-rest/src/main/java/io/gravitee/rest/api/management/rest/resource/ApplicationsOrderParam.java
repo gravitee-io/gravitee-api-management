@@ -51,8 +51,7 @@ public class ApplicationsOrderParam extends AbstractParam<ApplicationsOrderParam
         public static ApplicationsOrder forValue(String order) {
             boolean isAsc = !order.startsWith("-");
             String field = order.replace("-", "");
-            return Arrays
-                .stream(ApplicationsOrder.values())
+            return Arrays.stream(ApplicationsOrder.values())
                 .filter(o -> o.field.equalsIgnoreCase(field) && o.isAsc == isAsc)
                 .findFirst()
                 .orElse(null);

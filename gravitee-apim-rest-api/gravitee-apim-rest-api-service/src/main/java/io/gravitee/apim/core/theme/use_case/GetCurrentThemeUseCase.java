@@ -34,12 +34,11 @@ public class GetCurrentThemeUseCase {
     private final DefaultThemeDomainService defaultThemeDomainService;
 
     public Output execute(Input input) {
-        var currentTheme =
-            this.themeQueryService.findByThemeTypeAndEnvironmentId(input.type(), input.executionContext().getEnvironmentId())
-                .stream()
-                .filter(theme -> Objects.equals(true, theme.isEnabled()))
-                .findFirst()
-                .orElseGet(() -> this.defaultThemeDomainService.createAndEnableDefaultTheme(input.type(), input.executionContext()));
+        var currentTheme = this.themeQueryService.findByThemeTypeAndEnvironmentId(input.type(), input.executionContext().getEnvironmentId())
+            .stream()
+            .filter(theme -> Objects.equals(true, theme.isEnabled()))
+            .findFirst()
+            .orElseGet(() -> this.defaultThemeDomainService.createAndEnableDefaultTheme(input.type(), input.executionContext()));
 
         return new Output(currentTheme);
     }

@@ -27,8 +27,7 @@ public class EnvironmentIdUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("commands")
             .name("ei1")
             .key("environmentId", ascending())

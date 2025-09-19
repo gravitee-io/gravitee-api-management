@@ -101,8 +101,10 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull("Invalid saved image data.", imageDataSaved.getData());
 
         // test search ignoring type
-        optionalAfter =
-            mediaRepository.findByHash(hashString, MediaCriteria.builder().api("apiId").organization(ORG_ID).environment(ENV_ID).build());
+        optionalAfter = mediaRepository.findByHash(
+            hashString,
+            MediaCriteria.builder().api("apiId").organization(ORG_ID).environment(ENV_ID).build()
+        );
         assertTrue("Image saved not found", optionalAfter.isPresent());
     }
 

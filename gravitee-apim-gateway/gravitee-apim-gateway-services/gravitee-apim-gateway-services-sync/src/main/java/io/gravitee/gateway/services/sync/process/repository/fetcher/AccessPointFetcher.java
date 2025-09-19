@@ -43,13 +43,11 @@ public class AccessPointFetcher {
     public Flowable<List<AccessPoint>> fetchLatest(Long from, Long to, Set<String> environments, AccessPointStatus status) {
         return Flowable.generate(
             () ->
-                AccessPointPageable
-                    .builder()
+                AccessPointPageable.builder()
                     .index(0)
                     .size(bulkItems)
                     .criteria(
-                        AccessPointCriteria
-                            .builder()
+                        AccessPointCriteria.builder()
                             .referenceType(AccessPointReferenceType.ENVIRONMENT)
                             .target(AccessPointTarget.GATEWAY)
                             .referenceIds(environments)

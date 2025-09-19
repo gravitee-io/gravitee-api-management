@@ -34,8 +34,9 @@ class GetSharedPolicyGroupPolicyPluginsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        getSharedPolicyGroupPolicyPluginsUseCase =
-            new GetSharedPolicyGroupPolicyPluginsUseCase(sharedPolicyGroupHistoryQueryServiceInMemory);
+        getSharedPolicyGroupPolicyPluginsUseCase = new GetSharedPolicyGroupPolicyPluginsUseCase(
+            sharedPolicyGroupHistoryQueryServiceInMemory
+        );
     }
 
     @Test

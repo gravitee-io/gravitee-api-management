@@ -118,8 +118,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     @Test
     public void should_search_with_SharedPolicyGroupId_criteria() throws TechnicalException {
-        final var criteria = SharedPolicyGroupHistoryCriteria
-            .builder()
+        final var criteria = SharedPolicyGroupHistoryCriteria.builder()
             .environmentId("environmentId")
             .sharedPolicyGroupId("sharedPolicyGroupId_1")
             .build();
@@ -132,8 +131,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     @Test
     public void should_search_page_2() throws TechnicalException {
-        final var criteria = SharedPolicyGroupHistoryCriteria
-            .builder()
+        final var criteria = SharedPolicyGroupHistoryCriteria.builder()
             .environmentId("environmentId")
             .sharedPolicyGroupId("sharedPolicyGroupId_1")
             .build();
@@ -152,8 +150,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     @Test
     public void should_search_with_no_result() throws TechnicalException {
-        final var criteria = SharedPolicyGroupHistoryCriteria
-            .builder()
+        final var criteria = SharedPolicyGroupHistoryCriteria.builder()
             .environmentId("environmentId")
             .sharedPolicyGroupId("unknown")
             .build();
@@ -166,8 +163,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     @Test
     public void should_search_with_no_result_with_unknown_environment() throws TechnicalException {
-        final var criteria = SharedPolicyGroupHistoryCriteria
-            .builder()
+        final var criteria = SharedPolicyGroupHistoryCriteria.builder()
             .environmentId("unknown")
             .sharedPolicyGroupId("sharedPolicyGroupId_1")
             .build();
@@ -180,8 +176,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     @Test
     public void should_search_with_sortable() throws TechnicalException {
-        final var criteria = SharedPolicyGroupHistoryCriteria
-            .builder()
+        final var criteria = SharedPolicyGroupHistoryCriteria.builder()
             .environmentId("environmentId")
             .sharedPolicyGroupId("sharedPolicyGroupId_1")
             .build();
@@ -207,8 +202,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
 
     @Test
     public void should_search_with_lifecycle_state_criteria() throws TechnicalException {
-        final var criteria = SharedPolicyGroupHistoryCriteria
-            .builder()
+        final var criteria = SharedPolicyGroupHistoryCriteria.builder()
             .environmentId("environmentId")
             .lifecycleState(SharedPolicyGroupLifecycleState.UNDEPLOYED)
             .build();
@@ -311,8 +305,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
     }
 
     private static SharedPolicyGroup.SharedPolicyGroupBuilder getDefaultSharedPolicyGroupBuilder(String id) {
-        return SharedPolicyGroup
-            .builder()
+        return SharedPolicyGroup.builder()
             .id(id)
             .name("name")
             .version(1)

@@ -58,27 +58,24 @@ public class UpdateCategoryApiOrderUseCaseTest {
     void setUp() {
         updateCategoryApiDomainService = new UpdateCategoryApiDomainServiceInMemory(categoryApiCrudService);
         validateCategoryDomainService = new ValidateCategoryDomainService(categoryQueryService);
-        useCase =
-            new UpdateCategoryApiOrderUseCase(
-                validateCategoryDomainService,
-                apiAuthorizationDomainService,
-                updateCategoryApiDomainService,
-                apiCrudServiceInMemory,
-                categoryApiCrudService
-            );
+        useCase = new UpdateCategoryApiOrderUseCase(
+            validateCategoryDomainService,
+            apiAuthorizationDomainService,
+            updateCategoryApiDomainService,
+            apiCrudServiceInMemory,
+            categoryApiCrudService
+        );
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                apiAuthorizationDomainService,
-                updateCategoryApiDomainService,
-                categoryQueryService,
-                apiCrudServiceInMemory,
-                categoryApiCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiAuthorizationDomainService,
+            updateCategoryApiDomainService,
+            categoryQueryService,
+            apiCrudServiceInMemory,
+            categoryApiCrudService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Test

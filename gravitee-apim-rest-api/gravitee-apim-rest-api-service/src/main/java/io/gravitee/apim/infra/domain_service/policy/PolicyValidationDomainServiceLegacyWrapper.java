@@ -54,12 +54,24 @@ public class PolicyValidationDomainServiceLegacyWrapper implements PolicyValidat
                 PolicyPluginEntity policy = policiesMap.get(policyId);
 
                 if (apiType.equals(ApiType.PROXY)) {
-                    if (policy.getProxy() == null || policy.getProxy().stream().noneMatch(p -> p.name().equals(phase.name()))) {
+                    if (
+                        policy.getProxy() == null ||
+                        policy
+                            .getProxy()
+                            .stream()
+                            .noneMatch(p -> p.name().equals(phase.name()))
+                    ) {
                         policyNamesUnexpected.add(policy.getName());
                     }
                 }
                 if (apiType.equals(ApiType.MESSAGE)) {
-                    if (policy.getMessage() == null || policy.getMessage().stream().noneMatch(p -> p.name().equals(phase.name()))) {
+                    if (
+                        policy.getMessage() == null ||
+                        policy
+                            .getMessage()
+                            .stream()
+                            .noneMatch(p -> p.name().equals(phase.name()))
+                    ) {
                         policyNamesUnexpected.add(policy.getName());
                     }
                 }

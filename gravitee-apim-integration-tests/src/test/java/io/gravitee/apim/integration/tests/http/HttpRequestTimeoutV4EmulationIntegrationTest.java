@@ -96,8 +96,10 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
 
             wiremock.verify(
                 1,
-                getRequestedFor(urlPathEqualTo("/endpoint"))
-                    .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER))
+                getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(
+                    AddHeaderPolicy.HEADER_NAME,
+                    equalTo(AddHeaderPolicy.REQUEST_HEADER)
+                )
             );
         }
 
@@ -128,8 +130,10 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
 
             wiremock.verify(
                 1,
-                getRequestedFor(urlPathEqualTo("/endpoint"))
-                    .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER))
+                getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(
+                    AddHeaderPolicy.HEADER_NAME,
+                    equalTo(AddHeaderPolicy.REQUEST_HEADER)
+                )
             );
         }
 
@@ -159,8 +163,10 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
 
             wiremock.verify(
                 0,
-                getRequestedFor(urlPathEqualTo("/endpoint"))
-                    .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER))
+                getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(
+                    AddHeaderPolicy.HEADER_NAME,
+                    equalTo(AddHeaderPolicy.REQUEST_HEADER)
+                )
             );
         }
 
@@ -242,8 +248,10 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
 
             wiremock.verify(
                 1,
-                getRequestedFor(urlPathEqualTo("/endpoint"))
-                    .withHeader(AddHeaderPolicy.HEADER_NAME, equalTo(AddHeaderPolicy.REQUEST_HEADER))
+                getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(
+                    AddHeaderPolicy.HEADER_NAME,
+                    equalTo(AddHeaderPolicy.REQUEST_HEADER)
+                )
             );
         }
     }

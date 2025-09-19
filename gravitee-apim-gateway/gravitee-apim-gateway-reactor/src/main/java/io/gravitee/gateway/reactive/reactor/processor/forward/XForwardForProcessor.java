@@ -50,8 +50,7 @@ public class XForwardForProcessor implements Processor {
             String xForwardedForHeader = request.headers().get(HttpHeaderNames.X_FORWARDED_FOR);
 
             if (StringUtils.hasText(xForwardedForHeader)) {
-                Arrays
-                    .stream(COMMA_SEPARATED_VALUES_PATTERN.split(xForwardedForHeader))
+                Arrays.stream(COMMA_SEPARATED_VALUES_PATTERN.split(xForwardedForHeader))
                     .findFirst()
                     .ifPresent(xForwardFor -> {
                         int idx = xForwardFor.indexOf(':');

@@ -58,9 +58,9 @@ public abstract class AbstractFailureProcessor implements Processor {
         ExecutionFailure executionFailure = ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE);
 
         if (executionFailure == null) {
-            executionFailure =
-                new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
-                    .message(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+            executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message(
+                HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()
+            );
             ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         }
 

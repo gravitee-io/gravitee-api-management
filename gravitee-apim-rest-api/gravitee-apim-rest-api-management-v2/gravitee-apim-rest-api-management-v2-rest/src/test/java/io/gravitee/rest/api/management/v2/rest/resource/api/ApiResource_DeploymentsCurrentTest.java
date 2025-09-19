@@ -46,8 +46,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_v4_deployments() {
-        when(getApiDefinitionUseCase.execute(any()))
-            .thenReturn(new GetApiDefinitionUseCase.Output(DefinitionVersion.V4, ApiDefinitionFixtures.anApiV4(), null));
+        when(getApiDefinitionUseCase.execute(any())).thenReturn(
+            new GetApiDefinitionUseCase.Output(DefinitionVersion.V4, ApiDefinitionFixtures.anApiV4(), null)
+        );
 
         final Response response = rootTarget(API + "/deployments/current").request().get();
         assertEquals(OK_200, response.getStatus());
@@ -55,8 +56,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
 
     @Test
     public void should_get_api_v2_deployments() {
-        when(getApiDefinitionUseCase.execute(any()))
-            .thenReturn(new GetApiDefinitionUseCase.Output(DefinitionVersion.V2, null, ApiDefinitionFixtures.anApiV2()));
+        when(getApiDefinitionUseCase.execute(any())).thenReturn(
+            new GetApiDefinitionUseCase.Output(DefinitionVersion.V2, null, ApiDefinitionFixtures.anApiV2())
+        );
 
         final Response response = rootTarget(API + "/deployments/current").request().get();
         assertEquals(OK_200, response.getStatus());

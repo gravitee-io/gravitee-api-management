@@ -123,14 +123,13 @@ class CreatePlanDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-            new CreatePlanDomainService(
-                new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
-                new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
-                planCrudService,
-                flowCrudService,
-                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
-            );
+        service = new CreatePlanDomainService(
+            new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
+            new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
+            planCrudService,
+            flowCrudService,
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
+        );
 
         parametersQueryService.initWith(
             List.of(
@@ -138,15 +137,16 @@ class CreatePlanDomainServiceTest {
                 new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
             )
         );
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
+            invocation.getArgument(1)
+        );
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(auditCrudService, flowCrudService, pageCrudService, parametersQueryService, planCrudService).forEach(
+            InMemoryAlternative::reset
+        );
         reset(policyValidationDomainService);
     }
 
@@ -172,8 +172,9 @@ class CreatePlanDomainServiceTest {
         void should_throw_when_security_configuration_is_invalid() {
             // Given
             var plan = anApiKeyV4().toBuilder().build();
-            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
-                .thenThrow(new InvalidDataException("invalid"));
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenThrow(
+                new InvalidDataException("invalid")
+            );
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
@@ -398,8 +399,7 @@ class CreatePlanDomainServiceTest {
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
                 .containsExactly(
-                    AuditEntity
-                        .builder()
+                    AuditEntity.builder()
                         .id("generated-id")
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)

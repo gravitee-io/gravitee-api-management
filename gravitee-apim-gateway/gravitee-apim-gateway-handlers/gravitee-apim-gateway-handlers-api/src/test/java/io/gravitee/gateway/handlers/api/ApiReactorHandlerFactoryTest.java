@@ -103,26 +103,26 @@ public class ApiReactorHandlerFactoryTest {
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
         when(applicationContext.getBean(GatewayConfiguration.class)).thenReturn(gatewayConfiguration);
         when(applicationContext.getBean(ApiTemplateVariableProviderFactory.class)).thenReturn(apiTemplateVariableProviderFactory);
-        when(applicationContext.getBeanNamesForType(any(ResolvableType.class)))
-            .thenReturn(new String[] { "configurablePluginManager", "resourcePlugin" });
+        when(applicationContext.getBeanNamesForType(any(ResolvableType.class))).thenReturn(
+            new String[] { "configurablePluginManager", "resourcePlugin" }
+        );
 
-        apiContextHandlerFactory =
-            new ApiReactorHandlerFactory(
-                applicationContext,
-                configuration,
-                null,
-                v3PolicyFactoryCreator,
-                null,
-                organizationPolicyChainFactoryManager,
-                null,
-                policyChainProviderLoader,
-                apiProcessorChainFactory,
-                flowResolverFactory,
-                new RequestTimeoutConfiguration(2000L, 10L),
-                accessPointManager,
-                dictionaryManager,
-                eventManager
-            );
+        apiContextHandlerFactory = new ApiReactorHandlerFactory(
+            applicationContext,
+            configuration,
+            null,
+            v3PolicyFactoryCreator,
+            null,
+            organizationPolicyChainFactoryManager,
+            null,
+            policyChainProviderLoader,
+            apiProcessorChainFactory,
+            flowResolverFactory,
+            new RequestTimeoutConfiguration(2000L, 10L),
+            accessPointManager,
+            dictionaryManager,
+            eventManager
+        );
     }
 
     @Test

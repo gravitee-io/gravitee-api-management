@@ -62,8 +62,7 @@ public class CockpitApiPermissionCheckerImplTest {
                 eq(ENVIRONMENT_ID),
                 eq(RolePermissionAction.CREATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         var result = permissionChecker.checkCreatePermission(
             GraviteeContext.getExecutionContext(),
@@ -85,8 +84,7 @@ public class CockpitApiPermissionCheckerImplTest {
                 eq(ENVIRONMENT_ID),
                 eq(RolePermissionAction.CREATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         var result = permissionChecker.checkCreatePermission(
             GraviteeContext.getExecutionContext(),
@@ -109,8 +107,7 @@ public class CockpitApiPermissionCheckerImplTest {
                 eq(ENVIRONMENT_ID),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         var result = permissionChecker.checkUpdatePermission(
             GraviteeContext.getExecutionContext(),
@@ -136,8 +133,7 @@ public class CockpitApiPermissionCheckerImplTest {
                 eq(API_ID),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         var result = permissionChecker.checkUpdatePermission(
             GraviteeContext.getExecutionContext(),
@@ -164,8 +160,7 @@ public class CockpitApiPermissionCheckerImplTest {
                 eq(API_ID),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         var result = permissionChecker.checkUpdatePermission(
             GraviteeContext.getExecutionContext(),
@@ -232,8 +227,7 @@ public class CockpitApiPermissionCheckerImplTest {
                 eq(ENVIRONMENT_ID),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     private void allowApiDocumentationUpdate() {
@@ -245,8 +239,7 @@ public class CockpitApiPermissionCheckerImplTest {
                 eq(API_ID),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     private void allowApiDefinitionUpdate() {
@@ -258,8 +251,7 @@ public class CockpitApiPermissionCheckerImplTest {
                 eq(API_ID),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     private void makeUserAdmin() {

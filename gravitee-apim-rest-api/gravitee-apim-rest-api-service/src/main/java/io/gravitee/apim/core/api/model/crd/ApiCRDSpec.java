@@ -117,8 +117,7 @@ public class ApiCRDSpec {
      */
     public Api.ApiBuilder toApiBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return Api
-            .builder()
+        return Api.builder()
             .id(id)
             .crossId(crossId)
             .name(name)
@@ -146,8 +145,7 @@ public class ApiCRDSpec {
      */
     public io.gravitee.definition.model.v4.Api.ApiBuilder toApiDefinitionBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return io.gravitee.definition.model.v4.Api
-            .builder()
+        return io.gravitee.definition.model.v4.Api.builder()
             .analytics(analytics)
             .apiVersion(version)
             .definitionVersion(DefinitionVersion.V4)
@@ -192,8 +190,7 @@ public class ApiCRDSpec {
                         paths
                             .stream()
                             .map(path ->
-                                io.gravitee.definition.model.v4.listener.http.Path
-                                    .builder()
+                                io.gravitee.definition.model.v4.listener.http.Path.builder()
                                     .host(path.getHost())
                                     .path(path.getPath())
                                     .overrideAccess(path.isOverrideAccess())

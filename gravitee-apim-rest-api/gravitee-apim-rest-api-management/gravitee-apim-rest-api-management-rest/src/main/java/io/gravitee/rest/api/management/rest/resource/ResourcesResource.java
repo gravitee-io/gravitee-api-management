@@ -85,21 +85,21 @@ public class ResourcesResource {
 
         Stream<ResourceListItem> stream = resourceService.findAll().stream().map(this::convert);
 
-        stream =
-            stream.peek(resourceListItem ->
-                resourceListItem.setDeployed(resourceListItem.getDeployed() && license.isFeatureEnabled(resourceListItem.getFeature()))
-            );
+        stream = stream.peek(resourceListItem ->
+            resourceListItem.setDeployed(resourceListItem.getDeployed() && license.isFeatureEnabled(resourceListItem.getFeature()))
+        );
 
         if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
-                        stream =
-                            stream.peek(resourceListItem -> resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId()))
-                            );
+                        stream = stream.peek(resourceListItem ->
+                            resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId()))
+                        );
                     case "icon":
-                        stream =
-                            stream.peek(resourceListItem -> resourceListItem.setIcon(resourceService.getIcon(resourceListItem.getId())));
+                        stream = stream.peek(resourceListItem ->
+                            resourceListItem.setIcon(resourceService.getIcon(resourceListItem.getId()))
+                        );
                 }
             }
         }

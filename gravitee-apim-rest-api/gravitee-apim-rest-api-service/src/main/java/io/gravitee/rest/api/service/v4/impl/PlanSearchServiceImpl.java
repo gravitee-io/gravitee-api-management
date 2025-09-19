@@ -81,7 +81,10 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     public GenericPlanEntity findById(final ExecutionContext executionContext, final String plan) {
         try {
             logger.debug("Find plan by id : {}", plan);
-            return planRepository.findById(plan).map(this::mapToGeneric).orElseThrow(() -> new PlanNotFoundException(plan));
+            return planRepository
+                .findById(plan)
+                .map(this::mapToGeneric)
+                .orElseThrow(() -> new PlanNotFoundException(plan));
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by id: %s", plan), ex);
         }
@@ -154,7 +157,12 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     @Override
     public boolean anyPlanMismatchWithApi(final List<String> planIds, final String apiId) {
         try {
-            return planRepository.findByIdIn(planIds).stream().map(Plan::getApi).filter(Objects::nonNull).anyMatch(id -> !id.equals(apiId));
+            return planRepository
+                .findByIdIn(planIds)
+                .stream()
+                .map(Plan::getApi)
+                .filter(Objects::nonNull)
+                .anyMatch(id -> !id.equals(apiId));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error has occurred checking plans ownership", e);
         }

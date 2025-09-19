@@ -134,8 +134,9 @@ public class ApiLicenseServiceImplTest {
 
     @Test
     public void should_transform_parsing_error_to_technical_management_exception() throws JsonProcessingException {
-        when(objectMapper.readValue(anyString(), any(io.gravitee.definition.model.v4.Api.class.getClass())))
-            .thenThrow(JsonMappingException.class);
+        when(objectMapper.readValue(anyString(), any(io.gravitee.definition.model.v4.Api.class.getClass()))).thenThrow(
+            JsonMappingException.class
+        );
         assertThrows(TechnicalManagementException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 }

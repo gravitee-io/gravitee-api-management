@@ -39,18 +39,16 @@ class PolicyPluginQueryServiceLegacyWrapperTest {
 
     @Test
     void findAll() {
-        when(policyPluginService.findAll())
-            .thenReturn(
-                Set.of(
-                    PolicyPluginEntity.builder().id("policy-1").name("Policy 1").build(),
-                    PolicyPluginEntity.builder().id("policy-2").name("Policy 2").build()
-                )
-            );
+        when(policyPluginService.findAll()).thenReturn(
+            Set.of(
+                PolicyPluginEntity.builder().id("policy-1").name("Policy 1").build(),
+                PolicyPluginEntity.builder().id("policy-2").name("Policy 2").build()
+            )
+        );
 
-        assertThat(service.findAll())
-            .containsExactly(
-                PolicyPlugin.builder().id("policy-1").name("Policy 1").build(),
-                PolicyPlugin.builder().id("policy-2").name("Policy 2").build()
-            );
+        assertThat(service.findAll()).containsExactly(
+            PolicyPlugin.builder().id("policy-1").name("Policy 1").build(),
+            PolicyPlugin.builder().id("policy-2").name("Policy 2").build()
+        );
     }
 }

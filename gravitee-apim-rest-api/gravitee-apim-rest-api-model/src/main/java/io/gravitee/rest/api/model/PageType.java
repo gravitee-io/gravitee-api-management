@@ -64,8 +64,7 @@ public enum PageType {
     }
 
     public static PageType fromPageExtensionAndContent(String pageExtension, String pageContent) {
-        return Stream
-            .of(values())
+        return Stream.of(values())
             .filter(pageType -> pageType.matchesExtensionAndContent(pageExtension, pageContent))
             .findFirst()
             .orElse(null);

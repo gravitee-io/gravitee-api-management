@@ -249,10 +249,11 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                 return (
                     endpointConnectorPlugin != null &&
                     endpointConnectorPlugin.getSupportedModes().contains(ConnectorMode.PUBLISH) &&
-                    (
-                        endpointGroup.getName().equals(dlq.getEndpoint()) ||
-                        endpointGroup.getEndpoints().stream().anyMatch(endpoint -> endpoint.getName().equals(dlq.getEndpoint()))
-                    )
+                    (endpointGroup.getName().equals(dlq.getEndpoint()) ||
+                        endpointGroup
+                            .getEndpoints()
+                            .stream()
+                            .anyMatch(endpoint -> endpoint.getName().equals(dlq.getEndpoint())))
                 );
             });
     }

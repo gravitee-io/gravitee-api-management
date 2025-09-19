@@ -75,20 +75,25 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
                 eq(APPLICATION_LOG),
                 eq(READ)
             )
-        )
-            .thenReturn(Set.of("app1"));
-        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
-            .thenReturn(Set.of("api1"));
+        ).thenReturn(Set.of("app1"));
+        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(
+            Set.of("api1")
+        );
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService)
-            .findIdsByUserAndPermission(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
+        verify(applicationService).findIdsByUserAndPermission(
+            any(ExecutionContext.class),
+            eq(USER_NAME),
+            isNull(),
+            eq(APPLICATION_LOG),
+            eq(READ)
+        );
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
-        verify(logsService)
-            .findPlatform(
-                any(ExecutionContext.class),
-                argThat(query ->
+        verify(logsService).findPlatform(
+            any(ExecutionContext.class),
+            argThat(
+                query ->
                     Objects.equals(query.getQuery(), "foo:bar") &&
                     query.getTerms().size() == 2 &&
                     query.getTerms().containsKey("application") &&
@@ -101,8 +106,8 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
                     query.getTo() == 1 &&
                     Objects.equals(query.getField(), "@timestamp") &&
                     query.isOrder()
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -116,20 +121,25 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
                 eq(APPLICATION_LOG),
                 eq(READ)
             )
-        )
-            .thenReturn(Set.of("app1"));
-        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
-            .thenReturn(emptySet());
+        ).thenReturn(Set.of("app1"));
+        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(
+            emptySet()
+        );
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService)
-            .findIdsByUserAndPermission(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
+        verify(applicationService).findIdsByUserAndPermission(
+            any(ExecutionContext.class),
+            eq(USER_NAME),
+            isNull(),
+            eq(APPLICATION_LOG),
+            eq(READ)
+        );
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
-        verify(logsService)
-            .findPlatform(
-                any(ExecutionContext.class),
-                argThat(query ->
+        verify(logsService).findPlatform(
+            any(ExecutionContext.class),
+            argThat(
+                query ->
                     Objects.equals(query.getQuery(), "foo:bar") &&
                     query.getTerms().size() == 1 &&
                     query.getTerms().containsKey("application") &&
@@ -140,8 +150,8 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
                     query.getTo() == 1 &&
                     Objects.equals(query.getField(), "@timestamp") &&
                     query.isOrder()
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -155,21 +165,26 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
                 eq(APPLICATION_LOG),
                 eq(READ)
             )
-        )
-            .thenReturn(emptySet());
-        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
-            .thenReturn(Set.of("api1"));
+        ).thenReturn(emptySet());
+        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(
+            Set.of("api1")
+        );
 
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService)
-            .findIdsByUserAndPermission(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
+        verify(applicationService).findIdsByUserAndPermission(
+            any(ExecutionContext.class),
+            eq(USER_NAME),
+            isNull(),
+            eq(APPLICATION_LOG),
+            eq(READ)
+        );
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
-        verify(logsService)
-            .findPlatform(
-                any(ExecutionContext.class),
-                argThat(query ->
+        verify(logsService).findPlatform(
+            any(ExecutionContext.class),
+            argThat(
+                query ->
                     Objects.equals(query.getQuery(), "foo:bar") &&
                     query.getTerms().size() == 1 &&
                     query.getTerms().containsKey("api") &&
@@ -180,8 +195,8 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
                     query.getTo() == 1 &&
                     Objects.equals(query.getField(), "@timestamp") &&
                     query.isOrder()
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -194,18 +209,23 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
                 eq(APPLICATION_LOG),
                 eq(READ)
             )
-        )
-            .thenReturn(emptySet());
-        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true)))
-            .thenReturn(emptySet());
+        ).thenReturn(emptySet());
+        when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(
+            emptySet()
+        );
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
         JsonNode jsonNode = logs.readEntity(JsonNode.class);
         assertEquals(0, jsonNode.get("total").intValue());
         assertNull(jsonNode.get("logs"));
-        verify(applicationService)
-            .findIdsByUserAndPermission(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(APPLICATION_LOG), eq(READ));
+        verify(applicationService).findIdsByUserAndPermission(
+            any(ExecutionContext.class),
+            eq(USER_NAME),
+            isNull(),
+            eq(APPLICATION_LOG),
+            eq(READ)
+        );
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
         verify(logsService, never()).findPlatform(any(ExecutionContext.class), any(LogQuery.class));
     }

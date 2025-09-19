@@ -49,11 +49,13 @@ public class EntrypointMapperTest {
         var entrypoint = entrypointMapper.map(entrypointEntity);
         assertThat(entrypoint).isNotNull();
         assertThat(entrypoint.getType()).isEqualTo(entrypointEntity.getType());
-        assertThat(entrypoint.getConfiguration())
-            .isEqualTo(new GraviteeMapper().readValue(entrypointEntity.getConfiguration(), LinkedHashMap.class));
+        assertThat(entrypoint.getConfiguration()).isEqualTo(
+            new GraviteeMapper().readValue(entrypointEntity.getConfiguration(), LinkedHashMap.class)
+        );
         assertThat(entrypoint.getDlq()).isNotNull();
         assertThat(entrypoint.getDlq().getEndpoint()).isEqualTo(entrypointEntity.getDlq().getEndpoint());
-        assertThat(entrypoint.getQos())
-            .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.Qos.valueOf(entrypointEntity.getQos().name()));
+        assertThat(entrypoint.getQos()).isEqualTo(
+            io.gravitee.rest.api.management.v2.rest.model.Qos.valueOf(entrypointEntity.getQos().name())
+        );
     }
 }

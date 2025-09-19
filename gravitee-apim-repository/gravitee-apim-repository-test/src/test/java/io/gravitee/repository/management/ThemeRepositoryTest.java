@@ -40,7 +40,11 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(themes);
         assertEquals(6, themes.size());
-        final Theme themeSimple = themes.stream().filter(theme -> "simple".equals(theme.getId())).findAny().get();
+        final Theme themeSimple = themes
+            .stream()
+            .filter(theme -> "simple".equals(theme.getId()))
+            .findAny()
+            .get();
         assertEquals("Theme simple", themeSimple.getName());
         assertEquals("PORTAL", themeSimple.getType().name());
         assertEquals("backgroundImage", themeSimple.getBackgroundImage());
@@ -60,9 +64,17 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Theme> themes = themeRepository.findByReferenceIdAndReferenceTypeAndType("DEFAULT", "ENVIRONMENT", ThemeType.PORTAL);
         assertNotNull(themes);
         assertEquals(2, themes.size());
-        final Theme darkTheme = themes.stream().filter(theme -> "dark".equals(theme.getId())).findAny().get();
+        final Theme darkTheme = themes
+            .stream()
+            .filter(theme -> "dark".equals(theme.getId()))
+            .findAny()
+            .get();
         assertEquals("Theme dark", darkTheme.getName());
-        final Theme lightTheme = themes.stream().filter(theme -> "light".equals(theme.getId())).findAny().get();
+        final Theme lightTheme = themes
+            .stream()
+            .filter(theme -> "light".equals(theme.getId()))
+            .findAny()
+            .get();
         assertEquals("Light", lightTheme.getName());
     }
 

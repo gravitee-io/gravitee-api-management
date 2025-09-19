@@ -111,8 +111,7 @@ public class ApplicationService_RenewClientSecretTest {
                 any(),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
     }
@@ -133,8 +132,7 @@ public class ApplicationService_RenewClientSecretTest {
                 any(),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
     }
@@ -162,8 +160,7 @@ public class ApplicationService_RenewClientSecretTest {
                 any(),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         ClientRegistrationProviderEntity clientRegistrationProvider = new ClientRegistrationProviderEntity();
         clientRegistrationProvider.setRenewClientSecretSupport(true);
         when(clientRegistrationService.findAll(GraviteeContext.getExecutionContext())).thenReturn(Set.of(clientRegistrationProvider));
@@ -179,8 +176,9 @@ public class ApplicationService_RenewClientSecretTest {
         verify(clientRegistrationService).renewClientSecret(GraviteeContext.getExecutionContext(), "{\"my\":\"payload\"}");
 
         // check application has been updated with new client ID
-        verify(applicationRepository)
-            .update(argThat(application -> application.getMetadata().get("client_id").equals("client-id-from-clientRegistration")));
+        verify(applicationRepository).update(
+            argThat(application -> application.getMetadata().get("client_id").equals("client-id-from-clientRegistration"))
+        );
     }
 
     private Application fakeApp() {

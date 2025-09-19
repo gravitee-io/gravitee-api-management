@@ -27,8 +27,7 @@ public class ApiIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("plans")
             .name("a1")
             .key("api", ascending())

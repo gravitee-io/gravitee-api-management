@@ -72,8 +72,9 @@ public class MetadataServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void checkMetadataFormat_badEmailFormat_EL() throws TemplateException {
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
-            .thenReturn("test");
+        when(
+            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any())
+        ).thenReturn("test");
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail("test");
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
@@ -106,8 +107,9 @@ public class MetadataServiceTest {
 
     @Test
     public void checkMetadataFormat_userWithoutEmail() throws TemplateException {
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
-            .thenReturn("");
+        when(
+            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any())
+        ).thenReturn("");
         UserEntity userEntity = new UserEntity();
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
@@ -142,15 +144,14 @@ public class MetadataServiceTest {
 
         metadataService.create(GraviteeContext.getExecutionContext(), metadata, API, "apiId");
 
-        verify(metadataRepository)
-            .create(
-                argThat(meta -> {
-                    assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
-                    assertThat(meta.getName()).isEqualTo("test");
-                    assertThat(meta.getValue()).isEqualTo("value");
-                    return true;
-                })
-            );
+        verify(metadataRepository).create(
+            argThat(meta -> {
+                assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
+                assertThat(meta.getName()).isEqualTo("test");
+                assertThat(meta.getValue()).isEqualTo("value");
+                return true;
+            })
+        );
     }
 
     @Test
@@ -163,15 +164,14 @@ public class MetadataServiceTest {
 
         metadataService.create(GraviteeContext.getExecutionContext(), metadata, API, "apiId");
 
-        verify(metadataRepository)
-            .create(
-                argThat(meta -> {
-                    assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
-                    assertThat(meta.getName()).isEqualTo("test");
-                    assertThat(meta.getValue()).isEqualTo("value");
-                    return true;
-                })
-            );
+        verify(metadataRepository).create(
+            argThat(meta -> {
+                assertThat(meta.getFormat()).isEqualTo(io.gravitee.repository.management.model.MetadataFormat.STRING);
+                assertThat(meta.getName()).isEqualTo("test");
+                assertThat(meta.getValue()).isEqualTo("value");
+                return true;
+            })
+        );
     }
 
     @Test(expected = TechnicalManagementException.class)

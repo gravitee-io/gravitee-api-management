@@ -27,8 +27,7 @@ public class CreatedAtDescIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("subscriptions")
             .name("c-1")
             .key("createdAt", descending())

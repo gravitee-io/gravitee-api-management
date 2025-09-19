@@ -157,7 +157,10 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
     public boolean tokenExistsForUser(String tokenId, String userId) {
         try {
             Optional<Token> byId = tokenRepository.findById(tokenId);
-            return byId.map(Token::getReferenceId).filter(ref -> ref.equals(userId)).isPresent();
+            return byId
+                .map(Token::getReferenceId)
+                .filter(ref -> ref.equals(userId))
+                .isPresent();
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to check if token exists";
             LOGGER.error(error, ex);

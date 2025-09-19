@@ -94,8 +94,7 @@ class ApiPolicyValidatorDomainServiceTest {
             );
 
             final Set<Plan> plans = Set.of(
-                Plan
-                    .builder()
+                Plan.builder()
                     .id("plan1")
                     .paths(
                         Map.of(
@@ -108,8 +107,7 @@ class ApiPolicyValidatorDomainServiceTest {
                         )
                     )
                     .build(),
-                Plan
-                    .builder()
+                Plan.builder()
                     .id("plan2")
                     .paths(
                         Map.of(
@@ -130,7 +128,12 @@ class ApiPolicyValidatorDomainServiceTest {
                 // Verify paths at api level
                 softly
                     .assertThat(
-                        api.getPaths().values().stream().flatMap(Collection::stream).map(rule -> rule.getPolicy().getConfiguration())
+                        api
+                            .getPaths()
+                            .values()
+                            .stream()
+                            .flatMap(Collection::stream)
+                            .map(rule -> rule.getPolicy().getConfiguration())
                     )
                     .hasSize(3)
                     .allMatch(configuration -> configuration.equals("validated"));
@@ -183,8 +186,7 @@ class ApiPolicyValidatorDomainServiceTest {
             api.setDefinitionVersion(DefinitionVersion.V2);
             api.setFlows(
                 List.of(
-                    Flow
-                        .builder()
+                    Flow.builder()
                         .id("flow1")
                         .pre(
                             List.of(
@@ -199,13 +201,11 @@ class ApiPolicyValidatorDomainServiceTest {
             );
 
             final Set<Plan> plans = Set.of(
-                Plan
-                    .builder()
+                Plan.builder()
                     .id("plan1")
                     .flows(
                         List.of(
-                            Flow
-                                .builder()
+                            Flow.builder()
                                 .id("flow1")
                                 .pre(
                                     List.of(
@@ -218,13 +218,11 @@ class ApiPolicyValidatorDomainServiceTest {
                         )
                     )
                     .build(),
-                Plan
-                    .builder()
+                Plan.builder()
                     .id("plan2")
                     .flows(
                         List.of(
-                            Flow
-                                .builder()
+                            Flow.builder()
                                 .id("flow1")
                                 .pre(
                                     List.of(
@@ -259,7 +257,10 @@ class ApiPolicyValidatorDomainServiceTest {
                         plans
                             .stream()
                             .flatMap(plan ->
-                                plan.getFlows().stream().flatMap(flow -> Stream.concat(flow.getPre().stream(), flow.getPost().stream()))
+                                plan
+                                    .getFlows()
+                                    .stream()
+                                    .flatMap(flow -> Stream.concat(flow.getPre().stream(), flow.getPost().stream()))
                             )
                             .map(Step::getConfiguration)
                     )

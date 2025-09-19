@@ -54,15 +54,13 @@ class OrganizationMapperTest {
 
         reactableOrganization = new ReactableOrganization(organization);
 
-        distributedEvent =
-            DistributedEvent
-                .builder()
-                .id(organization.getId())
-                .payload(objectMapper.writeValueAsString(reactableOrganization))
-                .updatedAt(new Date())
-                .type(DistributedEventType.ORGANIZATION)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .build();
+        distributedEvent = DistributedEvent.builder()
+            .id(organization.getId())
+            .payload(objectMapper.writeValueAsString(reactableOrganization))
+            .updatedAt(new Date())
+            .type(DistributedEventType.ORGANIZATION)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
 
         organizationDeployable = OrganizationDeployable.builder().reactableOrganization(reactableOrganization).build();
     }

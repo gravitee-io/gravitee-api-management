@@ -121,8 +121,9 @@ public class ApiMapperTest {
 
         apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
 
-        when(apiEntrypointService.getApiEntrypoints(any(), eq(apiEntity)))
-            .thenReturn(Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo")));
+        when(apiEntrypointService.getApiEntrypoints(any(), eq(apiEntity))).thenReturn(
+            Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo"))
+        );
         when(apiEntrypointService.getApiEntrypointsListenerType(eq(apiEntity))).thenReturn("HTTP");
 
         Map<String, Object> metadata = new HashMap<>();

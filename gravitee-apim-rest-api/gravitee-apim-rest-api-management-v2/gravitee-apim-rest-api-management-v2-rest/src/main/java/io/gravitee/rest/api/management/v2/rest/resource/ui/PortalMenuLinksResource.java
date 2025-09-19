@@ -69,16 +69,13 @@ public class PortalMenuLinksResource extends AbstractResource {
 
         var portalMenuLinksSubset = computePaginationData(portalMenuLinks, paginationParam);
 
-        return Response
-            .ok(
-                PortalMenuLinksResponse
-                    .builder()
-                    .data(mapper.map(portalMenuLinksSubset))
-                    .pagination(PaginationInfo.computePaginationInfo(portalMenuLinks.size(), portalMenuLinksSubset.size(), paginationParam))
-                    .links(computePaginationLinks(portalMenuLinks.size(), paginationParam))
-                    .build()
-            )
-            .build();
+        return Response.ok(
+            PortalMenuLinksResponse.builder()
+                .data(mapper.map(portalMenuLinksSubset))
+                .pagination(PaginationInfo.computePaginationInfo(portalMenuLinks.size(), portalMenuLinksSubset.size(), paginationParam))
+                .links(computePaginationLinks(portalMenuLinks.size(), paginationParam))
+                .build()
+        ).build();
     }
 
     @POST
@@ -92,8 +89,7 @@ public class PortalMenuLinksResource extends AbstractResource {
             new CreatePortalMenuLinkUseCase.Input(executionContext.getEnvironmentId(), mapper.map(createPortalMenuLink))
         );
 
-        return Response
-            .created(this.getLocationHeader(output.portalMenuLink().getId()))
+        return Response.created(this.getLocationHeader(output.portalMenuLink().getId()))
             .entity(mapper.map(output.portalMenuLink()))
             .build();
     }

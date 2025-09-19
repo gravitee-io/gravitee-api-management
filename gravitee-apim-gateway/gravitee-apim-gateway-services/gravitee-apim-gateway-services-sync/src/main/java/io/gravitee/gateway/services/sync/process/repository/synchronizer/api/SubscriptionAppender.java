@@ -90,8 +90,7 @@ public class SubscriptionAppender {
         final List<String> plans,
         final Set<String> environments
     ) {
-        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria
-            .builder()
+        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder()
             .plans(plans)
             .environments(environments);
         if (initialSync) {

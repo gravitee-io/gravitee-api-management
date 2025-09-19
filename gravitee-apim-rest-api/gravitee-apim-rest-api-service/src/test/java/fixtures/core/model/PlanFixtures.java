@@ -34,8 +34,7 @@ public class PlanFixtures {
     private PlanFixtures() {}
 
     private static final Supplier<Plan.PlanBuilder> BASE = () ->
-        Plan
-            .builder()
+        Plan.builder()
             .id("my-plan")
             .apiId("my-api")
             .name("My plan")
@@ -68,8 +67,7 @@ public class PlanFixtures {
     }
 
     public static Plan anMtlsPlanV4() {
-        return BASE
-            .get()
+        return BASE.get()
             .id("mtls")
             .name("mTLS Plan")
             .definitionVersion(DefinitionVersion.V4)
@@ -78,8 +76,7 @@ public class PlanFixtures {
     }
 
     public static Plan aFederatedPlan() {
-        return BASE
-            .get()
+        return BASE.get()
             .id("federated")
             .name("Federated Plan")
             .federatedPlanDefinition(fixtures.definition.PlanFixtures.aFederatedPlan())

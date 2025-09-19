@@ -24,16 +24,14 @@ import java.util.function.Supplier;
 public class MessageLogFixtures {
 
     private static final Supplier<AggregatedMessageLog.AggregatedMessageLogBuilder> BASE_BUILDER_SUPPLIER = () ->
-        AggregatedMessageLog
-            .builder()
+        AggregatedMessageLog.builder()
             .requestId("request-id")
             .clientIdentifier("client-identifier")
             .correlationId("correlation-id")
             .parentCorrelationId("parent-correlation-id")
             .operation(MessageOperation.SUBSCRIBE)
             .entrypoint(
-                AggregatedMessageLog.Message
-                    .builder()
+                AggregatedMessageLog.Message.builder()
                     .id("message-id")
                     .connectorId("http-get")
                     .payload("message-payload")
@@ -43,8 +41,7 @@ public class MessageLogFixtures {
                     .build()
             )
             .endpoint(
-                AggregatedMessageLog.Message
-                    .builder()
+                AggregatedMessageLog.Message.builder()
                     .id("message-id")
                     .connectorId("kafka")
                     .payload("message-payload")

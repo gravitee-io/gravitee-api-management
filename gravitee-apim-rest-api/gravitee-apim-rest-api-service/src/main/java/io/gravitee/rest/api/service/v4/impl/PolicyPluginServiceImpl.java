@@ -80,8 +80,7 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
             plugin.manifest().properties().get(property) != null &&
             !plugin.manifest().properties().get(property).isEmpty()
         ) {
-            return Arrays
-                .stream(plugin.manifest().properties().get(property).split(","))
+            return Arrays.stream(plugin.manifest().properties().get(property).split(","))
                 .map(String::trim)
                 .map(ExecutionPhase::valueOf)
                 .collect(Collectors.toSet());

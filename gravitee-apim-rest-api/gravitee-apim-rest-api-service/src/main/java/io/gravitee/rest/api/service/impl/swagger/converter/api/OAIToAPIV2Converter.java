@@ -75,37 +75,34 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
                         operations.forEach((httpMethod, operation) -> {
                             final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
 
-                            getVisitors()
-                                .forEach(
-                                    (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
-                                        Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
-                                        if (policy.isPresent()) {
-                                            final Step step = new Step();
-                                            step.setName(policy.get().getName());
-                                            step.setEnabled(true);
-                                            step.setDescription(
-                                                operation.getSummary() == null
-                                                    ? (
-                                                        operation.getOperationId() == null
-                                                            ? operation.getDescription()
-                                                            : operation.getOperationId()
-                                                    )
-                                                    : operation.getSummary()
-                                            );
+                            getVisitors().forEach(
+                                (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
+                                    Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                                    if (policy.isPresent()) {
+                                        final Step step = new Step();
+                                        step.setName(policy.get().getName());
+                                        step.setEnabled(true);
+                                        step.setDescription(
+                                            operation.getSummary() == null
+                                                ? (operation.getOperationId() == null
+                                                        ? operation.getDescription()
+                                                        : operation.getOperationId())
+                                                : operation.getSummary()
+                                        );
 
-                                            step.setPolicy(policy.get().getName());
-                                            String configuration = clearNullValues(policy.get().getConfiguration());
-                                            step.setConfiguration(configuration);
+                                        step.setPolicy(policy.get().getName());
+                                        String configuration = clearNullValues(policy.get().getConfiguration());
+                                        step.setConfiguration(configuration);
 
-                                            String scope = getScope(configuration);
-                                            if (scope != null && scope.toLowerCase().equals("response")) {
-                                                flow.getPost().add(step);
-                                            } else {
-                                                flow.getPre().add(step);
-                                            }
+                                        String scope = getScope(configuration);
+                                        if (scope != null && scope.toLowerCase().equals("response")) {
+                                            flow.getPost().add(step);
+                                        } else {
+                                            flow.getPre().add(step);
                                         }
                                     }
-                                );
+                                }
+                            );
                             allFlows.add(flow);
                         });
                     }

@@ -65,8 +65,7 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
 
     private Analyzer userFieldAnalyzer() {
         try {
-            return CustomAnalyzer
-                .builder()
+            return CustomAnalyzer.builder()
                 .withTokenizer(SingleTokenTokenizerFactory.class)
                 .addTokenFilter(LowerCaseFilterFactory.class)
                 .addTokenFilter(ASCIIFoldingFilterFactory.class)

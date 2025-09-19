@@ -143,30 +143,29 @@ public class ApiServiceCockpitImplTest {
 
     @Before
     public void setUp() throws Exception {
-        apiConverter =
-            new ApiConverter(
-                new ObjectMapper(),
-                mock(PlanService.class),
-                mock(FlowService.class),
-                mock(CategoryMapper.class),
-                mock(ParameterService.class),
-                mock(WorkflowService.class)
-            );
-        service =
-            new ApiServiceCockpitImpl(
-                new ObjectMapper(),
-                apiService,
-                swaggerService,
-                pageService,
-                apiMetadataService,
-                planService,
-                apiConverter,
-                pageConverter,
-                verifyApiPathsDomainService
-            );
+        apiConverter = new ApiConverter(
+            new ObjectMapper(),
+            mock(PlanService.class),
+            mock(FlowService.class),
+            mock(CategoryMapper.class),
+            mock(ParameterService.class),
+            mock(WorkflowService.class)
+        );
+        service = new ApiServiceCockpitImpl(
+            new ObjectMapper(),
+            apiService,
+            swaggerService,
+            pageService,
+            apiMetadataService,
+            planService,
+            apiConverter,
+            pageConverter,
+            verifyApiPathsDomainService
+        );
 
-        when(verifyApiPathsDomainService.validateAndSanitize(any()))
-            .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
+        when(verifyApiPathsDomainService.validateAndSanitize(any())).thenAnswer(invocation ->
+            Validator.Result.ofValue(invocation.getArgument(0))
+        );
     }
 
     @Test
@@ -188,8 +187,9 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setLabels(LABELS);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
         service.createApi(
@@ -209,8 +209,12 @@ public class ApiServiceCockpitImplTest {
         assertThat(apiDefinitionCaptor.getValue().get("crossId")).isEqualTo(new JsonNodeFactory(false).textNode(API_CROSS_ID));
 
         verify(pageService).createAsideFolder(EXECUTION_CONTEXT, API_ID);
-        verify(pageService)
-            .createOrUpdateSwaggerPage(eq(EXECUTION_CONTEXT), eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
+        verify(pageService).createOrUpdateSwaggerPage(
+            eq(EXECUTION_CONTEXT),
+            eq(API_ID),
+            any(ImportSwaggerDescriptorEntity.class),
+            eq(true)
+        );
         verify(apiMetadataService).create(eq(EXECUTION_CONTEXT), same(swaggerApi.getMetadata()), eq(API_ID));
     }
 
@@ -226,8 +230,9 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
         service.createApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED, LABELS);
@@ -254,8 +259,9 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
         service.createApi(EXECUTION_CONTEXT, API_CROSS_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
@@ -267,8 +273,12 @@ public class ApiServiceCockpitImplTest {
         assertThat(apiDefinitionCaptor.getValue().get("crossId")).isEqualTo(new JsonNodeFactory(false).textNode(API_CROSS_ID));
 
         verify(pageService).createAsideFolder(EXECUTION_CONTEXT, API_ID);
-        verify(pageService)
-            .createOrUpdateSwaggerPage(eq(EXECUTION_CONTEXT), eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
+        verify(pageService).createOrUpdateSwaggerPage(
+            eq(EXECUTION_CONTEXT),
+            eq(API_ID),
+            any(ImportSwaggerDescriptorEntity.class),
+            eq(true)
+        );
         verify(apiMetadataService).create(eq(EXECUTION_CONTEXT), same(swaggerApi.getMetadata()), eq(API_ID));
     }
 
@@ -284,8 +294,9 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
         service.createApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
@@ -318,8 +329,9 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setCrossId(API_CROSS_ID);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
         when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(api);
 
@@ -342,8 +354,12 @@ public class ApiServiceCockpitImplTest {
         assertThat(apiDefinitionCaptor.getValue().get("crossId")).isEqualTo(new JsonNodeFactory(false).textNode(API_CROSS_ID));
 
         verify(pageService).createAsideFolder(EXECUTION_CONTEXT, API_ID);
-        verify(pageService)
-            .createOrUpdateSwaggerPage(eq(EXECUTION_CONTEXT), eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
+        verify(pageService).createOrUpdateSwaggerPage(
+            eq(EXECUTION_CONTEXT),
+            eq(API_ID),
+            any(ImportSwaggerDescriptorEntity.class),
+            eq(true)
+        );
         verify(apiMetadataService).create(eq(EXECUTION_CONTEXT), same(swaggerApi.getMetadata()), eq(API_ID));
     }
 
@@ -359,8 +375,9 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
         when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(api);
 
@@ -388,8 +405,9 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
         when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(api);
 
@@ -416,8 +434,9 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
         when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(api);
 
@@ -447,14 +466,16 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setProxy(proxy);
-        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
-            .thenReturn(updatedApiEntity);
+        when(
+            apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class))
+        ).thenReturn(updatedApiEntity);
 
         final var result = service.updateApi(
             EXECUTION_CONTEXT,
@@ -469,10 +490,18 @@ public class ApiServiceCockpitImplTest {
         verify(swaggerService).createAPI(eq(EXECUTION_CONTEXT), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
-        verify(apiService, times(0))
-            .createWithApiDefinition(eq(EXECUTION_CONTEXT), any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
-        verify(apiService, times(1))
-            .updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class));
+        verify(apiService, times(0)).createWithApiDefinition(
+            eq(EXECUTION_CONTEXT),
+            any(UpdateApiEntity.class),
+            anyString(),
+            any(ObjectNode.class)
+        );
+        verify(apiService, times(1)).updateFromSwagger(
+            eq(EXECUTION_CONTEXT),
+            eq(API_ID),
+            eq(swaggerApi),
+            any(ImportSwaggerDescriptorEntity.class)
+        );
         assertThat(result.getApi()).isEqualTo(updatedApiEntity);
     }
 
@@ -497,17 +526,20 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setProxy(proxy);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setProxy(proxy);
 
-        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
-            .thenReturn(updatedApiEntity);
-        when(apiService.deploy(eq(EXECUTION_CONTEXT), anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class)))
-            .thenReturn(updatedApiEntity);
+        when(
+            apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class))
+        ).thenReturn(updatedApiEntity);
+        when(
+            apiService.deploy(eq(EXECUTION_CONTEXT), anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class))
+        ).thenReturn(updatedApiEntity);
 
         final var result = service.updateApi(
             EXECUTION_CONTEXT,
@@ -523,8 +555,12 @@ public class ApiServiceCockpitImplTest {
         verify(swaggerService).createAPI(eq(EXECUTION_CONTEXT), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
-        verify(apiService, never())
-            .createWithApiDefinition(eq(EXECUTION_CONTEXT), any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
+        verify(apiService, never()).createWithApiDefinition(
+            eq(EXECUTION_CONTEXT),
+            any(UpdateApiEntity.class),
+            anyString(),
+            any(ObjectNode.class)
+        );
     }
 
     @Test
@@ -540,13 +576,15 @@ public class ApiServiceCockpitImplTest {
         api.setProxy(proxy);
         swaggerApi.setProxy(proxy);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
-        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
-            .thenReturn(updatedApiEntity);
+        when(
+            apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class))
+        ).thenReturn(updatedApiEntity);
 
         service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
 
@@ -575,16 +613,19 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setProxy(proxy);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setProxy(proxy);
-        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
-            .thenReturn(updatedApiEntity);
-        when(apiService.deploy(eq(EXECUTION_CONTEXT), anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class)))
-            .thenReturn(updatedApiEntity);
+        when(
+            apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class))
+        ).thenReturn(updatedApiEntity);
+        when(
+            apiService.deploy(eq(EXECUTION_CONTEXT), anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class))
+        ).thenReturn(updatedApiEntity);
         when(apiService.update(eq(EXECUTION_CONTEXT), eq(API_ID), any(UpdateApiEntity.class))).thenReturn(updatedApiEntity);
 
         final var result = service.updateApi(
@@ -601,8 +642,12 @@ public class ApiServiceCockpitImplTest {
         verify(swaggerService).createAPI(eq(EXECUTION_CONTEXT), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
-        verify(apiService, never())
-            .createWithApiDefinition(eq(EXECUTION_CONTEXT), any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
+        verify(apiService, never()).createWithApiDefinition(
+            eq(EXECUTION_CONTEXT),
+            any(UpdateApiEntity.class),
+            anyString(),
+            any(ObjectNode.class)
+        );
     }
 
     @Test
@@ -621,15 +666,18 @@ public class ApiServiceCockpitImplTest {
 
         ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
-        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
-            .thenReturn(updatedApiEntity);
-        when(apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
-            .thenReturn(updatedApiEntity);
+        when(
+            apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class))
+        ).thenReturn(updatedApiEntity);
+        when(
+            apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class))
+        ).thenReturn(updatedApiEntity);
 
         service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
@@ -648,16 +696,19 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
         swaggerApi.setProxy(proxy);
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setState(Lifecycle.State.STOPPED);
-        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
-            .thenReturn(updatedApiEntity);
-        when(apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
-            .thenReturn(updatedApiEntity);
+        when(
+            apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class))
+        ).thenReturn(updatedApiEntity);
+        when(
+            apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class))
+        ).thenReturn(updatedApiEntity);
 
         when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(updatedApiEntity);
         when(planService.findByApi(EXECUTION_CONTEXT, API_ID)).thenReturn(null);
@@ -684,16 +735,19 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
         swaggerApi.setProxy(proxy);
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setState(Lifecycle.State.STOPPED);
-        when(apiService.updateFromSwagger(any(), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
-            .thenReturn(updatedApiEntity);
-        when(apiService.deploy(any(), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
-            .thenReturn(updatedApiEntity);
+        when(apiService.updateFromSwagger(any(), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class))).thenReturn(
+            updatedApiEntity
+        );
+        when(apiService.deploy(any(), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class))).thenReturn(
+            updatedApiEntity
+        );
         when(apiService.start(any(), eq(API_ID), eq(USER_ID))).thenReturn(updatedApiEntity);
 
         preparePageServiceMock();
@@ -728,14 +782,16 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
         swaggerApi.setProxy(proxy);
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setState(Lifecycle.State.STARTED);
-        when(apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
-            .thenReturn(updatedApiEntity);
+        when(
+            apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class))
+        ).thenReturn(updatedApiEntity);
 
         when(planService.findByApi(EXECUTION_CONTEXT, API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
 
@@ -778,14 +834,13 @@ public class ApiServiceCockpitImplTest {
 
         var message = service.checkContextPath(ENVIRONMENT_ID, api);
 
-        verify(verifyApiPathsDomainService)
-            .validateAndSanitize(
-                new VerifyApiPathDomainService.Input(
-                    ENVIRONMENT_ID,
-                    null,
-                    List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build())
-                )
-            );
+        verify(verifyApiPathsDomainService).validateAndSanitize(
+            new VerifyApiPathDomainService.Input(
+                ENVIRONMENT_ID,
+                null,
+                List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build())
+            )
+        );
         assertThat(message.hasError()).isFalse();
     }
 
@@ -798,22 +853,23 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
-        when(verifyApiPathsDomainService.validateAndSanitize(any()))
-            .thenReturn(Validator.Result.ofErrors(List.of(Validator.Error.severe("Invalid path"))));
+        when(verifyApiPathsDomainService.validateAndSanitize(any())).thenReturn(
+            Validator.Result.ofErrors(List.of(Validator.Error.severe("Invalid path")))
+        );
 
         var message = service.checkContextPath(ENVIRONMENT_ID, api);
 
-        verify(verifyApiPathsDomainService)
-            .validateAndSanitize(
-                new VerifyApiPathDomainService.Input(
-                    ENVIRONMENT_ID,
-                    null,
-                    List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build())
-                )
-            );
+        verify(verifyApiPathsDomainService).validateAndSanitize(
+            new VerifyApiPathDomainService.Input(
+                ENVIRONMENT_ID,
+                null,
+                List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build())
+            )
+        );
 
-        assertThat(message.getError())
-            .contains("The path [contextPath] automatically generated from the name is already covered by another API.");
+        assertThat(message.getError()).contains(
+            "The path [contextPath] automatically generated from the name is already covered by another API."
+        );
     }
 
     @Test
@@ -835,15 +891,15 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setLabels(LABELS);
 
-        when(verifyApiPathsDomainService.validateAndSanitize(any()))
-            .thenReturn(
-                Validator.Result.ofValue(
-                    new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/sanitized/path").build()))
-                )
-            );
+        when(verifyApiPathsDomainService.validateAndSanitize(any())).thenReturn(
+            Validator.Result.ofValue(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/sanitized/path").build()))
+            )
+        );
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
         service.createApi(
@@ -857,8 +913,9 @@ public class ApiServiceCockpitImplTest {
         );
 
         verify(apiService).createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
-        assertThat(apiDefinitionCaptor.getValue().get("proxy").get("virtual_hosts").get(0).get("path"))
-            .isEqualTo(new JsonNodeFactory(false).textNode("/sanitized/path"));
+        assertThat(apiDefinitionCaptor.getValue().get("proxy").get("virtual_hosts").get(0).get("path")).isEqualTo(
+            new JsonNodeFactory(false).textNode("/sanitized/path")
+        );
     }
 
     @Test
@@ -888,19 +945,19 @@ public class ApiServiceCockpitImplTest {
                     List.of(Path.builder().path("/un-sanitized/path/").build())
                 )
             )
-        )
-            .thenReturn(
-                Validator.Result.ofValue(
-                    new VerifyApiPathDomainService.Input(
-                        EXECUTION_CONTEXT.getEnvironmentId(),
-                        API_ID,
-                        List.of(Path.builder().path("/sanitized/path").build())
-                    )
+        ).thenReturn(
+            Validator.Result.ofValue(
+                new VerifyApiPathDomainService.Input(
+                    EXECUTION_CONTEXT.getEnvironmentId(),
+                    API_ID,
+                    List.of(Path.builder().path("/sanitized/path").build())
                 )
-            );
+            )
+        );
 
-        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
-            .thenReturn(swaggerApi);
+        when(
+            swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2))
+        ).thenReturn(swaggerApi);
         when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), any(), any())).thenReturn(api);
 
         service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED, LABELS);
@@ -919,7 +976,6 @@ public class ApiServiceCockpitImplTest {
                 eq(ENVIRONMENT_ID),
                 argThat((PageQuery query) -> query.getApi().equals(API_ID) && query.getType().equals(PageType.SWAGGER))
             )
-        )
-            .thenReturn(List.of(page));
+        ).thenReturn(List.of(page));
     }
 }

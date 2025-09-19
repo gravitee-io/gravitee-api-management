@@ -103,13 +103,11 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     API,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = requestsCountTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -119,13 +117,14 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         @Test
         void should_return_requests_count() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            fakeAnalyticsQueryService.requestsCount =
-                RequestsCount.builder().total(11L).countsByEntrypoint(Map.of("http-get", 10L, "sse", 1L)).build();
+            fakeAnalyticsQueryService.requestsCount = RequestsCount.builder()
+                .total(11L)
+                .countsByEntrypoint(Map.of("http-get", 10L, "sse", 1L))
+                .build();
 
             final Response response = requestsCountTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiAnalyticsRequestsCountResponse.class)
                 .satisfies(r -> {
@@ -152,13 +151,11 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     API,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = averageMessagesPerRequestTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -168,17 +165,14 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         @Test
         void should_return_average_messages_per_request() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            fakeAnalyticsQueryService.averageMessagesPerRequest =
-                AverageMessagesPerRequest
-                    .builder()
-                    .globalAverage(55.0)
-                    .averagesByEntrypoint(Map.of("http-get", 10.0, "sse", 100.0))
-                    .build();
+            fakeAnalyticsQueryService.averageMessagesPerRequest = AverageMessagesPerRequest.builder()
+                .globalAverage(55.0)
+                .averagesByEntrypoint(Map.of("http-get", 10.0, "sse", 100.0))
+                .build();
 
             final Response response = averageMessagesPerRequestTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiAnalyticsAverageMessagesPerRequestResponse.class)
                 .satisfies(r -> {
@@ -205,13 +199,11 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     API,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = averageConnectionDurationTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -221,17 +213,14 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         @Test
         void should_return_average_messages_per_request() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            fakeAnalyticsQueryService.averageConnectionDuration =
-                AverageConnectionDuration
-                    .builder()
-                    .globalAverage(55.0)
-                    .averagesByEntrypoint(Map.of("http-get", 10.0, "sse", 100.0))
-                    .build();
+            fakeAnalyticsQueryService.averageConnectionDuration = AverageConnectionDuration.builder()
+                .globalAverage(55.0)
+                .averagesByEntrypoint(Map.of("http-get", 10.0, "sse", 100.0))
+                .build();
 
             final Response response = averageConnectionDurationTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiAnalyticsAverageConnectionDurationResponse.class)
                 .satisfies(r -> {
@@ -258,13 +247,11 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     API,
                     RolePermissionAction.READ
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = statusCodesByEntrypointTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -274,16 +261,13 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
         @Test
         void should_return_status_codes_by_entrypoint() {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
-            fakeAnalyticsQueryService.responseStatusRanges =
-                ResponseStatusRanges
-                    .builder()
-                    .statusRangesCountByEntrypoint(Map.of("http-get", Map.of("100.0-200.0", 1L), "http-post", Map.of("100.0-200.0", 1L)))
-                    .build();
+            fakeAnalyticsQueryService.responseStatusRanges = ResponseStatusRanges.builder()
+                .statusRangesCountByEntrypoint(Map.of("http-get", Map.of("100.0-200.0", 1L), "http-post", Map.of("100.0-200.0", 1L)))
+                .build();
 
             final Response response = statusCodesByEntrypointTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiAnalyticsResponseStatusRangesResponse.class)
                 .extracting(ApiAnalyticsResponseStatusRangesResponse::getRangesByEntrypoint)

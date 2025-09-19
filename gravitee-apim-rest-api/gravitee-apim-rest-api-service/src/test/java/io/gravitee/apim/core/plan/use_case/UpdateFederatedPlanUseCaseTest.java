@@ -148,8 +148,7 @@ class UpdateFederatedPlanUseCaseTest {
         );
 
         // Then
-        CoreAssertions
-            .assertThat(planCrudService.getById(plan.getId()))
+        CoreAssertions.assertThat(planCrudService.getById(plan.getId()))
             .isEqualTo(result.updated())
             .extracting(
                 Plan::getName,
@@ -183,8 +182,7 @@ class UpdateFederatedPlanUseCaseTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)

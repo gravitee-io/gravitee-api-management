@@ -33,8 +33,7 @@ abstract class AbstractMapperTest {
 
             assertEquals(definitionJsonNode, otherJsonNode);
         } catch (Exception e) {
-            AssertionFailureBuilder
-                .assertionFailure()
+            AssertionFailureBuilder.assertionFailure()
                 .message("Definitions are not equals")
                 .expected(String.valueOf(definition))
                 .actual(String.valueOf(other))

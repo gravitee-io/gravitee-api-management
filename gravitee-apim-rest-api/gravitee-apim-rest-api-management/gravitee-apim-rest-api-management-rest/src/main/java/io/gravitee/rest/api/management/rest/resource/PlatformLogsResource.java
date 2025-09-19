@@ -106,8 +106,13 @@ public class PlatformLogsResource extends AbstractResource {
         if (isAdmin()) {
             applicationIds = applicationService.findIdsByEnvironment(executionContext);
         } else {
-            applicationIds =
-                applicationService.findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), null, APPLICATION_LOG, READ);
+            applicationIds = applicationService.findIdsByUserAndPermission(
+                executionContext,
+                getAuthenticatedUser(),
+                null,
+                APPLICATION_LOG,
+                READ
+            );
         }
         if (!applicationIds.isEmpty()) {
             terms.put("application", applicationIds);
@@ -117,12 +122,11 @@ public class PlatformLogsResource extends AbstractResource {
         if (isAdmin()) {
             apiIds = apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
         } else {
-            apiIds =
-                apiAuthorizationService
-                    .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
-                    .stream()
-                    .filter(appId -> permissionService.hasPermission(executionContext, API_LOG, appId, READ))
-                    .collect(Collectors.toSet());
+            apiIds = apiAuthorizationService
+                .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
+                .stream()
+                .filter(appId -> permissionService.hasPermission(executionContext, API_LOG, appId, READ))
+                .collect(Collectors.toSet());
         }
         if (!apiIds.isEmpty()) {
             terms.put("api", apiIds);
@@ -162,8 +166,7 @@ public class PlatformLogsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ) })
     public Response exportPlatformLogsAsCSV(@BeanParam LogsParam param) {
         final SearchLogResponse<PlatformRequestItem> searchLogResponse = getPlatformLogs(param);
-        return Response
-            .ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
+        return Response.ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", "platform", System.currentTimeMillis()))
             .build();
     }

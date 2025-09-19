@@ -42,8 +42,7 @@ public class NodeMetadataMapper {
                     event.getPayload(),
                     DistributedNodeMetadataDeployable.class
                 );
-                return NodeMetadataDeployable
-                    .builder()
+                return NodeMetadataDeployable.builder()
                     .organizationIds(distributedDeployable.organizationIds)
                     .installationId(distributedDeployable.installationId)
                     .build();
@@ -57,8 +56,7 @@ public class NodeMetadataMapper {
     public Maybe<DistributedEvent> to(final NodeMetadataDeployable nodeMetadataDeployable) {
         return Maybe.fromCallable(() -> {
             try {
-                return DistributedEvent
-                    .builder()
+                return DistributedEvent.builder()
                     .id(nodeMetadataDeployable.id())
                     .type(DistributedEventType.NODE_METADATA)
                     .syncAction(DistributedSyncAction.DEPLOY)

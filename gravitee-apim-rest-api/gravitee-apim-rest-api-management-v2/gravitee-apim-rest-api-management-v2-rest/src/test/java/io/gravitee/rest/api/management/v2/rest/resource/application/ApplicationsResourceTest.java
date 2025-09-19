@@ -98,12 +98,10 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                     ENVIRONMENT,
                     ParameterReferenceType.ENVIRONMENT
                 )
-            )
-                .thenReturn(true);
+            ).thenReturn(true);
             roleQueryService.initWith(
                 List.of(
-                    Role
-                        .builder()
+                    Role.builder()
                         .name(PRIMARY_OWNER.name())
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
@@ -122,13 +120,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApplicationCRDStatus
-                            .builder()
+                        ApplicationCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
-                                ApplicationCRDStatus.Errors
-                                    .builder()
+                                ApplicationCRDStatus.Errors.builder()
                                     .warning(List.of("Group [unknown-group] could not be found in environment [fake-env]"))
                                     .severe(List.of())
                                     .build()
@@ -157,17 +153,15 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         @Test
         @SneakyThrows
         void should_return_client_id_error_in_status_without_saving_if_dry_run() {
-            when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE))
-                .thenReturn(
-                    Set.of(
-                        Application
-                            .builder()
-                            .name("conflicting-app")
-                            .id("conflicting-app-id")
-                            .metadata(Map.of("client_id", "test-client-id"))
-                            .build()
-                    )
-                );
+            when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE)).thenReturn(
+                Set.of(
+                    Application.builder()
+                        .name("conflicting-app")
+                        .id("conflicting-app-id")
+                        .metadata(Map.of("client_id", "test-client-id"))
+                        .build()
+                )
+            );
 
             var crdStatus = doImport("/crd/application/simple-app-with-client-id.json", true);
 
@@ -175,14 +169,12 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApplicationCRDStatus
-                            .builder()
+                        ApplicationCRDStatus.builder()
                             .id("app-id")
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
-                                ApplicationCRDStatus.Errors
-                                    .builder()
+                                ApplicationCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(
                                         List.of(
@@ -201,8 +193,9 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         @Test
         @SneakyThrows
         void should_return_no_client_id_error_in_status_on_updates_without_saving_if_dry_run() {
-            when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE))
-                .thenReturn(Set.of(Application.builder().id("app-id").metadata(Map.of("client_id", "test-client-id")).build()));
+            when(applicationRepository.findAllByEnvironment(ENVIRONMENT, ApplicationStatus.ACTIVE)).thenReturn(
+                Set.of(Application.builder().id("app-id").metadata(Map.of("client_id", "test-client-id")).build())
+            );
 
             var crdStatus = doImport("/crd/application/simple-app-with-client-id.json", true);
 
@@ -224,13 +217,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApplicationCRDStatus
-                            .builder()
+                        ApplicationCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
-                                ApplicationCRDStatus.Errors
-                                    .builder()
+                                ApplicationCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(List.of("unknown grant types [client_credentials] for OAuth application of type [SPA]"))
                                     .build()
@@ -252,8 +243,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                     ENVIRONMENT,
                     ParameterReferenceType.ENVIRONMENT
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             var crdStatus = doImport("/crd/application/browser-app.json", true);
 
@@ -261,13 +251,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApplicationCRDStatus
-                            .builder()
+                        ApplicationCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
-                                ApplicationCRDStatus.Errors
-                                    .builder()
+                                ApplicationCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(
                                         List.of("configuring OAuth requires client registration to be enabled on environment [fake-env]")
@@ -290,13 +278,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApplicationCRDStatus
-                            .builder()
+                        ApplicationCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
-                                ApplicationCRDStatus.Errors
-                                    .builder()
+                                ApplicationCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(List.of("invalid redirect URI [https://invalid my-redirect-url.com]"))
                                     .build()
@@ -317,13 +303,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApplicationCRDStatus
-                            .builder()
+                        ApplicationCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
-                                ApplicationCRDStatus.Errors
-                                    .builder()
+                                ApplicationCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(List.of("application type [SPA] requires redirect URIs to be defined"))
                                     .build()
@@ -344,13 +328,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApplicationCRDStatus
-                            .builder()
+                        ApplicationCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .errors(
-                                ApplicationCRDStatus.Errors
-                                    .builder()
+                                ApplicationCRDStatus.Errors.builder()
                                     .warning(List.of())
                                     .severe(
                                         List.of("OAuth application of type [Web] must have at least [authorization_code] as a grant type")

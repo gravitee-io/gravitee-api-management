@@ -85,8 +85,7 @@ public class FlowValidationDomainServiceTest {
 
         @Test
         public void should_accept_flow_with_only_selectors() {
-            var flow = Flow
-                .builder()
+            var flow = Flow.builder()
                 .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
                 .build();
 
@@ -106,8 +105,7 @@ public class FlowValidationDomainServiceTest {
 
         @Test
         public void should_accept_flow_with_selectors_and_steps() {
-            var flow = Flow
-                .builder()
+            var flow = Flow.builder()
                 .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
                 .request(List.of(Step.builder().policy("policy").configuration("configuration").build()))
                 .build();
@@ -133,11 +131,11 @@ public class FlowValidationDomainServiceTest {
 
         @Test
         public void should_throw_exception_with_incorrect_policy_configuration() {
-            when(policyValidationDomainService.validateAndSanitizeConfiguration(eq("my-policy"), eq("incorrect-configuration")))
-                .thenThrow(InvalidDataException.class);
+            when(policyValidationDomainService.validateAndSanitizeConfiguration(eq("my-policy"), eq("incorrect-configuration"))).thenThrow(
+                InvalidDataException.class
+            );
 
-            var flow = Flow
-                .builder()
+            var flow = Flow.builder()
                 .name("bad_flow")
                 .request(List.of(Step.builder().policy("my-policy").configuration("incorrect-configuration").build()))
                 .build();
@@ -177,8 +175,7 @@ public class FlowValidationDomainServiceTest {
 
         @Test
         public void should_throw_exception_with_invalid_entrypoints() {
-            var flow = Flow
-                .builder()
+            var flow = Flow.builder()
                 .name("bad_flow")
                 .selectors(List.of(ChannelSelector.builder().entrypoints(Set.of(SSE_CONNECTOR_ID, "unknown", "unknown2")).build()))
                 .build();
@@ -264,7 +261,10 @@ public class FlowValidationDomainServiceTest {
 
         @NotNull
         private static Stream<Flow> getPlanFlows(Api api) {
-            return api.getPlans().stream().flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
+            return api
+                .getPlans()
+                .stream()
+                .flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
         }
     }
 }

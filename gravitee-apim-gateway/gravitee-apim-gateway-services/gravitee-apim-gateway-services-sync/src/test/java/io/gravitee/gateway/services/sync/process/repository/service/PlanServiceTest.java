@@ -48,26 +48,22 @@ class PlanServiceTest {
         @Test
         void should_register() {
             cut.register(ApiReactorDeployable.builder().apiId("api").build());
-            ReflectionUtils
-                .tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
-                .andThen(plansPerApi -> {
-                    Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
-                    assertThat(map).containsKey("api");
-                    assertThat(map.get("api")).isEmpty();
-                    return Try.success(true);
-                });
+            ReflectionUtils.tryToReadFieldValue(PlanService.class, "plansPerApi", cut).andThen(plansPerApi -> {
+                Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
+                assertThat(map).containsKey("api");
+                assertThat(map.get("api")).isEmpty();
+                return Try.success(true);
+            });
         }
 
         @Test
         void should_not_register_null() {
             cut.register(null);
-            ReflectionUtils
-                .tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
-                .andThen(plansPerApi -> {
-                    Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
-                    assertThat(map).isEmpty();
-                    return Try.success(true);
-                });
+            ReflectionUtils.tryToReadFieldValue(PlanService.class, "plansPerApi", cut).andThen(plansPerApi -> {
+                Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
+                assertThat(map).isEmpty();
+                return Try.success(true);
+            });
         }
     }
 
@@ -76,8 +72,7 @@ class PlanServiceTest {
 
         @Test
         void should_unregister() {
-            ReflectionUtils
-                .tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
+            ReflectionUtils.tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
                 .andThen(plansPerApi -> {
                     Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
                     map.put("api", Set.of("plan"));
@@ -96,8 +91,7 @@ class PlanServiceTest {
 
         @Test
         void should_not_register_null() {
-            ReflectionUtils
-                .tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
+            ReflectionUtils.tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
                 .andThen(plansPerApi -> {
                     Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
                     map.put("api", Set.of("plan"));
@@ -120,8 +114,7 @@ class PlanServiceTest {
 
         @Test
         void should_plan_being_deployed() {
-            ReflectionUtils
-                .tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
+            ReflectionUtils.tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
                 .andThen(plansPerApi -> {
                     Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
                     map.put("api", Set.of("plan"));
@@ -135,8 +128,7 @@ class PlanServiceTest {
 
         @Test
         void should_not_plan_being_deployed_when_wrong_plan() {
-            ReflectionUtils
-                .tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
+            ReflectionUtils.tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
                 .andThen(plansPerApi -> {
                     Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
                     map.put("api", Set.of("plan"));
@@ -150,8 +142,7 @@ class PlanServiceTest {
 
         @Test
         void should_not_plan_being_deployed_when_wrong_api() {
-            ReflectionUtils
-                .tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
+            ReflectionUtils.tryToReadFieldValue(PlanService.class, "plansPerApi", cut)
                 .andThen(plansPerApi -> {
                     Map<String, Set<String>> map = (Map<String, Set<String>>) plansPerApi;
                     map.put("api", Set.of("plan"));

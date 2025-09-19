@@ -66,20 +66,19 @@ class ApiIndexerDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-            new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor()),
-                new ApiPrimaryOwnerDomainService(
-                    null,
-                    new GroupQueryServiceInMemory(),
-                    null,
-                    membershipQueryService,
-                    roleQueryService,
-                    userCrudService
-                ),
-                apiCategoryQueryService,
-                null
-            );
+        service = new ApiIndexerDomainService(
+            new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor()),
+            new ApiPrimaryOwnerDomainService(
+                null,
+                new GroupQueryServiceInMemory(),
+                null,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService
+            ),
+            apiCategoryQueryService,
+            null
+        );
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
     }
@@ -164,15 +163,14 @@ class ApiIndexerDomainServiceTest {
 
             var result = service.toIndexableApi(new Indexer.IndexationContext(ORGANIZATION_ID, ENVIRONMENT_ID), apiToIndex);
 
-            assertThat(result)
-                .isEqualTo(
-                    new IndexableApi(
-                        apiToIndex,
-                        null,
-                        Map.ofEntries(Map.entry("api-name", apiToIndex.getName()), Map.entry("support", "")),
-                        Set.of()
-                    )
-                );
+            assertThat(result).isEqualTo(
+                new IndexableApi(
+                    apiToIndex,
+                    null,
+                    Map.ofEntries(Map.entry("api-name", apiToIndex.getName()), Map.entry("support", "")),
+                    Set.of()
+                )
+            );
         }
     }
 

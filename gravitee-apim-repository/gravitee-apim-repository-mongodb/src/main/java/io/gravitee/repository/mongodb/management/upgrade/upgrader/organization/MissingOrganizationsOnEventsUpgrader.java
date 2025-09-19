@@ -47,9 +47,9 @@ public class MissingOrganizationsOnEventsUpgrader extends MongoUpgrader {
             .find()
             .projection(Projections.fields(Projections.include("_id", "organizationId")));
 
-        final Map<String, List<String>> environmentsByOrganization = StreamSupport
-            .stream(environmentDocs.spliterator(), false)
-            .collect(groupingBy(document -> document.getString("organizationId"), mapping(e -> e.getString("organizationId"), toList())));
+        final Map<String, List<String>> environmentsByOrganization = StreamSupport.stream(environmentDocs.spliterator(), false).collect(
+            groupingBy(document -> document.getString("organizationId"), mapping(e -> e.getString("organizationId"), toList()))
+        );
 
         environmentsByOrganization.forEach((key, value) ->
             bulkActions.add(

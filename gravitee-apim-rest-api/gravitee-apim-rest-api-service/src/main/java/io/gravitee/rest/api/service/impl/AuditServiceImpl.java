@@ -135,20 +135,17 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             criteria.references(Audit.AuditReferenceType.ORGANIZATION, null);
         } else if (
             (query.getEnvironmentIds() != null && !query.getEnvironmentIds().isEmpty()) ||
-            query.getReferenceType() != null &&
-            query.getReferenceType().equals(AuditReferenceType.ENVIRONMENT)
+            (query.getReferenceType() != null && query.getReferenceType().equals(AuditReferenceType.ENVIRONMENT))
         ) {
             criteria.references(Audit.AuditReferenceType.ENVIRONMENT, query.getEnvironmentIds());
         } else if (
             (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) ||
-            query.getReferenceType() != null &&
-            query.getReferenceType().equals(AuditReferenceType.APPLICATION)
+            (query.getReferenceType() != null && query.getReferenceType().equals(AuditReferenceType.APPLICATION))
         ) {
             criteria.references(Audit.AuditReferenceType.APPLICATION, query.getApplicationIds());
         } else if (
             (query.getApiIds() != null && !query.getApiIds().isEmpty()) ||
-            query.getReferenceType() != null &&
-            query.getReferenceType().equals(AuditReferenceType.API)
+            (query.getReferenceType() != null && query.getReferenceType().equals(AuditReferenceType.API))
         ) {
             criteria.references(Audit.AuditReferenceType.API, query.getApiIds());
         }

@@ -119,8 +119,7 @@ public class SharedPolicyGroup {
     }
 
     public io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup toDefinition() {
-        return io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup
-            .builder()
+        return io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.builder()
             .id(crossId)
             .environmentId(environmentId)
             .policies(steps)
@@ -167,8 +166,7 @@ public class SharedPolicyGroup {
     }
 
     public static SharedPolicyGroup from(CreateSharedPolicyGroup createSharedPolicyGroup) {
-        return SharedPolicyGroup
-            .builder()
+        return SharedPolicyGroup.builder()
             .crossId(createSharedPolicyGroup.getCrossId() == null ? UuidString.generateRandom() : createSharedPolicyGroup.getCrossId())
             .name(createSharedPolicyGroup.getName())
             .description(createSharedPolicyGroup.getDescription())

@@ -74,8 +74,7 @@ public class NotificationTemplateMapperTest {
     }
 
     private NotificationTemplateCommandEntity aNotificationTemplateCommandEntity(Instant now) {
-        return NotificationTemplateCommandEntity
-            .builder()
+        return NotificationTemplateCommandEntity.builder()
             .id("1")
             .hook("hook")
             .scope("scope")

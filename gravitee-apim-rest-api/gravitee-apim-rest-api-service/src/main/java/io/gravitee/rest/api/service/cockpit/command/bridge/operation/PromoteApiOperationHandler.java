@@ -64,16 +64,16 @@ public class PromoteApiOperationHandler implements BridgeOperationHandler {
         try {
             promotionEntity = objectMapper.readValue(commandPayload.content(), PromotionEntity.class);
         } catch (JsonProcessingException e) {
-            String errorDetails =
-                "Problem while deserializing promotion request for environment [%s]".formatted(commandPayload.environmentId());
+            String errorDetails = "Problem while deserializing promotion request for environment [%s]".formatted(
+                commandPayload.environmentId()
+            );
             log.warn(errorDetails, e);
             return Single.just(new BridgeReply(bridgeCommand.getId(), errorDetails));
         }
 
         promotionEntity.setStatus(PromotionEntityStatus.TO_BE_VALIDATED);
 
-        return Single
-            .fromCallable(() -> promotionService.createOrUpdate(promotionEntity))
+        return Single.fromCallable(() -> promotionService.createOrUpdate(promotionEntity))
             .subscribeOn(Schedulers.io())
             .map(promotion -> {
                 try {
@@ -82,8 +82,7 @@ public class PromoteApiOperationHandler implements BridgeOperationHandler {
                         new BridgeReplyPayload(
                             true,
                             List.of(
-                                BridgeReplyPayload.BridgeReplyContent
-                                    .builder()
+                                BridgeReplyPayload.BridgeReplyContent.builder()
                                     .environmentId(commandPayload.target().environmentId())
                                     .organizationId(commandPayload.organizationId())
                                     .installationId(installationService.get().getId())
@@ -93,19 +92,17 @@ public class PromoteApiOperationHandler implements BridgeOperationHandler {
                         )
                     );
                 } catch (JsonProcessingException e) {
-                    String errorDetails =
-                        "Problem while serializing promotion request for environment [%s]".formatted(
-                                bridgeCommand.getPayload().environmentId()
-                            );
+                    String errorDetails = "Problem while serializing promotion request for environment [%s]".formatted(
+                        bridgeCommand.getPayload().environmentId()
+                    );
                     log.warn(errorDetails);
                     return new BridgeReply(bridgeCommand.getId(), errorDetails);
                 }
             })
             .onErrorReturn(throwable -> {
-                String errorDetails =
-                    "Problem while serializing promotion request for environment [%s]".formatted(
-                            bridgeCommand.getPayload().environmentId()
-                        );
+                String errorDetails = "Problem while serializing promotion request for environment [%s]".formatted(
+                    bridgeCommand.getPayload().environmentId()
+                );
                 log.warn(errorDetails);
                 return new BridgeReply(bridgeCommand.getId(), errorDetails);
             });

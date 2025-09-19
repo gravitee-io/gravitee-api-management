@@ -113,8 +113,7 @@ public class ApiRatingsResource extends AbstractResource {
             rating.setRate(ratingInput.getValue().byteValue());
             RatingEntity createdRating = ratingService.create(GraviteeContext.getExecutionContext(), rating);
 
-            return Response
-                .status(Status.CREATED)
+            return Response.status(Status.CREATED)
                 .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), createdRating, uriInfo))
                 .build();
         }

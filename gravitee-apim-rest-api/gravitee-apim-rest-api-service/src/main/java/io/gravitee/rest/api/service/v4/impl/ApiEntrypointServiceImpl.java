@@ -151,8 +151,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                         virtualHost.isOverrideEntrypoint(),
                         tagEntrypoints,
                         environmentId
-                    )
-                        .stream()
+                    ).stream()
                 )
                 .toList();
         } else {
@@ -174,8 +173,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                                     path.isOverrideAccess(),
                                     tagEntrypoints,
                                     environmentId
-                                )
-                                    .stream()
+                                ).stream()
                             );
                     } else if (listener instanceof TcpListener tcpListener) {
                         return tcpListener

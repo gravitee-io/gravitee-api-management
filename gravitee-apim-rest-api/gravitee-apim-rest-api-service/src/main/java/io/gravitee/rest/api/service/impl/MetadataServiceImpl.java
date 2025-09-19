@@ -139,8 +139,9 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             final Optional<Metadata> optionalMetadata = metadataRepository
                 .findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, executionContext.getEnvironmentId())
                 .stream()
-                .filter(metadata ->
-                    !metadataEntity.getKey().equals(metadata.getKey()) && metadataEntity.getName().equalsIgnoreCase(metadata.getName())
+                .filter(
+                    metadata ->
+                        !metadataEntity.getKey().equals(metadata.getKey()) && metadataEntity.getName().equalsIgnoreCase(metadata.getName())
                 )
                 .findAny();
 
@@ -280,13 +281,12 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         try {
             String decodedValue = value;
             if (entity != null && !isBlank(value) && value.startsWith("${")) {
-                decodedValue =
-                    this.notificationTemplateService.resolveInlineTemplateWithParam(
-                            executionContext.getOrganizationId(),
-                            value,
-                            new StringReader(value),
-                            singletonMap(referenceType.name().toLowerCase(), entity)
-                        );
+                decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
+                    executionContext.getOrganizationId(),
+                    value,
+                    new StringReader(value),
+                    singletonMap(referenceType.name().toLowerCase(), entity)
+                );
             }
 
             if (isBlank(decodedValue)) {

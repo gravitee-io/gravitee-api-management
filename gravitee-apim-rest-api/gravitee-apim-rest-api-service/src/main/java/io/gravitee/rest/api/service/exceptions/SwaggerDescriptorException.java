@@ -35,7 +35,13 @@ public class SwaggerDescriptorException extends AbstractManagementException {
     }
 
     public SwaggerDescriptorException(List<String> messages) {
-        super(messages.stream().map(msg -> "\"" + msg + "\"").collect(Collectors.toList()).toString());
+        super(
+            messages
+                .stream()
+                .map(msg -> "\"" + msg + "\"")
+                .collect(Collectors.toList())
+                .toString()
+        );
     }
 
     @Override

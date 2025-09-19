@@ -87,8 +87,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     @Override
     protected JdbcObjectMapper<Api> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Api.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Api.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("origin", Types.NVARCHAR, String.class)
@@ -218,15 +217,24 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             sbQuery.append(",").append(sortable.field());
         }
         sbQuery.append(" from ").append(this.tableName).append(" a ");
-        Optional<ApiCriteria> hasCategory = criteria.stream().filter(apiCriteria -> hasText(apiCriteria.getCategory())).findFirst();
+        Optional<ApiCriteria> hasCategory = criteria
+            .stream()
+            .filter(apiCriteria -> hasText(apiCriteria.getCategory()))
+            .findFirst();
         if (hasCategory.isPresent()) {
             sbQuery.append("left join ").append(API_CATEGORIES).append(" ac on a.id = ac.api_id ");
         }
-        Optional<ApiCriteria> hasGroups = criteria.stream().filter(apiCriteria -> !isEmpty(apiCriteria.getGroups())).findFirst();
+        Optional<ApiCriteria> hasGroups = criteria
+            .stream()
+            .filter(apiCriteria -> !isEmpty(apiCriteria.getGroups()))
+            .findFirst();
         if (hasGroups.isPresent()) {
             sbQuery.append("left join ").append(API_GROUPS).append(" ag on a.id = ag.api_id ");
         }
-        Optional<ApiCriteria> hasLabels = criteria.stream().filter(apiCriteria -> hasText(apiCriteria.getLabel())).findFirst();
+        Optional<ApiCriteria> hasLabels = criteria
+            .stream()
+            .filter(apiCriteria -> hasText(apiCriteria.getLabel()))
+            .findFirst();
         if (hasLabels.isPresent()) {
             sbQuery.append("left join ").append(API_LABELS).append(" al on a.id = al.api_id ");
         }
@@ -300,9 +308,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
         jdbcTemplate.query(
             getOrm().getSelectAllSql() +
-            " a left join " +
-            API_CATEGORIES +
-            " ac on a.id = ac.api_id where a.environment_id = ? and a.cross_id = ?",
+                " a left join " +
+                API_CATEGORIES +
+                " ac on a.id = ac.api_id where a.environment_id = ? and a.cross_id = ?",
             rowMapper,
             environmentId,
             crossId

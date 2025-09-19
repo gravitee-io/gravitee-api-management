@@ -234,19 +234,19 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         endpoint.setType("http-get");
         endpoint.setConfiguration(
             "{\n" +
-            "                        \"bootstrapServers\": \"kafka:9092\",\n" +
-            "                        \"topics\": [\n" +
-            "                            \"demo\"\n" +
-            "                        ],\n" +
-            "                        \"producer\": {\n" +
-            "                            \"enabled\": false\n" +
-            "                        },\n" +
-            "                        \"consumer\": {\n" +
-            "                            \"encodeMessageId\": true,\n" +
-            "                            \"enabled\": true,\n" +
-            "                            \"autoOffsetReset\": \"earliest\"\n" +
-            "                        }\n" +
-            "                    }"
+                "                        \"bootstrapServers\": \"kafka:9092\",\n" +
+                "                        \"topics\": [\n" +
+                "                            \"demo\"\n" +
+                "                        ],\n" +
+                "                        \"producer\": {\n" +
+                "                            \"enabled\": false\n" +
+                "                        },\n" +
+                "                        \"consumer\": {\n" +
+                "                            \"encodeMessageId\": true,\n" +
+                "                            \"enabled\": true,\n" +
+                "                            \"autoOffsetReset\": \"earliest\"\n" +
+                "                        }\n" +
+                "                    }"
         );
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));

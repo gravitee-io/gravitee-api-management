@@ -51,8 +51,7 @@ public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implement
 
     @Override
     protected JdbcObjectMapper<Media> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Media.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Media.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, String.class)
             .addColumn("sub_type", Types.NVARCHAR, String.class)

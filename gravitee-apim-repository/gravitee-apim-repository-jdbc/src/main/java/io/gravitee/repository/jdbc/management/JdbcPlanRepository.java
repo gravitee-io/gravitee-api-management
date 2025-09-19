@@ -71,8 +71,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
 
     @Override
     protected JdbcObjectMapper<Plan> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Plan.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Plan.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
@@ -397,13 +396,10 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public void updateOrder(String planId, int order) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.updateOrder({}, {})", planId, order);
         try {
-            jdbcTemplate.update(
-                "update " + tableName + " set " + escapeReservedWord("order") + " = ? where id = ?",
-                ps -> {
-                    ps.setInt(1, order);
-                    ps.setString(2, planId);
-                }
-            );
+            jdbcTemplate.update("update " + tableName + " set " + escapeReservedWord("order") + " = ? where id = ?", ps -> {
+                ps.setInt(1, order);
+                ps.setString(2, planId);
+            });
         } catch (final Exception ex) {
             LOGGER.error("Failed to update plan order", ex);
             throw new TechnicalException("Failed to update plan order", ex);

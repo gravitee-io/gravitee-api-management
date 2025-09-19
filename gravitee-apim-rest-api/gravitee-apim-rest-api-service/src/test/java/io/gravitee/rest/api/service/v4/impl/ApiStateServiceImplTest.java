@@ -176,24 +176,23 @@ public class ApiStateServiceImplTest {
             new CategoryMapper(categoryService)
         );
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
-        apiStateService =
-            new ApiStateServiceImpl(
-                apiSearchService,
-                apiRepository,
-                apiMapper,
-                genericApiMapper,
-                apiNotificationService,
-                primaryOwnerService,
-                auditService,
-                eventService,
-                eventLatestRepository,
-                objectMapper,
-                apiMetadataService,
-                apiValidationService,
-                planSearchService,
-                apiConverter,
-                synchronizationService
-            );
+        apiStateService = new ApiStateServiceImpl(
+            apiSearchService,
+            apiRepository,
+            apiMapper,
+            genericApiMapper,
+            apiNotificationService,
+            primaryOwnerService,
+            auditService,
+            eventService,
+            eventLatestRepository,
+            objectMapper,
+            apiMetadataService,
+            apiValidationService,
+            planSearchService,
+            apiConverter,
+            synchronizationService
+        );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
@@ -206,8 +205,9 @@ public class ApiStateServiceImplTest {
 
         updatedApi = new Api(api);
 
-        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(GenericApiEntity.class)))
-            .then(invocation -> invocation.getArgument(1));
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(GenericApiEntity.class))).then(invocation ->
+            invocation.getArgument(1)
+        );
     }
 
     @Test
@@ -244,20 +244,23 @@ public class ApiStateServiceImplTest {
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "1");
 
-        verify(eventService)
-            .createApiEvent(
-                eq(executionContext),
-                eq(singleton(GraviteeContext.getCurrentEnvironment())),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(EventType.PUBLISH_API),
-                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
-                eq(properties)
-            );
+        verify(eventService).createApiEvent(
+            eq(executionContext),
+            eq(singleton(GraviteeContext.getCurrentEnvironment())),
+            eq(GraviteeContext.getCurrentOrganization()),
+            eq(EventType.PUBLISH_API),
+            argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+            eq(properties)
+        );
 
-        verify(apiNotificationService, times(1))
-            .triggerDeployNotification(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)));
-        verify(apiNotificationService, times(1))
-            .triggerStartNotification(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)));
+        verify(apiNotificationService, times(1)).triggerDeployNotification(
+            eq(executionContext),
+            argThat(argApi -> argApi.getId().equals(API_ID))
+        );
+        verify(apiNotificationService, times(1)).triggerStartNotification(
+            eq(executionContext),
+            argThat(argApi -> argApi.getId().equals(API_ID))
+        );
     }
 
     @Test
@@ -288,18 +291,19 @@ public class ApiStateServiceImplTest {
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
 
-        verify(eventService)
-            .createApiEvent(
-                eq(executionContext),
-                eq(singleton(GraviteeContext.getCurrentEnvironment())),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(EventType.START_API),
-                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
-                eq(properties)
-            );
+        verify(eventService).createApiEvent(
+            eq(executionContext),
+            eq(singleton(GraviteeContext.getCurrentEnvironment())),
+            eq(GraviteeContext.getCurrentOrganization()),
+            eq(EventType.START_API),
+            argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+            eq(properties)
+        );
 
-        verify(apiNotificationService, times(1))
-            .triggerStartNotification(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)));
+        verify(apiNotificationService, times(1)).triggerStartNotification(
+            eq(executionContext),
+            argThat(argApi -> argApi.getId().equals(API_ID))
+        );
     }
 
     @Test
@@ -330,20 +334,23 @@ public class ApiStateServiceImplTest {
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "1");
 
-        verify(eventService)
-            .createApiEvent(
-                eq(executionContext),
-                eq(singleton(GraviteeContext.getCurrentEnvironment())),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(EventType.PUBLISH_API),
-                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
-                eq(properties)
-            );
+        verify(eventService).createApiEvent(
+            eq(executionContext),
+            eq(singleton(GraviteeContext.getCurrentEnvironment())),
+            eq(GraviteeContext.getCurrentOrganization()),
+            eq(EventType.PUBLISH_API),
+            argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+            eq(properties)
+        );
 
-        verify(apiNotificationService, times(1))
-            .triggerDeployNotification(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)));
-        verify(apiNotificationService, times(1))
-            .triggerStartNotification(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)));
+        verify(apiNotificationService, times(1)).triggerDeployNotification(
+            eq(executionContext),
+            argThat(argApi -> argApi.getId().equals(API_ID))
+        );
+        verify(apiNotificationService, times(1)).triggerStartNotification(
+            eq(executionContext),
+            argThat(argApi -> argApi.getId().equals(API_ID))
+        );
     }
 
     @Test
@@ -373,18 +380,19 @@ public class ApiStateServiceImplTest {
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
 
-        verify(eventService)
-            .createApiEvent(
-                eq(executionContext),
-                eq(singleton(GraviteeContext.getCurrentEnvironment())),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(EventType.STOP_API),
-                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
-                eq(properties)
-            );
+        verify(eventService).createApiEvent(
+            eq(executionContext),
+            eq(singleton(GraviteeContext.getCurrentEnvironment())),
+            eq(GraviteeContext.getCurrentOrganization()),
+            eq(EventType.STOP_API),
+            argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+            eq(properties)
+        );
 
-        verify(apiNotificationService, times(1))
-            .triggerStopNotification(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)));
+        verify(apiNotificationService, times(1)).triggerStopNotification(
+            eq(executionContext),
+            argThat(argApi -> argApi.getId().equals(API_ID))
+        );
     }
 
     @Test
@@ -415,17 +423,18 @@ public class ApiStateServiceImplTest {
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0");
 
-        verify(eventService)
-            .createApiEvent(
-                eq(executionContext),
-                eq(singleton(GraviteeContext.getCurrentEnvironment())),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(EventType.STOP_API),
-                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
-                eq(properties)
-            );
+        verify(eventService).createApiEvent(
+            eq(executionContext),
+            eq(singleton(GraviteeContext.getCurrentEnvironment())),
+            eq(GraviteeContext.getCurrentOrganization()),
+            eq(EventType.STOP_API),
+            argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+            eq(properties)
+        );
 
-        verify(apiNotificationService, times(1))
-            .triggerStopNotification(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)));
+        verify(apiNotificationService, times(1)).triggerStopNotification(
+            eq(executionContext),
+            argThat(argApi -> argApi.getId().equals(API_ID))
+        );
     }
 }

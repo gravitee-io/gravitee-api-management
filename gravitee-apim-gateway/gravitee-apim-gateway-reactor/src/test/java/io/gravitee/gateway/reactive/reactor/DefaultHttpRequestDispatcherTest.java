@@ -162,21 +162,20 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
         lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10L);
 
-        cut =
-            new DefaultHttpRequestDispatcher(
-                gatewayConfiguration,
-                httpAcceptorResolver,
-                idGenerator,
-                globalComponentProvider,
-                new RequestProcessorChainFactory(),
-                responseProcessorChainFactory,
-                platformProcessorChainFactory,
-                notFoundProcessorChainFactory,
-                false,
-                requestTimeoutConfiguration,
-                requestClientAuthConfiguration,
-                vertx
-            );
+        cut = new DefaultHttpRequestDispatcher(
+            gatewayConfiguration,
+            httpAcceptorResolver,
+            idGenerator,
+            globalComponentProvider,
+            new RequestProcessorChainFactory(),
+            responseProcessorChainFactory,
+            platformProcessorChainFactory,
+            notFoundProcessorChainFactory,
+            false,
+            requestTimeoutConfiguration,
+            requestClientAuthConfiguration,
+            vertx
+        );
         //TODO: to check: is this needed ?
         // cut.setApplicationContext(mock(ApplicationContext.class));
     }
@@ -216,9 +215,9 @@ class DefaultHttpRequestDispatcherTest {
         when(response.ended()).thenReturn(true);
 
         doAnswer(i -> {
-                simulateEndHandlerCall(i);
-                return null;
-            })
+            simulateEndHandlerCall(i);
+            return null;
+        })
             .when(apiReactor)
             .handle(any(ExecutionContext.class), any(Handler.class));
 
@@ -245,9 +244,9 @@ class DefaultHttpRequestDispatcherTest {
         final ArgumentCaptor<ExecutionContext> ctxCaptor = ArgumentCaptor.forClass(ExecutionContext.class);
 
         doAnswer(i -> {
-                simulateEndHandlerCall(i);
-                return null;
-            })
+            simulateEndHandlerCall(i);
+            return null;
+        })
             .when(apiReactor)
             .handle(ctxCaptor.capture(), any(Handler.class));
 
@@ -269,13 +268,13 @@ class DefaultHttpRequestDispatcherTest {
         when(response.ended()).thenReturn(true);
 
         doAnswer(i -> {
-                final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
+            final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
 
-                assertEquals("TENANT", ctx.request().metrics().getTenant());
-                assertEquals("ZONE", ctx.request().metrics().getZone());
-                simulateEndHandlerCall(i);
-                return null;
-            })
+            assertEquals("TENANT", ctx.request().metrics().getTenant());
+            assertEquals("ZONE", ctx.request().metrics().getZone());
+            simulateEndHandlerCall(i);
+            return null;
+        })
             .when(apiReactor)
             .handle(any(ExecutionContext.class), any(Handler.class));
 
@@ -295,13 +294,13 @@ class DefaultHttpRequestDispatcherTest {
         when(rxResponse.rxEnd()).thenReturn(Completable.complete());
 
         doAnswer(i -> {
-                final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
+            final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
 
-                assertEquals("TENANT", ctx.request().metrics().getTenant());
-                assertEquals("ZONE", ctx.request().metrics().getZone());
-                simulateEndHandlerCall(i);
-                return null;
-            })
+            assertEquals("TENANT", ctx.request().metrics().getTenant());
+            assertEquals("ZONE", ctx.request().metrics().getZone());
+            simulateEndHandlerCall(i);
+            return null;
+        })
             .when(apiReactor)
             .handle(any(ExecutionContext.class), any(Handler.class));
 
@@ -321,13 +320,13 @@ class DefaultHttpRequestDispatcherTest {
         when(rxResponse.rxEnd()).thenReturn(Completable.error(new RuntimeException()));
 
         doAnswer(i -> {
-                final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
+            final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
 
-                assertEquals("TENANT", ctx.request().metrics().getTenant());
-                assertEquals("ZONE", ctx.request().metrics().getZone());
-                simulateEndHandlerCall(i);
-                return null;
-            })
+            assertEquals("TENANT", ctx.request().metrics().getTenant());
+            assertEquals("ZONE", ctx.request().metrics().getZone());
+            simulateEndHandlerCall(i);
+            return null;
+        })
             .when(apiReactor)
             .handle(any(ExecutionContext.class), any(Handler.class));
 

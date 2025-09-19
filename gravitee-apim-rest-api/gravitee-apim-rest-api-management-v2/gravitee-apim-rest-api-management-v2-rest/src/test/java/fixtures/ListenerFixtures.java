@@ -29,8 +29,7 @@ public class ListenerFixtures {
 
     private static final PathV4.PathV4Builder BASE_PATH_V4 = PathV4.builder().host("my.fake.host").path("/test").overrideAccess(true);
 
-    private static final HttpListener.HttpListenerBuilder BASE_HTTP_LISTENER = HttpListener
-        .builder()
+    private static final HttpListener.HttpListenerBuilder BASE_HTTP_LISTENER = HttpListener.builder()
         // BaseListener
         .type(ListenerType.HTTP)
         .entrypoints(List.of(EntrypointFixtures.anEntrypointV4()))
@@ -40,15 +39,13 @@ public class ListenerFixtures {
         .pathMappings(List.of("/test"))
         .cors(CorsFixtures.aCors());
 
-    private static final SubscriptionListener.SubscriptionListenerBuilder BASE_SUBSCRIPTION_LISTENER = SubscriptionListener
-        .builder()
+    private static final SubscriptionListener.SubscriptionListenerBuilder BASE_SUBSCRIPTION_LISTENER = SubscriptionListener.builder()
         // BaseListener
         .type(ListenerType.SUBSCRIPTION)
         .entrypoints(List.of(EntrypointFixtures.anEntrypointV4()))
         .servers(List.of("my-server1", "my-server2"));
 
-    private static final TcpListener.TcpListenerBuilder BASE_TCP_LISTENER = TcpListener
-        .builder()
+    private static final TcpListener.TcpListenerBuilder BASE_TCP_LISTENER = TcpListener.builder()
         // BaseListener
         .type(ListenerType.TCP)
         .entrypoints(List.of(EntrypointFixtures.anEntrypointV4()))

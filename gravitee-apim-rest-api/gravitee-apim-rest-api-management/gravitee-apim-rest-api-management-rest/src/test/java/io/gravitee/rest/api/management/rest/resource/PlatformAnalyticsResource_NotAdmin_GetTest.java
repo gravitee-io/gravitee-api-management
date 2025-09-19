@@ -59,8 +59,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
                 "DEFAULT",
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     @Test
@@ -73,8 +72,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
                 APPLICATION_ANALYTICS,
                 READ
             )
-        )
-            .thenReturn(Set.of());
+        ).thenReturn(Set.of());
 
         final Response response = envTarget()
             .queryParam("to", 122222L)
@@ -86,15 +84,19 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
             .get();
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(permissionService, times(1))
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            );
-        verify(applicationService)
-            .findIdsByUserAndPermission(GraviteeContext.getExecutionContext(), USER_NAME, null, APPLICATION_ANALYTICS, READ);
+        verify(permissionService, times(1)).hasPermission(
+            GraviteeContext.getExecutionContext(),
+            RolePermission.ENVIRONMENT_PLATFORM,
+            "DEFAULT",
+            RolePermissionAction.READ
+        );
+        verify(applicationService).findIdsByUserAndPermission(
+            GraviteeContext.getExecutionContext(),
+            USER_NAME,
+            null,
+            APPLICATION_ANALYTICS,
+            READ
+        );
     }
 
     @Test
@@ -110,13 +112,12 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
             .get();
 
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        verify(permissionService, times(1))
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            );
+        verify(permissionService, times(1)).hasPermission(
+            GraviteeContext.getExecutionContext(),
+            RolePermission.ENVIRONMENT_PLATFORM,
+            "DEFAULT",
+            RolePermissionAction.READ
+        );
         verify(apiAuthorizationServiceV4).findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
     }
 
@@ -130,8 +131,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
                 APPLICATION_ANALYTICS,
                 READ
             )
-        )
-            .thenReturn(Set.of("app-1"));
+        ).thenReturn(Set.of("app-1"));
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
@@ -151,15 +151,19 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
         var body = response.readEntity(HitsAnalytics.class);
         assertEquals(100L, body.getHits());
 
-        verify(permissionService, times(1))
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            );
-        verify(applicationService)
-            .findIdsByUserAndPermission(GraviteeContext.getExecutionContext(), USER_NAME, null, APPLICATION_ANALYTICS, READ);
+        verify(permissionService, times(1)).hasPermission(
+            GraviteeContext.getExecutionContext(),
+            RolePermission.ENVIRONMENT_PLATFORM,
+            "DEFAULT",
+            RolePermissionAction.READ
+        );
+        verify(applicationService).findIdsByUserAndPermission(
+            GraviteeContext.getExecutionContext(),
+            USER_NAME,
+            null,
+            APPLICATION_ANALYTICS,
+            READ
+        );
     }
 
     @Test
@@ -172,8 +176,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
                 "api-1",
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
@@ -192,13 +195,12 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
         var body = response.readEntity(HitsAnalytics.class);
         assertEquals(100L, body.getHits());
 
-        verify(permissionService, times(1))
-            .hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.ENVIRONMENT_PLATFORM,
-                "DEFAULT",
-                RolePermissionAction.READ
-            );
+        verify(permissionService, times(1)).hasPermission(
+            GraviteeContext.getExecutionContext(),
+            RolePermission.ENVIRONMENT_PLATFORM,
+            "DEFAULT",
+            RolePermissionAction.READ
+        );
         verify(apiAuthorizationServiceV4).findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
     }
 }

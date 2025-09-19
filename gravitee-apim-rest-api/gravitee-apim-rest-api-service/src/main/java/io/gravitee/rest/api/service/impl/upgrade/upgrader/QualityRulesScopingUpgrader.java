@@ -125,7 +125,11 @@ public class QualityRulesScopingUpgrader implements Upgrader {
         log.info("Start scoping existing quality rules at the environment level");
 
         // Get all quality rules with no reference type
-        List<QualityRule> qualityRules = qualityRuleRepository.findAll().stream().filter(qr -> qr.getReferenceType() == null).toList();
+        List<QualityRule> qualityRules = qualityRuleRepository
+            .findAll()
+            .stream()
+            .filter(qr -> qr.getReferenceType() == null)
+            .toList();
 
         // Log the number of quality rules to scope
         log.info("Found {} quality rules with no reference", qualityRules.size());
@@ -145,7 +149,10 @@ public class QualityRulesScopingUpgrader implements Upgrader {
             .orElse(environments.get(0));
 
         log.info("Default environment is [{}]", defaultEnv.getId());
-        List<Environment> otherEnvs = environments.stream().filter(env -> !env.getId().equals(defaultEnv.getId())).toList();
+        List<Environment> otherEnvs = environments
+            .stream()
+            .filter(env -> !env.getId().equals(defaultEnv.getId()))
+            .toList();
         log.info("Other environments are {}", otherEnvs.stream().map(Environment::getId).toList());
 
         // Scope the quality rules to the environments

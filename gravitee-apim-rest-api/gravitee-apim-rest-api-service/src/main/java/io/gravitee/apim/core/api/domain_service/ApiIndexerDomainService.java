@@ -83,8 +83,7 @@ public class ApiIndexerDomainService {
         var metadata = apiMetadataDecoderDomainService.decodeMetadata(
             apiToIndex.getEnvironmentId(),
             apiToIndex.getId(),
-            ApiMetadataDecodeContext
-                .builder()
+            ApiMetadataDecodeContext.builder()
                 .name(apiToIndex.getName())
                 .description(apiToIndex.getDescription())
                 .createdAt(Date.from(apiToIndex.getCreatedAt().toInstant()))

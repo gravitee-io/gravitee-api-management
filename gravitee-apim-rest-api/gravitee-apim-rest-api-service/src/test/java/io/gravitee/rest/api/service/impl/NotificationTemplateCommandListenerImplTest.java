@@ -44,10 +44,9 @@ class NotificationTemplateCommandListenerImplTest {
     private NotificationTemplateCommandListenerImpl cut;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final NotificationTemplateMapper notificationTemplateMapper = new NotificationTemplateMapper();
-    private static final String EMAIL_CONTENT =
-        """
-        {"id":"c4f45b5d-526e-4660-b45b-5d526ee660ec", "hook":"USER_REGISTRATION","scope":"TEMPLATES_FOR_ACTION","name":"User registration","description":"Email sent to a user who has self-registered on portal or admin console. Contains a registration link.","title":"User ${registrationAction} - ${user.displayName}","content":"email content","type":"EMAIL","enabled":true,"templateName":"TEMPLATES_FOR_ACTION.USER_REGISTRATION.EMAIL","created_at":1718895875127}
-    """;
+    private static final String EMAIL_CONTENT = """
+            {"id":"c4f45b5d-526e-4660-b45b-5d526ee660ec", "hook":"USER_REGISTRATION","scope":"TEMPLATES_FOR_ACTION","name":"User registration","description":"Email sent to a user who has self-registered on portal or admin console. Contains a registration link.","title":"User ${registrationAction} - ${user.displayName}","content":"email content","type":"EMAIL","enabled":true,"templateName":"TEMPLATES_FOR_ACTION.USER_REGISTRATION.EMAIL","created_at":1718895875127}
+        """;
     private static final String ORGANIZATION_ID = "DEFAULT";
 
     @Mock
@@ -58,13 +57,12 @@ class NotificationTemplateCommandListenerImplTest {
 
     @BeforeEach
     void setUp() {
-        cut =
-            new NotificationTemplateCommandListenerImpl(
-                eventManager,
-                objectMapper,
-                notificationTemplateService,
-                notificationTemplateMapper
-            );
+        cut = new NotificationTemplateCommandListenerImpl(
+            eventManager,
+            objectMapper,
+            notificationTemplateService,
+            notificationTemplateMapper
+        );
     }
 
     @Test
@@ -105,8 +103,9 @@ class NotificationTemplateCommandListenerImplTest {
         assertThat(template.getHook()).isEqualTo("USER_REGISTRATION");
         assertThat(template.getScope()).isEqualTo("TEMPLATES_FOR_ACTION");
         assertThat(template.getName()).isEqualTo("User registration");
-        assertThat(template.getDescription())
-            .isEqualTo("Email sent to a user who has self-registered on portal or admin console. Contains a registration link.");
+        assertThat(template.getDescription()).isEqualTo(
+            "Email sent to a user who has self-registered on portal or admin console. Contains a registration link."
+        );
         assertThat(template.getTitle()).isEqualTo("User ${registrationAction} - ${user.displayName}");
         assertThat(template.getContent()).isEqualTo("email content");
         assertThat(template.getType()).isEqualTo(NotificationTemplateType.EMAIL);

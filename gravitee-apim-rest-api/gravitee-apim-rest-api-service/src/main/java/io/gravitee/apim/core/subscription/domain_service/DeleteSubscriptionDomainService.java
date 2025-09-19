@@ -43,8 +43,7 @@ public class DeleteSubscriptionDomainService {
 
     private void createAuditLog(SubscriptionEntity subscriptionEntity, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(subscriptionEntity.getApiId())

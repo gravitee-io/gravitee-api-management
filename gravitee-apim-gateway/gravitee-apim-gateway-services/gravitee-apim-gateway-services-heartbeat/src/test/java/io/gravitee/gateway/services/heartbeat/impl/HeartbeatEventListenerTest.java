@@ -83,11 +83,10 @@ class HeartbeatEventListenerTest {
         event.setType(EventType.GATEWAY_STARTED);
 
         CountDownLatch latch = new CountDownLatch(1);
-        when(eventRepository.createOrPatch(any()))
-            .thenAnswer(invocation -> {
-                latch.countDown();
-                return null;
-            });
+        when(eventRepository.createOrPatch(any())).thenAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        });
 
         cut.onMessage(new Message<>("topic", event));
 
@@ -110,11 +109,10 @@ class HeartbeatEventListenerTest {
         when(member.primary()).thenReturn(true);
 
         CountDownLatch latch = new CountDownLatch(1);
-        when(eventRepository.createOrPatch(any()))
-            .thenAnswer(invocation -> {
-                latch.countDown();
-                throw new RuntimeException();
-            });
+        when(eventRepository.createOrPatch(any())).thenAnswer(invocation -> {
+            latch.countDown();
+            throw new RuntimeException();
+        });
 
         assertDoesNotThrow(() -> cut.onMessage(new Message<>("topic", new Event())));
 
@@ -130,14 +128,13 @@ class HeartbeatEventListenerTest {
         CountDownLatch processingLatch = new CountDownLatch(1);
         CountDownLatch completionLatch = new CountDownLatch(1);
 
-        when(eventRepository.createOrPatch(any()))
-            .thenAnswer(invocation -> {
-                // Signal that processing has started
-                completionLatch.countDown();
-                // Block until we release it
-                processingLatch.await();
-                return null;
-            });
+        when(eventRepository.createOrPatch(any())).thenAnswer(invocation -> {
+            // Signal that processing has started
+            completionLatch.countDown();
+            // Block until we release it
+            processingLatch.await();
+            return null;
+        });
 
         // First event - this will block
         Event firstEvent = new Event();
@@ -172,11 +169,10 @@ class HeartbeatEventListenerTest {
         firstEvent.setType(EventType.GATEWAY_STARTED);
 
         CountDownLatch firstLatch = new CountDownLatch(1);
-        when(eventRepository.createOrPatch(firstEvent))
-            .thenAnswer(invocation -> {
-                firstLatch.countDown();
-                return null;
-            });
+        when(eventRepository.createOrPatch(firstEvent)).thenAnswer(invocation -> {
+            firstLatch.countDown();
+            return null;
+        });
 
         cut.onMessage(new Message<>("topic", firstEvent));
         assertThat(firstLatch.await(5, TimeUnit.SECONDS)).isTrue();
@@ -187,11 +183,10 @@ class HeartbeatEventListenerTest {
         secondEvent.setType(EventType.GATEWAY_STARTED);
 
         CountDownLatch secondLatch = new CountDownLatch(1);
-        when(eventRepository.createOrPatch(secondEvent))
-            .thenAnswer(invocation -> {
-                secondLatch.countDown();
-                return null;
-            });
+        when(eventRepository.createOrPatch(secondEvent)).thenAnswer(invocation -> {
+            secondLatch.countDown();
+            return null;
+        });
 
         cut.onMessage(new Message<>("topic", secondEvent));
         assertThat(secondLatch.await(5, TimeUnit.SECONDS)).isTrue();
@@ -210,14 +205,13 @@ class HeartbeatEventListenerTest {
         CountDownLatch processingLatch = new CountDownLatch(1);
         CountDownLatch completionLatch = new CountDownLatch(1);
 
-        when(eventRepository.createOrPatch(any()))
-            .thenAnswer(invocation -> {
-                // Signal that processing has started
-                completionLatch.countDown();
-                // Block until we release it
-                processingLatch.await();
-                return null;
-            });
+        when(eventRepository.createOrPatch(any())).thenAnswer(invocation -> {
+            // Signal that processing has started
+            completionLatch.countDown();
+            // Block until we release it
+            processingLatch.await();
+            return null;
+        });
 
         // First event - this will block
         Event firstEvent = new Event();

@@ -82,19 +82,19 @@ class LatestEventFetcherTest {
         Event event = new Event();
         when(
             eventLatestRepository.search(
-                argThat(argument ->
-                    argument.getTypes().size() == 1 &&
-                    argument.getTypes().contains(EventType.PUBLISH_API) &&
-                    argument.getEnvironments().contains("env") &&
-                    argument.getFrom() < from.toEpochMilli() &&
-                    argument.getTo() > to.toEpochMilli()
+                argThat(
+                    argument ->
+                        argument.getTypes().size() == 1 &&
+                        argument.getTypes().contains(EventType.PUBLISH_API) &&
+                        argument.getEnvironments().contains("env") &&
+                        argument.getFrom() < from.toEpochMilli() &&
+                        argument.getTo() > to.toEpochMilli()
                 ),
                 eq(Event.EventProperties.API_ID),
                 eq(0L),
                 eq(1L)
             )
-        )
-            .thenReturn(List.of(event));
+        ).thenReturn(List.of(event));
         cut
             .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Event.EventProperties.API_ID, Set.of("env"), Set.of(EventType.PUBLISH_API))
             .test()

@@ -55,8 +55,7 @@ public class ApiQualityMetricDescriptionTest {
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Collections.emptyList());
+        ).thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn(null);
 
@@ -73,8 +72,7 @@ public class ApiQualityMetricDescriptionTest {
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Collections.emptyList());
+        ).thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn("1234567890");
 
@@ -91,12 +89,10 @@ public class ApiQualityMetricDescriptionTest {
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Collections.emptyList());
+        ).thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getDescription())
-            .thenReturn(
-                "1234567890" +
+        when(api.getDescription()).thenReturn(
+            "1234567890" +
                 "1234567890" +
                 "1234567890" +
                 "1234567890" +
@@ -106,7 +102,7 @@ public class ApiQualityMetricDescriptionTest {
                 "1234567890" +
                 "1234567890" +
                 "1234567890"
-            );
+        );
 
         boolean valid = srv.isValid(GraviteeContext.getExecutionContext(), api);
 
@@ -121,8 +117,7 @@ public class ApiQualityMetricDescriptionTest {
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Arrays.asList("3"));
+        ).thenReturn(Arrays.asList("3"));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn("123");
 
@@ -139,8 +134,7 @@ public class ApiQualityMetricDescriptionTest {
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Arrays.asList("3"));
+        ).thenReturn(Arrays.asList("3"));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getDescription()).thenReturn("12");
 

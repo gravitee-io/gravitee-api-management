@@ -54,7 +54,10 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
 
     @Override
     public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
-        return identityProviders.stream().filter(provider -> provider.type().equalsIgnoreCase(type)).findFirst();
+        return identityProviders
+            .stream()
+            .filter(provider -> provider.type().equalsIgnoreCase(type))
+            .findFirst();
     }
 
     private Map<String, Object> getConfiguration(AuthenticationProvider provider) {

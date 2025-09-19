@@ -62,8 +62,7 @@ public class LogInitProcessor implements Processor {
                 return Completable.complete();
             }
 
-            return CONDITION_FILTER
-                .filter(ctx, analyticsContext.getLoggingContext())
+            return CONDITION_FILTER.filter(ctx, analyticsContext.getLoggingContext())
                 .doOnSuccess(activeLoggingContext -> initLogEntity(ctx, activeLoggingContext))
                 .ignoreElement();
         });
@@ -73,8 +72,7 @@ public class LogInitProcessor implements Processor {
         HttpRequest request = ctx.request();
         HttpResponse response = ctx.response();
 
-        Log log = Log
-            .builder()
+        Log log = Log.builder()
             .timestamp(request.timestamp())
             .requestId(request.id())
             .clientIdentifier(request.clientIdentifier())

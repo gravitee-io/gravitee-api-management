@@ -104,55 +104,51 @@ public class InitializeSharedPolicyGroupUseCase {
             )
             .steps(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .policy(rateLimitPolicy.getId())
                         .name(rateLimitPolicy.getName())
                         .description("Rate limit {#context.attributes['maxRequests']} request / minute")
                         .configuration(
-                            new ObjectMapper()
-                                .writeValueAsString(
+                            new ObjectMapper().writeValueAsString(
+                                Map.of(
+                                    "useKeyOnly",
+                                    false,
+                                    "addHeaders",
+                                    false,
+                                    "rate",
                                     Map.of(
                                         "useKeyOnly",
-                                        false,
-                                        "addHeaders",
-                                        false,
-                                        "rate",
-                                        Map.of(
-                                            "useKeyOnly",
-                                            true,
-                                            "dynamicLimit",
-                                            "{#context.attributes['maxRequests']}",
-                                            "periodTime",
-                                            1,
-                                            "limit",
-                                            0,
-                                            "periodTimeUnit",
-                                            "MINUTES",
-                                            "key",
-                                            ""
-                                        )
+                                        true,
+                                        "dynamicLimit",
+                                        "{#context.attributes['maxRequests']}",
+                                        "periodTime",
+                                        1,
+                                        "limit",
+                                        0,
+                                        "periodTimeUnit",
+                                        "MINUTES",
+                                        "key",
+                                        ""
                                     )
                                 )
+                            )
                         )
                         .build(),
-                    Step
-                        .builder()
+                    Step.builder()
                         .policy(groovyPolicy.getId())
                         .name(groovyPolicy.getName())
                         .description("Limit the number of tokens to `context.attributes['maxTokens']`")
                         .configuration(
-                            new ObjectMapper()
-                                .writeValueAsString(
-                                    Map.of(
-                                        "readContent",
-                                        false,
-                                        "scope",
-                                        "REQUEST",
-                                        "script",
-                                        "def maxTokens =  Integer.parseInt(context.attributes.'maxTokens');\n\ndef characters = context.attributes.'prompt'.length();\ndef tokens = characters / 4;\n\ndef truncateValue = Math.min(tokens.intValue(), maxTokens.intValue()) * 4 - 1;\n context.attributes.'prompt' =  context.attributes.'prompt'[0..truncateValue];\n"
-                                    )
+                            new ObjectMapper().writeValueAsString(
+                                Map.of(
+                                    "readContent",
+                                    false,
+                                    "scope",
+                                    "REQUEST",
+                                    "script",
+                                    "def maxTokens =  Integer.parseInt(context.attributes.'maxTokens');\n\ndef characters = context.attributes.'prompt'.length();\ndef tokens = characters / 4;\n\ndef truncateValue = Math.min(tokens.intValue(), maxTokens.intValue()) * 4 - 1;\n context.attributes.'prompt' =  context.attributes.'prompt'[0..truncateValue];\n"
                                 )
+                            )
                         )
                         .build()
                 )
@@ -182,77 +178,71 @@ public class InitializeSharedPolicyGroupUseCase {
             .prerequisiteMessage("You need the `ip` field set in your request body.")
             .steps(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .policy(assignAttributesPolicy.getId())
                         .name(assignAttributesPolicy.getName())
                         .description("Assign variables")
                         .configuration(
-                            new ObjectMapper()
-                                .writeValueAsString(
-                                    Map.of(
-                                        "scope",
-                                        "REQUEST",
-                                        "attributes",
-                                        List.of(Map.of("name", "requestIp", "value", "{#jsonPath(#request.content, '$.ip')}"))
-                                    )
+                            new ObjectMapper().writeValueAsString(
+                                Map.of(
+                                    "scope",
+                                    "REQUEST",
+                                    "attributes",
+                                    List.of(Map.of("name", "requestIp", "value", "{#jsonPath(#request.content, '$.ip')}"))
                                 )
+                            )
                         )
                         .build(),
-                    Step
-                        .builder()
+                    Step.builder()
                         .policy(httpCalloutPolicy.getId())
                         .name(httpCalloutPolicy.getName())
                         .description("Retrieve location information")
                         .configuration(
-                            new ObjectMapper()
-                                .writeValueAsString(
-                                    Map.of(
-                                        "variables",
-                                        List.of(
-                                            Map.of("name", "country", "value", "{#jsonPath(#calloutResponse.content, '$.country')}"),
-                                            Map.of("name", "city", "value", "{#jsonPath(#calloutResponse.content, '$.city')}")
-                                        ),
-                                        "method",
-                                        "GET",
-                                        "fireAndForget",
-                                        false,
-                                        "scope",
-                                        "REQUEST",
-                                        "errorStatusCode",
-                                        "500",
-                                        "errorCondition",
-                                        "{#calloutResponse.status >= 400 and #calloutResponse.status <= 599}",
-                                        "url",
-                                        "http://ip-api.com/json/{#context.attributes['requestIp']}",
-                                        "exitOnError",
-                                        false
-                                    )
+                            new ObjectMapper().writeValueAsString(
+                                Map.of(
+                                    "variables",
+                                    List.of(
+                                        Map.of("name", "country", "value", "{#jsonPath(#calloutResponse.content, '$.country')}"),
+                                        Map.of("name", "city", "value", "{#jsonPath(#calloutResponse.content, '$.city')}")
+                                    ),
+                                    "method",
+                                    "GET",
+                                    "fireAndForget",
+                                    false,
+                                    "scope",
+                                    "REQUEST",
+                                    "errorStatusCode",
+                                    "500",
+                                    "errorCondition",
+                                    "{#calloutResponse.status >= 400 and #calloutResponse.status <= 599}",
+                                    "url",
+                                    "http://ip-api.com/json/{#context.attributes['requestIp']}",
+                                    "exitOnError",
+                                    false
                                 )
+                            )
                         )
                         .build(),
-                    Step
-                        .builder()
+                    Step.builder()
                         .policy(assignAttributesPolicy.getId())
                         .name(assignAttributesPolicy.getName())
                         .description("Build our prompt to obtain some information")
                         .configuration(
-                            new ObjectMapper()
-                                .writeValueAsString(
-                                    Map.of(
-                                        "scope",
-                                        "REQUEST",
-                                        "attributes",
-                                        List.of(
-                                            Map.of(
-                                                "name",
-                                                "prompt",
-                                                "value",
-                                                "Given the the location: {#context.attributes['city']}, {#context.attributes['country']}, give a short description like you are tourist guide"
-                                            )
+                            new ObjectMapper().writeValueAsString(
+                                Map.of(
+                                    "scope",
+                                    "REQUEST",
+                                    "attributes",
+                                    List.of(
+                                        Map.of(
+                                            "name",
+                                            "prompt",
+                                            "value",
+                                            "Given the the location: {#context.attributes['city']}, {#context.attributes['country']}, give a short description like you are tourist guide"
                                         )
                                     )
                                 )
+                            )
                         )
                         .build()
                 )
@@ -284,43 +274,39 @@ public class InitializeSharedPolicyGroupUseCase {
             )
             .steps(
                 List.of(
-                    Step
-                        .builder()
+                    Step.builder()
                         .policy(assignContentPolicy.getId())
                         .name(assignContentPolicy.getName())
                         .description("Assign content for model")
                         .configuration(
-                            new ObjectMapper()
-                                .writeValueAsString(
-                                    Map.of(
-                                        "scope",
-                                        "REQUEST",
-                                        "body",
-                                        "{\n    \"model\": \"${context.attributes['redirect-model']}\",\n    \"messages\": [\n        {\n            \"role\": \"user\",\n            \"content\": \"${context.attributes['prompt']}\"\n        }\n    ],\n    \"parameters\": {\n        \"temperature\": 0.6\n    },\n    \"stream\": false,\n    \"options\": {\n        \"wait_for_model\": true\n    }\n}"
-                                    )
+                            new ObjectMapper().writeValueAsString(
+                                Map.of(
+                                    "scope",
+                                    "REQUEST",
+                                    "body",
+                                    "{\n    \"model\": \"${context.attributes['redirect-model']}\",\n    \"messages\": [\n        {\n            \"role\": \"user\",\n            \"content\": \"${context.attributes['prompt']}\"\n        }\n    ],\n    \"parameters\": {\n        \"temperature\": 0.6\n    },\n    \"stream\": false,\n    \"options\": {\n        \"wait_for_model\": true\n    }\n}"
                                 )
+                            )
                         )
                         .build(),
-                    Step
-                        .builder()
+                    Step.builder()
                         .policy(dynamicRoutingPolicy.getId())
                         .name(dynamicRoutingPolicy.getName())
                         .description("Redirect to HuggingFace")
                         .configuration(
-                            new ObjectMapper()
-                                .writeValueAsString(
-                                    Map.of(
-                                        "rules",
-                                        List.of(
-                                            Map.of(
-                                                "pattern",
-                                                "{#context.attributes['redirect-source']}",
-                                                "url",
-                                                "/models/{#context.attributes['redirect-model']}/v1/chat/completions"
-                                            )
+                            new ObjectMapper().writeValueAsString(
+                                Map.of(
+                                    "rules",
+                                    List.of(
+                                        Map.of(
+                                            "pattern",
+                                            "{#context.attributes['redirect-source']}",
+                                            "url",
+                                            "/models/{#context.attributes['redirect-model']}/v1/chat/completions"
                                         )
                                     )
                                 )
+                            )
                         )
                         .build()
                 )
@@ -330,8 +316,7 @@ public class InitializeSharedPolicyGroupUseCase {
     }
 
     private static SharedPolicyGroup.SharedPolicyGroupBuilder initializeSharedPolicyGroupForRequestPhase(Input input) {
-        return SharedPolicyGroup
-            .builder()
+        return SharedPolicyGroup.builder()
             .id(UuidString.generateRandom())
             .organizationId(input.organizationId())
             .environmentId(input.environmentId())

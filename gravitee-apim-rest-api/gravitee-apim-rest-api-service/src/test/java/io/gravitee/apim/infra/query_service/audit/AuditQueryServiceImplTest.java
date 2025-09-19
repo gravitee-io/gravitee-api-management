@@ -85,43 +85,40 @@ class AuditQueryServiceImplTest {
             var queryCaptor = ArgumentCaptor.forClass(AuditCriteria.class);
             var pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
             verify(auditRepository).search(queryCaptor.capture(), pageableCaptor.capture());
-            assertThat(queryCaptor.getValue())
-                .satisfies(criteria -> {
-                    assertThat(criteria.getReferences()).containsExactly(Map.entry(Audit.AuditReferenceType.API, List.of("api-id")));
-                    assertThat(criteria.getOrganizationId()).isEqualTo("organization-id");
-                    assertThat(criteria.getEnvironmentIds()).isEqualTo(List.of("environment-id"));
-                    assertThat(criteria.getEvents()).containsExactlyInAnyOrderElementsOf(List.of("event-1", "event-2"));
-                    assertThat(criteria.getFrom()).isEqualTo(2L);
-                    assertThat(criteria.getTo()).isEqualTo(100L);
-                });
+            assertThat(queryCaptor.getValue()).satisfies(criteria -> {
+                assertThat(criteria.getReferences()).containsExactly(Map.entry(Audit.AuditReferenceType.API, List.of("api-id")));
+                assertThat(criteria.getOrganizationId()).isEqualTo("organization-id");
+                assertThat(criteria.getEnvironmentIds()).isEqualTo(List.of("environment-id"));
+                assertThat(criteria.getEvents()).containsExactlyInAnyOrderElementsOf(List.of("event-1", "event-2"));
+                assertThat(criteria.getFrom()).isEqualTo(2L);
+                assertThat(criteria.getTo()).isEqualTo(100L);
+            });
 
-            assertThat(pageableCaptor.getValue())
-                .satisfies(pageParam -> {
-                    assertThat(pageParam.pageNumber()).isZero();
-                    assertThat(pageParam.pageSize()).isEqualTo(50);
-                });
+            assertThat(pageableCaptor.getValue()).satisfies(pageParam -> {
+                assertThat(pageParam.pageNumber()).isZero();
+                assertThat(pageParam.pageSize()).isEqualTo(50);
+            });
         }
 
         @Test
         @SneakyThrows
         void should_return_audits() {
             // Given
-            when(auditRepository.search(any(), any()))
-                .thenAnswer(invocation -> {
-                    var criteria = invocation.getArgument(0, AuditCriteria.class);
-                    var list = criteria
-                        .getEvents()
-                        .stream()
-                        .map(event ->
-                            anAudit()
-                                .organizationId(criteria.getOrganizationId())
-                                .environmentId(criteria.getEnvironmentIds().get(0))
-                                .event(event)
-                                .build()
-                        )
-                        .toList();
-                    return new Page<>(list, 0, list.size(), list.size());
-                });
+            when(auditRepository.search(any(), any())).thenAnswer(invocation -> {
+                var criteria = invocation.getArgument(0, AuditCriteria.class);
+                var list = criteria
+                    .getEvents()
+                    .stream()
+                    .map(event ->
+                        anAudit()
+                            .organizationId(criteria.getOrganizationId())
+                            .environmentId(criteria.getEnvironmentIds().get(0))
+                            .event(event)
+                            .build()
+                    )
+                    .toList();
+                return new Page<>(list, 0, list.size(), list.size());
+            });
 
             var query = new ApiAuditQueryFilters(
                 "api-id",
@@ -142,8 +139,7 @@ class AuditQueryServiceImplTest {
                 softly
                     .assertThat(result.audits())
                     .containsExactly(
-                        AuditEntity
-                            .builder()
+                        AuditEntity.builder()
                             .id("audit-id")
                             .organizationId("organization-id")
                             .environmentId("environment-id")
@@ -153,16 +149,17 @@ class AuditQueryServiceImplTest {
                             .properties(Map.of("API", "myapi"))
                             .event("event-1")
                             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .patch("""
-                        [{ "op": "add", "path": "/hello", "value": ["world"] }]""")
+                            .patch(
+                                """
+                                [{ "op": "add", "path": "/hello", "value": ["world"] }]"""
+                            )
                             .build()
                     );
             });
         }
 
         private Audit.AuditBuilder anAudit() {
-            return Audit
-                .builder()
+            return Audit.builder()
                 .id("audit-id")
                 .createdAt(Date.from(INSTANT_NOW))
                 .organizationId("organization-id")
@@ -172,8 +169,10 @@ class AuditQueryServiceImplTest {
                 .event(Api.AuditEvent.API_CREATED.name())
                 .user("user-id")
                 .properties(Map.of("API", "myapi"))
-                .patch("""
-                        [{ "op": "add", "path": "/hello", "value": ["world"] }]""");
+                .patch(
+                    """
+                    [{ "op": "add", "path": "/hello", "value": ["world"] }]"""
+                );
         }
     }
 }

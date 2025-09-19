@@ -145,8 +145,7 @@ public class ApplicationResource extends AbstractResource {
             applicationService.update(GraviteeContext.getExecutionContext(), applicationId, updateApplicationEntity),
             uriInfo
         );
-        return Response
-            .ok(addApplicationLinks(updatedApp))
+        return Response.ok(addApplicationLinks(updatedApp))
             .tag(Long.toString(updatedApp.getUpdatedAt().toInstant().toEpochMilli()))
             .lastModified(Date.from(updatedApp.getUpdatedAt().toInstant()))
             .build();

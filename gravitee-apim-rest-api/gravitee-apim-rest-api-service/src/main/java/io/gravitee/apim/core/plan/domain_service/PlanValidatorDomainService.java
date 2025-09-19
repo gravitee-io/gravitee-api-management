@@ -98,14 +98,13 @@ public class PlanValidatorDomainService {
 
     private void ensurePlanSecurityIsAllowed(String securityType, String currentOrganizationId, String currentEnvironmentId) {
         PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(securityType);
-        Key securityKey =
-            switch (planSecurityType) {
-                case API_KEY -> Key.PLAN_SECURITY_APIKEY_ENABLED;
-                case KEY_LESS -> Key.PLAN_SECURITY_KEYLESS_ENABLED;
-                case JWT -> Key.PLAN_SECURITY_JWT_ENABLED;
-                case OAUTH2 -> Key.PLAN_SECURITY_OAUTH2_ENABLED;
-                case MTLS -> Key.PLAN_SECURITY_MTLS_ENABLED;
-            };
+        Key securityKey = switch (planSecurityType) {
+            case API_KEY -> Key.PLAN_SECURITY_APIKEY_ENABLED;
+            case KEY_LESS -> Key.PLAN_SECURITY_KEYLESS_ENABLED;
+            case JWT -> Key.PLAN_SECURITY_JWT_ENABLED;
+            case OAUTH2 -> Key.PLAN_SECURITY_OAUTH2_ENABLED;
+            case MTLS -> Key.PLAN_SECURITY_MTLS_ENABLED;
+        };
         if (
             !parametersQueryService.findAsBoolean(
                 securityKey,
@@ -119,10 +118,8 @@ public class PlanValidatorDomainService {
     public void validatePlanSecurityAgainstEntrypoints(PlanSecurity planSecurity, List<ListenerType> listenerTypes) {
         if (
             listenerTypes.contains(ListenerType.TCP) &&
-            !(
-                PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType()) ||
-                PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType())
-            )
+            !(PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType()) ||
+                PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType()))
         ) {
             throw new UnauthorizedPlanSecurityTypeException(planSecurity.getType());
         }

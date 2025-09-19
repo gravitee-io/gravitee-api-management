@@ -214,8 +214,9 @@ public class ApiService_CreateTest {
         //            .thenReturn("toDecode=decoded-value");
         //        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
         //            .thenReturn("USER");
-        when(verifyApiPathDomainService.validateAndSanitize(any()))
-            .thenAnswer(invocation -> Validator.Result.ofValue(invocation.getArgument(0)));
+        when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(invocation ->
+            Validator.Result.ofValue(invocation.getArgument(0))
+        );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
@@ -297,16 +298,15 @@ public class ApiService_CreateTest {
         assertNotNull(apiEntity.getPaths());
 
         verify(apiRepository, times(1)).create(any());
-        verify(auditService, times(1))
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                any(),
-                eq(Api.AuditEvent.API_CREATED),
-                any(),
-                eq(null),
-                any()
-            );
+        verify(auditService, times(1)).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            any(),
+            any(),
+            eq(Api.AuditEvent.API_CREATED),
+            any(),
+            eq(null),
+            any()
+        );
         verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
@@ -324,8 +324,9 @@ public class ApiService_CreateTest {
 
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
-        verify(genericNotificationConfigService, times(1))
-            .create(argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)));
+        verify(genericNotificationConfigService, times(1)).create(
+            argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID))
+        );
         verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
@@ -343,14 +344,14 @@ public class ApiService_CreateTest {
 
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
-        verify(apiMetadataService, times(1))
-            .create(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(newApiMetadataEntity ->
+        verify(apiMetadataService, times(1)).create(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                newApiMetadataEntity ->
                     newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
                     newApiMetadataEntity.getName().equals(MetadataService.METADATA_EMAIL_SUPPORT_KEY)
-                )
-            );
+            )
+        );
         verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
@@ -386,13 +387,12 @@ public class ApiService_CreateTest {
 
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
-        verify(membershipService, times(1))
-            .addRoleToMemberOnReference(
-                GraviteeContext.getExecutionContext(),
-                new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-            );
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
+            GraviteeContext.getExecutionContext(),
+            new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+            new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
+            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+        );
         verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 

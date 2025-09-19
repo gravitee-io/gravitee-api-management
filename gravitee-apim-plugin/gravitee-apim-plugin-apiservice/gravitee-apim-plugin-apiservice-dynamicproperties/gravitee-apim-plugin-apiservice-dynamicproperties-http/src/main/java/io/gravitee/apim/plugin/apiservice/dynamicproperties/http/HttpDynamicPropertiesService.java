@@ -104,11 +104,10 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
         disposeExistingJob();
 
         try {
-            this.configuration =
-                pluginConfigurationHelper.readConfiguration(
-                    HttpDynamicPropertiesServiceConfiguration.class,
-                    api.getServices().getDynamicProperty().getConfiguration()
-                );
+            this.configuration = pluginConfigurationHelper.readConfiguration(
+                HttpDynamicPropertiesServiceConfiguration.class,
+                api.getServices().getDynamicProperty().getConfiguration()
+            );
         } catch (PluginConfigurationException e) {
             return Completable.error(
                 new IllegalArgumentException("Unable to start http-dynamic-properties service for api: [" + api.getId() + "]")
@@ -157,8 +156,7 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
         cronTrigger = new CronTrigger(configuration.getSchedule());
         final AtomicLong errorCount = new AtomicLong(0);
 
-        return Observable
-            .defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
+        return Observable.defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
             .observeOn(Schedulers.computation())
             .filter(aLong -> clusterManager.self().primary())
             .switchMapCompletable(aLong -> fetchProperties())
@@ -218,15 +216,13 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
     }
 
     private Completable evaluateAndDispatchProperties(Buffer bodyBuffer) {
-        return Completable
-            .fromRunnable(() -> {
-                final List<Property> properties = joltMapper.map(bodyBuffer.toString());
-                eventManager.publishEvent(
-                    ManagementApiServiceEvent.DYNAMIC_PROPERTY_UPDATE,
-                    new DynamicPropertiesEvent(api.getId(), this.id(), properties)
-                );
-            })
-            .subscribeOn(Schedulers.io());
+        return Completable.fromRunnable(() -> {
+            final List<Property> properties = joltMapper.map(bodyBuffer.toString());
+            eventManager.publishEvent(
+                ManagementApiServiceEvent.DYNAMIC_PROPERTY_UPDATE,
+                new DynamicPropertiesEvent(api.getId(), this.id(), properties)
+            );
+        }).subscribeOn(Schedulers.io());
     }
 
     /**

@@ -140,8 +140,7 @@ class ConfigServiceTestNew {
                 eq("DEFAULT"),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
-        )
-            .thenReturn(params);
+        ).thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
@@ -182,8 +181,7 @@ class ConfigServiceTestNew {
                 eq("DEFAULT"),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
-        )
-            .thenReturn(params);
+        ).thenReturn(params);
 
         when(environment.containsProperty(eq(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key()))).thenReturn(true);
         when(environment.containsProperty(Key.API_LABELS_DICTIONARY.key())).thenReturn(true);
@@ -227,8 +225,13 @@ class ConfigServiceTestNew {
 
         configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
 
-        verify(mockParameterService, times(1))
-            .save(GraviteeContext.getExecutionContext(), PORTAL_URL, "ACME", "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_URL,
+            "ACME",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
     }
 
     @Test
@@ -246,8 +249,7 @@ class ConfigServiceTestNew {
                 eq("DEFAULT"),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
-        )
-            .thenReturn(params);
+        ).thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
@@ -281,8 +283,7 @@ class ConfigServiceTestNew {
                 eq("DEFAULT"),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
-        )
-            .thenReturn(params);
+        ).thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
@@ -316,8 +317,7 @@ class ConfigServiceTestNew {
                 eq("DEFAULT"),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
-        )
-            .thenReturn(params);
+        ).thenReturn(params);
 
         when(environment.containsProperty(eq(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key()))).thenReturn(true);
         when(environment.containsProperty(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
@@ -375,8 +375,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -385,8 +384,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -395,8 +393,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -405,8 +402,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -415,8 +411,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -425,8 +420,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -435,8 +429,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -445,8 +438,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -455,8 +447,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -465,8 +456,7 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
         when(
             mockParameterService.save(
                 GraviteeContext.getExecutionContext(),
@@ -475,81 +465,87 @@ class ConfigServiceTestNew {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(new Parameter());
+        ).thenReturn(new Parameter());
 
         configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
 
-        verify(mockParameterService, times(1))
-            .save(GraviteeContext.getExecutionContext(), ALERT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
-        verify(mockParameterService, times(1))
-            .save(
-                GraviteeContext.getExecutionContext(),
-                LOGGING_DEFAULT_MAX_DURATION,
-                "3000",
-                "DEFAULT",
-                ParameterReferenceType.ORGANIZATION
-            );
-        verify(mockParameterService, times(1))
-            .save(GraviteeContext.getExecutionContext(), LOGGING_USER_DISPLAYED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
-        verify(mockParameterService, times(1))
-            .save(GraviteeContext.getExecutionContext(), LOGGING_AUDIT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
-        verify(mockParameterService, times(1))
-            .save(
-                GraviteeContext.getExecutionContext(),
-                LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
-                "100",
-                "DEFAULT",
-                ParameterReferenceType.ORGANIZATION
-            );
-        verify(mockParameterService, times(1))
-            .save(
-                GraviteeContext.getExecutionContext(),
-                LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
-                "10",
-                "DEFAULT",
-                ParameterReferenceType.ORGANIZATION
-            );
-        verify(mockParameterService, times(1))
-            .save(
-                GraviteeContext.getExecutionContext(),
-                LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT,
-                "PT1S",
-                "DEFAULT",
-                ParameterReferenceType.ORGANIZATION
-            );
-        verify(mockParameterService, times(1))
-            .save(
-                GraviteeContext.getExecutionContext(),
-                LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
-                "PT1S",
-                "DEFAULT",
-                ParameterReferenceType.ORGANIZATION
-            );
-        verify(mockParameterService, times(1))
-            .save(
-                GraviteeContext.getExecutionContext(),
-                LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT,
-                "0.01",
-                "DEFAULT",
-                ParameterReferenceType.ORGANIZATION
-            );
-        verify(mockParameterService, times(1))
-            .save(
-                GraviteeContext.getExecutionContext(),
-                LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
-                "0.5",
-                "DEFAULT",
-                ParameterReferenceType.ORGANIZATION
-            );
-        verify(mockParameterService, times(1))
-            .save(
-                GraviteeContext.getExecutionContext(),
-                LOGGING_AUDIT_TRAIL_ENABLED,
-                "true",
-                "DEFAULT",
-                ParameterReferenceType.ORGANIZATION
-            );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            ALERT_ENABLED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_DEFAULT_MAX_DURATION,
+            "3000",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_USER_DISPLAYED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_AUDIT_ENABLED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
+            "100",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
+            "10",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT,
+            "PT1S",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
+            "PT1S",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT,
+            "0.01",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
+            "0.5",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_AUDIT_TRAIL_ENABLED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
     }
 
     @ParameterizedTest
@@ -575,27 +571,82 @@ class ConfigServiceTestNew {
 
         configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
 
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_ENABLED), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_HOST), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_PORT), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_FROM), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_USERNAME), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_PASSWORD), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_PROTOCOL), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_SUBJECT), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_AUTH_ENABLED), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_SSL_TRUST), any(String.class), any(), any());
-        verify(mockParameterService, isTrialInstance ? never() : times(1))
-            .save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_STARTTLS_ENABLE), any(String.class), any(), any());
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_ENABLED),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_HOST),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_PORT),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_FROM),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_USERNAME),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_PASSWORD),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_PROTOCOL),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_SUBJECT),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_PROPERTIES_AUTH_ENABLED),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_PROPERTIES_SSL_TRUST),
+            any(String.class),
+            any(),
+            any()
+        );
+        verify(mockParameterService, isTrialInstance ? never() : times(1)).save(
+            any(ExecutionContext.class),
+            eq(EMAIL_PROPERTIES_STARTTLS_ENABLE),
+            any(String.class),
+            any(),
+            any()
+        );
     }
 }

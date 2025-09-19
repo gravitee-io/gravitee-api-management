@@ -143,22 +143,20 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     }
 
     private static Criteria buildOrganizationsCriteria(EventCriteria criteria) {
-        return new Criteria()
-            .orOperator(
-                Criteria.where("organizations").exists(false),
-                Criteria.where("organizations").isNull(),
-                Criteria.where("organizations").is(Collections.emptyList()),
-                Criteria.where("organizations").in(criteria.getOrganizations())
-            );
+        return new Criteria().orOperator(
+            Criteria.where("organizations").exists(false),
+            Criteria.where("organizations").isNull(),
+            Criteria.where("organizations").is(Collections.emptyList()),
+            Criteria.where("organizations").in(criteria.getOrganizations())
+        );
     }
 
     private static Criteria buildEnvironmentsCriteria(EventCriteria criteria) {
-        return new Criteria()
-            .orOperator(
-                Criteria.where("environments").exists(false),
-                Criteria.where("environments").isNull(),
-                Criteria.where("environments").is(Collections.emptyList()),
-                Criteria.where("environments").in(criteria.getEnvironments())
-            );
+        return new Criteria().orOperator(
+            Criteria.where("environments").exists(false),
+            Criteria.where("environments").isNull(),
+            Criteria.where("environments").is(Collections.emptyList()),
+            Criteria.where("environments").in(criteria.getEnvironments())
+        );
     }
 }

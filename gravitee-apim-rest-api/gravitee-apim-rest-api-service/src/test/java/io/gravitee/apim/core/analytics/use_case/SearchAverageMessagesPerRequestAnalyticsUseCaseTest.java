@@ -61,28 +61,32 @@ class SearchAverageMessagesPerRequestAnalyticsUseCaseTest {
     @Test
     void should_throw_if_no_api_does_not_belong_to_current_environment() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment")))
-            .isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, "another-environment"))).isInstanceOf(
+            ApiNotFoundException.class
+        );
     }
 
     @Test
     void should_throw_if_no_api_found() {
-        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
-            .isInstanceOf(ApiNotFoundException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID))).isInstanceOf(
+            ApiNotFoundException.class
+        );
     }
 
     @Test
     void should_throw_if_api_definition_not_v4() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
-        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
-            .isInstanceOf(ApiInvalidDefinitionVersionException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID))).isInstanceOf(
+            ApiInvalidDefinitionVersionException.class
+        );
     }
 
     @Test
     void should_throw_if_api_is_not_message() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV4()));
-        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID)))
-            .isInstanceOf(ApiInvalidTypeException.class);
+        assertThatThrownBy(() -> cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID))).isInstanceOf(
+            ApiInvalidTypeException.class
+        );
     }
 
     @Test
@@ -109,17 +113,14 @@ class SearchAverageMessagesPerRequestAnalyticsUseCaseTest {
     @Test
     void should_get_average_messages_per_request_for_a_v4_api() {
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4()));
-        analyticsQueryService.averageMessagesPerRequest =
-            AverageMessagesPerRequest
-                .builder()
-                .globalAverage(250.0)
-                .averagesByEntrypoint(Map.of("http-get", 499.0, "http-post", 1.0))
-                .build();
+        analyticsQueryService.averageMessagesPerRequest = AverageMessagesPerRequest.builder()
+            .globalAverage(250.0)
+            .averagesByEntrypoint(Map.of("http-get", 499.0, "http-post", 1.0))
+            .build();
         final Output result = cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID));
-        assertThat(result.averageMessagesPerRequest())
-            .hasValueSatisfying(averageMessagesPerRequest -> {
-                assertThat(averageMessagesPerRequest.getGlobalAverage()).isEqualTo(250.0);
-                assertThat(averageMessagesPerRequest.getAveragesByEntrypoint()).isEqualTo(Map.of("http-get", 499.0, "http-post", 1.0));
-            });
+        assertThat(result.averageMessagesPerRequest()).hasValueSatisfying(averageMessagesPerRequest -> {
+            assertThat(averageMessagesPerRequest.getGlobalAverage()).isEqualTo(250.0);
+            assertThat(averageMessagesPerRequest.getAveragesByEntrypoint()).isEqualTo(Map.of("http-get", 499.0, "http-post", 1.0));
+        });
     }
 }

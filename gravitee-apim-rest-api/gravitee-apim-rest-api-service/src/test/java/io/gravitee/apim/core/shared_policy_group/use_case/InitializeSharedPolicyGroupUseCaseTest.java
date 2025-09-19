@@ -68,14 +68,13 @@ public class InitializeSharedPolicyGroupUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        initializeSharedPolicyGroupUseCase =
-            new InitializeSharedPolicyGroupUseCase(
-                sharedPolicyGroupCrudService,
-                policyPluginCrudService,
-                eventCrudInMemory,
-                eventLatestCrudInMemory,
-                sharedPolicyGroupHistoryCrudService
-            );
+        initializeSharedPolicyGroupUseCase = new InitializeSharedPolicyGroupUseCase(
+            sharedPolicyGroupCrudService,
+            policyPluginCrudService,
+            eventCrudInMemory,
+            eventLatestCrudInMemory,
+            sharedPolicyGroupHistoryCrudService
+        );
     }
 
     @Test
@@ -123,12 +122,14 @@ public class InitializeSharedPolicyGroupUseCaseTest {
                 assertThat(event.getEnvironments()).containsExactly(ENV_ID);
                 assertThat(event.getType()).isEqualTo(EventType.DEPLOY_SHARED_POLICY_GROUP);
                 final io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup sharedPolicyGroupDefinition =
-                    GraviteeJacksonMapper
-                        .getInstance()
-                        .readValue(event.getPayload(), io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.class);
+                    GraviteeJacksonMapper.getInstance().readValue(
+                        event.getPayload(),
+                        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.class
+                    );
                 assertThat(sharedPolicyGroupDefinition.getEnvironmentId()).isEqualTo(ENV_ID);
-                assertThat(sharedPolicyGroupDefinition.getPhase())
-                    .isEqualTo(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST);
+                assertThat(sharedPolicyGroupDefinition.getPhase()).isEqualTo(
+                    io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST
+                );
             });
         assertThat(eventLatestCrudInMemory.storage())
             .hasSize(3)
@@ -137,12 +138,14 @@ public class InitializeSharedPolicyGroupUseCaseTest {
                 assertThat(event.getEnvironments()).containsExactly(ENV_ID);
                 assertThat(event.getType()).isEqualTo(EventType.DEPLOY_SHARED_POLICY_GROUP);
                 final io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup sharedPolicyGroupDefinition =
-                    GraviteeJacksonMapper
-                        .getInstance()
-                        .readValue(event.getPayload(), io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.class);
+                    GraviteeJacksonMapper.getInstance().readValue(
+                        event.getPayload(),
+                        io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.class
+                    );
                 assertThat(sharedPolicyGroupDefinition.getEnvironmentId()).isEqualTo(ENV_ID);
-                assertThat(sharedPolicyGroupDefinition.getPhase())
-                    .isEqualTo(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST);
+                assertThat(sharedPolicyGroupDefinition.getPhase()).isEqualTo(
+                    io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST
+                );
             });
 
         // - Check shared policy group history is created

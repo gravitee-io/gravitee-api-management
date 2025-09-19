@@ -105,8 +105,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     public void createAndDeleteFederatedApiTest() throws Exception {
         String apiId = "newApi-Id";
 
-        var api = Api
-            .builder()
+        var api = Api.builder()
             .id(apiId)
             .environmentId("DEFAULT")
             .origin("integration")
@@ -549,12 +548,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("api-to-delete", apiIds.getContent().get(0));
         assertEquals("api-to-findById", apiIds.getContent().get(1));
 
-        apiIds =
-            apiRepository.searchIds(
-                List.of(new ApiCriteria.Builder().version("1").build()),
-                new PageableBuilder().pageNumber(1).pageSize(2).build(),
-                null
-            );
+        apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().version("1").build()),
+            new PageableBuilder().pageNumber(1).pageSize(2).build(),
+            null
+        );
 
         assertEquals(4, apiIds.getTotalElements());
         assertEquals(2, apiIds.getPageElements());
@@ -562,12 +560,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("api-to-update", apiIds.getContent().get(0));
         assertEquals("grouped-api", apiIds.getContent().get(1));
 
-        apiIds =
-            apiRepository.searchIds(
-                List.of(new ApiCriteria.Builder().version("1").build()),
-                new PageableBuilder().pageNumber(0).pageSize(4).build(),
-                new SortableBuilder().field("updated_at").order(Order.DESC).build()
-            );
+        apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().version("1").build()),
+            new PageableBuilder().pageNumber(0).pageSize(4).build(),
+            new SortableBuilder().field("updated_at").order(Order.DESC).build()
+        );
 
         assertEquals("api-to-update", apiIds.getContent().get(0));
         assertEquals("api-to-delete", apiIds.getContent().get(1));
@@ -586,12 +583,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertEquals("api-with-many-categories", apiIds.getContent().get(0));
 
-        apiIds =
-            apiRepository.searchIds(
-                List.of(new ApiCriteria.Builder().version("1").build()),
-                new PageableBuilder().pageNumber(1).pageSize(2).build(),
-                null
-            );
+        apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().version("1").build()),
+            new PageableBuilder().pageNumber(1).pageSize(2).build(),
+            null
+        );
 
         assertEquals(4, apiIds.getTotalElements());
         assertEquals(2, apiIds.getPageElements());
@@ -599,12 +595,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("api-to-update", apiIds.getContent().get(0));
         assertEquals("grouped-api", apiIds.getContent().get(1));
 
-        apiIds =
-            apiRepository.searchIds(
-                List.of(new ApiCriteria.Builder().version("1").build()),
-                new PageableBuilder().pageNumber(0).pageSize(4).build(),
-                new SortableBuilder().field("updated_at").order(Order.DESC).build()
-            );
+        apiIds = apiRepository.searchIds(
+            List.of(new ApiCriteria.Builder().version("1").build()),
+            new PageableBuilder().pageNumber(0).pageSize(4).build(),
+            new SortableBuilder().field("updated_at").order(Order.DESC).build()
+        );
 
         assertEquals("api-to-update", apiIds.getContent().get(0));
         assertEquals("api-to-delete", apiIds.getContent().get(1));

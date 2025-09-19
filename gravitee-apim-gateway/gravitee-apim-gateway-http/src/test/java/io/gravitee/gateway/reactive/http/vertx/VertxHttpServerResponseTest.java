@@ -91,9 +91,9 @@ class VertxHttpServerResponseTest {
     @BeforeEach
     void init() {
         subscriptionCount = new AtomicInteger(0);
-        Flowable<Buffer> chunks = Flowable
-            .just(Buffer.buffer("chunk1"), Buffer.buffer("chunk2"), Buffer.buffer("chunk3"))
-            .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
+        Flowable<Buffer> chunks = Flowable.just(Buffer.buffer("chunk1"), Buffer.buffer("chunk2"), Buffer.buffer("chunk3")).doOnSubscribe(
+            subscription -> subscriptionCount.incrementAndGet()
+        );
 
         when(httpServerResponse.headers()).thenReturn(HttpHeaders.headers());
         when(httpServerResponse.trailers()).thenReturn(HttpHeaders.headers());
@@ -478,9 +478,9 @@ class VertxHttpServerResponseTest {
     }
 
     private void mockWithError() {
-        final Flowable<Buffer> chunks = Flowable
-            .<Buffer>error(new RuntimeException(MOCK_EXCEPTION))
-            .doOnSubscribe(subscription -> subscriptionCount.incrementAndGet());
+        final Flowable<Buffer> chunks = Flowable.<Buffer>error(new RuntimeException(MOCK_EXCEPTION)).doOnSubscribe(subscription ->
+            subscriptionCount.incrementAndGet()
+        );
 
         cut = new VertxHttpServerResponse(request);
         cut.chunks(chunks);

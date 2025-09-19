@@ -47,8 +47,7 @@ public class OrganizationMapper {
     public Maybe<DistributedEvent> to(final OrganizationDeployable organizationDeployable) {
         return Maybe.fromCallable(() -> {
             try {
-                return DistributedEvent
-                    .builder()
+                return DistributedEvent.builder()
                     .id(organizationDeployable.id())
                     .type(DistributedEventType.ORGANIZATION)
                     .syncAction(DistributedSyncAction.DEPLOY)

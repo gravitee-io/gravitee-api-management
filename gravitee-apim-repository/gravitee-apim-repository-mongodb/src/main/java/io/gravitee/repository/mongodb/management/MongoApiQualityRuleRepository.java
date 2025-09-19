@@ -124,13 +124,19 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
     @Override
     public List<ApiQualityRule> findByApi(String api) {
         final List<ApiQualityRuleMongo> apiQualityRules = internalApiQualityRuleRepo.findByIdApi(api);
-        return apiQualityRules.stream().map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo)).collect(toList());
+        return apiQualityRules
+            .stream()
+            .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo))
+            .collect(toList());
     }
 
     @Override
     public List<ApiQualityRule> findByQualityRule(String qualityRule) {
         final List<ApiQualityRuleMongo> apiQualityRules = internalApiQualityRuleRepo.findByIdQualityRule(qualityRule);
-        return apiQualityRules.stream().map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo)).collect(toList());
+        return apiQualityRules
+            .stream()
+            .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo))
+            .collect(toList());
     }
 
     @Override

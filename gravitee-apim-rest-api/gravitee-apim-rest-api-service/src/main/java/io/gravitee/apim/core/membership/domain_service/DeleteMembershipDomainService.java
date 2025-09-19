@@ -60,8 +60,7 @@ public class DeleteMembershipDomainService {
 
     private void createAuditLog(AuditInfo auditInfo, Membership membership, String apiId) {
         auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(apiId)

@@ -122,21 +122,20 @@ public class ClientRegistrationService_RegisterTest {
         provider.setName("name");
         provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
 
-        when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
-            .thenReturn(newSet(provider));
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenReturn(newSet(provider));
 
         wireMockServer.stubFor(
-            get(urlEqualTo("/am"))
-                .willReturn(
-                    aResponse()
-                        .withBody(
-                            "{\"token_endpoint\": \"http://localhost:" +
-                            wireMockServer.port() +
-                            "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
-                            wireMockServer.port() +
-                            "/registrationEp\"}"
-                        )
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody(
+                    "{\"token_endpoint\": \"http://localhost:" +
+                        wireMockServer.port() +
+                        "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
+                        wireMockServer.port() +
+                        "/registrationEp\"}"
                 )
+            )
         );
         wireMockServer.stubFor(
             post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}"))

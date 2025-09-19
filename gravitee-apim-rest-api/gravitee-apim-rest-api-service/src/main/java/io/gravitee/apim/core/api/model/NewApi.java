@@ -73,8 +73,7 @@ public class NewApi {
      */
     public Api.ApiBuilder toApiBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return Api
-            .builder()
+        return Api.builder()
             .name(name)
             .version(apiVersion)
             .type(type)
@@ -88,8 +87,7 @@ public class NewApi {
      */
     public io.gravitee.definition.model.v4.Api.ApiBuilder toApiDefinitionBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return io.gravitee.definition.model.v4.Api
-            .builder()
+        return io.gravitee.definition.model.v4.Api.builder()
             .name(name)
             .type(type)
             .apiVersion(apiVersion)

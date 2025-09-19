@@ -71,8 +71,7 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
         final List<VertxHttpServer> servers = this.serverManager.servers(VertxHttpServer.class);
 
-        return Flowable
-            .fromIterable(servers)
+        return Flowable.fromIterable(servers)
             .concatMapCompletable(gioServer -> {
                 final HttpServer rxHttpServer = gioServer.newInstance();
                 httpServerMap.put(gioServer, rxHttpServer);
@@ -159,8 +158,7 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStop() {
-        return Flowable
-            .fromIterable(httpServerMap.entrySet())
+        return Flowable.fromIterable(httpServerMap.entrySet())
             .flatMapCompletable(entry -> {
                 final VertxHttpServer gioServer = entry.getKey();
                 final HttpServer rxHttpServer = entry.getValue();

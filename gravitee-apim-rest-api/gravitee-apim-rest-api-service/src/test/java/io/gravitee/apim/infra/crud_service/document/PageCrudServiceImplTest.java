@@ -69,8 +69,7 @@ public class PageCrudServiceImplTest {
             var date = new Date();
             String PAGE_ID = "page-id";
             service.createDocumentationPage(
-                Page
-                    .builder()
+                Page.builder()
                     .id(PAGE_ID)
                     .type(Page.Type.MARKDOWN)
                     .name(PAGE_NAME)
@@ -90,8 +89,7 @@ public class PageCrudServiceImplTest {
                     .build()
             );
 
-            var expectedPage = io.gravitee.repository.management.model.Page
-                .builder()
+            var expectedPage = io.gravitee.repository.management.model.Page.builder()
                 .id(PAGE_ID)
                 .type("MARKDOWN")
                 .name(PAGE_NAME)
@@ -120,8 +118,7 @@ public class PageCrudServiceImplTest {
 
         @Test
         void should_get_a_page() throws TechnicalException {
-            var exisitingPage = io.gravitee.repository.management.model.Page
-                .builder()
+            var exisitingPage = io.gravitee.repository.management.model.Page.builder()
                 .id(PAGE_ID)
                 .type("MARKDOWN")
                 .name(PAGE_NAME)
@@ -142,8 +139,7 @@ public class PageCrudServiceImplTest {
 
             when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(exisitingPage));
 
-            var expectedPage = Page
-                .builder()
+            var expectedPage = Page.builder()
                 .id(PAGE_ID)
                 .type(Page.Type.MARKDOWN)
                 .name(PAGE_NAME)
@@ -184,8 +180,7 @@ public class PageCrudServiceImplTest {
             pageSource.setConfiguration("page-source-configuration");
             pageSource.setType("config-type");
 
-            var returnedPage = io.gravitee.repository.management.model.Page
-                .builder()
+            var returnedPage = io.gravitee.repository.management.model.Page.builder()
                 .id(PAGE_ID)
                 .type("MARKDOWN")
                 .name(PAGE_NAME)
@@ -213,8 +208,7 @@ public class PageCrudServiceImplTest {
 
             when(pageRepository.update(returnedPage)).thenReturn(returnedPage);
 
-            var pageToUpdate = Page
-                .builder()
+            var pageToUpdate = Page.builder()
                 .id(PAGE_ID)
                 .type(Page.Type.MARKDOWN)
                 .name(PAGE_NAME)
@@ -239,8 +233,7 @@ public class PageCrudServiceImplTest {
                 )
                 .useAutoFetch(true)
                 .source(
-                    io.gravitee.apim.core.documentation.model.PageSource
-                        .builder()
+                    io.gravitee.apim.core.documentation.model.PageSource.builder()
                         .type(pageSource.getType())
                         .configuration(pageSource.getConfiguration())
                         .build()
@@ -248,8 +241,7 @@ public class PageCrudServiceImplTest {
                 .metadata(Map.of("key", "value"))
                 .attachedMedia(
                     List.of(
-                        io.gravitee.apim.core.documentation.model.PageMedia
-                            .builder()
+                        io.gravitee.apim.core.documentation.model.PageMedia.builder()
                             .mediaHash("hash")
                             .mediaName("name")
                             .attachedAt(DATE)

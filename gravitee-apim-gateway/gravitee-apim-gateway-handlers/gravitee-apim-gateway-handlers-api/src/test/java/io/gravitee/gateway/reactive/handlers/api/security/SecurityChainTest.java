@@ -177,18 +177,17 @@ class SecurityChainTest {
     }
 
     private void verifyUnauthorized() {
-        verify(ctx)
-            .interruptWith(
-                argThat(failure -> {
-                    assertEquals(HttpStatusCode.UNAUTHORIZED_401, failure.statusCode());
-                    Assertions.assertEquals(SecurityChain.UNAUTHORIZED_MESSAGE, failure.message());
-                    Assertions.assertEquals(SecurityChain.PLAN_UNRESOLVABLE, failure.key());
-                    assertNull(failure.parameters());
-                    assertNull(failure.contentType());
+        verify(ctx).interruptWith(
+            argThat(failure -> {
+                assertEquals(HttpStatusCode.UNAUTHORIZED_401, failure.statusCode());
+                Assertions.assertEquals(SecurityChain.UNAUTHORIZED_MESSAGE, failure.message());
+                Assertions.assertEquals(SecurityChain.PLAN_UNRESOLVABLE, failure.key());
+                assertNull(failure.parameters());
+                assertNull(failure.contentType());
 
-                    return true;
-                })
-            );
+                return true;
+            })
+        );
     }
 
     private Plan mockPlan(String name) {
@@ -206,12 +205,12 @@ class SecurityChainTest {
         when(
             policyManager.create(
                 eq(ExecutionPhase.REQUEST),
-                argThat(meta ->
-                    meta.getName().equals(MOCK_POLICY + "-" + name) && meta.getConfiguration().equals(MOCK_POLICY_CONFIG + '-' + name)
+                argThat(
+                    meta ->
+                        meta.getName().equals(MOCK_POLICY + "-" + name) && meta.getConfiguration().equals(MOCK_POLICY_CONFIG + '-' + name)
                 )
             )
-        )
-            .thenReturn(policy);
+        ).thenReturn(policy);
 
         Maybe<SecurityToken> securityTokenMaybe = hasSecurityToken ? Maybe.just(SecurityToken.forApiKey("testApiKey")) : Maybe.empty();
         lenient().when(policy.extractSecurityToken(ctx)).thenReturn(securityTokenMaybe);

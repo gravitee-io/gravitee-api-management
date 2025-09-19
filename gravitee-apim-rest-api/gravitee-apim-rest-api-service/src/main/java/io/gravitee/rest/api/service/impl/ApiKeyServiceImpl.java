@@ -133,18 +133,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
         if (
-            !(
-                subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.ACCEPTED) ||
-                subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.PAUSED)
-            )
+            !(subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.ACCEPTED) ||
+                subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.PAUSED))
         ) {
             throw new SubscriptionNotActiveException(subscription);
         }
         final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
         io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = null;
         if (genericPlanEntity.getPlanSecurity() != null) {
-            planSecurityType =
-                io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(genericPlanEntity.getPlanSecurity().getType());
+            planSecurityType = io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(
+                genericPlanEntity.getPlanSecurity().getType()
+            );
         }
         if (PlanSecurityType.API_KEY != planSecurityType) {
             throw new TechnicalManagementException("Invalid plan security.");
@@ -416,7 +415,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public List<ApiKeyEntity> findByKey(ExecutionContext executionContext, String apiKey) {
         try {
             log.debug("Find API Keys by key: {}", apiKey);
-            return apiKeyRepository.findByKey(apiKey).stream().map(apiKey1 -> convert(executionContext, apiKey1)).collect(toList());
+            return apiKeyRepository
+                .findByKey(apiKey)
+                .stream()
+                .map(apiKey1 -> convert(executionContext, apiKey1))
+                .collect(toList());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(String.format("An error occurs while finding API Keys with id %s", apiKey), e);
         }
@@ -675,8 +678,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     private ApiKeyCriteria toApiKeyCriteria(ApiKeyQuery query) {
-        ApiKeyCriteria.ApiKeyCriteriaBuilder apiKeyCriteriaBuilder = ApiKeyCriteria
-            .builder()
+        ApiKeyCriteria.ApiKeyCriteriaBuilder apiKeyCriteriaBuilder = ApiKeyCriteria.builder()
             .includeRevoked(query.isIncludeRevoked())
             .includeFederated(query.isIncludeFederated())
             .from(query.getFrom())

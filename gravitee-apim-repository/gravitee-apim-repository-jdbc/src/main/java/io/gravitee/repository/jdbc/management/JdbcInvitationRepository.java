@@ -43,8 +43,7 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
 
     @Override
     protected JdbcObjectMapper<Invitation> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Invitation.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Invitation.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)

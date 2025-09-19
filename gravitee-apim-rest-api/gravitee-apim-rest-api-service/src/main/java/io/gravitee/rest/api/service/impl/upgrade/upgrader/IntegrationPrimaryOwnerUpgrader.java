@@ -103,11 +103,10 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
         int handledIntegrations = 0;
         Page<Integration> integrationPage;
         do {
-            integrationPage =
-                integrationRepository.findAllByEnvironment(
-                    executionContext.getEnvironmentId(),
-                    new PageableBuilder().pageNumber(handledIntegrations / PAGE_SIZE).pageSize(PAGE_SIZE).build()
-                );
+            integrationPage = integrationRepository.findAllByEnvironment(
+                executionContext.getEnvironmentId(),
+                new PageableBuilder().pageNumber(handledIntegrations / PAGE_SIZE).pageSize(PAGE_SIZE).build()
+            );
             handledIntegrations += (int) integrationPage.getPageElements();
 
             setPrimaryOwnersForIntegrations(integrationPage, executionContext);

@@ -61,8 +61,7 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
                 "DEFAULT",
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
         when(applicationService.findIdsByEnvironment(any(ExecutionContext.class))).thenReturn(Set.of("app1"));
         when(apiAuthorizationServiceV4.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of("api1"));
         when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
@@ -72,10 +71,10 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
         verify(applicationService).findIdsByEnvironment(any(ExecutionContext.class));
         verify(apiAuthorizationServiceV4).findIdsByEnvironment(GraviteeContext.getCurrentEnvironment());
 
-        verify(logsService)
-            .findPlatform(
-                any(ExecutionContext.class),
-                argThat(query ->
+        verify(logsService).findPlatform(
+            any(ExecutionContext.class),
+            argThat(
+                query ->
                     Objects.equals(query.getQuery(), "foo:bar") &&
                     query.getTerms().size() == 2 &&
                     query.getTerms().containsKey("application") &&
@@ -88,8 +87,8 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
                     query.getTo() == 1 &&
                     Objects.equals(query.getField(), "@timestamp") &&
                     query.isOrder()
-                )
-            );
+            )
+        );
     }
 
     private Response sendRequest() {

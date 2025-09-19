@@ -57,13 +57,12 @@ public class AccessPointHttpAcceptor implements HttpAcceptor, EventListener<Acce
             this.httpAcceptors = new CopyOnWriteArrayList<>();
             this.httpAcceptors.add(new DefaultHttpAcceptor(null, path, reactor, serverIds));
         } else {
-            this.httpAcceptors =
-                reactableAccessPoints
-                    .stream()
-                    .<HttpAcceptor>map(reactableAccessPoint ->
-                        new DefaultHttpAcceptor(reactableAccessPoint.getHost(), path, reactor, serverIds)
-                    )
-                    .collect(toCollection(CopyOnWriteArrayList::new));
+            this.httpAcceptors = reactableAccessPoints
+                .stream()
+                .<HttpAcceptor>map(reactableAccessPoint ->
+                    new DefaultHttpAcceptor(reactableAccessPoint.getHost(), path, reactor, serverIds)
+                )
+                .collect(toCollection(CopyOnWriteArrayList::new));
         }
         this.eventManager = eventManager;
         this.eventManager.subscribeForEvents(this, AccessPointEvent.class);

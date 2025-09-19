@@ -56,8 +56,7 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
     @Override
     protected JdbcObjectMapper<SharedPolicyGroup> buildOrm() {
-        return JdbcObjectMapper
-            .builder(SharedPolicyGroup.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(SharedPolicyGroup.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
@@ -148,14 +147,14 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
             var result = jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " WHERE " +
-                andWhere +
-                " ORDER BY " +
-                sortField +
-                " " +
-                sortOrder +
-                " " +
-                createPagingClause(pageable.pageSize(), pageable.from()),
+                    " WHERE " +
+                    andWhere +
+                    " ORDER BY " +
+                    sortField +
+                    " " +
+                    sortOrder +
+                    " " +
+                    createPagingClause(pageable.pageSize(), pageable.from()),
                 getOrm().getRowMapper(),
                 andWhereParams.toArray()
             );
@@ -194,20 +193,20 @@ public class JdbcSharedPolicyGroupHistoryRepository
 
             var result = jdbcTemplate.query(
                 "SELECT t1.* " +
-                "FROM " +
-                this.tableName +
-                " t1 " +
-                "JOIN ( " +
-                "    SELECT id, MAX(updated_at) as max_updated_at " +
-                "    FROM " +
-                this.tableName +
-                " " +
-                "    WHERE " +
-                andWhere +
-                "    GROUP BY id " +
-                ") t2 ON t1.id = t2.id AND t1.updated_at = t2.max_updated_at" +
-                " ORDER BY t1.name ASC " +
-                createPagingClause(pageable.pageSize(), pageable.from()),
+                    "FROM " +
+                    this.tableName +
+                    " t1 " +
+                    "JOIN ( " +
+                    "    SELECT id, MAX(updated_at) as max_updated_at " +
+                    "    FROM " +
+                    this.tableName +
+                    " " +
+                    "    WHERE " +
+                    andWhere +
+                    "    GROUP BY id " +
+                    ") t2 ON t1.id = t2.id AND t1.updated_at = t2.max_updated_at" +
+                    " ORDER BY t1.name ASC " +
+                    createPagingClause(pageable.pageSize(), pageable.from()),
                 getOrm().getRowMapper(),
                 andWhereParams.toArray()
             );

@@ -74,8 +74,7 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
         final Date now = new Date();
         RateLimit rateLimit = supplier.get();
         return RxJava3Adapter.monoToSingle(
-            Mono
-                .just(rateLimit)
+            Mono.just(rateLimit)
                 .flatMap(
                     new Function<RateLimit, Mono<Document>>() {
                         @Override

@@ -96,20 +96,18 @@ public class GroupService_FindByIdTest extends TestCase {
                 RolePermissionAction.UPDATE,
                 RolePermissionAction.DELETE
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         var result = groupService.findById(executionContext, GROUP_ID);
 
-        verify(permissionService)
-            .hasPermission(
-                eq(executionContext),
-                eq(RolePermission.ENVIRONMENT_GROUP),
-                eq(ENVIRONMENT_ID),
-                eq(RolePermissionAction.CREATE),
-                eq(RolePermissionAction.UPDATE),
-                eq(RolePermissionAction.DELETE)
-            );
+        verify(permissionService).hasPermission(
+            eq(executionContext),
+            eq(RolePermission.ENVIRONMENT_GROUP),
+            eq(ENVIRONMENT_ID),
+            eq(RolePermissionAction.CREATE),
+            eq(RolePermissionAction.UPDATE),
+            eq(RolePermissionAction.DELETE)
+        );
         assertThat(result).isNotNull().extracting(GroupEntity::getId, GroupEntity::isManageable).containsExactly(GROUP_ID, true);
     }
 
@@ -126,15 +124,14 @@ public class GroupService_FindByIdTest extends TestCase {
 
         var result = groupService.findById(executionContext, GROUP_ID);
 
-        verify(permissionService, times(0))
-            .hasPermission(
-                eq(executionContext),
-                eq(RolePermission.ENVIRONMENT_GROUP),
-                eq(ENVIRONMENT_ID),
-                eq(RolePermissionAction.CREATE),
-                eq(RolePermissionAction.UPDATE),
-                eq(RolePermissionAction.DELETE)
-            );
+        verify(permissionService, times(0)).hasPermission(
+            eq(executionContext),
+            eq(RolePermission.ENVIRONMENT_GROUP),
+            eq(ENVIRONMENT_ID),
+            eq(RolePermissionAction.CREATE),
+            eq(RolePermissionAction.UPDATE),
+            eq(RolePermissionAction.DELETE)
+        );
         verify(roleService).findByScopeAndName(eq(RoleScope.GROUP), eq(SystemRole.ADMIN.name()), eq(ORGANIZATION_ID));
         assertThat(result).isNotNull().extracting(GroupEntity::getId, GroupEntity::isManageable).containsExactly(GROUP_ID, false);
     }

@@ -134,18 +134,16 @@ class SaveScoringResponseUseCaseTest {
         useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
         // Then
-        assertThat(scoringReportCrudService.storage())
-            .contains(
-                ScoringReport
-                    .builder()
-                    .id(JOB_ID)
-                    .apiId(API_ID)
-                    .environmentId(ENVIRONMENT_ID)
-                    .summary(new ScoringReport.Summary(0.94D, 0L, 1L, 0L, 1L))
-                    .assets(List.of(ANALYZED_ASSET_1))
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(scoringReportCrudService.storage()).contains(
+            ScoringReport.builder()
+                .id(JOB_ID)
+                .apiId(API_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .summary(new ScoringReport.Summary(0.94D, 0L, 1L, 0L, 1L))
+                .assets(List.of(ANALYZED_ASSET_1))
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -159,8 +157,9 @@ class SaveScoringResponseUseCaseTest {
         useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
         // Then
-        assertThat(asyncJobCrudService.storage())
-            .contains(job.toBuilder().status(AsyncJob.Status.SUCCESS).updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build());
+        assertThat(asyncJobCrudService.storage()).contains(
+            job.toBuilder().status(AsyncJob.Status.SUCCESS).updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build()
+        );
     }
 
     @Test
@@ -178,8 +177,7 @@ class SaveScoringResponseUseCaseTest {
         assertThat(scoringReportCrudService.storage())
             .hasSize(1)
             .containsExactly(
-                ScoringReport
-                    .builder()
+                ScoringReport.builder()
                     .id(JOB_ID)
                     .apiId(API_ID)
                     .environmentId(ENVIRONMENT_ID)

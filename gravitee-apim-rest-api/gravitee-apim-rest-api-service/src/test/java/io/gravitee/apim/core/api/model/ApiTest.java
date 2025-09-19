@@ -44,8 +44,7 @@ class ApiTest {
             .setProperties(List.of(new Property("key", "value", false, false), new Property("dynamic", "value", false, true)));
         assertThat(
             api.updateDynamicProperties(List.of(new Property("key", "value", false, true), new Property("dynamic", "value", false, true)))
-        )
-            .isFalse();
+        ).isFalse();
         // keys must be sorted by natural order
         assertThat(api.getApiDefinitionV4().getProperties()).extracting(Property::getKey).containsExactly("dynamic", "key");
     }
@@ -62,8 +61,7 @@ class ApiTest {
                     new Property("X-Other", "value", false, true)
                 )
             )
-        )
-            .isTrue();
+        ).isTrue();
         // keys must be sorted by natural order
         assertThat(api.getApiDefinitionV4().getProperties()).extracting(Property::getKey).containsExactly("X-Other", "dynamic", "key");
     }

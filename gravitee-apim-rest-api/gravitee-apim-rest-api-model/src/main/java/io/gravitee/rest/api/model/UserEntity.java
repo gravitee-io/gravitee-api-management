@@ -155,6 +155,6 @@ public class UserEntity implements Indexable {
 
     @JsonIgnore
     public boolean optedIn() {
-        return "ACTIVE".equalsIgnoreCase(status) && password != null || "memory".equalsIgnoreCase(source);
+        return ("ACTIVE".equalsIgnoreCase(status) && password != null) || "memory".equalsIgnoreCase(source);
     }
 }

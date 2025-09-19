@@ -27,8 +27,7 @@ public class IdReferenceIdReferenceTypeIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("licenses")
             .name("id_rt_ri1")
             .key("_id.referenceType", ascending())

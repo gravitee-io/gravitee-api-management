@@ -89,8 +89,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
             new GetSharedPolicyGroupUseCase.Input(executionContext.getEnvironmentId(), sharedPolicyGroupId)
         );
 
-        return Response
-            .ok(this.getLocationHeader(output.sharedPolicyGroup().getId()))
+        return Response.ok(this.getLocationHeader(output.sharedPolicyGroup().getId()))
             .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
             .build();
     }
@@ -103,13 +102,11 @@ public class SharedPolicyGroupResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo
-            .builder()
+        AuditInfo audit = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(userDetails.getUsername())
                     .userSource(userDetails.getSource())
                     .userSourceId(userDetails.getSourceId())
@@ -124,8 +121,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
             )
         );
 
-        return Response
-            .ok(this.getLocationHeader(output.sharedPolicyGroup().getId()))
+        return Response.ok(this.getLocationHeader(output.sharedPolicyGroup().getId()))
             .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
             .build();
     }
@@ -136,13 +132,11 @@ public class SharedPolicyGroupResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo
-            .builder()
+        AuditInfo audit = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(userDetails.getUsername())
                     .userSource(userDetails.getSource())
                     .userSourceId(userDetails.getSourceId())
@@ -195,13 +189,11 @@ public class SharedPolicyGroupResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo
-            .builder()
+        AuditInfo audit = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(userDetails.getUsername())
                     .userSource(userDetails.getSource())
                     .userSourceId(userDetails.getSourceId())
@@ -213,8 +205,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
             new DeploySharedPolicyGroupUseCase.Input(sharedPolicyGroupId, executionContext.getEnvironmentId(), audit)
         );
 
-        return Response
-            .accepted()
+        return Response.accepted()
             .tag(Long.toString(output.sharedPolicyGroup().getDeployedAt().toInstant().toEpochMilli()))
             .lastModified(Date.from(output.sharedPolicyGroup().getDeployedAt().toInstant()))
             .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))
@@ -230,13 +221,11 @@ public class SharedPolicyGroupResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo
-            .builder()
+        AuditInfo audit = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(userDetails.getUsername())
                     .userSource(userDetails.getSource())
                     .userSourceId(userDetails.getSourceId())
@@ -248,8 +237,7 @@ public class SharedPolicyGroupResource extends AbstractResource {
             new UndeploySharedPolicyGroupUseCase.Input(sharedPolicyGroupId, executionContext.getEnvironmentId(), audit)
         );
 
-        return Response
-            .accepted()
+        return Response.accepted()
             .tag(Long.toString(output.sharedPolicyGroup().getDeployedAt().toInstant().toEpochMilli()))
             .lastModified(Date.from(output.sharedPolicyGroup().getDeployedAt().toInstant()))
             .entity(SharedPolicyGroupMapper.INSTANCE.map(output.sharedPolicyGroup()))

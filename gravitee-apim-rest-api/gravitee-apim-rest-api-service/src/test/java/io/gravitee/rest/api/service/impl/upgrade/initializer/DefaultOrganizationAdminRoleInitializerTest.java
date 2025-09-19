@@ -58,30 +58,27 @@ public class DefaultOrganizationAdminRoleInitializerTest {
         final ExecutionContext executionContext = new ExecutionContext(organization);
 
         initializer.initializeOrganization(executionContext);
-        verify(roleService, times(1))
-            .createOrUpdateSystemRole(
-                executionContext,
-                SystemRole.ADMIN,
-                RoleScope.ORGANIZATION,
-                OrganizationPermission.values(),
-                organization.getId()
-            );
-        verify(roleService, times(1))
-            .createOrUpdateSystemRole(
-                executionContext,
-                SystemRole.ADMIN,
-                RoleScope.ENVIRONMENT,
-                EnvironmentPermission.values(),
-                executionContext.getOrganizationId()
-            );
-        verify(roleService, times(1))
-            .createOrUpdateSystemRole(
-                executionContext,
-                SystemRole.PRIMARY_OWNER,
-                RoleScope.INTEGRATION,
-                IntegrationPermission.values(),
-                executionContext.getOrganizationId()
-            );
+        verify(roleService, times(1)).createOrUpdateSystemRole(
+            executionContext,
+            SystemRole.ADMIN,
+            RoleScope.ORGANIZATION,
+            OrganizationPermission.values(),
+            organization.getId()
+        );
+        verify(roleService, times(1)).createOrUpdateSystemRole(
+            executionContext,
+            SystemRole.ADMIN,
+            RoleScope.ENVIRONMENT,
+            EnvironmentPermission.values(),
+            executionContext.getOrganizationId()
+        );
+        verify(roleService, times(1)).createOrUpdateSystemRole(
+            executionContext,
+            SystemRole.PRIMARY_OWNER,
+            RoleScope.INTEGRATION,
+            IntegrationPermission.values(),
+            executionContext.getOrganizationId()
+        );
     }
 
     @Test

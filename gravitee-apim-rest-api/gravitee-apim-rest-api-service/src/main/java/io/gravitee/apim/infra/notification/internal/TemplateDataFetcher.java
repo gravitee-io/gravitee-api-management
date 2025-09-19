@@ -115,8 +115,7 @@ public class TemplateDataFetcher {
             try {
                 var user = userCrudService.getBaseUser(userId);
                 return Optional.of(
-                    PrimaryOwnerNotificationTemplateData
-                        .builder()
+                    PrimaryOwnerNotificationTemplateData.builder()
                         .id(user.getId())
                         .displayName(user.displayName())
                         .email(user.getEmail())
@@ -150,8 +149,7 @@ public class TemplateDataFetcher {
                     var metadata = apiMetadataDecoderDomainService.decodeMetadata(
                         api.getEnvironmentId(),
                         apiId,
-                        ApiMetadataDecodeContext
-                            .builder()
+                        ApiMetadataDecodeContext.builder()
                             .name(api.getName())
                             .description(api.getDescription())
                             .createdAt(api.getCreatedAt())
@@ -167,8 +165,7 @@ public class TemplateDataFetcher {
                             .build()
                     );
 
-                    return ApiNotificationTemplateData
-                        .builder()
+                    return ApiNotificationTemplateData.builder()
                         .id(api.getId())
                         .name(api.getName())
                         .apiVersion(api.getVersion())
@@ -195,8 +192,7 @@ public class TemplateDataFetcher {
                 .findById(applicationId)
                 .map(application -> {
                     var primaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(organizationId, applicationId);
-                    return ApplicationNotificationTemplateData
-                        .builder()
+                    return ApplicationNotificationTemplateData.builder()
                         .id(application.getId())
                         .name(application.getName())
                         .type(application.getType().name())
@@ -218,8 +214,7 @@ public class TemplateDataFetcher {
             return planRepository
                 .findById(planId)
                 .map(plan ->
-                    PlanNotificationTemplateData
-                        .builder()
+                    PlanNotificationTemplateData.builder()
                         .id(plan.getId())
                         .name(plan.getName())
                         .description(plan.getDescription())
@@ -243,8 +238,7 @@ public class TemplateDataFetcher {
             return subscriptionRepository
                 .findById(subscriptionId)
                 .map(subscription ->
-                    SubscriptionNotificationTemplateData
-                        .builder()
+                    SubscriptionNotificationTemplateData.builder()
                         .id(subscription.getId())
                         .reason(subscription.getReason())
                         .request(subscription.getRequest())
@@ -261,8 +255,7 @@ public class TemplateDataFetcher {
             return integrationRepository
                 .findById(integrationId)
                 .map(subscription ->
-                    IntegrationNotificationTemplateData
-                        .builder()
+                    IntegrationNotificationTemplateData.builder()
                         .id(subscription.getId())
                         .name(subscription.getName())
                         .provider(subscription.getProvider())

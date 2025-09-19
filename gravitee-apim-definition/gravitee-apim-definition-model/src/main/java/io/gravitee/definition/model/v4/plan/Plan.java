@@ -70,11 +70,9 @@ public class Plan implements Serializable {
     @JsonIgnore
     public final boolean isSubscribable() {
         return (
-            (
-                this.getSecurity() != null &&
+            (this.getSecurity() != null &&
                 this.getSecurity().getType() != null &&
-                !"KEY_LESS".equalsIgnoreCase(this.getSecurity().getType())
-            ) ||
+                !"KEY_LESS".equalsIgnoreCase(this.getSecurity().getType())) ||
             usePushMode()
         );
     }
@@ -99,8 +97,7 @@ public class Plan implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Optional
-            .ofNullable(this.flows)
+        return Optional.ofNullable(this.flows)
             .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
             .orElse(List.of());
     }

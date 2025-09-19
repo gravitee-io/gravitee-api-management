@@ -92,12 +92,11 @@ public class TagsResourceTest extends AbstractResourceTest {
     public void should_allow_update_tag_with_sharding_tags_feature() {
         when(license.isFeatureEnabled("apim-sharding-tags")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
-        when(tagService.update(any(), any(UpdateTagEntity.class), anyString(), any()))
-            .thenAnswer(i -> {
-                final TagEntity tagEntity = new TagEntity();
-                tagEntity.setName(i.<UpdateTagEntity>getArgument(1).getName());
-                return tagEntity;
-            });
+        when(tagService.update(any(), any(UpdateTagEntity.class), anyString(), any())).thenAnswer(i -> {
+            final TagEntity tagEntity = new TagEntity();
+            tagEntity.setName(i.<UpdateTagEntity>getArgument(1).getName());
+            return tagEntity;
+        });
 
         UpdateTagEntity tag = new UpdateTagEntity();
         tag.setName("tag-name");

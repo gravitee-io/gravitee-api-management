@@ -52,35 +52,31 @@ public class ScoringRulesetQueryServiceImplTest {
         @Test
         @SneakyThrows
         void should_find_rulesets() {
-            when(scoringRulesetRepository.findAllByReferenceId(any(), any()))
-                .thenAnswer(invocation ->
-                    List.of(
-                        ScoringRulesetFixture
-                            .aRuleset()
-                            .toBuilder()
-                            .referenceId(invocation.getArgument(0))
-                            .referenceType(invocation.getArgument(1))
-                            .build()
-                    )
-                );
+            when(scoringRulesetRepository.findAllByReferenceId(any(), any())).thenAnswer(invocation ->
+                List.of(
+                    ScoringRulesetFixture.aRuleset()
+                        .toBuilder()
+                        .referenceId(invocation.getArgument(0))
+                        .referenceType(invocation.getArgument(1))
+                        .build()
+                )
+            );
 
             // When
             var result = service.findByReference("ref-id", ScoringRuleset.ReferenceType.ENVIRONMENT);
 
             // Then
-            assertThat(result)
-                .contains(
-                    ScoringRuleset
-                        .builder()
-                        .id("ruleset-id")
-                        .name("ruleset-name")
-                        .description("ruleset-description")
-                        .payload("ruleset-payload")
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
-                        .referenceId("ref-id")
-                        .build()
-                );
+            assertThat(result).contains(
+                ScoringRuleset.builder()
+                    .id("ruleset-id")
+                    .name("ruleset-name")
+                    .description("ruleset-description")
+                    .payload("ruleset-payload")
+                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                    .referenceId("ref-id")
+                    .build()
+            );
         }
 
         @Test

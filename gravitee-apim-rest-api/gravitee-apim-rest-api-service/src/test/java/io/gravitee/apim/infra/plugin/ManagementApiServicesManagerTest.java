@@ -86,8 +86,9 @@ class ManagementApiServicesManagerTest {
         void should_not_deploy_service_for_v4_api_without_service_configured() {
             final Api api = ApiFixtures.aProxyApiV4();
 
-            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class))
-                .thenReturn(List.of(new FakeDynamicPropertiesApiServiceFactory(false)));
+            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class)).thenReturn(
+                List.of(new FakeDynamicPropertiesApiServiceFactory(false))
+            );
 
             cut.deployServices(api);
             assertThat(cut.servicesByApi).isEmpty();
@@ -97,8 +98,9 @@ class ManagementApiServicesManagerTest {
         void should_deploy_services_for_v4_api() {
             final Api api = ApiFixtures.aProxyApiV4();
 
-            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class))
-                .thenReturn(List.of(new FakeDynamicPropertiesApiServiceFactory(true)));
+            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class)).thenReturn(
+                List.of(new FakeDynamicPropertiesApiServiceFactory(true))
+            );
 
             cut.deployServices(api);
             assertThat(cut.servicesByApi).hasSize(1).containsKey(api.getId());
@@ -160,8 +162,9 @@ class ManagementApiServicesManagerTest {
         void should_not_restart_services_for_v4_unknown_api_but_start_it() {
             final Api api = ApiFixtures.aProxyApiV4();
 
-            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class))
-                .thenReturn(List.of(new FakeDynamicPropertiesApiServiceFactory(true)));
+            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class)).thenReturn(
+                List.of(new FakeDynamicPropertiesApiServiceFactory(true))
+            );
 
             cut.updateServices(api);
             assertThat(cut.servicesByApi).hasSize(1).containsKey(api.getId());
@@ -182,8 +185,9 @@ class ManagementApiServicesManagerTest {
             final Api api = ApiFixtures.aProxyApiV4();
             cut.servicesByApi.put(api.getId(), List.of());
 
-            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class))
-                .thenReturn(List.of(new FakeDynamicPropertiesApiServiceFactory(true)));
+            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class)).thenReturn(
+                List.of(new FakeDynamicPropertiesApiServiceFactory(true))
+            );
 
             cut.updateServices(api);
             assertThat(cut.servicesByApi).hasSize(1).containsKey(api.getId());

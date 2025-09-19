@@ -238,8 +238,9 @@ class SecurityPlanTest {
         when(plan.getId()).thenReturn(PLAN_ID);
         when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
 
-        when(subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID))
-            .thenThrow(new RuntimeException("Mock TechnicalException"));
+        when(subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID)).thenThrow(
+            new RuntimeException("Mock TechnicalException")
+        );
 
         final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
         final TestObserver<Boolean> obs = cut.canExecute(ctx).test();

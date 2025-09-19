@@ -141,13 +141,11 @@ public class ApisResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
 
-        AuditInfo audit = AuditInfo
-            .builder()
+        AuditInfo audit = AuditInfo.builder()
             .organizationId(executionContext.getOrganizationId())
             .environmentId(executionContext.getEnvironmentId())
             .actor(
-                AuditActor
-                    .builder()
+                AuditActor.builder()
                     .userId(userDetails.getUsername())
                     .userSource(userDetails.getSource())
                     .userSourceId(userDetails.getSourceId())
@@ -157,8 +155,7 @@ public class ApisResource extends AbstractResource {
         var output = createV4ApiUseCase.execute(new CreateV4ApiUseCase.Input(ApiMapper.INSTANCE.map(api), audit));
 
         boolean isSynchronized = apiStateDomainService.isSynchronized(output.api(), audit);
-        return Response
-            .created(this.getLocationHeader(output.api().getId()))
+        return Response.created(this.getLocationHeader(output.api().getId()))
             .entity(ApiMapper.INSTANCE.map(output.api(), uriInfo, isSynchronized))
             .build();
     }
@@ -180,16 +177,12 @@ public class ApisResource extends AbstractResource {
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
             .data(
-                ApiMapper.INSTANCE.map(
-                    apis.getContent(),
-                    uriInfo,
-                    api -> {
-                        if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
-                            return null;
-                        }
-                        return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
+                ApiMapper.INSTANCE.map(apis.getContent(), uriInfo, api -> {
+                    if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
+                        return null;
                     }
-                )
+                    return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
+                })
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(totalCount, paginationParam));
@@ -204,13 +197,11 @@ public class ApisResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
 
         var input = new ImportApiCRDUseCase.Input(
-            AuditInfo
-                .builder()
+            AuditInfo.builder()
                 .organizationId(executionContext.getOrganizationId())
                 .environmentId(executionContext.getEnvironmentId())
                 .actor(
-                    AuditActor
-                        .builder()
+                    AuditActor.builder()
                         .userId(userDetails.getUsername())
                         .userSource(userDetails.getSource())
                         .userSourceId(userDetails.getSourceId())
@@ -233,28 +224,24 @@ public class ApisResource extends AbstractResource {
         try {
             var userDetails = getAuthenticatedUserDetails();
             var executionContext = GraviteeContext.getExecutionContext();
-            var audit = AuditInfo
-                .builder()
+            var audit = AuditInfo.builder()
                 .organizationId(executionContext.getOrganizationId())
                 .environmentId(executionContext.getEnvironmentId())
                 .actor(
-                    AuditActor
-                        .builder()
+                    AuditActor.builder()
                         .userId(userDetails.getUsername())
                         .userSource(userDetails.getSource())
                         .userSourceId(userDetails.getSourceId())
                         .build()
                 )
                 .build();
-            var importSwaggerDescriptor = ImportSwaggerDescriptorEntity
-                .builder()
+            var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder()
                 .payload(descriptor.getPayload())
                 .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
                 .build();
 
             OAIToImportApiUseCase.Output importOutput = oaiToImportApiUseCase.execute(
-                OAIToImportApiUseCase.Input
-                    .builder()
+                OAIToImportApiUseCase.Input.builder()
                     .importSwaggerDescriptor(importSwaggerDescriptor)
                     .auditInfo(audit)
                     .withDocumentation(Boolean.TRUE.equals(descriptor.getWithDocumentation()))
@@ -264,8 +251,7 @@ public class ApisResource extends AbstractResource {
 
             boolean isSynchronized = apiStateDomainService.isSynchronized(importOutput.apiWithFlows(), audit);
 
-            return Response
-                .created(this.getLocationHeader(importOutput.apiWithFlows().getId()))
+            return Response.created(this.getLocationHeader(importOutput.apiWithFlows().getId()))
                 .entity(ApiMapper.INSTANCE.map(importOutput.apiWithFlows(), uriInfo, isSynchronized))
                 .build();
         } catch (InvalidPathsException e) {
@@ -286,13 +272,11 @@ public class ApisResource extends AbstractResource {
         try {
             var userDetails = getAuthenticatedUserDetails();
             var executionContext = GraviteeContext.getExecutionContext();
-            var audit = AuditInfo
-                .builder()
+            var audit = AuditInfo.builder()
                 .organizationId(executionContext.getOrganizationId())
                 .environmentId(executionContext.getEnvironmentId())
                 .actor(
-                    AuditActor
-                        .builder()
+                    AuditActor.builder()
                         .userId(userDetails.getUsername())
                         .userSource(userDetails.getSource())
                         .userSourceId(userDetails.getSourceId())
@@ -305,8 +289,7 @@ public class ApisResource extends AbstractResource {
 
             boolean isSynchronized = apiStateDomainService.isSynchronized(output.apiWithFlows(), audit);
 
-            return Response
-                .created(this.getLocationHeader(output.apiWithFlows().getId()))
+            return Response.created(this.getLocationHeader(output.apiWithFlows().getId()))
                 .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
                 .build();
         } catch (InvalidPathsException e) {
@@ -372,10 +355,8 @@ public class ApisResource extends AbstractResource {
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
             .data(
-                ApiMapper.INSTANCE.map(
-                    apis.getContent(),
-                    uriInfo,
-                    api -> expandDeploymentState ? apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api) : null
+                ApiMapper.INSTANCE.map(apis.getContent(), uriInfo, api ->
+                    expandDeploymentState ? apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api) : null
                 )
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
@@ -396,8 +377,7 @@ public class ApisResource extends AbstractResource {
                         .getPaths()
                         .stream()
                         .map(p ->
-                            io.gravitee.apim.core.api.model.Path
-                                .builder()
+                            io.gravitee.apim.core.api.model.Path.builder()
                                 .path(p.getPath())
                                 .host(p.getHost())
                                 .overrideAccess(Boolean.TRUE.equals(p.getOverrideAccess()))

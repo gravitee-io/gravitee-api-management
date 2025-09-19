@@ -72,15 +72,14 @@ class SubscriptionSynchronizerTest {
     @BeforeEach
     public void beforeEach() {
         planCache = new PlanService();
-        cut =
-            new SubscriptionSynchronizer(
-                subscriptionFetcher,
-                new SubscriptionMapper(objectMapper),
-                deployerFactory,
-                planCache,
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-            );
+        cut = new SubscriptionSynchronizer(
+            subscriptionFetcher,
+            new SubscriptionMapper(objectMapper),
+            deployerFactory,
+            planCache,
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+        );
         lenient().when(deployerFactory.createSubscriptionDeployer()).thenReturn(subscriptionDeployer);
         lenient().when(subscriptionDeployer.deploy(any())).thenReturn(Completable.complete());
         lenient().when(subscriptionDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());

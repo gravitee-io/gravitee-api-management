@@ -115,22 +115,21 @@ class CloseExpiredSubscriptionsUseCaseTest {
             triggerNotificationService
         );
 
-        usecase =
-            new CloseExpiredSubscriptionsUseCase(
-                subscriptionQueryService,
-                apiQueryService,
-                environmentCrudService,
-                new CloseSubscriptionDomainService(
-                    subscriptionCrudService,
-                    applicationCrudService,
-                    auditDomainService,
-                    triggerNotificationService,
-                    rejectSubscriptionDomainService,
-                    revokeApiKeyDomainService,
-                    apiCrudService,
-                    new IntegrationAgentInMemory()
-                )
-            );
+        usecase = new CloseExpiredSubscriptionsUseCase(
+            subscriptionQueryService,
+            apiQueryService,
+            environmentCrudService,
+            new CloseSubscriptionDomainService(
+                subscriptionCrudService,
+                applicationCrudService,
+                auditDomainService,
+                triggerNotificationService,
+                rejectSubscriptionDomainService,
+                revokeApiKeyDomainService,
+                apiCrudService,
+                new IntegrationAgentInMemory()
+            )
+        );
 
         givenExistingEnvironments(
             List.of(
@@ -154,16 +153,14 @@ class CloseExpiredSubscriptionsUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(
-                apiQueryService,
-                environmentCrudService,
-                subscriptionCrudService,
-                auditCrudServiceInMemory,
-                applicationCrudService,
-                planCrudService
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            apiQueryService,
+            environmentCrudService,
+            subscriptionCrudService,
+            auditCrudServiceInMemory,
+            applicationCrudService,
+            planCrudService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @AfterAll
@@ -177,8 +174,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
         var now = Instant.now();
         givenExistingSubscriptions(
             List.of(
-                SubscriptionFixtures
-                    .aSubscription()
+                SubscriptionFixtures.aSubscription()
                     .toBuilder()
                     .id("s1")
                     .apiId("api1")
@@ -187,8 +183,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     .status(SubscriptionEntity.Status.ACCEPTED)
                     .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
                     .build(),
-                SubscriptionFixtures
-                    .aSubscription()
+                SubscriptionFixtures.aSubscription()
                     .toBuilder()
                     .id("s2")
                     .apiId("api2")
@@ -216,8 +211,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
         var now = Instant.now();
         givenExistingSubscriptions(
             List.of(
-                SubscriptionFixtures
-                    .aSubscription()
+                SubscriptionFixtures.aSubscription()
                     .toBuilder()
                     .id("s1")
                     .apiId("api1")
@@ -226,8 +220,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     .status(SubscriptionEntity.Status.ACCEPTED)
                     .endingAt(now.minusSeconds(30).atZone(ZoneId.systemDefault()))
                     .build(),
-                SubscriptionFixtures
-                    .aSubscription()
+                SubscriptionFixtures.aSubscription()
                     .toBuilder()
                     .id("s2")
                     .apiId("api2")
@@ -267,8 +260,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
         var now = Instant.now();
         givenExistingSubscriptions(
             List.of(
-                SubscriptionFixtures
-                    .aSubscription()
+                SubscriptionFixtures.aSubscription()
                     .toBuilder()
                     .id("s1")
                     .apiId("api1")
@@ -277,8 +269,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
                     .status(SubscriptionEntity.Status.ACCEPTED)
                     .endingAt(now.plusSeconds(30).atZone(ZoneId.systemDefault()))
                     .build(),
-                SubscriptionFixtures
-                    .aSubscription()
+                SubscriptionFixtures.aSubscription()
                     .toBuilder()
                     .id("s2")
                     .apiId("api2")

@@ -182,17 +182,14 @@ public class SearchIndexInitializer implements Initializer {
         authenticateAsAdmin();
 
         String environmentId = api.getEnvironmentId();
-        String organizationId = organizationIdByEnvironmentIdMap.computeIfAbsent(
-            environmentId,
-            envId -> {
-                try {
-                    return environmentRepository.findById(environmentId).get().getOrganizationId();
-                } catch (Exception e) {
-                    LOGGER.error("failed to find organization for environment {}", environmentId, e);
-                    return null;
-                }
+        String organizationId = organizationIdByEnvironmentIdMap.computeIfAbsent(environmentId, envId -> {
+            try {
+                return environmentRepository.findById(environmentId).get().getOrganizationId();
+            } catch (Exception e) {
+                LOGGER.error("failed to find organization for environment {}", environmentId, e);
+                return null;
             }
-        );
+        });
 
         ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
         Indexable indexable;
@@ -209,11 +206,10 @@ public class SearchIndexInitializer implements Initializer {
                 return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
             }
 
-            indexable =
-                apiIndexerDomainService.toIndexableApi(
-                    new Indexer.IndexationContext(organizationId, environmentId),
-                    ApiAdapter.INSTANCE.toCoreModel(api)
-                );
+            indexable = apiIndexerDomainService.toIndexableApi(
+                new Indexer.IndexationContext(organizationId, environmentId),
+                ApiAdapter.INSTANCE.toCoreModel(api)
+            );
             return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
         } catch (Exception e) {
             LOGGER.error("Failed to convert API {} to indexable", api.getId(), e);

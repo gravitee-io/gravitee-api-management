@@ -391,8 +391,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(
                 executionContext,
                 userId,
-                PrimaryOwnerEntity
-                    .builder()
+                PrimaryOwnerEntity.builder()
                     .type(primaryOwnerMembership.getMemberType().name())
                     .id(primaryOwnerMembership.getMemberId())
                     .build()
@@ -431,11 +430,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     .forEach(planToUpdate -> {
                         if (
                             !planStatuses.containsKey(planToUpdate.getId()) ||
-                            (
-                                planStatuses.containsKey(planToUpdate.getId()) &&
+                            (planStatuses.containsKey(planToUpdate.getId()) &&
                                 planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-                                planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus()
-                            )
+                                planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus())
                         ) {
                             throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
                         }
@@ -706,9 +703,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 return genericApiMapper.toGenericApi(api, primaryOwner);
             })
             .collect(
-                Collectors.collectingAndThen(
-                    Collectors.toList(),
-                    apiEntityList -> new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
+                Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
+                    new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
                 )
             );
     }
@@ -740,14 +736,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // no changes for logging configuration, continue
             if (
                 existingLogging == updatedLogging ||
-                (
-                    existingLogging != null &&
+                (existingLogging != null &&
                     updatedLogging != null &&
                     Objects.equals(existingLogging.getMode(), updatedLogging.getMode()) &&
                     Objects.equals(existingLogging.getContent(), updatedLogging.getContent()) &&
                     Objects.equals(existingLogging.getPhase(), updatedLogging.getPhase()) &&
-                    Objects.equals(existingLogging.getCondition(), updatedLogging.getCondition())
-                )
+                    Objects.equals(existingLogging.getCondition(), updatedLogging.getCondition()))
             ) {
                 return;
             }

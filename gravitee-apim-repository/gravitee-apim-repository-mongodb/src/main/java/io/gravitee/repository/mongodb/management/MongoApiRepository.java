@@ -110,18 +110,16 @@ public class MongoApiRepository implements ApiRepository {
         if (page == null || page.getContent() == null) {
             return Stream.empty();
         }
-        return Stream
-            .iterate(
-                page,
-                p -> !isEmpty(p),
-                p -> hasNext(p) ? search(apiCriteria, sortable, nextPageable(p, pageable), apiFieldFilter) : null
-            )
-            .flatMap(p -> {
-                if (p != null && p.getContent() != null) {
-                    return p.getContent().stream();
-                }
-                return Stream.empty();
-            });
+        return Stream.iterate(
+            page,
+            p -> !isEmpty(p),
+            p -> hasNext(p) ? search(apiCriteria, sortable, nextPageable(p, pageable), apiFieldFilter) : null
+        ).flatMap(p -> {
+            if (p != null && p.getContent() != null) {
+                return p.getContent().stream();
+            }
+            return Stream.empty();
+        });
     }
 
     @Override

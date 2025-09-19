@@ -191,7 +191,11 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
             new GetCategoryApisUseCase.Input(executionContext, category, userId, false, true)
         );
 
-        List<String> apiIds = categoryApisOutput.results().stream().map(result -> result.api().getId()).collect(Collectors.toList());
+        List<String> apiIds = categoryApisOutput
+            .results()
+            .stream()
+            .map(result -> result.api().getId())
+            .collect(Collectors.toList());
 
         if (apiIds.isEmpty()) {
             return Collections.emptyList();
@@ -232,7 +236,10 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
                 return Collections.emptyList();
             }
         } else if (excluded) {
-            return apis.stream().filter(api -> (!topApiIdAndOrderMap.containsKey(api))).collect(Collectors.toList());
+            return apis
+                .stream()
+                .filter(api -> (!topApiIdAndOrderMap.containsKey(api)))
+                .collect(Collectors.toList());
         } else {
             return apis
                 .stream()

@@ -27,8 +27,7 @@ public class RateDescIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("rating")
             .name("r-1")
             .key("rate", descending())

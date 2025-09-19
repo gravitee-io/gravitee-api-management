@@ -34,7 +34,10 @@ public class PolicyPluginCrudServiceInMemory implements PolicyPluginCrudService,
             throw new TechnicalManagementException("policyId should not be null");
         }
 
-        return storage.stream().filter(policyPlugin -> policyId.equals(policyPlugin.getId())).findFirst();
+        return storage
+            .stream()
+            .filter(policyPlugin -> policyId.equals(policyPlugin.getId()))
+            .findFirst();
     }
 
     @Override

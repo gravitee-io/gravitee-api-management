@@ -52,8 +52,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
 
     @Override
     protected JdbcObjectMapper<Membership> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Membership.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Membership.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("member_id", Types.NVARCHAR, String.class)
             .addColumn("member_type", Types.NVARCHAR, MembershipMemberType.class)
@@ -580,24 +579,22 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             final List<Membership> memberships;
 
             if (referenceId != null) {
-                memberships =
-                    jdbcTemplate.query(
-                        query + " and reference_id = ?",
-                        getOrm().getRowMapper(),
-                        memberId,
-                        memberType.name(),
-                        referenceType.name(),
-                        referenceId
-                    );
+                memberships = jdbcTemplate.query(
+                    query + " and reference_id = ?",
+                    getOrm().getRowMapper(),
+                    memberId,
+                    memberType.name(),
+                    referenceType.name(),
+                    referenceId
+                );
             } else {
-                memberships =
-                    jdbcTemplate.query(
-                        query + " and reference_id is null",
-                        getOrm().getRowMapper(),
-                        memberId,
-                        memberType.name(),
-                        referenceType.name()
-                    );
+                memberships = jdbcTemplate.query(
+                    query + " and reference_id is null",
+                    getOrm().getRowMapper(),
+                    memberId,
+                    memberType.name(),
+                    referenceType.name()
+                );
             }
 
             return new HashSet<>(memberships);

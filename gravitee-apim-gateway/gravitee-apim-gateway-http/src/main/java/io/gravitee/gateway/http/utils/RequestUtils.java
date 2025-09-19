@@ -58,8 +58,7 @@ public final class RequestUtils {
             if (connectionHeader != null) {
                 String upgradeHeader = nativeRequest.getHeader(UPGRADE);
                 isUpgrade =
-                    Arrays
-                        .stream(connectionHeader.split(","))
+                    Arrays.stream(connectionHeader.split(","))
                         .map(String::trim)
                         .anyMatch(HttpHeaderValues.UPGRADE::contentEqualsIgnoreCase) &&
                     HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);

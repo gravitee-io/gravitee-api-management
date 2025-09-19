@@ -268,8 +268,7 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     private Flow aFlow() {
-        return Flow
-            .builder()
+        return Flow.builder()
             .id("flow")
             .name("flow")
             .condition("my-condition")

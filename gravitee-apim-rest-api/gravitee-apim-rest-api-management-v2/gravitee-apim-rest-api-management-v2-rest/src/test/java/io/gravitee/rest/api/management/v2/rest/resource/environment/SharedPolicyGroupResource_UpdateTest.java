@@ -92,8 +92,9 @@ public class SharedPolicyGroupResource_UpdateTest extends AbstractResourceTest {
     void should_create_shared_policy_group() {
         var updateSharedPolicyGroup = aUpdateSharedPolicyGroup();
 
-        when(updateSharedPolicyGroupUseCase.execute(any()))
-            .thenReturn(new UpdateSharedPolicyGroupUseCase.Output(SharedPolicyGroupFixtures.aSharedPolicyGroup()));
+        when(updateSharedPolicyGroupUseCase.execute(any())).thenReturn(
+            new UpdateSharedPolicyGroupUseCase.Output(SharedPolicyGroupFixtures.aSharedPolicyGroup())
+        );
 
         final Response response = rootTarget().request().put(json(updateSharedPolicyGroup));
         assertThat(response.getStatus()).isEqualTo(OK_200);
@@ -116,13 +117,11 @@ public class SharedPolicyGroupResource_UpdateTest extends AbstractResourceTest {
                 ExecutionPhase.fromValue(SharedPolicyGroupFixtures.aSharedPolicyGroup().getPhase().name())
             )
             .satisfies(sharedPolicyGroup -> {
-                Assertions
-                    .assertThat(sharedPolicyGroup.getSteps())
+                Assertions.assertThat(sharedPolicyGroup.getSteps())
                     .hasSize(1)
                     .containsAll(
                         List.of(
-                            StepV4
-                                .builder()
+                            StepV4.builder()
                                 .policy("policyId")
                                 .name("Step name")
                                 .enabled(true)
@@ -170,13 +169,11 @@ public class SharedPolicyGroupResource_UpdateTest extends AbstractResourceTest {
                 eq(ENV_ID),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().put(json(aUpdateSharedPolicyGroup()));
 
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(FORBIDDEN_403)
             .asError()
             .hasHttpStatus(FORBIDDEN_403)

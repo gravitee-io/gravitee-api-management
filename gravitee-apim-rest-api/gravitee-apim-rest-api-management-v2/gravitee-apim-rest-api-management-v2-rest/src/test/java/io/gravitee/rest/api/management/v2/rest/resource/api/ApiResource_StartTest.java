@@ -91,8 +91,9 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_not_start_api_if_not_found() {
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API)))
-            .thenThrow(new ApiNotFoundException(API));
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenThrow(
+            new ApiNotFoundException(API)
+        );
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
@@ -105,8 +106,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_not_start_api_if_archived() {
-        var apiEntity = ApiFixtures
-            .aModelApiV4()
+        var apiEntity = ApiFixtures.aModelApiV4()
             .toBuilder()
             .id(API)
             .state(Lifecycle.State.STOPPED)
@@ -156,8 +156,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_not_start_api_if_not_review_ok() {
-        var apiEntity = ApiFixtures
-            .aModelApiV4()
+        var apiEntity = ApiFixtures.aModelApiV4()
             .toBuilder()
             .id(API)
             .state(Lifecycle.State.STOPPED)
@@ -171,8 +170,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
                 eq(Key.API_REVIEW_ENABLED),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -197,8 +195,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
                 eq(Key.API_REVIEW_ENABLED),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         var workflowOk = new Workflow();
         workflowOk.setState("REVIEW_OK");

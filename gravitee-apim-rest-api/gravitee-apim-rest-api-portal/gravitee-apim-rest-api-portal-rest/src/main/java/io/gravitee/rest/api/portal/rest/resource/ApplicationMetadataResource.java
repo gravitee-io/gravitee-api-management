@@ -61,9 +61,9 @@ public class ApplicationMetadataResource extends AbstractResource {
             .stream()
             .map(this.referenceMetadataMapper::convert)
             .collect(Collectors.toList());
-        return Response
-            .ok(this.createDataResponse(GraviteeContext.getExecutionContext(), applicationMetadata, paginationParam, null, true))
-            .build();
+        return Response.ok(
+            this.createDataResponse(GraviteeContext.getExecutionContext(), applicationMetadata, paginationParam, null, true)
+        ).build();
     }
 
     @POST
@@ -81,8 +81,7 @@ public class ApplicationMetadataResource extends AbstractResource {
             GraviteeContext.getExecutionContext(),
             newApplicationMetadataEntity
         );
-        return Response
-            .created(this.getLocationHeader(applicationMetadataEntity.getKey()))
+        return Response.created(this.getLocationHeader(applicationMetadataEntity.getKey()))
             .entity(this.referenceMetadataMapper.convert(applicationMetadataEntity))
             .build();
     }
@@ -109,16 +108,17 @@ public class ApplicationMetadataResource extends AbstractResource {
         @Valid @NotNull final ReferenceMetadataInput metadata
     ) {
         // prevent creation of a metadata on an another APPLICATION
-        UpdateApplicationMetadataEntity updateApplicationMetadataEntity =
-            this.referenceMetadataMapper.convert(metadata, applicationId, metadataId);
+        UpdateApplicationMetadataEntity updateApplicationMetadataEntity = this.referenceMetadataMapper.convert(
+            metadata,
+            applicationId,
+            metadataId
+        );
 
-        return Response
-            .ok(
-                this.referenceMetadataMapper.convert(
-                        metadataService.update(GraviteeContext.getExecutionContext(), updateApplicationMetadataEntity)
-                    )
+        return Response.ok(
+            this.referenceMetadataMapper.convert(
+                metadataService.update(GraviteeContext.getExecutionContext(), updateApplicationMetadataEntity)
             )
-            .build();
+        ).build();
     }
 
     @DELETE

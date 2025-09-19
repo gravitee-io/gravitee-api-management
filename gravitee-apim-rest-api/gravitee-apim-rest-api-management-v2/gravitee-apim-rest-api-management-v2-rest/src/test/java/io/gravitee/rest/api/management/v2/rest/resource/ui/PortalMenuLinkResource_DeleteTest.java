@@ -76,8 +76,7 @@ public class PortalMenuLinkResource_DeleteTest extends AbstractResourceTest {
     @Test
     void should_delete_portal_menu_link() {
         // Given
-        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id(PORTAL_MENU_LINK_ID)
             .environmentId(ENV_ID)
@@ -95,8 +94,7 @@ public class PortalMenuLinkResource_DeleteTest extends AbstractResourceTest {
     @Test
     public void should_return_404_if_portal_menu_link_not_found() {
         // Given
-        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id("Another-portal-link-id")
             .environmentId(ENV_ID)
@@ -107,8 +105,7 @@ public class PortalMenuLinkResource_DeleteTest extends AbstractResourceTest {
         final Response response = rootTarget().request().delete();
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(NOT_FOUND_404)
             .asError()
             .hasHttpStatus(NOT_FOUND_404)
@@ -119,8 +116,7 @@ public class PortalMenuLinkResource_DeleteTest extends AbstractResourceTest {
     @Test
     public void should_return_403_if_incorrect_permissions() {
         // Given
-        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures
-            .aPortalMenuLink()
+        PortalMenuLink portalMenuLink = PortalMenuLinkFixtures.aPortalMenuLink()
             .toBuilder()
             .id(PORTAL_MENU_LINK_ID)
             .environmentId(ENV_ID)
@@ -134,15 +130,13 @@ public class PortalMenuLinkResource_DeleteTest extends AbstractResourceTest {
                 eq(ENV_ID),
                 eq(RolePermissionAction.DELETE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         // When
         final Response response = rootTarget().request().delete();
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(FORBIDDEN_403)
             .asError()
             .hasHttpStatus(FORBIDDEN_403)

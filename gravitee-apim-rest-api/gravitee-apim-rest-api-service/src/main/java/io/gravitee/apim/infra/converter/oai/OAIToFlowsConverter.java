@@ -77,8 +77,7 @@ public class OAIToFlowsConverter {
     }
 
     private Flow mapFlow(String path, Set<HttpMethod> methods) {
-        return Flow
-            .builder()
+        return Flow.builder()
             .name(Strings.EMPTY)
             .enabled(true)
             .selectors(
@@ -91,8 +90,7 @@ public class OAIToFlowsConverter {
     }
 
     private Step mapStep(Policy policy, String configuration, Operation operation) {
-        return Step
-            .builder()
+        return Step.builder()
             .name(policy.getName())
             .enabled(true)
             .description(

@@ -89,26 +89,25 @@ public class ScoringRulesetCrudServiceImplTest {
         void should_find_a_ruleset_by_id() {
             // Given
             var ruleset = ScoringRulesetFixture.aRuleset();
-            when(scoringRulesetRepository.findById("ruleset-id"))
-                .thenReturn(Optional.of(fixtures.repository.ScoringRulesetFixture.aRuleset()));
+            when(scoringRulesetRepository.findById("ruleset-id")).thenReturn(
+                Optional.of(fixtures.repository.ScoringRulesetFixture.aRuleset())
+            );
 
             // When
             var found = service.findById("ruleset-id");
 
             // Then
-            assertThat(found)
-                .contains(
-                    ScoringRuleset
-                        .builder()
-                        .id("ruleset-id")
-                        .name("ruleset-name")
-                        .description("ruleset-description")
-                        .payload("ruleset-payload")
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
-                        .referenceId("reference-id")
-                        .build()
-                );
+            assertThat(found).contains(
+                ScoringRuleset.builder()
+                    .id("ruleset-id")
+                    .name("ruleset-name")
+                    .description("ruleset-description")
+                    .payload("ruleset-payload")
+                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                    .referenceId("reference-id")
+                    .build()
+            );
         }
 
         @Test

@@ -78,8 +78,9 @@ class ApiProcessorChainFactoryTest {
     public void beforeEach() {
         when(configuration.getProperty("services.tracing.enabled", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(false);
-        when(configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER))
-            .thenReturn(DEFAULT_CLIENT_IDENTIFIER_HEADER);
+        when(configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER)).thenReturn(
+            DEFAULT_CLIENT_IDENTIFIER_HEADER
+        );
         apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
     }
 
@@ -225,7 +226,11 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test
@@ -371,7 +376,11 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof LogResponseProcessor);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof LogResponseProcessor);
     }
 
     private Flowable<Processor> extractProcessorChain(final ProcessorChain processorChain) {

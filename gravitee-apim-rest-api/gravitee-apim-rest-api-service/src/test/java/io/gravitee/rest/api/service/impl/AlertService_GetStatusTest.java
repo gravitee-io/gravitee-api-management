@@ -40,8 +40,9 @@ public class AlertService_GetStatusTest extends AlertServiceTest {
     @Test
     public void getStatus_should_get_enabled_status() {
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class), mock(TriggerProvider.class)));
-        when(parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
-            .thenReturn(true);
+        when(
+            parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)
+        ).thenReturn(true);
 
         AlertStatusEntity alertStatus = alertService.getStatus(executionContext);
 
@@ -52,8 +53,9 @@ public class AlertService_GetStatusTest extends AlertServiceTest {
     @Test
     public void getStatus_should_get_disabled_status() {
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of());
-        when(parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
-            .thenReturn(false);
+        when(
+            parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)
+        ).thenReturn(false);
 
         AlertStatusEntity alertStatus = alertService.getStatus(executionContext);
 

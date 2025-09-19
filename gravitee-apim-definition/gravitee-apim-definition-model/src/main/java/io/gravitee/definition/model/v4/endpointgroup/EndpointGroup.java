@@ -78,8 +78,7 @@ public class EndpointGroup implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Optional
-            .ofNullable(this.endpoints)
+        return Optional.ofNullable(this.endpoints)
             .map(e -> e.stream().map(Endpoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
             .orElse(List.of());
     }

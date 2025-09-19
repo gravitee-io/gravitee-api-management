@@ -59,8 +59,7 @@ public class ApiProperties {
             }
         });
 
-        final List<Property> orderedProperties = Stream
-            .concat(currentUserDefinedProperties.stream(), updatedDynamicProperties.stream())
+        final List<Property> orderedProperties = Stream.concat(currentUserDefinedProperties.stream(), updatedDynamicProperties.stream())
             .sorted(Comparator.comparing(Property::getKey))
             .toList();
 

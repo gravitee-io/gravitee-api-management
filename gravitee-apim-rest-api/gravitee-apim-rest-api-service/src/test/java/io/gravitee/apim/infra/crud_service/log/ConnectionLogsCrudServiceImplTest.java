@@ -55,8 +55,9 @@ public class ConnectionLogsCrudServiceImplTest {
 
         @Test
         void should_search_api_connection_log_detail() throws AnalyticsException {
-            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any()))
-                .thenReturn(Optional.of(ConnectionLogDetail.builder().build()));
+            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any())).thenReturn(
+                Optional.of(ConnectionLogDetail.builder().build())
+            );
 
             logCrudService.searchApiConnectionLog(GraviteeContext.getExecutionContext(), "apiId", "requestId");
 
@@ -68,13 +69,11 @@ public class ConnectionLogsCrudServiceImplTest {
             assertThat(queryContext.getOrgId()).isEqualTo("DEFAULT");
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
-            assertThat(captorConnectionLogDetailQuery.getValue())
-                .isEqualTo(
-                    ConnectionLogDetailQuery
-                        .builder()
-                        .filter(ConnectionLogDetailQuery.Filter.builder().apiId("apiId").requestId("requestId").build())
-                        .build()
-                );
+            assertThat(captorConnectionLogDetailQuery.getValue()).isEqualTo(
+                ConnectionLogDetailQuery.builder()
+                    .filter(ConnectionLogDetailQuery.Filter.builder().apiId("apiId").requestId("requestId").build())
+                    .build()
+            );
         }
 
         @Test
@@ -86,152 +85,146 @@ public class ConnectionLogsCrudServiceImplTest {
 
         @Test
         void should_return_api_connection_log_detail() throws AnalyticsException {
-            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any()))
-                .thenReturn(
-                    Optional.of(
-                        ConnectionLogDetail
-                            .builder()
-                            .timestamp("2023-10-27T07:41:39.317+02:00")
-                            .apiId("apiId")
-                            .requestId("requestId")
-                            .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
-                            .requestEnded(true)
-                            .entrypointRequest(
-                                ConnectionLogDetail.Request
-                                    .builder()
-                                    .method("GET")
-                                    .uri("/test?param=paramValue")
-                                    .headers(
-                                        Map.of(
-                                            "Accept-Encoding",
-                                            List.of("gzip, deflate, br"),
-                                            "Host",
-                                            List.of("localhost:8082"),
-                                            "X-Gravitee-Transaction-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                            "X-Gravitee-Request-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                        )
+            when(logRepository.searchConnectionLogDetail(any(QueryContext.class), any())).thenReturn(
+                Optional.of(
+                    ConnectionLogDetail.builder()
+                        .timestamp("2023-10-27T07:41:39.317+02:00")
+                        .apiId("apiId")
+                        .requestId("requestId")
+                        .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
+                        .requestEnded(true)
+                        .entrypointRequest(
+                            ConnectionLogDetail.Request.builder()
+                                .method("GET")
+                                .uri("/test?param=paramValue")
+                                .headers(
+                                    Map.of(
+                                        "Accept-Encoding",
+                                        List.of("gzip, deflate, br"),
+                                        "Host",
+                                        List.of("localhost:8082"),
+                                        "X-Gravitee-Transaction-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                        "X-Gravitee-Request-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                                     )
-                                    .build()
-                            )
-                            .endpointRequest(
-                                ConnectionLogDetail.Request
-                                    .builder()
-                                    .method("GET")
-                                    .uri("")
-                                    .headers(
-                                        Map.of(
-                                            "Accept-Encoding",
-                                            List.of("gzip, deflate, br"),
-                                            "Host",
-                                            List.of("localhost:8082"),
-                                            "X-Gravitee-Request-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                            "X-Gravitee-Transaction-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                        )
+                                )
+                                .build()
+                        )
+                        .endpointRequest(
+                            ConnectionLogDetail.Request.builder()
+                                .method("GET")
+                                .uri("")
+                                .headers(
+                                    Map.of(
+                                        "Accept-Encoding",
+                                        List.of("gzip, deflate, br"),
+                                        "Host",
+                                        List.of("localhost:8082"),
+                                        "X-Gravitee-Request-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                        "X-Gravitee-Transaction-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                                     )
-                                    .build()
-                            )
-                            .entrypointResponse(
-                                ConnectionLogDetail.Response
-                                    .builder()
-                                    .status(200)
-                                    .headers(
-                                        Map.of(
-                                            "Content-Type",
-                                            List.of("text/plain"),
-                                            "X-Gravitee-Client-Identifier",
-                                            List.of("8eec8b53-edae-4954-ac8b-53edae1954e4"),
-                                            "X-Gravitee-Request-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                            "X-Gravitee-Transaction-Id",
-                                            List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                        )
+                                )
+                                .build()
+                        )
+                        .entrypointResponse(
+                            ConnectionLogDetail.Response.builder()
+                                .status(200)
+                                .headers(
+                                    Map.of(
+                                        "Content-Type",
+                                        List.of("text/plain"),
+                                        "X-Gravitee-Client-Identifier",
+                                        List.of("8eec8b53-edae-4954-ac8b-53edae1954e4"),
+                                        "X-Gravitee-Request-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                        "X-Gravitee-Transaction-Id",
+                                        List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                                     )
-                                    .build()
-                            )
-                            .endpointResponse(ConnectionLogDetail.Response.builder().status(200).headers(Map.of()).build())
-                            .build()
-                    )
-                );
+                                )
+                                .build()
+                        )
+                        .endpointResponse(ConnectionLogDetail.Response.builder().status(200).headers(Map.of()).build())
+                        .build()
+                )
+            );
 
             var result = logCrudService.searchApiConnectionLog(GraviteeContext.getExecutionContext(), "apiId", "requestId");
 
             SoftAssertions.assertSoftly(soft -> {
-                assertThat(result)
-                    .hasValueSatisfying(connectionLogDetail -> {
-                        assertThat(connectionLogDetail)
-                            .hasFieldOrPropertyWithValue("apiId", "apiId")
-                            .hasFieldOrPropertyWithValue("requestId", "requestId")
-                            .hasFieldOrPropertyWithValue("timestamp", "2023-10-27T07:41:39.317+02:00")
-                            .hasFieldOrPropertyWithValue("clientIdentifier", "8eec8b53-edae-4954-ac8b-53edae1954e4")
-                            .hasFieldOrPropertyWithValue("requestEnded", true);
-                        assertThat(connectionLogDetail.getEntrypointRequest())
-                            .hasFieldOrPropertyWithValue("method", "GET")
-                            .hasFieldOrPropertyWithValue("uri", "/test?param=paramValue")
-                            .extracting(
-                                io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Request::getHeaders,
-                                as(InstanceOfAssertFactories.map(String.class, List.class))
+                assertThat(result).hasValueSatisfying(connectionLogDetail -> {
+                    assertThat(connectionLogDetail)
+                        .hasFieldOrPropertyWithValue("apiId", "apiId")
+                        .hasFieldOrPropertyWithValue("requestId", "requestId")
+                        .hasFieldOrPropertyWithValue("timestamp", "2023-10-27T07:41:39.317+02:00")
+                        .hasFieldOrPropertyWithValue("clientIdentifier", "8eec8b53-edae-4954-ac8b-53edae1954e4")
+                        .hasFieldOrPropertyWithValue("requestEnded", true);
+                    assertThat(connectionLogDetail.getEntrypointRequest())
+                        .hasFieldOrPropertyWithValue("method", "GET")
+                        .hasFieldOrPropertyWithValue("uri", "/test?param=paramValue")
+                        .extracting(
+                            io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Request::getHeaders,
+                            as(InstanceOfAssertFactories.map(String.class, List.class))
+                        )
+                        .containsAllEntriesOf(
+                            Map.of(
+                                "Accept-Encoding",
+                                List.of("gzip, deflate, br"),
+                                "Host",
+                                List.of("localhost:8082"),
+                                "X-Gravitee-Transaction-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                "X-Gravitee-Request-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                             )
-                            .containsAllEntriesOf(
-                                Map.of(
-                                    "Accept-Encoding",
-                                    List.of("gzip, deflate, br"),
-                                    "Host",
-                                    List.of("localhost:8082"),
-                                    "X-Gravitee-Transaction-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                    "X-Gravitee-Request-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                )
-                            );
-                        assertThat(connectionLogDetail.getEndpointRequest())
-                            .hasFieldOrPropertyWithValue("method", "GET")
-                            .hasFieldOrPropertyWithValue("uri", "")
-                            .extracting(
-                                io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Request::getHeaders,
-                                as(InstanceOfAssertFactories.map(String.class, List.class))
+                        );
+                    assertThat(connectionLogDetail.getEndpointRequest())
+                        .hasFieldOrPropertyWithValue("method", "GET")
+                        .hasFieldOrPropertyWithValue("uri", "")
+                        .extracting(
+                            io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Request::getHeaders,
+                            as(InstanceOfAssertFactories.map(String.class, List.class))
+                        )
+                        .containsAllEntriesOf(
+                            Map.of(
+                                "Accept-Encoding",
+                                List.of("gzip, deflate, br"),
+                                "Host",
+                                List.of("localhost:8082"),
+                                "X-Gravitee-Request-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                "X-Gravitee-Transaction-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                             )
-                            .containsAllEntriesOf(
-                                Map.of(
-                                    "Accept-Encoding",
-                                    List.of("gzip, deflate, br"),
-                                    "Host",
-                                    List.of("localhost:8082"),
-                                    "X-Gravitee-Request-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                    "X-Gravitee-Transaction-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                )
-                            );
-                        assertThat(connectionLogDetail.getEntrypointResponse())
-                            .hasFieldOrPropertyWithValue("status", 200)
-                            .extracting(
-                                io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Response::getHeaders,
-                                as(InstanceOfAssertFactories.map(String.class, List.class))
+                        );
+                    assertThat(connectionLogDetail.getEntrypointResponse())
+                        .hasFieldOrPropertyWithValue("status", 200)
+                        .extracting(
+                            io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Response::getHeaders,
+                            as(InstanceOfAssertFactories.map(String.class, List.class))
+                        )
+                        .containsAllEntriesOf(
+                            Map.of(
+                                "Content-Type",
+                                List.of("text/plain"),
+                                "X-Gravitee-Client-Identifier",
+                                List.of("8eec8b53-edae-4954-ac8b-53edae1954e4"),
+                                "X-Gravitee-Request-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
+                                "X-Gravitee-Transaction-Id",
+                                List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                             )
-                            .containsAllEntriesOf(
-                                Map.of(
-                                    "Content-Type",
-                                    List.of("text/plain"),
-                                    "X-Gravitee-Client-Identifier",
-                                    List.of("8eec8b53-edae-4954-ac8b-53edae1954e4"),
-                                    "X-Gravitee-Request-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c"),
-                                    "X-Gravitee-Transaction-Id",
-                                    List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
-                                )
-                            );
-                        assertThat(connectionLogDetail.getEndpointResponse())
-                            .hasFieldOrPropertyWithValue("status", 200)
-                            .extracting(
-                                io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Response::getHeaders,
-                                as(InstanceOfAssertFactories.map(String.class, List.class))
-                            )
-                            .isEmpty();
-                    });
+                        );
+                    assertThat(connectionLogDetail.getEndpointResponse())
+                        .hasFieldOrPropertyWithValue("status", 200)
+                        .extracting(
+                            io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail.Response::getHeaders,
+                            as(InstanceOfAssertFactories.map(String.class, List.class))
+                        )
+                        .isEmpty();
+                });
             });
         }
     }

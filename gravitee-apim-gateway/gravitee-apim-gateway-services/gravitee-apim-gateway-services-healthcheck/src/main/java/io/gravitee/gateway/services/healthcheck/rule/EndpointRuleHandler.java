@@ -207,9 +207,11 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
             healthRequestPromise.onComplete(requestPreparationEvent -> {
                 HttpClientRequest healthRequest = requestPreparationEvent.result();
-                final EndpointStatus.Builder healthBuilder = EndpointStatus
-                    .forEndpoint(rule.api().getId(), rule.api().getName(), endpoint.getName())
-                    .on(currentTimeMillis());
+                final EndpointStatus.Builder healthBuilder = EndpointStatus.forEndpoint(
+                    rule.api().getId(),
+                    rule.api().getName(),
+                    endpoint.getName()
+                ).on(currentTimeMillis());
 
                 long startTime = currentTimeMillis();
 
@@ -344,7 +346,10 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     private io.gravitee.gateway.api.http.HttpHeaders getHttpHeaders(HealthCheckStep step) {
         io.gravitee.gateway.api.http.HttpHeaders reqHeaders = io.gravitee.gateway.api.http.HttpHeaders.create();
-        step.getRequest().getHeaders().forEach(httpHeader -> reqHeaders.add(httpHeader.getName(), httpHeader.getValue()));
+        step
+            .getRequest()
+            .getHeaders()
+            .forEach(httpHeader -> reqHeaders.add(httpHeader.getName(), httpHeader.getValue()));
         return reqHeaders;
     }
 
@@ -397,8 +402,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         endpointStatus.setTransition(transition);
 
         if (transition && alertEventProducer != null && !alertEventProducer.isEmpty()) {
-            final Event event = Event
-                .at(currentTimeMillis())
+            final Event event = Event.at(currentTimeMillis())
                 .context(CONTEXT_NODE_ID, node.id())
                 .context(CONTEXT_NODE_HOSTNAME, node.hostname())
                 .context(CONTEXT_NODE_APPLICATION, node.application())
@@ -439,7 +443,8 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     public long getDelayMillis() {
         CronTrigger expression = new CronTrigger(rule.schedule());
         Date nextExecutionDate = expression.nextExecutionTime(new SimpleTriggerContext());
-        if (nextExecutionDate == null) { // NOSONAR nextExecutionDate is null if the trigger won't fire anymore
+        if (nextExecutionDate == null) {
+            // NOSONAR nextExecutionDate is null if the trigger won't fire anymore
             return -1;
         }
 

@@ -202,8 +202,7 @@ class SubscriptionTrustStoreLoaderManagerTest {
 
     @Test
     void should_get_a_subscription() {
-        final Subscription subscription = Subscription
-            .builder()
+        final Subscription subscription = Subscription.builder()
             .id("subscriptionId")
             .api("api")
             .plan("plan")

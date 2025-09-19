@@ -63,13 +63,12 @@ public class DefaultSharedPolicyGroupReactor
     protected void doStart() throws Exception {
         log.debug("Organization '{}' reactor  is now starting...", id());
         sharedPolicyGroupPolicyManager.start();
-        policyChain =
-            policyChainFactory.create(
-                reactableSharedPolicyGroup.getId(),
-                reactableSharedPolicyGroup.getEnvironmentId(),
-                reactableSharedPolicyGroup.getDefinition().getPolicies(),
-                ExecutionPhase.valueOf(reactableSharedPolicyGroup.getDefinition().getPhase().name())
-            );
+        policyChain = policyChainFactory.create(
+            reactableSharedPolicyGroup.getId(),
+            reactableSharedPolicyGroup.getEnvironmentId(),
+            reactableSharedPolicyGroup.getDefinition().getPolicies(),
+            ExecutionPhase.valueOf(reactableSharedPolicyGroup.getDefinition().getPhase().name())
+        );
     }
 
     @Override

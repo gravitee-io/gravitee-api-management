@@ -88,8 +88,7 @@ public class ApplicationService_FindIdsByUserTest {
     public void should_find_ids_with_null_user() throws Exception {
         GraviteeContext.setCurrentEnvironment("envId");
 
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
             .status(ApplicationStatus.ACTIVE)
             .build();
@@ -108,11 +107,9 @@ public class ApplicationService_FindIdsByUserTest {
 
         when(
             membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)
-        )
-            .thenReturn(Collections.singleton(APPLICATION_ID));
+        ).thenReturn(Collections.singleton(APPLICATION_ID));
 
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Set.of(APPLICATION_ID))
             .environmentIds(Set.of(GraviteeContext.getExecutionContext().getEnvironmentId()))
             .status(ApplicationStatus.ACTIVE)

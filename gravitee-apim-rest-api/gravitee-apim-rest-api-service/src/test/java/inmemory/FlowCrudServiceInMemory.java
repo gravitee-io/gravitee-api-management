@@ -77,15 +77,10 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     @Override
     public List<Flow> storage() {
         return Collections.unmodifiableList(
-            Stream
-                .concat(planFlows.values().stream(), apiFlows.values().stream())
-                .reduce(
-                    new ArrayList<>(),
-                    (acc, flow) -> {
-                        acc.addAll(flow);
-                        return acc;
-                    }
-                )
+            Stream.concat(planFlows.values().stream(), apiFlows.values().stream()).reduce(new ArrayList<>(), (acc, flow) -> {
+                acc.addAll(flow);
+                return acc;
+            })
         );
     }
 

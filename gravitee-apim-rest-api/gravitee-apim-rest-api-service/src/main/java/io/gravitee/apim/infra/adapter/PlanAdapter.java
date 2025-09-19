@@ -118,9 +118,10 @@ public interface PlanAdapter {
             return null;
         }
         try {
-            return GraviteeJacksonMapper
-                .getInstance()
-                .readValue(source.getDefinition(), io.gravitee.definition.model.federation.FederatedPlan.class);
+            return GraviteeJacksonMapper.getInstance().readValue(
+                source.getDefinition(),
+                io.gravitee.definition.model.federation.FederatedPlan.class
+            );
         } catch (IOException ioe) {
             log.error(
                 "An error occurred while deserializing Federated Plan definition for plan named {} with id {}",
@@ -166,8 +167,7 @@ public interface PlanAdapter {
     @Named("computeBasePlanEntitySecurityV4")
     default PlanSecurity computeBasePlanEntitySecurityV4(io.gravitee.repository.management.model.Plan plan) {
         if (io.gravitee.repository.management.model.Plan.PlanMode.PUSH != plan.getMode()) {
-            return PlanSecurity
-                .builder()
+            return PlanSecurity.builder()
                 .type(PlanSecurityType.valueOf(plan.getSecurity().name()).getLabel())
                 .configuration(plan.getSecurityDefinition())
                 .build();

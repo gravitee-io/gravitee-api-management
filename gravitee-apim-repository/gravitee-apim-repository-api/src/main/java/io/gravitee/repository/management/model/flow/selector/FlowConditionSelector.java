@@ -42,7 +42,8 @@ public class FlowConditionSelector extends FlowSelector {
     }
 
     public abstract static class FlowConditionSelectorBuilder<
-        C extends FlowConditionSelector, B extends FlowConditionSelector.FlowConditionSelectorBuilder<C, B>
+        C extends FlowConditionSelector,
+        B extends FlowConditionSelector.FlowConditionSelectorBuilder<C, B>
     >
         extends FlowSelector.FlowSelectorBuilder<C, B> {
 

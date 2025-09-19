@@ -319,8 +319,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         ServerSettings serverSettings = buildServerSettings();
         SslSettings sslSettings = buildSslSettings();
 
-        MongoClientSettings.Builder settingsBuilder = MongoClientSettings
-            .builder()
+        MongoClientSettings.Builder settingsBuilder = MongoClientSettings.builder()
             .applyToServerSettings(builder -> builder.applySettings(serverSettings))
             .applyToSslSettings(builder -> builder.applySettings(sslSettings))
             .applyConnectionString(new ConnectionString(uri));
@@ -393,8 +392,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
     }
 
     private TagSet buildTagSet(String readPreferenceTags) {
-        List<Tag> tags = Pattern
-            .compile(",")
+        List<Tag> tags = Pattern.compile(",")
             .splitAsStream(readPreferenceTags)
             .map((String::trim))
             .map(tag -> {

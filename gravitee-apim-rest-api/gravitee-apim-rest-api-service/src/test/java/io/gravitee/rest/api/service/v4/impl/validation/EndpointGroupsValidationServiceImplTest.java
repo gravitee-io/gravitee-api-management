@@ -73,7 +73,9 @@ public class EndpointGroupsValidationServiceImplTest {
         lenient()
             .when(endpointService.validateConnectorConfiguration(any(String.class), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
-        lenient().when(endpointService.validateSharedConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        lenient()
+            .when(endpointService.validateSharedConfiguration(any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
 
         var httpEndpoint = new ConnectorPluginEntity();
         httpEndpoint.setId("http");
@@ -327,8 +329,9 @@ public class EndpointGroupsValidationServiceImplTest {
     public void shouldThrowValidationExceptionWithWrongEndpointGroupName() {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName(":");
-        assertThatExceptionOfType(EndpointNameInvalidException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup)));
+        assertThatExceptionOfType(EndpointNameInvalidException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup))
+        );
     }
 
     @Test
@@ -341,8 +344,9 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setType("http");
         endpointGroup.setEndpoints(List.of(endpoint));
 
-        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup)));
+        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup))
+        );
     }
 
     @Test
@@ -365,8 +369,9 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint2.setSharedConfigurationOverride("minimalSharedConfiguration");
         endpointGroup2.setEndpoints(List.of(endpoint2));
 
-        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup, endpointGroup2)));
+        assertThatExceptionOfType(EndpointNameAlreadyExistsException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup, endpointGroup2))
+        );
     }
 
     @Test
@@ -391,16 +396,18 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint2.setInheritConfiguration(true);
         endpointGroup2.setEndpoints(List.of(endpoint2));
 
-        assertThatExceptionOfType(EndpointGroupNameAlreadyExistsException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup, endpointGroup2)));
+        assertThatExceptionOfType(EndpointGroupNameAlreadyExistsException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup, endpointGroup2))
+        );
     }
 
     @Test
     public void shouldThrowValidationExceptionWithMissingEndpointGroupType() {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("name");
-        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup)));
+        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup))
+        );
     }
 
     @Test
@@ -408,8 +415,9 @@ public class EndpointGroupsValidationServiceImplTest {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("name");
         endpointGroup.setType("http");
-        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(endpointGroup)));
+        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(endpointGroup))
+        );
     }
 
     @Test
@@ -417,8 +425,9 @@ public class EndpointGroupsValidationServiceImplTest {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("name");
         endpointGroup.setType("http");
-        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(endpointGroup)));
+        assertThatExceptionOfType(EndpointGroupTypeInvalidException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(endpointGroup))
+        );
     }
 
     @Test
@@ -430,8 +439,9 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setName(":");
         endpoint.setType("http");
         endpointGroup.setEndpoints(List.of(endpoint));
-        assertThatExceptionOfType(EndpointNameInvalidException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup)));
+        assertThatExceptionOfType(EndpointNameInvalidException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup))
+        );
     }
 
     @Test
@@ -442,8 +452,9 @@ public class EndpointGroupsValidationServiceImplTest {
         Endpoint endpoint = new Endpoint();
         endpoint.setName("endpoint");
         endpointGroup.setEndpoints(List.of(endpoint));
-        assertThatExceptionOfType(EndpointTypeInvalidException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup)));
+        assertThatExceptionOfType(EndpointTypeInvalidException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup))
+        );
     }
 
     @Test
@@ -455,8 +466,9 @@ public class EndpointGroupsValidationServiceImplTest {
         endpoint.setName("endpoint");
         endpoint.setType("wrong");
         endpointGroup.setEndpoints(List.of(endpoint));
-        assertThatExceptionOfType(EndpointGroupTypeMismatchInvalidException.class)
-            .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup)));
+        assertThatExceptionOfType(EndpointGroupTypeMismatchInvalidException.class).isThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitize(ApiType.PROXY, List.of(endpointGroup))
+        );
     }
 
     @Test

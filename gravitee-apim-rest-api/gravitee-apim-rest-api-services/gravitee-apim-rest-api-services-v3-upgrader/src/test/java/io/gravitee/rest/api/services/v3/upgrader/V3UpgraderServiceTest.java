@@ -71,8 +71,7 @@ public class V3UpgraderServiceTest {
                 "DEFAULT",
                 RoleReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(Optional.of(new Role()));
+        ).thenReturn(Optional.of(new Role()));
 
         service.convertIDPRoleMapping();
 
@@ -111,8 +110,7 @@ public class V3UpgraderServiceTest {
                 "DEFAULT",
                 RoleReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(Optional.empty());
+        ).thenReturn(Optional.empty());
 
         service.convertIDPRoleMapping();
 

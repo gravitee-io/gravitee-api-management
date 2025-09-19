@@ -204,8 +204,9 @@ public class PageService_UpdateTest {
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(pageOrder1));
         when(pageRepository.search(argThat(o -> o == null || "LINK".equals(o.getType())))).thenReturn(Collections.emptyList());
-        when(pageRepository.search(argThat(o -> o == null || API_ID.equals(o.getReferenceId()))))
-            .thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.search(argThat(o -> o == null || API_ID.equals(o.getReferenceId())))).thenReturn(
+            asList(pageOrder1, pageOrder2, pageOrder3)
+        );
         when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -214,21 +215,20 @@ public class PageService_UpdateTest {
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(pageRepository, times(4))
-            .update(
-                argThat(pageToUpdate -> {
-                    if (PAGE_ID.equals(pageToUpdate.getId())) {
-                        return pageToUpdate.getOrder() == 2;
-                    }
-                    if ("2".equals(pageToUpdate.getId())) {
-                        return pageToUpdate.getOrder() == 1;
-                    }
-                    if ("3".equals(pageToUpdate.getId())) {
-                        return pageToUpdate.getOrder() == 3;
-                    }
-                    return false;
-                })
-            );
+        verify(pageRepository, times(4)).update(
+            argThat(pageToUpdate -> {
+                if (PAGE_ID.equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 2;
+                }
+                if ("2".equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 1;
+                }
+                if ("3".equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 3;
+                }
+                return false;
+            })
+        );
         // neither content nor name are updated
         verify(pageRevisionService, times(0)).create(any());
     }
@@ -259,8 +259,9 @@ public class PageService_UpdateTest {
 
         when(pageRepository.findById("3")).thenReturn(Optional.of(pageOrder3));
 
-        when(pageRepository.search(argThat(o -> o == null || o.getReferenceId().equals(API_ID))))
-            .thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.search(argThat(o -> o == null || o.getReferenceId().equals(API_ID)))).thenReturn(
+            asList(pageOrder1, pageOrder2, pageOrder3)
+        );
         when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -269,21 +270,20 @@ public class PageService_UpdateTest {
 
         pageService.update(GraviteeContext.getExecutionContext(), "3", updatePageEntity);
 
-        verify(pageRepository, times(4))
-            .update(
-                argThat(pageToUpdate -> {
-                    if (PAGE_ID.equals(pageToUpdate.getId())) {
-                        return pageToUpdate.getOrder() == 2;
-                    }
-                    if ("2".equals(pageToUpdate.getId())) {
-                        return pageToUpdate.getOrder() == 3;
-                    }
-                    if ("3".equals(pageToUpdate.getId())) {
-                        return pageToUpdate.getOrder() == 1;
-                    }
-                    return false;
-                })
-            );
+        verify(pageRepository, times(4)).update(
+            argThat(pageToUpdate -> {
+                if (PAGE_ID.equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 2;
+                }
+                if ("2".equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 3;
+                }
+                if ("3".equals(pageToUpdate.getId())) {
+                    return pageToUpdate.getOrder() == 1;
+                }
+                return false;
+            })
+        );
         // neither content nor name are updated
         verify(pageRevisionService, times(0)).create(any());
     }
@@ -512,8 +512,9 @@ public class PageService_UpdateTest {
         when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
         when(page1.getReferenceId()).thenReturn(API_ID);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean()))
-            .thenReturn(content);
+        when(
+            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
+        ).thenReturn(content);
         when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
@@ -534,8 +535,9 @@ public class PageService_UpdateTest {
 
         when(pageRepository.update(any())).thenReturn(page1);
 
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean()))
-            .thenThrow(new TemplateProcessingException(new TemplateException(null)));
+        when(
+            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
+        ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 
