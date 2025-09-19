@@ -41,8 +41,7 @@ public class MongoUpgraderConfiguration implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {
         if (isUpgrade) {
-            Optional
-                .ofNullable(context.getParent())
+            Optional.ofNullable(context.getParent())
                 .map(ConfigurableApplicationContext.class::cast)
                 .map(ConfigurableApplicationContext::getBeanFactory)
                 .ifPresent(factory -> registerBeans(context, factory));

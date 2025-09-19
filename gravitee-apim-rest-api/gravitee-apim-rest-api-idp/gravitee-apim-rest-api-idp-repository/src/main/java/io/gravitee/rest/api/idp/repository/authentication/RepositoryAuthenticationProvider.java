@@ -111,10 +111,13 @@ public class RepositoryAuthenticationProvider
     private UserDetails mapUserEntityToUserDetails(UserEntity userEntity) {
         List<GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
         if (userEntity.getRoles() != null && userEntity.getRoles().size() > 0) {
-            authorities =
-                AuthorityUtils.commaSeparatedStringToAuthorityList(
-                    userEntity.getRoles().stream().map(r -> r.getScope().name() + ':' + r.getName()).collect(Collectors.joining(","))
-                );
+            authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(
+                userEntity
+                    .getRoles()
+                    .stream()
+                    .map(r -> r.getScope().name() + ':' + r.getName())
+                    .collect(Collectors.joining(","))
+            );
         }
 
         io.gravitee.rest.api.idp.api.authentication.UserDetails userDetails = new io.gravitee.rest.api.idp.api.authentication.UserDetails(

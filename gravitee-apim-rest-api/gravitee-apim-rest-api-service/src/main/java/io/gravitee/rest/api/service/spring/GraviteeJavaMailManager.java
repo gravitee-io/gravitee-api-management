@@ -79,11 +79,10 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
 
     @Override
     public void onEvent(Event<Key, Parameter> event) {
-        JavaMailSenderImpl mailSender =
-            this.getMailSenderByReference(
-                    event.content().getReferenceId(),
-                    ParameterReferenceType.valueOf(event.content().getReferenceType().name())
-                );
+        JavaMailSenderImpl mailSender = this.getMailSenderByReference(
+            event.content().getReferenceId(),
+            ParameterReferenceType.valueOf(event.content().getReferenceType().name())
+        );
         if (mailSender != null) {
             switch (event.type()) {
                 case EMAIL_HOST:

@@ -97,7 +97,10 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
 
     private Result<List<Group>> validateAndSanitizeNoPrimaryOwners(List<Group> groups, Function<Group, String> idMapper) {
         var sanitized = new ArrayList<>(groups);
-        var groupsWithPrimaryOwner = sanitized.stream().filter(group -> StringUtils.isNotEmpty(group.getApiPrimaryOwner())).toList();
+        var groupsWithPrimaryOwner = sanitized
+            .stream()
+            .filter(group -> StringUtils.isNotEmpty(group.getApiPrimaryOwner()))
+            .toList();
         sanitized.removeAll(groupsWithPrimaryOwner);
         var errors = buildPrimaryOwnerErrors(groupsWithPrimaryOwner, idMapper);
         return Result.ofBoth(sanitized, errors);

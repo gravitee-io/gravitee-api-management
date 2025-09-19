@@ -80,11 +80,10 @@ public class ServicesDiscoveryResource {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
-                        stream =
-                            stream.map(resourceListItem -> {
-                                resourceListItem.setSchema(serviceDiscoveryService.getSchema(resourceListItem.getId()));
-                                return resourceListItem;
-                            });
+                        stream = stream.map(resourceListItem -> {
+                            resourceListItem.setSchema(serviceDiscoveryService.getSchema(resourceListItem.getId()));
+                            return resourceListItem;
+                        });
                         break;
                     default:
                         break;

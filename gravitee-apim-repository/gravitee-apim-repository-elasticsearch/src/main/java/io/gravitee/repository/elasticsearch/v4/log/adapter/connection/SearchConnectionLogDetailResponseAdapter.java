@@ -44,8 +44,7 @@ public class SearchConnectionLogDetailResponseAdapter {
     }
 
     private static ConnectionLogDetail buildFromSource(JsonNode json) {
-        return ConnectionLogDetail
-            .builder()
+        return ConnectionLogDetail.builder()
             .requestId(json.get("request-id").asText())
             .timestamp(asTextOrNull(json.get("@timestamp")))
             .apiId(asTextOrNull(json.get("api-id")))
@@ -60,8 +59,7 @@ public class SearchConnectionLogDetailResponseAdapter {
 
     private static ConnectionLogDetail.Request buildRequest(JsonNode json) {
         return null != json
-            ? ConnectionLogDetail.Request
-                .builder()
+            ? ConnectionLogDetail.Request.builder()
                 .uri(asTextOrNull(json.get("uri")))
                 .method(asTextOrNull(json.get("method")))
                 .headers(buildHeaders(json.get("headers")))
@@ -72,8 +70,7 @@ public class SearchConnectionLogDetailResponseAdapter {
 
     private static ConnectionLogDetail.Response buildResponse(JsonNode json) {
         return null != json
-            ? ConnectionLogDetail.Response
-                .builder()
+            ? ConnectionLogDetail.Response.builder()
                 .status(asIntOr(json.get("status"), 0))
                 .headers(buildHeaders(json.get("headers")))
                 .body(asTextOrNull(json.get("body")))
@@ -89,9 +86,8 @@ public class SearchConnectionLogDetailResponseAdapter {
             .properties()
             .stream()
             .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey,
-                    entry -> StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
+                Collectors.toMap(Map.Entry::getKey, entry ->
+                    StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
                 )
             );
     }

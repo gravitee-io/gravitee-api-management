@@ -92,14 +92,19 @@ class ApiCRDExportDomainServiceImplTest {
             )
         );
         groupQueryServiceInMemory.initWith(List.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));
-        apiCRDExportDomainService =
-            new ApiCRDExportDomainServiceImpl(exportService, apiCrudService, userCrudService, groupQueryServiceInMemory);
+        apiCRDExportDomainService = new ApiCRDExportDomainServiceImpl(
+            exportService,
+            apiCrudService,
+            userCrudService,
+            groupQueryServiceInMemory
+        );
     }
 
     @Test
     void should_export_as_a_crd_spec_and_generate_cross_id() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
-            .thenReturn(exportApiEntity(apiEntity().build()));
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity().build())
+        );
 
         when(apiCrudService.get(API_ID)).thenReturn(new Api());
 
@@ -125,8 +130,9 @@ class ApiCRDExportDomainServiceImplTest {
 
     @Test
     void should_export_as_a_crd_spec_and_keep_cross_id() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
-            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity().crossId("cross-id").build())
+        );
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
@@ -148,8 +154,9 @@ class ApiCRDExportDomainServiceImplTest {
 
     @Test
     void should_set_member_source_and_source_id() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
-            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity().crossId("cross-id").build())
+        );
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
@@ -184,8 +191,9 @@ class ApiCRDExportDomainServiceImplTest {
 
     @Test
     void should_map_group_id_to_name() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
-            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").groups(Set.of(GROUP_ID)).build()));
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity().crossId("cross-id").groups(Set.of(GROUP_ID)).build())
+        );
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
@@ -201,8 +209,9 @@ class ApiCRDExportDomainServiceImplTest {
 
     @Test
     void should_export_page_with_null_name() {
-        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of()))
-            .thenReturn(exportApiEntity(apiEntity().crossId("cross-id").build()));
+        when(exportService.exportApi(new ExecutionContext(ORG_ID, ENV_ID), API_ID, null, Set.of())).thenReturn(
+            exportApiEntity(apiEntity().crossId("cross-id").build())
+        );
 
         var spec = apiCRDExportDomainService.export(
             API_ID,
@@ -216,8 +225,7 @@ class ApiCRDExportDomainServiceImplTest {
     }
 
     private static ExportApiEntity exportApiEntity(ApiEntity apiEntity) {
-        return ExportApiEntity
-            .builder()
+        return ExportApiEntity.builder()
             .members(Set.of(MemberEntity.builder().id(USER_ID).roles(List.of(RoleEntity.builder().name("OWNER").build())).build()))
             .apiEntity(apiEntity)
             .pages(List.of(PageEntity.builder().id("page-id").name(null).build()))
@@ -226,22 +234,19 @@ class ApiCRDExportDomainServiceImplTest {
     }
 
     private static ApiEntity.ApiEntityBuilder apiEntity() {
-        return ApiEntity
-            .builder()
+        return ApiEntity.builder()
             .name("api-name")
             .id(API_ID)
             .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
             .endpointGroups(
                 List.of(
-                    EndpointGroup
-                        .builder()
+                    EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
                         .endpoints(
                             List.of(
-                                Endpoint
-                                    .builder()
+                                Endpoint.builder()
                                     .name("default-endpoint")
                                     .type("http-proxy")
                                     .inheritConfiguration(true)

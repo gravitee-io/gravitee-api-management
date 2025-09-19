@@ -65,156 +65,153 @@ class SearchRequestResponseTimeAdapterTest {
             assertThatJson(result).isEqualTo(REQUEST_RESPONSE_TIME_QUERY_WITH_EMPTY_ID_LIST);
         }
 
-        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_API_IDS_AND_TIME_RANGES =
-            """
-                {
-                    "size": 0,
-                    "query": {
-                        "bool": {
-                            "filter": [
-                                {
-                                    "terms": {
-                                        "api-id": [
-                                            "api-id-1",
-                                            "api-id-2"
-                                        ]
-                                    }
-                                },
-                                {
-                                    "range": {
-                                        "@timestamp": {
-                                            "gte": 1728992401566,
-                                            "lte": 1729078801566
-                                        }
-                                    }
-                                },
-                                {
-                                    "terms": {
-                                        "entrypoint-id": [
-                                            "http-post",
-                                            "http-get",
-                                            "http-proxy"
-                                        ]
+        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_API_IDS_AND_TIME_RANGES = """
+            {
+                "size": 0,
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {
+                                "terms": {
+                                    "api-id": [
+                                        "api-id-1",
+                                        "api-id-2"
+                                    ]
+                                }
+                            },
+                            {
+                                "range": {
+                                    "@timestamp": {
+                                        "gte": 1728992401566,
+                                        "lte": 1729078801566
                                     }
                                 }
-                            ]
+                            },
+                            {
+                                "terms": {
+                                    "entrypoint-id": [
+                                        "http-post",
+                                        "http-get",
+                                        "http-proxy"
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "aggs": {
+                    "max_response_time": {
+                        "max": {
+                            "field": "gateway-response-time-ms"
                         }
                     },
-                    "aggs": {
-                        "max_response_time": {
-                            "max": {
-                                "field": "gateway-response-time-ms"
-                            }
-                        },
-                        "min_response_time": {
-                            "min": {
-                                "field": "gateway-response-time-ms"
-                            }
-                        },
-                        "avg_response_time": {
-                            "avg": {
-                                "field": "gateway-response-time-ms"
-                            }
+                    "min_response_time": {
+                        "min": {
+                            "field": "gateway-response-time-ms"
+                        }
+                    },
+                    "avg_response_time": {
+                        "avg": {
+                            "field": "gateway-response-time-ms"
                         }
                     }
                 }
-                """;
+            }
+            """;
 
-        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_NULL_QUERY_PARAMS =
-            """
-                {
-                    "size": 0,
-                    "query": {
-                        "bool": {
-                            "filter": [
-                                {
-                                    "terms": {
-                                        "api-id": []
-                                    }
-                                },
-                                {
-                                    "terms": {
-                                        "entrypoint-id": [
-                                            "http-post",
-                                            "http-get",
-                                            "http-proxy"
-                                        ]
-                                    }
+        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_NULL_QUERY_PARAMS = """
+            {
+                "size": 0,
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {
+                                "terms": {
+                                    "api-id": []
                                 }
-                            ]
+                            },
+                            {
+                                "terms": {
+                                    "entrypoint-id": [
+                                        "http-post",
+                                        "http-get",
+                                        "http-proxy"
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "aggs": {
+                    "max_response_time": {
+                        "max": {
+                            "field": "gateway-response-time-ms"
                         }
                     },
-                    "aggs": {
-                        "max_response_time": {
-                            "max": {
-                                "field": "gateway-response-time-ms"
-                            }
-                        },
-                        "min_response_time": {
-                            "min": {
-                                "field": "gateway-response-time-ms"
-                            }
-                        },
-                        "avg_response_time": {
-                            "avg": {
-                                "field": "gateway-response-time-ms"
-                            }
+                    "min_response_time": {
+                        "min": {
+                            "field": "gateway-response-time-ms"
+                        }
+                    },
+                    "avg_response_time": {
+                        "avg": {
+                            "field": "gateway-response-time-ms"
                         }
                     }
                 }
-                """;
+            }
+            """;
 
-        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_EMPTY_ID_LIST =
-            """
-                {
-                    "size": 0,
-                    "query": {
-                        "bool": {
-                            "filter": [
-                                {
-                                    "terms": {
-                                        "api-id": []
-                                    }
-                                },
-                                {
-                                    "range": {
-                                        "@timestamp": {
-                                            "gte": 1728992401566,
-                                            "lte": 1729078801566
-                                        }
-                                    }
-                                },
-                                {
-                                    "terms": {
-                                        "entrypoint-id": [
-                                            "http-post",
-                                            "http-get",
-                                            "http-proxy"
-                                        ]
+        private static final String REQUEST_RESPONSE_TIME_QUERY_WITH_EMPTY_ID_LIST = """
+            {
+                "size": 0,
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {
+                                "terms": {
+                                    "api-id": []
+                                }
+                            },
+                            {
+                                "range": {
+                                    "@timestamp": {
+                                        "gte": 1728992401566,
+                                        "lte": 1729078801566
                                     }
                                 }
-                            ]
+                            },
+                            {
+                                "terms": {
+                                    "entrypoint-id": [
+                                        "http-post",
+                                        "http-get",
+                                        "http-proxy"
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "aggs": {
+                    "max_response_time": {
+                        "max": {
+                            "field": "gateway-response-time-ms"
                         }
                     },
-                    "aggs": {
-                        "max_response_time": {
-                            "max": {
-                                "field": "gateway-response-time-ms"
-                            }
-                        },
-                        "min_response_time": {
-                            "min": {
-                                "field": "gateway-response-time-ms"
-                            }
-                        },
-                        "avg_response_time": {
-                            "avg": {
-                                "field": "gateway-response-time-ms"
-                            }
+                    "min_response_time": {
+                        "min": {
+                            "field": "gateway-response-time-ms"
+                        }
+                    },
+                    "avg_response_time": {
+                        "avg": {
+                            "field": "gateway-response-time-ms"
                         }
                     }
                 }
-                """;
+            }
+            """;
     }
 
     @Nested
@@ -225,30 +222,34 @@ class SearchRequestResponseTimeAdapterTest {
 
         @Test
         void should_return_empty_result_if_aggregations_is_null() {
-            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams))
-                .isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams)).isEqualTo(
+                RequestResponseTimeAggregate.builder().build()
+            );
         }
 
         @Test
         void should_return_just_zeros_result_if_no_aggregation_exist() {
             searchResponse.setAggregations(Map.of());
 
-            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams))
-                .isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams)).isEqualTo(
+                RequestResponseTimeAggregate.builder().build()
+            );
         }
 
         @Test
         void should_return_just_zeros_result_if_no_top_hits_count_aggregation_exist() {
             searchResponse.setAggregations(Map.of("fake_aggregation", new Aggregation()));
 
-            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams))
-                .isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, queryParams)).isEqualTo(
+                RequestResponseTimeAggregate.builder().build()
+            );
         }
 
         @Test
         void should_return_just_zeros_result_if_query_criteria_is_null() {
-            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, null))
-                .isEqualTo(RequestResponseTimeAggregate.builder().build());
+            assertThat(SearchRequestResponseTimeAdapter.adaptResponse(searchResponse, null)).isEqualTo(
+                RequestResponseTimeAggregate.builder().build()
+            );
         }
 
         @Test

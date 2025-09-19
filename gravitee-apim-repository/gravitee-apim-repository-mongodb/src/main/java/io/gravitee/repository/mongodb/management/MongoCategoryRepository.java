@@ -60,7 +60,10 @@ public class MongoCategoryRepository implements CategoryRepository {
         LOGGER.debug("Find by environment ID [{}] and ID in [{}]", environmentId, ids);
         try {
             Set<CategoryMongo> categories = internalCategoryRepo.findByEnvironmentIdAndIdIn(environmentId, ids);
-            return categories.stream().map(categoryMongo -> mapper.map(categoryMongo)).collect(Collectors.toSet());
+            return categories
+                .stream()
+                .map(categoryMongo -> mapper.map(categoryMongo))
+                .collect(Collectors.toSet());
         } catch (Exception e) {
             throw new TechnicalException("An error occurred when getting categories by ids", e);
         }
@@ -81,7 +84,10 @@ public class MongoCategoryRepository implements CategoryRepository {
         LOGGER.debug("Find categories by page [{}]", page);
 
         final List<CategoryMongo> categories = internalCategoryRepo.findByPage(page);
-        return categories.stream().map(categoryMongo -> mapper.map(categoryMongo)).collect(Collectors.toSet());
+        return categories
+            .stream()
+            .map(categoryMongo -> mapper.map(categoryMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -132,13 +138,19 @@ public class MongoCategoryRepository implements CategoryRepository {
     @Override
     public Set<Category> findAll() throws TechnicalException {
         final List<CategoryMongo> categories = internalCategoryRepo.findAll();
-        return categories.stream().map(categoryMongo -> mapper.map(categoryMongo)).collect(Collectors.toSet());
+        return categories
+            .stream()
+            .map(categoryMongo -> mapper.map(categoryMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override
     public Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException {
         final List<CategoryMongo> categories = internalCategoryRepo.findByEnvironmentId(environmentId);
-        return categories.stream().map(categoryMongo -> mapper.map(categoryMongo)).collect(Collectors.toSet());
+        return categories
+            .stream()
+            .map(categoryMongo -> mapper.map(categoryMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override

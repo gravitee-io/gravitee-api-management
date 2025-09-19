@@ -72,13 +72,11 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
                 if (f.getMethods().isEmpty()) {
                     flowByMethod = List.of(Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameters(f.getPath(), f.getOperator())));
                 } else {
-                    flowByMethod =
-                        f
-                            .getMethods()
-                            .stream()
-                            .map(m -> Map.entry(PathParameterHttpMethod.valueOf(m.name()), new PathParameters(f.getPath(), f.getOperator()))
-                            )
-                            .collect(Collectors.toList());
+                    flowByMethod = f
+                        .getMethods()
+                        .stream()
+                        .map(m -> Map.entry(PathParameterHttpMethod.valueOf(m.name()), new PathParameters(f.getPath(), f.getOperator())))
+                        .collect(Collectors.toList());
                 }
                 return flowByMethod.stream();
             })

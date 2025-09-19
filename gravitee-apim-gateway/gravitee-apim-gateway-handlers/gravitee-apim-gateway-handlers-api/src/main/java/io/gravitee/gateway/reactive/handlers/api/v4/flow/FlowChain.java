@@ -115,25 +115,24 @@ public class FlowChain implements Hookable<ChainHook> {
     private Flowable<Flow> callResolveFlows(ExecutionContext ctx, ExecutionPhase phase) {
         if (validateFlowMatching && ExecutionPhase.REQUEST == phase) {
             // Only deal with execution flow matching if required
-            return resolveFlows(ctx)
-                .switchIfEmpty(
-                    Flowable.defer(() -> {
-                        boolean flowsMatch = false;
-                        // Retrieve previous flow chain resolution value
-                        Boolean previousChainFlowsMatch = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED);
-                        if (previousChainFlowsMatch == null) {
-                            ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, false);
-                        } else {
-                            flowsMatch = previousChainFlowsMatch;
-                        }
-                        if (interruptIfNoMatch && !flowsMatch) {
-                            return ctx
-                                .interruptWith(new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(EXECUTION_FAILURE_KEY_FAILURE))
-                                .toFlowable();
-                        }
-                        return Flowable.empty();
-                    })
-                );
+            return resolveFlows(ctx).switchIfEmpty(
+                Flowable.defer(() -> {
+                    boolean flowsMatch = false;
+                    // Retrieve previous flow chain resolution value
+                    Boolean previousChainFlowsMatch = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED);
+                    if (previousChainFlowsMatch == null) {
+                        ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, false);
+                    } else {
+                        flowsMatch = previousChainFlowsMatch;
+                    }
+                    if (interruptIfNoMatch && !flowsMatch) {
+                        return ctx
+                            .interruptWith(new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(EXECUTION_FAILURE_KEY_FAILURE))
+                            .toFlowable();
+                    }
+                    return Flowable.empty();
+                })
+            );
         } else {
             return resolveFlows(ctx);
         }
@@ -174,8 +173,8 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     private Completable executeFlow(final ExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
         HttpPolicyChain policyChain = policyChainFactory.create(id, flow, phase);
-        return HookHelper
-            .hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase)
-            .doOnSubscribe(subscription -> log.debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name()));
+        return HookHelper.hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase).doOnSubscribe(subscription ->
+            log.debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name())
+        );
     }
 }

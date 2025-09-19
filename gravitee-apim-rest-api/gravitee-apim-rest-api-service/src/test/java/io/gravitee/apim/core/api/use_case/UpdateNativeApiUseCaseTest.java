@@ -133,8 +133,7 @@ public class UpdateNativeApiUseCaseTest {
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         membershipQueryService.initWith(
             List.of(
-                Membership
-                    .builder()
+                Membership.builder()
                     .id("member-id")
                     .memberId("my-member-id")
                     .memberType(Membership.Type.USER)
@@ -146,8 +145,7 @@ public class UpdateNativeApiUseCaseTest {
         );
         groupQueryService.initWith(
             List.of(
-                Group
-                    .builder()
+                Group.builder()
                     .id("group-1")
                     .environmentId("environment-id")
                     .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
@@ -166,35 +164,33 @@ public class UpdateNativeApiUseCaseTest {
             userCrudService
         );
 
-        updateNativeApiDomainService =
-            new UpdateNativeApiDomainService(
-                apiCrudService,
-                planQueryService,
-                new DeprecatePlanDomainService(planCrudService, auditDomainService),
-                triggerNotificationDomainService,
-                flowCrudService,
-                categoryDomainService,
-                auditDomainService,
-                new ApiIndexerDomainService(
-                    new ApiMetadataDecoderDomainService(
-                        new ApiMetadataQueryServiceInMemory(metadataCrudService),
-                        new FreemarkerTemplateProcessor()
-                    ),
-                    apiPrimaryOwnerService,
-                    new ApiCategoryQueryServiceInMemory(),
-                    indexer
-                )
-            );
+        updateNativeApiDomainService = new UpdateNativeApiDomainService(
+            apiCrudService,
+            planQueryService,
+            new DeprecatePlanDomainService(planCrudService, auditDomainService),
+            triggerNotificationDomainService,
+            flowCrudService,
+            categoryDomainService,
+            auditDomainService,
+            new ApiIndexerDomainService(
+                new ApiMetadataDecoderDomainService(
+                    new ApiMetadataQueryServiceInMemory(metadataCrudService),
+                    new FreemarkerTemplateProcessor()
+                ),
+                apiPrimaryOwnerService,
+                new ApiCategoryQueryServiceInMemory(),
+                indexer
+            )
+        );
 
         propertyDomainService = new PropertyDomainService(dataEncryptor);
 
-        cut =
-            new UpdateNativeApiUseCase(
-                apiPrimaryOwnerService,
-                propertyDomainService,
-                validateApiDomainService,
-                updateNativeApiDomainService
-            );
+        cut = new UpdateNativeApiUseCase(
+            apiPrimaryOwnerService,
+            propertyDomainService,
+            validateApiDomainService,
+            updateNativeApiDomainService
+        );
     }
 
     @BeforeAll
@@ -214,8 +210,9 @@ public class UpdateNativeApiUseCaseTest {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         var apiToUpdate = anUpdateNativeApi();
 
-        assertThatExceptionOfType(ApiNotFoundException.class)
-            .isThrownBy(() -> cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo)));
+        assertThatExceptionOfType(ApiNotFoundException.class).isThrownBy(() ->
+            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
+        );
     }
 
     @ParameterizedTest
@@ -228,8 +225,9 @@ public class UpdateNativeApiUseCaseTest {
             .when(validateApiDomainService)
             .validateAndSanitizeForUpdate(eq(existingApi), any(), any(), eq(ENVIRONMENT_ID), eq(ORGANIZATION_ID));
 
-        assertThatExceptionOfType(ValidationDomainException.class)
-            .isThrownBy(() -> cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo)));
+        assertThatExceptionOfType(ValidationDomainException.class).isThrownBy(() ->
+            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
+        );
     }
 
     private static Stream<Arguments> apiValidationInError() {
@@ -247,8 +245,7 @@ public class UpdateNativeApiUseCaseTest {
         var existingApi = ApiFixtures.aNativeApi();
         apiCrudService.initWith(List.of(existingApi));
 
-        var updateNativeApi = UpdateNativeApi
-            .builder()
+        var updateNativeApi = UpdateNativeApi.builder()
             .id(existingApi.getId())
             .name("new")
             .definitionVersion(existingApi.getDefinitionVersion())
@@ -267,8 +264,7 @@ public class UpdateNativeApiUseCaseTest {
             .services(NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build())
             .properties(
                 List.of(
-                    EncryptableProperty
-                        .builder()
+                    EncryptableProperty.builder()
                         .key("encrypt-me")
                         .value("not encrypted")
                         .encryptable(true)
@@ -282,8 +278,7 @@ public class UpdateNativeApiUseCaseTest {
 
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
 
-        var apiToUpdate = ApiFixtures
-            .aNativeApi()
+        var apiToUpdate = ApiFixtures.aNativeApi()
             .toBuilder()
             .name("new")
             .description("new")
@@ -321,8 +316,7 @@ public class UpdateNativeApiUseCaseTest {
                 eq(ENVIRONMENT_ID),
                 eq(ORGANIZATION_ID)
             )
-        )
-            .thenReturn(apiToUpdate);
+        ).thenReturn(apiToUpdate);
 
         when(categoryDomainService.toCategoryKey(eq(apiToUpdate), eq(ENVIRONMENT_ID))).thenReturn(Set.of("new-key"));
 
@@ -351,8 +345,9 @@ public class UpdateNativeApiUseCaseTest {
                 assertThat(definition.getListeners()).containsExactly(KafkaListener.builder().host("new").build());
                 assertThat(definition.getEndpointGroups()).containsExactly(NativeEndpointGroup.builder().type("new").build());
                 assertThat(definition.getFlows()).containsExactly(NativeFlow.builder().id("new").build());
-                assertThat(definition.getServices())
-                    .isEqualTo(NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build());
+                assertThat(definition.getServices()).isEqualTo(
+                    NativeApiServices.builder().dynamicProperty(Service.builder().type("new").build()).build()
+                );
                 assertThat(definition.getProperties())
                     .isNotNull()
                     .containsExactly(Property.builder().key("encrypt-me").value("new").encrypted(true).dynamic(false).build());
@@ -361,15 +356,15 @@ public class UpdateNativeApiUseCaseTest {
         assertThat(flowCrudService.storage()).containsExactly(NativeFlow.builder().id("new").build());
         verify(categoryDomainService, times(1)).updateOrderCategoriesOfApi(eq(existingApi.getId()), eq(Set.of("new")));
         assertThat(auditCrudService.storage()).hasSize(1);
-        assertThat(triggerNotificationDomainService.getApiNotifications())
-            .containsExactly(new ApiUpdatedApiHookContext(existingApi.getId()));
+        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+            new ApiUpdatedApiHookContext(existingApi.getId())
+        );
         verify(categoryDomainService, times(1)).toCategoryKey(eq(apiToUpdate), eq(ENVIRONMENT_ID));
         assertThat(indexer.storage()).hasSize(1);
     }
 
     private static UpdateNativeApi anUpdateNativeApi() {
-        return UpdateNativeApi
-            .builder()
+        return UpdateNativeApi.builder()
             .id(API_ID)
             .name("NAME")
             .description("DESCRIPTION")
@@ -378,8 +373,7 @@ public class UpdateNativeApiUseCaseTest {
             .tags(Set.of("tag1"))
             .listeners(
                 List.of(
-                    KafkaListener
-                        .builder()
+                    KafkaListener.builder()
                         .host("native.kafka")
                         .port(1000)
                         .entrypoints(List.of(NativeEntrypoint.builder().type("native-type").configuration("{}").build()))
@@ -388,15 +382,13 @@ public class UpdateNativeApiUseCaseTest {
             )
             .endpointGroups(
                 List.of(
-                    NativeEndpointGroup
-                        .builder()
+                    NativeEndpointGroup.builder()
                         .name("default-group")
                         .type("mock")
                         .sharedConfiguration("{}")
                         .endpoints(
                             List.of(
-                                NativeEndpoint
-                                    .builder()
+                                NativeEndpoint.builder()
                                     .name("default-endpoint")
                                     .type("mock")
                                     .inheritConfiguration(true)
@@ -410,8 +402,7 @@ public class UpdateNativeApiUseCaseTest {
             .flows(List.of())
             .properties(
                 List.of(
-                    EncryptableProperty
-                        .builder()
+                    EncryptableProperty.builder()
                         .key("encrypted")
                         .value("encrypted value")
                         .encryptable(true)

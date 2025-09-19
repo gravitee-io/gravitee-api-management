@@ -337,17 +337,16 @@ public class ReactorHandlerRegistryTest {
         reactorHandlerRegistry.create(reactable3);
 
         reactable2 = createReactable("reactable2");
-        handler2 =
-            createReactorHandler(
-                new DefaultHttpAcceptor("api.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api1.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api2.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api3.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api4.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("apiX.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api10.gravitee.io", "/b"),
-                new DefaultHttpAcceptor("api11.gravitee.io", "/b")
-            );
+        handler2 = createReactorHandler(
+            new DefaultHttpAcceptor("api.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api1.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api2.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api3.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api4.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("apiX.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api10.gravitee.io", "/b"),
+            new DefaultHttpAcceptor("api11.gravitee.io", "/b")
+        );
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(List.of(handler2));
         reactorHandlerRegistry.update(reactable2);
 
@@ -647,8 +646,7 @@ public class ReactorHandlerRegistryTest {
     private ReactorHandler createReactorHandler(Acceptor<? extends Acceptor<?>>... httpAcceptors) {
         ReactorHandler handler = mock(ReactorHandler.class);
 
-        List<Acceptor<?>> acceptors = Arrays
-            .stream(httpAcceptors)
+        List<Acceptor<?>> acceptors = Arrays.stream(httpAcceptors)
             .peek(acceptor -> {
                 if (acceptor instanceof DefaultHttpAcceptor) {
                     ((DefaultHttpAcceptor) acceptor).reactor(handler);

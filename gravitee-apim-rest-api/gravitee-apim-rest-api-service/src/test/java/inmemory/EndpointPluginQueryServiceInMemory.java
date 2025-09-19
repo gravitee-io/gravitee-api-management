@@ -32,8 +32,7 @@ import java.util.Set;
 public class EndpointPluginQueryServiceInMemory implements EndpointPluginQueryService, InMemoryAlternative<ConnectorPlugin> {
 
     private static final List<ConnectorPlugin> DEFAULT_LIST = List.of(
-        ConnectorPlugin
-            .builder()
+        ConnectorPlugin.builder()
             .id("http-proxy")
             .name("HTTP Proxy")
             .version("1.0.0")
@@ -43,8 +42,7 @@ public class EndpointPluginQueryServiceInMemory implements EndpointPluginQuerySe
             .feature("http-proxy")
             .deployed(true)
             .build(),
-        ConnectorPlugin
-            .builder()
+        ConnectorPlugin.builder()
             .id("kafka")
             .name("Kafka Endpoint")
             .version("1.0.0")
@@ -55,8 +53,7 @@ public class EndpointPluginQueryServiceInMemory implements EndpointPluginQuerySe
             .feature("apim-en-endpoint-kafka")
             .deployed(true)
             .build(),
-        ConnectorPlugin
-            .builder()
+        ConnectorPlugin.builder()
             .id("mock")
             .name("Mock Endpoint")
             .version("1.0.0")

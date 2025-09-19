@@ -122,14 +122,20 @@ public class MongoThemeRepository implements ThemeRepository {
     @Override
     public Set<Theme> findAll() {
         final List<ThemeMongo> themes = internalThemeRepo.findAll();
-        return themes.stream().map(themeMongo -> mapper.map(themeMongo)).collect(Collectors.toSet());
+        return themes
+            .stream()
+            .map(themeMongo -> mapper.map(themeMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override
     public Set<Theme> findByReferenceIdAndReferenceTypeAndType(String referenceId, String referenceType, ThemeType type)
         throws TechnicalException {
         final Set<ThemeMongo> themes = internalThemeRepo.findByReferenceIdAndReferenceTypeAndType(referenceId, referenceType, type);
-        return themes.stream().map(themeMongo -> mapper.map(themeMongo)).collect(Collectors.toSet());
+        return themes
+            .stream()
+            .map(themeMongo -> mapper.map(themeMongo))
+            .collect(Collectors.toSet());
     }
 
     @Override

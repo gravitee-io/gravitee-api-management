@@ -249,20 +249,18 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         } else {
             if (APPLICATION_FIELD.equalsIgnoreCase(analyticsParam.getField())) {
                 fieldName = APPLICATION_FIELD;
-                ids =
-                    applicationService
-                        .findIdsByUser(executionContext, getAuthenticatedUser())
-                        .stream()
-                        .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
-                        .collect(Collectors.toSet());
+                ids = applicationService
+                    .findIdsByUser(executionContext, getAuthenticatedUser())
+                    .stream()
+                    .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
+                    .collect(Collectors.toSet());
             } else {
                 fieldName = API_FIELD;
-                ids =
-                    apiAuthorizationService
-                        .findIdsByUser(executionContext, getAuthenticatedUser(), true)
-                        .stream()
-                        .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
-                        .collect(Collectors.toSet());
+                ids = apiAuthorizationService
+                    .findIdsByUser(executionContext, getAuthenticatedUser(), true)
+                    .stream()
+                    .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
+                    .collect(Collectors.toSet());
             }
         }
         if (ids.isEmpty()) {
@@ -274,14 +272,12 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
     private Analytics executeGroupBy(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
         switch (analyticsParam.getField()) {
-            case STATE_FIELD:
-                {
-                    return getTopHitsAnalytics(executionContext, api -> api.getState().name());
-                }
-            case LIFECYCLE_STATE_FIELD:
-                {
-                    return getTopHitsAnalytics(executionContext, api -> api.getLifecycleState().name());
-                }
+            case STATE_FIELD: {
+                return getTopHitsAnalytics(executionContext, api -> api.getState().name());
+            }
+            case LIFECYCLE_STATE_FIELD: {
+                return getTopHitsAnalytics(executionContext, api -> api.getLifecycleState().name());
+            }
             default:
                 Map<String, Set<String>> terms;
                 try {

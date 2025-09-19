@@ -60,8 +60,7 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends AbstractApiSubscr
                 Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
     }
 
     @Test
@@ -72,8 +71,7 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends AbstractApiSubscr
                 Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aRenewApiKey()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -99,8 +97,7 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends AbstractApiSubscr
 
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
             .api("ANOTHER-API")
@@ -127,8 +124,7 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends AbstractApiSubscr
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aRenewApiKey()));
         assertEquals(FORBIDDEN_403, response.getStatus());
@@ -145,8 +141,9 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends AbstractApiSubscr
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
-            .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).apiKeyMode(ApiKeyMode.SHARED).build());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
+            ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).apiKeyMode(ApiKeyMode.SHARED).build()
+        );
 
         final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aRenewApiKey()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -158,8 +155,7 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends AbstractApiSubscr
 
     @Test
     public void should_renew_api_keys() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
+        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures.aSubscriptionEntity()
             .toBuilder()
             .id(SUBSCRIPTION)
             .api(API)
@@ -169,8 +165,9 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends AbstractApiSubscr
         final ApiKeyEntity apiKeyEntity = SubscriptionFixtures.anApiKeyEntity();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
-            .thenReturn(ApplicationFixtures.anApplicationEntity());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION)).thenReturn(
+            ApplicationFixtures.anApplicationEntity()
+        );
         when(apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity, customApiKey)).thenReturn(apiKeyEntity);
 
         final Response response = rootTarget()

@@ -44,8 +44,7 @@ public class CreateSharedPolicyGroupUseCase {
     private final AuditDomainService auditService;
 
     public Output execute(Input input) {
-        var sharedPolicyGroupToCreate = SharedPolicyGroup
-            .from(input.sharedPolicyGroupToCreate())
+        var sharedPolicyGroupToCreate = SharedPolicyGroup.from(input.sharedPolicyGroupToCreate())
             .toBuilder()
             .id(UuidString.generateRandom())
             .environmentId(input.auditInfo().environmentId())
@@ -91,10 +90,11 @@ public class CreateSharedPolicyGroupUseCase {
     }
 
     private void ensureSharedPolicyGroupDoesNotExist(SharedPolicyGroup sharedPolicyGroupToCreate, String environmentId) {
-        this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroupToCreate.getCrossId())
-            .ifPresent(sharedPolicyGroup -> {
+        this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroupToCreate.getCrossId()).ifPresent(
+            sharedPolicyGroup -> {
                 throw new SharedPolicyGroupDuplicateCrossIdException(sharedPolicyGroupToCreate.getCrossId(), environmentId);
-            });
+            }
+        );
 
         // Validate and sanitize policies configuration
         if (sharedPolicyGroupToCreate.getSteps() != null) {
@@ -118,8 +118,7 @@ public class CreateSharedPolicyGroupUseCase {
 
     private void createAuditLog(SharedPolicyGroup sharedPolicyGroup, AuditInfo auditInfo) {
         auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity
-                .builder()
+            EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .event(SharedPolicyGroupAuditEvent.SHARED_POLICY_GROUP_CREATED)

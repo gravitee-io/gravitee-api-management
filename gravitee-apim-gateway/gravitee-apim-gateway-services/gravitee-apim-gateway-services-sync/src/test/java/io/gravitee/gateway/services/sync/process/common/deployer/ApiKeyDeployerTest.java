@@ -63,8 +63,7 @@ class ApiKeyDeployerTest {
             apiKey1.setId("id1");
             ApiKey apiKey2 = new ApiKey();
             apiKey2.setId("id2");
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
-                .builder()
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
                 .apiId("apiId")
                 .reactableApi(reactableApi)
                 .apiKeys(List.of(apiKey1, apiKey2))
@@ -82,8 +81,7 @@ class ApiKeyDeployerTest {
             apiKey1.setId("id1");
             ApiKey apiKey2 = new ApiKey();
             apiKey2.setId("id2");
-            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
-                .builder()
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
                 .apiId("apiId")
                 .reactableApi(reactableApi)
                 .apiKeys(List.of(apiKey1, apiKey2))

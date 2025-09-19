@@ -157,8 +157,7 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
     @Test(expected = DuplicateKeyException.class)
     public void should_not_create_an_existing_key() throws Exception {
         metadataRepository.create(
-            Metadata
-                .builder()
+            Metadata.builder()
                 .key("boolean")
                 .referenceId("DEFAULT")
                 .referenceType(MetadataReferenceType.ENVIRONMENT)

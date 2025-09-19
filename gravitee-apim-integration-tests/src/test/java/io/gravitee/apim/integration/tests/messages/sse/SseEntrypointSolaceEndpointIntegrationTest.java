@@ -72,8 +72,7 @@ class SseEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpointI
                                 messageBuilder.build("message2".getBytes()),
                                 messageBuilder.build("message3".getBytes())
                             )
-                        )
-                            .toFlowable()
+                        ).toFlowable()
                     );
             })
             .test();
@@ -81,34 +80,22 @@ class SseEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpointI
         // We expect 4 chunks, 1 retry message and 3 messages
         obs
             .awaitCount(4)
-            .assertValueAt(
-                0,
-                chunk -> {
-                    SseAssertions.assertRetry(chunk);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                chunk -> {
-                    SseAssertions.assertOnMessage(chunk, "message1");
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                chunk -> {
-                    SseAssertions.assertOnMessage(chunk, "message2");
-                    return true;
-                }
-            )
-            .assertValueAt(
-                3,
-                chunk -> {
-                    SseAssertions.assertOnMessage(chunk, "message3");
-                    return true;
-                }
-            )
+            .assertValueAt(0, chunk -> {
+                SseAssertions.assertRetry(chunk);
+                return true;
+            })
+            .assertValueAt(1, chunk -> {
+                SseAssertions.assertOnMessage(chunk, "message1");
+                return true;
+            })
+            .assertValueAt(2, chunk -> {
+                SseAssertions.assertOnMessage(chunk, "message2");
+                return true;
+            })
+            .assertValueAt(3, chunk -> {
+                SseAssertions.assertOnMessage(chunk, "message3");
+                return true;
+            })
             .assertNoErrors();
     }
 }

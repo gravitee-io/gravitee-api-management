@@ -36,8 +36,7 @@ public class DataKeysIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        Index dataKeysIndex = Index
-            .builder()
+        Index dataKeysIndex = Index.builder()
             .collection(keyVaultCollectionName)
             .name("k1")
             .key("keyAltNames", ascending())

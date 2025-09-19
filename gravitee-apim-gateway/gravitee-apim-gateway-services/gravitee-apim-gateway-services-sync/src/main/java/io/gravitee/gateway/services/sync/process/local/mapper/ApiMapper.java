@@ -70,7 +70,9 @@ public class ApiMapper {
             reactableApi.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
             reactableApi.setDeployedAt(apiEvent.getCreatedAt());
             reactableApi.setRevision(
-                Optional.ofNullable(apiEvent.getProperties()).map(props -> props.get(DEPLOYMENT_NUMBER.getValue())).orElse(null)
+                Optional.ofNullable(apiEvent.getProperties())
+                    .map(props -> props.get(DEPLOYMENT_NUMBER.getValue()))
+                    .orElse(null)
             );
 
             environmentService.fill(api.getEnvironmentId(), reactableApi);

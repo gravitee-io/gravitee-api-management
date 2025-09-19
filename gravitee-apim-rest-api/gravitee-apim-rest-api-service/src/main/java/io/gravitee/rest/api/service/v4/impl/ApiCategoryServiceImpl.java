@@ -175,7 +175,12 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
         var apiByCatgeory = apiRepository
             .search(new ApiCriteria.Builder().ids(foundApiIds.getContent()).build(), null, ApiFieldFilter.defaultFields())
             .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
-            .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
+            .flatMap(api ->
+                api
+                    .getCategories()
+                    .stream()
+                    .map(cat -> Pair.of(cat, api))
+            )
             .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
         return categoryId -> apiByCatgeory.getOrDefault(categoryId, 0L);
     }
@@ -260,17 +265,24 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
             .map(ApiCategoryOrder::getCategoryId)
             .collect(Collectors.toSet());
 
-        var categoriesToAdd = categoryIds.stream().filter(cat -> !currentApiCategoryIds.contains(cat)).collect(Collectors.toSet());
+        var categoriesToAdd = categoryIds
+            .stream()
+            .filter(cat -> !currentApiCategoryIds.contains(cat))
+            .collect(Collectors.toSet());
         this.addApiToCategories(apiId, categoriesToAdd);
 
         // Categories to remove
-        currentApiCategoryIds.stream().filter(cat -> !categoryIds.contains(cat)).forEach(cat -> removeApiFromCategory(apiId, cat));
+        currentApiCategoryIds
+            .stream()
+            .filter(cat -> !categoryIds.contains(cat))
+            .forEach(cat -> removeApiFromCategory(apiId, cat));
     }
 
     @Override
     public void deleteApiFromCategories(String apiId) {
-        this.apiCategoryOrderRepository.findAllByApiId(apiId)
-            .forEach(apiCategoryOrder -> removeApiFromCategory(apiId, apiCategoryOrder.getCategoryId()));
+        this.apiCategoryOrderRepository.findAllByApiId(apiId).forEach(apiCategoryOrder ->
+            removeApiFromCategory(apiId, apiCategoryOrder.getCategoryId())
+        );
     }
 
     private List<String> getUserMembershipApiIds(String userId) {

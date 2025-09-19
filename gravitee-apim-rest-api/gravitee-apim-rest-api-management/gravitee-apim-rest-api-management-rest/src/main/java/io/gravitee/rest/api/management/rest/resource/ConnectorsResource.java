@@ -78,14 +78,13 @@ public class ConnectorsResource {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
-                        stream =
-                            stream.peek(connectorListItem ->
-                                connectorListItem.setSchema(connectorService.getSchema(connectorListItem.getId()))
-                            );
+                        stream = stream.peek(connectorListItem ->
+                            connectorListItem.setSchema(connectorService.getSchema(connectorListItem.getId()))
+                        );
                     case "icon":
-                        stream =
-                            stream.peek(connectorListItem -> connectorListItem.setIcon(connectorService.getIcon(connectorListItem.getId()))
-                            );
+                        stream = stream.peek(connectorListItem ->
+                            connectorListItem.setIcon(connectorService.getIcon(connectorListItem.getId()))
+                        );
                 }
             }
         }

@@ -27,8 +27,7 @@ public class IdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("sharedpolicygrouphistories")
             .name("i1")
             .key("id", ascending())

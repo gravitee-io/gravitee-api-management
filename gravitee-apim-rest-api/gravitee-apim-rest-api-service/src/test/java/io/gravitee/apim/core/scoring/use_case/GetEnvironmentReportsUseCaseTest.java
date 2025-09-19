@@ -115,8 +115,7 @@ class GetEnvironmentReportsUseCaseTest {
         var report = useCase.execute(new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1));
 
         // Then
-        Assertions
-            .assertThat(report)
+        Assertions.assertThat(report)
             .extracting(GetEnvironmentReportsUseCase.Output::reports)
             .extracting(Page::getContent)
             .asInstanceOf(InstanceOfAssertFactories.LIST)
@@ -141,8 +140,7 @@ class GetEnvironmentReportsUseCaseTest {
         var report = useCase.execute(new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1));
 
         // Then
-        Assertions
-            .assertThat(report)
+        Assertions.assertThat(report)
             .extracting(GetEnvironmentReportsUseCase.Output::reports)
             .extracting(Page::getContent)
             .asInstanceOf(InstanceOfAssertFactories.LIST)
@@ -161,22 +159,24 @@ class GetEnvironmentReportsUseCaseTest {
         var pageNumber = 2;
         var pageSize = 5;
 
-        givenExistingScoringReports(IntStream.range(0, expectedTotal).mapToObj(i -> aReport().withApiId(String.valueOf(i))).toList());
+        givenExistingScoringReports(
+            IntStream.range(0, expectedTotal)
+                .mapToObj(i -> aReport().withApiId(String.valueOf(i)))
+                .toList()
+        );
 
         // When
         var report = useCase.execute(new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1, new PageableImpl(pageNumber, pageSize)));
 
         // Then
-        Assertions
-            .assertThat(report)
+        Assertions.assertThat(report)
             .extracting(GetEnvironmentReportsUseCase.Output::reports)
             .extracting(Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
             .contains(pageNumber, (long) pageSize, (long) expectedTotal);
     }
 
     private static ScoringReport aReport() {
-        return ScoringReportFixture
-            .aScoringReport()
+        return ScoringReportFixture.aScoringReport()
             .toBuilder()
             .id(REPORT_ID)
             .environmentId(ENVIRONMENT_1)

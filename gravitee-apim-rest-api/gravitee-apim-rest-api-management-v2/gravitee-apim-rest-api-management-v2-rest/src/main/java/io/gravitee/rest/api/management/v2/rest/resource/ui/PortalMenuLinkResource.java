@@ -66,8 +66,7 @@ public class PortalMenuLinkResource extends AbstractResource {
             new GetPortalMenuLinkUseCase.Input(portalMenuLinkId, executionContext.getEnvironmentId())
         );
 
-        return Response
-            .ok(this.getLocationHeader(output.portalMenuLinkEntity().getId()))
+        return Response.ok(this.getLocationHeader(output.portalMenuLinkEntity().getId()))
             .entity(mapper.map(output.portalMenuLinkEntity()))
             .build();
     }
@@ -83,8 +82,7 @@ public class PortalMenuLinkResource extends AbstractResource {
             new UpdatePortalMenuLinkUseCase.Input(portalMenuLinkId, executionContext.getEnvironmentId(), mapper.map(updatePortalMenuLink))
         );
 
-        return Response
-            .ok(this.getLocationHeader(output.portalMenuLinkEntity().getId()))
+        return Response.ok(this.getLocationHeader(output.portalMenuLinkEntity().getId()))
             .entity(mapper.map(output.portalMenuLinkEntity()))
             .build();
     }

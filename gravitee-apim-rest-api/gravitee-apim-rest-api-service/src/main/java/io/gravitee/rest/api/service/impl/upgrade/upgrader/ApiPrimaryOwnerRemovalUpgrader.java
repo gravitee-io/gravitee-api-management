@@ -114,10 +114,9 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
         while (!apiIds.isEmpty()) {
             corruptedApiIds.addAll(findCorruptedApiIds(apiPrimaryOwnerRoleId, apiIds));
             pageable = new PageableBuilder().pageNumber(page++).pageSize(size).build();
-            apiIds =
-                apiRepository
-                    .searchIds(List.of(new ApiCriteria.Builder().environments(environmentIds).build()), pageable, sortable)
-                    .getContent();
+            apiIds = apiRepository
+                .searchIds(List.of(new ApiCriteria.Builder().environments(environmentIds).build()), pageable, sortable)
+                .getContent();
         }
 
         if (!corruptedApiIds.isEmpty()) {

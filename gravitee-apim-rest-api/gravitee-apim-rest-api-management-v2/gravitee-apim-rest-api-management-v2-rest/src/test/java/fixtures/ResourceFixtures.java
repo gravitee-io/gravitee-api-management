@@ -24,8 +24,7 @@ public class ResourceFixtures {
 
     private ResourceFixtures() {}
 
-    private static final Resource.ResourceBuilder BASE_RESOURCE = Resource
-        .builder()
+    private static final Resource.ResourceBuilder BASE_RESOURCE = Resource.builder()
         .name("role-name")
         .type("resource-type")
         .enabled(true)

@@ -65,26 +65,23 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
                 ApiFixtures.aProxyApiV2().toBuilder().id("proxy-api-v2-id").name("Proxy Api v2").build()
             )
         );
-        var input = SearchEnvironmentTopHitsApisCountUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopHitsApisCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchTopHitsApis(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    TopHitsApis
-                        .builder()
-                        .data(
-                            List.of(
-                                TopHitsApis.TopHitApi.builder().id("message-api-v4-id").count(17L).build(),
-                                TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id").count(3L).build()
-                            )
+        when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(
+            Optional.of(
+                TopHitsApis.builder()
+                    .data(
+                        List.of(
+                            TopHitsApis.TopHitApi.builder().id("message-api-v4-id").count(17L).build(),
+                            TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id").count(3L).build()
                         )
-                        .build()
-                )
-            );
+                    )
+                    .build()
+            )
+        );
 
         var result = cut.execute(input).topHitsApis();
 
@@ -107,18 +104,16 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
                 ApiFixtures.aProxyApiV4().toBuilder().id("proxy-api-v4-id").environmentId(otherEnvId).name("Proxy Api v4").build()
             )
         );
-        var input = SearchEnvironmentTopHitsApisCountUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopHitsApisCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchTopHitsApis(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    TopHitsApis.builder().data(List.of(TopHitsApis.TopHitApi.builder().id("message-api-v4-id").count(17L).build())).build()
-                )
-            );
+        when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(
+            Optional.of(
+                TopHitsApis.builder().data(List.of(TopHitsApis.TopHitApi.builder().id("message-api-v4-id").count(17L).build())).build()
+            )
+        );
 
         var result = cut.execute(input).topHitsApis();
 
@@ -137,28 +132,25 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
                 ApiFixtures.aProxyApiV4().toBuilder().id("proxy-api-v4-id-2").name("Proxy Api v4 2").build()
             )
         );
-        var input = SearchEnvironmentTopHitsApisCountUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopHitsApisCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchTopHitsApis(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    TopHitsApis
-                        .builder()
-                        .data(
-                            List.of(
-                                TopHitsApis.TopHitApi.builder().id("message-api-v4-id").count(5L).build(),
-                                TopHitsApis.TopHitApi.builder().id("message-api-v4-id-2").count(3L).build(),
-                                TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id").count(17L).build(),
-                                TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id-2").count(2L).build()
-                            )
+        when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(
+            Optional.of(
+                TopHitsApis.builder()
+                    .data(
+                        List.of(
+                            TopHitsApis.TopHitApi.builder().id("message-api-v4-id").count(5L).build(),
+                            TopHitsApis.TopHitApi.builder().id("message-api-v4-id-2").count(3L).build(),
+                            TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id").count(17L).build(),
+                            TopHitsApis.TopHitApi.builder().id("proxy-api-v4-id-2").count(2L).build()
                         )
-                        .build()
-                )
-            );
+                    )
+                    .build()
+            )
+        );
 
         var result = cut.execute(input).topHitsApis();
 
@@ -167,8 +159,7 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
 
     @Test
     void should_get_empty_top_hits_list_if_case_of_no_records_found() {
-        var input = SearchEnvironmentTopHitsApisCountUseCase.Input
-            .builder()
+        var input = SearchEnvironmentTopHitsApisCountUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();

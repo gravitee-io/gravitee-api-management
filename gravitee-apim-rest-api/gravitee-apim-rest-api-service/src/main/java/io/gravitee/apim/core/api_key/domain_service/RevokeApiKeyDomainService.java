@@ -93,8 +93,7 @@ public class RevokeApiKeyDomainService {
         AuditInfo auditInfo
     ) {
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(subscription.getApiId())

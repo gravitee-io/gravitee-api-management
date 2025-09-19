@@ -70,21 +70,19 @@ class UpdateEnvironmentRulesetUseCaseTest {
         var output = useCase.execute(new UpdateEnvironmentRulesetUseCase.Input(rulesetToUpdate, AUDIT_INFO));
 
         // Then
-        assertThat(output.scoringRuleset())
-            .isEqualTo(
-                ScoringRuleset
-                    .builder()
-                    .id("ruleset-id")
-                    .name("updated-name")
-                    .description("updated-description")
-                    .format(ScoringRuleset.Format.GRAVITEE_PROXY)
-                    .payload("payload-ruleset-id")
-                    .referenceId("environment-id")
-                    .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
-                    .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(output.scoringRuleset()).isEqualTo(
+            ScoringRuleset.builder()
+                .id("ruleset-id")
+                .name("updated-name")
+                .description("updated-description")
+                .format(ScoringRuleset.Format.GRAVITEE_PROXY)
+                .payload("payload-ruleset-id")
+                .referenceId("environment-id")
+                .referenceType(ScoringRuleset.ReferenceType.ENVIRONMENT)
+                .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test

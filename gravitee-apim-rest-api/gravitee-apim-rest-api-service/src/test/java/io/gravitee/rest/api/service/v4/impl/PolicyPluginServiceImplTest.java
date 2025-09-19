@@ -134,8 +134,9 @@ public class PolicyPluginServiceImplTest {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
-        when(mockPluginManifest.properties())
-            .thenReturn(Map.of("http_proxy", "REQUEST,RESPONSE", "http_message", "PUBLISH", "native_kafka", "PUBLISH, SUBSCRIBE"));
+        when(mockPluginManifest.properties()).thenReturn(
+            Map.of("http_proxy", "REQUEST,RESPONSE", "http_message", "PUBLISH", "native_kafka", "PUBLISH, SUBSCRIBE")
+        );
         Set<PolicyPluginEntity> result = cut.findAll();
 
         assertNotNull(result);

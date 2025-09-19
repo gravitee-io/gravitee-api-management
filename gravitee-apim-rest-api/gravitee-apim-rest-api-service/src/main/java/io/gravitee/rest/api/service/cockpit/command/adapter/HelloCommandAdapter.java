@@ -91,57 +91,52 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
 
     @Override
     public Single<HelloCommand> adapt(final String targetId, final io.gravitee.exchange.api.command.hello.HelloCommand command) {
-        return Single
-            .fromCallable(installationService::getOrInitialize)
-            .map(installation -> {
-                InstallationType installationType = installationTypeDomainService.get();
+        return Single.fromCallable(installationService::getOrInitialize).map(installation -> {
+            InstallationType installationType = installationTypeDomainService.get();
 
-                HelloCommandPayload.HelloCommandPayloadBuilder<?, ?> payloadBuilder = HelloCommandPayload
-                    .builder()
-                    .node(
-                        io.gravitee.cockpit.api.command.model.Node
-                            .builder()
-                            .application(node.application())
-                            .installationId(installation.getId())
-                            .hostname(node.hostname())
-                            .version(Version.RUNTIME_VERSION.MAJOR_VERSION)
-                            .connectorVersion(connectorVersion())
-                            .build()
-                    )
-                    .installationType(installationType.getLabel())
-                    .trial(cockpitTrial)
-                    .defaultOrganizationId(GraviteeContext.getDefaultOrganization())
-                    .defaultEnvironmentId(GraviteeContext.getDefaultEnvironment());
-                Map<String, String> additionalInformation = new HashMap<>(configuration.getAdditionalInformation());
-                additionalInformation.putAll(installation.getAdditionalInformation());
-                additionalInformation.put(AdditionalInfoConstants.AUTH_PATH, buildAuthPath);
-                if (installationType == InstallationType.MULTI_TENANT) {
-                    Map<AccessPoint.Type, List<AccessPoint>> accessPointTemplates = new EnumMap<>(AccessPoint.Type.class);
-                    cockpitAccessService
-                        .getAccessPointsTemplate()
-                        .forEach((type, accessPoints) ->
-                            accessPointTemplates.put(
-                                AccessPoint.Type.valueOf(type.name()),
-                                accessPoints
-                                    .stream()
-                                    .map(accessPoint ->
-                                        AccessPoint
-                                            .builder()
-                                            .host(accessPoint.getHost())
-                                            .secured(accessPoint.isSecured())
-                                            .target(AccessPoint.Target.valueOf(accessPoint.getTarget().name()))
-                                            .build()
-                                    )
-                                    .toList()
-                            )
-                        );
-                    payloadBuilder.accessPointsTemplate(accessPointTemplates);
-                } else {
-                    additionalInformation.put(AdditionalInfoConstants.AUTH_BASE_URL, configuration.getApiURL());
-                }
-                payloadBuilder.additionalInformation(additionalInformation);
-                return new HelloCommand(payloadBuilder.build());
-            });
+            HelloCommandPayload.HelloCommandPayloadBuilder<?, ?> payloadBuilder = HelloCommandPayload.builder()
+                .node(
+                    io.gravitee.cockpit.api.command.model.Node.builder()
+                        .application(node.application())
+                        .installationId(installation.getId())
+                        .hostname(node.hostname())
+                        .version(Version.RUNTIME_VERSION.MAJOR_VERSION)
+                        .connectorVersion(connectorVersion())
+                        .build()
+                )
+                .installationType(installationType.getLabel())
+                .trial(cockpitTrial)
+                .defaultOrganizationId(GraviteeContext.getDefaultOrganization())
+                .defaultEnvironmentId(GraviteeContext.getDefaultEnvironment());
+            Map<String, String> additionalInformation = new HashMap<>(configuration.getAdditionalInformation());
+            additionalInformation.putAll(installation.getAdditionalInformation());
+            additionalInformation.put(AdditionalInfoConstants.AUTH_PATH, buildAuthPath);
+            if (installationType == InstallationType.MULTI_TENANT) {
+                Map<AccessPoint.Type, List<AccessPoint>> accessPointTemplates = new EnumMap<>(AccessPoint.Type.class);
+                cockpitAccessService
+                    .getAccessPointsTemplate()
+                    .forEach((type, accessPoints) ->
+                        accessPointTemplates.put(
+                            AccessPoint.Type.valueOf(type.name()),
+                            accessPoints
+                                .stream()
+                                .map(accessPoint ->
+                                    AccessPoint.builder()
+                                        .host(accessPoint.getHost())
+                                        .secured(accessPoint.isSecured())
+                                        .target(AccessPoint.Target.valueOf(accessPoint.getTarget().name()))
+                                        .build()
+                                )
+                                .toList()
+                        )
+                    );
+                payloadBuilder.accessPointsTemplate(accessPointTemplates);
+            } else {
+                additionalInformation.put(AdditionalInfoConstants.AUTH_BASE_URL, configuration.getApiURL());
+            }
+            payloadBuilder.additionalInformation(additionalInformation);
+            return new HelloCommand(payloadBuilder.build());
+        });
     }
 
     private String connectorVersion() {

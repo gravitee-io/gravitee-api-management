@@ -54,9 +54,24 @@ public class AsyncJobQueryServiceInMemory implements AsyncJobQueryService, InMem
 
         var matches = storage
             .stream()
-            .filter(job -> query.initiatorId().map(value -> job.getInitiatorId().equals(value)).orElse(true))
-            .filter(job -> query.type().map(value -> job.getType().equals(value)).orElse(true))
-            .filter(job -> query.status().map(value -> job.getStatus().equals(value)).orElse(true))
+            .filter(job ->
+                query
+                    .initiatorId()
+                    .map(value -> job.getInitiatorId().equals(value))
+                    .orElse(true)
+            )
+            .filter(job ->
+                query
+                    .type()
+                    .map(value -> job.getType().equals(value))
+                    .orElse(true)
+            )
+            .filter(job ->
+                query
+                    .status()
+                    .map(value -> job.getStatus().equals(value))
+                    .orElse(true)
+            )
             .sorted(Comparator.comparing(AsyncJob::getCreatedAt).reversed())
             .toList();
 

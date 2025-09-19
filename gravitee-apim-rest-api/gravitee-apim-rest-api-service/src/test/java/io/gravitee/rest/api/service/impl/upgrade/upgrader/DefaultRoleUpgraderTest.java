@@ -86,8 +86,9 @@ public class DefaultRoleUpgraderTest {
         final ExecutionContext expectedExecutionContext = new ExecutionContext(organization);
 
         when(roleService.findAllByOrganization(GraviteeContext.getDefaultOrganization())).thenReturn(List.of(new RoleEntity()));
-        when(roleService.findByScopeAndName(API, ROLE_API_REVIEWER.getName(), GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(API, ROLE_API_REVIEWER.getName(), GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.empty()
+        );
 
         upgrader.upgrade();
 

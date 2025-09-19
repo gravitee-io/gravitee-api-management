@@ -48,8 +48,18 @@ public class AuditQueryServiceInMemory implements AuditQueryService, InMemoryAlt
             .filter(audit -> audit.getEnvironmentId().equals(query.environmentId()))
             .filter(audit -> audit.getOrganizationId().equals(query.organizationId()))
             .filter(audit -> query.events().isEmpty() || query.events().contains(audit.getEvent()))
-            .filter(audit -> query.from().map(from -> audit.getCreatedAt().toInstant().isAfter(new Date(from).toInstant())).orElse(true))
-            .filter(audit -> query.to().map(to -> audit.getCreatedAt().toInstant().isBefore(new Date(to).toInstant())).orElse(true))
+            .filter(audit ->
+                query
+                    .from()
+                    .map(from -> audit.getCreatedAt().toInstant().isAfter(new Date(from).toInstant()))
+                    .orElse(true)
+            )
+            .filter(audit ->
+                query
+                    .to()
+                    .map(to -> audit.getCreatedAt().toInstant().isBefore(new Date(to).toInstant()))
+                    .orElse(true)
+            )
             .sorted(Comparator.comparing(AuditEntity::getCreatedAt).reversed())
             .toList();
 

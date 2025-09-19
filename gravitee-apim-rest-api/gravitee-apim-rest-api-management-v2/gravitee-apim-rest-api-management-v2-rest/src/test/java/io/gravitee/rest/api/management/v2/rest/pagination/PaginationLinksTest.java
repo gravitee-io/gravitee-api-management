@@ -60,16 +60,14 @@ public class PaginationLinksTest {
 
         var result = PaginationLinks.computePaginationLinks(REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(1, perPage));
 
-        assertThat(result)
-            .isEqualTo(
-                Links
-                    .builder()
-                    .self(REQUEST_URI.toString())
-                    .first(REQUEST_URI + "?page=1")
-                    .next(REQUEST_URI + "?page=2")
-                    .last(REQUEST_URI + "?page=4")
-                    .build()
-            );
+        assertThat(result).isEqualTo(
+            Links.builder()
+                .self(REQUEST_URI.toString())
+                .first(REQUEST_URI + "?page=1")
+                .next(REQUEST_URI + "?page=2")
+                .last(REQUEST_URI + "?page=4")
+                .build()
+        );
     }
 
     @Test
@@ -84,16 +82,14 @@ public class PaginationLinksTest {
             new PaginationParam(1, perPage)
         );
 
-        assertThat(result)
-            .isEqualTo(
-                Links
-                    .builder()
-                    .self(REQUEST_URI + "?perPage=10")
-                    .first(REQUEST_URI + "?perPage=10&page=1")
-                    .next(REQUEST_URI + "?perPage=10&page=2")
-                    .last(REQUEST_URI + "?perPage=10&page=4")
-                    .build()
-            );
+        assertThat(result).isEqualTo(
+            Links.builder()
+                .self(REQUEST_URI + "?perPage=10")
+                .first(REQUEST_URI + "?perPage=10&page=1")
+                .next(REQUEST_URI + "?perPage=10&page=2")
+                .last(REQUEST_URI + "?perPage=10&page=4")
+                .build()
+        );
     }
 
     @Test
@@ -109,16 +105,14 @@ public class PaginationLinksTest {
             new PaginationParam(page, perPage)
         );
 
-        assertThat(result)
-            .isEqualTo(
-                Links
-                    .builder()
-                    .self(REQUEST_URI + "?page=1")
-                    .first(REQUEST_URI + "?page=1")
-                    .next(REQUEST_URI + "?page=2")
-                    .last(REQUEST_URI + "?page=4")
-                    .build()
-            );
+        assertThat(result).isEqualTo(
+            Links.builder()
+                .self(REQUEST_URI + "?page=1")
+                .first(REQUEST_URI + "?page=1")
+                .next(REQUEST_URI + "?page=2")
+                .last(REQUEST_URI + "?page=4")
+                .build()
+        );
     }
 
     @Test
@@ -134,17 +128,15 @@ public class PaginationLinksTest {
             new PaginationParam(page, perPage)
         );
 
-        assertThat(result)
-            .isEqualTo(
-                Links
-                    .builder()
-                    .self(REQUEST_URI + "?page=2")
-                    .first(REQUEST_URI + "?page=1")
-                    .next(REQUEST_URI + "?page=3")
-                    .previous(REQUEST_URI + "?page=1")
-                    .last(REQUEST_URI + "?page=4")
-                    .build()
-            );
+        assertThat(result).isEqualTo(
+            Links.builder()
+                .self(REQUEST_URI + "?page=2")
+                .first(REQUEST_URI + "?page=1")
+                .next(REQUEST_URI + "?page=3")
+                .previous(REQUEST_URI + "?page=1")
+                .last(REQUEST_URI + "?page=4")
+                .build()
+        );
     }
 
     @Test
@@ -160,16 +152,14 @@ public class PaginationLinksTest {
             new PaginationParam(page, perPage)
         );
 
-        assertThat(result)
-            .isEqualTo(
-                Links
-                    .builder()
-                    .self(REQUEST_URI + "?page=4")
-                    .first(REQUEST_URI + "?page=1")
-                    .previous(REQUEST_URI + "?page=3")
-                    .last(REQUEST_URI + "?page=4")
-                    .build()
-            );
+        assertThat(result).isEqualTo(
+            Links.builder()
+                .self(REQUEST_URI + "?page=4")
+                .first(REQUEST_URI + "?page=1")
+                .previous(REQUEST_URI + "?page=3")
+                .last(REQUEST_URI + "?page=4")
+                .build()
+        );
     }
 
     @Test
@@ -190,17 +180,15 @@ public class PaginationLinksTest {
             new PaginationParam(page, perPage)
         );
 
-        assertThat(result)
-            .isEqualTo(
-                Links
-                    .builder()
-                    .self(REQUEST_URI + "?page=2&perPage=10")
-                    .first(REQUEST_URI + "?page=1&perPage=10")
-                    .next(REQUEST_URI + "?page=3&perPage=10")
-                    .previous(REQUEST_URI + "?page=1&perPage=10")
-                    .last(REQUEST_URI + "?page=4&perPage=10")
-                    .build()
-            );
+        assertThat(result).isEqualTo(
+            Links.builder()
+                .self(REQUEST_URI + "?page=2&perPage=10")
+                .first(REQUEST_URI + "?page=1&perPage=10")
+                .next(REQUEST_URI + "?page=3&perPage=10")
+                .previous(REQUEST_URI + "?page=1&perPage=10")
+                .last(REQUEST_URI + "?page=4&perPage=10")
+                .build()
+        );
     }
 
     @ParameterizedTest

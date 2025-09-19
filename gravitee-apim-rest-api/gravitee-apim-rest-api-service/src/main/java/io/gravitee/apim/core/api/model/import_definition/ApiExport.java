@@ -109,8 +109,7 @@ public class ApiExport {
     PrimaryOwnerEntity primaryOwner;
 
     public ApiBuilder toApiBuilder() {
-        return Api
-            .builder()
+        return Api.builder()
             .id(id)
             .crossId(crossId)
             .name(name)
@@ -128,8 +127,7 @@ public class ApiExport {
     }
 
     public io.gravitee.definition.model.v4.Api.ApiBuilder<?, ?> toApiDefinitionBuilder() {
-        return io.gravitee.definition.model.v4.Api
-            .builder()
+        return io.gravitee.definition.model.v4.Api.builder()
             .analytics(analytics)
             .apiVersion(apiVersion)
             .definitionVersion(DefinitionVersion.V4)

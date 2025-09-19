@@ -52,7 +52,10 @@ public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageC
 
     @Override
     public Optional<Page> findById(String id) {
-        return pages.stream().filter(p -> p.getId().equals(id)).findFirst();
+        return pages
+            .stream()
+            .filter(p -> p.getId().equals(id))
+            .findFirst();
     }
 
     @Override
@@ -62,7 +65,10 @@ public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageC
 
     @Override
     public void unsetHomepage(Collection<String> ids) {
-        pages.stream().filter(page -> ids.contains(page.getId())).forEach(page -> page.setHomepage(false));
+        pages
+            .stream()
+            .filter(page -> ids.contains(page.getId()))
+            .forEach(page -> page.setHomepage(false));
     }
 
     @Override

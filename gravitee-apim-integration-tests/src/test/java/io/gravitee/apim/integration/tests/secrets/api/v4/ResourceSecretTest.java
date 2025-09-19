@@ -115,9 +115,13 @@ class ResourceSecretTest extends AbstractGatewayTest {
     // not call by JUnit, as needs to be started before API is deployed
     static void startContainers() throws IOException {
         if (redisContainer == null) {
-            redisContainer =
-                new RedisContainer(DockerImageName.parse("redis:7.4.2"))
-                    .withCommand("redis-server", "--appendonly", "yes", "--requirepass", REDIS_PASSWORD);
+            redisContainer = new RedisContainer(DockerImageName.parse("redis:7.4.2")).withCommand(
+                "redis-server",
+                "--appendonly",
+                "yes",
+                "--requirepass",
+                REDIS_PASSWORD
+            );
             redisContainer.start();
         }
         if (kubeContainer == null) {
@@ -127,10 +131,9 @@ class ResourceSecretTest extends AbstractGatewayTest {
             Files.writeString(kubeConfigFile, kubeContainer.getKubeconfig());
         }
         if (ldapServer == null) {
-            ldapServer =
-                new GenericContainer<>("ghcr.io/rroemhild/docker-test-openldap:master")
-                    .withExposedPorts(LDAP_PORT)
-                    .waitingFor(new LogMessageWaitStrategy().withRegEx(".*slapd starting.*"));
+            ldapServer = new GenericContainer<>("ghcr.io/rroemhild/docker-test-openldap:master")
+                .withExposedPorts(LDAP_PORT)
+                .waitingFor(new LogMessageWaitStrategy().withRegEx(".*slapd starting.*"));
             ldapServer.start();
         }
     }
@@ -138,8 +141,9 @@ class ResourceSecretTest extends AbstractGatewayTest {
     @Override
     public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
         try {
-            kubeConfigFile =
-                Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName()).resolve("kube_config.yml");
+            kubeConfigFile = Files.createTempDirectory(KubernetesHttpProxyHeaderSecretTest.class.getSimpleName()).resolve(
+                "kube_config.yml"
+            );
 
             startContainers();
             createSecrets();
@@ -248,21 +252,25 @@ class ResourceSecretTest extends AbstractGatewayTest {
                 .issueTime(new Date())
                 .claim("test", "hello")
                 .build()
-        )
-            .serialize();
+        ).serialize();
 
         // stub for introspect endpoint (called by oauth policy via oauth2 resource)
         wiremock.stubFor(
             get("/oauth/check_token")
                 .withBasicAuth("admin", CLIENT_SECRET)
                 .withHeader("token", equalTo(jwt))
-                .willReturn(jsonResponse("""
-{
-    "client_id": "admin",
-    "sub": "the_user",
-    "scope": []
-}
-""", 200))
+                .willReturn(
+                    jsonResponse(
+                        """
+                        {
+                            "client_id": "admin",
+                            "sub": "the_user",
+                            "scope": []
+                        }
+                        """,
+                        200
+                    )
+                )
         );
 
         // the backend

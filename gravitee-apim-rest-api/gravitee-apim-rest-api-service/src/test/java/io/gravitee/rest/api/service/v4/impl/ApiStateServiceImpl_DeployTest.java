@@ -174,24 +174,23 @@ public class ApiStateServiceImpl_DeployTest {
             new CategoryMapper(categoryService)
         );
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
-        apiStateService =
-            new ApiStateServiceImpl(
-                apiSearchService,
-                apiRepository,
-                apiMapper,
-                genericApiMapper,
-                apiNotificationService,
-                primaryOwnerService,
-                auditService,
-                eventService,
-                eventLatestRepository,
-                objectMapper,
-                apiMetadataService,
-                apiValidationService,
-                planSearchService,
-                apiConverter,
-                synchronizationService
-            );
+        apiStateService = new ApiStateServiceImpl(
+            apiSearchService,
+            apiRepository,
+            apiMapper,
+            genericApiMapper,
+            apiNotificationService,
+            primaryOwnerService,
+            auditService,
+            eventService,
+            eventLatestRepository,
+            objectMapper,
+            apiMetadataService,
+            apiValidationService,
+            planSearchService,
+            apiConverter,
+            synchronizationService
+        );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
@@ -205,8 +204,9 @@ public class ApiStateServiceImpl_DeployTest {
 
         updatedApi = new Api(api);
 
-        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(GenericApiEntity.class)))
-            .then(invocation -> invocation.getArgument(1));
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(GenericApiEntity.class))).then(invocation ->
+            invocation.getArgument(1)
+        );
     }
 
     @Test
@@ -217,8 +217,9 @@ public class ApiStateServiceImpl_DeployTest {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
-        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L)))
-            .thenReturn(List.of(previousPublishedEvent));
+        when(
+            eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L))
+        ).thenReturn(List.of(previousPublishedEvent));
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
@@ -229,19 +230,19 @@ public class ApiStateServiceImpl_DeployTest {
             apiDeploymentEntity
         );
 
-        verify(eventService)
-            .createApiEvent(
-                any(ExecutionContext.class),
-                anySet(),
-                anyString(),
-                eq(EventType.PUBLISH_API),
-                eq(api),
-                argThat(properties ->
+        verify(eventService).createApiEvent(
+            any(ExecutionContext.class),
+            anySet(),
+            anyString(),
+            eq(EventType.PUBLISH_API),
+            eq(api),
+            argThat(
+                properties ->
                     properties.get(Event.EventProperties.USER.getValue()).equals(USER_NAME) &&
                     properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("4") &&
                     properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()).equals(apiDeploymentEntity.getDeploymentLabel())
-                )
-            );
+            )
+        );
         verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
     }
 
@@ -260,8 +261,9 @@ public class ApiStateServiceImpl_DeployTest {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
-        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L)))
-            .thenReturn(List.of(previousPublishedEvent));
+        when(
+            eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L))
+        ).thenReturn(List.of(previousPublishedEvent));
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
@@ -272,19 +274,19 @@ public class ApiStateServiceImpl_DeployTest {
             apiDeploymentEntity
         );
 
-        verify(eventService)
-            .createApiEvent(
-                any(ExecutionContext.class),
-                anySet(),
-                anyString(),
-                eq(EventType.PUBLISH_API),
-                eq(api),
-                argThat(properties ->
+        verify(eventService).createApiEvent(
+            any(ExecutionContext.class),
+            anySet(),
+            anyString(),
+            eq(EventType.PUBLISH_API),
+            eq(api),
+            argThat(
+                properties ->
                     properties.get(Event.EventProperties.USER.getValue()).equals(USER_NAME) &&
                     properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("4") &&
                     properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()).equals(apiDeploymentEntity.getDeploymentLabel())
-                )
-            );
+            )
+        );
         verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
     }
 
@@ -298,8 +300,9 @@ public class ApiStateServiceImpl_DeployTest {
 
     @Test(expected = ApiNotFoundException.class)
     public void should_throw_not_found_exception_during_get_by_id() {
-        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID))
-            .thenThrow(new ApiNotFoundException(API_ID));
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenThrow(
+            new ApiNotFoundException(API_ID)
+        );
         apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
     }
 
@@ -311,8 +314,9 @@ public class ApiStateServiceImpl_DeployTest {
         deploymentEntity.setDeploymentLabel("Release v1.0");
         Event mockEvent = new Event();
         mockEvent.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "5"));
-        when(eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L)))
-            .thenReturn(List.of(mockEvent));
+        when(
+            eventLatestRepository.search(any(EventCriteria.class), eq(Event.EventProperties.DEPLOYMENT_NUMBER), eq(0L), eq(1L))
+        ).thenReturn(List.of(mockEvent));
         Map<String, String> props = new HashMap<>();
 
         ApiStateServiceImpl impl = new ApiStateServiceImpl(
@@ -332,14 +336,13 @@ public class ApiStateServiceImpl_DeployTest {
             null,
             null
         );
-        Method method =
-            ApiStateServiceImpl.class.getDeclaredMethod(
-                    "addDeploymentLabelToProperties",
-                    ExecutionContext.class,
-                    String.class,
-                    Map.class,
-                    ApiDeploymentEntity.class
-                );
+        Method method = ApiStateServiceImpl.class.getDeclaredMethod(
+            "addDeploymentLabelToProperties",
+            ExecutionContext.class,
+            String.class,
+            Map.class,
+            ApiDeploymentEntity.class
+        );
         method.setAccessible(true);
         method.invoke(impl, executionContext, "api-id", props, deploymentEntity);
         assertEquals("6", props.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()));

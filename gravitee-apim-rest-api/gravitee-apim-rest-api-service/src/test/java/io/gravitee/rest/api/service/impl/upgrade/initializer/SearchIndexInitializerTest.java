@@ -114,20 +114,19 @@ public class SearchIndexInitializerTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        initializer =
-            new SearchIndexInitializer(
-                apiRepository,
-                new GenericApiMapper(apiMapper, apiConverter),
-                pageService,
-                userRepository,
-                searchEngineService,
-                environmentRepository,
-                apiConverter,
-                new UserConverter(),
-                primaryOwnerService,
-                apiIndexerDomainService,
-                userMetadataService
-            );
+        initializer = new SearchIndexInitializer(
+            apiRepository,
+            new GenericApiMapper(apiMapper, apiConverter),
+            pageService,
+            userRepository,
+            searchEngineService,
+            environmentRepository,
+            apiConverter,
+            new UserConverter(),
+            primaryOwnerService,
+            apiIndexerDomainService,
+            userMetadataService
+        );
 
         givenExistingEnvironments(
             Environment.builder().id("env1").organizationId("org1").build(),
@@ -152,34 +151,30 @@ public class SearchIndexInitializerTest {
 
             initializer.runApisIndexationAsync(Executors.newSingleThreadExecutor()).forEach(CompletableFuture::join);
 
-            verify(searchEngineService, times(1))
-                .index(
-                    argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
-                    argThat(api -> api.getId().equals("api1")),
-                    eq(true),
-                    eq(false)
-                );
-            verify(searchEngineService, times(1))
-                .index(
-                    argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")),
-                    argThat(api -> api.getId().equals("api2")),
-                    eq(true),
-                    eq(false)
-                );
-            verify(searchEngineService, times(1))
-                .index(
-                    argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
-                    argThat(api -> api.getId().equals("api3")),
-                    eq(true),
-                    eq(false)
-                );
-            verify(searchEngineService, times(1))
-                .index(
-                    argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env3") && e.getOrganizationId().equals("org1")),
-                    argThat(api -> api.getId().equals("api4")),
-                    eq(true),
-                    eq(false)
-                );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
+                argThat(api -> api.getId().equals("api1")),
+                eq(true),
+                eq(false)
+            );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")),
+                argThat(api -> api.getId().equals("api2")),
+                eq(true),
+                eq(false)
+            );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
+                argThat(api -> api.getId().equals("api3")),
+                eq(true),
+                eq(false)
+            );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env3") && e.getOrganizationId().equals("org1")),
+                argThat(api -> api.getId().equals("api4")),
+                eq(true),
+                eq(false)
+            );
         }
 
         @Test
@@ -210,34 +205,30 @@ public class SearchIndexInitializerTest {
 
             initializer.runUsersIndexationAsync(Executors.newSingleThreadExecutor()).forEach(CompletableFuture::join);
 
-            verify(searchEngineService, times(1))
-                .index(
-                    argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")),
-                    argThat(user -> user.getId().equals("user1")),
-                    eq(true),
-                    eq(false)
-                );
-            verify(searchEngineService, times(1))
-                .index(
-                    argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org2")),
-                    argThat(user -> user.getId().equals("user2")),
-                    eq(true),
-                    eq(false)
-                );
-            verify(searchEngineService, times(1))
-                .index(
-                    argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")),
-                    argThat(user -> user.getId().equals("user3")),
-                    eq(true),
-                    eq(false)
-                );
-            verify(searchEngineService, times(1))
-                .index(
-                    argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org3")),
-                    argThat(user -> user.getId().equals("user4")),
-                    eq(true),
-                    eq(false)
-                );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")),
+                argThat(user -> user.getId().equals("user1")),
+                eq(true),
+                eq(false)
+            );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org2")),
+                argThat(user -> user.getId().equals("user2")),
+                eq(true),
+                eq(false)
+            );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")),
+                argThat(user -> user.getId().equals("user3")),
+                eq(true),
+                eq(false)
+            );
+            verify(searchEngineService, times(1)).index(
+                argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org3")),
+                argThat(user -> user.getId().equals("user4")),
+                eq(true),
+                eq(false)
+            );
         }
     }
 
@@ -249,33 +240,32 @@ public class SearchIndexInitializerTest {
     private void givenExistingApis(Api... apis) {
         when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.of(apis));
 
-        Stream
-            .of(apis)
-            .forEach(api -> {
-                if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-                    lenient()
-                        .when(apiIndexerDomainService.toIndexableApi(any(Indexer.IndexationContext.class), any()))
-                        .thenAnswer(invocation ->
-                            new IndexableApi(invocation.getArgument(1), null, Collections.emptyMap(), Collections.emptyList())
-                        );
-                } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
-                    lenient()
-                        .when(apiConverter.toApiEntity(any(), any(), any(), eq(false)))
-                        .thenReturn(
-                            ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
-                        );
-                    lenient()
-                        .when(apiConverter.toApiEntity(any(), any()))
-                        .thenReturn(
-                            ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
-                        );
-                }
-            });
+        Stream.of(apis).forEach(api -> {
+            if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+                lenient()
+                    .when(apiIndexerDomainService.toIndexableApi(any(Indexer.IndexationContext.class), any()))
+                    .thenAnswer(invocation ->
+                        new IndexableApi(invocation.getArgument(1), null, Collections.emptyMap(), Collections.emptyList())
+                    );
+            } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+                lenient()
+                    .when(apiConverter.toApiEntity(any(), any(), any(), eq(false)))
+                    .thenReturn(
+                        ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
+                    );
+                lenient()
+                    .when(apiConverter.toApiEntity(any(), any()))
+                    .thenReturn(
+                        ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
+                    );
+            }
+        });
     }
 
     private void givenExistingUsers(User... users) throws Exception {
-        when(userRepository.search(argThat(criteria -> criteria.getStatuses().length == 1 && criteria.getStatuses()[0] == ACTIVE), any()))
-            .thenReturn(new Page<>(List.of(users), 0, users.length, users.length));
+        when(
+            userRepository.search(argThat(criteria -> criteria.getStatuses().length == 1 && criteria.getStatuses()[0] == ACTIVE), any())
+        ).thenReturn(new Page<>(List.of(users), 0, users.length, users.length));
     }
 
     @SneakyThrows

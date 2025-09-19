@@ -89,11 +89,11 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     public void sendEmailNotification(ExecutionContext executionContext, final EmailNotification emailNotification) {
         final ReferenceContext context = executionContext.getReferenceContext();
         this.sendEmailNotification(
-                executionContext,
-                emailNotification,
-                context.getReferenceId(),
-                ParameterReferenceType.valueOf(context.getReferenceType().name())
-            );
+            executionContext,
+            emailNotification,
+            context.getReferenceId(),
+            ParameterReferenceType.valueOf(context.getReferenceType().name())
+        );
     }
 
     @Override

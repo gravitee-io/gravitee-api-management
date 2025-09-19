@@ -79,8 +79,7 @@ public class DeleteApiDocumentationDomainService {
         indexer.delete(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(pageToDelete));
 
         auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .apiId(pageToDelete.getReferenceId())
                 .event(PageAuditEvent.PAGE_DELETED)
                 .createdAt(Instant.now().atZone(ZoneId.of("UTC")))

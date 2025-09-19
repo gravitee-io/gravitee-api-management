@@ -72,20 +72,15 @@ class TcpGatewayWebsocketIntegrationTest extends AbstractWebsocketGatewayTest {
         var serverMessageChecked = testContext.checkpoint();
 
         // simple websocket answering PONG when sent "PING"
-        websocketServerHandler =
-            serverWebSocket -> {
-                serverConnected.flag();
-                serverWebSocket.exceptionHandler(testContext::failNow);
-                serverWebSocket.accept();
-                serverWebSocket.frameHandler(frame -> {
-                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                    serverWebSocket
-                        .writeTextMessage("PONG")
-                        .doOnComplete(serverMessageSent::flag)
-                        .doOnError(testContext::failNow)
-                        .subscribe();
-                });
-            };
+        websocketServerHandler = serverWebSocket -> {
+            serverConnected.flag();
+            serverWebSocket.exceptionHandler(testContext::failNow);
+            serverWebSocket.accept();
+            serverWebSocket.frameHandler(frame -> {
+                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                serverWebSocket.writeTextMessage("PONG").doOnComplete(serverMessageSent::flag).doOnError(testContext::failNow).subscribe();
+            });
+        };
 
         // Given that a websocket is deployed
         // When calling the TCP proxy with an Api pointing to the websocket

@@ -42,16 +42,13 @@ public class EndpointDiscoveryService extends AbstractService {
         EndpointDiscoveryVerticle discoveryVerticle = new EndpointDiscoveryVerticle();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(discoveryVerticle);
 
-        vertx.deployVerticle(
-            discoveryVerticle,
-            event -> {
-                if (event.failed()) {
-                    LOGGER.error("Endpoints Discovery service cannot be started", event.cause());
-                }
-
-                deploymentId = event.result();
+        vertx.deployVerticle(discoveryVerticle, event -> {
+            if (event.failed()) {
+                LOGGER.error("Endpoints Discovery service cannot be started", event.cause());
             }
-        );
+
+            deploymentId = event.result();
+        });
     }
 
     @Override

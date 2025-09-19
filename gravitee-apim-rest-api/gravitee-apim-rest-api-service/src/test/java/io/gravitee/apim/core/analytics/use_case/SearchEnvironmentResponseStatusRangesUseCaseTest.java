@@ -72,21 +72,18 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
                 ApiFixtures.aProxyApiV2().toBuilder().id("proxy-api-v2-id").build()
             )
         );
-        var input = SearchEnvironmentResponseStatusRangesUseCase.Input
-            .builder()
+        var input = SearchEnvironmentResponseStatusRangesUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchResponseStatusRanges(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    ResponseStatusRanges
-                        .builder()
-                        .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
-                        .build()
-                )
-            );
+        when(analyticsQueryService.searchResponseStatusRanges(any(), any())).thenReturn(
+            Optional.of(
+                ResponseStatusRanges.builder()
+                    .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
+                    .build()
+            )
+        );
 
         var result = cut.execute(input).responseStatusRanges();
 
@@ -116,21 +113,18 @@ class SearchEnvironmentResponseStatusRangesUseCaseTest {
                 ApiFixtures.aProxyApiV4().toBuilder().id("other-env-proxy-api-v4-id").environmentId("other-env").build()
             )
         );
-        var input = SearchEnvironmentResponseStatusRangesUseCase.Input
-            .builder()
+        var input = SearchEnvironmentResponseStatusRangesUseCase.Input.builder()
             .executionContext(executionContext)
             .parameters(AnalyticsQueryParameters.builder().from(FROM).to(TO).build())
             .build();
 
-        when(analyticsQueryService.searchResponseStatusRanges(any(), any()))
-            .thenReturn(
-                Optional.of(
-                    ResponseStatusRanges
-                        .builder()
-                        .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
-                        .build()
-                )
-            );
+        when(analyticsQueryService.searchResponseStatusRanges(any(), any())).thenReturn(
+            Optional.of(
+                ResponseStatusRanges.builder()
+                    .ranges(Map.of("100.0-200.0", 1L, "200.0-300.0", 17L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L))
+                    .build()
+            )
+        );
 
         var result = cut.execute(input).responseStatusRanges();
 

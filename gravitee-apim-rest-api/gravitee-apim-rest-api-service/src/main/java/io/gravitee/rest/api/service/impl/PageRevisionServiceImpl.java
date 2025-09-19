@@ -136,7 +136,11 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         PageRevision revision = new PageRevision();
 
         revision.setPageId(page.getId());
-        revision.setRevision(findLastByPageId(page.getId()).map(rev -> rev.getRevision() + 1).orElse(1));
+        revision.setRevision(
+            findLastByPageId(page.getId())
+                .map(rev -> rev.getRevision() + 1)
+                .orElse(1)
+        );
 
         revision.setName(page.getName());
         revision.setContent(page.getContent());
@@ -162,9 +166,17 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
     @NotNull
     private String canonicalRevision(PageRevision page) {
         StringBuilder builder = new StringBuilder();
-        builder.append(Optional.ofNullable(page.getName()).map(c -> c.trim()).orElse(""));
+        builder.append(
+            Optional.ofNullable(page.getName())
+                .map(c -> c.trim())
+                .orElse("")
+        );
         builder.append('\n');
-        builder.append(Optional.ofNullable(page.getContent()).map(c -> c.trim()).orElse(""));
+        builder.append(
+            Optional.ofNullable(page.getContent())
+                .map(c -> c.trim())
+                .orElse("")
+        );
         builder.append('\n');
         builder.append(page.getContributor());
         builder.append('\n');

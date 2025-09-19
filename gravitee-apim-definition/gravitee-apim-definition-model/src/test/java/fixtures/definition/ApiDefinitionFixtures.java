@@ -42,8 +42,7 @@ public class ApiDefinitionFixtures {
         Api.builder().name("an-api").apiVersion("1.0.0").type(ApiType.PROXY).analytics(Analytics.builder().enabled(false).build());
 
     private static final Supplier<io.gravitee.definition.model.Api.ApiBuilder> BASE_V2 = () ->
-        io.gravitee.definition.model.Api
-            .builder()
+        io.gravitee.definition.model.Api.builder()
             .name("an-api")
             .version("1.0.0")
             .executionMode(ExecutionMode.V3)
@@ -63,16 +62,14 @@ public class ApiDefinitionFixtures {
     }
 
     public static Api aHttpProxyApiV4(String apiId) {
-        return BASE_V4
-            .get()
+        return BASE_V4.get()
             .id(apiId)
             .analytics(Analytics.builder().enabled(false).build())
             .definitionVersion(DefinitionVersion.V4)
             .type(ApiType.PROXY)
             .listeners(
                 List.of(
-                    HttpListener
-                        .builder()
+                    HttpListener.builder()
                         .paths(List.of(Path.builder().path("/http_proxy/").build()))
                         .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                         .build()
@@ -80,15 +77,13 @@ public class ApiDefinitionFixtures {
             )
             .endpointGroups(
                 List.of(
-                    EndpointGroup
-                        .builder()
+                    EndpointGroup.builder()
                         .name("default-group")
                         .type("http-proxy")
                         .sharedConfiguration("{}")
                         .endpoints(
                             List.of(
-                                Endpoint
-                                    .builder()
+                                Endpoint.builder()
                                     .name("default-endpoint")
                                     .type("http-proxy")
                                     .inheritConfiguration(true)

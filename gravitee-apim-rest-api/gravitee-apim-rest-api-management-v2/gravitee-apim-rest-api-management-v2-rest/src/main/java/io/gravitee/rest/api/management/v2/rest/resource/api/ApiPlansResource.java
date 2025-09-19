@@ -125,8 +125,7 @@ public class ApiPlansResource extends AbstractResource {
         @QueryParam("subscribableBy") String subscribableBy,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
-        var planQuery = PlanQuery
-            .builder()
+        var planQuery = PlanQuery.builder()
             .apiId(apiId)
             .securityType(
                 securities
@@ -152,19 +151,15 @@ public class ApiPlansResource extends AbstractResource {
             var subscriptions = subscriptionQueryService.findActiveByApplicationIdAndApiId(subscribableBy, apiId);
             var subscribedPlans = subscriptions.stream().map(SubscriptionEntity::getPlanId).toList();
 
-            plansStream =
-                plansStream.filter(plan ->
-                    (
-                        plan.getPlanSecurity() == null ||
-                        !List
-                            .of(
-                                io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS.getLabel(),
-                                PlanSecurityType.KEY_LESS.getValue()
-                            )
-                            .contains(plan.getPlanSecurity().getType())
-                    ) &&
+            plansStream = plansStream.filter(
+                plan ->
+                    (plan.getPlanSecurity() == null ||
+                        !List.of(
+                            io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS.getLabel(),
+                            PlanSecurityType.KEY_LESS.getValue()
+                        ).contains(plan.getPlanSecurity().getType())) &&
                     (subscribedPlans.isEmpty() || !subscribedPlans.contains(plan.getId()))
-                );
+            );
         }
 
         List<GenericPlanEntity> plans = plansStream.toList();
@@ -191,13 +186,11 @@ public class ApiPlansResource extends AbstractResource {
                     apiId,
                     api -> planMapper.map(planV4, api),
                     api -> flowMapper.map(planV4.getFlows(), api),
-                    AuditInfo
-                        .builder()
+                    AuditInfo.builder()
                         .organizationId(executionContext.getOrganizationId())
                         .environmentId(executionContext.getEnvironmentId())
                         .actor(
-                            AuditActor
-                                .builder()
+                            AuditActor.builder()
                                 .userId(userDetails.getUsername())
                                 .userSource(userDetails.getSource())
                                 .userSourceId(userDetails.getSourceId())
@@ -265,13 +258,11 @@ public class ApiPlansResource extends AbstractResource {
                             updatePlanEntity,
                             api -> flowMapper.map(updatePlanV4.getFlows(), api),
                             apiId,
-                            AuditInfo
-                                .builder()
+                            AuditInfo.builder()
                                 .organizationId(executionContext.getOrganizationId())
                                 .environmentId(executionContext.getEnvironmentId())
                                 .actor(
-                                    AuditActor
-                                        .builder()
+                                    AuditActor.builder()
                                         .userId(userDetails.getUsername())
                                         .userSource(userDetails.getSource())
                                         .userSourceId(userDetails.getSourceId())

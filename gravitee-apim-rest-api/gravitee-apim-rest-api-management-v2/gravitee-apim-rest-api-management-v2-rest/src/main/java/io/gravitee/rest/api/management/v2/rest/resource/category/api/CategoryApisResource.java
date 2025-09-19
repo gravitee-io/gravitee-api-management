@@ -67,11 +67,9 @@ public class CategoryApisResource extends AbstractResource {
 
         var paginationData = computePaginationData(data, paginationParam);
 
-        return Response
-            .ok()
+        return Response.ok()
             .entity(
-                CategoryApisResponse
-                    .builder()
+                CategoryApisResponse.builder()
                     .data(paginationData)
                     .pagination(PaginationInfo.computePaginationInfo(output.results().size(), paginationData.size(), paginationParam))
                     .build()

@@ -52,19 +52,21 @@ public class ApiUpdateFetchedPageContentUseCase {
             throw new ApiPageSourceNotDefinedException(oldPage.getId(), oldPage.getReferenceId());
         }
 
-        var pageToUpdate =
-            this.documentationValidationDomainService.validateAndSanitizeForUpdate(oldPage, input.auditInfo.organizationId(), false);
+        var pageToUpdate = this.documentationValidationDomainService.validateAndSanitizeForUpdate(
+            oldPage,
+            input.auditInfo.organizationId(),
+            false
+        );
 
         if (Objects.equals(pageToUpdate.getContent(), oldPage.getContent())) {
             return new Output(oldPage);
         }
 
-        var updatedPage =
-            this.updateApiDocumentationDomainService.updatePage(
-                    pageToUpdate.toBuilder().updatedAt(new Date()).build(),
-                    oldPage,
-                    input.auditInfo
-                );
+        var updatedPage = this.updateApiDocumentationDomainService.updatePage(
+            pageToUpdate.toBuilder().updatedAt(new Date()).build(),
+            oldPage,
+            input.auditInfo
+        );
 
         return new Output(updatedPage);
     }

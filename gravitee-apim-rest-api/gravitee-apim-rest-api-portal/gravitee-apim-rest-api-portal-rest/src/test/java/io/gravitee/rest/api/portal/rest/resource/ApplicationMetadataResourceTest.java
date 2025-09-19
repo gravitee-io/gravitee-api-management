@@ -81,25 +81,23 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
         doReturn(applicationMetadataEntity1).when(applicationMetadataService).findByIdAndApplication(METADATA_1, APPLICATION);
         doReturn(null).when(applicationMetadataService).findByIdAndApplication(METADATA_2, APPLICATION);
 
-        when(applicationMetadataService.create(eq(GraviteeContext.getExecutionContext()), any()))
-            .thenAnswer(invocation -> {
-                NewApplicationMetadataEntity newApplicationMetadataEntity = invocation.getArgument(1);
-                if (newApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
-                    throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
-                }
-                return applicationMetadataEntity1;
-            });
-        when(applicationMetadataService.update(eq(GraviteeContext.getExecutionContext()), any()))
-            .thenAnswer(invocation -> {
-                UpdateApplicationMetadataEntity updateApplicationMetadataEntity = invocation.getArgument(1);
-                if (updateApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
-                    throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
-                }
-                if (updateApplicationMetadataEntity.getKey().equals(UNKNOWN_METADATA)) {
-                    throw new ApplicationMetadataNotFoundException(updateApplicationMetadataEntity.getApplicationId(), UNKNOWN_METADATA);
-                }
-                return applicationMetadataEntity1;
-            });
+        when(applicationMetadataService.create(eq(GraviteeContext.getExecutionContext()), any())).thenAnswer(invocation -> {
+            NewApplicationMetadataEntity newApplicationMetadataEntity = invocation.getArgument(1);
+            if (newApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
+                throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
+            }
+            return applicationMetadataEntity1;
+        });
+        when(applicationMetadataService.update(eq(GraviteeContext.getExecutionContext()), any())).thenAnswer(invocation -> {
+            UpdateApplicationMetadataEntity updateApplicationMetadataEntity = invocation.getArgument(1);
+            if (updateApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
+                throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
+            }
+            if (updateApplicationMetadataEntity.getKey().equals(UNKNOWN_METADATA)) {
+                throw new ApplicationMetadataNotFoundException(updateApplicationMetadataEntity.getApplicationId(), UNKNOWN_METADATA);
+            }
+            return applicationMetadataEntity1;
+        });
 
         doThrow(ApplicationNotFoundException.class).when(applicationMetadataService).findAllByApplication(UNKNOWN_APPLICATION);
         doThrow(ApplicationNotFoundException.class).when(applicationMetadataService).findByIdAndApplication(any(), eq(UNKNOWN_APPLICATION));

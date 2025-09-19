@@ -68,14 +68,12 @@ public class RoleUsersResourceTest extends AbstractResourceTest {
             MembershipService.MembershipMember.class
         );
 
-        Mockito
-            .verify(membershipService)
-            .addRoleToMemberOnReference(
-                eq(GraviteeContext.getExecutionContext()),
-                memberShipRefCaptor.capture(),
-                memberShipUserCaptor.capture(),
-                memberShipRoleCaptor.capture()
-            );
+        Mockito.verify(membershipService).addRoleToMemberOnReference(
+            eq(GraviteeContext.getExecutionContext()),
+            memberShipRefCaptor.capture(),
+            memberShipUserCaptor.capture(),
+            memberShipRoleCaptor.capture()
+        );
         assertEquals(GraviteeContext.getCurrentOrganization(), memberShipRefCaptor.getValue().getId());
         assertEquals(MembershipReferenceType.ORGANIZATION, memberShipRefCaptor.getValue().getType());
         assertEquals(ROLE, memberShipRoleCaptor.getValue().getName());

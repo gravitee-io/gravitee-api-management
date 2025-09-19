@@ -29,8 +29,7 @@ public class JsonMappingExceptionMapper extends AbstractExceptionMapper<JsonMapp
 
     @Override
     public Response toResponse(JsonMappingException exception) {
-        return Response
-            .status(Response.Status.BAD_REQUEST)
+        return Response.status(Response.Status.BAD_REQUEST)
             .type(MediaType.APPLICATION_JSON_TYPE)
             .entity(new ErrorEntity(exception.getOriginalMessage(), HttpStatusCode.BAD_REQUEST_400))
             .build();

@@ -88,8 +88,7 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
     }
 
     public Completable synchronize(final File localRegistryDir) {
-        return Flowable
-            .fromArray(localRegistryDir.listFiles((dir, name) -> name.endsWith(".json")))
+        return Flowable.fromArray(localRegistryDir.listFiles((dir, name) -> name.endsWith(".json")))
             .map(this::deployApi)
             .doOnError(throwable -> log.error("Error synchronizing API", throwable))
             .doOnNext(api -> log.debug("api {} synchronized from local registry", api.getId()))
@@ -130,8 +129,7 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
 
     @Override
     public Completable watch(final Path localRegistryPath, final WatchService watchService) {
-        return Flowable
-            .interval(5, TimeUnit.SECONDS)
+        return Flowable.interval(5, TimeUnit.SECONDS)
             .subscribeOn(Schedulers.from(this.syncLocalExecutor))
             .map(t -> {
                 WatchKey key = watchService.poll();

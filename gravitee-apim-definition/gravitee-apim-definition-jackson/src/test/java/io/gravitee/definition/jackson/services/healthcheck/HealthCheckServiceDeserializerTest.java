@@ -113,9 +113,8 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
 
     @Test
     public void healthcheck_badUnit() throws Exception {
-        assertThrows(
-            JsonMappingException.class,
-            () -> load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-badUnit.json", Api.class)
+        assertThrows(JsonMappingException.class, () ->
+            load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-badUnit.json", Api.class)
         );
     }
 

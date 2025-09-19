@@ -67,7 +67,8 @@ public class RuleMapperTest {
 
     private static void assertMethodsAreEqual(List<HttpMethod> ruleMethods, Set<io.gravitee.common.http.HttpMethod> ruleEntityMethods) {
         assertThat(ruleMethods).asList().hasSameSizeAs(ruleEntityMethods);
-        assertThat(ruleMethods.stream().map(HttpMethod::name).collect(Collectors.toList()))
-            .isEqualTo(ruleEntityMethods.stream().map(io.gravitee.common.http.HttpMethod::name).collect(Collectors.toList()));
+        assertThat(ruleMethods.stream().map(HttpMethod::name).collect(Collectors.toList())).isEqualTo(
+            ruleEntityMethods.stream().map(io.gravitee.common.http.HttpMethod::name).collect(Collectors.toList())
+        );
     }
 }

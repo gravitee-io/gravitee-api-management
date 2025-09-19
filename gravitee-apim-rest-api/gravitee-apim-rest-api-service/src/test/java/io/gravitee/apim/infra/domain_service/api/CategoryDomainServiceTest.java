@@ -58,13 +58,12 @@ class CategoryDomainServiceTest {
         // Given
         String apiId = "apiId";
         List<String> categoryIds = List.of("cat1", "cat2");
-        when(apiCategoryOrderRepository.findAllByApiId(any()))
-            .thenReturn(
-                Set.of(
-                    ApiCategoryOrder.builder().categoryId("oldcat1").apiId(apiId).order(0).build(),
-                    ApiCategoryOrder.builder().categoryId("oldcat2").apiId(apiId).order(1).build()
-                )
-            );
+        when(apiCategoryOrderRepository.findAllByApiId(any())).thenReturn(
+            Set.of(
+                ApiCategoryOrder.builder().categoryId("oldcat1").apiId(apiId).order(0).build(),
+                ApiCategoryOrder.builder().categoryId("oldcat2").apiId(apiId).order(1).build()
+            )
+        );
 
         // When
         sut.updateOrderCategoriesOfApi(apiId, categoryIds);
@@ -81,13 +80,12 @@ class CategoryDomainServiceTest {
     void should_only_remove_if_give_null_categories_list() throws TechnicalException {
         // Given
         String apiId = "apiId";
-        when(apiCategoryOrderRepository.findAllByApiId(any()))
-            .thenReturn(
-                Set.of(
-                    ApiCategoryOrder.builder().categoryId("oldcat1").apiId(apiId).order(0).build(),
-                    ApiCategoryOrder.builder().categoryId("oldcat2").apiId(apiId).order(1).build()
-                )
-            );
+        when(apiCategoryOrderRepository.findAllByApiId(any())).thenReturn(
+            Set.of(
+                ApiCategoryOrder.builder().categoryId("oldcat1").apiId(apiId).order(0).build(),
+                ApiCategoryOrder.builder().categoryId("oldcat2").apiId(apiId).order(1).build()
+            )
+        );
 
         // When
         sut.updateOrderCategoriesOfApi(apiId, null);

@@ -57,21 +57,18 @@ public class GetConsoleCustomizationUseCase {
             String hideDays = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS);
 
             return new Output(
-                ConsoleCustomization
-                    .builder()
+                ConsoleCustomization.builder()
                     .title(parameters.get(Key.CONSOLE_CUSTOMIZATION_TITLE))
                     .favicon(parameters.get(Key.CONSOLE_CUSTOMIZATION_FAVICON))
                     .logo(parameters.get(Key.CONSOLE_CUSTOMIZATION_LOGO))
                     .theme(
-                        ConsoleTheme
-                            .builder()
+                        ConsoleTheme.builder()
                             .menuActive(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE))
                             .menuBackground(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND))
                             .build()
                     )
                     .ctaConfiguration(
-                        CtaConfiguration
-                            .builder()
+                        CtaConfiguration.builder()
                             .customEnterpriseName(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME))
                             .title(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE))
                             .hideDays(null == hideDays || Boolean.parseBoolean(hideDays))

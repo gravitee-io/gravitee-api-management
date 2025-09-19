@@ -249,8 +249,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
                 API,
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 
@@ -383,8 +382,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
                 API,
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 
@@ -466,8 +464,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
                 API,
                 RolePermissionAction.READ
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget(API).request().get();
 
@@ -537,19 +534,19 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         endpoint.setType("http-get");
         endpoint.setConfiguration(
             "{\n" +
-            "                        \"bootstrapServers\": \"kafka:9092\",\n" +
-            "                        \"topics\": [\n" +
-            "                            \"demo\"\n" +
-            "                        ],\n" +
-            "                        \"producer\": {\n" +
-            "                            \"enabled\": false\n" +
-            "                        },\n" +
-            "                        \"consumer\": {\n" +
-            "                            \"encodeMessageId\": true,\n" +
-            "                            \"enabled\": true,\n" +
-            "                            \"autoOffsetReset\": \"earliest\"\n" +
-            "                        }\n" +
-            "                    }"
+                "                        \"bootstrapServers\": \"kafka:9092\",\n" +
+                "                        \"topics\": [\n" +
+                "                            \"demo\"\n" +
+                "                        ],\n" +
+                "                        \"producer\": {\n" +
+                "                            \"enabled\": false\n" +
+                "                        },\n" +
+                "                        \"consumer\": {\n" +
+                "                            \"encodeMessageId\": true,\n" +
+                "                            \"enabled\": true,\n" +
+                "                            \"autoOffsetReset\": \"earliest\"\n" +
+                "                        }\n" +
+                "                    }"
         );
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
@@ -585,17 +582,17 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         Service dynamicProperty = new Service();
         dynamicProperty.setConfiguration(
             "{\n" +
-            "        \"enabled\": true,\n" +
-            "        \"schedule\": \"*/10 * * * * *\",\n" +
-            "        \"provider\": \"HTTP\",\n" +
-            "        \"configuration\": {\n" +
-            "          \"url\": \"https://api.gravitee.io/echo\",\n" +
-            "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
-            "          \"useSystemProxy\": false,\n" +
-            "          \"method\": \"GET\",\n" +
-            "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
-            "        }\n" +
-            "      }"
+                "        \"enabled\": true,\n" +
+                "        \"schedule\": \"*/10 * * * * *\",\n" +
+                "        \"provider\": \"HTTP\",\n" +
+                "        \"configuration\": {\n" +
+                "          \"url\": \"https://api.gravitee.io/echo\",\n" +
+                "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
+                "          \"useSystemProxy\": false,\n" +
+                "          \"method\": \"GET\",\n" +
+                "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
+                "        }\n" +
+                "      }"
         );
         dynamicProperty.setType("dynamic-property");
         dynamicProperty.setEnabled(true);
@@ -634,19 +631,19 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         endpoint.setType("native-kafka");
         endpoint.setConfiguration(
             "{\n" +
-            "                        \"bootstrapServers\": \"kafka:9092\",\n" +
-            "                        \"topics\": [\n" +
-            "                            \"demo\"\n" +
-            "                        ],\n" +
-            "                        \"producer\": {\n" +
-            "                            \"enabled\": false\n" +
-            "                        },\n" +
-            "                        \"consumer\": {\n" +
-            "                            \"encodeMessageId\": true,\n" +
-            "                            \"enabled\": true,\n" +
-            "                            \"autoOffsetReset\": \"earliest\"\n" +
-            "                        }\n" +
-            "                    }"
+                "                        \"bootstrapServers\": \"kafka:9092\",\n" +
+                "                        \"topics\": [\n" +
+                "                            \"demo\"\n" +
+                "                        ],\n" +
+                "                        \"producer\": {\n" +
+                "                            \"enabled\": false\n" +
+                "                        },\n" +
+                "                        \"consumer\": {\n" +
+                "                            \"encodeMessageId\": true,\n" +
+                "                            \"enabled\": true,\n" +
+                "                            \"autoOffsetReset\": \"earliest\"\n" +
+                "                        }\n" +
+                "                    }"
         );
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
@@ -670,17 +667,17 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         Service dynamicProperty = new Service();
         dynamicProperty.setConfiguration(
             "{\n" +
-            "        \"enabled\": true,\n" +
-            "        \"schedule\": \"*/10 * * * * *\",\n" +
-            "        \"provider\": \"HTTP\",\n" +
-            "        \"configuration\": {\n" +
-            "          \"url\": \"https://api.gravitee.io/echo\",\n" +
-            "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
-            "          \"useSystemProxy\": false,\n" +
-            "          \"method\": \"GET\",\n" +
-            "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
-            "        }\n" +
-            "      }"
+                "        \"enabled\": true,\n" +
+                "        \"schedule\": \"*/10 * * * * *\",\n" +
+                "        \"provider\": \"HTTP\",\n" +
+                "        \"configuration\": {\n" +
+                "          \"url\": \"https://api.gravitee.io/echo\",\n" +
+                "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
+                "          \"useSystemProxy\": false,\n" +
+                "          \"method\": \"GET\",\n" +
+                "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
+                "        }\n" +
+                "      }"
         );
         dynamicProperty.setType("dynamic-property");
         dynamicProperty.setEnabled(true);
@@ -718,33 +715,33 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         httpConfiguration.setUseSystemProxy(false);
         httpConfiguration.setSpecification(
             "[{\n" +
-            "    \"operation\": \"shift\",\n" +
-            "    \"spec\": {\n" +
-            "      \"rating\": {\n" +
-            "        \"primary\": {\n" +
-            "          \"value\": \"Rating\",\n" +
-            "          \"max\": \"RatingRange\"\n" +
-            "        },\n" +
-            "        \"*\": {\n" +
-            "          \"max\": \"SecondaryRatings.&1.Range\",\n" +
-            "          \"value\": \"SecondaryRatings.&1.Value\",\n" +
-            "          \"$\": \"SecondaryRatings.&1.Id\"\n" +
-            "        }\n" +
-            "      }\n" +
-            "    }\n" +
-            "  },\n" +
-            "  {\n" +
-            "    \"operation\": \"default\",\n" +
-            "    \"spec\": {\n" +
-            "      \"Range\": 5,\n" +
-            "      \"SecondaryRatings\": {\n" +
-            "        \"*\": {\n" +
-            "          \"Range\": 5\n" +
-            "        }\n" +
-            "      }\n" +
-            "    }\n" +
-            "  }\n" +
-            "]"
+                "    \"operation\": \"shift\",\n" +
+                "    \"spec\": {\n" +
+                "      \"rating\": {\n" +
+                "        \"primary\": {\n" +
+                "          \"value\": \"Rating\",\n" +
+                "          \"max\": \"RatingRange\"\n" +
+                "        },\n" +
+                "        \"*\": {\n" +
+                "          \"max\": \"SecondaryRatings.&1.Range\",\n" +
+                "          \"value\": \"SecondaryRatings.&1.Value\",\n" +
+                "          \"$\": \"SecondaryRatings.&1.Id\"\n" +
+                "        }\n" +
+                "      }\n" +
+                "    }\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"operation\": \"default\",\n" +
+                "    \"spec\": {\n" +
+                "      \"Range\": 5,\n" +
+                "      \"SecondaryRatings\": {\n" +
+                "        \"*\": {\n" +
+                "          \"Range\": 5\n" +
+                "        }\n" +
+                "      }\n" +
+                "    }\n" +
+                "  }\n" +
+                "]"
         );
         dynamicPropertyService.setConfiguration(httpConfiguration);
         services.setDynamicPropertyService(dynamicPropertyService);

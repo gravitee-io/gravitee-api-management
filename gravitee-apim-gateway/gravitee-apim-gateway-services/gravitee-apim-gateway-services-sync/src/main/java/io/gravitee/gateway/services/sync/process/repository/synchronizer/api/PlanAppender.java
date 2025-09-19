@@ -116,8 +116,8 @@ public class PlanAppender {
                     .setPlans(
                         plans
                             .stream()
-                            .filter(plan ->
-                                Plan.Status.PUBLISHED.equals(plan.getStatus()) || Plan.Status.DEPRECATED.equals(plan.getStatus())
+                            .filter(
+                                plan -> Plan.Status.PUBLISHED.equals(plan.getStatus()) || Plan.Status.DEPRECATED.equals(plan.getStatus())
                             )
                             .map(this::convert)
                             .collect(Collectors.toList())

@@ -49,14 +49,10 @@ public class PolicyChainFactory {
         final StreamType streamType,
         final ExecutionContext context
     ) {
-        return create(
-            resolvedPolicies,
-            streamType,
-            context,
-            policies ->
-                streamType == StreamType.ON_REQUEST
-                    ? OrderedPolicyChain.create(policies, context)
-                    : ReversedPolicyChain.create(policies, context)
+        return create(resolvedPolicies, streamType, context, policies ->
+            streamType == StreamType.ON_REQUEST
+                ? OrderedPolicyChain.create(policies, context)
+                : ReversedPolicyChain.create(policies, context)
         );
     }
 

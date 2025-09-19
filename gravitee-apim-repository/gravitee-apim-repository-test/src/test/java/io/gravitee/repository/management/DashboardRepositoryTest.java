@@ -54,10 +54,9 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
             "c9d5390e-6387-4943-a123-613df16a419f"
         );
 
-        assertThat(dashboard)
-            .hasValueSatisfying(result -> {
-                assertThat(result.getName()).isEqualTo("Geo dashboard - the only one of OTHER_ENV");
-            });
+        assertThat(dashboard).hasValueSatisfying(result -> {
+            assertThat(result.getName()).isEqualTo("Geo dashboard - the only one of OTHER_ENV");
+        });
     }
 
     @Test
@@ -140,7 +139,12 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
             .size();
         dashboardRepository.update(dashboard);
         int nbDashboardsAfterUpdate = dashboardRepository.findByReferenceAndType(ENVIRONMENT, "DEFAULT", "PLATFORM").size();
-        int nbAllDashboardsAfterUpdate = dashboardRepository.findAll().stream().filter(d -> d.getType().equals("PLATFORM")).toList().size();
+        int nbAllDashboardsAfterUpdate = dashboardRepository
+            .findAll()
+            .stream()
+            .filter(d -> d.getType().equals("PLATFORM"))
+            .toList()
+            .size();
 
         assertThat(nbDashboardsAfterUpdate).isEqualTo(nbDashboardsBeforeUpdate - 1);
         assertThat(nbAllDashboardsBeforeUpdate).isEqualTo(nbAllDashboardsAfterUpdate);

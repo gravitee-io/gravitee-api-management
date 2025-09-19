@@ -63,78 +63,60 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
             .search(null, -1L, -1L)
             .test()
             .await()
-            .assertValueAt(
-                0,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("1");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-24T15:24:34.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("2");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-25T15:24:54.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("3");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.DICTIONARY);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-26T15:25:14.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                3,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("4");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API_KEY);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:24:34.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                4,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("5");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:25:34.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                5,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("DEFAULT");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.LICENSE);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2024-01-24T16:35:34.051Z"));
-                    return true;
-                }
-            );
+            .assertValueAt(0, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("1");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-24T15:24:34.051Z"));
+                return true;
+            })
+            .assertValueAt(1, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("2");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-25T15:24:54.051Z"));
+                return true;
+            })
+            .assertValueAt(2, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("3");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.DICTIONARY);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-26T15:25:14.051Z"));
+                return true;
+            })
+            .assertValueAt(3, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("4");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API_KEY);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:24:34.051Z"));
+                return true;
+            })
+            .assertValueAt(4, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("5");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:25:34.051Z"));
+                return true;
+            })
+            .assertValueAt(5, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("DEFAULT");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.LICENSE);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2024-01-24T16:35:34.051Z"));
+                return true;
+            });
     }
 
     @Test
@@ -188,30 +170,24 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
             .search(DistributedEventCriteria.builder().type(DistributedEventType.API).build(), -1L, -1L)
             .test()
             .await()
-            .assertValueAt(
-                0,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("1");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-24T15:24:34.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("2");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-25T15:24:54.051Z"));
-                    return true;
-                }
-            );
+            .assertValueAt(0, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("1");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-24T15:24:34.051Z"));
+                return true;
+            })
+            .assertValueAt(1, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("2");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-25T15:24:54.051Z"));
+                return true;
+            });
     }
 
     @Test
@@ -239,8 +215,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     public void should_return_deployed_and_undeployed_api_distributed_event() throws InterruptedException {
         distributedEventRepository
             .search(
-                DistributedEventCriteria
-                    .builder()
+                DistributedEventCriteria.builder()
                     .type(DistributedEventType.API)
                     .syncActions(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
                     .build(),
@@ -249,30 +224,24 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
             )
             .test()
             .await()
-            .assertValueAt(
-                0,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("1");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-24T15:24:34.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("2");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-25T15:24:54.051Z"));
-                    return true;
-                }
-            );
+            .assertValueAt(0, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("1");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-24T15:24:34.051Z"));
+                return true;
+            })
+            .assertValueAt(1, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("2");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-25T15:24:54.051Z"));
+                return true;
+            });
     }
 
     @Test
@@ -281,54 +250,42 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
             .search(DistributedEventCriteria.builder().from(Instant.parse("2023-04-25T15:24:40.051Z").toEpochMilli()).build(), -1L, -1L)
             .test()
             .await()
-            .assertValueAt(
-                0,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("2");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-25T15:24:54.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("3");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.DICTIONARY);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-26T15:25:14.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("4");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API_KEY);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:24:34.051Z"));
-                    return true;
-                }
-            )
-            .assertValueAt(
-                3,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getId()).isEqualTo("5");
-                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
-                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:25:34.051Z"));
-                    return true;
-                }
-            );
+            .assertValueAt(0, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("2");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-25T15:24:54.051Z"));
+                return true;
+            })
+            .assertValueAt(1, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("3");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.DICTIONARY);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-04-26T15:25:14.051Z"));
+                return true;
+            })
+            .assertValueAt(2, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("4");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.API_KEY);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:24:34.051Z"));
+                return true;
+            })
+            .assertValueAt(3, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getId()).isEqualTo("5");
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:25:34.051Z"));
+                return true;
+            });
     }
 
     @Test
@@ -352,8 +309,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     public void should_return_updated_between_from_and_to_distributed_event() throws InterruptedException {
         distributedEventRepository
             .search(
-                DistributedEventCriteria
-                    .builder()
+                DistributedEventCriteria.builder()
                     .from(Instant.parse("2023-04-24T15:24:40.051Z").toEpochMilli())
                     .to(Instant.parse("2023-04-26T15:25:00.051Z").toEpochMilli())
                     .build(),
@@ -382,23 +338,17 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
             .test()
             .await()
             .assertValueCount(2)
-            .assertValueAt(
-                0,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                distributedEvent -> {
-                    assertThat(distributedEvent).isNotNull();
-                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
-                    return true;
-                }
-            );
+            .assertValueAt(0, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
+                return true;
+            })
+            .assertValueAt(1, distributedEvent -> {
+                assertThat(distributedEvent).isNotNull();
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
+                return true;
+            });
     }
 }

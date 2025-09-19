@@ -268,12 +268,9 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                     validateAndSetHealthCheckConfiguration(serviceHealthCheck);
                 }
 
-                final var hcGroupWithoutConfig =
-                    (
-                        groupServices == null ||
-                        groupServices.getHealthCheck() == null ||
-                        isBlank(groupServices.getHealthCheck().getConfiguration())
-                    );
+                final var hcGroupWithoutConfig = (groupServices == null ||
+                    groupServices.getHealthCheck() == null ||
+                    isBlank(groupServices.getHealthCheck().getConfiguration()));
                 if (!serviceHealthCheck.isOverrideConfiguration() && hcGroupWithoutConfig) {
                     logger.debug("HealthCheck inherit from a missing configuration");
                     throw new HealthcheckInheritanceException();

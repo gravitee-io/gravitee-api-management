@@ -57,8 +57,9 @@ class ApiExportDomainServiceImplTest {
         plan.setId(UUID.randomUUID().toString());
         plan.setSecurity(new PlanSecurity().withType("api-key").withConfiguration("{}"));
         plan.setType(PlanType.API);
-        when(exportService.exportApi(any(), any(), any(), any()))
-            .thenReturn(new ExportApiEntity(api, null, null, null, Set.of(plan), null));
+        when(exportService.exportApi(any(), any(), any(), any())).thenReturn(
+            new ExportApiEntity(api, null, null, null, Set.of(plan), null)
+        );
 
         // When
         GraviteeDefinition export = sut.export(apiId, AuditInfo.builder().build());

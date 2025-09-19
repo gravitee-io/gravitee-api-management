@@ -285,13 +285,12 @@ public class SubscriptionCacheService implements SubscriptionService {
         final ReactableApi<?> reactableApi = apiManager.get(subscription.getApi());
         final Set<String> servers;
         if (reactableApi instanceof Api api) {
-            servers =
-                api
-                    .getDefinition()
-                    .getListeners()
-                    .stream()
-                    .flatMap(l -> l.getServers() != null ? l.getServers().stream() : Stream.empty())
-                    .collect(Collectors.toSet());
+            servers = api
+                .getDefinition()
+                .getListeners()
+                .stream()
+                .flatMap(l -> l.getServers() != null ? l.getServers().stream() : Stream.empty())
+                .collect(Collectors.toSet());
         } else {
             servers = Set.of();
             if (reactableApi == null) {

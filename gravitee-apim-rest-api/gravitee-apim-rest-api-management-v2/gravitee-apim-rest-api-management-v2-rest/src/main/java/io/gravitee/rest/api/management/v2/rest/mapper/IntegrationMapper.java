@@ -58,11 +58,22 @@ public interface IntegrationMapper {
     IngestionStatus map(AsyncJob.Status source);
 
     static IngestionPreviewResponse mapper(DiscoveryUseCase.Output preview) {
-        return IngestionPreviewResponse
-            .builder()
+        return IngestionPreviewResponse.builder()
             .totalCount(preview.apis().size())
-            .newCount(preview.apis().stream().filter(api -> api.state() == NEW).count())
-            .updateCount(preview.apis().stream().filter(api -> api.state() == UPDATE).count())
+            .newCount(
+                preview
+                    .apis()
+                    .stream()
+                    .filter(api -> api.state() == NEW)
+                    .count()
+            )
+            .updateCount(
+                preview
+                    .apis()
+                    .stream()
+                    .filter(api -> api.state() == UPDATE)
+                    .count()
+            )
             .apis(
                 preview
                     .apis()

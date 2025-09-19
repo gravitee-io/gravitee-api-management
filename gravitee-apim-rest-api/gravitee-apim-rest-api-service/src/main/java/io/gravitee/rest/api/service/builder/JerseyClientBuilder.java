@@ -76,55 +76,55 @@ public class JerseyClientBuilder {
         final Proxy httpsProxy = buildProxy(environment, HTTPS_SCHEME);
         final String httpsProxyAuth = buildProxyAuth(environment, HTTPS_SCHEME);
 
-        final List<String> proxyExcludeHosts = EnvironmentUtils
-            .getPropertiesStartingWith((ConfigurableEnvironment) environment, "httpClient.proxy.exclude-hosts")
+        final List<String> proxyExcludeHosts = EnvironmentUtils.getPropertiesStartingWith(
+            (ConfigurableEnvironment) environment,
+            "httpClient.proxy.exclude-hosts"
+        )
             .values()
             .stream()
             .map(String::valueOf)
             .collect(Collectors.toList());
 
-        final ClientConfig clientConfig = new ClientConfig()
-            .connectorProvider(
-                new HttpUrlConnectorProvider()
-                    .connectionFactory(url -> {
-                        final String host = url.getHost();
-                        final boolean excluded = proxyExcludeHosts
-                            .stream()
-                            .anyMatch(excludedHost -> {
-                                if (excludedHost.startsWith("*.")) {
-                                    return host.endsWith(WILCARD_PATTERN.matcher(excludedHost).replaceFirst(""));
-                                } else {
-                                    return host.equals(excludedHost);
-                                }
-                            });
-
-                        if (excluded || (httpProxy == null && httpsProxy == null)) {
-                            return (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
-                        }
-
-                        final HttpURLConnection uc;
-
-                        if (url.getProtocol().equals(HTTPS_SCHEME) && httpsProxy != null) {
-                            uc = (HttpURLConnection) url.openConnection(httpsProxy);
-                            if (useSockProxy(environment, HTTPS_SCHEME)) {
-                                buildSockProxyAuth(environment, HTTPS_SCHEME);
-                            } else if (httpsProxyAuth != null) {
-                                uc.setRequestProperty(PROXY_AUTHORIZATION, "Basic " + httpsProxyAuth);
-                            }
-                        } else if (url.getProtocol().equals(HTTP_SCHEME) && httpProxy != null) {
-                            uc = (HttpURLConnection) url.openConnection(httpProxy);
-                            if (useSockProxy(environment, HTTP_SCHEME)) {
-                                buildSockProxyAuth(environment, HTTP_SCHEME);
-                            } else if (httpProxyAuth != null) {
-                                uc.setRequestProperty(PROXY_AUTHORIZATION, "Basic " + httpProxyAuth);
-                            }
+        final ClientConfig clientConfig = new ClientConfig().connectorProvider(
+            new HttpUrlConnectorProvider().connectionFactory(url -> {
+                final String host = url.getHost();
+                final boolean excluded = proxyExcludeHosts
+                    .stream()
+                    .anyMatch(excludedHost -> {
+                        if (excludedHost.startsWith("*.")) {
+                            return host.endsWith(WILCARD_PATTERN.matcher(excludedHost).replaceFirst(""));
                         } else {
-                            uc = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+                            return host.equals(excludedHost);
                         }
+                    });
 
-                        return uc;
-                    })
-            );
+                if (excluded || (httpProxy == null && httpsProxy == null)) {
+                    return (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+                }
+
+                final HttpURLConnection uc;
+
+                if (url.getProtocol().equals(HTTPS_SCHEME) && httpsProxy != null) {
+                    uc = (HttpURLConnection) url.openConnection(httpsProxy);
+                    if (useSockProxy(environment, HTTPS_SCHEME)) {
+                        buildSockProxyAuth(environment, HTTPS_SCHEME);
+                    } else if (httpsProxyAuth != null) {
+                        uc.setRequestProperty(PROXY_AUTHORIZATION, "Basic " + httpsProxyAuth);
+                    }
+                } else if (url.getProtocol().equals(HTTP_SCHEME) && httpProxy != null) {
+                    uc = (HttpURLConnection) url.openConnection(httpProxy);
+                    if (useSockProxy(environment, HTTP_SCHEME)) {
+                        buildSockProxyAuth(environment, HTTP_SCHEME);
+                    } else if (httpProxyAuth != null) {
+                        uc.setRequestProperty(PROXY_AUTHORIZATION, "Basic " + httpProxyAuth);
+                    }
+                } else {
+                    uc = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
+                }
+
+                return uc;
+            })
+        );
 
         builder.withConfig(clientConfig);
     }

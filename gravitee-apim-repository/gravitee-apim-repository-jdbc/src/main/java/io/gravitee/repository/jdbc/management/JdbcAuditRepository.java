@@ -57,8 +57,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     @Override
     protected JdbcObjectMapper<Audit> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Audit.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(Audit.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
@@ -127,8 +126,9 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(audit, audit.getId()));
             storeProperties(audit, true);
-            return findById(audit.getId())
-                .orElseThrow(() -> new IllegalStateException(format("No audit found with id [%s]", audit.getId())));
+            return findById(audit.getId()).orElseThrow(() ->
+                new IllegalStateException(format("No audit found with id [%s]", audit.getId()))
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {

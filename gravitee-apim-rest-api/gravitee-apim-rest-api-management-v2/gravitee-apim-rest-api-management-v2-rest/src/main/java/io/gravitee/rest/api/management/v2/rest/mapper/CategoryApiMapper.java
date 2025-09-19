@@ -83,9 +83,10 @@ public interface CategoryApiMapper {
                     if (Objects.nonNull(virtualHosts)) {
                         return virtualHosts
                             .stream()
-                            .map(virtualHost ->
-                                Optional.ofNullable(virtualHost.getHost()).orElse("") +
-                                Optional.ofNullable(virtualHost.getPath()).orElse("")
+                            .map(
+                                virtualHost ->
+                                    Optional.ofNullable(virtualHost.getHost()).orElse("") +
+                                    Optional.ofNullable(virtualHost.getPath()).orElse("")
                             )
                             .toList();
                     }

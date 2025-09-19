@@ -48,7 +48,7 @@ public class RoundRobinLoadBalancingMultipleTest extends AbstractWiremockGateway
             HttpResponse response = request.execute().returnResponse();
 
             assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-            wireMockRule.verify((i / 2) + 1, getRequestedFor(urlEqualTo("/api" + (i % 2 + 1))));
+            wireMockRule.verify((i / 2) + 1, getRequestedFor(urlEqualTo("/api" + ((i % 2) + 1))));
         }
 
         wireMockRule.verify(calls / 2, getRequestedFor(urlPathEqualTo("/api1")));

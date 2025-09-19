@@ -217,8 +217,9 @@ public class PlanService_CreateOrUpdateTest {
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getMode()).thenReturn(Plan.PlanMode.STANDARD);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn(true);
+        when(
+            parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(true);
 
         when(planRepository.update(any())).thenAnswer(returnsFirstArg());
     }
@@ -234,8 +235,9 @@ public class PlanService_CreateOrUpdateTest {
         when(plan.getMode()).thenReturn(Plan.PlanMode.STANDARD);
         lenient().when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.create(any())).thenReturn(plan);
-        when(parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
-            .thenReturn(true);
+        when(
+            parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(true);
     }
 
     private PlanEntity initPlanEntity(String planId) {

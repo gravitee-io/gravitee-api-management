@@ -80,14 +80,13 @@ class DistributedApiSynchronizerTest {
 
     @BeforeEach
     public void beforeEach() {
-        cut =
-            new DistributedApiSynchronizer(
-                eventsFetcher,
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                deployerFactory,
-                new ApiMapper(objectMapper, new SubscriptionMapper(objectMapper), new ApiKeyMapper(objectMapper))
-            );
+        cut = new DistributedApiSynchronizer(
+            eventsFetcher,
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            deployerFactory,
+            new ApiMapper(objectMapper, new SubscriptionMapper(objectMapper), new ApiKeyMapper(objectMapper))
+        );
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createApiDeployer()).thenReturn(apiDeployer);
         lenient().when(apiDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -117,13 +116,12 @@ class DistributedApiSynchronizerTest {
         void should_fetch_incremental_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher)
-                .fetchLatest(
-                    any(),
-                    any(),
-                    eq(DistributedEventType.API),
-                    eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
-                );
+            verify(eventsFetcher).fetchLatest(
+                any(),
+                any(),
+                eq(DistributedEventType.API),
+                eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
+            );
         }
     }
 
@@ -153,8 +151,7 @@ class DistributedApiSynchronizerTest {
 
         @Test
         void should_register_api_when_fetching_publish_events() throws InterruptedException, JsonProcessingException {
-            DistributedEvent distributedEvent = DistributedEvent
-                .builder()
+            DistributedEvent distributedEvent = DistributedEvent.builder()
                 .id("api")
                 .payload(objectMapper.writeValueAsString(reactableApi))
                 .type(DistributedEventType.API)
@@ -171,8 +168,7 @@ class DistributedApiSynchronizerTest {
 
         @Test
         void should_unregister_api_when_fetching_close_events() throws InterruptedException, JsonProcessingException {
-            DistributedEvent distributedEvent = DistributedEvent
-                .builder()
+            DistributedEvent distributedEvent = DistributedEvent.builder()
                 .id("api")
                 .payload(objectMapper.writeValueAsString(reactableApi))
                 .type(DistributedEventType.API)
@@ -202,8 +198,7 @@ class DistributedApiSynchronizerTest {
             api.setType(ApiType.PROXY);
             PlanSecurity planSecurity = new PlanSecurity();
             planSecurity.setType("api-key");
-            io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan
-                .builder()
+            io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan.builder()
                 .id("planId")
                 .security(planSecurity)
                 .status(PlanStatus.PUBLISHED)
@@ -215,8 +210,7 @@ class DistributedApiSynchronizerTest {
 
         @Test
         void should_register_api_when_fetching_publish_events() throws InterruptedException, JsonProcessingException {
-            DistributedEvent distributedEvent = DistributedEvent
-                .builder()
+            DistributedEvent distributedEvent = DistributedEvent.builder()
                 .id("api")
                 .payload(objectMapper.writeValueAsString(reactableApi))
                 .type(DistributedEventType.API)
@@ -233,8 +227,7 @@ class DistributedApiSynchronizerTest {
 
         @Test
         void should_unregister_api_when_fetching_close_events() throws InterruptedException, JsonProcessingException {
-            DistributedEvent distributedEvent = DistributedEvent
-                .builder()
+            DistributedEvent distributedEvent = DistributedEvent.builder()
                 .id("api")
                 .payload(objectMapper.writeValueAsString(reactableApi))
                 .type(DistributedEventType.API)

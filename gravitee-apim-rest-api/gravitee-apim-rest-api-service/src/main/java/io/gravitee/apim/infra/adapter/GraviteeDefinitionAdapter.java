@@ -88,8 +88,7 @@ public interface GraviteeDefinitionAdapter {
      * @return the mapped PlanSecurity
      */
     default PlanSecurity mapPlanSecurity(io.gravitee.definition.model.v4.plan.PlanSecurity source) {
-        return PlanSecurity
-            .builder()
+        return PlanSecurity.builder()
             .type(PlanSecurityType.valueOfLabel(source.getType()).name())
             .configuration(source.getConfiguration())
             .build();

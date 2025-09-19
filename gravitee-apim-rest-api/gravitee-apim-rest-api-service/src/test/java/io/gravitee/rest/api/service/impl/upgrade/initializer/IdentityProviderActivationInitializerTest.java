@@ -52,13 +52,12 @@ public class IdentityProviderActivationInitializerTest {
         idp.setId("identity-provider");
         when(identityProviderService.findAll(any(ExecutionContext.class))).thenReturn(Set.of(idp));
         initializer.initialize();
-        verify(identityProviderActivationService, times(1))
-            .activateIdpOnTargets(
-                any(ExecutionContext.class),
-                eq("identity-provider"),
-                argThat(target -> target.getReferenceId().equals("DEFAULT")),
-                argThat(target -> target.getReferenceId().equals("DEFAULT"))
-            );
+        verify(identityProviderActivationService, times(1)).activateIdpOnTargets(
+            any(ExecutionContext.class),
+            eq("identity-provider"),
+            argThat(target -> target.getReferenceId().equals("DEFAULT")),
+            argThat(target -> target.getReferenceId().equals("DEFAULT"))
+        );
     }
 
     @Test

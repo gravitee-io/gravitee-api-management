@@ -49,8 +49,7 @@ public class NotificationConfig {
 
     public static NotificationConfig defaultMailNotificationConfigFor(String apiId) {
         var now = TimeProvider.now();
-        return NotificationConfig
-            .builder()
+        return NotificationConfig.builder()
             .type(Type.GENERIC)
             .id(UuidString.generateRandom())
             .name("Default Mail Notifications")

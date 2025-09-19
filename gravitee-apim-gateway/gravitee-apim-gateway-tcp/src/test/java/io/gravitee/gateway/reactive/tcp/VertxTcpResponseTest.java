@@ -200,6 +200,8 @@ class VertxTcpResponseTest {
     }
 
     private void assertResponseEnded() {
-        assertThat(cut.ended()).withFailMessage(() -> "response is not ended").isTrue();
+        assertThat(cut.ended())
+            .withFailMessage(() -> "response is not ended")
+            .isTrue();
     }
 }

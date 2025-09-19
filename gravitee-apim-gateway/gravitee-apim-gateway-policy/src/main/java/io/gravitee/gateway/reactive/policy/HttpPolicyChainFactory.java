@@ -58,8 +58,7 @@ public class HttpPolicyChainFactory implements PolicyChainFactory<HttpPolicyChai
     public HttpPolicyChainFactory(final String id, final PolicyManager policyManager, final boolean tracing) {
         this.policyManager = policyManager;
 
-        final CacheConfiguration cacheConfiguration = CacheConfiguration
-            .builder()
+        final CacheConfiguration cacheConfiguration = CacheConfiguration.builder()
             .maxSize(CACHE_MAX_SIZE)
             .timeToIdleInMs(CACHE_TIME_TO_IDLE_MS)
             .build();

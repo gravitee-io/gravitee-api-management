@@ -70,8 +70,9 @@ public class ClientRegistrationProvidersResourceTest extends AbstractResourceTes
 
         ClientRegistrationProviderEntity createdClientRegistrationProvider = new ClientRegistrationProviderEntity();
         createdClientRegistrationProvider.setId("my-client-registration-provider-id");
-        when(clientRegistrationService.create(eq(GraviteeContext.getExecutionContext()), any()))
-            .thenReturn(createdClientRegistrationProvider);
+        when(clientRegistrationService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(
+            createdClientRegistrationProvider
+        );
 
         final Response response = envTarget().request().post(Entity.json(newClientRegistrationProviderEntity));
         assertEquals(CREATED_201, response.getStatus());

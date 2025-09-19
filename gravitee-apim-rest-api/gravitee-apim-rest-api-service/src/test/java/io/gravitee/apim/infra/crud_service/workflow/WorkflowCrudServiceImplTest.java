@@ -63,8 +63,7 @@ class WorkflowCrudServiceImplTest {
             assertThat(captor.getValue())
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    io.gravitee.repository.management.model.Workflow
-                        .builder()
+                    io.gravitee.repository.management.model.Workflow.builder()
                         .id("workflow-id")
                         .referenceType("API")
                         .referenceId("api-id")
@@ -104,8 +103,7 @@ class WorkflowCrudServiceImplTest {
     }
 
     private static Workflow aWorkflow() {
-        return Workflow
-            .builder()
+        return Workflow.builder()
             .id("workflow-id")
             .referenceType(Workflow.ReferenceType.API)
             .referenceId("api-id")

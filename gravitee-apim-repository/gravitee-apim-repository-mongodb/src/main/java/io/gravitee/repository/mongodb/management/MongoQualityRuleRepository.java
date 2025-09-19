@@ -114,7 +114,10 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
     @Override
     public Set<QualityRule> findAll() {
         final List<QualityRuleMongo> qualityRules = internalQualityRuleRepo.findAll();
-        return qualityRules.stream().map(qualityRuleMongo -> mapper.map(qualityRuleMongo)).collect(toSet());
+        return qualityRules
+            .stream()
+            .map(qualityRuleMongo -> mapper.map(qualityRuleMongo))
+            .collect(toSet());
     }
 
     @Override

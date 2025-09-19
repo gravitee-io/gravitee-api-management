@@ -131,13 +131,13 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
             for (int order = 0; order < flows.size(); ++order) {
                 var flow = flows.get(order);
                 if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
-                    dbFlow =
-                        flowRepository.create(FlowAdapter.INSTANCE.toRepositoryFromAbstract(flow, flowReferenceType, referenceId, order));
+                    dbFlow = flowRepository.create(
+                        FlowAdapter.INSTANCE.toRepositoryFromAbstract(flow, flowReferenceType, referenceId, order)
+                    );
                 } else {
-                    dbFlow =
-                        flowRepository.update(
-                            FlowAdapter.INSTANCE.toRepositoryUpdateFromAbstract(dbFlowsById.get(flow.getId()), flow, order)
-                        );
+                    dbFlow = flowRepository.update(
+                        FlowAdapter.INSTANCE.toRepositoryUpdateFromAbstract(dbFlowsById.get(flow.getId()), flow, order)
+                    );
                 }
                 savedFlows.add(dbFlow);
             }

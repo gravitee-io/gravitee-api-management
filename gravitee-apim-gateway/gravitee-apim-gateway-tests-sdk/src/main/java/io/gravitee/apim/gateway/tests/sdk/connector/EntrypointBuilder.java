@@ -28,15 +28,17 @@ public class EntrypointBuilder {
         throw new IllegalStateException("Utility class");
     }
 
-    public static <
-        T extends EntrypointConnectorFactory<?>, U extends EntrypointConnectorConfiguration
-    > EntrypointConnectorPlugin<T, U> build(String id, Class<T> entrypointConnectorFactory) {
+    public static <T extends EntrypointConnectorFactory<?>, U extends EntrypointConnectorConfiguration> EntrypointConnectorPlugin<
+        T,
+        U
+    > build(String id, Class<T> entrypointConnectorFactory) {
         return build(id, entrypointConnectorFactory, null);
     }
 
-    public static <
-        T extends EntrypointConnectorFactory<?>, U extends EntrypointConnectorConfiguration
-    > EntrypointConnectorPlugin<T, U> build(String id, Class<T> entrypointConnectorFactory, Class<U> entrypointConfiguration) {
+    public static <T extends EntrypointConnectorFactory<?>, U extends EntrypointConnectorConfiguration> EntrypointConnectorPlugin<
+        T,
+        U
+    > build(String id, Class<T> entrypointConnectorFactory, Class<U> entrypointConfiguration) {
         return new EntrypointConnectorPlugin<>() {
             @Override
             public Class<T> connectorFactory() {

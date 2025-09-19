@@ -96,8 +96,7 @@ public class DictionaryManagerTest {
         trigger.setRate(1);
         trigger.setUnit(TimeUnit.SECONDS);
 
-        final DictionaryEntity dictionary = DictionaryEntity
-            .builder()
+        final DictionaryEntity dictionary = DictionaryEntity.builder()
             .updatedAt(new Date())
             .provider(provider)
             .id(DICTIONARY_ID)
@@ -108,8 +107,7 @@ public class DictionaryManagerTest {
         triggerUpdated.setRate(1);
         triggerUpdated.setUnit(TimeUnit.MINUTES);
 
-        final DictionaryEntity dictionaryUpdated = DictionaryEntity
-            .builder()
+        final DictionaryEntity dictionaryUpdated = DictionaryEntity.builder()
             .updatedAt(new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()))
             .provider(provider)
             .id(DICTIONARY_ID)
@@ -135,8 +133,7 @@ public class DictionaryManagerTest {
         trigger.setRate(1);
         trigger.setUnit(TimeUnit.SECONDS);
 
-        final DictionaryEntity dictionary = DictionaryEntity
-            .builder()
+        final DictionaryEntity dictionary = DictionaryEntity.builder()
             .updatedAt(new Date())
             .provider(provider)
             .id(DICTIONARY_ID)
@@ -146,8 +143,7 @@ public class DictionaryManagerTest {
         final DictionaryProviderEntity providerUpdated = new DictionaryProviderEntity();
         providerUpdated.setConfiguration(JsonNodeFactory.instance.arrayNode());
 
-        final DictionaryEntity dictionaryUpdated = DictionaryEntity
-            .builder()
+        final DictionaryEntity dictionaryUpdated = DictionaryEntity.builder()
             .updatedAt(new Date(ZonedDateTime.now().plusSeconds(60).toInstant().toEpochMilli()))
             .provider(providerUpdated)
             .id(DICTIONARY_ID)
@@ -167,7 +163,9 @@ public class DictionaryManagerTest {
     @Test
     public void shouldStop() {
         cut.stop(DICTIONARY_ID);
-        verify(eventManager, times(1))
-            .publishEvent(eq(DictionaryEvent.STOP), argThat(dictionary -> (((DictionaryEntity) dictionary).getId().equals(DICTIONARY_ID))));
+        verify(eventManager, times(1)).publishEvent(
+            eq(DictionaryEvent.STOP),
+            argThat(dictionary -> (((DictionaryEntity) dictionary).getId().equals(DICTIONARY_ID)))
+        );
     }
 }

@@ -57,15 +57,13 @@ class ApiKeyAppenderTest {
 
     @Test
     void should_do_nothing_when_no_apikeys_for_given_deployables() {
-        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable.builder()
             .apiId("api1")
             .reactableApi(mock(ReactableApi.class))
             .subscriptions(List.of(Subscription.builder().id("subscription1").plan("plan1").build()))
             .apiKeyPlans(Set.of("plan1"))
             .build();
-        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable.builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
             .subscriptions(List.of(Subscription.builder().id("subscription2").plan("plan2").build()))
@@ -78,8 +76,7 @@ class ApiKeyAppenderTest {
 
     @Test
     void should_appends_apikeys_for_given_deployable() throws TechnicalException {
-        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable
-            .builder()
+        ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable.builder()
             .apiId("api1")
             .reactableApi(mock(ReactableApi.class))
             .subscriptions(
@@ -94,10 +91,10 @@ class ApiKeyAppenderTest {
         e1.setSubscriptions(List.of("subscription1"));
         ApiKey e2 = new ApiKey();
         e2.setSubscriptions(List.of("subscription1"));
-        when(apiKeyRepository.findByCriteria(argThat(argument -> argument.getEnvironments().equals(Set.of("env"))), any()))
-            .thenReturn(List.of(e1, e2));
-        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable
-            .builder()
+        when(apiKeyRepository.findByCriteria(argThat(argument -> argument.getEnvironments().equals(Set.of("env"))), any())).thenReturn(
+            List.of(e1, e2)
+        );
+        ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable.builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
             .subscriptions(List.of(Subscription.builder().id("subscription2").api("api2").plan("noapikeyplan").build()))

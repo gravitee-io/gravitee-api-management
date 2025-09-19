@@ -24,15 +24,15 @@ import lombok.Getter;
 @Getter
 public class TimeProvider {
 
-    private static final DateTimeFormatter DATE_TIME_FORMATTER_WITH_DASH = DateTimeFormatter
-        .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxxx")
-        .withZone(ZoneId.systemDefault());
-    private static final DateTimeFormatter DATE_FORMATTER_WITH_DASH = DateTimeFormatter
-        .ofPattern("yyyy-MM-dd")
-        .withZone(ZoneId.systemDefault());
-    private static final DateTimeFormatter DATE_FORMATTER_WITH_DOT = DateTimeFormatter
-        .ofPattern("yyyy.MM.dd")
-        .withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter DATE_TIME_FORMATTER_WITH_DASH = DateTimeFormatter.ofPattern(
+        "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"
+    ).withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter DATE_FORMATTER_WITH_DASH = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(
+        ZoneId.systemDefault()
+    );
+    private static final DateTimeFormatter DATE_FORMATTER_WITH_DOT = DateTimeFormatter.ofPattern("yyyy.MM.dd").withZone(
+        ZoneId.systemDefault()
+    );
 
     private final Instant now;
     private final String dateToday;

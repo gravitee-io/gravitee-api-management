@@ -37,23 +37,24 @@ public class ServiceMapperTest {
         var services = serviceMapper.map(apiServicesV2);
         assertThat(services.getDynamicPropertyService().getName()).isEqualTo(DynamicPropertyService.SERVICE_KEY);
         assertThat(services.getDynamicPropertyService().isEnabled()).isEqualTo(apiServicesV2.getDynamicProperty().getEnabled());
-        assertThat(services.getDynamicPropertyService().getProvider().name())
-            .isEqualTo(apiServicesV2.getDynamicProperty().getProvider().name());
+        assertThat(services.getDynamicPropertyService().getProvider().name()).isEqualTo(
+            apiServicesV2.getDynamicProperty().getProvider().name()
+        );
         assertThat(services.getDynamicPropertyService().getSchedule()).isEqualTo(apiServicesV2.getDynamicProperty().getSchedule());
         assertThat(services.getDynamicPropertyService().getConfiguration()).isInstanceOf(HttpDynamicPropertyProviderConfiguration.class);
         var config = (HttpDynamicPropertyProviderConfiguration) services.getDynamicPropertyService().getConfiguration();
-        assertThat(config.getUrl())
-            .isEqualTo(apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getUrl());
-        assertThat(config.getMethod().name())
-            .isEqualTo(
-                apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getMethod().name()
-            );
-        assertThat(config.getSpecification())
-            .isEqualTo(
-                apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getSpecification()
-            );
-        assertThat(config.getBody())
-            .isEqualTo(apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getBody());
+        assertThat(config.getUrl()).isEqualTo(
+            apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getUrl()
+        );
+        assertThat(config.getMethod().name()).isEqualTo(
+            apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getMethod().name()
+        );
+        assertThat(config.getSpecification()).isEqualTo(
+            apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getSpecification()
+        );
+        assertThat(config.getBody()).isEqualTo(
+            apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getBody()
+        );
         assertThat(services.getDiscoveryService()).isNull();
         assertThat(services.getHealthCheckService()).isNotNull();
     }
@@ -75,8 +76,9 @@ public class ServiceMapperTest {
         assertThat(services.getDiscoveryService().getName()).isEqualTo(EndpointDiscoveryService.SERVICE_KEY);
         assertThat(services.getDiscoveryService().isEnabled()).isEqualTo(endpointGroupServicesV2ServicesV2.getDiscovery().getEnabled());
         assertThat(services.getDiscoveryService().getProvider()).isEqualTo(endpointGroupServicesV2ServicesV2.getDiscovery().getProvider());
-        assertThat(services.getDiscoveryService().getConfiguration())
-            .isEqualTo(new GraviteeMapper().writeValueAsString(endpointGroupServicesV2ServicesV2.getDiscovery().getConfiguration()));
+        assertThat(services.getDiscoveryService().getConfiguration()).isEqualTo(
+            new GraviteeMapper().writeValueAsString(endpointGroupServicesV2ServicesV2.getDiscovery().getConfiguration())
+        );
         assertThat(services.getDynamicPropertyService()).isNull();
         assertThat(services.getHealthCheckService()).isNull();
     }

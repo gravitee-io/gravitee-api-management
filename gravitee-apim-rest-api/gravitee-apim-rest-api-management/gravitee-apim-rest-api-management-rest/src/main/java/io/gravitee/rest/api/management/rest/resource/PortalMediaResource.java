@@ -149,8 +149,7 @@ public class PortalMediaResource extends AbstractResource {
         boolean isAttached = pageService.isMediaUsedInPages(GraviteeContext.getExecutionContext(), hash);
 
         if (isAttached) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
+            return Response.status(Response.Status.BAD_REQUEST)
                 .entity("Media is attached to pages and cannot be deleted. Please detach it from all pages first.")
                 .build();
         }

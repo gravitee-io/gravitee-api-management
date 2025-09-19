@@ -57,8 +57,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class HttpProviderTest {
 
     @RegisterExtension
-    private final WireMockExtension wiremock = WireMockExtension
-        .newInstance()
+    private final WireMockExtension wiremock = WireMockExtension.newInstance()
         .options(WireMockConfiguration.wireMockConfig().dynamicPort())
         .build();
 

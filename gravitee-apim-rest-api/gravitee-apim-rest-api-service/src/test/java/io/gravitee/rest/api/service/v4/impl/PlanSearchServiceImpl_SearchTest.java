@@ -77,8 +77,14 @@ public class PlanSearchServiceImpl_SearchTest {
     @Before
     public void before() throws TechnicalException {
         GraviteeContext.cleanContext();
-        planSearchService =
-            new PlanSearchServiceImpl(planRepository, apiRepository, groupService, apiSearchService, objectMapper, genericPlanMapper);
+        planSearchService = new PlanSearchServiceImpl(
+            planRepository,
+            apiRepository,
+            groupService,
+            apiSearchService,
+            objectMapper,
+            genericPlanMapper
+        );
 
         api = new Api();
         api.setId(API_ID);
@@ -108,12 +114,15 @@ public class PlanSearchServiceImpl_SearchTest {
         Plan plan3 = createPlan("plan-3");
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
-        when(genericPlanMapper.toGenericPlan(api, plan1))
-            .thenReturn(fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED));
-        when(genericPlanMapper.toGenericPlan(api, plan2))
-            .thenReturn(fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING));
-        when(genericPlanMapper.toGenericPlan(api, plan3))
-            .thenReturn(fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED));
+        when(genericPlanMapper.toGenericPlan(api, plan1)).thenReturn(
+            fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+        );
+        when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(
+            fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
+        );
+        when(genericPlanMapper.toGenericPlan(api, plan3)).thenReturn(
+            fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+        );
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
@@ -141,61 +150,56 @@ public class PlanSearchServiceImpl_SearchTest {
         rule.setEnabled(true);
         var rules = List.of(rule);
 
-        when(genericPlanMapper.toGenericPlan(api, plan1))
-            .thenReturn(
-                fakeV2PlanEntity(
-                    "plan-1",
-                    1,
-                    io.gravitee.rest.api.model.PlanSecurityType.JWT,
-                    "{\"nice\": \"config\"}",
-                    io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
-                    rules
-                )
-            );
-        when(genericPlanMapper.toGenericPlan(api, plan2))
-            .thenReturn(
-                fakeV2PlanEntity(
-                    "plan-2",
-                    2,
-                    io.gravitee.rest.api.model.PlanSecurityType.JWT,
-                    "{\"nice\": \"config\"}",
-                    io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
-                    null
-                )
-            );
-        when(genericPlanMapper.toGenericPlan(api, plan3))
-            .thenReturn(
-                fakeV2PlanEntity(
-                    "plan-3",
-                    3,
-                    io.gravitee.rest.api.model.PlanSecurityType.JWT,
-                    "{\"nice\": \"config\"}",
-                    io.gravitee.rest.api.model.PlanStatus.STAGING,
-                    null
-                )
-            );
-        when(genericPlanMapper.toGenericPlan(api, plan4))
-            .thenReturn(
-                fakeV2PlanEntity(
-                    "plan-4",
-                    4,
-                    io.gravitee.rest.api.model.PlanSecurityType.OAUTH2,
-                    "{\"nice\": \"config\"}",
-                    io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
-                    rules
-                )
-            );
-        when(genericPlanMapper.toGenericPlan(api, plan5))
-            .thenReturn(
-                fakeV2PlanEntity(
-                    "plan-5",
-                    5,
-                    io.gravitee.rest.api.model.PlanSecurityType.OAUTH2,
-                    "{\"nice\": \"config\"}",
-                    io.gravitee.rest.api.model.PlanStatus.STAGING,
-                    rules
-                )
-            );
+        when(genericPlanMapper.toGenericPlan(api, plan1)).thenReturn(
+            fakeV2PlanEntity(
+                "plan-1",
+                1,
+                io.gravitee.rest.api.model.PlanSecurityType.JWT,
+                "{\"nice\": \"config\"}",
+                io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
+                rules
+            )
+        );
+        when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(
+            fakeV2PlanEntity(
+                "plan-2",
+                2,
+                io.gravitee.rest.api.model.PlanSecurityType.JWT,
+                "{\"nice\": \"config\"}",
+                io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
+                null
+            )
+        );
+        when(genericPlanMapper.toGenericPlan(api, plan3)).thenReturn(
+            fakeV2PlanEntity(
+                "plan-3",
+                3,
+                io.gravitee.rest.api.model.PlanSecurityType.JWT,
+                "{\"nice\": \"config\"}",
+                io.gravitee.rest.api.model.PlanStatus.STAGING,
+                null
+            )
+        );
+        when(genericPlanMapper.toGenericPlan(api, plan4)).thenReturn(
+            fakeV2PlanEntity(
+                "plan-4",
+                4,
+                io.gravitee.rest.api.model.PlanSecurityType.OAUTH2,
+                "{\"nice\": \"config\"}",
+                io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
+                rules
+            )
+        );
+        when(genericPlanMapper.toGenericPlan(api, plan5)).thenReturn(
+            fakeV2PlanEntity(
+                "plan-5",
+                5,
+                io.gravitee.rest.api.model.PlanSecurityType.OAUTH2,
+                "{\"nice\": \"config\"}",
+                io.gravitee.rest.api.model.PlanStatus.STAGING,
+                rules
+            )
+        );
 
         GenericApiEntity api = new io.gravitee.rest.api.model.api.ApiEntity();
         api.setId(API_ID);
@@ -203,8 +207,7 @@ public class PlanSearchServiceImpl_SearchTest {
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
-            PlanQuery
-                .builder()
+            PlanQuery.builder()
                 .apiId(API_ID)
                 .securityType(List.of(PlanSecurityType.JWT))
                 .status(List.of(PlanStatus.DEPRECATED))
@@ -225,12 +228,15 @@ public class PlanSearchServiceImpl_SearchTest {
         Plan plan3 = createPlan("plan-3");
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2, plan3));
 
-        when(genericPlanMapper.toGenericPlan(api, plan1))
-            .thenReturn(fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED));
-        when(genericPlanMapper.toGenericPlan(api, plan2))
-            .thenReturn(fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING));
-        when(genericPlanMapper.toGenericPlan(api, plan3))
-            .thenReturn(fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED));
+        when(genericPlanMapper.toGenericPlan(api, plan1)).thenReturn(
+            fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+        );
+        when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(
+            fakeV4PlanEntity("plan-2", 2, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.STAGING)
+        );
+        when(genericPlanMapper.toGenericPlan(api, plan3)).thenReturn(
+            fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+        );
 
         GenericApiEntity api = new io.gravitee.rest.api.model.api.ApiEntity();
         api.setId(API_ID);

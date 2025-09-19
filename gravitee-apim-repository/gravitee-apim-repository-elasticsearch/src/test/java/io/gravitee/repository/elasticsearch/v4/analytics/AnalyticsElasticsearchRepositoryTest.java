@@ -71,12 +71,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         void should_return_total_requests_count_from_status_ranges_aggregation() {
             var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(API_ID));
 
-            assertThat(result)
-                .hasValueSatisfying(countAggregate -> {
-                    assertThat(countAggregate.getTotal()).isEqualTo(11);
-                    assertThat(countAggregate.getCountBy())
-                        .containsAllEntriesOf(Map.of("http-post", 3L, "http-get", 1L, "websocket", 3L, "sse", 2L, "webhook", 1L));
-                });
+            assertThat(result).hasValueSatisfying(countAggregate -> {
+                assertThat(countAggregate.getTotal()).isEqualTo(11);
+                assertThat(countAggregate.getCountBy()).containsAllEntriesOf(
+                    Map.of("http-post", 3L, "http-get", 1L, "websocket", 3L, "sse", 2L, "webhook", 1L)
+                );
+            });
         }
     }
 
@@ -90,12 +90,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 new AverageMessagesPerRequestQuery(API_ID)
             );
 
-            assertThat(result)
-                .hasValueSatisfying(averageAggregate -> {
-                    assertThat(averageAggregate.getAverage()).isCloseTo(45.7, offset(0.1d));
-                    assertThat(averageAggregate.getAverageBy())
-                        .containsAllEntriesOf(Map.of("http-get", 9.8, "websocket", 27.5, "sse", 100.0));
-                });
+            assertThat(result).hasValueSatisfying(averageAggregate -> {
+                assertThat(averageAggregate.getAverage()).isCloseTo(45.7, offset(0.1d));
+                assertThat(averageAggregate.getAverageBy()).containsAllEntriesOf(Map.of("http-get", 9.8, "websocket", 27.5, "sse", 100.0));
+            });
         }
     }
 
@@ -109,12 +107,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 new AverageConnectionDurationQuery(API_ID)
             );
 
-            assertThat(result)
-                .hasValueSatisfying(averageAggregate -> {
-                    assertThat(averageAggregate.getAverage()).isCloseTo(20261.25, offset(0.1d));
-                    assertThat(averageAggregate.getAverageBy())
-                        .containsAllEntriesOf(Map.of("http-get", 30_000.0, "websocket", 50_000.0, "sse", 645.0, "http-post", 400.0));
-                });
+            assertThat(result).hasValueSatisfying(averageAggregate -> {
+                assertThat(averageAggregate.getAverage()).isCloseTo(20261.25, offset(0.1d));
+                assertThat(averageAggregate.getAverageBy()).containsAllEntriesOf(
+                    Map.of("http-get", 30_000.0, "websocket", 50_000.0, "sse", 645.0, "http-post", 400.0)
+                );
+            });
         }
 
         @Test
@@ -128,11 +126,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 new AverageConnectionDurationQuery(Optional.of(API_ID), Optional.of(from), Optional.of(to))
             );
 
-            assertThat(result)
-                .hasValueSatisfying(averageAggregate -> {
-                    assertThat(averageAggregate.getAverage()).isCloseTo(332.5, offset(0.1d));
-                    assertThat(averageAggregate.getAverageBy()).containsAllEntriesOf(Map.of("sse", 645.0, "http-post", 20.0));
-                });
+            assertThat(result).hasValueSatisfying(averageAggregate -> {
+                assertThat(averageAggregate.getAverage()).isCloseTo(332.5, offset(0.1d));
+                assertThat(averageAggregate.getAverageBy()).containsAllEntriesOf(Map.of("sse", 645.0, "http-post", 20.0));
+            });
         }
     }
 
@@ -146,17 +143,16 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 ResponseStatusQueryCriteria.builder().apiIds(List.of(API_ID)).build()
             );
 
-            assertThat(result)
-                .hasValueSatisfying(responseStatusAggregate -> {
-                    assertRanges(responseStatusAggregate.getRanges(), 3L, 8L);
-                    var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
-                    assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
-                    assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
-                    assertRanges(statusRangesCountByEntrypoint.get("http-post"), 2L, 1L);
-                    assertRanges(statusRangesCountByEntrypoint.get("webhook"), 0L, 1L);
-                    assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 1L);
-                    assertRanges(statusRangesCountByEntrypoint.get("http-get"), 0L, 1L);
-                });
+            assertThat(result).hasValueSatisfying(responseStatusAggregate -> {
+                assertRanges(responseStatusAggregate.getRanges(), 3L, 8L);
+                var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
+                assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("websocket", "http-post", "webhook", "sse", "http-get");
+                assertRanges(statusRangesCountByEntrypoint.get("websocket"), 0L, 3L);
+                assertRanges(statusRangesCountByEntrypoint.get("http-post"), 2L, 1L);
+                assertRanges(statusRangesCountByEntrypoint.get("webhook"), 0L, 1L);
+                assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 1L);
+                assertRanges(statusRangesCountByEntrypoint.get("http-get"), 0L, 1L);
+            });
         }
 
         @Test
@@ -166,22 +162,20 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             var result = cut.searchResponseStatusRanges(
                 new QueryContext("org#1", "env#1"),
-                ResponseStatusQueryCriteria
-                    .builder()
+                ResponseStatusQueryCriteria.builder()
                     .apiIds(List.of(API_ID))
                     .from(yesterdayAtStartOfTheDayEpochMilli)
                     .to(yesterdayAtEndOfTheDayEpochMilli)
                     .build()
             );
 
-            assertThat(result)
-                .hasValueSatisfying(responseStatusAggregate -> {
-                    assertRanges(responseStatusAggregate.getRanges(), 2L, 0L);
-                    var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
-                    assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("http-post", "sse");
-                    assertRanges(statusRangesCountByEntrypoint.get("http-post"), 1L, 0L);
-                    assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 0L);
-                });
+            assertThat(result).hasValueSatisfying(responseStatusAggregate -> {
+                assertRanges(responseStatusAggregate.getRanges(), 2L, 0L);
+                var statusRangesCountByEntrypoint = responseStatusAggregate.getStatusRangesCountByEntrypoint();
+                assertThat(statusRangesCountByEntrypoint).containsOnlyKeys("http-post", "sse");
+                assertRanges(statusRangesCountByEntrypoint.get("http-post"), 1L, 0L);
+                assertRanges(statusRangesCountByEntrypoint.get("sse"), 1L, 0L);
+            });
         }
 
         @Test
@@ -210,10 +204,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         private static void assertRanges(Map<String, Long> ranges, long status2xx, long status4xx) {
-            assertThat(ranges)
-                .containsAllEntriesOf(
-                    Map.of("100.0-200.0", 0L, "200.0-300.0", status2xx, "300.0-400.0", 0L, "400.0-500.0", status4xx, "500.0-600.0", 0L)
-                );
+            assertThat(ranges).containsAllEntriesOf(
+                Map.of("100.0-200.0", 0L, "200.0-300.0", status2xx, "300.0-400.0", 0L, "400.0-500.0", status4xx, "500.0-600.0", 0L)
+            );
         }
     }
 

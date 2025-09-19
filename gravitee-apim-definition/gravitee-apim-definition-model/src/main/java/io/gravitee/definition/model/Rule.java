@@ -39,7 +39,7 @@ import lombok.Setter;
 @Builder(toBuilder = true)
 @Getter
 @Setter
-public class Rule extends HashMap<String, Object> /* This is to generate the correct Open-API definition*/implements Serializable {
+public class Rule extends HashMap<String, Object> /* This is to generate the correct Open-API definition*/ implements Serializable {
 
     @JsonProperty("methods")
     @Builder.Default

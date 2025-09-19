@@ -88,16 +88,18 @@ public class CommandServiceTest {
 
         commandService.search(executionContext, new CommandQuery());
 
-        verify(commandRepository, times(1))
-            .search(argThat(criteria -> "GRAVITEE".equals(criteria.getOrganizationId()) && "DEV".equals(criteria.getEnvironmentId())));
+        verify(commandRepository, times(1)).search(
+            argThat(criteria -> "GRAVITEE".equals(criteria.getOrganizationId()) && "DEV".equals(criteria.getEnvironmentId()))
+        );
     }
 
     @Test
     public void shouldSearchWithoutOrganizationAndWithoutEnvironmentWithEmptyQuery() {
         commandService.search(new CommandQuery());
 
-        verify(commandRepository, times(1))
-            .search(argThat(criteria -> criteria.getOrganizationId() == null && criteria.getEnvironmentId() == null));
+        verify(commandRepository, times(1)).search(
+            argThat(criteria -> criteria.getOrganizationId() == null && criteria.getEnvironmentId() == null)
+        );
     }
 
     @Test
@@ -109,8 +111,9 @@ public class CommandServiceTest {
 
         commandService.search(executionContext, new CommandQuery());
 
-        verify(commandRepository, times(1))
-            .search(argThat(criteria -> "GRAVITEE".equals(criteria.getOrganizationId()) && Objects.isNull(criteria.getEnvironmentId())));
+        verify(commandRepository, times(1)).search(
+            argThat(criteria -> "GRAVITEE".equals(criteria.getOrganizationId()) && Objects.isNull(criteria.getEnvironmentId()))
+        );
     }
 
     @Test

@@ -188,8 +188,7 @@ public class ApiService_SearchTest {
                 any(),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
             )
-        )
-            .thenReturn(page);
+        ).thenReturn(page);
 
         UserEntity admin = new UserEntity();
         admin.setId("admin");
@@ -225,8 +224,9 @@ public class ApiService_SearchTest {
         api3.setId("api3");
         api3.setName("API Test");
 
-        when(apiSearchService.searchIds(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), eq(true)))
-            .thenReturn(List.of(api3.getId(), api1.getId(), api2.getId()));
+        when(apiSearchService.searchIds(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), eq(true))).thenReturn(
+            List.of(api3.getId(), api1.getId(), api2.getId())
+        );
 
         when(
             apiRepository.search(
@@ -235,8 +235,7 @@ public class ApiService_SearchTest {
                 new PageableBuilder().pageNumber(0).pageSize(3).build(),
                 ApiFieldFilter.allFields()
             )
-        )
-            .thenReturn(new Page<>(Arrays.asList(api3, api1, api2), 0, 3, 3));
+        ).thenReturn(new Page<>(Arrays.asList(api3, api1, api2), 0, 3, 3));
 
         UserEntity admin = new UserEntity();
         admin.setId("admin");
@@ -244,17 +243,16 @@ public class ApiService_SearchTest {
         admin.setId("user 2");
         UserEntity user3 = new UserEntity();
         admin.setId("user 3");
-        when(primaryOwnerService.getPrimaryOwners(any(), any()))
-            .thenReturn(
-                Map.of(
-                    api1.getId(),
-                    new PrimaryOwnerEntity(admin),
-                    api2.getId(),
-                    new PrimaryOwnerEntity(user2),
-                    api3.getId(),
-                    new PrimaryOwnerEntity(user3)
-                )
-            );
+        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(
+            Map.of(
+                api1.getId(),
+                new PrimaryOwnerEntity(admin),
+                api2.getId(),
+                new PrimaryOwnerEntity(user2),
+                api3.getId(),
+                new PrimaryOwnerEntity(user3)
+            )
+        );
 
         final Page<ApiEntity> apiPage = apiService.search(
             GraviteeContext.getExecutionContext(),

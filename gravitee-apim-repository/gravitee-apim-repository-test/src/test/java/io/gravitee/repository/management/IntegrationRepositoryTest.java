@@ -57,8 +57,7 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     private static Integration creatIntegration(String uuid, Date date) {
-        return Integration
-            .builder()
+        return Integration.builder()
             .id(uuid)
             .name("my-another-integration")
             .description("test-description")
@@ -150,8 +149,7 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
         var id = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
         var date = new Date(1_470_157_767_000L);
         var updateDate = new Date(1_712_660_289L);
-        Integration integration = Integration
-            .builder()
+        Integration integration = Integration.builder()
             .id(id)
             .name("my-updated-integration")
             .description("updated-description")

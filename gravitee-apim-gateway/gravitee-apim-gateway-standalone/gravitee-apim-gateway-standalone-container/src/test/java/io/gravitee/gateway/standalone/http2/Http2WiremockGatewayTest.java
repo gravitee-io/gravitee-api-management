@@ -29,6 +29,7 @@ import org.junit.Before;
  * @author GraviteeSource Team
  */
 public abstract class Http2WiremockGatewayTest extends AbstractWiremockGatewayTest {
+
     static {
         System.setProperty("http.secured", "true");
         System.setProperty("http.alpn", "true");

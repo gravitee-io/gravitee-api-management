@@ -84,12 +84,11 @@ public class UpdateIntegrationUseCaseTest {
 
         var validateGroupDomainService = new ValidateGroupsDomainService(queryServiceInMemory);
 
-        usecase =
-            new UpdateIntegrationUseCase(
-                integrationCrudService,
-                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
-                validateGroupDomainService
-            );
+        usecase = new UpdateIntegrationUseCase(
+            integrationCrudService,
+            new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
+            validateGroupDomainService
+        );
 
         when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
@@ -107,8 +106,7 @@ public class UpdateIntegrationUseCaseTest {
     @Test
     void should_update_integration() {
         //Given
-        Integration updateIntegration = Integration
-            .builder()
+        Integration updateIntegration = Integration.builder()
             .id(INTEGRATION_ID)
             .name("updated-integration")
             .description("updated-description")
@@ -142,8 +140,7 @@ public class UpdateIntegrationUseCaseTest {
         public void should_add_group_to_an_integration() {
             //Given
             givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
-            Integration updateIntegration = Integration
-                .builder()
+            Integration updateIntegration = Integration.builder()
                 .id(INTEGRATION_ID)
                 .name("updated-integration")
                 .description("updated-description")
@@ -179,8 +176,7 @@ public class UpdateIntegrationUseCaseTest {
                 List.of(IntegrationFixture.anIntegration().toBuilder().groups(Set.of(GROUP_ID)).build())
             );
             givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("group-name").build()));
-            Integration updateIntegration = Integration
-                .builder()
+            Integration updateIntegration = Integration.builder()
                 .id(INTEGRATION_ID)
                 .name("updated-integration")
                 .description("updated-description")
@@ -209,8 +205,7 @@ public class UpdateIntegrationUseCaseTest {
 
         @Test
         public void should_throw_an_exception_when_group_not_found() {
-            Integration updateIntegration = Integration
-                .builder()
+            Integration updateIntegration = Integration.builder()
                 .id(INTEGRATION_ID)
                 .name("updated-integration")
                 .description("updated-description")
@@ -225,8 +220,7 @@ public class UpdateIntegrationUseCaseTest {
 
     @Test
     public void should_throw_exception_when_integration_to_update_not_found() {
-        var updateIntegration = Integration
-            .builder()
+        var updateIntegration = Integration.builder()
             .id("not-existing-integration")
             .name("updated-integration")
             .description("updated-description")

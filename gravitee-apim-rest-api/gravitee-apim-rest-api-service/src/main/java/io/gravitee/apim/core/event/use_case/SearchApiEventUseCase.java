@@ -42,9 +42,9 @@ public class SearchApiEventUseCase {
     }
 
     private EventWithInitiator toEventWithInitiator(Event event) {
-        var initiator = Optional
-            .ofNullable(event.getProperties().get(Event.EventProperties.USER))
-            .map(userId -> userCrudService.findBaseUserById(userId).orElse(BaseUserEntity.builder().id(userId).build()));
+        var initiator = Optional.ofNullable(event.getProperties().get(Event.EventProperties.USER)).map(userId ->
+            userCrudService.findBaseUserById(userId).orElse(BaseUserEntity.builder().id(userId).build())
+        );
         return new EventWithInitiator(event, initiator.orElse(null));
     }
 

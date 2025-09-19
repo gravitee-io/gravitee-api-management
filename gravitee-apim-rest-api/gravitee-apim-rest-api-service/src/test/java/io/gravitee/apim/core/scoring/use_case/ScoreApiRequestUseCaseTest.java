@@ -70,9 +70,10 @@ class ScoreApiRequestUseCaseTest {
     private static final String USER_ID = "user-id";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-    private static final ScoringRuleset CUSTOM_RULESET_1 = ScoringRulesetFixture
-        .aRuleset("ruleset1", ScoringRuleset.Format.GRAVITEE_FEDERATION)
-        .withReferenceId(ENVIRONMENT_ID);
+    private static final ScoringRuleset CUSTOM_RULESET_1 = ScoringRulesetFixture.aRuleset(
+        "ruleset1",
+        ScoringRuleset.Format.GRAVITEE_FEDERATION
+    ).withReferenceId(ENVIRONMENT_ID);
     private static final ScoringRuleset CUSTOM_RULESET_2 = ScoringRulesetFixture.aRuleset("ruleset2", null).withReferenceId(ENVIRONMENT_ID);
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
@@ -100,32 +101,29 @@ class ScoreApiRequestUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        scoreApiRequestUseCase =
-            new ScoreApiRequestUseCase(
-                apiCrudService,
-                new ApiDocumentationDomainService(pageQueryService, new PlanQueryServiceInMemory()),
-                apiExportDomainService,
-                new GraviteeDefinitionJacksonJsonSerializer(),
-                scoringProvider,
-                asyncJobCrudService,
-                scoringRulesetQueryService,
-                scoringFunctionQueryService
-            );
+        scoreApiRequestUseCase = new ScoreApiRequestUseCase(
+            apiCrudService,
+            new ApiDocumentationDomainService(pageQueryService, new PlanQueryServiceInMemory()),
+            apiExportDomainService,
+            new GraviteeDefinitionJacksonJsonSerializer(),
+            scoringProvider,
+            asyncJobCrudService,
+            scoringRulesetQueryService,
+            scoringFunctionQueryService
+        );
 
-        when(apiExportDomainService.export("my-api", AUDIT_INFO))
-            .thenReturn(
-                GraviteeDefinition
-                    .builder()
-                    .api(ApiExport.builder().id(MY_API).name("My Api").definitionVersion(DefinitionVersion.FEDERATED).build())
-                    .build()
-            );
+        when(apiExportDomainService.export("my-api", AUDIT_INFO)).thenReturn(
+            GraviteeDefinition.builder()
+                .api(ApiExport.builder().id(MY_API).name("My Api").definitionVersion(DefinitionVersion.FEDERATED).build())
+                .build()
+        );
     }
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(apiCrudService, asyncJobCrudService, pageQueryService, scoringRulesetQueryService, scoringFunctionQueryService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, asyncJobCrudService, pageQueryService, scoringRulesetQueryService, scoringFunctionQueryService).forEach(
+            InMemoryAlternative::reset
+        );
         scoringProvider.reset();
     }
 
@@ -142,39 +140,36 @@ class ScoreApiRequestUseCaseTest {
             .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests())
-            .containsExactly(
-                new ScoreRequest(
-                    "generated-id",
-                    ORGANIZATION_ID,
-                    ENVIRONMENT_ID,
-                    api.getId(),
-                    List.of(
-                        new ScoreRequest.AssetToScore(
-                            api.getId(),
-                            new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
-                            api.getName(),
-                            """
-                                        {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""
-                        )
+        assertThat(scoringProvider.pendingRequests()).containsExactly(
+            new ScoreRequest(
+                "generated-id",
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                api.getId(),
+                List.of(
+                    new ScoreRequest.AssetToScore(
+                        api.getId(),
+                        new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
+                        api.getName(),
+                        """
+                        {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""
                     )
                 )
-            );
-        assertThat(asyncJobCrudService.storage())
-            .containsExactly(
-                AsyncJob
-                    .builder()
-                    .id("generated-id")
-                    .sourceId(api.getId())
-                    .environmentId(ENVIRONMENT_ID)
-                    .initiatorId(USER_ID)
-                    .type(AsyncJob.Type.SCORING_REQUEST)
-                    .status(AsyncJob.Status.PENDING)
-                    .upperLimit(1L)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+            )
+        );
+        assertThat(asyncJobCrudService.storage()).containsExactly(
+            AsyncJob.builder()
+                .id("generated-id")
+                .sourceId(api.getId())
+                .environmentId(ENVIRONMENT_ID)
+                .initiatorId(USER_ID)
+                .type(AsyncJob.Type.SCORING_REQUEST)
+                .status(AsyncJob.Status.PENDING)
+                .upperLimit(1L)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -211,37 +206,34 @@ class ScoreApiRequestUseCaseTest {
             .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests())
-            .satisfiesOnlyOnce(request -> {
-                assertThat(request)
-                    .hasJobId("generated-id")
-                    .hasOrganizationId(ORGANIZATION_ID)
-                    .hasEnvironmentId(ENVIRONMENT_ID)
-                    .hasApiId(api.getId())
-                    .hasAssetsContaining(
-                        new ScoreRequest.AssetToScore(
-                            page.getId(),
-                            new ScoreRequest.AssetType(ScoringAssetType.SWAGGER),
-                            page.getName(),
-                            page.getContent()
-                        )
-                    );
-            });
-        assertThat(asyncJobCrudService.storage())
-            .containsExactly(
-                AsyncJob
-                    .builder()
-                    .id("generated-id")
-                    .sourceId(api.getId())
-                    .environmentId(ENVIRONMENT_ID)
-                    .initiatorId(USER_ID)
-                    .type(AsyncJob.Type.SCORING_REQUEST)
-                    .status(AsyncJob.Status.PENDING)
-                    .upperLimit(1L)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
+            assertThat(request)
+                .hasJobId("generated-id")
+                .hasOrganizationId(ORGANIZATION_ID)
+                .hasEnvironmentId(ENVIRONMENT_ID)
+                .hasApiId(api.getId())
+                .hasAssetsContaining(
+                    new ScoreRequest.AssetToScore(
+                        page.getId(),
+                        new ScoreRequest.AssetType(ScoringAssetType.SWAGGER),
+                        page.getName(),
+                        page.getContent()
+                    )
+                );
+        });
+        assertThat(asyncJobCrudService.storage()).containsExactly(
+            AsyncJob.builder()
+                .id("generated-id")
+                .sourceId(api.getId())
+                .environmentId(ENVIRONMENT_ID)
+                .initiatorId(USER_ID)
+                .type(AsyncJob.Type.SCORING_REQUEST)
+                .status(AsyncJob.Status.PENDING)
+                .upperLimit(1L)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -260,37 +252,34 @@ class ScoreApiRequestUseCaseTest {
             .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests())
-            .satisfiesOnlyOnce(request -> {
-                assertThat(request)
-                    .hasJobId("generated-id")
-                    .hasOrganizationId(ORGANIZATION_ID)
-                    .hasEnvironmentId(ENVIRONMENT_ID)
-                    .hasApiId(api.getId())
-                    .hasAssetsContaining(
-                        new ScoreRequest.AssetToScore(
-                            page.getId(),
-                            new ScoreRequest.AssetType(ScoringAssetType.ASYNCAPI),
-                            page.getName(),
-                            page.getContent()
-                        )
-                    );
-            });
-        assertThat(asyncJobCrudService.storage())
-            .containsExactly(
-                AsyncJob
-                    .builder()
-                    .id("generated-id")
-                    .sourceId(api.getId())
-                    .environmentId(ENVIRONMENT_ID)
-                    .initiatorId(USER_ID)
-                    .type(AsyncJob.Type.SCORING_REQUEST)
-                    .status(AsyncJob.Status.PENDING)
-                    .upperLimit(1L)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
+            assertThat(request)
+                .hasJobId("generated-id")
+                .hasOrganizationId(ORGANIZATION_ID)
+                .hasEnvironmentId(ENVIRONMENT_ID)
+                .hasApiId(api.getId())
+                .hasAssetsContaining(
+                    new ScoreRequest.AssetToScore(
+                        page.getId(),
+                        new ScoreRequest.AssetType(ScoringAssetType.ASYNCAPI),
+                        page.getName(),
+                        page.getContent()
+                    )
+                );
+        });
+        assertThat(asyncJobCrudService.storage()).containsExactly(
+            AsyncJob.builder()
+                .id("generated-id")
+                .sourceId(api.getId())
+                .environmentId(ENVIRONMENT_ID)
+                .initiatorId(USER_ID)
+                .type(AsyncJob.Type.SCORING_REQUEST)
+                .status(AsyncJob.Status.PENDING)
+                .upperLimit(1L)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test
@@ -307,18 +296,17 @@ class ScoreApiRequestUseCaseTest {
             .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests())
-            .satisfiesOnlyOnce(request -> {
-                assertThat(request)
-                    .hasJobId("generated-id")
-                    .hasOrganizationId(ORGANIZATION_ID)
-                    .hasEnvironmentId(ENVIRONMENT_ID)
-                    .hasApiId(api.getId())
-                    .hasCustomRulesets(
-                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload(), ScoreRequest.Format.GRAVITEE_FEDERATED),
-                        new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload())
-                    );
-            });
+        assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
+            assertThat(request)
+                .hasJobId("generated-id")
+                .hasOrganizationId(ORGANIZATION_ID)
+                .hasEnvironmentId(ENVIRONMENT_ID)
+                .hasApiId(api.getId())
+                .hasCustomRulesets(
+                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload(), ScoreRequest.Format.GRAVITEE_FEDERATED),
+                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload())
+                );
+        });
     }
 
     @ParameterizedTest
@@ -338,23 +326,22 @@ class ScoreApiRequestUseCaseTest {
             .assertComplete();
 
         // Then
-        assertThat(scoringProvider.pendingRequests())
-            .satisfiesOnlyOnce(request -> {
-                assertThat(request)
-                    .hasJobId("generated-id")
-                    .hasOrganizationId(ORGANIZATION_ID)
-                    .hasEnvironmentId(ENVIRONMENT_ID)
-                    .hasApiId(api.getId())
-                    .hasOnlyAssets(
-                        new ScoreRequest.AssetToScore(
-                            api.getId(),
-                            new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
-                            api.getName(),
-                            """
-                                       {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""
-                        )
-                    );
-            });
+        assertThat(scoringProvider.pendingRequests()).satisfiesOnlyOnce(request -> {
+            assertThat(request)
+                .hasJobId("generated-id")
+                .hasOrganizationId(ORGANIZATION_ID)
+                .hasEnvironmentId(ENVIRONMENT_ID)
+                .hasApiId(api.getId())
+                .hasOnlyAssets(
+                    new ScoreRequest.AssetToScore(
+                        api.getId(),
+                        new ScoreRequest.AssetType(ScoringAssetType.GRAVITEE_DEFINITION, ScoreRequest.Format.GRAVITEE_FEDERATED),
+                        api.getName(),
+                        """
+                        {"api":{"id":"my-api","name":"My Api","definitionVersion":"FEDERATED","tags":[],"properties":[],"resources":[],"responseTemplates":{},"state":"STOPPED","originContext":{"origin":"MANAGEMENT"},"disableMembershipNotifications":false}}"""
+                    )
+                );
+        });
     }
 
     private Api givenExistingApi(Api api) {

@@ -124,8 +124,8 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     private Completable executeFlow(final ExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
         HttpPolicyChain policyChain = policyChainFactory.create(id, flow, phase);
-        return HookHelper
-            .hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase)
-            .doOnSubscribe(subscription -> log.debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name()));
+        return HookHelper.hook(() -> policyChain.execute(ctx), policyChain.getId(), hooks, ctx, phase).doOnSubscribe(subscription ->
+            log.debug("\t-> Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name())
+        );
     }
 }

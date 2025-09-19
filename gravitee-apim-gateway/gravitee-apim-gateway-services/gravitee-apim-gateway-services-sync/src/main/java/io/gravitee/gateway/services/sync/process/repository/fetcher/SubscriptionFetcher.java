@@ -41,8 +41,7 @@ public class SubscriptionFetcher {
     public Flowable<List<Subscription>> fetchLatest(final Long from, final Long to, final Set<String> environments) {
         // The following doesn't paginate over the result because for now we don't see any value, but it could be implemented same as EventFetcher
         return Flowable.generate(emitter -> {
-            SubscriptionCriteria criteriaBuilder = SubscriptionCriteria
-                .builder()
+            SubscriptionCriteria criteriaBuilder = SubscriptionCriteria.builder()
                 .statuses(STATUSES)
                 .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
                 .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)

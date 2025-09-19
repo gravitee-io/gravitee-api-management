@@ -65,16 +65,15 @@ public class MongoApiCategoryOrderRepository implements ApiCategoryOrderReposito
             throw new IllegalStateException("ApiCategoryOrder must not be null for update");
         }
 
-        this.findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId())
-            .orElseThrow(() ->
-                new IllegalStateException(
-                    String.format(
-                        "No ApiCategoryOrder found with apiId [%s] and categoryId [%s]",
-                        apiCategoryOrder.getApiId(),
-                        apiCategoryOrder.getCategoryId()
-                    )
+        this.findById(apiCategoryOrder.getApiId(), apiCategoryOrder.getCategoryId()).orElseThrow(() ->
+            new IllegalStateException(
+                String.format(
+                    "No ApiCategoryOrder found with apiId [%s] and categoryId [%s]",
+                    apiCategoryOrder.getApiId(),
+                    apiCategoryOrder.getCategoryId()
                 )
-            );
+            )
+        );
 
         var apiCategoryMongo = mapper.map(apiCategoryOrder);
         var updatedApiCategoryMongo = internalApiCategoryOrderRepo.save(apiCategoryMongo);

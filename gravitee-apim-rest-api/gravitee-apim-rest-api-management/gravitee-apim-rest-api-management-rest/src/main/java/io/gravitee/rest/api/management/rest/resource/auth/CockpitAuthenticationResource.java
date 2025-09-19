@@ -172,23 +172,19 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 String url = installationAccessQueryService.getPortalAPIUrl(environmentId);
                 if (url == null) {
                     ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
-                    UriComponents uriComponents = UriComponentsBuilder
-                        .fromHttpRequest(request)
+                    UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request)
                         .replacePath(getProperty(PROPERTY_HTTP_API_PORTAL_ENTRYPOINT, PROPERTY_HTTP_API_PORTAL_PROXY_PATH, "/portal"))
                         .replaceQuery(null)
                         .build();
                     url = uriComponents.toUriString();
                 }
 
-                return Response
-                    .temporaryRedirect(
-                        new URI("%s/environments/%s/auth/console?token=%s".formatted(url, environmentId, tokenEntity.getToken()))
-                    )
-                    .build();
+                return Response.temporaryRedirect(
+                    new URI("%s/environments/%s/auth/console?token=%s".formatted(url, environmentId, tokenEntity.getToken()))
+                ).build();
             } else {
                 final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
-                final String apiId = Optional
-                    .ofNullable(apiCrossId)
+                final String apiId = Optional.ofNullable(apiCrossId)
                     .flatMap(crossId -> this.apiSearchService.findIdByEnvironmentIdAndCrossId(environmentId, crossId))
                     .orElse(null);
 

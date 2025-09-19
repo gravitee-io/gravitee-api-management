@@ -44,6 +44,8 @@ public class PlanService {
     }
 
     public boolean isDeployed(final String apiId, final String planId) {
-        return Optional.ofNullable(plansPerApi.get(apiId)).map(strings -> strings.contains(planId)).orElse(false);
+        return Optional.ofNullable(plansPerApi.get(apiId))
+            .map(strings -> strings.contains(planId))
+            .orElse(false);
     }
 }

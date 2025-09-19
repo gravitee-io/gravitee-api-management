@@ -76,8 +76,7 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
     @Test
     void should_create_portal_menu_link_with_default_visibility() {
         // When
-        var portalMenuLinkToCreate = CreatePortalMenuLink
-            .builder()
+        var portalMenuLinkToCreate = CreatePortalMenuLink.builder()
             .name("new menu link")
             .target("http://newTarget")
             .type(CreatePortalMenuLink.TypeEnum.EXTERNAL)
@@ -102,8 +101,7 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
     @Test
     void should_create_portal_menu_link_with_public_visibility() {
         // When
-        var portalMenuLinkToCreate = CreatePortalMenuLink
-            .builder()
+        var portalMenuLinkToCreate = CreatePortalMenuLink.builder()
             .name("new menu link")
             .target("http://newTarget")
             .type(CreatePortalMenuLink.TypeEnum.EXTERNAL)
@@ -133,8 +131,7 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
         final Response response = rootTarget().request().post(json(createPortalMenuLink));
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(BAD_REQUEST_400)
             .asError()
             .hasHttpStatus(BAD_REQUEST_400)
@@ -148,8 +145,7 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
         final Response response = rootTarget().request().post(json(null));
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(BAD_REQUEST_400)
             .asError()
             .hasHttpStatus(BAD_REQUEST_400)
@@ -163,8 +159,7 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
         final Response response = rootTarget().request().post(json(new CreatePortalMenuLink()));
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(BAD_REQUEST_400)
             .asError()
             .hasHttpStatus(BAD_REQUEST_400)
@@ -182,15 +177,13 @@ public class PortalMenuLinksResource_CreateTest extends AbstractResourceTest {
                 eq(ENV_ID),
                 eq(RolePermissionAction.UPDATE)
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         // When
         final Response response = rootTarget().request().post(json(PortalMenuLinkFixtures.aCreatePortalMenuLink()));
 
         // Then
-        MAPIAssertions
-            .assertThat(response)
+        MAPIAssertions.assertThat(response)
             .hasStatus(FORBIDDEN_403)
             .asError()
             .hasHttpStatus(FORBIDDEN_403)

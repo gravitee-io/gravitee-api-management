@@ -50,8 +50,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CRDMembersDomainServiceImplTest {
 
-    private static final AuditInfo AUDIT_INFO = AuditInfo
-        .builder()
+    private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .actor(AuditActor.builder().userId("test").userSource("test").userSourceId("test").build())
         .organizationId("test-org")
         .environmentId("test-env")
@@ -77,14 +76,16 @@ class CRDMembersDomainServiceImplTest {
 
         @BeforeEach
         void setUp() {
-            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.API))
-                .thenReturn(List.of(RoleEntity.builder().id("default-api-role").build()));
+            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(
+                List.of(RoleEntity.builder().id("default-api-role").build())
+            );
         }
 
         @Test
         void should_set_members() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
 
@@ -99,57 +100,53 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-1"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-1",
-                    "role-1"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-1",
+                "role-1"
+            );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-2"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-2",
-                    "role-2"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-2",
+                "role-2"
+            );
 
-            verify(membershipService)
-                .transferApiOwnership(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    API_ID,
-                    new MembershipService.MembershipMember("test", null, MembershipMemberType.USER),
-                    List.of()
-                );
+            verify(membershipService).transferApiOwnership(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                API_ID,
+                new MembershipService.MembershipMember("test", null, MembershipMemberType.USER),
+                List.of()
+            );
         }
 
         @Test
         void should_use_default_role_when_member_with_no_role() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             cut.updateApiMembers(
                 AUDIT_INFO,
@@ -160,49 +157,46 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-1"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-1",
-                    "role-1"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-1",
+                "role-1"
+            );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-2"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-2",
-                    "default-api-role"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-2",
+                "default-api-role"
+            );
         }
 
         @Test
         void should_use_default_role_when_member_with_unknown_role() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
 
@@ -217,49 +211,46 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-1"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-1",
-                    "role-1"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-1",
+                "role-1"
+            );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-2"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    API_ID,
-                    MembershipMemberType.USER,
-                    "id-2",
-                    "default-api-role"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                "id-2",
+                "default-api-role"
+            );
         }
 
         @Test
         void should_delete_orphans() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
 
@@ -271,11 +262,11 @@ class CRDMembersDomainServiceImplTest {
                     MembershipReferenceType.API,
                     API_ID
                 )
-            )
-                .thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("role-3").build())).id("id-3").build()));
+            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("role-3").build())).id("id-3").build()));
 
-            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API))
-                .thenReturn(RoleEntity.builder().id("po-role-id").build());
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(
+                RoleEntity.builder().id("po-role-id").build()
+            );
 
             cut.updateApiMembers(
                 AUDIT_INFO,
@@ -286,20 +277,20 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    "api-id",
-                    MembershipMemberType.USER,
-                    "id-3"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                "api-id",
+                MembershipMemberType.USER,
+                "id-3"
+            );
         }
 
         @Test
         void should_not_delete_po_role() {
-            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.API, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             when(roleService.findByScopeAndName(RoleScope.API, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
 
@@ -311,13 +302,11 @@ class CRDMembersDomainServiceImplTest {
                     MembershipReferenceType.API,
                     API_ID
                 )
-            )
-                .thenReturn(
-                    Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("po-role-id").build())).id("id-3").build())
-                );
+            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("po-role-id").build())).id("id-3").build()));
 
-            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API))
-                .thenReturn(RoleEntity.builder().id("po-role-id").build());
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(
+                RoleEntity.builder().id("po-role-id").build()
+            );
 
             cut.updateApiMembers(
                 AUDIT_INFO,
@@ -328,14 +317,13 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, never())
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.API,
-                    "api-id",
-                    MembershipMemberType.USER,
-                    "id-3"
-                );
+            verify(membershipService, never()).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                "api-id",
+                MembershipMemberType.USER,
+                "id-3"
+            );
         }
     }
 
@@ -346,14 +334,16 @@ class CRDMembersDomainServiceImplTest {
 
         @BeforeEach
         void setUp() {
-            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.APPLICATION))
-                .thenReturn(List.of(RoleEntity.builder().id("default-app-role").build()));
+            when(roleService.findDefaultRoleByScopes(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
+                List.of(RoleEntity.builder().id("default-app-role").build())
+            );
         }
 
         @Test
         void should_set_members() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
 
@@ -368,49 +358,46 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-1"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-1",
-                    "role-1"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-1",
+                "role-1"
+            );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-2"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-2",
-                    "role-2"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-2",
+                "role-2"
+            );
         }
 
         @Test
         void should_use_default_role_when_member_with_no_role() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             cut.updateApplicationMembers(
                 AUDIT_INFO,
@@ -421,49 +408,46 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-1"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-1",
-                    "role-1"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-1",
+                "role-1"
+            );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-2"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-2",
-                    "default-app-role"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-2",
+                "default-app-role"
+            );
         }
 
         @Test
         void should_use_default_role_when_member_with_unknown_role() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
 
@@ -478,49 +462,46 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-1"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-1"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-1",
-                    "role-1"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-1",
+                "role-1"
+            );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-2"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-2"
+            );
 
-            verify(membershipService, times(1))
-                .addRoleToMemberOnReference(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-2",
-                    "default-app-role"
-                );
+            verify(membershipService, times(1)).addRoleToMemberOnReference(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-2",
+                "default-app-role"
+            );
         }
 
         @Test
         void should_delete_orphans() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
 
@@ -532,11 +513,11 @@ class CRDMembersDomainServiceImplTest {
                     MembershipReferenceType.APPLICATION,
                     APPLICATION_ID
                 )
-            )
-                .thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("role-3").build())).id("id-3").build()));
+            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("role-3").build())).id("id-3").build()));
 
-            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION))
-                .thenReturn(RoleEntity.builder().id("po-role-id").build());
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
+                RoleEntity.builder().id("po-role-id").build()
+            );
 
             cut.updateApplicationMembers(
                 AUDIT_INFO,
@@ -547,20 +528,20 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, times(1))
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-3"
-                );
+            verify(membershipService, times(1)).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-3"
+            );
         }
 
         @Test
         void should_not_delete_po_role() {
-            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId()))
-                .thenReturn(Optional.of(RoleEntity.builder().id("role-1").build()));
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-1", AUDIT_INFO.organizationId())).thenReturn(
+                Optional.of(RoleEntity.builder().id("role-1").build())
+            );
 
             when(roleService.findByScopeAndName(RoleScope.APPLICATION, "role-2", AUDIT_INFO.organizationId())).thenReturn(Optional.empty());
 
@@ -572,13 +553,11 @@ class CRDMembersDomainServiceImplTest {
                     MembershipReferenceType.APPLICATION,
                     APPLICATION_ID
                 )
-            )
-                .thenReturn(
-                    Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("po-role-id").build())).id("id-3").build())
-                );
+            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("po-role-id").build())).id("id-3").build()));
 
-            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION))
-                .thenReturn(RoleEntity.builder().id("po-role-id").build());
+            when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
+                RoleEntity.builder().id("po-role-id").build()
+            );
 
             cut.updateApplicationMembers(
                 AUDIT_INFO,
@@ -589,14 +568,13 @@ class CRDMembersDomainServiceImplTest {
                 )
             );
 
-            verify(membershipService, never())
-                .deleteReferenceMember(
-                    new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
-                    MembershipReferenceType.APPLICATION,
-                    APPLICATION_ID,
-                    MembershipMemberType.USER,
-                    "id-3"
-                );
+            verify(membershipService, never()).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.APPLICATION,
+                APPLICATION_ID,
+                MembershipMemberType.USER,
+                "id-3"
+            );
         }
     }
 }

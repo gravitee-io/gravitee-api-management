@@ -62,8 +62,7 @@ public class CurrentThemeDomainServiceTest {
 
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
-            var newTheme = Theme
-                .builder()
+            var newTheme = Theme.builder()
                 .id("new-theme")
                 .name("name")
                 .type(ThemeType.PORTAL)
@@ -81,8 +80,7 @@ public class CurrentThemeDomainServiceTest {
         void should_disable_previous_portal_theme() {
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
-            var previousPortalTheme = Theme
-                .builder()
+            var previousPortalTheme = Theme.builder()
                 .id("old-theme")
                 .name("name")
                 .type(ThemeType.PORTAL)
@@ -92,8 +90,7 @@ public class CurrentThemeDomainServiceTest {
                 .enabled(true)
                 .build();
 
-            var newTheme = Theme
-                .builder()
+            var newTheme = Theme.builder()
                 .id("new-theme")
                 .name("name")
                 .type(ThemeType.PORTAL)
@@ -113,32 +110,28 @@ public class CurrentThemeDomainServiceTest {
 
         @Test
         void should_disable_previous_portal_next_theme() {
-            var previousPortalTheme = Theme
-                .builder()
+            var previousPortalTheme = Theme.builder()
                 .id("old-theme")
                 .name("name")
                 .type(ThemeType.PORTAL_NEXT)
                 .referenceId(ENV_ID)
                 .referenceType(Theme.ReferenceType.ENVIRONMENT)
                 .definitionPortalNext(
-                    io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
-                        .builder()
+                    io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
                         .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("fff").build())
                         .build()
                 )
                 .enabled(true)
                 .build();
 
-            var newTheme = Theme
-                .builder()
+            var newTheme = Theme.builder()
                 .id("new-theme")
                 .name("name")
                 .type(ThemeType.PORTAL_NEXT)
                 .referenceId(ENV_ID)
                 .referenceType(Theme.ReferenceType.ENVIRONMENT)
                 .definitionPortalNext(
-                    io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
-                        .builder()
+                    io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
                         .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("fff").build())
                         .build()
                 )
@@ -158,8 +151,7 @@ public class CurrentThemeDomainServiceTest {
             var portalDefinition = new ThemeDefinition();
             portalDefinition.setData(List.of());
 
-            var currentPortalTheme = Theme
-                .builder()
+            var currentPortalTheme = Theme.builder()
                 .id("portal-theme")
                 .name("name")
                 .type(ThemeType.PORTAL)
@@ -169,16 +161,14 @@ public class CurrentThemeDomainServiceTest {
                 .enabled(true)
                 .build();
 
-            var newPortalNextTheme = Theme
-                .builder()
+            var newPortalNextTheme = Theme.builder()
                 .id("new-portal-next-theme")
                 .name("name")
                 .type(ThemeType.PORTAL_NEXT)
                 .referenceId(ENV_ID)
                 .referenceType(Theme.ReferenceType.ENVIRONMENT)
                 .definitionPortalNext(
-                    io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition
-                        .builder()
+                    io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.builder()
                         .color(io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition.Color.builder().primary("fff").build())
                         .build()
                 )

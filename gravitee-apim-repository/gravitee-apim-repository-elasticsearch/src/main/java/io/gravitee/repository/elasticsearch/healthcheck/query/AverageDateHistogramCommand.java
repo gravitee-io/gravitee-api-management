@@ -75,12 +75,10 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
                 from = dateHistogramQuery.timeRange().range().from();
             } else {
                 to = System.currentTimeMillis();
-                from =
-                    ZonedDateTime
-                        .ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
-                        .minus(1, ChronoUnit.MONTHS)
-                        .toInstant()
-                        .toEpochMilli();
+                from = ZonedDateTime.ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
+                    .minus(1, ChronoUnit.MONTHS)
+                    .toInstant()
+                    .toEpochMilli();
             }
 
             String[] clusters = ClusterUtils.extractClusterIndexPrefixes(dateHistogramQuery, configuration);
@@ -91,12 +89,11 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
             final long roundedTo = ((to / interval) * interval) + interval;
 
             final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery, roundedFrom, roundedTo);
-            final Single<SearchResponse> result =
-                this.client.search(
-                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, to, clusters),
-                        !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
-                        sQuery
-                    );
+            final Single<SearchResponse> result = this.client.search(
+                this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, to, clusters),
+                !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
+                sQuery
+            );
             return this.toAvailabilityResponseResponse(result.blockingGet(), dateHistogramQuery);
         } catch (Exception eex) {
             logger.error("Impossible to perform AverageResponseTimeQuery", eex);

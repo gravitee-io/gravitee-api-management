@@ -54,24 +54,23 @@ public class JdbcPortalNotificationConfigRepository
 
     @Override
     protected JdbcObjectMapper<PortalNotificationConfig> buildOrm() {
-        return JdbcObjectMapper
-            .builder(PortalNotificationConfig.class, this.tableName)
+        return JdbcObjectMapper.builder(PortalNotificationConfig.class, this.tableName)
             .updateSql(
                 "update " +
-                this.tableName +
-                " set " +
-                escapeReservedWord("user") +
-                " = ?" +
-                " , reference_type = ?" +
-                " , reference_id = ?" +
-                " , created_at = ? " +
-                " , updated_at = ? " +
-                " , organization_id = ? " +
-                " where " +
-                escapeReservedWord("user") +
-                " = ? " +
-                " and reference_type = ? " +
-                " and reference_id = ? "
+                    this.tableName +
+                    " set " +
+                    escapeReservedWord("user") +
+                    " = ?" +
+                    " , reference_type = ?" +
+                    " , reference_id = ?" +
+                    " , created_at = ? " +
+                    " , updated_at = ? " +
+                    " , organization_id = ? " +
+                    " where " +
+                    escapeReservedWord("user") +
+                    " = ? " +
+                    " and reference_type = ? " +
+                    " and reference_id = ? "
             )
             .addColumn("user", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
@@ -92,8 +91,7 @@ public class JdbcPortalNotificationConfigRepository
                 portalNotificationConfig.getUser(),
                 portalNotificationConfig.getReferenceType(),
                 portalNotificationConfig.getReferenceId()
-            )
-                .orElse(null);
+            ).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create PortalNotificationConfig", ex);
             throw new TechnicalException("Failed to create PortalNotificationConfig", ex);
@@ -118,20 +116,20 @@ public class JdbcPortalNotificationConfigRepository
     String generateQuery(PortalNotificationCriteria criteria) {
         StringBuilder query = new StringBuilder(
             "select pnc." +
-            escapeReservedWord("user") +
-            ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at " +
-            " from " +
-            this.tableName +
-            " pnc" +
-            " left join " +
-            PORTAL_NOTIFICATION_CONFIG_HOOKS +
-            " pnch" +
-            " on pnc.reference_type = pnch.reference_type" +
-            " and pnc.reference_id = pnch.reference_id" +
-            " and pnc." +
-            escapeReservedWord("user") +
-            " = pnch." +
-            escapeReservedWord("user")
+                escapeReservedWord("user") +
+                ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at " +
+                " from " +
+                this.tableName +
+                " pnc" +
+                " left join " +
+                PORTAL_NOTIFICATION_CONFIG_HOOKS +
+                " pnch" +
+                " on pnc.reference_type = pnch.reference_type" +
+                " and pnc.reference_id = pnch.reference_id" +
+                " and pnc." +
+                escapeReservedWord("user") +
+                " = pnch." +
+                escapeReservedWord("user")
         );
 
         if (criteria != null) {
@@ -194,30 +192,28 @@ public class JdbcPortalNotificationConfigRepository
         }
         try {
             jdbcTemplate.update(
-                getOrm()
-                    .buildUpdatePreparedStatementCreator(
-                        portalNotificationConfig,
-                        portalNotificationConfig.getUser(),
-                        portalNotificationConfig.getReferenceType().name(),
-                        portalNotificationConfig.getReferenceId()
-                    )
+                getOrm().buildUpdatePreparedStatementCreator(
+                    portalNotificationConfig,
+                    portalNotificationConfig.getUser(),
+                    portalNotificationConfig.getReferenceType().name(),
+                    portalNotificationConfig.getReferenceId()
+                )
             );
             storeHooks(portalNotificationConfig, true);
             return findById(
                 portalNotificationConfig.getUser(),
                 portalNotificationConfig.getReferenceType(),
                 portalNotificationConfig.getReferenceId()
-            )
-                .orElseThrow(() ->
-                    new IllegalStateException(
-                        format(
-                            "No portalNotificationConfig found with id [%s, %s, %s]",
-                            portalNotificationConfig.getUser(),
-                            portalNotificationConfig.getReferenceType(),
-                            portalNotificationConfig.getReferenceId()
-                        )
+            ).orElseThrow(() ->
+                new IllegalStateException(
+                    format(
+                        "No portalNotificationConfig found with id [%s, %s, %s]",
+                        portalNotificationConfig.getUser(),
+                        portalNotificationConfig.getReferenceType(),
+                        portalNotificationConfig.getReferenceId()
                     )
-                );
+                )
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -233,15 +229,15 @@ public class JdbcPortalNotificationConfigRepository
         try {
             final List<PortalNotificationConfig> items = jdbcTemplate.query(
                 "select " +
-                escapeReservedWord("user") +
-                ", reference_type, reference_id, created_at, updated_at, organization_id " +
-                " from " +
-                this.tableName +
-                " where " +
-                escapeReservedWord("user") +
-                " = ?" +
-                " and reference_type = ?" +
-                " and reference_id = ?",
+                    escapeReservedWord("user") +
+                    ", reference_type, reference_id, created_at, updated_at, organization_id " +
+                    " from " +
+                    this.tableName +
+                    " where " +
+                    escapeReservedWord("user") +
+                    " = ?" +
+                    " and reference_type = ?" +
+                    " and reference_id = ?",
                 getOrm().getRowMapper(),
                 user,
                 referenceType.name(),
@@ -263,12 +259,12 @@ public class JdbcPortalNotificationConfigRepository
         try {
             jdbcTemplate.update(
                 "delete from " +
-                this.tableName +
-                " where " +
-                escapeReservedWord("user") +
-                " = ?" +
-                " and reference_type = ?" +
-                " and reference_id = ? ",
+                    this.tableName +
+                    " where " +
+                    escapeReservedWord("user") +
+                    " = ?" +
+                    " and reference_type = ?" +
+                    " and reference_id = ? ",
                 portalNotificationConfig.getUser(),
                 portalNotificationConfig.getReferenceType().name(),
                 portalNotificationConfig.getReferenceId()
@@ -323,13 +319,13 @@ public class JdbcPortalNotificationConfigRepository
         List<String> hooks = new ArrayList<>();
         jdbcTemplate.query(
             "select hook" +
-            " from " +
-            PORTAL_NOTIFICATION_CONFIG_HOOKS +
-            " where " +
-            escapeReservedWord("user") +
-            " = ?" +
-            " and reference_id = ?" +
-            " and reference_type = ?",
+                " from " +
+                PORTAL_NOTIFICATION_CONFIG_HOOKS +
+                " where " +
+                escapeReservedWord("user") +
+                " = ?" +
+                " and reference_id = ?" +
+                " and reference_type = ?",
             rs -> {
                 hooks.add(rs.getString(1));
             },
@@ -344,12 +340,12 @@ public class JdbcPortalNotificationConfigRepository
         if (deleteFirst) {
             jdbcTemplate.update(
                 "delete from " +
-                PORTAL_NOTIFICATION_CONFIG_HOOKS +
-                " where " +
-                escapeReservedWord("user") +
-                " = ?" +
-                " and reference_id = ?" +
-                " and reference_type = ?",
+                    PORTAL_NOTIFICATION_CONFIG_HOOKS +
+                    " where " +
+                    escapeReservedWord("user") +
+                    " = ?" +
+                    " and reference_id = ?" +
+                    " and reference_type = ?",
                 parent.getUser(),
                 parent.getReferenceId(),
                 parent.getReferenceType().name()
@@ -358,10 +354,10 @@ public class JdbcPortalNotificationConfigRepository
         if (parent.getHooks() != null && !parent.getHooks().isEmpty()) {
             jdbcTemplate.batchUpdate(
                 "insert into " +
-                PORTAL_NOTIFICATION_CONFIG_HOOKS +
-                " ( " +
-                escapeReservedWord("user") +
-                ", reference_id, reference_type, hook ) values ( ?, ?, ?, ? )",
+                    PORTAL_NOTIFICATION_CONFIG_HOOKS +
+                    " ( " +
+                    escapeReservedWord("user") +
+                    ", reference_id, reference_type, hook ) values ( ?, ?, ?, ? )",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {

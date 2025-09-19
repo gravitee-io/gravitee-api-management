@@ -150,23 +150,23 @@ public class ApiService_StartTest {
         query.setEnvironmentIds(Set.of(executionContext.getEnvironmentId()));
         query.setOrganizationIds(Set.of(executionContext.getOrganizationId()));
         when(eventService.search(executionContext, query)).thenReturn(singleton(event));
-        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class))).thenAnswer(invocation ->
+            invocation.getArgument(1)
+        );
 
         apiService.start(executionContext, API_ID, USER_NAME);
 
         verify(api).setUpdatedAt(any());
         verify(api).setLifecycleState(LifecycleState.STARTED);
         verify(apiRepository).update(api);
-        verify(eventService)
-            .createApiEvent(
-                eq(executionContext),
-                eq(singleton(GraviteeContext.getCurrentEnvironment())),
-                eq(GraviteeContext.getCurrentOrganization()),
-                eq(EventType.START_API),
-                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
-                argThat((Map<String, String> props) -> "myUser".equals(props.get("user")) && props.containsKey("deployment_number"))
-            );
+        verify(eventService).createApiEvent(
+            eq(executionContext),
+            eq(singleton(GraviteeContext.getCurrentEnvironment())),
+            eq(GraviteeContext.getCurrentOrganization()),
+            eq(EventType.START_API),
+            argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+            argThat((Map<String, String> props) -> "myUser".equals(props.get("user")) && props.containsKey("deployment_number"))
+        );
         verify(notifierService, times(1)).trigger(eq(executionContext), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }
 

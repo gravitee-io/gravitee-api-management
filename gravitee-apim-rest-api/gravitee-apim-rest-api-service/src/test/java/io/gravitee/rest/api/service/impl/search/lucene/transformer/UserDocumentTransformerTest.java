@@ -45,8 +45,7 @@ public class UserDocumentTransformerTest {
         @Test
         public void should_transform_a_user_with_custom_fields() {
             // Given
-            var user = UserEntity
-                .builder()
+            var user = UserEntity.builder()
                 .id("user-uuid")
                 .customFields(Map.ofEntries(Map.entry("prop1", "value1"), Map.entry("prop2", "value2")))
                 .build();
@@ -61,8 +60,7 @@ public class UserDocumentTransformerTest {
         @Test
         public void should_ignore_empty_custom_fields() {
             // Given
-            var user = UserEntity
-                .builder()
+            var user = UserEntity.builder()
                 .id("user-uuid")
                 .customFields(Map.ofEntries(Map.entry("prop1", ""), Map.entry("prop3", "value")))
                 .build();
@@ -77,8 +75,7 @@ public class UserDocumentTransformerTest {
         @Test
         public void should_ignore_custom_fields_containing_base64_images() {
             // Given
-            var user = UserEntity
-                .builder()
+            var user = UserEntity.builder()
                 .id("user-uuid")
                 .customFields(
                     Map.ofEntries(

@@ -94,17 +94,17 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
         notificationTemplate.setTitle("User ${registrationAction} - ${user.displayName} ");
         notificationTemplate.setContent(
             "<html>\n" +
-            "\t<body style=\"text-align: center;\">\n" +
-            "\t\t<header>\n" +
-            "\t\t\t<#include \"header.html\" />\n" +
-            "\t\t</header>\n" +
-            "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n" +
-            "\t\t\t<h3>Hi ${user.displayName},</h3>\n" +
-            "\t\t\t<p>You have been successfully registered.</p>\n" +
-            "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n" +
-            "\t\t</div>\n" +
-            "\t</body>\n" +
-            "</html>\n"
+                "\t<body style=\"text-align: center;\">\n" +
+                "\t\t<header>\n" +
+                "\t\t\t<#include \"header.html\" />\n" +
+                "\t\t</header>\n" +
+                "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n" +
+                "\t\t\t<h3>Hi ${user.displayName},</h3>\n" +
+                "\t\t\t<p>You have been successfully registered.</p>\n" +
+                "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n" +
+                "\t\t</div>\n" +
+                "\t</body>\n" +
+                "</html>\n"
         );
         notificationTemplate.setCreatedAt(new Date(1000000000000L));
         notificationTemplate.setUpdatedAt(new Date(1439032010883L));
@@ -187,17 +187,17 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
         notificationTemplate.setTitle("User ${registrationAction} - ${user.displayName} ");
         notificationTemplate.setContent(
             "<html>\n" +
-            "\t<body style=\"text-align: center;\">\n" +
-            "\t\t<header>\n" +
-            "\t\t\t<#include \"header.html\" />\n" +
-            "\t\t</header>\n" +
-            "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n" +
-            "\t\t\t<h3>Hi ${user.displayName},</h3>\n" +
-            "\t\t\t<p>You have been successfully registered.</p>\n" +
-            "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n" +
-            "\t\t</div>\n" +
-            "\t</body>\n" +
-            "</html>\n"
+                "\t<body style=\"text-align: center;\">\n" +
+                "\t\t<header>\n" +
+                "\t\t\t<#include \"header.html\" />\n" +
+                "\t\t</header>\n" +
+                "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n" +
+                "\t\t\t<h3>Hi ${user.displayName},</h3>\n" +
+                "\t\t\t<p>You have been successfully registered.</p>\n" +
+                "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n" +
+                "\t\t</div>\n" +
+                "\t</body>\n" +
+                "</html>\n"
         );
         notificationTemplate.setCreatedAt(new Date(1000000000000L));
         notificationTemplate.setUpdatedAt(new Date(1486771200000L));

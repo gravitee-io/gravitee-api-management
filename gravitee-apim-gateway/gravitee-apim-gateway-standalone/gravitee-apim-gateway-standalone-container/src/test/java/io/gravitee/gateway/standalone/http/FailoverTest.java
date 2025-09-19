@@ -51,8 +51,7 @@ public class FailoverTest extends AbstractWiremockGatewayTest {
 
         final HttpResponse response = execute(
             Request.Post("http://localhost:8082/team/my_team").bodyString(request, ContentType.TEXT_PLAIN)
-        )
-            .returnResponse();
+        ).returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(postRequestedFor(urlPathEqualTo("/fallback/my_team")).withRequestBody(equalTo(request)));

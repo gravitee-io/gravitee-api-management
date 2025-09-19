@@ -52,11 +52,10 @@ class PluginFilterByLicenseDomainServiceTest {
 
         var res = service.setPluginDeployedStatusDependingOnLicense(input, "org-id");
 
-        assertThat(res)
-            .containsExactly(
-                ConnectorPlugin.builder().id("plugin-1").feature("feature-1").deployed(false).build(),
-                ConnectorPlugin.builder().id("plugin-1").feature("feature-2").deployed(true).build(),
-                ConnectorPlugin.builder().id("plugin-1").feature("feature-3").deployed(false).build()
-            );
+        assertThat(res).containsExactly(
+            ConnectorPlugin.builder().id("plugin-1").feature("feature-1").deployed(false).build(),
+            ConnectorPlugin.builder().id("plugin-1").feature("feature-2").deployed(true).build(),
+            ConnectorPlugin.builder().id("plugin-1").feature("feature-3").deployed(false).build()
+        );
     }
 }

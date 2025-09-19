@@ -30,8 +30,7 @@ public class PropertyApiIdTypeEnvsIndexUpgrader extends IndexUpgrader {
         // Warn: Mongodb doesn't support multikey index if more than one to-be-indexed field of a document is an array.
         // Thus, it is not possible to index both 'environments' and 'organizations' fields as they are both arrays.
         // We prefer index the 'environments' field as it may have more cardinalities than the 'organizations' one.
-        return Index
-            .builder()
+        return Index.builder()
             .collection("events_latest")
             .name("pai1t1e1")
             .key("properties.api_id", ascending())

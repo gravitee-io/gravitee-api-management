@@ -39,8 +39,7 @@ public class BridgeCommandFactory {
             null
         );
         return new BridgeCommand(
-            BridgeCommandPayload
-                .builder()
+            BridgeCommandPayload.builder()
                 .environmentId(environmentId)
                 .organizationId(organizationId)
                 .installationId(installationService.get().getId())
@@ -61,8 +60,7 @@ public class BridgeCommandFactory {
             targetEnvironmentId
         );
         return new BridgeCommand(
-            BridgeCommandPayload
-                .builder()
+            BridgeCommandPayload.builder()
                 .environmentId(environmentId)
                 .organizationId(organizationId)
                 .installationId(installationService.get().getId())
@@ -84,8 +82,7 @@ public class BridgeCommandFactory {
             sourceEnvCockpitId
         );
         return new BridgeCommand(
-            BridgeCommandPayload
-                .builder()
+            BridgeCommandPayload.builder()
                 .environmentId(environmentId)
                 .organizationId(organizationId)
                 .installationId(installationService.get().getId())

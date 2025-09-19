@@ -80,14 +80,13 @@ class SharedPolicyGroupSynchronizerTest {
 
     @BeforeEach
     void setUp() {
-        cut =
-            new SharedPolicyGroupSynchronizer(
-                latestEventFetcher,
-                new SharedPolicyGroupMapper(objectMapper, environmentService),
-                deployerFactory,
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-            );
+        cut = new SharedPolicyGroupSynchronizer(
+            latestEventFetcher,
+            new SharedPolicyGroupMapper(objectMapper, environmentService),
+            deployerFactory,
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+        );
 
         lenient().when(latestEventFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createSharedPolicyGroupDeployer()).thenReturn(sharedPolicyGroupDeployer);
@@ -122,22 +121,26 @@ class SharedPolicyGroupSynchronizerTest {
         void should_fetch_init_events() throws InterruptedException {
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("event")).test().await().assertComplete();
-            verify(latestEventFetcher)
-                .fetchLatest(eq(-1L), any(), eq(SHARED_POLICY_GROUP_ID), eq(Set.of("event")), eq(Set.of(DEPLOY_SHARED_POLICY_GROUP)));
+            verify(latestEventFetcher).fetchLatest(
+                eq(-1L),
+                any(),
+                eq(SHARED_POLICY_GROUP_ID),
+                eq(Set.of("event")),
+                eq(Set.of(DEPLOY_SHARED_POLICY_GROUP))
+            );
         }
 
         @Test
         void should_fetch_incremental_events() throws InterruptedException {
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("event")).test().await().assertComplete();
-            verify(latestEventFetcher)
-                .fetchLatest(
-                    any(),
-                    any(),
-                    eq(SHARED_POLICY_GROUP_ID),
-                    eq(Set.of("event")),
-                    eq(Set.of(DEPLOY_SHARED_POLICY_GROUP, EventType.UNDEPLOY_SHARED_POLICY_GROUP))
-                );
+            verify(latestEventFetcher).fetchLatest(
+                any(),
+                any(),
+                eq(SHARED_POLICY_GROUP_ID),
+                eq(Set.of("event")),
+                eq(Set.of(DEPLOY_SHARED_POLICY_GROUP, EventType.UNDEPLOY_SHARED_POLICY_GROUP))
+            );
         }
     }
 
@@ -149,13 +152,11 @@ class SharedPolicyGroupSynchronizerTest {
             Event event = new Event();
             event.setId("id");
             final io.gravitee.repository.management.model.SharedPolicyGroup sharedPolicyGroup =
-                io.gravitee.repository.management.model.SharedPolicyGroup
-                    .builder()
+                io.gravitee.repository.management.model.SharedPolicyGroup.builder()
                     .id("id")
                     .definition(
                         objectMapper.writeValueAsString(
-                            SharedPolicyGroup
-                                .builder()
+                            SharedPolicyGroup.builder()
                                 .phase(SharedPolicyGroup.Phase.REQUEST)
                                 .policies(List.of())
                                 .id("spg_id")

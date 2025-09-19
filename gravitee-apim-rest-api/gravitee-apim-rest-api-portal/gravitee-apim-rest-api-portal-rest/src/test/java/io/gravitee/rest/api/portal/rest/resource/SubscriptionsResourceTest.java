@@ -169,8 +169,9 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
         final ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
         final Key key = new Key();
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION))
-            .thenReturn(Collections.singletonList(apiKeyEntity));
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION)).thenReturn(
+            Collections.singletonList(apiKeyEntity)
+        );
         when(keyMapper.convert(apiKeyEntity)).thenReturn(key);
 
         final Response response = target().request().post(Entity.json(subscriptionInput));

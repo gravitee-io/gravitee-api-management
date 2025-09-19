@@ -115,11 +115,9 @@ public class ConsoleSettingsResource {
 
         if (
             maintenanceMode &&
-            (
-                consoleSettingsEntity.getMaintenance() == null ||
+            (consoleSettingsEntity.getMaintenance() == null ||
                 consoleSettingsEntity.getMaintenance().getEnabled() == null ||
-                consoleSettingsEntity.getMaintenance().getEnabled()
-            )
+                consoleSettingsEntity.getMaintenance().getEnabled())
         ) {
             throw new MaintenanceModeException();
         }

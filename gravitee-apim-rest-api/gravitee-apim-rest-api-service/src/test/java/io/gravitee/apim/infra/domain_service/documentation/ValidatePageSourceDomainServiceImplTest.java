@@ -75,8 +75,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_validate_with_required_fields() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("github-fetcher")
                 .configurationMap(
                     Map.of(
@@ -109,8 +108,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_validate_with_optional_fields() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("github-fetcher")
                 .configurationMap(
                     Map.of(
@@ -151,8 +149,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_default_github_URL() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("github-fetcher")
                 .configurationMap(
                     Map.of(
@@ -170,8 +167,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 )
                 .build();
 
-            var expectedSource = PageSource
-                .builder()
+            var expectedSource = PageSource.builder()
                 .type("github-fetcher")
                 .configurationMap(
                     Map.of(
@@ -204,8 +200,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_return_error_with_missing_required_property() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("github-fetcher")
                 .configurationMap(
                     Map.of("repository", "doc-samples", "filepath", "/", "username", "test", "personalAccessToken", "test-token")
@@ -222,8 +217,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_return_error_with_invalid_github_URL() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("github-fetcher")
                 .configurationMap(
                     Map.of(
@@ -253,8 +247,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_sanitize_and_return_warning_with_unknown_property() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("github-fetcher")
                 .configurationMap(
                     Map.of(
@@ -276,8 +269,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                 )
                 .build();
 
-            var expectedSource = PageSource
-                .builder()
+            var expectedSource = PageSource.builder()
                 .type("github-fetcher")
                 .configurationMap(
                     Map.of(
@@ -319,8 +311,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_validate_with_required_fields() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("http-fetcher")
                 .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json"))
                 .build();
@@ -334,8 +325,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_validate_with_optional_fields() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("http-fetcher")
                 .configurationMap(
                     Map.of(
@@ -372,8 +362,7 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_return_error_with_invalid_cron_expression() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("http-fetcher")
                 .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json", "fetchCron", "***"))
                 .build();
@@ -390,14 +379,12 @@ public class ValidatePageSourceDomainServiceImplTest {
 
         @Test
         void should_sanitize_and_return_warning_with_unknown_property() {
-            var source = PageSource
-                .builder()
+            var source = PageSource.builder()
                 .type("http-fetcher")
                 .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json", "unknownPropertyKey", "whatever"))
                 .build();
 
-            var expectedSource = PageSource
-                .builder()
+            var expectedSource = PageSource.builder()
                 .type("http-fetcher")
                 .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json"))
                 .build();

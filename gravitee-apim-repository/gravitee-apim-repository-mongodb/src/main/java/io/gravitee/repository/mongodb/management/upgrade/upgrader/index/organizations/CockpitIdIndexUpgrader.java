@@ -27,8 +27,7 @@ public class CockpitIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("organizations")
             .name("cid1")
             .key("cockpitId", ascending())

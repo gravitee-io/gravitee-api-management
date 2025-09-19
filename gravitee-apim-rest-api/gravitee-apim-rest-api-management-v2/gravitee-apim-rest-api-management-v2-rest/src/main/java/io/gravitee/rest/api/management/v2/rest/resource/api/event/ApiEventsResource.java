@@ -62,8 +62,7 @@ public class ApiEventsResource extends AbstractResource {
 
         var output = searchEventsUseCase.execute(input);
 
-        return EventsResponse
-            .builder()
+        return EventsResponse.builder()
             .data(ApiEventMapper.INSTANCE.map(output.data()))
             .pagination(computePaginationInfo(output.total(), output.data().size(), paginationParam))
             .links(computePaginationLinks(output.total(), paginationParam))
@@ -77,7 +76,13 @@ public class ApiEventsResource extends AbstractResource {
             executionContext.getEnvironmentId(),
             Optional.empty(),
             Optional.of(apiId),
-            params.getTypes() != null ? params.getTypes().stream().map(s -> EventType.valueOf(s.toUpperCase())).toList() : List.of(),
+            params.getTypes() != null
+                ? params
+                    .getTypes()
+                    .stream()
+                    .map(s -> EventType.valueOf(s.toUpperCase()))
+                    .toList()
+                : List.of(),
             Map.of(),
             Optional.ofNullable(params.getFrom()),
             Optional.ofNullable(params.getTo())

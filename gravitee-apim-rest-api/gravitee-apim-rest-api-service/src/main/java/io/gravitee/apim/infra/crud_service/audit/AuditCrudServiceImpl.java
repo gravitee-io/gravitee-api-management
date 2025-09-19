@@ -36,8 +36,7 @@ public class AuditCrudServiceImpl implements AuditCrudService {
 
     @Override
     public void create(AuditEntity auditEntity) throws TechnicalManagementException {
-        var entity = Audit
-            .builder()
+        var entity = Audit.builder()
             .id(auditEntity.getId())
             .organizationId(auditEntity.getOrganizationId())
             .environmentId(auditEntity.getEnvironmentId())

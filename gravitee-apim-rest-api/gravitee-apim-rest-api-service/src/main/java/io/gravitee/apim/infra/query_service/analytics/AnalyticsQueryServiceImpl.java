@@ -77,8 +77,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchAverageMessagesPerRequest(executionContext.getQueryContext(), new AverageMessagesPerRequestQuery(apiId, from, to))
             .map(averageAggregate ->
-                AverageMessagesPerRequest
-                    .builder()
+                AverageMessagesPerRequest.builder()
                     .globalAverage(averageAggregate.getAverage())
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
@@ -97,8 +96,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             responseStatusQueryParameters
         );
         return queryResult.map(analytics ->
-            ResponseStatusRanges
-                .builder()
+            ResponseStatusRanges.builder()
                 .ranges(analytics.getRanges())
                 .statusRangesCountByEntrypoint(analytics.getStatusRangesCountByEntrypoint())
                 .build()
@@ -133,8 +131,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return analyticsRepository
             .searchAverageConnectionDuration(executionContext.getQueryContext(), new AverageConnectionDurationQuery(apiId, from, to))
             .map(averageAggregate ->
-                AverageConnectionDuration
-                    .builder()
+                AverageConnectionDuration.builder()
                     .globalAverage(averageAggregate.getAverage())
                     .averagesByEntrypoint(averageAggregate.getAverageBy())
                     .build()
@@ -165,8 +162,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
                 query.interval()
             )
         );
-        return ResponseStatusOvertime
-            .builder()
+        return ResponseStatusOvertime.builder()
             .data(result.getStatusCount())
             .timeRange(new ResponseStatusOvertime.TimeRange(query.from(), query.to(), query.interval()))
             .build();
@@ -179,8 +175,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             new RequestResponseTimeQueryCriteria(parameters.getApiIds(), parameters.getFrom(), parameters.getTo())
         );
 
-        return RequestResponseTime
-            .builder()
+        return RequestResponseTime.builder()
             .requestsPerSecond(result.getRequestsPerSecond())
             .requestsTotal(result.getRequestsTotal())
             .responseMinTime(result.getResponseMinTime())
