@@ -18,9 +18,11 @@ import { gridConfiguration } from './grid/grid.suggestions';
 import { ComponentSelector } from '../models/componentSelector';
 import { cellConfiguration } from './grid/cell/cell.suggestions';
 import { buttonConfiguration } from './button/gmd-button.suggestions';
+import { gmdBlockConfiguration } from './gmd-block/gmd-block.suggestions';
 
 export const componentSuggestionMap: Record<string, ComponentSuggestionConfiguration> = {
   [ComponentSelector.GRID]: gridConfiguration,
   [ComponentSelector.CELL]: cellConfiguration,
   [ComponentSelector.BUTTON]: buttonConfiguration,
+  [ComponentSelector.GMD_BLOCK]: gmdBlockConfiguration,
 };

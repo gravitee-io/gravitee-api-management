@@ -68,63 +68,53 @@ export class GraviteeMarkdownViewerService {
 
 
   public render(content: string): string {
-    console.log('=== RENDER METHOD CALLED ===');
-    console.log('Original content length:', content.length);
-    console.log('Original content:', content);
-    console.log('Content ends with:', content.slice(-100));
-    
     // Pre-process the content to handle markdownContent before passing to marked.js
     const processedContent = this.preprocessMarkdownContent(content);
-    console.log('Processed content:', processedContent);
     
     marked.use({ renderer: this.getRenderer() });
     const result = marked(processedContent) as string;
-    
-    console.log('=== RENDER RESULT ===');
-    console.log('Result length:', result.length);
-    console.log('Result:', result);
     
     return result;
   }
 
   private preprocessMarkdownContent(content: string): string {
-    console.log('=== PREPROCESSING MARKDOWN CONTENT ===');
+    // Generic regex to find any tag with markdownContent attribute
+    // This pattern captures: tagName (including hyphens), attributes, and content
+    const markdownContentRegex = /<([a-zA-Z][a-zA-Z0-9-]*)([^>]*markdownContent[^>]*)>([\s\S]*?)<\/\1>/gi;
     
-    // Use regex to find and replace content between tags with markdownContent attribute
-    const markdownContentRegex = /<(\w+)([^>]*markdownContent[^>]*)>([\s\S]*?)<\/\1>/gi;
+    console.log('=== PREPROCESSING MARKDOWN CONTENT ===');
+    console.log('Input content:', JSON.stringify(content));
+    
+    // Test the regex first
+    const testMatch = markdownContentRegex.exec(content);
+    console.log('Regex test match:', testMatch);
+    markdownContentRegex.lastIndex = 0;
     
     const processedContent = content.replace(markdownContentRegex, (match, tagName, attributes, content) => {
       console.log('Found markdownContent tag:', tagName);
       console.log('Full match:', match);
+      console.log('Attributes:', attributes);
       console.log('Raw content:', JSON.stringify(content));
       
-      // Clean up the markdown content by removing extra whitespace and normalizing indentation
-      let markdownContent: string = content.trim();
-      
-      console.log('Before processing:', JSON.stringify(markdownContent));
+      // Clean up the markdown content
+      let markdownContent = content.trim();
       
       // Remove leading whitespace from each line to normalize indentation
       const lines = markdownContent.split('\n');
-      markdownContent = lines.map(line => {
+      markdownContent = lines.map((line: string) => {
         if (line.trim().length === 0) return line; // Keep empty lines as is
-        const trimmed = line.trim();
-        console.log('Original line:', JSON.stringify(line), 'Trimmed:', JSON.stringify(trimmed));
-        return trimmed;
+        return line.trim();
       }).join('\n');
       
-      console.log(`Found markdown content in <${tagName}>:`, JSON.stringify(markdownContent));
+      console.log('Processed markdown content:', JSON.stringify(markdownContent));
       
       if (markdownContent) {
         // Render the markdown content
         const renderedMarkdown = marked(markdownContent) as string;
         console.log('Rendered markdown:', renderedMarkdown);
         
-        // Clean up any unwanted code blocks that might have been inserted
-        const cleanedMarkdown = renderedMarkdown.replace(/<pre><code>plaintext\s*<\/code><\/pre>/g, '');
-        console.log('Cleaned markdown:', cleanedMarkdown);
-        
         // Return the original tag with rendered markdown content
-        return `<${tagName}${attributes}>${cleanedMarkdown}</${tagName}>`;
+        return `<${tagName}${attributes}>${renderedMarkdown}</${tagName}>`;
       }
       
       return match; // Return original if no content

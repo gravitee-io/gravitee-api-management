@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum ComponentSelector {
-  GRID = 'gmd-grid',
-  CELL = 'gmd-cell',
-  BUTTON = 'gmd-button',
-  GMD_BLOCK = 'gmd-block',
-}
+import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'gmd-block',
+  imports: [CommonModule],
+  templateUrl: './gmd-block.component.html',
+  styleUrl: './gmd-block.component.scss',
+})
+export class GmdBlockComponent {}
