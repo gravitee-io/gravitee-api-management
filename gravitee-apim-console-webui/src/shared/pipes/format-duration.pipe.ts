@@ -52,16 +52,14 @@ export class FormatDurationPipe implements PipeTransform {
 
     // Find the most appropriate unit to display
     for (const [unitName, intervalValue] of Object.entries(this.intervals)) {
-      const counter = (value / intervalValue);
+      const counter = value / intervalValue;
 
       if (counter >= 1) {
         // Format to one decimal place
         const formattedValue = counter.toFixed(1);
 
         // Remove trailing '.0' for whole numbers for a cleaner look
-        const displayValue = formattedValue.endsWith('.0')
-          ? formattedValue.slice(0, -2)
-          : formattedValue;
+        const displayValue = formattedValue.endsWith('.0') ? formattedValue.slice(0, -2) : formattedValue;
 
         return `${displayValue}${unitName}`;
       }
