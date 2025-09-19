@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, input, ViewChild } from '@angular/core';
 
 import { GraviteeMarkdownRendererService } from '../../services/gravitee-markdown-renderer.service';
 
@@ -29,15 +29,31 @@ export class GraviteeMarkdownCardComponent implements AfterViewInit {
   @ViewChild('markdownSource', { static: true }) private mdContent!: ElementRef<HTMLElement>;
   parsedContent = '';
 
-  private mdViewerService = inject(GraviteeMarkdownRendererService);
+  backgroundColor = input(null);
+  textColor = input(null);
+
+  private readonly mdViewerService = inject(GraviteeMarkdownRendererService);
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   ngAfterViewInit(): void {
+    this.applyCssInputsOverrides();
+
     if (this.mdContent) {
       const rawMarkdown = this.mdContent.nativeElement.textContent ?? '';
       const sanitizedMarkdown = this.removeIndentation(rawMarkdown);
       const parsed = this.mdViewerService.render(sanitizedMarkdown);
       const doc = new DOMParser().parseFromString(parsed, 'text/html');
       this.parsedContent = doc.body.outerHTML;
+    }
+  }
+
+  private applyCssInputsOverrides() {
+    const hostEl = this.host.nativeElement;
+    if (this.backgroundColor()) {
+      hostEl.style.setProperty('--gmd-card-container-color', this.backgroundColor()!);
+    }
+    if (this.textColor()) {
+      hostEl.style.setProperty('--gmd-card-font-color', this.textColor()!);
     }
   }
 

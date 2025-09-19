@@ -186,3 +186,65 @@ export const FigmaSimpleExampleWithSubtitle: StoryObj<GraviteeMarkdownCardCompon
     },
   }),
 };
+
+export const WithGlobalCssOverrides: StoryObj<GraviteeMarkdownCardComponent> = {
+  render: () => ({
+    template: `
+      <div style="background-color: white; width: 300px;">
+        <gmd-card
+            [attr.style]="
+                '--gmd-card-outline-color: darkblue;' +
+                '--gmd-card-text-align: center;'
+              "
+        >
+          <gmd-card-title>A simple placeholder</gmd-card-title>
+          <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
+          <pre>{{ markdownContent }}</pre>
+        </gmd-card>
+      </div>
+    `,
+    props: {
+      markdownContent: `Here's a paragraph. Are you happy now? Just fill in your own content here.`,
+    },
+  }),
+};
+
+export const MultipleCardUsingInputs: StoryObj<GraviteeMarkdownCardComponent> = {
+  render: () => ({
+    template: `
+      <div style="background-color: white; width: 300px; gap: 12px; display: flex; flex-flow: column">
+
+        <!-- Card 1: white background, orange text -->
+        <gmd-card [backgroundColor]="'#ffffff'" [textColor]="'orange'">
+          <gmd-card-title>First card</gmd-card-title>
+          <gmd-card-subtitle>Version: 1.0</gmd-card-subtitle>
+          <pre>{{ markdownContent }}</pre>
+        </gmd-card>
+
+        <!-- Card 2: dark background, light text -->
+        <gmd-card [backgroundColor]="'#222222'" [textColor]="'#f5f5f5'">
+          <gmd-card-title>Second card</gmd-card-title>
+          <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
+          <pre>{{ markdownContent }}</pre>
+        </gmd-card>
+
+        <!-- Card 3: blue background, white text -->
+        <gmd-card [backgroundColor]="'rgb(0, 102, 204)'" [textColor]="'white'">
+          <gmd-card-title>Third card</gmd-card-title>
+          <gmd-card-subtitle>Version: 3.0</gmd-card-subtitle>
+          <pre>{{ markdownContent }}</pre>
+        </gmd-card>
+
+        <!-- Card 4: default -->
+        <gmd-card>
+          <gmd-card-title>Third card</gmd-card-title>
+          <gmd-card-subtitle>Version: 3.0</gmd-card-subtitle>
+          <pre>{{ markdownContent }}</pre>
+        </gmd-card>
+      </div>
+    `,
+    props: {
+      markdownContent: `Here's a paragraph. Are you happy now? Just fill in your own content here.`,
+    },
+  }),
+};

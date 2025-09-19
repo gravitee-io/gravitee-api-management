@@ -52,6 +52,14 @@
     container-shape: (
       value: 16px,
       css-var: --gmd-card-container-shape,
+    ),
+    font-color: (
+      value: #1d192b,
+      css-var: --gmd-card-font-color,
+    ),
+    text-align: (
+      value: 'left',
+      css-var: --gmd-card-text-align,
     )
   );
 }

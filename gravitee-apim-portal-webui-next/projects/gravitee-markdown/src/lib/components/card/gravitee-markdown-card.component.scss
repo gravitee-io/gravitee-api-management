@@ -26,7 +26,9 @@ $token-mapping: overrides.tokens();
   border: 1px solid token-utils.slot(outline-color, $token-mapping);
   border-radius: token-utils.slot(container-shape, $token-mapping);
   background-color: token-utils.slot(container-color, $token-mapping);
+  color: token-utils.slot(font-color, $token-mapping);
   gap: 12px;
+  text-align: token-utils.slot(text-align, $token-mapping);
   word-break: break-word;
 
   &__header {
@@ -36,6 +38,6 @@ $token-mapping: overrides.tokens();
   }
 
   ::ng-deep .viewer__overrides {
-    @include markdown-overrides.get-overrides();
+    @include markdown-overrides.get-overrides(token-utils.slot(font-color, $token-mapping));
   }
 }
