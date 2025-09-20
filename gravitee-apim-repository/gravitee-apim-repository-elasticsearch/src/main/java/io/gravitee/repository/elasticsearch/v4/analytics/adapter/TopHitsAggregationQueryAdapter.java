@@ -23,6 +23,9 @@ import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import jakarta.validation.constraints.NotNull;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,6 +52,7 @@ public class TopHitsAggregationQueryAdapter {
     public static final String ASC = "asc";
     public static final String DESC = "desc";
     public static final String TERM = "term";
+    public static final String TERMS = "terms";
     public static final String FIXED_INTERVAL = "fixed_interval";
     public static final String DATE_HISTOGRAM = "date_histogram";
     public static final String START_VALUE = "start_value";
@@ -176,11 +180,26 @@ public class TopHitsAggregationQueryAdapter {
     }
 
     private static void applyOptionalFilters(HistogramQuery query, ArrayNode filters) {
-        if (query.terms() == null) {
+        if (query.terms() == null || query.terms().isEmpty()) {
             return;
         }
 
-        query.terms().forEach(term -> applyTermFilter(term.key(), term.value(), filters));
+        Map<String, Set<String>> groupedTerms = new LinkedHashMap<>();
+        query.terms().forEach(term -> groupedTerms.computeIfAbsent(term.key(), k -> new LinkedHashSet<>()).add(term.value()));
+
+        groupedTerms.forEach((field, values) -> applyTermsFilter(field, values, filters));
+    }
+
+    private static void applyTermsFilter(String field, Set<String> values, ArrayNode filters) {
+        ObjectNode termsNode = MAPPER.createObjectNode();
+        ArrayNode valuesArray = MAPPER.createArrayNode();
+        values.forEach(valuesArray::add);
+
+        ObjectNode fieldNode = MAPPER.createObjectNode();
+        fieldNode.set(field, valuesArray);
+
+        termsNode.set(TERMS, fieldNode);
+        filters.add(termsNode);
     }
 
     private static void applyTermFilter(String field, String value, ArrayNode filters) {
