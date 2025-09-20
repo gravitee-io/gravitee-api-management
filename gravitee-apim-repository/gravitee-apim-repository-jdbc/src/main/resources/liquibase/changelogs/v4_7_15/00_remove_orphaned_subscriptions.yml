@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.7.15_00_remove_orphaned_subscriptions
+      author: GraviteeSource Team
+      changes:
+        - sql:
+            sql: >
+              DELETE FROM ${gravitee_prefix}subscriptions
+              WHERE NOT EXISTS (
+                SELECT 1
+                FROM ${gravitee_prefix}applications a
+                WHERE a.id = ${gravitee_prefix}subscriptions.application
+              );
