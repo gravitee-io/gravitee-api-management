@@ -31,6 +31,8 @@ import { fakePagedResult, fakePlanV4, PlanV4 } from '../../../../../entities/man
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
 import { fakeAnalyticsStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
+import { Application } from '../../../../../entities/application/Application';
+import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 
 describe('ApiAnalyticsNativeComponent', () => {
   const API_ID = 'api-id';
@@ -112,34 +114,43 @@ describe('ApiAnalyticsNativeComponent', () => {
       flushAllRequests();
     });
 
-    it('should use and select plans from query params', async () => {
-      await initComponent({ plans: '1', terms: 'plan-id:1' });
+    it('should use and select terms from query params', async () => {
+      await initComponent({ plans: '1', terms: 'plan-id:1,app-id:1' });
 
       expectPlanList([plan1, plan2]);
 
       const filtersBar = await componentHarness.getFiltersBarHarness();
-      const selectedValues = await filtersBar.getSelectedPlans();
+      const selectedPlans = await filtersBar.getSelectedPlans();
+      const selectedApplications = await filtersBar.getSelectedApplications();
 
-      expect(selectedValues).toEqual(['1']);
+      expect(selectedPlans).toEqual(['1']);
+      expect(selectedApplications).toEqual(['1']);
       flushAllRequests();
     });
 
-    it('should update the URL query params when a plan is selected', async () => {
-      await initComponent();
+    it('should update the URL query params when a terms selected', async () => {
+      await initComponent({});
+      const app1 = fakeApplication({ id: '1', name: 'Application 1' });
+      const app2 = fakeApplication({ id: '2', name: 'Application 2' });
 
       expectPlanList([plan1, plan2]);
+      expectApplicationList([app1, app2]);
 
       const router = TestBed.inject(Router);
       const routerSpy = jest.spyOn(router, 'navigate');
 
       const filtersBar = await componentHarness.getFiltersBarHarness();
       await filtersBar.selectPlan('plan 2');
+      await filtersBar.selectApplication('Application 1');
+      const selectedApplications = await filtersBar.getSelectedApplications();
 
+      expect(selectedApplications.length).toEqual(1);
       expect(routerSpy).toHaveBeenCalledWith([], {
         queryParams: {
           period: '1d',
           plans: '2',
-          terms: 'plan-id:2',
+          applications: '1',
+          terms: 'plan-id:2,app-id:1',
         },
         queryParamsHandling: 'replace',
       });
@@ -273,6 +284,16 @@ describe('ApiAnalyticsNativeComponent', () => {
         method: 'GET',
       })
       .flush(fakePagedResult(plans));
+    fixture.detectChanges();
+  }
+
+  function expectApplicationList(applications: Application[]) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=200`,
+        method: 'GET',
+      })
+      .flush(fakePagedResult(applications));
     fixture.detectChanges();
   }
 });
