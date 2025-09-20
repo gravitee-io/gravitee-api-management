@@ -1359,11 +1359,13 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.VALUE);
             Aggregation agg3 = new Aggregation("downstream-publish-message-bytes", AggregationType.VALUE);
             Aggregation agg4 = new Aggregation("upstream-publish-message-bytes", AggregationType.VALUE);
-            Term appIdFilter = new Term("app-id", "yyy-yyy-yyy");
+            Term appIdFilter1 = new Term("app-id", "yyy-yyy-yyy");
+            Term appIdFilter2 = new Term("app-id", "kkkk-yyy-yyy");
+            Term planIdFilter = new Term("plan-id", "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10");
 
             var result = cut.searchEventAnalytics(
                 QUERY_CONTEXT,
-                buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), List.of(appIdFilter), "xxx-xxx-xxx")
+                buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), List.of(appIdFilter1, appIdFilter2, planIdFilter), "xxx-xxx-xxx")
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
