@@ -34,6 +34,7 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
     from: null,
     to: null,
     plans: [],
+    applications: [],
   };
 
   beforeEach(async () => {
@@ -54,6 +55,7 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
         to: mockActiveFilters.to ? moment(mockActiveFilters.to) : null,
       },
       plans: mockActiveFilters.plans,
+      applications: mockActiveFilters.applications,
     });
 
     fixture.detectChanges();
@@ -191,6 +193,23 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
         plans: plans,
       });
     });
+
+    it('should emit filtersChange when application(s) is selected', () => {
+      // Arrange
+      const spy = jest.spyOn(component.filtersChange, 'emit');
+      const applications = ['appId1', 'appId2'];
+
+      // Act
+      component.form.patchValue({
+        applications: applications,
+      });
+
+      // Assert
+      expect(spy).toHaveBeenCalledWith({
+        ...mockActiveFilters,
+        applications: applications,
+      });
+    });
   });
 
   describe('Form State', () => {
@@ -249,26 +268,30 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
     const filters: ApiAnalyticsNativeFilters = {
       ...mockActiveFilters,
       plans: ['plan1', 'plan2'],
+      applications: ['app1', 'app2'],
     };
 
     beforeEach(() => {
       emitSpy = jest.spyOn(component.filtersChange, 'emit');
       component.form.controls.plans.setValue(['plan1', 'plan2']);
+      component.form.controls.applications.setValue(['app1', 'app2']);
       fixture.componentRef.setInput('activeFilters', filters);
       fixture.detectChanges();
     });
 
     it('should create filter chips from activeFilters using computed signals', () => {
-      expect(component.currentFilterChips()).toHaveLength(2);
+      expect(component.currentFilterChips()).toHaveLength(4);
       expect(component.currentFilterChips()).toEqual([
         { key: 'plans', value: 'plan1', display: 'plan1' },
         { key: 'plans', value: 'plan2', display: 'plan2' },
+        { key: 'applications', value: 'app1', display: 'app1' },
+        { key: 'applications', value: 'app2', display: 'app2' },
       ]);
 
       expect(component.isFiltering()).toBeTruthy();
     });
 
-    it('should remove any filter and update form', () => {
+    it('should remove plan filter and update form', () => {
       component.removeFilter('plans', 'plan1');
 
       expect(component.form.controls.plans.value).toEqual(['plan2']);
@@ -278,12 +301,23 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
       });
     });
 
+    it('should remove application filter and update form', () => {
+      component.removeFilter('applications', 'app1');
+
+      expect(component.form.controls.applications.value).toEqual(['app2']);
+      expect(emitSpy).toHaveBeenCalledWith({
+        ...filters,
+        applications: ['app2'],
+      });
+    });
+
     it('should reset all filters', () => {
       component.resetAllFilters();
 
       expect(emitSpy).toHaveBeenCalledWith({
         ...filters,
         plans: null,
+        applications: null,
       });
     });
 
@@ -292,6 +326,7 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
       const newFilters: ApiAnalyticsNativeFilters = {
         ...mockActiveFilters,
         plans: ['plan1'],
+        applications: ['app1'],
       };
 
       // Act
@@ -299,8 +334,11 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
       fixture.detectChanges();
 
       // Assert
-      expect(component.currentFilterChips()).toHaveLength(1);
-      expect(component.currentFilterChips()).toEqual([{ key: 'plans', value: 'plan1', display: 'plan1' }]);
+      expect(component.currentFilterChips()).toHaveLength(2);
+      expect(component.currentFilterChips()).toEqual([
+        { key: 'plans', value: 'plan1', display: 'plan1' },
+        { key: 'applications', value: 'app1', display: 'app1' },
+      ]);
       expect(component.isFiltering()).toBeTruthy();
     });
 
@@ -309,6 +347,7 @@ describe('ApiAnalyticsNativeFilterBarComponent', () => {
       const emptyFilters: ApiAnalyticsNativeFilters = {
         ...mockActiveFilters,
         plans: null,
+        applications: null,
       };
 
       // Act
