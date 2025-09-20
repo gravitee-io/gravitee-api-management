@@ -34,6 +34,7 @@ import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsA
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SOURCE;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.START_VALUE;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TERM;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TERMS;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TIMESTAMP;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TOP_HITS;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.adapt;
@@ -46,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
@@ -55,6 +57,7 @@ import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.StreamSupport;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -250,9 +253,11 @@ class TopHitsAggregationQueryAdapterTest {
     void should_apply_filters() throws JsonProcessingException {
         Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
         Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-        Term appIdFilter = new Term("app-id", APP_ID);
-        Term planIdFilter = new Term("plan-id", PLAN_ID);
-        var query = buildHistogramQuery(List.of(agg1, agg2), List.of(appIdFilter, planIdFilter));
+        Term appIdFilter1 = new Term("app-id", APP_ID);
+        Term planIdFilter1 = new Term("plan-id", PLAN_ID);
+        Term appIdFilter2 = new Term("app-id", "xxxx-xxxx-xxxx-xxxx");
+        Term planIdFilter2 = new Term("plan-id", "yyyy-yyyy-yyyy-yyyy");
+        var query = buildHistogramQuery(List.of(agg1, agg2), List.of(appIdFilter1, planIdFilter1, appIdFilter2, planIdFilter2));
 
         String json = adapt(query);
 
@@ -268,8 +273,12 @@ class TopHitsAggregationQueryAdapterTest {
         assertEquals(FROM, filters.get(1).get(RANGE).get(TIMESTAMP).get(GTE).asLong());
         assertEquals(TO, filters.get(1).get(RANGE).get(TIMESTAMP).get(LTE).asLong());
         // Assert optional filters
-        assertEquals(APP_ID, filters.get(2).get(TERM).get("app-id").asText());
-        assertEquals(PLAN_ID, filters.get(3).get(TERM).get("plan-id").asText());
+        ArrayNode appTermsArray = (ArrayNode) filters.get(2).get("terms").get("app-id");
+        List<String> appTermValues = StreamSupport.stream(appTermsArray.spliterator(), false).map(JsonNode::asText).toList();
+        assertTrue(appTermValues.containsAll(List.of(APP_ID, "xxxx-xxxx-xxxx-xxxx")));
+        ArrayNode planTermsArray = (ArrayNode) filters.get(3).get("terms").get("plan-id");
+        List<String> planTermValues = StreamSupport.stream(planTermsArray.spliterator(), false).map(JsonNode::asText).toList();
+        assertTrue(planTermValues.containsAll(List.of(PLAN_ID, "yyyy-yyyy-yyyy-yyyy")));
     }
 
     private static @NotNull HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms) {
