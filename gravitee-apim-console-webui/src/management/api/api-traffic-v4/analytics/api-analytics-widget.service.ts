@@ -360,10 +360,10 @@ export class ApiAnalyticsWidgetService {
     let queryString = toQuery(filters);
 
     if (urlParamsData.terms && urlParamsData.terms.length > 0) {
-      queryString  = queryString + '&terms=' + urlParamsData.terms;
+      queryString = queryString + '&terms=' + urlParamsData.terms;
     }
 
-      return queryString;
+    return queryString;
   }
 
   private transformHistogramResponseToApiAnalyticsWidgetConfig(

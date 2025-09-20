@@ -14,7 +14,29 @@
  * limitations under the License.
  */
 import { BaseFilterBarHarness } from '../base-analytics-filter-bar/base-filter-bar.harness';
+import { GioSelectSearchHarness } from '../../../../../../shared/components/gio-select-search/gio-select-search.harness';
 
 export class ApiAnalyticsNativeFilterBarHarness extends BaseFilterBarHarness {
   static hostSelector = 'api-analytics-native-filter-bar';
+
+  async getApplicationSelect(): Promise<GioSelectSearchHarness | null> {
+    return await this.locatorForOptional(GioSelectSearchHarness.with({ formControlName: 'applications' }))();
+  }
+
+  async getSelectedApplications(): Promise<string[] | null> {
+    const select = await this.getApplicationSelect();
+    await select.open();
+
+    return await select.getSelectedValues();
+  }
+
+  async selectApplication(optionText: string): Promise<void> {
+    const select = await this.getApplicationSelect();
+
+    if (select) {
+      await select.open();
+      await select.checkOptionByLabel(optionText);
+      await select.close();
+    }
+  }
 }
