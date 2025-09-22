@@ -8,10 +8,11 @@ tests:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: |
-           \s metrics:
-           \s   enabled: false
-           \s   prometheus:
-           \s     enabled: true
+            \s metrics:
+            \s   enabled: false
+            \s   prometheus:
+            \s     concurrencyLimit: 3
+            \s     enabled: true
   - it: Enable metrics service and set `labels`
     template: gateway/gateway-configmap.yaml
     set:
@@ -24,6 +25,7 @@ tests:
               - remote
             prometheus:
               enabled: true
+              concurrencyLimit: 3
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
@@ -34,6 +36,7 @@ tests:
             \s   - local
             \s   - remote
             \s   prometheus:
+            \s     concurrencyLimit: 3
             \s     enabled: true
 
   - it: Enable metrics service and don't set any `labels`
@@ -45,6 +48,7 @@ tests:
             enabled: true
             prometheus:
               enabled: true
+              concurrencyLimit: 3
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
@@ -52,4 +56,5 @@ tests:
             \s metrics:
             \s   enabled: true
             \s   prometheus:
+            \s     concurrencyLimit: 3
             \s     enabled: true
