@@ -18,10 +18,12 @@ import { GraviteeMarkdownEditorModule } from '@gravitee/gravitee-markdown';
 import { Component, computed, DestroyRef, effect, inject, signal, WritableSignal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, startWith, tap } from 'rxjs/operators';
+import { catchError, filter, startWith, switchMap, tap } from 'rxjs/operators';
 import { EMPTY, Observable } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -41,20 +43,29 @@ export class HomepageComponent {
     disabled: true,
   });
 
+  togglePublishActionText = computed(() => {
+    return this.portalHomepage()?.published ? 'Unpublish' : 'Publish';
+  });
+
   isSaveDisabled = computed(() => {
     const currentContent = this.contentValue();
-    const savedContent = this.portalHomepage().content;
+    const savedContent = this.portalHomepage()?.content;
     const isEmpty = !currentContent?.trim();
     return !this.canUpdate() || isEmpty || currentContent === savedContent;
+  });
+
+  isTogglePublishActive = computed(() => {
+    return this.canUpdate() && this.portalHomepage();
   });
 
   private readonly snackbarService = inject(SnackBarService);
   private readonly portalPagesService = inject(PortalPagesService);
   private readonly gioPermissionService = inject(GioPermissionService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly matDialog = inject(MatDialog);
 
+  private readonly portalHomepage: WritableSignal<PortalPageWithDetails | null> = signal(null);
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
-  private readonly portalHomepage: WritableSignal<PortalPageWithDetails> = signal({ content: '' } as PortalPageWithDetails);
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
   constructor() {
@@ -66,19 +77,57 @@ export class HomepageComponent {
       .subscribe();
 
     effect(() => {
-      this.contentControl.reset(this.portalHomepage().content);
+      this.contentControl.reset(this.portalHomepage()?.content || '');
     });
 
     effect(() => {
-      if (this.canUpdate()) {
-        this.contentControl.enable();
-      }
+      this.canUpdate() ? this.contentControl.enable() : this.contentControl.disable();
     });
+  }
+
+  public togglePublish(): void {
+    const isCurrentlyPublished = this.portalHomepage()?.published;
+    const pageId = this.portalHomepage()?.id;
+
+    const data: GioConfirmDialogData = {
+      title: `${this.togglePublishActionText()} page?`,
+      content: isCurrentlyPublished
+        ? `This action will unpublish the page. It will no longer be visible on the developer portal, but you can publish it again at any time.`
+        : `Your changes will be published. The updated page will be visible on your developer portal.`,
+      confirmButton: this.togglePublishActionText(),
+    };
+
+    const toggleApiCall$ = isCurrentlyPublished
+      ? this.portalPagesService.unpublishPage(pageId)
+      : this.portalPagesService.publishPage(pageId);
+
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data,
+        role: 'alertdialog',
+        id: 'confirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => confirmed),
+        switchMap((_) => toggleApiCall$),
+        tap((updatedPage) => {
+          this.portalHomepage.set(updatedPage);
+          this.snackbarService.success(`Page has been ${updatedPage.published ? 'publish' : 'unpublish'}ed successfully.`);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+        catchError(({ error }) => {
+          this.snackbarService.error(error?.message ?? `Failed to ${this.togglePublishActionText().toLowerCase()} page.`);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   updatePortalPage(): void {
     this.portalPagesService
-      .patchPortalPage(this.portalHomepage().id, {
+      .patchPortalPage(this.portalHomepage()?.id, {
         content: this.contentControl.value,
       })
       .pipe(

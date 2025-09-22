@@ -13,6 +13,15 @@
   }
 }
 
+.actions {
+  display: flex;
+  gap: 8px;
+
+  &__toggle-publish {
+    width: 100px;
+  }
+}
+
 gmd-editor {
   @include gmd.editor-overrides(
     (
