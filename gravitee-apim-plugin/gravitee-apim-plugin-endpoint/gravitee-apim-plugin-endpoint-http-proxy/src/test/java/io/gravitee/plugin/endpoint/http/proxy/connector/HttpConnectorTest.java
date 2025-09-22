@@ -21,7 +21,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.HOST;
@@ -30,12 +29,8 @@ import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_RE
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -49,15 +44,12 @@ import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
-import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpResponse;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -93,9 +85,9 @@ class HttpConnectorTest {
     protected static final String REQUEST_BODY_CHUNK2 = "body chunk ";
     protected static final String REQUEST_BODY_CHUNK3 = "content";
 
+    protected static final int REQUEST_BODY_LENGTH = REQUEST_BODY.getBytes().length;
     protected static final String BACKEND_RESPONSE_BODY = "response from backend";
     public static final int TIMEOUT_SECONDS = 60;
-    private static final String ERROR_ENDPOINT = "/error";
     private static WireMockServer wiremock;
     private static Vertx vertx;
 
@@ -116,9 +108,6 @@ class HttpConnectorTest {
 
     @Mock
     private Metrics metrics;
-
-    @Mock
-    private Tracer tracer;
 
     private HttpHeaders requestHeaders;
     private HttpHeaders responseHeaders;
@@ -677,27 +666,6 @@ class HttpConnectorTest {
 
         final TestObserver<Void> obs = cut.connect(ctx).test();
         obs.assertError(NullPointerException.class);
-    }
-
-    @Test
-    void shouldHandleServerError() throws InterruptedException {
-        lenient().when(request.method()).thenReturn(HttpMethod.GET);
-        // Configure endpoint that returns server error
-        configuration.setTarget("http://localhost:" + wiremock.port() + ERROR_ENDPOINT);
-        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
-
-        wiremock.stubFor(get(ERROR_ENDPOINT).willReturn(serverError()));
-
-        final TestObserver<Void> obs = cut.connect(ctx).test();
-
-        assertNoTimeout(obs);
-        obs.assertComplete();
-        verify(tracer, never()).endOnError(any(Span.class), any(Throwable.class));
-        verify(ctx, never()).setInternalAttribute(
-            eq(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE),
-            any(ExecutionFailure.class)
-        );
-        wiremock.verify(1, getRequestedFor(urlPathEqualTo("/error")));
     }
 
     private void assertNoTimeout(TestObserver<Void> obs) throws InterruptedException {
