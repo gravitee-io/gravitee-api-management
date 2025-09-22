@@ -20,7 +20,18 @@
     additionalActions
     matTooltip="You don’t have the permissions to update this page. Please contact your administrator."
     [matTooltipDisabled]="!contentControl.disabled"
+    class="actions"
   >
+    <button
+      class="actions__toggle-publish"
+      mat-stroked-button
+      [attr.aria-label]="togglePublishActionText() + ' portal page'"
+      (click)="togglePublish()"
+      [disabled]="!isTogglePublishActive()"
+      data-testid="toggle-publish-button"
+    >
+      {{ togglePublishActionText() }}
+    </button>
     <button mat-flat-button color="primary" aria-label="Update portal page" (click)="updatePortalPage()" [disabled]="isSaveDisabled()">
       Save
     </button>
