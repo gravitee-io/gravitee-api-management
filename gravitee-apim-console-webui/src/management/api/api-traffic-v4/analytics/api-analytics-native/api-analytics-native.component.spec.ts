@@ -290,7 +290,7 @@ describe('ApiAnalyticsNativeComponent', () => {
   function expectApplicationList(applications: Application[]) {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=200`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-id/subscribers?page=1&perPage=200`,
         method: 'GET',
       })
       .flush(fakePagedResult(applications));
