@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, computed, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map, shareReplay } from 'rxjs/operators';
 
 import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
@@ -34,7 +34,8 @@ import { ApiAnalyticsDashboardWidgetConfig } from '../api-analytics-proxy/api-an
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 import { AggregationFields, AggregationTypes } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
-import { ApplicationService } from '../../../../../services-ngx/application.service';
+import { BaseApplication } from '../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 interface QueryParamsBase {
   from?: string;
@@ -63,12 +64,13 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
   private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
   private planService = inject(ApiPlanV2Service);
-  private applicationService = inject(ApplicationService);
+  private apiService = inject(ApiV2Service);
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public bottomRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
+  public applications: BaseApplication[] = [];
 
   public activeFilters: Signal<ApiAnalyticsNativeFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
 
@@ -253,15 +255,11 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       shareReplay(1),
     );
 
-  applications$ = this.applicationService.list(undefined, undefined, undefined, 1, 200).pipe(
-    map((response) => response.data),
-    shareReplay(1),
-  );
-
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly apiAnalyticsWidgetService: ApiAnalyticsWidgetService,
+    private readonly destroyRef: DestroyRef,
   ) {
     effect(() => {
       this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activatedRouteQueryParams()));
@@ -269,6 +267,16 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.apiService
+      .getSubscribers(this.apiId, null, 1, 200)
+      .pipe(
+        map((response) => {
+          this.applications = response.data;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
     this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });

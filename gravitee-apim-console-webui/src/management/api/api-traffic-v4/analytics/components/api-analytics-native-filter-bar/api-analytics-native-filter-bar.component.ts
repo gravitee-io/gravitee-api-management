@@ -30,9 +30,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { customTimeFrames, timeFrames } from '../../../../../../shared/utils/timeFrameRanges';
 import { GioSelectSearchComponent, SelectOption } from '../../../../../../shared/components/gio-select-search/gio-select-search.component';
-import { Plan } from '../../../../../../entities/management-api-v2';
+import { BaseApplication, Plan } from '../../../../../../entities/management-api-v2';
 import { GioTimeframeComponent } from '../../../../../../shared/components/gio-timeframe/gio-timeframe.component';
-import { Application } from '../../../../../../entities/application/Application';
 
 interface ApiAnalyticsNativeFilterBarForm {
   timeframe: FormControl<{ period: string; from: Moment | null; to: Moment | null } | null>;
@@ -80,7 +79,7 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
   refresh = output<void>();
 
   plans = input<Plan[]>([]);
-  applications: InputSignal<Application[]> = input<Application[]>();
+  applications: InputSignal<BaseApplication[]> = input<BaseApplication[]>();
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
 
   public planOptions = computed<SelectOption[]>(() => {
