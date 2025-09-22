@@ -205,9 +205,7 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             userService.createOrUpdateUserFromSocialIdentityProvider(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(identityProvider),
-                anyString(),
-                any(),
-                any()
+                anyString()
             )
         ).thenReturn(userEntity);
 
@@ -224,9 +222,7 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(
             eq(GraviteeContext.getExecutionContext()),
             eq(identityProvider),
-            anyString(),
-            any(),
-            any()
+            anyString()
         );
         verify(userService, times(1)).connect(GraviteeContext.getExecutionContext(), userEntity.getSourceId());
 
@@ -311,8 +307,6 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(0)).createOrUpdateUserFromSocialIdentityProvider(
             eq(GraviteeContext.getExecutionContext()),
             eq(identityProvider),
-            anyString(),
-            anyString(),
             anyString()
         );
         verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
@@ -340,9 +334,7 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             userService.createOrUpdateUserFromSocialIdentityProvider(
                 eq(GraviteeContext.getExecutionContext()),
                 refEq(identityProvider),
-                anyString(),
-                any(),
-                any()
+                anyString()
             )
         ).thenThrow(new EmailRequiredException(USER_NAME));
         // -- CALL
@@ -355,9 +347,7 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(
             eq(GraviteeContext.getExecutionContext()),
             eq(identityProvider),
-            anyString(),
-            any(),
-            any()
+            anyString()
         );
         verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
@@ -430,8 +420,6 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             userService.createOrUpdateUserFromSocialIdentityProvider(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(identityProvider),
-                anyString(),
-                anyString(),
                 anyString()
             )
         ).thenThrow(new ExpressionEvaluationException("cannot convert from java.lang.String to boolean"));
@@ -446,9 +434,7 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(
             eq(GraviteeContext.getExecutionContext()),
             eq(identityProvider),
-            any(),
-            any(),
-            any()
+            anyString()
         );
         verify(userService, times(0)).connect(eq(GraviteeContext.getExecutionContext()), anyString());
 
