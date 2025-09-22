@@ -1,3 +1,27 @@
+# [6.2.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.1.2...6.2.0) (2025-09-22)
+
+
+### Bug Fixes
+
+* add missing stuff for new EVENT_METRICS ([b9646fc](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/b9646fcec06479e3ac31a79fa841a8be210372ae))
+* bump ci gravitee orb ([342c907](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/342c907118e8e9afb6768852d151cbf365b4b14b))
+* bump gravitee-reporter-common version ([e6c1acd](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/e6c1acdd8e9c64d007a36f481aceecf73c39afa4))
+* bump gravitee-reporter-common version ([2c1ce02](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/2c1ce028f7d2401f2b02e557a70902ae4907127c))
+* failed repository tests on ES7x ([94ed41b](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/94ed41b505ecc5d152859992f71fc7a8a808a998))
+
+
+### Features
+
+* add an index template for v4 native event metrics in ES7 ([eee942a](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/eee942aedca828b8739da37850a2d4e89073c008))
+* add more metrics in ES index template ([1ca98de](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/1ca98deff82f1ed7f5e00877253f7b324ebfaacb))
+* bump dependancies ([ed739cc](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/ed739cc2923b5a2442b81652d4dd9288c3440546))
+* bump gravitee-reporter-common version ([13dc3aa](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/13dc3aac0ea8a67dc2ced6f3682eb4520ef94302))
+* exclude creating index alias when using data streams ([ad2e160](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/ad2e160e46be585443dbedbe6ef6ac9f5fa58cc0))
+* handle failure and warnings metrics in v2 and v4 ([86ec671](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/86ec671682e726a966dd26f2a0ca36cc8b60fe3f))
+* prepare index as data stream ([06448f2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/06448f2db981d2ea9d647b10b5c320268c107b27))
+* update circleci config to use gravitee orb version 5.2.1 ([3332f4b](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/3332f4bcb5bca3755b8040e325523099cabb5d3c))
+* update index pattern in event metrics templates ([3d6e6e0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/3d6e6e00e315a69ce4b443660846894ddef562b8))
+
 ## [6.1.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.1.1...6.1.2) (2025-08-08)
 
 
