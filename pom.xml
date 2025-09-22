@@ -27,14 +27,15 @@
 
     <groupId>io.gravitee.reporter</groupId>
     <artifactId>gravitee-reporter-elasticsearch</artifactId>
-    <version>6.1.2</version>
+    <version>6.2.0-alpha.13</version>
 
     <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
     <properties>
-        <gravitee-apim.version>4.8.4</gravitee-apim.version>
-        <gravitee-reporter-common.version>1.6.3</gravitee-reporter-common.version>
-        <gravitee-common-elasticsearch.version>6.2.0</gravitee-common-elasticsearch.version>
+        <gravitee-bom.version>8.2.22</gravitee-bom.version>
+        <gravitee-apim.version>4.9.0-alpha.2</gravitee-apim.version>
+        <gravitee-reporter-common.version>1.7.0</gravitee-reporter-common.version>
+        <gravitee-common-elasticsearch.version>6.3.0</gravitee-common-elasticsearch.version>
         <gravitee-node-api.version>4.8.7</gravitee-node-api.version>
 
         <commons-validator.version>1.10.0</commons-validator.version>
@@ -179,6 +180,11 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web-client</artifactId>
             <scope>test</scope>
         </dependency>
 
