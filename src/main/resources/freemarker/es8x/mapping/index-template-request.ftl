@@ -165,11 +165,39 @@
                     "type": "keyword",
                     "index": true
                 },
+                "error-component-type": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "error-component-name": {
+                    "type": "keyword",
+                    "index": true
+                },
                 "subscription": {
                     "type": "keyword"
                 },
                 "zone": {
                     "type": "keyword"
+                },
+                "warnings": {
+                    "type": "nested",
+                    "properties": {
+                        "key": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "message": {
+                            "type": "text"
+                        },
+                        "component-type": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "component-name": {
+                            "type": "keyword",
+                            "index": true
+                        }
+                    }
                 }
                 <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
             },
