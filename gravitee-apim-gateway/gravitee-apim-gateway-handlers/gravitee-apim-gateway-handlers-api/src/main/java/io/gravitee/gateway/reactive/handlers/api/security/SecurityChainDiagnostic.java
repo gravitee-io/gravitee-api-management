@@ -51,11 +51,11 @@ public class SecurityChainDiagnostic {
         noSubscriptionPlans.add(planName);
     }
 
-    public void markPlanHasExpiredSubscription(String planName) {
+    public void markPlanHasExpiredSubscription(String planName, String applicationName) {
         if (expiredSubscriptionPlans == null) {
             expiredSubscriptionPlans = new ArrayList<>();
         }
-        expiredSubscriptionPlans.add(planName);
+        expiredSubscriptionPlans.add(planName + " (application: " + applicationName + ")");
     }
 
     public void markPlanHasInvalidToken(String planName) {

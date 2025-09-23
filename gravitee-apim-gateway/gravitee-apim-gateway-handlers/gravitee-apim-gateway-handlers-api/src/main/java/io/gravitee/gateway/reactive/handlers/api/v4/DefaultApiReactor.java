@@ -19,8 +19,6 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_NAME;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
 import static java.lang.Boolean.TRUE;
@@ -48,6 +46,7 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
+import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.reactive.core.failover.FailoverInvoker;
@@ -318,8 +317,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
     }
 
     protected Completable startPhaseTracing(final MutableExecutionContext ctx, final ExecutionPhase executionPhase) {
-        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.SYSTEM);
-        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, executionPhase == REQUEST ? "request_phase" : "response_phase");
         if (!tracingContext.isEnabled()) {
             return Completable.complete();
         }
@@ -343,8 +340,6 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     protected void endPhaseTracing(final MutableExecutionContext ctx, final ExecutionPhase executionPhase, final Throwable throwable) {
         try {
-            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
-            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
             if (tracingContext.isEnabled()) {
                 String phaseSpanAttribute = getExecutionPhaseSpanAttribute(executionPhase);
                 if (phaseSpanAttribute != null) {
@@ -397,21 +392,14 @@ public class DefaultApiReactor extends AbstractApiReactor {
             if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
                 return getInvoker(ctx)
                     .map(invoker -> {
-                        // Set component type and name for proper error reporting
-                        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.ENDPOINT);
-                        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, invoker.getId());
-
+                        ComponentScope.push(ctx, ComponentType.ENDPOINT, invoker.getId());
                         return HookHelper.hook(
                             () -> invoker.invoke(ctx),
                             invoker.getId(),
                             invokerHooks,
                             ctx,
                             endpointExecutionPhase()
-                        ).doFinally(() -> {
-                            // Clean up component attributes after completion
-                            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
-                            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
-                        });
+                        ).doFinally(() -> ComponentScope.remove(ctx, ComponentType.ENDPOINT, invoker.getId()));
                     })
                     .orElse(Completable.complete());
             }
@@ -437,20 +425,15 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     @Override
     Completable onTimeout(MutableExecutionContext ctx) {
-        // Set component type and name for proper error reporting
-        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.SYSTEM);
-        ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, "request-timeout");
-
-        return ctx
-            .interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT_KEY).message(REQUEST_TIMEOUT_MESSAGE)
-            )
-            .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
-            .doFinally(() -> {
-                // Clean up component attributes after completion
-                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
-                ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
-            });
+        return Completable.defer(() -> {
+            ComponentScope.push(ctx, ComponentType.SYSTEM, "request-timeout");
+            return ctx
+                .interruptWith(
+                    new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT_KEY).message(REQUEST_TIMEOUT_MESSAGE)
+                )
+                .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
+                .doFinally(() -> ComponentScope.remove(ctx, ComponentType.SYSTEM, "request-timeout"));
+        });
     }
 
     /**

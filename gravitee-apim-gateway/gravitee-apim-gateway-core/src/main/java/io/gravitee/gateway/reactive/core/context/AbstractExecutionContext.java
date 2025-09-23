@@ -15,9 +15,6 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_NAME;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE;
-
 import io.gravitee.common.util.ListUtils;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
@@ -91,10 +88,10 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     public Completable interruptWith(ExecutionFailure executionFailure) {
         return Completable.defer(() -> {
             internalAttributes.put(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+            ComponentScope.ComponentEntry componentEntry = ComponentScope.peek(this);
             metrics.setFailure(
                 DiagnosticReportHelper.fromExecutionFailure(
-                    getInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE),
-                    getInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME),
+                    componentEntry,
                     metrics.getErrorKey(),
                     metrics.getErrorMessage(),
                     executionFailure
@@ -117,13 +114,8 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
             setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_WARN, warnings);
         }
         warnings.add(warn);
-        metrics.addWarning(
-            DiagnosticReportHelper.fromExecutionWarn(
-                getInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE),
-                getInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME),
-                warn
-            )
-        );
+        ComponentScope.ComponentEntry componentEntry = ComponentScope.peek(this);
+        metrics.addWarning(DiagnosticReportHelper.fromExecutionWarn(componentEntry, warn));
     }
 
     @Override

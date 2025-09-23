@@ -26,10 +26,12 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
+import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.gateway.reactive.handlers.api.security.SecurityChainDiagnostic;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -100,7 +102,12 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
      * @return a {@link Completable} that completes when the security policy has been successfully executed or returns an error otherwise.
      */
     public Completable execute(final C ctx, final ExecutionPhase executionPhase) {
-        return executeSecurityPolicy(ctx, executionPhase).doOnSubscribe(disposable -> ctx.setAttribute(ATTR_PLAN, planContext.planId()));
+        return executeSecurityPolicy(ctx, executionPhase)
+            .doOnSubscribe(disposable -> {
+                ComponentScope.push(ctx, ComponentType.POLICY, policy.id());
+                ctx.setAttribute(ATTR_PLAN, planContext.planId());
+            })
+            .doFinally(() -> ComponentScope.remove(ctx, ComponentType.POLICY, policy.id()));
     }
 
     public int order() {
@@ -163,7 +170,7 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
                     ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
                     return true;
                 }
-                securityChainDiagnostic.markPlanHasExpiredSubscription(planContext.planName());
+                securityChainDiagnostic.markPlanHasExpiredSubscription(planContext.planName(), subscription.getApplicationName());
             } else {
                 securityChainDiagnostic.markPlanHasNoSubscription(planContext.planName());
             }
