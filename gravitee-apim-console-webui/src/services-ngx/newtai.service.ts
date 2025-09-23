@@ -16,7 +16,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { ElAiPromptState, GioElService } from '@gravitee/ui-particles-angular';
+import { ElAiPromptState, FeedbackSubmission, GioElService } from '@gravitee/ui-particles-angular';
 import { catchError, map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
@@ -44,6 +44,7 @@ export class NewtAIService {
   constructor() {
     if (this.constants?.org?.settings?.elGen?.enabled ?? false) {
       this.gioElService.promptCallback = (p) => this.promptEL(p);
+      this.gioElService.feedbackCallback = (fs) => this.submitFeedback(fs);
     }
   }
 
@@ -51,9 +52,22 @@ export class NewtAIService {
     return this.httpClient
       .post<NewtAIResponse>(`${this.constants.env.v2BaseURL}/newtai/el/_generate`, { message: prompt, context: this.context })
       .pipe(
-        map(({ message }) => ({ el: message })),
+        map(({ message, feedbackRequestId }) => ({
+          el: message,
+          feedbackRequestId,
+        })),
         catchError((error) => of({ message: error['message'] as string })),
       );
+  }
+  public submitFeedback(fs: FeedbackSubmission): Observable<void> {
+    return this.httpClient.post<void>(`${this.constants.env.v2BaseURL}/newtai/el/feedback`, {
+      answerHelpful: fs.feedback === 'helpful',
+      feedbackRequestId: {
+        chatId: fs.feedbackRequestId?.chatId,
+        userMessageId: fs.feedbackRequestId?.userMessageId,
+        agentMessageId: fs.feedbackRequestId?.agentMessageId,
+      },
+    });
   }
 
   public addToContext(key: NewtAIContextKeys, value: string): void {
