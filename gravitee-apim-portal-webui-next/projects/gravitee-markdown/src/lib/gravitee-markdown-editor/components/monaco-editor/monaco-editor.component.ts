@@ -159,6 +159,11 @@ export class MonacoEditorComponent implements OnDestroy {
       });
     });
 
+    // Configure word boundaries to include hyphens, i.e. gmd-button
+    monaco.languages.setLanguageConfiguration('markdown', {
+      wordPattern: /[a-zA-Z0-9-]+/g,
+    });
+
     monaco.editor.defineTheme('gmdTheme', {
       base: 'vs',
       inherit: true,
@@ -284,7 +289,7 @@ export class MonacoEditorComponent implements OnDestroy {
 
   private getComponentTag(text: string): string | null {
     // Look for the most recent opening tag that contains the current position
-    const openingTagRegex = /<(\w+)(?:\s[^>]*)?/g;
+    const openingTagRegex = /<([a-zA-Z][a-zA-Z0-9-]*)(?:\s[^>]*)?/g;
     const match = openingTagRegex.exec(text);
 
     if (!match) {
@@ -294,19 +299,10 @@ export class MonacoEditorComponent implements OnDestroy {
     const tagName = match[1];
 
     // Check if this tag is in our component suggestion map
-    const tagNameStartIndex = match.index! + tagName.length;
-    if (componentSuggestionMap[tagName] && this.checkIfInsideTag(text, tagName, tagNameStartIndex)) {
+    if (componentSuggestionMap[tagName]) {
       return tagName;
     }
 
     return null;
-  }
-
-  private checkIfInsideTag(textBeforeCursor: string, tagName: string, tagNameStartIndex: number): boolean {
-    const afterOpeningTag = textBeforeCursor.substring(tagNameStartIndex);
-    const closingTagRegex = new RegExp(`</${tagName}>`);
-
-    // If we do not find a closing tag after the opening tag, we are inside the tag
-    return !closingTagRegex.test(afterOpeningTag);
   }
 }
