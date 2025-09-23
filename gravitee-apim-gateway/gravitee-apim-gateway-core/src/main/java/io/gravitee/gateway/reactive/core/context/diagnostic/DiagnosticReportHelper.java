@@ -15,15 +15,13 @@
  */
 package io.gravitee.gateway.reactive.core.context.diagnostic;
 
-import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.ExecutionIssue;
 import io.gravitee.gateway.reactive.api.ExecutionWarn;
+import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.reporter.api.v4.metric.Diagnostic;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.springframework.core.NestedExceptionUtils;
 
 public class DiagnosticReportHelper {
@@ -38,47 +36,50 @@ public class DiagnosticReportHelper {
     private DiagnosticReportHelper() {}
 
     public static Diagnostic fromExecutionFailure(
-        ComponentType componentType,
-        String componentName,
+        ComponentScope.ComponentEntry component,
         String legacyErrorKey,
         String legacyErrorMessage,
-        ExecutionFailure executionFailure
+        ExecutionFailure failure
     ) {
-        String key = Optional.ofNullable(executionFailure.key()).orElseGet(() ->
-            Optional.ofNullable(legacyErrorKey).orElse(INTERNAL_ERROR)
-        );
-        String message = Optional.ofNullable(executionFailure.message()).orElseGet(() ->
-            Optional.ofNullable(legacyErrorMessage).orElse(UNKNOWN_TECHNICAL_ERROR_MESSAGE)
-        );
-        Throwable cause = executionFailure.cause();
-
-        if (cause != null) {
-            message += " (" + prettifyThrowableName(NestedExceptionUtils.getMostSpecificCause(cause)) + ")";
-        }
-
-        return new Diagnostic(
-            key,
-            message,
-            Optional.ofNullable(componentType).map(Enum::name).orElse(UNKNOWN_COMPONENT),
-            Optional.ofNullable(componentName).orElse(UNKNOWN_COMPONENT)
-        );
+        return fromIssue(component, failure, legacyErrorKey, legacyErrorMessage);
     }
 
-    public static Diagnostic fromExecutionWarn(ComponentType componentType, String componentName, ExecutionWarn executionWarn) {
-        String key = Optional.ofNullable(executionWarn.key()).orElse(INTERNAL_ERROR);
-        String message = Optional.ofNullable(executionWarn.message()).orElse(UNKNOWN_TECHNICAL_ERROR_MESSAGE);
-        Throwable cause = executionWarn.cause();
+    public static Diagnostic fromExecutionWarn(ComponentScope.ComponentEntry component, ExecutionWarn warn) {
+        return fromIssue(component, warn, null, null);
+    }
 
-        if (cause != null) {
-            message += " (" + prettifyThrowableName(NestedExceptionUtils.getMostSpecificCause(cause)) + ")";
-        }
+    private static Diagnostic fromIssue(
+        ComponentScope.ComponentEntry component,
+        ExecutionIssue issue,
+        String legacyKey,
+        String legacyMessage
+    ) {
+        String key = Optional.ofNullable(issue.key()).orElse(Optional.ofNullable(legacyKey).orElse(INTERNAL_ERROR));
 
-        return new Diagnostic(
-            key,
-            message,
-            Optional.ofNullable(componentType).map(Enum::name).orElse(UNKNOWN_COMPONENT),
-            Optional.ofNullable(componentName).orElse(UNKNOWN_COMPONENT)
+        String message = Optional.ofNullable(issue.message()).orElse(
+            Optional.ofNullable(legacyMessage).orElse(UNKNOWN_TECHNICAL_ERROR_MESSAGE)
         );
+
+        message = withCauseSuffix(message, issue.cause());
+
+        return buildDiagnostic(component, key, message);
+    }
+
+    private static Diagnostic buildDiagnostic(ComponentScope.ComponentEntry component, String key, String message) {
+        String componentType = Optional.ofNullable(component)
+            .map(ComponentScope.ComponentEntry::type)
+            .map(Enum::name)
+            .orElse(UNKNOWN_COMPONENT);
+
+        String componentName = Optional.ofNullable(component).map(ComponentScope.ComponentEntry::name).orElse(UNKNOWN_COMPONENT);
+
+        return new Diagnostic(key, message, componentType, componentName);
+    }
+
+    private static String withCauseSuffix(String base, Throwable cause) {
+        if (cause == null) return base;
+        Throwable mostSpecific = NestedExceptionUtils.getMostSpecificCause(cause);
+        return base + " (" + prettifyThrowableName(mostSpecific) + ")";
     }
 
     private static String prettifyThrowableName(Throwable t) {
