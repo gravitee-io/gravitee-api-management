@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-markdown
- */
+import { CommonModule } from '@angular/common';
+import { Component, input } from '@angular/core';
 
-export * from './lib/gravitee-markdown.service';
-export * from './lib/gravitee-markdown.component';
-export * from './lib/gravitee-markdown-editor/public-api';
-export * from './lib/gravitee-markdown-viewer/public-api';
-export * from './lib/components/card/public-api';
-export * from './lib/components/button/public-api';
+export type ButtonAppearance = 'filled' | 'outlined' | 'text';
+
+@Component({
+  selector: 'gmd-button',
+  imports: [CommonModule],
+  templateUrl: './gmd-button.component.html',
+  styleUrl: './gmd-button.component.scss',
+})
+export class GmdButtonComponent {
+  appearance = input<ButtonAppearance>('filled');
+}
