@@ -117,18 +117,18 @@ public enum Key {
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
     PORTAL_NEXT_ACCESS_ENABLED("portal.next.access.enabled", "false", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_THEME_COLOR_PRIMARY("portal.next.theme.color.primary", "#DA3B00", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_THEME_COLOR_SECONDARY("portal.next.theme.color.secondary", "#FFA685", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_THEME_COLOR_TERTIARY("portal.next.theme.color.tertiary", "#22A3B3", new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_THEME_COLOR_ERROR("portal.next.theme.color.error", "#C72224", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_COLOR_PRIMARY("portal.next.theme.color.primary", "#275CF6", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_COLOR_SECONDARY("portal.next.theme.color.secondary", "#F4F7FD", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_COLOR_TERTIARY("portal.next.theme.color.tertiary", "#275CF6", new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_THEME_COLOR_ERROR("portal.next.theme.color.error", "#EE2623", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_THEME_COLOR_BACKGROUND_PAGE(
         "portal.next.theme.color.background.page",
-        "#F7F7F8",
+        "#FFFFFF",
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
     PORTAL_NEXT_THEME_COLOR_BACKGROUND_CARD(
         "portal.next.theme.color.background.card",
-        "#FFFFFF",
+        "#F4F7FD",
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
     PORTAL_NEXT_THEME_CUSTOM_CSS("portal.next.theme.customCss", new HashSet<>(singletonList(ENVIRONMENT))),
