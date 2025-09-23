@@ -23,12 +23,36 @@ export class TriggerSaasDockerImagesJob {
   public static create(environment: CircleCIEnvironment, distribution: 'dev' | 'prod'): Job {
     const steps: Command[] = [
       new commands.Run({
-        name: 'Trigger SaaS Docker images pipeline',
+        name: 'Trigger SaaS Docker debian images pipeline',
         command: `PIPELINE_ID=$(curl --request POST \
 --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline \
 --header "Circle-Token: \${CIRCLE_TOKEN}" \
 --header 'content-type: application/json' \
 --data '{"parameters":{"project":"apim", "distribution":"${distribution}", "branch-version":"${environment.branch}", "release-version":"${environment.graviteeioVersion}", "dry-run":${environment.isDryRun}, "os-distribution":"debian"}}' | jq -r '.id')
+echo "Pipeline triggered with ID: $PIPELINE_ID"
+waitForPipelineCompletion() {
+    while true; do
+        STATUS=$(curl --request GET --url "https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow" --header "Circle-Token: \${CIRCLE_TOKEN}" | jq -r '.items[].status')
+        echo "Current status: $STATUS"
+        if [[ "$STATUS" == "success" ]]; then
+            echo "Pipeline completed successfully."
+            break
+        elif [[ "$STATUS" == "failed" ]]; then
+            echo "Pipeline failed."
+            exit 1
+        fi
+        sleep 30
+    done
+}  
+waitForPipelineCompletion`,
+      }),
+      new commands.Run({
+        name: 'Trigger SaaS Docker alpine images pipeline',
+        command: `PIPELINE_ID=$(curl --request POST \
+--url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline \
+--header "Circle-Token: \${CIRCLE_TOKEN}" \
+--header 'content-type: application/json' \
+--data '{"parameters":{"project":"apim", "distribution":"${distribution}", "branch-version":"${environment.branch}", "release-version":"${environment.graviteeioVersion}", "dry-run":${environment.isDryRun}, "os-distribution":""}}' | jq -r '.id')
 echo "Pipeline triggered with ID: $PIPELINE_ID"
 waitForPipelineCompletion() {
     while true; do
