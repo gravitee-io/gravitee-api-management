@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import static fixtures.core.model.ApiCRDFixtures.API_CROSS_ID;
+import static fixtures.core.model.ApiCRDFixtures.API_HRID;
 import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -139,9 +140,9 @@ class ValidateApiCRDDomainServiceTest {
             Validator.Result.ofValue(call.getArgument(0))
         );
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any()))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
+        when(
+            pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any()))
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any()))).thenAnswer(call ->
             Validator.Result.ofValue(call.getArgument(0))
@@ -190,9 +191,9 @@ class ValidateApiCRDDomainServiceTest {
             Validator.Result.ofValue(call.getArgument(0))
         );
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any()))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
+        when(
+            pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any()))
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any()))).thenAnswer(call ->
             Validator.Result.ofValue(call.getArgument(0))
@@ -208,7 +209,7 @@ class ValidateApiCRDDomainServiceTest {
             .validateAndSanitize(input)
             .peek(
                 sanitized -> {
-                    var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(API_CROSS_ID).categories(Set.of("id-1", "id-2")).build();
+                    var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(API_HRID).categories(Set.of("id-1", "id-2")).build();
                     Assertions.assertThat(sanitized.spec()).isEqualTo(expected);
                 },
                 errors -> Assertions.assertThat(errors).isEmpty()
@@ -217,7 +218,7 @@ class ValidateApiCRDDomainServiceTest {
 
     @Test
     void should_return_input_with_the_host_no_errors() {
-        var spec = ApiCRDFixtures.newBaseNaticeSpec().build();
+        var spec = ApiCRDFixtures.newBaseNativeSpec().build();
         var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).build(), spec);
 
         when(apiHostValidator.checkApiHosts(any(), any(), any(), any())).thenReturn(true);
@@ -240,9 +241,9 @@ class ValidateApiCRDDomainServiceTest {
             Validator.Result.ofValue(call.getArgument(0))
         );
 
-        when(pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), any()))).thenAnswer(call ->
-            Validator.Result.ofValue(call.getArgument(0))
-        );
+        when(
+            pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any()))
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
         when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any()))).thenAnswer(call ->
             Validator.Result.ofValue(call.getArgument(0))
@@ -254,7 +255,7 @@ class ValidateApiCRDDomainServiceTest {
             )
         ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(spec.getCrossId()).build();
+        var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(API_HRID).build();
 
         cut
             .validateAndSanitize(input)

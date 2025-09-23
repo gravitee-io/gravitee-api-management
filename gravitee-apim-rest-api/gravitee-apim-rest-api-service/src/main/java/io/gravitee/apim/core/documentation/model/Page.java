@@ -47,6 +47,7 @@ public class Page {
     private Date createdAt;
     private Date updatedAt;
     private String parentId;
+    private String parentHrid;
     private boolean excludedAccessControls;
     private Set<AccessControl> accessControls;
 
