@@ -81,6 +81,9 @@ public class FlowChain implements Hookable<ChainHook> {
      */
     public Completable execute(ExecutionContext ctx, ExecutionPhase phase) {
         return resolveFlows(ctx)
+            // Pre-resolve flows before executing any policy force all flow conditions to be evaluated first.
+            .toList()
+            .flatMapPublisher(Flowable::fromIterable)
             .doOnNext(flow -> {
                 log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
                 ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
