@@ -15,7 +15,7 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ElAiPromptState } from '@gravitee/ui-particles-angular';
+import { ElAiPromptState, FeedbackSubmission } from '@gravitee/ui-particles-angular';
 import { provideHttpClient } from '@angular/common/http';
 
 import { NewtAIService } from './newtai.service';
@@ -60,6 +60,11 @@ describe('NewtAIService', () => {
       };
       const expectedResult: ElAiPromptState = {
         el: "{ #request.headers['x-api-key'] == 'valid-key' }",
+        feedbackRequestId: {
+          chatId: 'chat-123',
+          userMessageId: 'user-msg-123',
+          agentMessageId: 'agent-msg-123',
+        },
       };
       service.addToContext('apiId', apiId);
 
@@ -100,6 +105,103 @@ describe('NewtAIService', () => {
       // Handle HTTP request
       const req = httpTestingController.expectOne(`${mockConstants.env.v2BaseURL}/newtai/el/_generate`);
 
+      req.flush(errorResponse, {
+        status: 500,
+        statusText: 'Internal Server Error',
+      });
+    });
+  });
+
+  describe('submitFeedback', () => {
+    it('should make a POST request when feedback is helpful', (done) => {
+      // Given
+      const feedbackSubmission: FeedbackSubmission = {
+        feedback: 'helpful',
+        feedbackRequestId: {
+          chatId: 'chat-123',
+          userMessageId: 'user-msg-123',
+          agentMessageId: 'agent-msg-123',
+        },
+      };
+
+      // When
+      service.submitFeedback(feedbackSubmission).subscribe(() => {
+        // Then
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${mockConstants.env.v2BaseURL}/newtai/el/feedback`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({
+        answerHelpful: true,
+        feedbackRequestId: {
+          chatId: 'chat-123',
+          userMessageId: 'user-msg-123',
+          agentMessageId: 'agent-msg-123',
+        },
+      });
+
+      req.flush(null, { status: 200, statusText: 'OK' });
+    });
+
+    it('should make a POST request with answerHelpful=false when feedback is not helpful', (done) => {
+      // Given
+      const feedbackSubmission: FeedbackSubmission = {
+        feedback: 'not-helpful',
+        feedbackRequestId: {
+          chatId: 'chat-123',
+          userMessageId: 'user-msg-123',
+          agentMessageId: 'agent-msg-123',
+        },
+      };
+
+      // When
+      service.submitFeedback(feedbackSubmission).subscribe(() => {
+        // Then
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${mockConstants.env.v2BaseURL}/newtai/el/feedback`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual({
+        answerHelpful: false,
+        feedbackRequestId: {
+          chatId: 'chat-123',
+          userMessageId: 'user-msg-123',
+          agentMessageId: 'agent-msg-123',
+        },
+      });
+
+      req.flush(null, { status: 200, statusText: 'OK' });
+    });
+
+    it('should propagate error when the API call fails', (done) => {
+      // Given
+      const feedbackSubmission: FeedbackSubmission = {
+        feedback: 'helpful',
+        feedbackRequestId: {
+          chatId: 'chat-123',
+          userMessageId: 'user-msg-123',
+          agentMessageId: 'agent-msg-123',
+        },
+      };
+      const errorResponse = {
+        status: 'error',
+        message: 'Failed to submit feedback',
+      };
+
+      // When
+      service.submitFeedback(feedbackSubmission).subscribe({
+        next: () => fail('should have failed with an error'),
+        error: (error) => {
+          // Then
+          expect(error.status).toBe(500);
+          done();
+        },
+      });
+
+      const req = httpTestingController.expectOne(`${mockConstants.env.v2BaseURL}/newtai/el/feedback`);
+      expect(req.request.method).toEqual('POST');
       req.flush(errorResponse, {
         status: 500,
         statusText: 'Internal Server Error',
