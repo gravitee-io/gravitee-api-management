@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.query_service;
 
 import io.gravitee.apim.core.portal_page.model.ExpandsViewContext;
 import io.gravitee.apim.core.portal_page.model.PageId;
+import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.List;
@@ -33,4 +34,6 @@ public interface PortalPageQueryService {
     );
 
     PortalPageWithViewDetails findById(PageId pageId);
+
+    PortalPageWithViewDetails loadContentFor(PageId pageId, PortalPageView details);
 }
