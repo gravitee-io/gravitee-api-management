@@ -20,4 +20,5 @@ export enum ComponentSelector {
   CARD_TITLE = 'gmd-card-title',
   CARD_SUBTITLE = 'gmd-card-subtitle',
   MD_BLOCK = 'gmd-block',
+  BUTTON = 'gmd-button',
 }

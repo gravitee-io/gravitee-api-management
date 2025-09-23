@@ -1,0 +1,105 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/token-utils' as token-utils;
+@use './overrides' as overrides;
+
+$tokens: overrides.tokens();
+
+.gmd-button {
+  display: inline-flex;
+  height: 36px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.1px;
+  line-height: 1.5;
+  outline: none;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  white-space: nowrap;
+
+  // Filled appearance
+  &--filled {
+    padding-right: token-utils.slot(filled-horizontal-padding, overrides.tokens());
+    padding-left: token-utils.slot(filled-horizontal-padding, overrides.tokens());
+    border-radius: token-utils.slot(filled-container-shape, overrides.tokens());
+    background-color: token-utils.slot(filled-container-color, overrides.tokens());
+    color: token-utils.slot(filled-label-text-color, overrides.tokens());
+    font-size: token-utils.slot(filled-label-text-size, overrides.tokens());
+    font-weight: token-utils.slot(filled-label-text-weight, overrides.tokens());
+
+    &:hover {
+      background-color: token-utils.slot(filled-hover-container-color, overrides.tokens());
+    }
+
+    &:focus-within {
+      background-color: token-utils.slot(filled-active-container-color, overrides.tokens());
+    }
+  }
+
+  // Outlined appearance
+  &--outlined {
+    padding-right: token-utils.slot(outlined-horizontal-padding, overrides.tokens());
+    padding-left: token-utils.slot(outlined-horizontal-padding, overrides.tokens());
+    border-width: token-utils.slot(outlined-outline-width, overrides.tokens());
+    border-style: solid;
+    border-color: token-utils.slot(outlined-outline-color, overrides.tokens());
+    border-radius: token-utils.slot(outlined-container-shape, overrides.tokens());
+    background-color: transparent;
+    color: token-utils.slot(outlined-label-text-color, overrides.tokens());
+    font-size: token-utils.slot(outlined-label-text-size, overrides.tokens());
+    font-weight: token-utils.slot(outlined-label-text-weight, overrides.tokens());
+
+    &:hover {
+      background-color: token-utils.slot(outlined-hover-container-color, overrides.tokens());
+    }
+
+    &:active,
+    &:focus-within {
+      background-color: token-utils.slot(outlined-active-container-color, overrides.tokens());
+    }
+  }
+
+  // Text appearance
+  &--text {
+    padding-right: token-utils.slot(text-horizontal-padding, overrides.tokens());
+    padding-left: token-utils.slot(text-horizontal-padding, overrides.tokens());
+    border-radius: token-utils.slot(text-container-shape, overrides.tokens());
+    background-color: transparent;
+    color: token-utils.slot(text-label-text-color, overrides.tokens());
+    font-size: token-utils.slot(text-label-text-size, overrides.tokens());
+    font-weight: token-utils.slot(text-label-text-weight, overrides.tokens());
+
+    &:hover {
+      background-color: token-utils.slot(text-hover-container-color, overrides.tokens());
+    }
+
+    &:active,
+    &:focus-within {
+      border-color: transparent;
+      background-color: token-utils.slot(text-active-container-color, overrides.tokens());
+    }
+  }
+
+  // Ensure minimum touch target size (44px minimum for mobile)
+  @media (width <= 768px) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

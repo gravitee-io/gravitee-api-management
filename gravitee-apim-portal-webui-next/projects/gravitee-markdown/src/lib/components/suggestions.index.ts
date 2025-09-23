@@ -18,6 +18,7 @@ import { cardSubtitleConfiguration } from './card/components/card-subtitle/gmd-c
 import { gridConfiguration } from './grid/grid.suggestions';
 import { ComponentSelector } from '../models/componentSelector';
 import { mdBlockConfiguration } from './block/gmd-md.suggestions';
+import { buttonConfiguration } from './button/gmd-button.suggestions';
 import { cardTitleConfiguration } from './card/components/card-title/gmd-card-title.suggestions';
 import { cardConfiguration } from './card/gmd-card.suggestions';
 import { cellConfiguration } from './grid/cell/cell.suggestions';
@@ -29,4 +30,5 @@ export const componentSuggestionMap: Record<string, ComponentSuggestionConfigura
   [ComponentSelector.CARD_TITLE]: cardTitleConfiguration,
   [ComponentSelector.CARD_SUBTITLE]: cardSubtitleConfiguration,
   [ComponentSelector.MD_BLOCK]: mdBlockConfiguration,
+  [ComponentSelector.BUTTON]: buttonConfiguration,
 };
