@@ -50,7 +50,7 @@ public class PortalPageContextCrudServiceInMemory implements PortalPageContextCr
     }
 
     @Override
-    public void update(PageId pageId, PortalPageView toUpdate) {
+    public PortalPageView update(PageId pageId, PortalPageView toUpdate) {
         storage
             .stream()
             .filter(ppc -> ppc.getPageId().equals(pageId.toString()))
@@ -59,6 +59,7 @@ public class PortalPageContextCrudServiceInMemory implements PortalPageContextCr
                 portalPageContext.setContextType(PortalPageContextType.valueOf(toUpdate.context().name()));
                 portalPageContext.setPublished(toUpdate.published());
             });
+        return toUpdate;
     }
 
     @Override
