@@ -38,6 +38,7 @@ public class ApiCRDFixtures {
     private ApiCRDFixtures() {}
 
     public static final String API_ID = "api-id";
+    public static final String API_HRID = "api-hrid";
     public static final String API_CROSS_ID = "api-cross-id";
     public static final String API_NAME = "API Name";
     public static final String API_PATH = "/api-path";
@@ -47,6 +48,7 @@ public class ApiCRDFixtures {
     public static ApiCRDSpecBuilder newBaseSpec() {
         return ApiCRDSpec.builder()
             .id(API_ID)
+            .hrid(API_HRID)
             .crossId(API_CROSS_ID)
             .name(API_NAME)
             .listeners(List.of(HttpListener.builder().paths(List.of(new Path(API_PATH))).build()))
@@ -73,9 +75,10 @@ public class ApiCRDFixtures {
             );
     }
 
-    public static ApiCRDSpecBuilder newBaseNaticeSpec() {
+    public static ApiCRDSpecBuilder newBaseNativeSpec() {
         return ApiCRDSpec.builder()
             .id(API_ID)
+            .hrid(API_HRID)
             .type("native")
             .crossId(API_CROSS_ID)
             .name(API_NAME)

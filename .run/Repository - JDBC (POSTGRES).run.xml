@@ -1,8 +1,5 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Repository - JDBC (POSTGRES)" type="JUnit" factoryName="JUnit" folderName="Repository">
-    <classpathModifications>
-      <entry exclude="true" path="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-test/target/test-classes" />
-    </classpathModifications>
     <module name="gravitee-apim-repository-jdbc" />
     <option name="ALTERNATIVE_JRE_PATH" value="21" />
     <option name="PACKAGE_NAME" value="io.gravitee.repository.management" />

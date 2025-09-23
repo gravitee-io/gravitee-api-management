@@ -133,7 +133,9 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             .peek(sanitized -> sanitizedBuilder.resources(sanitized.resources()), errors::addAll);
 
         pagesValidator
-            .validateAndSanitize(new ValidatePagesDomainService.Input(input.auditInfo, input.spec.getId(), input.spec.getPages()))
+            .validateAndSanitize(
+                new ValidatePagesDomainService.Input(input.auditInfo, input.spec.getId(), input.spec.getHrid(), input.spec.getPages())
+            )
             .peek(sanitized -> sanitizedBuilder.pages(sanitized.pages()), errors::addAll);
 
         planValidator

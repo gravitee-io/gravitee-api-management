@@ -84,6 +84,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("parent_id", Types.NVARCHAR, String.class)
+            .addColumn("parent_hrid", Types.NVARCHAR, String.class)
             .addColumn("use_auto_fetch", Types.BOOLEAN, Boolean.class)
             .addColumn("excluded_access_controls", Types.BOOLEAN, boolean.class)
             .addColumn("ingested", Types.BOOLEAN, boolean.class)
@@ -631,7 +632,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 }
             }
 
-            if (where.toString().trim().length() > 0) {
+            if (!where.toString().trim().isEmpty()) {
                 select += " where ";
             }
 

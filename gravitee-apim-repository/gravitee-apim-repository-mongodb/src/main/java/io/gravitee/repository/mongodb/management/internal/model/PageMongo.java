@@ -64,6 +64,7 @@ public class PageMongo extends DeprecatedAuditable {
     private Set<AccessControlMongo> accessControls = new HashSet<>();
     private List<PageMediaMongo> attachedMedia;
     private String parentId;
+    private String parentHrid;
     private Map<String, String> metadata;
     private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
     private boolean ingested;
