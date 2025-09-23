@@ -1613,7 +1613,7 @@ components:
           description: If true, this page will be displayed as the homepage of your API documentation.
           examples:
             - true
-        parent:
+        parentHrid:
           type: string
           description: |
             If your page contains a folder, setting this field to the folder's hrid will be reflected 
