@@ -60,10 +60,10 @@ public class PortalPageContextCrudServiceImpl implements PortalPageContextCrudSe
     }
 
     @Override
-    public void update(PageId pageId, PortalPageView toUpdate) {
+    public PortalPageView update(PageId pageId, PortalPageView toUpdate) {
         var item = pageAdapter.map(pageId, toUpdate);
         try {
-            portalPageContextRepository.updateByPageId(item);
+            return pageAdapter.map(portalPageContextRepository.updateByPageId(item));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Something went wrong while trying to update portal page context", e);
         }

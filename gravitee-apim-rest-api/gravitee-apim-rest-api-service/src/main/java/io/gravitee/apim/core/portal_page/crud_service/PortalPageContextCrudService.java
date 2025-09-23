@@ -25,5 +25,5 @@ public interface PortalPageContextCrudService {
 
     PortalPageView findByPageId(PageId pageId);
 
-    void update(PageId pageId, PortalPageView toUpdate);
+    PortalPageView update(PageId pageId, PortalPageView toUpdate);
 }
