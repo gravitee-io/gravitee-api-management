@@ -765,7 +765,7 @@ paths:
         tags:
           - Portal Pages
         summary: Patch portal page
-        description: User must have the ENVIRONMENT_DOCUMENTATION[write] permission.
+        description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         operationId: patchPortalPage
         parameters:
           - name: pageId

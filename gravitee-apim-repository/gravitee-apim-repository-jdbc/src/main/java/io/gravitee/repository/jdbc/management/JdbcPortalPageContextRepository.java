@@ -109,7 +109,7 @@ public class JdbcPortalPageContextRepository
     }
 
     @Override
-    public void updateByPageId(PortalPageContext item) throws TechnicalException {
+    public PortalPageContext updateByPageId(PortalPageContext item) throws TechnicalException {
         LOGGER.debug("JdbcPortalPageContextRepository.updateByPageId({})", item);
 
         try {
@@ -122,9 +122,11 @@ public class JdbcPortalPageContextRepository
             if (rows == 0) {
                 throw new TechnicalException("Failed to update portal page context, no rows affected");
             }
+
             LOGGER.debug("JdbcPortalPageContextRepository.updateByPageId({}) - Done", item);
+
+            return findByPageId(item.getPageId());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update PortalPageContext by pageId [{}]", item.getPageId(), ex);
             throw new TechnicalException("Failed to update portal page context", ex);
         }
     }

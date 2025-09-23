@@ -45,9 +45,9 @@ public class UpdatePortalPageViewPublicationStatusUseCase {
             toUpdate = portalPageView.unpublish();
         }
 
-        portalPageContextCrudService.update(input.pageId(), toUpdate);
+        var updatedDetails = portalPageContextCrudService.update(input.pageId(), toUpdate);
 
-        return new Output(portalPageQueryService.findById(input.pageId()));
+        return new Output(portalPageQueryService.loadContentFor(input.pageId(), updatedDetails));
     }
 
     public record Input(PageId pageId, boolean published) {}
