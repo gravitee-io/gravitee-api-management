@@ -17,8 +17,6 @@ package io.gravitee.gateway.reactive.handlers.api.security;
 
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_NAME;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_DIAGNOSTIC;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
@@ -29,6 +27,7 @@ import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.base.BaseSecurityPolicy;
+import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.AbstractSecurityPlan;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -83,8 +82,7 @@ public abstract class AbstractSecurityChain<
     public Completable execute(C ctx) {
         return defer(() -> {
             if (!Objects.equals(true, ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP))) {
-                ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.SYSTEM);
-                ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, "security");
+                ComponentScope.push(ctx, ComponentType.SYSTEM, "security");
                 SecurityChainDiagnostic securityChainDiagnostic = new SecurityChainDiagnostic();
                 ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC, securityChainDiagnostic);
                 return chain
@@ -117,8 +115,7 @@ public abstract class AbstractSecurityChain<
                         ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
                     })
                     .doOnTerminate(() -> {
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
+                        ComponentScope.remove(ctx, ComponentType.SYSTEM, "security");
                         ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC);
                         ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE);
                         ctx.removeInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);

@@ -20,8 +20,6 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_NAME;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
@@ -48,6 +46,7 @@ import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
@@ -317,15 +316,10 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                 HttpInvoker invoker = getInvoker(ctx);
 
                 if (invoker != null) {
-                    // Set component type and name for proper error reporting
-                    ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.ENDPOINT);
-                    ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, invoker.getId());
-
-                    return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null).doFinally(() -> {
-                        // Clean up component attributes after completion
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
-                    });
+                    ComponentScope.push(ctx, ComponentType.ENDPOINT, invoker.getId());
+                    return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null).doFinally(() ->
+                        ComponentScope.remove(ctx, ComponentType.ENDPOINT, invoker.getId())
+                    );
                 }
             }
             return Completable.complete();
@@ -373,9 +367,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                 ),
                 TimeUnit.MILLISECONDS,
                 Completable.fromRunnable(() -> {
-                    // Set component type and name for proper error reporting
-                    ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE, ComponentType.SYSTEM);
-                    ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME, "request-timeout");
+                    ComponentScope.push(ctx, ComponentType.SYSTEM, "request-timeout");
                 }).andThen(
                     ctx
                         .interruptWith(
@@ -383,9 +375,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                         )
                         .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
                         .doFinally(() -> {
-                            // Clean up component attributes after completion
-                            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_TYPE);
-                            ctx.removeInternalAttribute(ATTR_INTERNAL_EXECUTION_COMPONENT_NAME);
+                            ComponentScope.remove(ctx, ComponentType.SYSTEM, "request-timeout");
                         })
                 )
             )

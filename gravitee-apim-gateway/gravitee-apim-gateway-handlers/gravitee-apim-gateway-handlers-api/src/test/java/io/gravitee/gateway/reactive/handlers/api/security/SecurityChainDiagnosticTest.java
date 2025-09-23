@@ -69,14 +69,16 @@ class SecurityChainDiagnosticTest {
         @DisplayName("Should return exception for expired subscription plans")
         void shouldReturnExceptionForExpiredSubscriptionPlans() {
             // Given
-            diagnostic.markPlanHasExpiredSubscription("plan1");
-            diagnostic.markPlanHasExpiredSubscription("plan2");
+            diagnostic.markPlanHasExpiredSubscription("plan1", "app1");
+            diagnostic.markPlanHasExpiredSubscription("plan2", "app2");
 
             // When
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("The subscription has expired for the following plans: plan1, plan2");
+            assertThat(cause.getMessage()).isEqualTo(
+                "The subscription has expired for the following plans: plan1 (application: app1), plan2 (application: app2)"
+            );
         }
 
         @Test
@@ -137,7 +139,7 @@ class SecurityChainDiagnosticTest {
         @DisplayName("Should prioritize no subscription over expired subscription")
         void shouldPrioritizeNoSubscriptionOverExpiredSubscription() {
             // Given
-            diagnostic.markPlanHasExpiredSubscription("plan1");
+            diagnostic.markPlanHasExpiredSubscription("plan1", "app1");
             diagnostic.markPlanHasNoSubscription("plan2");
 
             // When
@@ -152,13 +154,13 @@ class SecurityChainDiagnosticTest {
         void shouldPrioritizeExpiredSubscriptionOverNoMatchingRule() {
             // Given
             diagnostic.markPlanHasNoMachingRule("plan1");
-            diagnostic.markPlanHasExpiredSubscription("plan2");
+            diagnostic.markPlanHasExpiredSubscription("plan2", "app1");
 
             // When
             Exception cause = diagnostic.cause();
 
             // Then
-            assertThat(cause.getMessage()).isEqualTo("The subscription has expired for the following plan: plan2");
+            assertThat(cause.getMessage()).isEqualTo("The subscription has expired for the following plan: plan2 (application: app1)");
         }
 
         @Test
