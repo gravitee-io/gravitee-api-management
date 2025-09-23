@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionWarn;
+import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,8 +43,7 @@ class DiagnosticReportHelperTest {
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                ComponentType.POLICY,
-                "test-policy",
+                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
                 "legacy-key",
                 "legacy-message",
                 executionFailure
@@ -64,8 +64,7 @@ class DiagnosticReportHelperTest {
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                ComponentType.POLICY,
-                "test-policy",
+                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
                 "legacy-key",
                 "legacy-message",
                 executionFailure
@@ -83,7 +82,12 @@ class DiagnosticReportHelperTest {
             ExecutionFailure executionFailure = new ExecutionFailure(400);
 
             // When
-            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(null, null, null, null, executionFailure);
+            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
+                new ComponentScope.ComponentEntry(null, null),
+                null,
+                null,
+                executionFailure
+            );
 
             // Then
             assertThat(diagnostic.getKey()).isEqualTo(DiagnosticReportHelper.INTERNAL_ERROR);
@@ -104,8 +108,7 @@ class DiagnosticReportHelperTest {
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                ComponentType.POLICY,
-                "test-policy",
+                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
                 null,
                 null,
                 executionFailure
@@ -127,8 +130,7 @@ class DiagnosticReportHelperTest {
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                ComponentType.POLICY,
-                "test-policy",
+                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
                 null,
                 null,
                 executionFailure
@@ -151,8 +153,7 @@ class DiagnosticReportHelperTest {
 
             // When
             Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-                ComponentType.POLICY,
-                "test-policy",
+                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
                 null,
                 null,
                 executionFailure
@@ -174,7 +175,10 @@ class DiagnosticReportHelperTest {
             ExecutionWarn executionWarn = new ExecutionWarn("WARNING_KEY").message("This is a warning");
 
             // When
-            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(ComponentType.POLICY, "test-policy", executionWarn);
+            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(
+                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
+                executionWarn
+            );
 
             // Then
             assertThat(diagnostic.getKey()).isEqualTo("WARNING_KEY");
@@ -190,7 +194,10 @@ class DiagnosticReportHelperTest {
             ExecutionWarn executionWarn = new ExecutionWarn(null);
 
             // When
-            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(ComponentType.POLICY, "test-policy", executionWarn);
+            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(
+                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
+                executionWarn
+            );
 
             // Then
             assertThat(diagnostic.getKey()).isEqualTo(DiagnosticReportHelper.INTERNAL_ERROR);
@@ -204,7 +211,7 @@ class DiagnosticReportHelperTest {
             ExecutionWarn executionWarn = new ExecutionWarn("WARNING_KEY").message("This is a warning");
 
             // When
-            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(null, null, executionWarn);
+            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(new ComponentScope.ComponentEntry(null, null), executionWarn);
 
             // Then
             assertThat(diagnostic.getComponentType()).isEqualTo(DiagnosticReportHelper.UNKNOWN_COMPONENT);
@@ -219,7 +226,10 @@ class DiagnosticReportHelperTest {
             ExecutionWarn executionWarn = new ExecutionWarn("WARNING_KEY").message("This is a warning").cause(cause);
 
             // When
-            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(ComponentType.POLICY, "test-policy", executionWarn);
+            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(
+                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
+                executionWarn
+            );
 
             // Then
             assertThat(diagnostic.getMessage()).isEqualTo("This is a warning (Warning cause)");
@@ -233,7 +243,10 @@ class DiagnosticReportHelperTest {
             ExecutionWarn executionWarn = new ExecutionWarn("WARNING_KEY").message("This is a warning").cause(cause);
 
             // When
-            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(ComponentType.POLICY, "test-policy", executionWarn);
+            Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionWarn(
+                new ComponentScope.ComponentEntry(ComponentType.POLICY, "test-policy"),
+                executionWarn
+            );
 
             // Then
             assertThat(diagnostic.getMessage()).isEqualTo("This is a warning (Runtime)");
