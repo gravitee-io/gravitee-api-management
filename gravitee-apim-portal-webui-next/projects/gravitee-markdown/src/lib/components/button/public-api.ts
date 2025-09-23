@@ -13,13 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-markdown
- */
-
-export * from './lib/gravitee-markdown.service';
-export * from './lib/gravitee-markdown.component';
-export * from './lib/gravitee-markdown-editor/public-api';
-export * from './lib/gravitee-markdown-viewer/public-api';
-export * from './lib/components/card/public-api';
-export * from './lib/components/button/public-api';
+export * from './gmd-button.component';
+export * from './gmd-button.component.harness';
