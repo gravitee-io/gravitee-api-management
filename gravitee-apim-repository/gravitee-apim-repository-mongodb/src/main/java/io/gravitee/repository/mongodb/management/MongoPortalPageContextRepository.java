@@ -71,11 +71,12 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
     }
 
     @Override
-    public void updateByPageId(@Nonnull PortalPageContext item) throws TechnicalException {
+    public PortalPageContext updateByPageId(@Nonnull PortalPageContext item) throws TechnicalException {
         log.debug("Update PortalPageContext by pageId [{}]", item.getPageId());
         PortalPageContextMongo portalPageContextMongo = map(item);
         internalRepo.updateByPageId(portalPageContextMongo);
         log.debug("Update PortalPageContext by pageId [{}] - Done", item.getPageId());
+        return findByPageId(item.getPageId());
     }
 
     @Override
