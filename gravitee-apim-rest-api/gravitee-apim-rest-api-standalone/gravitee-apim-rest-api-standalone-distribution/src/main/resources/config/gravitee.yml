@@ -251,7 +251,6 @@ services:
     enabled: false
     prometheus:
       enabled: true
-      concurrencyLimit: 3
 
   # v3 upgrader service. Can be disabled after first launch.
   v3-upgrader:

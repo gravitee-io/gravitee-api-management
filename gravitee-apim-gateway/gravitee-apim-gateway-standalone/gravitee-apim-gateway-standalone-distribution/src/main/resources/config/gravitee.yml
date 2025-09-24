@@ -690,7 +690,6 @@ services:
 #      - http_path
     prometheus:
       enabled: true
-      concurrencyLimit: 3
 
   # heartbeat
 #  heartbeat:

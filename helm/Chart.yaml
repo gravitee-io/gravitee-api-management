@@ -29,27 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-<<<<<<< HEAD
   artifacthub.io/changes:
-=======
-  artifacthub.io/changes: |
-    - kind: fixed
-      description: 'updated the default log file path'
-      links:
-       - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10524
-    - kind: fixed
-      description: 'The `portal.entrypoint` env var is used to configure the entrypoint used to expose APIs. It is used mainly on the developer portal. The value is automatically set with the ingress of the gateway. Now, if the gateway is configured with  a list of servers (http, tcp...) the `portal.entrypoint` is set accordingly'
-    - kind: changed
-      description: 'Changed default behavior to enable multi-tenant support in dictionaries'
-    - kind: changed
-      description: 'Allow customization on federation ingress. BREAKING CHANGE: now the federation ingress will not inherit anymore some management-api ingress definition (annotation, hosts, and tls)'
-    - kind: changed
-      description: 'Make embedded MongoDB and Elastic database deployable on OpenShift cluster. BREAKING CHANGE: as we upgrade to newer release of mongo and elastic dependencies'
-    - kind: changed
-      description: 'BREAKING CHANGE: Disable file logging by default for Openshift compatibility'
-    - kind: changed
-      description: 'Enhance secret renewal settings configuration and documentation in values.yaml.'
-    - kind: changed
-      description: 'BREAKING CHANGE: fix(scraping): Introduce modular utilities for performance and concurrency with default concurrent limit 3'
->>>>>>> 002b25810b (fix: added concurrencyLimit config for prometheus)
