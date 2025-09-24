@@ -776,14 +776,14 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
             void should_return_stats_analytics_response() {
                 apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
                 fakeAnalyticsQueryService.statsAnalytics = new io.gravitee.apim.core.analytics.model.StatsAnalytics(
-                    1L,
-                    2L,
-                    3L,
-                    4L,
-                    5,
-                    6L,
-                    7L,
-                    8L
+                    1.1f,
+                    2.2f,
+                    3.3f,
+                    4.4f,
+                    5.5f,
+                    6.6f,
+                    7.7f,
+                    8.8f
                 );
 
                 var response = rootTarget()
@@ -800,14 +800,14 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                     .satisfies(result -> {
                         var stats = result.getStatsAnalytics();
                         assertThat(stats).isNotNull();
-                        assertThat(stats.getAvg()).isEqualTo(1L);
-                        assertThat(stats.getMin()).isEqualTo(2L);
-                        assertThat(stats.getMax()).isEqualTo(3L);
-                        assertThat(stats.getSum()).isEqualTo(4L);
-                        assertThat(stats.getCount()).isEqualTo(5);
-                        assertThat(stats.getRps()).isEqualTo(6L);
-                        assertThat(stats.getRpm()).isEqualTo(7L);
-                        assertThat(stats.getRph()).isEqualTo(8L);
+                        assertThat(stats.getAvg()).isEqualTo(1.1f);
+                        assertThat(stats.getMin()).isEqualTo(2.2f);
+                        assertThat(stats.getMax()).isEqualTo(3.3f);
+                        assertThat(stats.getSum()).isEqualTo(4.4f);
+                        assertThat(stats.getCount()).isEqualTo(5.5f);
+                        assertThat(stats.getRps()).isEqualTo(6.6f);
+                        assertThat(stats.getRpm()).isEqualTo(7.7f);
+                        assertThat(stats.getRph()).isEqualTo(8.8f);
                     });
             }
 
