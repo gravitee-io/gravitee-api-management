@@ -277,6 +277,6 @@ public class ApiAnalyticsResource extends AbstractResource {
     }
 
     private StatsAnalytics emptyStats() {
-        return new StatsAnalytics().count(0L).rps(0L).rpm(0L).rph(0L);
+        return new StatsAnalytics().count(0f).rps(0f).rpm(0f).rph(0f);
     }
 }

@@ -932,11 +932,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .isPresent()
                 .hasValueSatisfying(stats -> {
                     assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
-                    assertThat(stats.count()).isEqualTo(8L);
-                    assertThat(stats.sum()).isEqualTo(131864L);
-                    assertThat(stats.avg()).isEqualTo(16483L);
-                    assertThat(stats.min()).isEqualTo(19L);
-                    assertThat(stats.max()).isEqualTo(60000L);
+                    assertThat(stats.count()).isEqualTo(8.0f);
+                    assertThat(stats.sum()).isEqualTo(131864.0f);
+                    assertThat(stats.avg()).isEqualTo(16483.0f);
+                    assertThat(stats.min()).isEqualTo(19.0f);
+                    assertThat(stats.max()).isEqualTo(60000.0f);
                 });
         }
 
@@ -978,14 +978,14 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .isPresent()
                 .hasValueSatisfying(stats -> {
                     assertThat(stats.field()).isEqualTo("gateway-response-time-ms");
-                    assertThat(stats.count()).isEqualTo(2L);
-                    assertThat(stats.sum()).isEqualTo(70000L);
-                    assertThat(stats.avg()).isEqualTo(35000L);
-                    assertThat(stats.min()).isEqualTo(30000L);
-                    assertThat(stats.max()).isEqualTo(40000L);
-                    assertThat(stats.rps()).isEqualTo(0L);
-                    assertThat(stats.rpm()).isEqualTo(0L);
-                    assertThat(stats.rph()).isEqualTo(0L);
+                    assertThat(stats.count()).isEqualTo(2.0f);
+                    assertThat(stats.sum()).isEqualTo(70000.0f);
+                    assertThat(stats.avg()).isEqualTo(35000.0f);
+                    assertThat(stats.min()).isEqualTo(30000.0f);
+                    assertThat(stats.max()).isEqualTo(40000.0f);
+                    assertThat(stats.rps()).isEqualTo(1.1574074E-5f);
+                    assertThat(stats.rpm()).isEqualTo(6.9444446E-4f);
+                    assertThat(stats.rph()).isEqualTo(0.041666668f);
                 });
         }
     }
