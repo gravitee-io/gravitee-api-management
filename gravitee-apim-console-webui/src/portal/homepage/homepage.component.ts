@@ -30,6 +30,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { PortalPagesService } from '../../services-ngx/portal-pages.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { PortalPageWithDetails } from '../../entities/portal/portal-page-with-details';
+import { PortalPagesResponse } from '../../entities/portal/portal-pages-response';
 
 @Component({
   selector: 'homepage',
@@ -71,7 +72,7 @@ export class HomepageComponent {
   constructor() {
     this.getPortalHomepage()
       .pipe(
-        tap((portalPage) => this.portalHomepage.set(portalPage)),
+        tap((portalPage) => this.portalHomepage.set(portalPage.pages[0])),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
@@ -144,7 +145,7 @@ export class HomepageComponent {
       .subscribe();
   }
 
-  private getPortalHomepage(): Observable<PortalPageWithDetails> {
+  private getPortalHomepage(): Observable<PortalPagesResponse> {
     return this.portalPagesService.getHomepage().pipe(
       catchError(() => {
         this.snackbarService.error('An error occurred while loading the homepage');
