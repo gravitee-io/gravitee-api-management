@@ -263,16 +263,6 @@ export const WithCellsAndRichHTML: StoryObj<GridComponent> = {
   render: args => ({
     props: args,
     template: `
-      <style>
-        gmd-cell {
-          display: block;
-          padding: 8px;
-          border: 1px solid #e0e0e0;
-          border-radius: 4px;
-          background-color: #f9f9f9;
-          min-height: 40px;
-        }
-      </style>
       <div style="padding: 20px;">
         <h2>Grid with Rich HTML Content</h2>
         <gmd-grid [columns]="columns">
@@ -385,8 +375,6 @@ export const WithMarkdownEditor: StoryObj<GridComponent> = {
     template: `
       <style>
         .editor-container {
-          /*display: flex;*/
-          /*gap: 20px;*/
           height: 500px;
         }
       </style>
@@ -407,7 +395,7 @@ export const WithMarkdownEditor: StoryObj<GridComponent> = {
   }),
 };
 
-export const WithTokenOverrides: StoryObj<GridComponent> = {
+export const WithCustomTheming: StoryObj<GridComponent> = {
   args: {
     columns: 3,
   },
@@ -472,7 +460,7 @@ export const WithTokenOverrides: StoryObj<GridComponent> = {
             </gmd-grid>
           </div>
 
-          <div class="gap-example" style="--gmd-grid-spacing: 8px;">
+          <div class="gap-example small-gap">
             <h3>Small Gap (8px)</h3>
             <gmd-grid [columns]="columns">
               <gmd-cell>
@@ -490,7 +478,7 @@ export const WithTokenOverrides: StoryObj<GridComponent> = {
             </gmd-grid>
           </div>
 
-          <div class="gap-example" style="--gmd-grid-spacing: 32px;">
+          <div class="gap-example large-gap">
             <h3>Large Gap (32px)</h3>
             <gmd-grid [columns]="columns">
               <gmd-cell>
@@ -508,7 +496,7 @@ export const WithTokenOverrides: StoryObj<GridComponent> = {
             </gmd-grid>
           </div>
 
-          <div class="gap-example" style="--gmd-grid-spacing: 0px;">
+          <div class="gap-example no-gap">
             <h3>No Gap (0px)</h3>
             <gmd-grid [columns]="columns">
               <gmd-cell>
@@ -529,4 +517,12 @@ export const WithTokenOverrides: StoryObj<GridComponent> = {
       </div>
     `,
   }),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates custom theming using the new @gmd.grid-overrides() mixin. Each example shows different gap spacing applied via SCSS classes.',
+      },
+    },
+  },
 };
