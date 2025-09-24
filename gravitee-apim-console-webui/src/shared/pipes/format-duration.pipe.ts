@@ -47,7 +47,7 @@ export class FormatDurationPipe implements PipeTransform {
     }
 
     if (value < 1000) {
-      return `${value}ms`;
+      return `${Math.round(value)}ms`;
     }
 
     // Find the most appropriate unit to display

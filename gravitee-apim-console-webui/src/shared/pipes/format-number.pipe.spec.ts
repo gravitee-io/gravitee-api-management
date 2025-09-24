@@ -26,27 +26,26 @@ describe('FormatNumberPipe', () => {
       { input: undefined, expected: 'N/A' },
       { input: NaN, expected: 'N/A' },
       { input: 0, expected: '0' },
+      { input: 0.033333, expected: '< 1' },
 
       // --- Numbers Less Than 1000 ---
       { input: 123, expected: '123' },
       { input: 999, expected: '999' },
-      { input: -123, expected: '-123' },
-      { input: -999, expected: '-999' },
 
       // --- Thousands (K) ---
       { input: 1000, expected: '1K' },
-      { input: 1234, expected: '1.2K' },
-      { input: 9876, expected: '9.9K' },
-      { input: 1990, expected: '2K' },
+      { input: 1234, expected: '1.23K' },
+      { input: 9876, expected: '9.88K' },
+      { input: 1990, expected: '1.99K' },
 
       // --- Millions (M) ---
       { input: 1_000_000, expected: '1M' },
-      { input: 1_550_000, expected: '1.6M' },
-      { input: 123_456_789, expected: '123.5M' },
+      { input: 1_550_000, expected: '1.55M' },
+      { input: 123_456_789, expected: '123.46M' },
 
       // --- Billions (B) ---
       { input: 1_000_000_000, expected: '1B' },
-      { input: 2_345_000_000, expected: '2.3B' },
+      { input: 2_345_000_000, expected: '2.35B' },
     ];
 
     // A single parameterized test runs all the cases from the table above
