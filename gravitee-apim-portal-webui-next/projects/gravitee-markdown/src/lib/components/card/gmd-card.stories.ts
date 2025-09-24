@@ -43,6 +43,7 @@ export default {
         <gmd-viewer [content]="contentToRender"></gmd-viewer>
       </div>
     `,
+    styles: ['@import "../projects/gravitee-markdown/src/lib/components/card/gmd-card.component.stories.scss";'],
     props: args,
   }),
 } as Meta<GmdCardComponent>;
@@ -189,11 +190,28 @@ export const WithGlobalCssOverrides: StoryObj = {
   args: {
     width: '300px',
     contentToRender: `
-<gmd-card style="--gmd-card-text-align: center; --gmd-card-outline-color: darkblue; --gmd-card-text-color: green;">
-  <gmd-card-title>A simple placeholder</gmd-card-title>
+<div style="display: flex; width: 1200px; gap: 12px;">
+<gmd-card class="with-global-css-overrides-1">
+  <gmd-card-title>A simple placeholder with one global override class</gmd-card-title>
   <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
   <gmd-md>Here's a paragraph. Are you happy now? Just fill in your own content here.</gmd-md>
 </gmd-card>
+<gmd-card class="with-global-css-overrides-2" >
+  <gmd-card-title>A simple placeholder with another global override class</gmd-card-title>
+  <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
+  <gmd-md>Here's a paragraph. Are you happy now? Just fill in your own content here.</gmd-md>
+</gmd-card>
+<gmd-card>
+  <gmd-card-title>A simple placeholder with no override classes</gmd-card-title>
+  <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
+  <gmd-md>Here's a paragraph. Are you happy now? Just fill in your own content here.</gmd-md>
+</gmd-card>
+<gmd-card style="--gmd-card-outline-color: yellow;">
+  <gmd-card-title>A simple placeholder with inline styling</gmd-card-title>
+  <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
+  <gmd-md>Here's a paragraph. Are you happy now? Just fill in your own content here.</gmd-md>
+</gmd-card>
+</div>
       `,
   },
 };
