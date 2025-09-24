@@ -49,7 +49,7 @@ describe('PortalPagesService', () => {
 
       const req = httpTestingController.expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/_homepage`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages?type=homepage&expand=content`,
       });
 
       req.flush(fakePortalPage);
