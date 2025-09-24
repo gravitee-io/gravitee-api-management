@@ -617,7 +617,6 @@ api:
       enabled: false
       prometheus:
         enabled: true
-        concurrencyLimit: 3
     bridge:
       enabled: false
       # host: localhost
@@ -1374,7 +1373,6 @@ gateway:
       enabled: false
       prometheus:
         enabled: true
-        concurrencyLimit: 3
 #   opentelemetry:
 #      enabled: false
 #      verbose: false
