@@ -33,7 +33,5 @@ public interface PortalPageQueryService {
         List<ExpandsViewContext> expand
     );
 
-    PortalPageWithViewDetails findById(PageId pageId);
-
     PortalPageWithViewDetails loadContentFor(PageId pageId, PortalPageView details);
 }
