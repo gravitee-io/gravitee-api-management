@@ -3,14 +3,6 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
-### 4.7.15
-
-- BREAKING CHANGE: fix(scraping): Introduce modular utilities for performance and concurrency
-    - Adds a new concurrent rate limiter utility, with a default limit of 3 (configurable).
-    - Offloads scrape() operations to a worker thread pool to protect the Vert.x event loop.
-    - Implements backpressure handling for slow scrapes using `writeQueueFull()` and `drainHandler()`.
-    - Wraps writers with `BufferedWriter` for improved I/O performance.
-    - All enhancements are provided as separate utilities for modularity.
 
 ### 4.7.11
 
