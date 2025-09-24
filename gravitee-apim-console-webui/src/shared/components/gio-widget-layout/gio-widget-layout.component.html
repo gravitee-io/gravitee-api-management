@@ -20,7 +20,7 @@
     <mat-card-title class="card__title">
       {{ title() }}
       @if (tooltip()) {
-        <mat-icon [matTooltip]="tooltip()" matTooltipPosition="after" svgIcon="gio:info" />
+        <mat-icon class="card__title__tooltip-icon" [matTooltip]="tooltip()" matTooltipPosition="after" svgIcon="gio:info" />
       }
     </mat-card-title>
   </mat-card-header>
