@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.portal_pages;
 
+import io.gravitee.apim.core.portal_page.model.ExpandsViewContext;
 import io.gravitee.apim.core.portal_page.model.PageId;
-import io.gravitee.apim.core.portal_page.use_case.GetHomepageUseCase;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.apim.core.portal_page.use_case.GetPortalPageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageViewPublicationStatusUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalPagesMapper;
@@ -35,11 +37,16 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 public class PortalPagesResource extends AbstractResource {
 
     @Inject
-    private GetHomepageUseCase getHomepageUseCase;
+    private GetPortalPageUseCase getPortalPageUseCase;
 
     @Inject
     private UpdatePortalPageUseCase updatePortalPageUseCase;
@@ -52,13 +59,21 @@ public class PortalPagesResource extends AbstractResource {
 
     @GET
     @Produces("application/json")
-    @Path("/_homepage")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
-    public PortalPageResponse getPortalHomepage() {
-        var input = new GetHomepageUseCase.Input(envId);
-        var homepage = getHomepageUseCase.execute(input);
+    public PortalPageResponse getPortalHomepage(@QueryParam("type") String type, @QueryParam("expand") List<String> expand) {
+        GetPortalPageUseCase.Input input = toGetPortalPageInput(envId, type, expand);
+        var page = getPortalPageUseCase.execute(input);
 
-        return PortalPagesMapper.INSTANCE.map(homepage);
+        return PortalPagesMapper.INSTANCE.map(page);
+    }
+
+    private GetPortalPageUseCase.Input toGetPortalPageInput(String envId, String type, List<String> expand) {
+        var pageType = Arrays.stream(PortalViewContext.values())
+            .filter(pcv -> pcv.name().equalsIgnoreCase(type))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown page type: " + type));
+        var expands = Optional.ofNullable(expand).orElse(Collections.emptyList()).stream().map(ExpandsViewContext::fromValue).toList();
+        return new GetPortalPageUseCase.Input(envId, pageType, expands);
     }
 
     @PATCH
@@ -70,7 +85,7 @@ public class PortalPagesResource extends AbstractResource {
         var input = new UpdatePortalPageUseCase.Input(envId, pageId, patchPortalPage.getContent());
         var updatedHomepage = updatePortalPageUseCase.execute(input);
 
-        return PortalPagesMapper.INSTANCE.map(updatedHomepage.portalPage());
+        return PortalPagesMapper.INSTANCE.mapSingle(updatedHomepage.portalPage());
     }
 
     @POST
@@ -82,7 +97,7 @@ public class PortalPagesResource extends AbstractResource {
         var input = new UpdatePortalPageViewPublicationStatusUseCase.Input(PageId.of(pageId), true);
         var updatedHomepage = updatePortalPageViewPublicationStatusUseCase.execute(input);
 
-        return PortalPagesMapper.INSTANCE.map(updatedHomepage.portalPage());
+        return PortalPagesMapper.INSTANCE.mapSingle(updatedHomepage.portalPage());
     }
 
     @POST
@@ -93,6 +108,6 @@ public class PortalPagesResource extends AbstractResource {
     public PortalPageResponse unpublishPortalPage(@PathParam("pageId") String pageId) {
         var input = new UpdatePortalPageViewPublicationStatusUseCase.Input(PageId.of(pageId), false);
         var updatedHomepage = updatePortalPageViewPublicationStatusUseCase.execute(input);
-        return PortalPagesMapper.INSTANCE.map(updatedHomepage.portalPage());
+        return PortalPagesMapper.INSTANCE.mapSingle(updatedHomepage.portalPage());
     }
 }

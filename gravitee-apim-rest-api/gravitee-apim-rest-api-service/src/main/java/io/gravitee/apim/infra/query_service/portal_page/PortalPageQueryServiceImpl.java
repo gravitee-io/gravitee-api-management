@@ -78,7 +78,6 @@ public class PortalPageQueryServiceImpl implements PortalPageQueryService {
         }
     }
 
-    @Override
     public PortalPageWithViewDetails findById(PageId pageId) {
         try {
             var page = pageRepository.findById(pageId.toString()).orElse(null);

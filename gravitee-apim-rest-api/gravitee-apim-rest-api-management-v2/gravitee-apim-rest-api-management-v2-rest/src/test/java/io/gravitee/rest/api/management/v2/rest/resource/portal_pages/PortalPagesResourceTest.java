@@ -79,21 +79,27 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         void should_return_homepage_portal_page() {
             setupPermission(true);
             setupHomepage(true);
-            Response response = target.path("/_homepage").request().get();
+            Response response = target.queryParam("type", "HOMEPAGE").request().get();
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(PortalPageResponse.class)
+                .extracting(PortalPageResponse::getPages)
+                .extracting(List::getFirst)
                 .satisfies(r -> {
                     assertThat(r.getContent()).isEqualTo("Welcome!");
-                    assertThat(r.getContext()).isEqualTo(PortalPageResponse.ContextEnum.HOMEPAGE);
-                    assertThat(r.getType()).isEqualTo(PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
+                    assertThat(r.getContext()).isEqualTo(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails.ContextEnum.HOMEPAGE
+                    );
+                    assertThat(r.getType()).isEqualTo(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails.TypeEnum.GRAVITEE_MARKDOWN
+                    );
                 });
         }
 
         @Test
         void should_return_403_for_unauthorized_user() {
             setupPermission(false);
-            Response response = target.path("/_homepage").request().get();
+            Response response = target.queryParam("type", "HOMEPAGE").request().get();
             assertThat(response).hasStatus(403);
         }
     }
@@ -150,10 +156,16 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(PortalPageResponse.class)
+                .extracting(PortalPageResponse::getPages)
+                .extracting(List::getFirst)
                 .satisfies(r -> {
                     assertThat(r.getContent()).isEqualTo(updatedContent);
-                    assertThat(r.getContext()).isEqualTo(PortalPageResponse.ContextEnum.HOMEPAGE);
-                    assertThat(r.getType()).isEqualTo(PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
+                    assertThat(r.getContext()).isEqualTo(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails.ContextEnum.HOMEPAGE
+                    );
+                    assertThat(r.getType()).isEqualTo(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails.TypeEnum.GRAVITEE_MARKDOWN
+                    );
                 });
         }
 
@@ -178,10 +190,16 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(PortalPageResponse.class)
+                .extracting(PortalPageResponse::getPages)
+                .extracting(List::getFirst)
                 .satisfies(r -> {
                     assertThat(r.getContent()).isEqualTo("Welcome!");
-                    assertThat(r.getContext()).isEqualTo(PortalPageResponse.ContextEnum.HOMEPAGE);
-                    assertThat(r.getType()).isEqualTo(PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
+                    assertThat(r.getContext()).isEqualTo(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails.ContextEnum.HOMEPAGE
+                    );
+                    assertThat(r.getType()).isEqualTo(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails.TypeEnum.GRAVITEE_MARKDOWN
+                    );
                 });
             assertThat(portalPageContextCrudService.storage().getFirst().isPublished()).isTrue();
         }
@@ -205,10 +223,16 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(PortalPageResponse.class)
+                .extracting(PortalPageResponse::getPages)
+                .extracting(List::getFirst)
                 .satisfies(r -> {
                     assertThat(r.getContent()).isEqualTo("Welcome!");
-                    assertThat(r.getContext()).isEqualTo(PortalPageResponse.ContextEnum.HOMEPAGE);
-                    assertThat(r.getType()).isEqualTo(PortalPageResponse.TypeEnum.GRAVITEE_MARKDOWN);
+                    assertThat(r.getContext()).isEqualTo(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails.ContextEnum.HOMEPAGE
+                    );
+                    assertThat(r.getType()).isEqualTo(
+                        io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails.TypeEnum.GRAVITEE_MARKDOWN
+                    );
                 });
             assertThat(portalPageContextCrudService.storage().getFirst().isPublished()).isFalse();
         }
