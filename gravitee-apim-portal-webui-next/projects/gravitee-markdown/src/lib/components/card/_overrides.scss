@@ -17,49 +17,24 @@
 
 @function tokens() {
   @return (
-    title-text-weight: (
-      value: 700,
-      css-var: --gmd-card-title-text-weight,
-    ),
-    title-text-size: (
-      value: 16px,
-      css-var: --gmd-card-title-text-size,
-    ),
-    title-line-height: (
-      value: 21px,
-      css-var: --gmd-card-title-line-height,
-    ),
-    subtitle-text-weight: (
-      value: 400,
-      css-var: --gmd-card-subtitle-text-weight,
-    ),
-    subtitle-text-size: (
-      value: 14px,
-      css-var: --gmd-card-subtitle-text-size,
-    ),
-    subtitle-line-height: (
-      value: 20px,
-      css-var: --gmd-card-subtitle-line-height,
-    ),
-    container-color: (
-      value: #f4f7fd,
-      css-var: --gmd-card-container-color,
-    ),
-    outline-color: (
-      value: #c7c7c7,
-      css-var: --gmd-card-outline-color,
-    ),
-    container-shape: (
-      value: 16px,
-      css-var: --gmd-card-container-shape,
-    ),
-    text-color: (
-      value: #1d192b,
-      css-var: --gmd-card-text-color,
-    ),
-    text-align: (
-      value: 'left',
-      css-var: --gmd-card-text-align,
+    namespace: card,
+    tokens: (
+      // Title styling
+      title-text-weight: 700,
+      title-text-size: 16px,
+      title-line-height: 21px,
+
+      // Subtitle styling
+      subtitle-text-weight: 400,
+      subtitle-text-size: 14px,
+      subtitle-line-height: 20px,
+
+      // Card styling
+      container-color: #f4f7fd,
+      outline-color: #c7c7c7,
+      container-shape: 16px,
+      text-color: #1d192b,
+      text-align: left,
     )
   );
 }
