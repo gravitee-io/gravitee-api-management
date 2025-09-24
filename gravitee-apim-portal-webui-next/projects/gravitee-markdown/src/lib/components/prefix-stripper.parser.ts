@@ -15,9 +15,13 @@
  */
 import { HookParserEntry } from 'ngx-dynamic-hooks';
 
+import { GmdMdComponent } from './block/gmd-md.component';
 import { CellComponent } from './grid/cell/cell.component';
 import { GridComponent } from './grid/grid.component';
 import { ComponentSelector } from '../models/componentSelector';
+import { GmdCardSubtitleComponent } from './card/components/card-subtitle/gmd-card-subtitle.component';
+import { GmdCardTitleComponent } from './card/components/card-title/gmd-card-title.component';
+import { GmdCardComponent } from './card/gmd-card.component';
 
 export const prefixStripperParser: HookParserEntry[] = [
   {
@@ -27,5 +31,21 @@ export const prefixStripperParser: HookParserEntry[] = [
   {
     component: CellComponent,
     selector: ComponentSelector.CELL,
+  },
+  {
+    component: GmdCardComponent,
+    selector: ComponentSelector.CARD,
+  },
+  {
+    component: GmdCardTitleComponent,
+    selector: ComponentSelector.CARD_TITLE,
+  },
+  {
+    component: GmdCardSubtitleComponent,
+    selector: ComponentSelector.CARD_SUBTITLE,
+  },
+  {
+    component: GmdMdComponent,
+    selector: ComponentSelector.MD_BLOCK,
   },
 ];

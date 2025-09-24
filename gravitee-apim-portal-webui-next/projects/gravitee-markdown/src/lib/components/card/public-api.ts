@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/grid/public-api';
 
+// Module
+export * from './gmd-card.module';
+
+// Components
+export * from './gmd-card.component';
+export * from './components/card-title/gmd-card-title.component';
+export * from './components/card-subtitle/gmd-card-subtitle.component';
+
+// Testing
+export * from './gmd-card.harness';

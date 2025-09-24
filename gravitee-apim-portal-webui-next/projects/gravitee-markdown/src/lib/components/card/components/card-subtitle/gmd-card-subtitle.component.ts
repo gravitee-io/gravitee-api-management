@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/grid/public-api';
+import { Component } from '@angular/core';
 
+@Component({
+  selector: 'gmd-card-subtitle',
+  standalone: true,
+  template: '<ng-content/>',
+  styleUrls: ['gmd-card-subtitle.component.scss'],
+})
+export class GmdCardSubtitleComponent {}

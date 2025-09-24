@@ -13,6 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/grid/public-api';
+import { ComponentSuggestion } from '../../models/componentSuggestion';
+import { ComponentSuggestionConfiguration } from '../../models/componentSuggestionConfiguration';
 
+const emptyBlock: ComponentSuggestion = {
+  label: 'Markdown block',
+  insertText: `<gmd-md></gmd-md>`,
+  detail: 'An empty markdown block',
+};
+
+export const mdBlockConfiguration: ComponentSuggestionConfiguration = {
+  suggestions: [emptyBlock],
+  attributeSuggestions: [],
+  hoverDocumentation: {
+    label: 'Markdown block',
+    description: 'Layout container to write markdown text',
+  },
+  attributeHoverDocumentation: {},
+};

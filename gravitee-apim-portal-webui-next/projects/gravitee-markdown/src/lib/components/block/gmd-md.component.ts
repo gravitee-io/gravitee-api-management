@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/grid/public-api';
+import { Component } from '@angular/core';
 
+@Component({
+  selector: 'gmd-md',
+  standalone: true,
+  template: '<ng-content/>',
+})
+export class GmdMdComponent {}
