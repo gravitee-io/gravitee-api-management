@@ -1,0 +1,3 @@
+FROM graviteeio/apim-gateway:latest
+COPY plugins /opt/graviteeio-gateway/plugins-ext
+

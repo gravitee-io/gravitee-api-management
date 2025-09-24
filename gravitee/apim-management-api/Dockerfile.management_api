@@ -1,0 +1,3 @@
+FROM graviteeio/apim-management-api:latest
+COPY plugins /opt/graviteeio-management-api/plugins-ext
+
