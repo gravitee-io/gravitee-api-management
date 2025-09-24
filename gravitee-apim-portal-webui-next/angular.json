@@ -119,6 +119,7 @@
           "builder": "@storybook/angular:start-storybook",
           "options": {
             "configDir": ".storybook",
+            "styles": [".storybook/index.scss"],
             "browserTarget": "gravitee-apim-portal-webui-next:build",
             "compodoc": false,
             "port": 6006
