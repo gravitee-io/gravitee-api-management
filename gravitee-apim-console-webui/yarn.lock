@@ -3081,9 +3081,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< HEAD
 "@gravitee/ui-particles-angular@npm:14.2.2":
   version: 14.2.2
   resolution: "@gravitee/ui-particles-angular@npm:14.2.2"
+=======
+"@gravitee/ui-particles-angular@npm:13.12.6":
+  version: 13.12.6
+  resolution: "@gravitee/ui-particles-angular@npm:13.12.6"
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
   dependencies:
     "@fontsource/fira-mono": "npm:4.5.0"
     "@fontsource/golos-ui": "npm:^4.5.1"
@@ -3111,6 +3117,7 @@ __metadata:
       optional: true
     prismjs:
       optional: true
+<<<<<<< HEAD
   checksum: 10c0/ff2de4c78411a9ce66196191a0800357fa3a3d8b8b71e6622344eea8702bcb65567f307e5717c7735d7d91c6b89bdd911e059d680db74375c978bc383992ed01
   languageName: node
   linkType: hard
@@ -3118,6 +3125,15 @@ __metadata:
 "@gravitee/ui-policy-studio-angular@npm:14.2.2":
   version: 14.2.2
   resolution: "@gravitee/ui-policy-studio-angular@npm:14.2.2"
+=======
+  checksum: 10c0/cdff68bed02feb434f27213587bd6d0ae402c99c092f2f5b37650986a4c4337c8956e7391a13a4650defae6763a4b916fb41bbd5652d8772638779673edca04b
+  languageName: node
+  linkType: hard
+
+"@gravitee/ui-policy-studio-angular@npm:13.12.6":
+  version: 13.12.6
+  resolution: "@gravitee/ui-policy-studio-angular@npm:13.12.6"
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -3129,6 +3145,7 @@ __metadata:
     "@angular/material": ^19.0.0
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
+<<<<<<< HEAD
   checksum: 10c0/9aaddcf18cc74583df3232fe0867199f21c9fa713a6c91149b024c30f1254bc9f050763f956c8800e63a3c802c5ac04d0216674465c50c4e4c6c93a39351a9f6
   languageName: node
   linkType: hard
@@ -3136,12 +3153,25 @@ __metadata:
 "@gravitee/ui-schematics@npm:14.1.2":
   version: 14.1.2
   resolution: "@gravitee/ui-schematics@npm:14.1.2"
+=======
+  checksum: 10c0/4793d169534ab63f6d587d0b584743e5737ddeb56111af5a7599b1548d66b7a768b0a36d59cae4665dbf18867961152cfb9192a5831d8fef0cf60d5f066d2d27
+  languageName: node
+  linkType: hard
+
+"@gravitee/ui-schematics@npm:13.12.6":
+  version: 13.12.6
+  resolution: "@gravitee/ui-schematics@npm:13.12.6"
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
   dependencies:
     tslib: "npm:^2.6.3"
   peerDependencies:
     "@angular/common": ^17.2.0
     "@angular/core": ^17.2.0
+<<<<<<< HEAD
   checksum: 10c0/377ce163a3c23f7c570d5860bf0144f43f0cec32a3b818f710a6166e0e27aa7684f5525c824d82d088395c5b5679886685703677b1ae4bbcfed3068c7cedcb78
+=======
+  checksum: 10c0/c3597267bb566503c9eea71363e0fd8431e2d92c9ac423889bb04f0d3203c567161aca42c1f03a67a27d0177289b94885d2668820a00708de3498d1006082ce3
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
   languageName: node
   linkType: hard
 
@@ -12132,9 +12162,15 @@ __metadata:
     "@fontsource/libre-franklin": "npm:4.5.11"
     "@gravitee/ui-analytics": "npm:14.2.2"
     "@gravitee/ui-components": "npm:4.3.3"
+<<<<<<< HEAD
     "@gravitee/ui-particles-angular": "npm:14.2.2"
     "@gravitee/ui-policy-studio-angular": "npm:14.2.2"
     "@gravitee/ui-schematics": "npm:14.1.2"
+=======
+    "@gravitee/ui-particles-angular": "npm:13.12.6"
+    "@gravitee/ui-policy-studio-angular": "npm:13.12.6"
+    "@gravitee/ui-schematics": "npm:13.12.6"
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.0"
     "@ngx-formly/material": "npm:6.3.0"
