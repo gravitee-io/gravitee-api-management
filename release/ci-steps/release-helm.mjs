@@ -12,8 +12,8 @@ cd('/home/circleci');
 await $`git clone --depth 1  ${helmRepository} --single-branch --branch=gh-pages`;
 cd('/home/circleci/helm-charts');
 
-await $`cp /home/circleci/project/helm/charts/apim-${releasingVersion}.tgz /home/circleci/helm-charts/helm/apim/apim-${releasingVersion}.tgz`;
-await $`cp /home/circleci/project/helm/charts/apim3-${releasingVersion}.tgz /home/circleci/helm-charts/helm/apim3/apim3-${releasingVersion}.tgz`;
+await $`cp /home/circleci/project/helm/charts/docker/io/apim-${releasingVersion}.tgz /home/circleci/helm-charts/helm/apim/apim-${releasingVersion}.tgz`;
+await $`cp /home/circleci/project/helm/charts/docker/io/apim3-${releasingVersion}.tgz /home/circleci/helm-charts/helm/apim3/apim3-${releasingVersion}.tgz`;
 
 cd('/home/circleci/helm-charts');
 await $`helm repo index --url https://helm.gravitee.io/helm helm`;
