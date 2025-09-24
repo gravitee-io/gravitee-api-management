@@ -20,6 +20,7 @@ const aqua = {
 const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com';
 
 const awsCliVersion = '2.22.35';
+const awsECRUrl = '430630701098.dkr.ecr.eu-west-2.amazonaws.com';
 
 const cache = {
   prefix: 'gravitee-api-management-v11',
@@ -118,6 +119,9 @@ const secrets = {
   artifactoryUser: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login',
   awsAccessKeyId: 'keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password',
   awsSecretAccessKey: 'keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password',
+  awsHelmAccessKeyId: 'keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_access_key_id',
+  awsHelmSecretAccessKey: 'keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_secret_access_key',
+  awsHelmRegion: 'keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_region',
   azureApplicationId: 'keeper://UryantA7MvZe8fkWwcUt8g/field/login',
   azureApplicationSecret: 'keeper://UryantA7MvZe8fkWwcUt8g/field/password',
   azureRegistryPassword: 'keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password',
@@ -165,6 +169,7 @@ export const config = {
   aqua,
   artifactoryUrl,
   awsCliVersion,
+  awsECRUrl,
   cache,
   components,
   executor,
