@@ -23,8 +23,13 @@
     "@fontsource/libre-franklin": "4.5.11",
     "@gravitee/ui-analytics": "14.2.2",
     "@gravitee/ui-components": "4.3.3",
+<<<<<<< HEAD
     "@gravitee/ui-particles-angular": "14.2.2",
     "@gravitee/ui-policy-studio-angular": "14.2.2",
+=======
+    "@gravitee/ui-particles-angular": "13.12.6",
+    "@gravitee/ui-policy-studio-angular": "13.12.6",
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
     "@highcharts/map-collection": "1.1.4",
     "@ngx-formly/core": "6.3.0",
     "@ngx-formly/material": "6.3.0",
@@ -87,6 +92,7 @@
     "zone.js": "0.14.10"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "@angular-devkit/architect": "0.1902.5",
     "@angular-devkit/build-angular": "19.2.5",
     "@angular/cli": "19.2.5",
@@ -98,6 +104,15 @@
     "@storybook/angular": "8.6.4",
     "@storybook/blocks": "8.6.4",
     "@storybook/test": "8.6.4",
+=======
+    "@angular-devkit/architect": "0.1802.0",
+    "@angular-devkit/build-angular": "18.2.0",
+    "@angular/cli": "18.2.0",
+    "@angular/compiler-cli": "18.2.0",
+    "@gravitee/ui-schematics": "13.12.6",
+    "@storybook/addon-essentials": "7.6.17",
+    "@storybook/angular": "7.6.17",
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
     "@types/angular": "1.8.9",
     "@types/angular-material": "1.1.77",
     "@types/angular-mocks": "1.7.4",
