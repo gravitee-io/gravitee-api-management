@@ -43,6 +43,7 @@ describe('FormatDurationPipe', () => {
       // Milliseconds
       { input: 500, expected: '500ms' },
       { input: 999, expected: '999ms' },
+      { input: 62.3, expected: '62ms' },
       // Seconds
       { input: 1000, expected: '1s' },
       { input: 1500, expected: '1.5s' },

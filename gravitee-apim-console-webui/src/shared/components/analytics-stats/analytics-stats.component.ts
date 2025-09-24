@@ -57,7 +57,7 @@ export class AnalyticsStatsComponent {
 
     const formattedStats = formatNumber(stats, 'en-US');
 
-    return statsUnit === 'ms' ? `${formattedStats} ${statsUnit}` : formattedStats;
+    return statsUnit === 'ms' ? `${formattedStats} ${statsUnit}` : `${stats}`;
   });
 
   public isTooltipShown = computed(() => {
