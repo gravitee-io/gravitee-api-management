@@ -3148,9 +3148,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< HEAD
 "@gravitee/ui-particles-angular@npm:15.11.1":
   version: 15.11.1
   resolution: "@gravitee/ui-particles-angular@npm:15.11.1"
+=======
+"@gravitee/ui-particles-angular@npm:13.12.6":
+  version: 13.12.6
+  resolution: "@gravitee/ui-particles-angular@npm:13.12.6"
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
   dependencies:
     "@fontsource/fira-mono": "npm:5.0.14"
     "@fontsource/kanit": "npm:^5.2.6"
@@ -3179,6 +3185,7 @@ __metadata:
       optional: true
     prismjs:
       optional: true
+<<<<<<< HEAD
   checksum: 10c0/f3a8d4bc2e2125644c9cbe8e7c36524f24b1507de2d222d7e9bf2597f6a8e4b343dba9526765bcce65295112a67c949aacdaf567f824dc044d1f244faefa4e0e
   languageName: node
   linkType: hard
@@ -3186,6 +3193,15 @@ __metadata:
 "@gravitee/ui-policy-studio-angular@npm:15.11.1":
   version: 15.11.1
   resolution: "@gravitee/ui-policy-studio-angular@npm:15.11.1"
+=======
+  checksum: 10c0/cdff68bed02feb434f27213587bd6d0ae402c99c092f2f5b37650986a4c4337c8956e7391a13a4650defae6763a4b916fb41bbd5652d8772638779673edca04b
+  languageName: node
+  linkType: hard
+
+"@gravitee/ui-policy-studio-angular@npm:13.12.6":
+  version: 13.12.6
+  resolution: "@gravitee/ui-policy-studio-angular@npm:13.12.6"
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -3197,6 +3213,7 @@ __metadata:
     "@angular/material": ^19.0.0
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
+<<<<<<< HEAD
     ngx-markdown: ^19.1.1
   checksum: 10c0/548d352db360e1c75528a9753021b8372ae2afdd9542ef9623299d56fa1040eaaf9e805ad8236d2d06d949f5c4971dd5bfe9790b949d6cfebf7c6704f696005b
   languageName: node
@@ -3205,12 +3222,25 @@ __metadata:
 "@gravitee/ui-schematics@npm:15.11.1":
   version: 15.11.1
   resolution: "@gravitee/ui-schematics@npm:15.11.1"
+=======
+  checksum: 10c0/4793d169534ab63f6d587d0b584743e5737ddeb56111af5a7599b1548d66b7a768b0a36d59cae4665dbf18867961152cfb9192a5831d8fef0cf60d5f066d2d27
+  languageName: node
+  linkType: hard
+
+"@gravitee/ui-schematics@npm:13.12.6":
+  version: 13.12.6
+  resolution: "@gravitee/ui-schematics@npm:13.12.6"
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
   dependencies:
     tslib: "npm:^2.6.3"
   peerDependencies:
     "@angular/common": ^17.2.0
     "@angular/core": ^17.2.0
+<<<<<<< HEAD
   checksum: 10c0/30d6843ab7f3ef2ce9fa5b4dd53652c4f82b68805875959085a36b6c72c086b2edbdf81371680c05b7327dc5896103c7a4346ee99483db117d55b5f6168f36af
+=======
+  checksum: 10c0/c3597267bb566503c9eea71363e0fd8431e2d92c9ac423889bb04f0d3203c567161aca42c1f03a67a27d0177289b94885d2668820a00708de3498d1006082ce3
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
   languageName: node
   linkType: hard
 
@@ -12209,12 +12239,20 @@ __metadata:
     "@danielmoncada/angular-datetime-picker": "npm:19.0.0"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:6.0.2"
     "@fontsource/libre-franklin": "npm:4.5.11"
+<<<<<<< HEAD
     "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown"
     "@gravitee/ui-analytics": "npm:15.11.1"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:15.11.1"
     "@gravitee/ui-policy-studio-angular": "npm:15.11.1"
     "@gravitee/ui-schematics": "npm:15.11.1"
+=======
+    "@gravitee/ui-analytics": "npm:13.12.5"
+    "@gravitee/ui-components": "npm:4.3.3"
+    "@gravitee/ui-particles-angular": "npm:13.12.6"
+    "@gravitee/ui-policy-studio-angular": "npm:13.12.6"
+    "@gravitee/ui-schematics": "npm:13.12.6"
+>>>>>>> 7abf30bf86 (chore: bump ui-particles to fix image size in the subscription drop-down of the application)
     "@highcharts/map-collection": "npm:1.1.4"
     "@ngx-formly/core": "npm:6.3.12"
     "@ngx-formly/material": "npm:6.3.12"
