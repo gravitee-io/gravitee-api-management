@@ -68,26 +68,6 @@ The card component consists of:
 - **Header**: Contains title and subtitle elements
 - **Content**: Contains markdown content blocks
 
-## Theming Tokens
-
-The card component uses CSS custom properties for theming. You can override any token by setting the corresponding CSS variable.
-
-### Card Tokens
-
-| Token                    | CSS Variable                      | Default Value | Description | Example |
-|--------------------------|-----------------------------------|---------------|-------------|---------|
-| **Title Text Weight**    | `--gmd-card-title-text-weight`    | `700` | Text weight for card title | `600` (semi-bold) |
-| **Title Text Size**      | `--gmd-card-title-text-size`      | `16px` | Text size for card title | `18px` (larger) |
-| **Title Line Height**    | `--gmd-card-title-line-height`    | `21px` | Line height for card title | `24px` (more spacing) |
-| **Subtitle Text Weight** | `--gmd-card-subtitle-text-weight` | `400` | Text weight for card subtitle | `500` (medium) |
-| **Subtitle Text Size**   | `--gmd-card-subtitle-text-size`   | `14px` | Text size for card subtitle | `16px` (larger) |
-| **Subtitle Line Height** | `--gmd-card-subtitle-line-height` | `20px` | Line height for card subtitle | `22px` (more spacing) |
-| **Container Color**      | `--gmd-card-container-color`      | `#f4f7fd` | Background color of card | `#ffffff` (white) |
-| **Outline Color**        | `--gmd-card-outline-color`        | `#c7c7c7` | Border color of card | `#e0e0e0` (lighter gray) |
-| **Container Shape**      | `--gmd-card-container-shape`      | `16px` | Border radius of card | `8px` (less rounded) |
-| **Text Color**           | `--gmd-card-text-color`           | `#1d192b` | Text color for card content | `#333333` (dark gray) |
-| **Text Align**           | `--gmd-card-text-align`           | `left` | Text alignment | `center`, `right` |
-
 ## Input Properties
 
 The card component supports the following input properties for dynamic styling:
@@ -119,29 +99,26 @@ The card component supports the following input properties for dynamic styling:
 </gmd-card>
 ```
 
-## SCSS Override Example
+## Theming Tokens
 
-You can also customize the card tokens using SCSS by importing and using the `overrides` mixin:
+The card component uses CSS custom properties for theming. You can override any token by setting the corresponding CSS variable.
 
-```scss
-@use '@gravitee/gravitee-markdown' as gmd;
+### Card Tokens
 
-// Custom card theme
-.my-custom-cards {
-  @include gmd.card-overrides((
-    container-color: #ffffff,
-    outline-color: #e0e0e0,
-    text-color: #333333,
-    title-text-weight: 600,
-    title-text-size: 18px,
-    subtitle-text-size: 16px,
-    container-shape: 8px,
-    text-align: center,
-  ));
-}
+| Token                    | CSS Variable                      | Default Value | Description | Example |
+|--------------------------|-----------------------------------|---------------|-------------|---------|
+| **Container Color**      | `--gmd-card-container-color`      | `#f4f7fd` | Background color of card | `#ffffff` (white) |
+| **Text Color**           | `--gmd-card-text-color`           | `#1d192b` | Text color for card content | `#333333` (dark gray) |
+
+### Inline Style Overrides
+
+```html
+<gmd-card style="--gmd-card-outline-color: darkblue; --gmd-card-text-color: pink;">
+  <gmd-card-title>Centered Card</gmd-card-title>
+  <gmd-card-subtitle>With Custom Border</gmd-card-subtitle>
+  <gmd-md>This card is centered with a dark blue border.</gmd-md>
+</gmd-card>
 ```
-
-This approach allows you to scope card customizations to specific components or sections of your application.
 
 ## Advanced Usage
 
@@ -170,12 +147,28 @@ This approach allows you to scope card customizations to specific components or 
 </gmd-grid>
 ```
 
-### Inline Style Overrides
+## For Developers
 
-```html
-<gmd-card style="--gmd-card-text-align: center; --gmd-card-outline-color: darkblue;">
-  <gmd-card-title>Centered Card</gmd-card-title>
-  <gmd-card-subtitle>With Custom Border</gmd-card-subtitle>
-  <gmd-md>This card is centered with a dark blue border.</gmd-md>
-</gmd-card>
+### SCSS Override Example
+
+You can also customize the card tokens using SCSS by importing and using the `overrides` mixin:
+
+```scss
+@use '@gravitee/gravitee-markdown' as gmd;
+
+// Custom card theme
+.my-custom-cards {
+  @include gmd.card-overrides((
+    container-color: #ffffff,
+    outline-color: #e0e0e0,
+    text-color: #333333,
+    title-text-weight: 600,
+    title-text-size: 18px,
+    subtitle-text-size: 16px,
+    container-shape: 8px,
+    text-align: center,
+  ));
+}
 ```
+
+This approach allows you to scope card customizations to specific components or sections of your application.
