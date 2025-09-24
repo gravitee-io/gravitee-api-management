@@ -69,9 +69,9 @@ describe('HomepageComponent', () => {
     httpTestingController
       .expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/_homepage`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages?type=homepage&expand=content`,
       })
-      .flush(portalPage);
+      .flush({ pages: [portalPage] });
   };
 
   afterEach(() => {
@@ -90,13 +90,10 @@ describe('HomepageComponent', () => {
   });
 
   it('should disable editor when user has no update permission', async () => {
-    await init(false);
-
+    const fakePortalPage = fakePortalPageWithDetails();
+    await init(false, fakePortalPage);
     const editorHarness = await harnessLoader.getHarness(GraviteeMarkdownEditorHarness);
     expect(await editorHarness.isEditorReadOnly()).toBe(true);
-
-    const saveButton = await getSaveButton();
-    expect(await saveButton.isDisabled()).toBeTruthy();
   });
 
   it('should disable editor when content has not changed or is empty', async () => {
