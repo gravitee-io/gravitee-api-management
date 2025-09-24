@@ -411,19 +411,59 @@ jobs:
           working_directory: ./helm
           command: |-
             helm dependency update
-            helm package -d charts .
+            cp -f "Chart.yaml" "../Chart.yaml.bak"
+            cp -f "values.yaml" "../values.yaml.bak"
 
-            sed "s/name.*/name: apim3/" -i Chart.yaml
+            mkdir -p charts/docker/io
+
             helm package -d charts .
+            mv charts/apim-*.tgz charts/docker/io/
+
+            sed "s/^name:.*/name: apim3/" -i Chart.yaml
+            helm package -d charts .
+            mv charts/apim3-*.tgz charts/docker/io/
+
+            mkdir -p charts/aws/io
+            cp -f "../Chart.yaml.bak" "Chart.yaml"
+            cp -f "../values.yaml.bak" "values.yaml"
+            sed -i -E "s|(repository: )graviteeio/apim-management-api|\1430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteeio/saas-apim-management-api|g" values.yaml
+            sed -i -E "s|(repository: )graviteeio/apim-gateway|\1430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteeio/saas-apim-gateway|g" values.yaml
+            sed -i -E "s|(repository: )graviteeio/apim-portal-ui|\1430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteeio/saas-apim-portal-ui|g" values.yaml
+            sed -i -E "s|(repository: )graviteeio/apim-management-ui|\1430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteeio/saas-apim-management-ui|g" values.yaml
+            helm package -d charts .
+            mv charts/apim-*.tgz charts/aws/io/
       - cmd-install-yarn
       - run:
           name: Install dependencies
           command: yarn
           working_directory: ./release
       - run:
+          name: Install AWS CLI
+          command: |-
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                        unzip awscliv2.zip
+                        sudo ./aws/install
+                        aws --version
+      - run:
           name: Open a PR to publish helm chart release into helm-charts repository
           working_directory: ./release
           command: yarn zx ci-steps/release-helm.mjs --version=4.2.0
+      - keeper/env-export:
+          secret-url: keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_access_key_id
+          var-name: AWS_ACCESS_KEY_ID
+      - keeper/env-export:
+          secret-url: keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_secret_access_key
+          var-name: AWS_SECRET_ACCESS_KEY
+      - keeper/env-export:
+          secret-url: keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_region
+          var-name: AWS_REGION
+      - run:
+          name: Login to AWS ECR for Helm OCI
+          command: aws ecr get-login-password --region $AWS_REGION | helm registry login --username AWS --password-stdin 430630701098.dkr.ecr.eu-west-2.amazonaws.com
+      - run:
+          name: Publish helm chart release in AWS ECR
+          working_directory: ./helm
+          command: helm push charts/aws/io/apim-*.tgz oci://430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteeio/helm/
   job-publish-prod-docker-images:
     docker:
       - image: cimg/base:stable

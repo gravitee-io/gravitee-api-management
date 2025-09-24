@@ -72,16 +72,29 @@ git config --global user.email "\${GIT_USER_EMAIL}"`,
         name: 'build the Charts',
         working_directory: './helm',
         command: `helm dependency update
-helm package -d charts .
+cp -f "Chart.yaml" "../Chart.yaml.bak"
+cp -f "values.yaml" "../values.yaml.bak"
 
-sed "s/name.*/name: apim3/" -i Chart.yaml
-helm package -d charts .`,
+${ReleaseHelmJob.prepareCharts('/docker/io')}
+
+${
+  environment.isDryRun
+    ? ReleaseHelmJob.prepareChartsForAws('graviteedev', '/aws/dev')
+    : ReleaseHelmJob.prepareChartsForAws('graviteeio', '/aws/io')
+}`,
       }),
       new reusable.ReusedCommand(installYarnCmd),
       new commands.Run({
         name: 'Install dependencies',
         command: 'yarn',
         working_directory: './release',
+      }),
+      new commands.Run({
+        name: 'Install AWS CLI',
+        command: `curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            aws --version`,
       }),
     );
 
@@ -93,6 +106,7 @@ helm package -d charts .`,
           command: `yarn zx ci-steps/release-helm.mjs --version=${apimVersion}`,
         }),
       );
+      ReleaseHelmJob.prepareReleaseCommandForAWS(steps, environment, 'graviteeio', '/aws/io');
     } else {
       steps.push(
         new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
@@ -107,12 +121,67 @@ helm package -d charts .`,
           name: 'Publish helm chart release in azure repository DRY-RUN mode',
           working_directory: './helm',
           command: `helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
-helm push charts/apim-*.tgz oci://graviteeio.azurecr.io/helm/
-helm push charts/apim3-*.tgz oci://graviteeio.azurecr.io/helm/`,
+helm push charts/docker/io/apim-*.tgz oci://graviteeio.azurecr.io/helm/
+helm push charts/docker/io/apim3-*.tgz oci://graviteeio.azurecr.io/helm/`,
         }),
       );
+      ReleaseHelmJob.prepareReleaseCommandForAWS(steps, environment, 'graviteedev', '/aws/dev');
     }
 
     return new Job(ReleaseHelmJob.jobName, NodeLtsExecutor.create(), steps);
+  }
+
+  private static prepareCharts(localChartFolder: string): string {
+    return `mkdir -p charts${localChartFolder}
+
+helm package -d charts .
+mv charts/apim-*.tgz charts${localChartFolder}/
+
+sed "s/^name:.*/name: apim3/" -i Chart.yaml
+helm package -d charts .
+mv charts/apim3-*.tgz charts${localChartFolder}/`;
+  }
+
+  private static prepareChartsForAws(awsEcrName: string, localChartFolder: string): string {
+    return `mkdir -p charts${localChartFolder}
+cp -f "../Chart.yaml.bak" "Chart.yaml"
+cp -f "../values.yaml.bak" "values.yaml"
+sed -i -E "s|(repository: )graviteeio/apim-management-api|\\1${config.awsECRUrl}/${awsEcrName}/saas-apim-management-api|g" values.yaml
+sed -i -E "s|(repository: )graviteeio/apim-gateway|\\1${config.awsECRUrl}/${awsEcrName}/saas-apim-gateway|g" values.yaml
+sed -i -E "s|(repository: )graviteeio/apim-portal-ui|\\1${config.awsECRUrl}/${awsEcrName}/saas-apim-portal-ui|g" values.yaml
+sed -i -E "s|(repository: )graviteeio/apim-management-ui|\\1${config.awsECRUrl}/${awsEcrName}/saas-apim-management-ui|g" values.yaml
+helm package -d charts .
+mv charts/apim-*.tgz charts${localChartFolder}/`;
+  }
+
+  private static prepareReleaseCommandForAWS(
+    steps: Command[],
+    environment: CircleCIEnvironment,
+    awsEcrName: string,
+    localChartFolder: string,
+  ): void {
+    steps.push(
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.awsHelmAccessKeyId,
+        'var-name': 'AWS_ACCESS_KEY_ID',
+      }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.awsHelmSecretAccessKey,
+        'var-name': 'AWS_SECRET_ACCESS_KEY',
+      }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.awsHelmRegion,
+        'var-name': 'AWS_REGION',
+      }),
+      new commands.Run({
+        name: 'Login to AWS ECR for Helm OCI',
+        command: `aws ecr get-login-password --region $AWS_REGION | helm registry login --username AWS --password-stdin ${config.awsECRUrl}`,
+      }),
+      new commands.Run({
+        name: `Publish helm chart release in AWS ECR${environment.isDryRun ? ' DRY-RUN mode' : ''}`,
+        working_directory: './helm',
+        command: `helm push charts${localChartFolder}/apim-*.tgz oci://${config.awsECRUrl}/${awsEcrName}/helm/`,
+      }),
+    );
   }
 }
