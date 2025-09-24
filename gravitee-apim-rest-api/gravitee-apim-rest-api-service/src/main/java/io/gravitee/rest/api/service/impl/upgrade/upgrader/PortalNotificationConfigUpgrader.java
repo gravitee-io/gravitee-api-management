@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.PORTAL_NOTIFICATION_CONFIG_UPGRADER;
 
+import io.gravitee.definition.model.Origin;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
@@ -106,6 +107,7 @@ public class PortalNotificationConfigUpgrader implements Upgrader {
             .referenceId(environment.getId())
             .referenceType(NotificationReferenceType.ENVIRONMENT)
             .hooks(portalNotificationConfig.getHooks())
+            .origin(portalNotificationConfig.getOrigin() != null ? portalNotificationConfig.getOrigin() : Origin.MANAGEMENT)
             .user(portalNotificationConfig.getUser())
             .createdAt(portalNotificationConfig.getCreatedAt())
             .updatedAt(portalNotificationConfig.getUpdatedAt())
