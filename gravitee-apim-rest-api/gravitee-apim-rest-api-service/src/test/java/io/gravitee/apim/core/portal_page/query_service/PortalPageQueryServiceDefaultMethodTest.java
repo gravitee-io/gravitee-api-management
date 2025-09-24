@@ -54,11 +54,6 @@ class PortalPageQueryServiceDefaultMethodTest {
         }
 
         @Override
-        public PortalPageWithViewDetails findById(PageId pageId) {
-            return null;
-        }
-
-        @Override
         public PortalPageWithViewDetails loadContentFor(PageId pageId, PortalPageView details) {
             return null;
         }

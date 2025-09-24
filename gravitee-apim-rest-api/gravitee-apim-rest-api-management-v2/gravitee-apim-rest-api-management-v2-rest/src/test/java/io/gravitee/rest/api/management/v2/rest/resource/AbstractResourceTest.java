@@ -43,7 +43,6 @@ import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.apim.core.portal_page.use_case.GetHomepageUseCase;
 import io.gravitee.apim.core.specgen.use_case.SpecGenRequestUseCase;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -229,9 +228,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected GroupCrudServiceInMemory groupCrudServiceInMemory;
-
-    @Autowired
-    protected GetHomepageUseCase getHomepageUseCase;
 
     @Autowired
     protected PortalPageContextCrudServiceInMemory portalPageContextCrudService;

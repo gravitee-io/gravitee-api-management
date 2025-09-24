@@ -748,13 +748,16 @@ paths:
             $ref: "#/components/responses/Error"
 
     # Portal pages
-    /portal-pages/_homepage:
+    /portal-pages:
       get:
         tags:
           - Portal Pages
         summary: Get portal homepage
         description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission. This endpoint is under active development and might change or be removed in future releases without prior notice.
         operationId: getPortalHomepage
+        parameters:
+          - $ref: '#/components/parameters/contextType'
+          - $ref: '#/components/parameters/expandComponents'
         responses:
           "200":
             $ref: "#/components/responses/PortalPageResponse"
@@ -1615,6 +1618,28 @@ components:
             content:
               type: string
               description: The content of the page in Gravitee Markdown format
+        PortalPageWithDetails:
+          type: object
+          description: A portal page with details
+          properties:
+            id:
+              type: string
+              description: The unique ID of the portal page
+            content:
+              type: string
+              description: Page contents
+            type:
+              type: string
+              description: Content type
+              enum:
+                - gravitee_markdown
+            context:
+              type: string
+              description: The portal context (eg. "homepage", "api_list")
+              enum: [ homepage ]
+            published:
+              type: boolean
+              description: Whether the page is published or not
 
     parameters:
         pageParam:
@@ -1776,6 +1801,24 @@ components:
           in: path
           description: The gateway instance ID
           required: true
+          schema:
+            type: string
+
+        # Portal Page
+        contextType:
+          name: contextType
+          in: query
+          description: The portal context type (eg. "homepage", "api_list")
+          required: true
+          schema:
+            type: string
+            enum: [homepage]
+        expandComponents:
+          name: expand
+          in: query
+          description: >
+            Comma-separated list of fields to expand. Possible value: 'components'
+          required: false
           schema:
             type: string
 
@@ -2099,24 +2142,11 @@ components:
               schema:
                 title: "PortalPageResponse"
                 properties:
-                  id:
-                    type: string
-                    description: The unique ID of the portal page
-                  content:
-                    type: string
-                    description: Page contents
-                  type:
-                    type: string
-                    description: Content type
-                    enum:
-                      - gravitee_markdown
-                  context:
-                    type: string
-                    description: The portal context (eg. "homepage", "api_list")
-                    enum: [homepage]
-                  published:
-                    type: boolean
-                    description: Whether the page is published or not
+                  pages:
+                    type: array
+                    description: List of portal pages
+                    items:
+                      $ref: "#/components/schemas/PortalPageWithDetails"
 
     securitySchemes:
         BasicAuth:

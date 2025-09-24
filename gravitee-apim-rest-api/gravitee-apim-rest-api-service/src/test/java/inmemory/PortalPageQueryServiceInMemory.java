@@ -52,15 +52,6 @@ public class PortalPageQueryServiceInMemory implements PortalPageQueryService, I
     }
 
     @Override
-    public PortalPageWithViewDetails findById(PageId pageId) {
-        return storage
-            .stream()
-            .filter(p -> p.page().getId().equals(pageId))
-            .findFirst()
-            .orElse(null);
-    }
-
-    @Override
     public PortalPageWithViewDetails loadContentFor(PageId pageId, PortalPageView details) {
         return storage
             .stream()
