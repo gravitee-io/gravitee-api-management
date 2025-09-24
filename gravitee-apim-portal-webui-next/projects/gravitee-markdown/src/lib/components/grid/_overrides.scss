@@ -17,9 +17,9 @@
 
 @function tokens() {
   @return (
-    spacing: (
-      value: 16px,
-      css-var: --gmd-grid-spacing,
+    namespace: grid,
+    tokens: (
+      spacing: 16px,
     )
   );
 }
