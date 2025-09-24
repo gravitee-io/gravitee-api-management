@@ -15,4 +15,4 @@
  */
 package io.gravitee.repository.log.v4.model.analytics;
 
-public record StatsAggregate(String field, long count, long sum, long avg, long min, long max, long rps, long rpm, long rph) {}
+public record StatsAggregate(String field, float count, float sum, float avg, float min, float max, float rps, float rpm, float rph) {}

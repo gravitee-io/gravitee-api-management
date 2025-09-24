@@ -7839,36 +7839,36 @@ components:
                     - type: object
                       properties:
                         avg:
-                          type: integer
-                          format: int64
+                          type: number
+                          format: float
                           description: Average value of the metric.
                         min:
-                          type: integer
-                          format: int64
+                          type: number
+                          format: float
                           description: Minimum value of the metric.
                         max:
-                          type: integer
-                          format: int64
+                          type: number
+                          format: float
                           description: Maximum value of the metric.
                         sum:
-                          type: integer
-                          format: int64
+                          type: number
+                          format: float
                           description: Sum of all metric values.
                         count:
-                          type: integer
-                          format: int64
+                          type: number
+                          format: float
                           description: Total number of data points.
                         rps:
-                          type: integer
-                          format: int64
+                          type: number
+                          format: float
                           description: Requests per second.
                         rpm:
-                          type: integer
-                          format: int64
+                          type: number
+                          format: float
                           description: Requests per minute.
                         rph:
-                          type: integer
-                          format: int64
+                          type: number
+                          format: float
                           description: Requests per hour.
         CountAnalytics:
           allOf:
@@ -8052,7 +8052,7 @@ components:
             - MIGRATABLE
             - CAN_BE_FORCED
             - IMPOSSIBLE
-        
+
         FeedbackRequestId:
           description: newt AI feedback request id.
           type: object
