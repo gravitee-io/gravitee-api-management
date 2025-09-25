@@ -357,20 +357,20 @@ export const WithMarkdownEditor: StoryObj<GridComponent> = {
   render: args => ({
     props: {
       ...args,
-      markdownContent: `<grid columns="3">
-    <cell>
+      markdownContent: `<gmd-grid columns="3">
+    <gmd-cell>
         <h3>Column 1</h3>
         <p>First cell content</p>
-    </cell>
-    <cell>
+    </gmd-cell>
+    <gmd-cell>
         <h3>Column 2</h3>
         <p>Second cell content</p>
-    </cell>
-    <cell>
+    </gmd-cell>
+    <gmd-cell>
         <h3>Column 3</h3>
         <p>Third cell content</p>
-    </cell>
-</grid>`,
+    </gmd-cell>
+</gmd-grid>`,
     },
     template: `
       <style>

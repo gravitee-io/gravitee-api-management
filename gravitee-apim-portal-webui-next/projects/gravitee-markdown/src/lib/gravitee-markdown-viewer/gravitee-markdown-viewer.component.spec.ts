@@ -87,7 +87,7 @@ describe('GraviteeMarkdownViewerComponent', () => {
 
   describe('Custom components rendering', () => {
     it('should render grid', async () => {
-      component.content = '<grid columns="2">Grid content</grid>';
+      component.content = '<gmd-grid columns="2">Grid content</gmd-grid>';
       fixture.detectChanges();
 
       const renderedHtml = await harness.getRenderedHtml();
@@ -96,7 +96,7 @@ describe('GraviteeMarkdownViewerComponent', () => {
     });
 
     it('should render cell', async () => {
-      component.content = '<cell>Cell content</cell>';
+      component.content = '<gmd-cell>Cell content</gmd-cell>';
       fixture.detectChanges();
 
       const renderedHtml = await harness.getRenderedHtml();
