@@ -30,7 +30,10 @@ public class DefaultRoleNotFoundException extends AbstractNotFoundException {
     private final String scopes;
 
     public DefaultRoleNotFoundException(RoleScope... scopes) {
-        this.scopes = Arrays.stream(scopes).map(RoleScope::name).reduce((s, s2) -> s + ", " + s2).orElse("null");
+        this.scopes = Arrays.stream(scopes)
+            .map(RoleScope::name)
+            .reduce((s, s2) -> s + ", " + s2)
+            .orElse("null");
     }
 
     @Override

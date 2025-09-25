@@ -77,14 +77,13 @@ class RevokeApiKeyDomainServiceTest {
     void setup() {
         UuidString.overrideGenerator(() -> "audit-id");
 
-        service =
-            new RevokeApiKeyDomainService(
-                apiKeyCrudService,
-                new ApiKeyQueryServiceInMemory(apiKeyCrudService),
-                subscriptionCrudService,
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
-                triggerNotificationDomainService
-            );
+        service = new RevokeApiKeyDomainService(
+            apiKeyCrudService,
+            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+            subscriptionCrudService,
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            triggerNotificationDomainService
+        );
     }
 
     @AfterEach
@@ -121,15 +120,13 @@ class RevokeApiKeyDomainServiceTest {
             // Given no API key for subscription
             givenApiKeys(
                 List.of(
-                    ApiKeyFixtures
-                        .anApiKey()
+                    ApiKeyFixtures.anApiKey()
                         .toBuilder()
                         .subscriptions(List.of("subscription-id"))
                         .id("revoked-api-key")
                         .revoked(true)
                         .build(),
-                    ApiKeyFixtures
-                        .anApiKey()
+                    ApiKeyFixtures.anApiKey()
                         .toBuilder()
                         .subscriptions(List.of("subscription-id"))
                         .id("expired-api-key")
@@ -154,8 +151,7 @@ class RevokeApiKeyDomainServiceTest {
             ZonedDateTime now = ZonedDateTime.now();
             givenApiKeys(
                 List.of(
-                    ApiKeyFixtures
-                        .anApiKey()
+                    ApiKeyFixtures.anApiKey()
                         .toBuilder()
                         .subscriptions(List.of("subscription-id"))
                         .id("api-key")
@@ -183,8 +179,7 @@ class RevokeApiKeyDomainServiceTest {
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
                 .containsExactly(
-                    AuditEntity
-                        .builder()
+                    AuditEntity.builder()
                         .id("audit-id")
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
@@ -201,8 +196,7 @@ class RevokeApiKeyDomainServiceTest {
         void should_create_an_audit_when_revoking_an_api_key() {
             givenApiKeys(
                 List.of(
-                    ApiKeyFixtures
-                        .anApiKey()
+                    ApiKeyFixtures.anApiKey()
                         .toBuilder()
                         .subscriptions(List.of("subscription-id"))
                         .id("api-key")
@@ -224,8 +218,7 @@ class RevokeApiKeyDomainServiceTest {
             assertThat(auditCrudService.storage())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
                 .containsExactly(
-                    AuditEntity
-                        .builder()
+                    AuditEntity.builder()
                         .id("audit-id")
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
@@ -344,11 +337,10 @@ class RevokeApiKeyDomainServiceTest {
             service.revoke(apiKey, AUDIT_INFO);
 
             // Then
-            assertThat(triggerNotificationDomainService.getApiNotifications())
-                .containsExactly(
-                    new ApiKeyRevokedApiHookContext(API_ID_1, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()),
-                    new ApiKeyRevokedApiHookContext(API_ID_2, APPLICATION_ID_2, PLAN_ID_2, apiKey.getKey())
-                );
+            assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+                new ApiKeyRevokedApiHookContext(API_ID_1, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()),
+                new ApiKeyRevokedApiHookContext(API_ID_2, APPLICATION_ID_2, PLAN_ID_2, apiKey.getKey())
+            );
         }
     }
 
@@ -370,16 +362,14 @@ class RevokeApiKeyDomainServiceTest {
 
     private List<SubscriptionEntity> givenSubscriptions() {
         var subscriptions = List.of(
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_ID_1)
                 .apiId(API_ID_1)
                 .applicationId(APPLICATION_ID_1)
                 .planId(PLAN_ID_1)
                 .build(),
-            SubscriptionFixtures
-                .aSubscription()
+            SubscriptionFixtures.aSubscription()
                 .toBuilder()
                 .id(SUBSCRIPTION_ID_2)
                 .apiId(API_ID_2)

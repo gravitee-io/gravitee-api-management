@@ -82,7 +82,11 @@ public class CategoryServiceInMemory implements CategoryService, InMemoryAlterna
 
     @Override
     public CategoryEntity findNotHiddenById(String id, String environmentId) {
-        CategoryEntity categoryEntity = storage.stream().filter(category -> category.getId().equals(id)).findFirst().orElse(null);
+        CategoryEntity categoryEntity = storage
+            .stream()
+            .filter(category -> category.getId().equals(id))
+            .findFirst()
+            .orElse(null);
 
         if (!categoryEntity.isHidden()) {
             return categoryEntity;
@@ -115,7 +119,11 @@ public class CategoryServiceInMemory implements CategoryService, InMemoryAlterna
 
     @Override
     public InlinePictureEntity getBackground(String environmentId, String categoryId) {
-        CategoryEntity categoryEntity = storage.stream().filter(category -> category.getId().equals(categoryId)).findFirst().orElse(null);
+        CategoryEntity categoryEntity = storage
+            .stream()
+            .filter(category -> category.getId().equals(categoryId))
+            .findFirst()
+            .orElse(null);
 
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         if (categoryEntity.getBackground() != null) {
@@ -129,6 +137,9 @@ public class CategoryServiceInMemory implements CategoryService, InMemoryAlterna
 
     @Override
     public List<CategoryEntity> findByPage(String pageId) {
-        return storage.stream().filter(category -> category.getPage().equals(pageId)).toList();
+        return storage
+            .stream()
+            .filter(category -> category.getPage().equals(pageId))
+            .toList();
     }
 }

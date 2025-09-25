@@ -27,8 +27,7 @@ public class QualityRuleIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("apiqualityrules")
             .name("iqr1")
             .key("_id.qualityRule", ascending())

@@ -60,8 +60,7 @@ public class SearchEnvironmentTopHitsApisCountUseCase {
     private Map<String, Api> getAllApisForEnv(String envId) {
         return apiQueryService
             .search(
-                ApiSearchCriteria
-                    .builder()
+                ApiSearchCriteria.builder()
                     .environmentId(envId)
                     .definitionVersion(List.of(DefinitionVersion.V4, DefinitionVersion.V2))
                     .build(),
@@ -78,8 +77,7 @@ public class SearchEnvironmentTopHitsApisCountUseCase {
             .sorted(Comparator.comparingLong(TopHitsApis.TopHitApi::count).reversed())
             .map(topHitApi -> {
                 var api = apis.get(topHitApi.id());
-                return TopHitsApis.TopHitApi
-                    .builder()
+                return TopHitsApis.TopHitApi.builder()
                     .id(topHitApi.id())
                     .name(api.getName())
                     .count(topHitApi.count())

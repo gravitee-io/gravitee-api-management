@@ -71,8 +71,9 @@ public class DocumentationSystemFolderInitializerTest {
 
     @Test
     public void shouldDoNothingIfSystemFoldersAlreadyExist() {
-        when(pageService.search(anyString(), argThat(pageQuery -> pageQuery.getType() == PageType.SYSTEM_FOLDER)))
-            .thenReturn(List.of(new PageEntity()));
+        when(pageService.search(anyString(), argThat(pageQuery -> pageQuery.getType() == PageType.SYSTEM_FOLDER))).thenReturn(
+            List.of(new PageEntity())
+        );
 
         initializer.initializeEnvironment(executionContext);
 
@@ -80,33 +81,45 @@ public class DocumentationSystemFolderInitializerTest {
         verify(pageService, never()).search(anyString(), argThat(pageQuery -> pageQuery.getType() == null));
         verify(pageService, never()).createPage(any(ExecutionContext.class), any(NewPageEntity.class));
         verify(apiRepository, never()).searchIds(any(), any(), any());
-        verify(pageService, never())
-            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class));
+        verify(pageService, never()).createSystemFolder(
+            any(ExecutionContext.class),
+            anyString(),
+            any(SystemFolderType.class),
+            any(Integer.class)
+        );
     }
 
     @Test
     public void shouldCreatePortalSystemFolderOnly() {
         when(pageService.search(anyString(), argThat(pageQuery -> pageQuery.getType() == PageType.SYSTEM_FOLDER))).thenReturn(List.of());
-        when(pageService.initialize(executionContext))
-            .thenReturn(Map.of(SystemFolderType.HEADER, "header-id", SystemFolderType.TOPFOOTER, "top-footer-id"));
+        when(pageService.initialize(executionContext)).thenReturn(
+            Map.of(SystemFolderType.HEADER, "header-id", SystemFolderType.TOPFOOTER, "top-footer-id")
+        );
         when(apiRepository.searchIds(anyList(), any(Pageable.class), isNull())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
         initializer.initializeEnvironment(executionContext);
 
         verify(pageService, times(1)).initialize(executionContext);
-        verify(pageService, times(1))
-            .search(eq(ENV_ID), argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent()));
+        verify(pageService, times(1)).search(
+            eq(ENV_ID),
+            argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent())
+        );
         verify(pageService, times(1)).createPage(any(ExecutionContext.class), any(NewPageEntity.class));
         verify(apiRepository, times(1)).searchIds(any(), any(), any());
-        verify(pageService, never())
-            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class));
+        verify(pageService, never()).createSystemFolder(
+            any(ExecutionContext.class),
+            anyString(),
+            any(SystemFolderType.class),
+            any(Integer.class)
+        );
     }
 
     @Test
     public void shouldCreatePortalSystemFolderAndLinkInFooter() {
         when(pageService.search(anyString(), argThat(pageQuery -> pageQuery.getType() == PageType.SYSTEM_FOLDER))).thenReturn(List.of());
-        when(pageService.initialize(executionContext))
-            .thenReturn(Map.of(SystemFolderType.HEADER, "header-id", SystemFolderType.TOPFOOTER, "top-footer-id"));
+        when(pageService.initialize(executionContext)).thenReturn(
+            Map.of(SystemFolderType.HEADER, "header-id", SystemFolderType.TOPFOOTER, "top-footer-id")
+        );
 
         PageEntity documentationFolderPage = new PageEntity();
         documentationFolderPage.setType("FOLDER");
@@ -117,8 +130,7 @@ public class DocumentationSystemFolderInitializerTest {
                 eq(executionContext),
                 argThat(newPageEntity -> newPageEntity.getType() == PageType.FOLDER && newPageEntity.getParentId().equals("top-footer-id"))
             )
-        )
-            .thenReturn(documentationFolderPage);
+        ).thenReturn(documentationFolderPage);
 
         PageEntity markdownPage = new PageEntity();
         markdownPage.setId("markdown-page-id");
@@ -129,43 +141,54 @@ public class DocumentationSystemFolderInitializerTest {
                 eq(ENV_ID),
                 argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent())
             )
-        )
-            .thenReturn(List.of(markdownPage));
+        ).thenReturn(List.of(markdownPage));
 
         when(apiRepository.searchIds(anyList(), any(Pageable.class), isNull())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
         initializer.initializeEnvironment(executionContext);
 
         verify(pageService, times(1)).initialize(executionContext);
-        verify(pageService, times(1))
-            .search(eq(ENV_ID), argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent()));
+        verify(pageService, times(1)).search(
+            eq(ENV_ID),
+            argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent())
+        );
         verify(pageService, times(3)).createPage(any(ExecutionContext.class), any(NewPageEntity.class));
         verify(apiRepository, times(1)).searchIds(any(), any(), any());
-        verify(pageService, never())
-            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class));
+        verify(pageService, never()).createSystemFolder(
+            any(ExecutionContext.class),
+            anyString(),
+            any(SystemFolderType.class),
+            any(Integer.class)
+        );
     }
 
     @Test
     public void shouldCreatePortalSystemFolderAndApisSystemFolder() {
         when(pageService.search(anyString(), argThat(pageQuery -> pageQuery.getType() == PageType.SYSTEM_FOLDER))).thenReturn(List.of());
-        when(pageService.initialize(executionContext))
-            .thenReturn(Map.of(SystemFolderType.HEADER, "header-id", SystemFolderType.TOPFOOTER, "top-footer-id"));
-        when(apiRepository.searchIds(anyList(), any(Pageable.class), isNull()))
-            .thenReturn(
-                new Page<>(List.of("api-1"), 0, 1, 2),
-                new Page<>(List.of("api-2"), 1, 1, 2),
-                new Page<>(Collections.emptyList(), 2, 0, 2)
-            );
+        when(pageService.initialize(executionContext)).thenReturn(
+            Map.of(SystemFolderType.HEADER, "header-id", SystemFolderType.TOPFOOTER, "top-footer-id")
+        );
+        when(apiRepository.searchIds(anyList(), any(Pageable.class), isNull())).thenReturn(
+            new Page<>(List.of("api-1"), 0, 1, 2),
+            new Page<>(List.of("api-2"), 1, 1, 2),
+            new Page<>(Collections.emptyList(), 2, 0, 2)
+        );
 
         initializer.initializeEnvironment(executionContext);
 
         verify(pageService, times(1)).initialize(executionContext);
-        verify(pageService, times(1))
-            .search(eq(ENV_ID), argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent()));
+        verify(pageService, times(1)).search(
+            eq(ENV_ID),
+            argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent())
+        );
         verify(pageService, times(1)).createPage(any(ExecutionContext.class), any(NewPageEntity.class));
         verify(apiRepository, times(3)).searchIds(any(), any(), any());
-        verify(pageService, times(2))
-            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class));
+        verify(pageService, times(2)).createSystemFolder(
+            any(ExecutionContext.class),
+            anyString(),
+            any(SystemFolderType.class),
+            any(Integer.class)
+        );
     }
 
     @Test

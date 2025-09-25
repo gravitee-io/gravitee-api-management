@@ -25,6 +25,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 import { ApiV4 } from '../../../entities/management-api-v2';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
+import { ApiType } from '../../../entities/management-api-v2/api/v4/apiType';
 
 @Injectable()
 export class ApiV4MenuService implements ApiMenuService {
@@ -49,7 +50,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(api),
       this.addDeploymentMenuEntry(),
-      this.addApiTrafficMenuEntry(hasTcpListeners),
+      this.addApiTrafficMenuEntry(hasTcpListeners, api.type),
       ...(api.type !== 'NATIVE' ? [this.addLogs(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
       ...this.addAlertsMenuEntry(),
@@ -372,16 +373,23 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addApiTrafficMenuEntry(hasTcpListeners: boolean): MenuItem {
+  private addApiTrafficMenuEntry(hasTcpListeners: boolean, apiType: ApiType): MenuItem {
     if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
-      return {
+      const baseMenuItem = {
         displayName: 'API Traffic',
         icon: 'bar-chart-2',
         routerLink: hasTcpListeners ? 'DISABLED' : 'v4/analytics',
-        header: {
-          title: 'API Traffic',
-        },
       };
+      if (apiType === 'PROXY') {
+        return baseMenuItem;
+      } else {
+        return {
+          ...baseMenuItem,
+          header: {
+            title: 'API Traffic',
+          },
+        };
+      }
     }
     return null;
   }

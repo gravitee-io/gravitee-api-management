@@ -105,8 +105,7 @@ public class FlowConverter {
             return Collections.emptyList();
         }
 
-        return IntStream
-            .range(0, steps.size())
+        return IntStream.range(0, steps.size())
             .mapToObj(index -> this.toRepositoryStep(steps.get(index), index))
             .collect(Collectors.toList());
     }

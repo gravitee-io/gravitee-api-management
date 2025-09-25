@@ -61,8 +61,9 @@ public class AlertTriggerConverterTest {
         when(alertTriggerEntity.getDescription()).thenReturn("description");
         when(alertTriggerEntity.isEnabled()).thenReturn(true);
         when(alertTriggerEntity.isTemplate()).thenReturn(false);
-        when(alertTriggerEntity.getEventRules())
-            .thenReturn(List.of(buildAlertEventRuleEntity("API_CREATE"), buildAlertEventRuleEntity("APPLICATION_CREATE")));
+        when(alertTriggerEntity.getEventRules()).thenReturn(
+            List.of(buildAlertEventRuleEntity("API_CREATE"), buildAlertEventRuleEntity("APPLICATION_CREATE"))
+        );
 
         when(objectMapper.writeValueAsString(alertTriggerEntity)).thenReturn("alertTriggerEntity in json format");
 
@@ -146,8 +147,9 @@ public class AlertTriggerConverterTest {
         );
         alertTrigger.setEventRules(List.of(buildAlertEventRule(API_CREATE), buildAlertEventRule(APPLICATION_CREATE)));
 
-        when(objectMapper.readValue(anyString(), any(Trigger.class.getClass())))
-            .thenAnswer(i -> new ObjectMapper().readValue((String) i.getArgument(0), Trigger.class));
+        when(objectMapper.readValue(anyString(), any(Trigger.class.getClass()))).thenAnswer(i ->
+            new ObjectMapper().readValue((String) i.getArgument(0), Trigger.class)
+        );
 
         AlertTriggerEntity alertTriggerEntity = converter.toAlertTriggerEntity(alertTrigger);
 

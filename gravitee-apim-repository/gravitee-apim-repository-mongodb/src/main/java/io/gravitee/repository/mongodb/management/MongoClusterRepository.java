@@ -105,10 +105,9 @@ public class MongoClusterRepository implements ClusterRepository {
         final String sortField = FieldUtils.toCamelCase(sortable.field());
 
         return this.internalClusterMongoRepo.search(
-                criteria,
-                PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
-            )
-            .map(mapper::map);
+            criteria,
+            PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
+        ).map(mapper::map);
     }
 
     @Override

@@ -143,12 +143,10 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
                     topDocs = searcher.search(query, Integer.MAX_VALUE);
                 }
 
-                collectedDocs =
-                    Arrays
-                        .stream(topDocs.scoreDocs)
-                        .skip((long) (pageable.getPageNumber() - 1) * pageable.getPageSize())
-                        .limit(pageable.getPageSize())
-                        .collect(LinkedHashSet::new, Set::add, Set::addAll);
+                collectedDocs = Arrays.stream(topDocs.scoreDocs)
+                    .skip((long) (pageable.getPageNumber() - 1) * pageable.getPageSize())
+                    .limit(pageable.getPageSize())
+                    .collect(LinkedHashSet::new, Set::add, Set::addAll);
             } else if (sort != null) {
                 topDocs = searcher.search(query, Integer.MAX_VALUE, convert(sort));
                 collectedDocs = Arrays.stream(topDocs.scoreDocs).collect(LinkedHashSet::new, Set::add, Set::addAll);

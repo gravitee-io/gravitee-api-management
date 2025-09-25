@@ -71,15 +71,13 @@ public class ResourcesResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentOrganization("fake-org");
         license = mock(License.class);
         var fakeResourcePlugins = List.of(
-            io.gravitee.apim.core.plugin.model.ResourcePlugin
-                .builder()
+            io.gravitee.apim.core.plugin.model.ResourcePlugin.builder()
                 .id("resource-1")
                 .name("resource-1")
                 .feature("feature-1")
                 .deployed(false)
                 .build(),
-            io.gravitee.apim.core.plugin.model.ResourcePlugin
-                .builder()
+            io.gravitee.apim.core.plugin.model.ResourcePlugin.builder()
                 .id("resource-2")
                 .name("resource-2")
                 .feature("feature-2")
@@ -89,8 +87,7 @@ public class ResourcesResourceTest extends AbstractResourceTest {
                 .version("1.0")
                 .deployed(true)
                 .build(),
-            io.gravitee.apim.core.plugin.model.ResourcePlugin
-                .builder()
+            io.gravitee.apim.core.plugin.model.ResourcePlugin.builder()
                 .id("resource-3")
                 .name("resource-3")
                 .feature("feature-3")
@@ -133,19 +130,18 @@ public class ResourcesResourceTest extends AbstractResourceTest {
         // Check response content
         final List<ResourcePlugin> resourcePlugins = response.readEntity(new GenericType<>() {});
 
-        assertThat(resourcePlugins)
-            .containsExactly(
-                new ResourcePlugin().id("resource-1").name("resource-1").deployed(false),
-                new ResourcePlugin()
-                    .id("resource-2")
-                    .name("resource-2")
-                    .description("description")
-                    .category("category")
-                    .icon("icon")
-                    .version("1.0")
-                    .deployed(false),
-                new ResourcePlugin().id("resource-3").name("resource-3").deployed(true)
-            );
+        assertThat(resourcePlugins).containsExactly(
+            new ResourcePlugin().id("resource-1").name("resource-1").deployed(false),
+            new ResourcePlugin()
+                .id("resource-2")
+                .name("resource-2")
+                .description("description")
+                .category("category")
+                .icon("icon")
+                .version("1.0")
+                .deployed(false),
+            new ResourcePlugin().id("resource-3").name("resource-3").deployed(true)
+        );
     }
 
     @Test

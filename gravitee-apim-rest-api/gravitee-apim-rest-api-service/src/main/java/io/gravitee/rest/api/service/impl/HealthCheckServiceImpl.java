@@ -90,8 +90,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     @Override
     public Analytics query(final ExecutionContext executionContext, final DateHistogramQuery query) {
         try {
-            final DateHistogramQueryBuilder queryBuilder = QueryBuilders
-                .dateHistogram()
+            final DateHistogramQueryBuilder queryBuilder = QueryBuilders.dateHistogram()
                 .query(query.getQuery())
                 .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
                 .root(query.getRootField(), query.getRootIdentifier());
@@ -222,8 +221,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         try {
             LogsResponse response = healthCheckRepository.query(
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
-                QueryBuilders
-                    .logs()
+                QueryBuilders.logs()
                     .api(api)
                     .page(query.getPage())
                     .size(query.getSize())

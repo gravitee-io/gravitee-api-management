@@ -81,12 +81,11 @@ class ClosePlanDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service =
-            new ClosePlanDomainService(
-                planCrudService,
-                subscriptionQueryService,
-                new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
-            );
+        service = new ClosePlanDomainService(
+            planCrudService,
+            subscriptionQueryService,
+            new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
+        );
     }
 
     @AfterEach
@@ -106,12 +105,10 @@ class ClosePlanDomainServiceTest {
         assertThat(planCrudService.storage().get(0))
             .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
             .isEqualTo(
-                PlanFixtures.HttpV4
-                    .anApiKey()
+                PlanFixtures.HttpV4.anApiKey()
                     .toBuilder()
                     .planDefinitionHttpV4(
-                        PlanFixtures.HttpV4
-                            .anApiKey()
+                        PlanFixtures.HttpV4.anApiKey()
                             .getPlanDefinitionHttpV4()
                             .toBuilder()
                             .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)
@@ -136,8 +133,7 @@ class ClosePlanDomainServiceTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id("generated-id")
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
@@ -185,12 +181,10 @@ class ClosePlanDomainServiceTest {
     void should_throw_when_plan_already_closed() {
         // Given
         var plan = givenExistingPlan(
-            PlanFixtures.HttpV4
-                .anApiKey()
+            PlanFixtures.HttpV4.anApiKey()
                 .toBuilder()
                 .planDefinitionHttpV4(
-                    PlanFixtures.HttpV4
-                        .anApiKey()
+                    PlanFixtures.HttpV4.anApiKey()
                         .getPlanDefinitionHttpV4()
                         .toBuilder()
                         .status(io.gravitee.definition.model.v4.plan.PlanStatus.CLOSED)

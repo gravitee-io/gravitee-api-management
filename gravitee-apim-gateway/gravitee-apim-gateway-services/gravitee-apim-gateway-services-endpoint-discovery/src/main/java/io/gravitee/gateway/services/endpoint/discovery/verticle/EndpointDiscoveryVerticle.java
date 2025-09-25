@@ -166,11 +166,10 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
                                     e.updateStatus(Endpoint.Status.DOWN);
                                 }
                             }
-                            Completable
-                                .defer(() -> {
-                                    endpoints.remove(endpoint);
-                                    return Completable.complete();
-                                })
+                            Completable.defer(() -> {
+                                endpoints.remove(endpoint);
+                                return Completable.complete();
+                            })
                                 .onErrorComplete()
                                 .delaySubscription(pendingRequestsTimeout, TimeUnit.MILLISECONDS, Schedulers.io())
                                 .subscribe();

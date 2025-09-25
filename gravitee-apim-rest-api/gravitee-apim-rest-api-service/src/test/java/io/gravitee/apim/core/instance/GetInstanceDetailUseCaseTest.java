@@ -50,24 +50,21 @@ class GetInstanceDetailUseCaseTest {
 
     @Test
     void should_return_instance_details() {
-        fakeInstanceService.instanceEntity =
-            io.gravitee.rest.api.model.InstanceEntity
-                .builder()
-                .id(instanceId)
-                .hostname(hostname)
-                .ip(ip)
-                .environments(Set.of(environmentId))
-                .build();
+        fakeInstanceService.instanceEntity = io.gravitee.rest.api.model.InstanceEntity.builder()
+            .id(instanceId)
+            .hostname(hostname)
+            .ip(ip)
+            .environments(Set.of(environmentId))
+            .build();
         var result = useCase.execute(new GetInstanceDetailUseCase.Input(GraviteeContext.getExecutionContext(), instanceId));
 
         var instance = result.instance();
         assertThat(instance).isNotEmpty();
-        assertThat(instance)
-            .hasValueSatisfying(instanceDetails -> {
-                assertThat(instanceDetails.getId()).isEqualTo(instanceId);
-                assertThat(instanceDetails.getIp()).isEqualTo(ip);
-                assertThat(instanceDetails.getHostname()).isEqualTo(hostname);
-            });
+        assertThat(instance).hasValueSatisfying(instanceDetails -> {
+            assertThat(instanceDetails.getId()).isEqualTo(instanceId);
+            assertThat(instanceDetails.getIp()).isEqualTo(ip);
+            assertThat(instanceDetails.getHostname()).isEqualTo(hostname);
+        });
     }
 
     @Test

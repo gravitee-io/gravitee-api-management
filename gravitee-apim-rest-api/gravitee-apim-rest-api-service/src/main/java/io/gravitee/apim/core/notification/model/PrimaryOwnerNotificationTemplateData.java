@@ -31,8 +31,7 @@ public class PrimaryOwnerNotificationTemplateData {
     private String type;
 
     public static PrimaryOwnerNotificationTemplateData from(PrimaryOwnerEntity primaryOwner) {
-        return PrimaryOwnerNotificationTemplateData
-            .builder()
+        return PrimaryOwnerNotificationTemplateData.builder()
             .id(primaryOwner.id())
             .displayName(primaryOwner.displayName())
             .email(primaryOwner.email())

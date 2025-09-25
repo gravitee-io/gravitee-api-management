@@ -120,8 +120,7 @@ public class ApplicationService_FindByIdsTest {
     @Test
     public void shouldFindByIds() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();
@@ -138,8 +137,7 @@ public class ApplicationService_FindByIdsTest {
     @Test
     public void shouldFindByIdsWithDuplicatedIdsAndStatus() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();
@@ -183,8 +181,7 @@ public class ApplicationService_FindByIdsTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowsIfNoPrimaryOwner() throws TechnicalException {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = ApplicationCriteria
-            .builder()
+        ApplicationCriteria criteria = ApplicationCriteria.builder()
             .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();

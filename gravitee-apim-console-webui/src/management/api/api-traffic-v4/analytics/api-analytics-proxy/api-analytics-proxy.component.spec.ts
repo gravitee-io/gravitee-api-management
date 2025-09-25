@@ -88,6 +88,9 @@ describe('ApiAnalyticsProxyComponent', () => {
     const plan1 = fakePlanV4({ id: '1', name: 'plan 1' });
     const plan2 = fakePlanV4({ id: '2', name: 'plan 2' });
 
+    const mockCustomFromTimestamp = 1640908800000;
+    const mockCustomToTimestamp = 1640995200000;
+
     it('should use default time range when no query params provided', async () => {
       await initComponent();
       handleAllRequests();
@@ -169,6 +172,68 @@ describe('ApiAnalyticsProxyComponent', () => {
           httpStatuses: '404',
         },
         queryParamsHandling: 'replace',
+      });
+    });
+
+    it('should navigate to logs with custom timestamp query parameters', async () => {
+      const mockQueryParams = {
+        period: 'custom',
+        from: mockCustomFromTimestamp.toString(),
+        to: mockCustomToTimestamp.toString(),
+        httpStatuses: '200,404',
+        plans: 'plan-1,plan-2',
+        applications: 'app-1,app-2',
+      };
+
+      await initComponent(mockQueryParams);
+      handleAllRequests();
+
+      const router = TestBed.inject(Router);
+      const routerSpy = jest.spyOn(router, 'navigate');
+
+      const component = fixture.componentInstance;
+
+      component.navigateToLogs();
+
+      expect(routerSpy).toHaveBeenCalledWith(['../runtime-logs'], {
+        relativeTo: expect.anything(),
+        queryParams: {
+          from: mockCustomFromTimestamp,
+          to: mockCustomToTimestamp,
+          statuses: '200,404',
+          planIds: 'plan-1,plan-2',
+          applicationIds: 'app-1,app-2',
+        },
+      });
+    });
+
+    it('should navigate to logs with predefined time period query parameters', async () => {
+      const mockQueryParams = {
+        period: '1d',
+        httpStatuses: '200,404',
+        plans: 'plan-1,plan-2',
+        applications: 'app-1,app-2',
+      };
+
+      await initComponent(mockQueryParams);
+      handleAllRequests();
+
+      const router = TestBed.inject(Router);
+      const routerSpy = jest.spyOn(router, 'navigate');
+
+      const component = fixture.componentInstance;
+
+      component.navigateToLogs();
+
+      expect(routerSpy).toHaveBeenCalledWith(['../runtime-logs'], {
+        relativeTo: expect.anything(),
+        queryParams: {
+          from: expect.any(Number),
+          to: expect.any(Number),
+          statuses: '200,404',
+          planIds: 'plan-1,plan-2',
+          applicationIds: 'app-1,app-2',
+        },
       });
     });
   });

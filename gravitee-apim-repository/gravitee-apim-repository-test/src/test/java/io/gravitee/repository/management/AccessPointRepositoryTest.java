@@ -40,8 +40,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_create_and_find_access_point() throws Exception {
-        AccessPoint accessPoint = AccessPoint
-            .builder()
+        AccessPoint accessPoint = AccessPoint.builder()
             .id("id")
             .host("host")
             .target(AccessPointTarget.GATEWAY)
@@ -123,8 +122,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_return_access_point_from_criteria() throws Exception {
-        AccessPointCriteria accessPointCriteria = AccessPointCriteria
-            .builder()
+        AccessPointCriteria accessPointCriteria = AccessPointCriteria.builder()
             .from(1486771200000L - 1)
             .to(1486771200000L + 1)
             .targets(List.of(AccessPointTarget.GATEWAY))
@@ -148,8 +146,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_return_access_point_from_criteria_with_target() throws Exception {
-        AccessPointCriteria accessPointCriteria = AccessPointCriteria
-            .builder()
+        AccessPointCriteria accessPointCriteria = AccessPointCriteria.builder()
             .from(1486771200000L - 1)
             .to(1486771200000L + 1)
             .target(AccessPointTarget.GATEWAY)
@@ -173,8 +170,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_return_access_point_from_criteria_paginated() throws Exception {
-        var accessPointCriteria = AccessPointCriteria
-            .builder()
+        var accessPointCriteria = AccessPointCriteria.builder()
             .from(1486771200000L - 1)
             .to(1486771200000L + 1)
             .target(AccessPointTarget.GATEWAY)
@@ -210,8 +206,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
 
     @Test
     public void should_delete_from_id() throws Exception {
-        AccessPoint accessPoint = AccessPoint
-            .builder()
+        AccessPoint accessPoint = AccessPoint.builder()
             .id("id3")
             .host("host3")
             .target(AccessPointTarget.GATEWAY)

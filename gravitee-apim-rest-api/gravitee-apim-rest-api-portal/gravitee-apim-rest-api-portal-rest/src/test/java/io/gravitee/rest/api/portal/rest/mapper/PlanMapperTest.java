@@ -69,13 +69,11 @@ public class PlanMapperTest {
     private PlanEntity planEntityV2;
     private io.gravitee.rest.api.model.v4.plan.PlanEntity planEntityV4;
 
-    private final ApiEntity aV4Api = ApiEntity
-        .builder()
+    private final ApiEntity aV4Api = ApiEntity.builder()
         .definitionVersion(DefinitionVersion.V4)
         .properties(List.of(new Property("ratelimit", "25")))
         .build();
-    private final io.gravitee.rest.api.model.api.ApiEntity aV2Api = io.gravitee.rest.api.model.api.ApiEntity
-        .builder()
+    private final io.gravitee.rest.api.model.api.ApiEntity aV2Api = io.gravitee.rest.api.model.api.ApiEntity.builder()
         .properties(Properties.builder().propertiesList(List.of(new io.gravitee.definition.model.Property("ratelimit", "25"))).build())
         .build();
     private final Instant now = Instant.now();
@@ -564,8 +562,7 @@ public class PlanMapperTest {
 
     @Test
     public void shouldMapNoRateLimitOrQuotaForNativePlan() {
-        var nativePlanEntity = NativePlanEntity
-            .builder()
+        var nativePlanEntity = NativePlanEntity.builder()
             .id("native-plan-id")
             .name("native-plan-name")
             .validation(io.gravitee.rest.api.model.v4.plan.PlanValidationType.AUTO)

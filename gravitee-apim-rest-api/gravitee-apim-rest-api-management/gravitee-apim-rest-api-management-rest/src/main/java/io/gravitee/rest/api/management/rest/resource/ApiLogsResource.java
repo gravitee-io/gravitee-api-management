@@ -115,8 +115,7 @@ public class ApiLogsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ) })
     public Response exportApiLogsAsCSV(@BeanParam LogsParam param) {
         final SearchLogResponse<ApiRequestItem> searchLogResponse = getApiLogs(param);
-        return Response
-            .ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
+        return Response.ok(logsService.exportAsCsv(GraviteeContext.getExecutionContext(), searchLogResponse))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", api, System.currentTimeMillis()))
             .build();
     }

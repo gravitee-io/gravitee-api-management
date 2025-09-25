@@ -80,15 +80,14 @@ public class HelloCommandAdapterTest {
 
     @BeforeEach
     public void beforeEach() {
-        cut =
-            new HelloCommandAdapter(
-                node,
-                installationService,
-                installationTypeDomainService,
-                cockpitAccessService,
-                pluginRegistry,
-                installationConfiguration
-            );
+        cut = new HelloCommandAdapter(
+            node,
+            installationService,
+            installationTypeDomainService,
+            cockpitAccessService,
+            pluginRegistry,
+            installationConfiguration
+        );
     }
 
     @Test
@@ -172,15 +171,12 @@ public class HelloCommandAdapterTest {
         when(node.hostname()).thenReturn(HOSTNAME);
         when(installationService.getOrInitialize()).thenReturn(installationEntity);
         when(installationTypeDomainService.get()).thenReturn(InstallationType.MULTI_TENANT);
-        when(cockpitAccessService.getAccessPointsTemplate())
-            .thenReturn(
-                Map.of(
-                    AccessPointTemplate.Type.ENVIRONMENT,
-                    List.of(
-                        AccessPointTemplate.builder().host("localhost").secured(false).target(AccessPointTemplate.Target.CONSOLE).build()
-                    )
-                )
-            );
+        when(cockpitAccessService.getAccessPointsTemplate()).thenReturn(
+            Map.of(
+                AccessPointTemplate.Type.ENVIRONMENT,
+                List.of(AccessPointTemplate.builder().host("localhost").secured(false).target(AccessPointTemplate.Target.CONSOLE).build())
+            )
+        );
         final TestObserver<HelloCommand> obs = cut
             .adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
             .test();

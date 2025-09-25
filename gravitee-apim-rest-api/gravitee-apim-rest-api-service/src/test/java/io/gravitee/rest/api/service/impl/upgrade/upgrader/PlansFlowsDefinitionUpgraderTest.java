@@ -88,8 +88,7 @@ public class PlansFlowsDefinitionUpgraderTest {
                 eq(null),
                 any(ApiFieldFilter.class)
             )
-        )
-            .thenReturn(Stream.of(api2, api4));
+        ).thenReturn(Stream.of(api2, api4));
 
         upgrader.upgrade();
 

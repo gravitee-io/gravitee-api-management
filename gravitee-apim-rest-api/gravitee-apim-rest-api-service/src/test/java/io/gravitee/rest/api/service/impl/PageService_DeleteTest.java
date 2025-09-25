@@ -309,11 +309,13 @@ public class PageService_DeleteTest {
         translation.setReferenceType(PageReferenceType.ENVIRONMENT);
         translation.setReferenceId(refId);
         translation.setVisibility("PUBLIC");
-        when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build()))
-            .thenReturn(Arrays.asList(translation));
+        when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build())).thenReturn(
+            Arrays.asList(translation)
+        );
 
-        when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build()))
-            .thenReturn(Arrays.asList(folder, child, childPage, page));
+        when(
+            pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build())
+        ).thenReturn(Arrays.asList(folder, child, childPage, page));
 
         pageService.deleteAllByApi(GraviteeContext.getExecutionContext(), "apiId");
 

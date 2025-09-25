@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: "Trigger rollout on GKO environment"
         run: |
-          export JSON_PAYLOAD="{ \"branch\": \"${TARGET_BRANCH}\", \"parameters\": { \"trigger\": \"rollout-apim\", \"apim-commit-hash\": \"${COMMIT_HASH}\", \"apim-source-branch\": \"${SOURCE_BRANCH}\" } }"
+          export JSON_PAYLOAD="{ \"branch\": \"${TARGET_BRANCH}\", \"parameters\": { \"trigger\": \"rollout-apim\", \"apim-commit-hash\": \"${COMMIT_HASH}\", \"apim-source-branch\": \"${GITHUB_REF##*/}\" } }"
           
           curl -X POST -d "${JSON_PAYLOAD}" \
             -H 'Content-Type: application/json' -H 'Accept: application/json' -H "Circle-Token: ${CCI_TOKEN}" \
@@ -36,5 +36,4 @@ jobs:
           REPO_NAME: gravitee-kubernetes-operator
           COMMIT_HASH: ${{ github.sha }}
           TARGET_BRANCH: master
-          SOURCE_BRANCH:  ${{ github.head_ref }}
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}

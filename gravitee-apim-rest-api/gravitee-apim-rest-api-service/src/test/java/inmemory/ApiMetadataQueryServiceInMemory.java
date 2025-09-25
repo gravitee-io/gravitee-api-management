@@ -42,13 +42,13 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     public Map<String, ApiMetadata> findApiMetadata(String environmentId, String apiId) {
         Map<String, ApiMetadata> apiMetadata = storage
             .stream()
-            .filter(metadata ->
-                Objects.equals(metadata.getReferenceId(), environmentId) &&
-                Metadata.ReferenceType.ENVIRONMENT.equals(metadata.getReferenceType())
+            .filter(
+                metadata ->
+                    Objects.equals(metadata.getReferenceId(), environmentId) &&
+                    Metadata.ReferenceType.ENVIRONMENT.equals(metadata.getReferenceType())
             )
             .map(m ->
-                ApiMetadata
-                    .builder()
+                ApiMetadata.builder()
                     .key(m.getKey())
                     .name(m.getName())
                     .defaultValue(m.getValue())
@@ -59,17 +59,15 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
 
         storage
             .stream()
-            .filter(metadata ->
-                Objects.equals(metadata.getReferenceId(), apiId) && Metadata.ReferenceType.API.equals(metadata.getReferenceType())
+            .filter(
+                metadata ->
+                    Objects.equals(metadata.getReferenceId(), apiId) && Metadata.ReferenceType.API.equals(metadata.getReferenceType())
             )
             .forEach(m ->
-                apiMetadata.compute(
-                    m.getKey(),
-                    (key, existing) ->
-                        Optional
-                            .ofNullable(existing)
-                            .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
-                            .orElse(this.toApiMetadata(m))
+                apiMetadata.compute(m.getKey(), (key, existing) ->
+                    Optional.ofNullable(existing)
+                        .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
+                        .orElse(this.toApiMetadata(m))
                 )
             );
 
@@ -98,8 +96,7 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     }
 
     private ApiMetadata toApiMetadata(Metadata metadata) {
-        return ApiMetadata
-            .builder()
+        return ApiMetadata.builder()
             .apiId(metadata.getReferenceId())
             .key(metadata.getKey())
             .name(metadata.getName())

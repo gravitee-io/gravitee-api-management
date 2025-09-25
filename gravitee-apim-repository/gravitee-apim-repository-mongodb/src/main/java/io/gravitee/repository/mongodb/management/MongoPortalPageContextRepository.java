@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import io.gravitee.repository.mongodb.management.internal.model.PortalPageContextMongo;
 import io.gravitee.repository.mongodb.management.internal.portalpagecontext.PortalPageContextMongoRepository;
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -48,8 +49,7 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
     }
 
     @Override
-    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId)
-        throws TechnicalException {
+    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId) {
         log.debug("Find all PortalPageContexts by contextType [{}] and environmentId [{}]", contextType, environmentId);
         Set<PortalPageContextMongo> mongoPortalPageContexts = internalRepo.findAllByContextTypeAndEnvironmentId(contextType, environmentId);
         List<PortalPageContext> portalPageContexts = mongoPortalPageContexts.stream().map(this::map).collect(Collectors.toList());
@@ -68,6 +68,15 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
         Optional<PortalPageContext> portalPageContext = internalRepo.findByPageId(string).map(this::map);
         log.debug("Find PortalPageContext by pageId [{}] - Done", string);
         return portalPageContext.orElse(null);
+    }
+
+    @Override
+    public PortalPageContext updateByPageId(@Nonnull PortalPageContext item) throws TechnicalException {
+        log.debug("Update PortalPageContext by pageId [{}]", item.getPageId());
+        PortalPageContextMongo portalPageContextMongo = map(item);
+        internalRepo.updateByPageId(portalPageContextMongo);
+        log.debug("Update PortalPageContext by pageId [{}] - Done", item.getPageId());
+        return findByPageId(item.getPageId());
     }
 
     @Override
@@ -125,8 +134,7 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
     }
 
     private PortalPageContext map(PortalPageContextMongo portalPageContextMongo) {
-        return PortalPageContext
-            .builder()
+        return PortalPageContext.builder()
             .id(portalPageContextMongo.getId())
             .pageId(portalPageContextMongo.getPageId())
             .contextType(portalPageContextMongo.getContextType())

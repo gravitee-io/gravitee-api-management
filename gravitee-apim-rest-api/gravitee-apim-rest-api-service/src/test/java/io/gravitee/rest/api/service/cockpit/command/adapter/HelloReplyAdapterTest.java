@@ -95,12 +95,11 @@ public class HelloReplyAdapterTest {
                 return true;
             });
 
-        verify(environmentService)
-            .createOrUpdate(
-                eq(defaultEnvironment.getOrganizationId()),
-                eq(defaultEnvId),
-                argThat(env -> env.getCockpitId().equals("env#cockpit-1"))
-            );
+        verify(environmentService).createOrUpdate(
+            eq(defaultEnvironment.getOrganizationId()),
+            eq(defaultEnvId),
+            argThat(env -> env.getCockpitId().equals("env#cockpit-1"))
+        );
     }
 
     @Test
@@ -131,17 +130,17 @@ public class HelloReplyAdapterTest {
                 return true;
             });
 
-        verify(organizationService)
-            .updateOrganization(
-                argThat(organizationId -> organizationId.equals(defaultOrgId)),
-                argThat(org ->
+        verify(organizationService).updateOrganization(
+            argThat(organizationId -> organizationId.equals(defaultOrgId)),
+            argThat(
+                org ->
                     org.getCockpitId().equals("org#cockpit-1") &&
                     FlowMode.DEFAULT.equals(org.getFlowMode()) &&
                     org.getFlows() != null &&
                     org.getFlows().size() == 1 &&
                     org.getFlows().get(0).getName().equals("My-Flow")
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -180,18 +179,17 @@ public class HelloReplyAdapterTest {
                 return true;
             });
 
-        verify(installationService, times(1))
-            .setAdditionalInformation(
-                Map.of(
-                    "key1",
-                    "value1",
-                    "key2",
-                    "value2",
-                    "COCKPIT_INSTALLATION_STATUS",
-                    "new-installation-status",
-                    "COCKPIT_INSTALLATION_ID",
-                    "new-installation-id"
-                )
-            );
+        verify(installationService, times(1)).setAdditionalInformation(
+            Map.of(
+                "key1",
+                "value1",
+                "key2",
+                "value2",
+                "COCKPIT_INSTALLATION_STATUS",
+                "new-installation-status",
+                "COCKPIT_INSTALLATION_ID",
+                "new-installation-id"
+            )
+        );
     }
 }

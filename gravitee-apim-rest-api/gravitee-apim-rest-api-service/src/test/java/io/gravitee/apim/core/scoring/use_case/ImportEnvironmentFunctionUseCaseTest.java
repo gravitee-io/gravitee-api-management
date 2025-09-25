@@ -80,18 +80,16 @@ class ImportEnvironmentFunctionUseCaseTest {
         useCase.execute(input);
 
         // Then
-        assertThat(scoringFunctionCrudService.storage())
-            .contains(
-                ScoringFunction
-                    .builder()
-                    .id("generated-id")
-                    .name("name")
-                    .payload("payload")
-                    .referenceId(ENVIRONMENT_ID)
-                    .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
-                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                    .build()
-            );
+        assertThat(scoringFunctionCrudService.storage()).contains(
+            ScoringFunction.builder()
+                .id("generated-id")
+                .name("name")
+                .payload("payload")
+                .referenceId(ENVIRONMENT_ID)
+                .referenceType(ScoringFunction.ReferenceType.ENVIRONMENT)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build()
+        );
     }
 
     @Test

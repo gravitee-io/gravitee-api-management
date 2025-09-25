@@ -94,16 +94,14 @@ public class DocumentationValidationDomainService {
     public void validateTemplate(String pageContent, String apiId, String organizationId) {
         try {
             Api exitingApi = this.apiCrudService.get(apiId);
-            var metadata =
-                this.apiMetadataQueryService.findApiMetadata(exitingApi.getEnvironmentId(), apiId)
-                    .entrySet()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            Map.Entry::getKey,
-                            entry -> entry.getValue().getValue() != null ? entry.getValue().getValue() : entry.getValue().getDefaultValue()
-                        )
-                    );
+            var metadata = this.apiMetadataQueryService.findApiMetadata(exitingApi.getEnvironmentId(), apiId)
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(Map.Entry::getKey, entry ->
+                        entry.getValue().getValue() != null ? entry.getValue().getValue() : entry.getValue().getDefaultValue()
+                    )
+                );
 
             var api = new ApiFreemarkerTemplate(
                 exitingApi,
@@ -192,31 +190,31 @@ public class DocumentationValidationDomainService {
     private Set<AccessControl> retainExistingGroupAndRoleAccessControls(Set<AccessControl> accessControls) {
         var accessControlsByGroupAndRole = accessControls
             .stream()
-            .filter(accessControl ->
-                Objects.equals("GROUP", accessControl.getReferenceType()) || Objects.equals("ROLE", accessControl.getReferenceType())
+            .filter(
+                accessControl ->
+                    Objects.equals("GROUP", accessControl.getReferenceType()) || Objects.equals("ROLE", accessControl.getReferenceType())
             )
             .collect(Collectors.groupingBy(AccessControl::getReferenceType));
 
-        accessControlsByGroupAndRole.computeIfPresent(
-            "GROUP",
-            (key, acs) -> {
-                var referenceIds = acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet());
-                var foundGroups = findGroupReferences(referenceIds);
-                return acs.stream().filter(accessControl -> foundGroups.contains(accessControl.getReferenceId())).toList();
-            }
-        );
+        accessControlsByGroupAndRole.computeIfPresent("GROUP", (key, acs) -> {
+            var referenceIds = acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet());
+            var foundGroups = findGroupReferences(referenceIds);
+            return acs
+                .stream()
+                .filter(accessControl -> foundGroups.contains(accessControl.getReferenceId()))
+                .toList();
+        });
 
-        accessControlsByGroupAndRole.computeIfPresent(
-            "ROLE",
-            (key, acs) -> {
-                var foundRoleIds =
-                    this.roleQueryService.findByIds(acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet()))
-                        .stream()
-                        .map(Role::getId)
-                        .toList();
-                return acs.stream().filter(accessControl -> foundRoleIds.contains(accessControl.getReferenceId())).toList();
-            }
-        );
+        accessControlsByGroupAndRole.computeIfPresent("ROLE", (key, acs) -> {
+            var foundRoleIds = this.roleQueryService.findByIds(acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet()))
+                .stream()
+                .map(Role::getId)
+                .toList();
+            return acs
+                .stream()
+                .filter(accessControl -> foundRoleIds.contains(accessControl.getReferenceId()))
+                .toList();
+        });
 
         return accessControlsByGroupAndRole.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
     }
@@ -225,8 +223,10 @@ public class DocumentationValidationDomainService {
     private List<String> findGroupReferences(Set<String> referenceIds) {
         var byIds = this.groupQueryService.findByIds(referenceIds).stream().map(Group::getId).toList();
 
-        var byNames =
-            this.groupQueryService.findByNames(GraviteeContext.getCurrentEnvironment(), referenceIds).stream().map(Group::getName).toList();
+        var byNames = this.groupQueryService.findByNames(GraviteeContext.getCurrentEnvironment(), referenceIds)
+            .stream()
+            .map(Group::getName)
+            .toList();
 
         return Stream.concat(byIds.stream(), byNames.stream()).toList();
     }

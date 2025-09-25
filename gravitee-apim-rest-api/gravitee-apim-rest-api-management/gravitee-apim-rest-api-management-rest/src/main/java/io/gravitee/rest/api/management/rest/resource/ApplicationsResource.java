@@ -74,7 +74,7 @@ public class ApplicationsResource extends AbstractResource {
     @Operation(
         summary = "List all the applications accessible to authenticated user",
         description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. " +
-        "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications."
+            "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications."
     )
     @ApiResponse(
         responseCode = "200",
@@ -103,7 +103,7 @@ public class ApplicationsResource extends AbstractResource {
     @Operation(
         summary = "List all the applications accessible to authenticated user",
         description = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications. " +
-        "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.",
+            "User must have ORGANIZATION:ADMIN role to list all ARCHIVED applications.",
         operationId = "getApplicationsPaged"
     )
     @ApiResponse(

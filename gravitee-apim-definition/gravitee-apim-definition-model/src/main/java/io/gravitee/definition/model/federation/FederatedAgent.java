@@ -17,24 +17,25 @@ package io.gravitee.definition.model.federation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.DefinitionVersion;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 // https://google.github.io/A2A/specification/#5-agent-discovery-the-agent-card
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class FederatedAgent implements Serializable {
+public class FederatedAgent implements Serializable, ApiDefinition {
 
     public static final String STREAMING = "streaming";
     public static final String PUSH_NOTIFICATIONS = "pushNotifications";
@@ -66,6 +67,21 @@ public class FederatedAgent implements Serializable {
     @NotNull
     @Builder.Default
     private DefinitionVersion definitionVersion = DefinitionVersion.FEDERATED_AGENT;
+
+    @Override
+    public void setId(String id) {
+        // nothing to do
+    }
+
+    @Override
+    public Set<String> getTags() {
+        return Set.of();
+    }
+
+    @Override
+    public void setTags(Set<String> tags) {
+        // nothing to do
+    }
 
     public record Provider(String organization, String url) {}
 

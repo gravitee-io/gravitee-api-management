@@ -61,14 +61,13 @@ class TcpProxyEndpointConnectorTest {
     void before() {
         this.vertx = Vertx.vertx();
         this.factory = new TcpProxyEndpointConnectorFactory(new PluginConfigurationHelper(null, new ObjectMapper()));
-        this.server =
-            vertx
-                .createNetServer()
-                .connectHandler(socket -> {
-                    socket.rxWrite("hello!").subscribe();
-                })
-                .rxListen()
-                .blockingGet();
+        this.server = vertx
+            .createNetServer()
+            .connectHandler(socket -> {
+                socket.rxWrite("hello!").subscribe();
+            })
+            .rxListen()
+            .blockingGet();
     }
 
     @Test
@@ -76,15 +75,13 @@ class TcpProxyEndpointConnectorTest {
         TcpProxyEndpointConnector connector = factory.createConnector(
             deploymentContext,
             """
-                            {
-                                "target": {
-                                    "host": "localhost",
-                                    "port": %d
-                                }
-                            }
-                            """.formatted(
-                    server.actualPort()
-                ),
+            {
+                "target": {
+                    "host": "localhost",
+                    "port": %d
+                }
+            }
+            """.formatted(server.actualPort()),
             null
         );
 

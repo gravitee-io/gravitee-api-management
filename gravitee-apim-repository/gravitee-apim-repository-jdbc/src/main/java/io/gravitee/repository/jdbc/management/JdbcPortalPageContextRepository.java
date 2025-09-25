@@ -43,8 +43,7 @@ public class JdbcPortalPageContextRepository
 
     @Override
     protected JdbcObjectMapper<PortalPageContext> buildOrm() {
-        return JdbcObjectMapper
-            .builder(PortalPageContext.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(PortalPageContext.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("page_id", Types.NVARCHAR, String.class)
             .addColumn("context_type", Types.NVARCHAR, PortalPageContextType.class)
@@ -66,15 +65,14 @@ public class JdbcPortalPageContextRepository
     }
 
     @Override
-    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId)
-        throws TechnicalException {
+    public List<PortalPageContext> findAllByContextTypeAndEnvironmentId(PortalPageContextType contextType, String environmentId) {
         LOGGER.debug("JdbcPortalPageContextRepository.findAllByContextTypeAndEnvironmentId({}, {})", contextType, environmentId);
 
         try {
             final List<PortalPageContext> portalPageContexts = jdbcTemplate.query(
                 "select id, page_id, context_type, environment_id, published from " +
-                this.tableName +
-                " where context_type = ? and environment_id = ?",
+                    this.tableName +
+                    " where context_type = ? and environment_id = ?",
                 getOrm().getRowMapper(),
                 contextType.name(),
                 environmentId
@@ -107,6 +105,29 @@ public class JdbcPortalPageContextRepository
         } catch (final Exception ex) {
             LOGGER.error("Failed to find PortalPageContext by pageId [{}]", string, ex);
             return null;
+        }
+    }
+
+    @Override
+    public PortalPageContext updateByPageId(PortalPageContext item) throws TechnicalException {
+        LOGGER.debug("JdbcPortalPageContextRepository.updateByPageId({})", item);
+
+        try {
+            final int rows = jdbcTemplate.update(
+                "update " + this.tableName + " set context_type = ?, published = ? where page_id = ?",
+                item.getContextType().name(),
+                item.isPublished(),
+                item.getPageId()
+            );
+            if (rows == 0) {
+                throw new TechnicalException("Failed to update portal page context, no rows affected");
+            }
+
+            LOGGER.debug("JdbcPortalPageContextRepository.updateByPageId({}) - Done", item);
+
+            return findByPageId(item.getPageId());
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to update portal page context", ex);
         }
     }
 

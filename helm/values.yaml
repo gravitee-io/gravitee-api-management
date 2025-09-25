@@ -473,8 +473,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.11.1.zip
-    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.11.1.zip
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.11.2.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.11.2.zip
 
 api:
   enabled: true
@@ -632,6 +632,7 @@ api:
       enabled: false
       prometheus:
         enabled: true
+        concurrencyLimit: 3
     bridge:
       enabled: false
       # host: localhost
@@ -1419,6 +1420,7 @@ gateway:
       enabled: false
       prometheus:
         enabled: true
+        concurrencyLimit: 3
 #   opentelemetry:
 #      enabled: false
 #      verbose: false

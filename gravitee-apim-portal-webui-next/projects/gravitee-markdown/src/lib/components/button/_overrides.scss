@@ -1,0 +1,59 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/token-utils' as token-utils;
+
+@function tokens() {
+  @return (
+    namespace: button,
+    tokens: (
+      // Filled appearance defaults
+      filled-label-text-weight: 400,
+      filled-label-text-size: 14px,
+      filled-label-text-color: #ffffff,
+      filled-container-color: #275cf6,
+      filled-container-shape: 4px,
+      filled-horizontal-padding: 16px,
+      filled-hover-container-color: #0e42db,
+      filled-active-container-color: #123391,
+      filled-active-outline-color: #64b5f6,
+
+      // Outlined appearance defaults
+      outlined-label-text-weight: 400,
+      outlined-label-text-size: 14px,
+      outlined-label-text-color: #1976d2,
+      outlined-outline-width: 1px,
+      outlined-outline-color: #cdd7e1,
+      outlined-container-shape: 4px,
+      outlined-horizontal-padding: 16px,
+      outlined-hover-container-color: #f4f7fd,
+      outlined-active-container-color: #d4eaff,
+
+      // Text appearance defaults
+      text-label-text-weight: 400,
+      text-label-text-size: 14px,
+      text-label-text-color: #1976d2,
+      text-container-shape: 4px,
+      text-horizontal-padding: 16px,
+      text-hover-container-color: #f4f7fd,
+      text-active-container-color: #d4eaff,
+    )
+  );
+}
+
+// Component-level override mixin
+@mixin overrides($overrides: ()) {
+  @include token-utils.apply-token-overrides(tokens(), $overrides);
+}

@@ -54,17 +54,15 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         updateClusterUseCase = new UpdateClusterUseCase(clusterCrudService, validateClusterService, auditService, permissionDomainService);
 
-        existingCluster =
-            Cluster
-                .builder()
-                .id(GENERATED_UUID)
-                .name("Cluster 1")
-                .createdAt(INSTANT_NOW)
-                .description("The cluster no 1")
-                .environmentId(ENV_ID)
-                .organizationId(ORG_ID)
-                .configuration(Map.of("bootstrapServers", "localhost:9092"))
-                .build();
+        existingCluster = Cluster.builder()
+            .id(GENERATED_UUID)
+            .name("Cluster 1")
+            .createdAt(INSTANT_NOW)
+            .description("The cluster no 1")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .configuration(Map.of("bootstrapServers", "localhost:9092"))
+            .build();
         ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
 
         lenient()
@@ -142,8 +140,7 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         assertThat(auditCrudService.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .containsExactly(
-                AuditEntity
-                    .builder()
+                AuditEntity.builder()
                     .id(GENERATED_UUID)
                     .organizationId(ORG_ID)
                     .environmentId(ENV_ID)
@@ -168,8 +165,7 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
                 GENERATED_UUID,
                 RolePermissionAction.UPDATE
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
         var toUpdate = UpdateCluster.builder().configuration(Map.of("bootstrapServers", "noooop:9093")).build();
 
         // When

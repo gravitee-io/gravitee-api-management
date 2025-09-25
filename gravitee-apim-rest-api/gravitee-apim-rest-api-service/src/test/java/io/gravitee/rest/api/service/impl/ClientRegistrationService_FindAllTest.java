@@ -65,8 +65,9 @@ public class ClientRegistrationService_FindAllTest {
 
     @Test
     public void shouldFindAll() throws TechnicalException {
-        when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
-            .thenReturn(newSet(new ClientRegistrationProvider()));
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenReturn(newSet(new ClientRegistrationProvider()));
 
         Set<ClientRegistrationProviderEntity> providers = clientRegistrationService.findAll(GraviteeContext.getExecutionContext());
         assertNotNull("Result is null", providers);
@@ -76,8 +77,9 @@ public class ClientRegistrationService_FindAllTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldThrowException() throws Exception {
-        when(mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId())))
-            .thenThrow(TechnicalException.class);
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenThrow(TechnicalException.class);
         clientRegistrationService.findAll(GraviteeContext.getExecutionContext());
     }
 }

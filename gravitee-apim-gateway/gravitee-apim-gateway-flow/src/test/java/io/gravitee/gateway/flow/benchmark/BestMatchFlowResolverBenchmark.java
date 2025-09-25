@@ -73,8 +73,10 @@ public class BestMatchFlowResolverBenchmark {
     @Setup
     public void setUp() {
         flowResolver = new TestFlowResolver(evaluator, buildFlows());
-        executionContext =
-            new SimpleExecutionContext(new TestRequest("/book/99/chapter/888/page/7777/paragraph/6666/line/5/char/10"), null);
+        executionContext = new SimpleExecutionContext(
+            new TestRequest("/book/99/chapter/888/page/7777/paragraph/6666/line/5/char/10"),
+            null
+        );
     }
 
     @Benchmark
@@ -88,23 +90,22 @@ public class BestMatchFlowResolverBenchmark {
     }
 
     private List<Flow> buildFlows() {
-        return List
-            .of(
-                "/book",
-                "/book/99",
-                "/book/:id",
-                "/book/99/chapter/888",
-                "/book/:id/chapter/:chapterId",
-                "/book/99/chapter/888",
-                "/book/:id/chapter/:chapterId/page/:pageId",
-                "/book/99/chapter/888/page/7777",
-                "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId",
-                "/book/99/chapter/888/page/7777/paragraph/6666",
-                "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId/line/:lineId",
-                "/book/99/chapter/888/page/7777/paragraph/6666/line/5",
-                "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId/line/:lineId/char/:charid",
-                "/book/99/chapter/888/page/7777/paragraph/6666/line/5/char/1"
-            )
+        return List.of(
+            "/book",
+            "/book/99",
+            "/book/:id",
+            "/book/99/chapter/888",
+            "/book/:id/chapter/:chapterId",
+            "/book/99/chapter/888",
+            "/book/:id/chapter/:chapterId/page/:pageId",
+            "/book/99/chapter/888/page/7777",
+            "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId",
+            "/book/99/chapter/888/page/7777/paragraph/6666",
+            "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId/line/:lineId",
+            "/book/99/chapter/888/page/7777/paragraph/6666/line/5",
+            "/book/:id/chapter/:chapterId/page/:pageId/paragraph/:paragraphId/line/:lineId/char/:charid",
+            "/book/99/chapter/888/page/7777/paragraph/6666/line/5/char/1"
+        )
             .stream()
             .map(path -> {
                 Flow flow = new Flow();

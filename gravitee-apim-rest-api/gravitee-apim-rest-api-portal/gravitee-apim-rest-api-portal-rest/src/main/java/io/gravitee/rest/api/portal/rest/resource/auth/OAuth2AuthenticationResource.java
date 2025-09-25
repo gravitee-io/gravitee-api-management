@@ -119,9 +119,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                         HttpHeaders.AUTHORIZATION,
                         String.format(
                             "Basic %s",
-                            Base64
-                                .getEncoder()
-                                .encodeToString((identityProvider.getClientId() + ':' + identityProvider.getClientSecret()).getBytes())
+                            Base64.getEncoder().encodeToString(
+                                (identityProvider.getClientId() + ':' + identityProvider.getClientSecret()).getBytes()
+                            )
                         )
                     )
                     .post(Entity.form(introspectData));
@@ -147,8 +147,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
                 return Response.status(response.getStatusInfo()).entity(response.getEntity()).build();
             } else {
-                return Response
-                    .status(Response.Status.BAD_REQUEST)
+                return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Token exchange is not supported for this identity provider")
                     .build();
             }
@@ -248,9 +247,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(
             GraviteeContext.getExecutionContext(),
             socialProvider,
-            userInfo,
-            accessToken,
-            idToken
+            userInfo
         );
         String userId = user.getId();
 

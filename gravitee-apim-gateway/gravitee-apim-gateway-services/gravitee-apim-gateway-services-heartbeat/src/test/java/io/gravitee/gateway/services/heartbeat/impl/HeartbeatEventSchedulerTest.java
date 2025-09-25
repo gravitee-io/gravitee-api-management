@@ -73,42 +73,42 @@ class HeartbeatEventSchedulerTest {
 
     @BeforeEach
     public void setUp() {
-        heartbeatStrategyConfiguration =
-            new HeartbeatStrategyConfiguration(
-                true,
-                5000,
-                TimeUnit.MILLISECONDS,
-                true,
-                null,
-                new ObjectMapper(),
-                null,
-                null,
-                null,
-                clusterManager,
-                eventRepository,
-                null,
-                null
-            );
+        heartbeatStrategyConfiguration = new HeartbeatStrategyConfiguration(
+            true,
+            5000,
+            TimeUnit.MILLISECONDS,
+            true,
+            null,
+            new ObjectMapper(),
+            null,
+            null,
+            null,
+            clusterManager,
+            eventRepository,
+            null,
+            null
+        );
         lenient().when(member.primary()).thenReturn(true);
         lenient().when(clusterManager.self()).thenReturn(member);
         when(clusterManager.<Event>topic("heartbeats")).thenReturn(topic);
         heartbeatEvent = new Event();
-        cut =
-            new HeartbeatEventScheduler(
-                clusterManager,
-                eventRepository,
-                heartbeatStrategyConfiguration.delay(),
-                heartbeatStrategyConfiguration.unit(),
-                heartbeatEvent
-            );
+        cut = new HeartbeatEventScheduler(
+            clusterManager,
+            eventRepository,
+            heartbeatStrategyConfiguration.delay(),
+            heartbeatStrategyConfiguration.unit(),
+            heartbeatEvent
+        );
     }
 
     @Test
     void should_start_and_publish_initial_event_and_start_scheduler() throws Exception {
         cut.start();
-        ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionUtils
-            .tryToReadFieldValue(HeartbeatEventScheduler.class, "executorService", cut)
-            .get();
+        ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionUtils.tryToReadFieldValue(
+            HeartbeatEventScheduler.class,
+            "executorService",
+            cut
+        ).get();
 
         assertThat(executorService.isShutdown()).isFalse();
         verify(topic).publish(heartbeatEvent);
@@ -118,43 +118,47 @@ class HeartbeatEventSchedulerTest {
     void should_prestop_and_publish_final_event() throws Exception {
         cut.start();
         cut.preStop();
-        ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionUtils
-            .tryToReadFieldValue(HeartbeatEventScheduler.class, "executorService", cut)
-            .get();
+        ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionUtils.tryToReadFieldValue(
+            HeartbeatEventScheduler.class,
+            "executorService",
+            cut
+        ).get();
 
         assertThat(executorService.isShutdown()).isFalse();
-        verify(topic, times(2))
-            .publish(
-                argThat(argument -> {
-                    if (argument.getType() == EventType.GATEWAY_STARTED) {
-                        return true;
-                    } else if (argument.getType() == EventType.GATEWAY_STOPPED) {
-                        assertThat(argument.getProperties())
-                            .containsOnly(
-                                entry(EVENT_STOPPED_AT_PROPERTY, Long.toString(argument.getUpdatedAt().getTime())),
-                                entry(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.TRUE.toString())
-                            );
-                        return true;
-                    }
-                    return false;
-                })
-            );
+        verify(topic, times(2)).publish(
+            argThat(argument -> {
+                if (argument.getType() == EventType.GATEWAY_STARTED) {
+                    return true;
+                } else if (argument.getType() == EventType.GATEWAY_STOPPED) {
+                    assertThat(argument.getProperties()).containsOnly(
+                        entry(EVENT_STOPPED_AT_PROPERTY, Long.toString(argument.getUpdatedAt().getTime())),
+                        entry(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.TRUE.toString())
+                    );
+                    return true;
+                }
+                return false;
+            })
+        );
     }
 
     @Test
     void should_stop_scheduler() throws Exception {
         cut.start();
         cut.stop();
-        ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionUtils
-            .tryToReadFieldValue(HeartbeatEventScheduler.class, "executorService", cut)
-            .get();
+        ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionUtils.tryToReadFieldValue(
+            HeartbeatEventScheduler.class,
+            "executorService",
+            cut
+        ).get();
 
         // This call is made during the start
         verify(topic, times(1)).publish(any());
         assertThat(executorService.isShutdown()).isTrue();
-        ExecutorService heartbeatExecutor = (ExecutorService) ReflectionUtils
-            .tryToReadFieldValue(HeartbeatEventListener.class, "heartbeatExecutor", cut.getHeartbeatEventListener())
-            .get();
+        ExecutorService heartbeatExecutor = (ExecutorService) ReflectionUtils.tryToReadFieldValue(
+            HeartbeatEventListener.class,
+            "heartbeatExecutor",
+            cut.getHeartbeatEventListener()
+        ).get();
 
         assertThat(heartbeatExecutor.isShutdown()).isTrue();
     }

@@ -102,8 +102,7 @@ public class IngestFederatedApisUseCase {
         var ingestJobId = input.ingestJobId;
         var organizationId = input.organizationId();
 
-        return Maybe
-            .defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(ingestJobId)))
+        return Maybe.defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(ingestJobId)))
             .subscribeOn(Schedulers.computation())
             .doOnSuccess(job -> {
                 var environmentId = job.getEnvironmentId();
@@ -277,8 +276,7 @@ public class IngestFederatedApisUseCase {
 
     private Page buildSwaggerPage(String referenceId, IntegrationApi.Page page) {
         var now = Date.from(TimeProvider.instantNow());
-        return Page
-            .builder()
+        return Page.builder()
             .id(UuidString.generateRandom())
             .name(page.filename())
             .content(page.content())
@@ -297,8 +295,7 @@ public class IngestFederatedApisUseCase {
 
     private Page buildAsyncApiPage(String referenceId, IntegrationApi.Page page) {
         var now = Date.from(TimeProvider.instantNow());
-        return Page
-            .builder()
+        return Page.builder()
             .id(UuidString.generateRandom())
             .name(page.filename())
             .content(page.content())
@@ -328,17 +325,15 @@ public class IngestFederatedApisUseCase {
     private static List<ApiMetadata> metadata(IntegrationApi api, Api federatedApi) {
         return stream(api.metadata())
             .map(md -> {
-                var format =
-                    switch (md.format()) {
-                        case STRING -> Metadata.MetadataFormat.STRING;
-                        case NUMERIC -> Metadata.MetadataFormat.NUMERIC;
-                        case MAIL -> Metadata.MetadataFormat.MAIL;
-                        case DATE -> Metadata.MetadataFormat.DATE;
-                        case URL -> Metadata.MetadataFormat.URL;
-                        case BOOLEAN -> Metadata.MetadataFormat.BOOLEAN;
-                    };
-                return ApiMetadata
-                    .builder()
+                var format = switch (md.format()) {
+                    case STRING -> Metadata.MetadataFormat.STRING;
+                    case NUMERIC -> Metadata.MetadataFormat.NUMERIC;
+                    case MAIL -> Metadata.MetadataFormat.MAIL;
+                    case DATE -> Metadata.MetadataFormat.DATE;
+                    case URL -> Metadata.MetadataFormat.URL;
+                    case BOOLEAN -> Metadata.MetadataFormat.BOOLEAN;
+                };
+                return ApiMetadata.builder()
                     .apiId(federatedApi.getId())
                     .name(md.name())
                     .key(md.name())

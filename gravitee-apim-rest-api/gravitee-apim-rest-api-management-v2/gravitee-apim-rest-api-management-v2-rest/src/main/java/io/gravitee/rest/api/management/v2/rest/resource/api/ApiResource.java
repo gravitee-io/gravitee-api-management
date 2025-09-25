@@ -340,31 +340,27 @@ public class ApiResource extends AbstractResource {
             var executionContext = GraviteeContext.getExecutionContext();
             var userDetails = getAuthenticatedUserDetails();
 
-            AuditInfo audit = AuditInfo
-                .builder()
+            AuditInfo audit = AuditInfo.builder()
                 .organizationId(executionContext.getOrganizationId())
                 .environmentId(executionContext.getEnvironmentId())
                 .actor(
-                    AuditActor
-                        .builder()
+                    AuditActor.builder()
                         .userId(userDetails.getUsername())
                         .userSource(userDetails.getSource())
                         .userSourceId(userDetails.getSourceId())
                         .build()
                 )
                 .build();
-            var input = UpdateFederatedApiUseCase.Input
-                .builder()
+            var input = UpdateFederatedApiUseCase.Input.builder()
                 .apiToUpdate(ApiMapper.INSTANCE.mapToApiCore((UpdateApiFederated) updateApi, apiId))
                 .auditInfo(audit)
                 .build();
             var output = updateFederatedApiUseCase.execute(input);
 
-            updatedApi =
-                ApiAdapter.INSTANCE.toFederatedApiEntity(
-                    ApiAdapter.INSTANCE.toRepository(output.updatedApi()),
-                    output.primaryOwnerEntity()
-                );
+            updatedApi = ApiAdapter.INSTANCE.toFederatedApiEntity(
+                ApiAdapter.INSTANCE.toRepository(output.updatedApi()),
+                output.primaryOwnerEntity()
+            );
         } else {
             throw new ApiDefinitionVersionNotSupportedException(definitionVersion.name());
         }
@@ -479,13 +475,8 @@ public class ApiResource extends AbstractResource {
         apiLicenseService.checkLicense(executionContext, apiId);
 
         var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(apiId));
-        return switch (output.definitionVersion()) {
-            case V4 -> Response
-                .ok(output.apiDefinitionNativeV4() != null ? output.apiDefinitionNativeV4() : output.apiDefinitionHttpV4())
-                .build();
-            case V2 -> Response.ok(output.apiDefinition()).build();
-            default -> Response
-                .status(Response.Status.BAD_REQUEST)
+        if (output.apiDefinition() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
                 .entity(
                     new Error()
                         .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
@@ -493,7 +484,8 @@ public class ApiResource extends AbstractResource {
                         .technicalCode("api.deployment.federated")
                 )
                 .build();
-        };
+        }
+        return Response.ok(output.apiDefinition()).build();
     }
 
     @GET
@@ -526,8 +518,7 @@ public class ApiResource extends AbstractResource {
         );
         var export = exportApiUseCase.execute(input);
 
-        return Response
-            .ok(ImportExportApiMapper.INSTANCE.map(export.definition()))
+        return Response.ok(ImportExportApiMapper.INSTANCE.map(export.definition()))
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename()))
             .build();
     }
@@ -542,13 +533,11 @@ public class ApiResource extends AbstractResource {
         var input = new ExportApiCRDUseCase.Input(
             apiId,
             IDExportStrategy.GUID,
-            AuditInfo
-                .builder()
+            AuditInfo.builder()
                 .organizationId(executionContext.getOrganizationId())
                 .environmentId(executionContext.getEnvironmentId())
                 .actor(
-                    AuditActor
-                        .builder()
+                    AuditActor.builder()
                         .userId(userDetails.getUsername())
                         .userSource(userDetails.getSource())
                         .userSourceId(userDetails.getSourceId())
@@ -583,8 +572,7 @@ public class ApiResource extends AbstractResource {
         GenericApiEntity duplicate;
 
         return switch (currentEntity.getDefinitionVersion()) {
-            case V1 -> Response
-                .status(Response.Status.BAD_REQUEST)
+            case V1 -> Response.status(Response.Status.BAD_REQUEST)
                 .entity(
                     new Error()
                         .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
@@ -592,8 +580,7 @@ public class ApiResource extends AbstractResource {
                         .technicalCode("api.duplicate.v1")
                 )
                 .build();
-            case FEDERATED -> Response
-                .status(Response.Status.BAD_REQUEST)
+            case FEDERATED -> Response.status(Response.Status.BAD_REQUEST)
                 .entity(
                     new Error()
                         .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
@@ -602,25 +589,22 @@ public class ApiResource extends AbstractResource {
                 )
                 .build();
             case V4 -> {
-                duplicate =
-                    duplicateApiService.duplicate(
-                        GraviteeContext.getExecutionContext(),
-                        (ApiEntity) currentEntity,
-                        DuplicateApiMapper.INSTANCE.map(duplicateOptions)
-                    );
+                duplicate = duplicateApiService.duplicate(
+                    GraviteeContext.getExecutionContext(),
+                    (ApiEntity) currentEntity,
+                    DuplicateApiMapper.INSTANCE.map(duplicateOptions)
+                );
                 yield apiResponse(duplicate);
             }
             case V2 -> {
-                duplicate =
-                    apiDuplicatorService.duplicate(
-                        GraviteeContext.getExecutionContext(),
-                        (io.gravitee.rest.api.model.api.ApiEntity) currentEntity,
-                        DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions)
-                    );
+                duplicate = apiDuplicatorService.duplicate(
+                    GraviteeContext.getExecutionContext(),
+                    (io.gravitee.rest.api.model.api.ApiEntity) currentEntity,
+                    DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions)
+                );
                 yield apiResponse(duplicate);
             }
-            case FEDERATED_AGENT -> Response
-                .status(Response.Status.BAD_REQUEST)
+            case FEDERATED_AGENT -> Response.status(Response.Status.BAD_REQUEST)
                 .entity(
                     new Error()
                         .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
@@ -874,23 +858,21 @@ public class ApiResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
 
         this.rollbackApiUseCase.execute(
-                new RollbackApiUseCase.Input(
-                    apiRollback.getEventId(),
-                    AuditInfo
-                        .builder()
-                        .organizationId(executionContext.getOrganizationId())
-                        .environmentId(executionContext.getEnvironmentId())
-                        .actor(
-                            AuditActor
-                                .builder()
-                                .userId(userDetails.getUsername())
-                                .userSource(userDetails.getSource())
-                                .userSourceId(userDetails.getSourceId())
-                                .build()
-                        )
-                        .build()
-                )
-            );
+            new RollbackApiUseCase.Input(
+                apiRollback.getEventId(),
+                AuditInfo.builder()
+                    .organizationId(executionContext.getOrganizationId())
+                    .environmentId(executionContext.getEnvironmentId())
+                    .actor(
+                        AuditActor.builder()
+                            .userId(userDetails.getUsername())
+                            .userSource(userDetails.getSource())
+                            .userSourceId(userDetails.getSourceId())
+                            .build()
+                    )
+                    .build()
+            )
+        );
 
         return Response.noContent().build();
     }
@@ -1015,7 +997,10 @@ public class ApiResource extends AbstractResource {
         List<Listener> listeners = apiEntity.getListeners();
 
         if (listeners != null) {
-            Optional<Listener> first = listeners.stream().filter(listener -> ListenerType.HTTP == listener.getType()).findFirst();
+            Optional<Listener> first = listeners
+                .stream()
+                .filter(listener -> ListenerType.HTTP == listener.getType())
+                .findFirst();
             if (first.isPresent()) {
                 HttpListener httpListener = (HttpListener) first.get();
                 if (httpListener.getPaths() != null && !httpListener.getPaths().isEmpty()) {
@@ -1106,8 +1091,7 @@ public class ApiResource extends AbstractResource {
 
     private Response apiResponse(GenericApiEntity apiEntity) {
         boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
-        return Response
-            .ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, isSynchronized))
+        return Response.ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, isSynchronized))
             .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
             .lastModified(apiEntity.getUpdatedAt())
             .build();

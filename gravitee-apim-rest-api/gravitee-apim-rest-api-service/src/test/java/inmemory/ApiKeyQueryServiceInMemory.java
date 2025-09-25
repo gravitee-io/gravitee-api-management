@@ -37,7 +37,10 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
 
     @Override
     public Optional<ApiKeyEntity> findById(String apiKeyId) {
-        return storage.stream().filter(apiKey -> apiKey.getId().equals(apiKeyId)).findFirst();
+        return storage
+            .stream()
+            .filter(apiKey -> apiKey.getId().equals(apiKeyId))
+            .findFirst();
     }
 
     @Override
@@ -47,7 +50,10 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
 
     @Override
     public Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId) {
-        return storage.stream().filter(apiKey -> apiKey.getKey().equals(key)).findFirst();
+        return storage
+            .stream()
+            .filter(apiKey -> apiKey.getKey().equals(key))
+            .findFirst();
     }
 
     @Override

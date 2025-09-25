@@ -32,50 +32,49 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SearchAverageMessagesPerRequestQueryAdapterTest {
 
-    public static final String QUERY_WITHOUT_FILTER =
-        """
-            {
-              "size": 0,
+    public static final String QUERY_WITHOUT_FILTER = """
+        {
+          "size": 0,
+          "aggs": {
+            "entrypoints_agg": {
               "aggs": {
-                "entrypoints_agg": {
-                  "aggs": {
-                    "avg_messages_per_request": {
-                      "bucket_script": {
-                        "buckets_path": {
-                          "msg_count": "messages_count",
-                          "req_count": "distinct_requests_count"
-                        },
-                        "script": "params.msg_count / params.req_count"
-                      }
+                "avg_messages_per_request": {
+                  "bucket_script": {
+                    "buckets_path": {
+                      "msg_count": "messages_count",
+                      "req_count": "distinct_requests_count"
                     },
-                    "distinct_requests_count": {
-                      "cardinality": {
-                        "field": "request-id"
-                      }
-                    },
-                    "messages_count": {
-                      "sum": {
-                        "field": "count-increment"
-                      }
-                    }
-                  },
-                  "terms": {
-                    "field": "connector-id"
+                    "script": "params.msg_count / params.req_count"
+                  }
+                },
+                "distinct_requests_count": {
+                  "cardinality": {
+                    "field": "request-id"
+                  }
+                },
+                "messages_count": {
+                  "sum": {
+                    "field": "count-increment"
                   }
                 }
               },
-              "query": {
-                "bool": {
-                  "must": [
-                    {
-                      "term": {
-                        "connector-type": "entrypoint"
-                      }
-                    }
-                  ]
-                }
+              "terms": {
+                "field": "connector-id"
               }
-            }""";
+            }
+          },
+          "query": {
+            "bool": {
+              "must": [
+                {
+                  "term": {
+                    "connector-type": "entrypoint"
+                  }
+                }
+              ]
+            }
+          }
+        }""";
 
     @Test
     void should_build_query_without_filter() {
@@ -95,58 +94,57 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
     void should_build_query_with_api_filter() {
         var result = SearchAverageMessagesPerRequestQueryAdapter.adapt(new AverageMessagesPerRequestQuery("api-id"));
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
-                             {
-                               "size": 0,
-                               "query": {
-                                 "bool": {
-                                   "must": [
-                                     {
-                                       "term": {
-                                         "connector-type": "entrypoint"
-                                       }
-                                     },
-                                     {
-                                       "term": {
-                                         "api-id": "api-id"
-                                       }
-                                     }
-                                   ]
-                                 }
-                               },
-                               "aggs": {
-                                 "entrypoints_agg": {
-                                   "terms": {
-                                     "field": "connector-id"
-                                   },
-                                   "aggs": {
-                                     "messages_count": {
-                                       "sum": {
-                                         "field": "count-increment"
-                                       }
-                                     },
-                                     "distinct_requests_count": {
-                                       "cardinality": {
-                                         "field": "request-id"
-                                       }
-                                     },
-                                     "avg_messages_per_request": {
-                                       "bucket_script": {
-                                         "buckets_path": {
-                                           "req_count": "distinct_requests_count",
-                                           "msg_count": "messages_count"
-                                         },
-                                         "script": "params.msg_count / params.req_count"
-                                       }
-                                     }
-                                   }
-                                 }
-                               }
-                             }
-                             """
-            );
+        assertThatJson(result).isEqualTo(
+            """
+            {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "term": {
+                        "connector-type": "entrypoint"
+                      }
+                    },
+                    {
+                      "term": {
+                        "api-id": "api-id"
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "entrypoints_agg": {
+                  "terms": {
+                    "field": "connector-id"
+                  },
+                  "aggs": {
+                    "messages_count": {
+                      "sum": {
+                        "field": "count-increment"
+                      }
+                    },
+                    "distinct_requests_count": {
+                      "cardinality": {
+                        "field": "request-id"
+                      }
+                    },
+                    "avg_messages_per_request": {
+                      "bucket_script": {
+                        "buckets_path": {
+                          "req_count": "distinct_requests_count",
+                          "msg_count": "messages_count"
+                        },
+                        "script": "params.msg_count / params.req_count"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """
+        );
     }
 
     @Test
@@ -157,67 +155,66 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
 
         var result = SearchAverageMessagesPerRequestQueryAdapter.adapt(new AverageMessagesPerRequestQuery("api-id", from, to));
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
-                             {
-                               "size": 0,
-                               "query": {
-                                 "bool": {
-                                   "must": [
-                                     {
-                                       "term": {
-                                         "connector-type": "entrypoint"
-                                       }
-                                     },
-                                     {
-                                       "term": {
-                                         "api-id": "api-id"
-                                       }
-                                     },
-                                     {
-                                       "range": {
-                                         "@timestamp": {
-                                           "from": 1609459200000,
-                                           "include_lower": true,
-                                           "to": 1609545600000,
-                                           "include_upper": true
-                                         }
-                                       }
-                                    }
-                                   ]
-                                 }
-                               },
-                               "aggs": {
-                                 "entrypoints_agg": {
-                                   "terms": {
-                                     "field": "connector-id"
-                                   },
-                                   "aggs": {
-                                     "messages_count": {
-                                       "sum": {
-                                         "field": "count-increment"
-                                       }
-                                     },
-                                     "distinct_requests_count": {
-                                       "cardinality": {
-                                         "field": "request-id"
-                                       }
-                                     },
-                                     "avg_messages_per_request": {
-                                       "bucket_script": {
-                                         "buckets_path": {
-                                           "req_count": "distinct_requests_count",
-                                           "msg_count": "messages_count"
-                                         },
-                                         "script": "params.msg_count / params.req_count"
-                                       }
-                                     }
-                                   }
-                                 }
-                               }
-                             }
-                             """
-            );
+        assertThatJson(result).isEqualTo(
+            """
+            {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "term": {
+                        "connector-type": "entrypoint"
+                      }
+                    },
+                    {
+                      "term": {
+                        "api-id": "api-id"
+                      }
+                    },
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "from": 1609459200000,
+                          "include_lower": true,
+                          "to": 1609545600000,
+                          "include_upper": true
+                        }
+                      }
+                   }
+                  ]
+                }
+              },
+              "aggs": {
+                "entrypoints_agg": {
+                  "terms": {
+                    "field": "connector-id"
+                  },
+                  "aggs": {
+                    "messages_count": {
+                      "sum": {
+                        "field": "count-increment"
+                      }
+                    },
+                    "distinct_requests_count": {
+                      "cardinality": {
+                        "field": "request-id"
+                      }
+                    },
+                    "avg_messages_per_request": {
+                      "bucket_script": {
+                        "buckets_path": {
+                          "req_count": "distinct_requests_count",
+                          "msg_count": "messages_count"
+                        },
+                        "script": "params.msg_count / params.req_count"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """
+        );
     }
 }

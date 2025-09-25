@@ -59,21 +59,18 @@ class PortalPageCrudServiceImplTest {
         PageId pageId2 = PageId.random();
         var page2 = new PortalPage(pageId2, new GraviteeMarkdown("content2"));
 
-        when(pageRepository.findByIds(List.of(pageId1.toString(), pageId2.toString())))
-            .thenReturn(
-                List.of(
-                    io.gravitee.repository.management.model.PortalPage
-                        .builder()
-                        .id(pageId1.toString())
-                        .content(page1.getPageContent().content())
-                        .build(),
-                    io.gravitee.repository.management.model.PortalPage
-                        .builder()
-                        .id(pageId2.toString())
-                        .content(page2.getPageContent().content())
-                        .build()
-                )
-            );
+        when(pageRepository.findByIds(List.of(pageId1.toString(), pageId2.toString()))).thenReturn(
+            List.of(
+                io.gravitee.repository.management.model.PortalPage.builder()
+                    .id(pageId1.toString())
+                    .content(page1.getPageContent().content())
+                    .build(),
+                io.gravitee.repository.management.model.PortalPage.builder()
+                    .id(pageId2.toString())
+                    .content(page2.getPageContent().content())
+                    .build()
+            )
+        );
 
         var pages = service.findByIds(List.of(pageId1, pageId2));
         assertThat(pages).hasSize(2).containsExactlyInAnyOrder(page1, page2);
@@ -84,8 +81,7 @@ class PortalPageCrudServiceImplTest {
         PageId pageId = PageId.random();
         var page = new PortalPage(pageId, new GraviteeMarkdown("updated-content"));
 
-        var repoPage = io.gravitee.repository.management.model.PortalPage
-            .builder()
+        var repoPage = io.gravitee.repository.management.model.PortalPage.builder()
             .id(pageId.toString())
             .content(page.getPageContent().content())
             .build();
@@ -94,6 +90,22 @@ class PortalPageCrudServiceImplTest {
 
         var updated = service.update(page);
         assertThat(updated).isEqualTo(page);
+    }
+
+    @Test
+    void should_update_page_and_return_updated_page() throws TechnicalException {
+        PageId pageId = PageId.random();
+        var updatedPage = new PortalPage(pageId, new GraviteeMarkdown("new-content"));
+
+        var repoPageUpdated = io.gravitee.repository.management.model.PortalPage.builder()
+            .id(pageId.toString())
+            .content(updatedPage.getPageContent().content())
+            .build();
+
+        doReturn(repoPageUpdated).when(pageRepository).update(any());
+
+        var result = service.update(updatedPage);
+        assertThat(result).isEqualTo(updatedPage);
     }
 
     @Test
@@ -111,8 +123,7 @@ class PortalPageCrudServiceImplTest {
         PageId pageId = PageId.random();
         var page = new PortalPage(pageId, new GraviteeMarkdown("content-find"));
 
-        var repoPage = io.gravitee.repository.management.model.PortalPage
-            .builder()
+        var repoPage = io.gravitee.repository.management.model.PortalPage.builder()
             .id(pageId.toString())
             .content(page.getPageContent().content())
             .build();

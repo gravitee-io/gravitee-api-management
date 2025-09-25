@@ -78,8 +78,9 @@ class ApiProcessorChainFactoryTest {
     @BeforeEach
     public void beforeEach() {
         when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(false);
-        when(configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER))
-            .thenReturn(DEFAULT_CLIENT_IDENTIFIER_HEADER);
+        when(configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER)).thenReturn(
+            DEFAULT_CLIENT_IDENTIFIER_HEADER
+        );
         apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
     }
 
@@ -137,7 +138,11 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(0);
+        processors
+            .map(e -> e)
+            .test()
+            .assertComplete()
+            .assertValueCount(0);
     }
 
     @Test
@@ -225,7 +230,11 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api, TracingContext.noop());
         assertThat(processorChain.getId()).isEqualTo("before-api-execution");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test
@@ -371,7 +380,11 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api, TracingContext.noop());
         assertThat(processorChain.getId()).isEqualTo("after-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof LogResponseProcessor);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof LogResponseProcessor);
     }
 
     private Flowable<Processor> extractProcessorChain(final ProcessorChain processorChain) {

@@ -35,8 +35,7 @@ public class SearchApiEventUseCaseTest {
     public static final String ORGANIZATION_ID = "organization-id";
     public static final String ENVIRONMENT_ID = "environment-id";
 
-    private static final BaseUserEntity USER = BaseUserEntity
-        .builder()
+    private static final BaseUserEntity USER = BaseUserEntity.builder()
         .id("user-id")
         .firstname("John")
         .lastname("Doe")
@@ -66,14 +65,12 @@ public class SearchApiEventUseCaseTest {
         eventQueryService.initWith(
             List.of(
                 expected,
-                Event
-                    .builder()
+                Event.builder()
                     .id("event2")
                     .environments(Set.of(ENVIRONMENT_ID))
                     .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
                     .build(),
-                Event
-                    .builder()
+                Event.builder()
                     .id("event3")
                     .environments(Set.of(ENVIRONMENT_ID))
                     .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))

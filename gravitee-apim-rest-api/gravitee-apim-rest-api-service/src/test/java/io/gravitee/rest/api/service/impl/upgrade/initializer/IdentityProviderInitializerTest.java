@@ -75,15 +75,14 @@ public class IdentityProviderInitializerTest {
             .withProperty("security.providers[1].type", "gravitee")
             .withProperty("security.providers[1].type", "unknown");
 
-        initializer =
-            new IdentityProviderInitializer(
-                environment,
-                groupService,
-                organizationService,
-                environmentService,
-                identityProviderService,
-                identityProviderActivationService
-            );
+        initializer = new IdentityProviderInitializer(
+            environment,
+            groupService,
+            organizationService,
+            environmentService,
+            identityProviderService,
+            identityProviderActivationService
+        );
     }
 
     @Test
@@ -100,13 +99,19 @@ public class IdentityProviderInitializerTest {
 
         verify(identityProviderService, times(1)).create(any(ExecutionContext.class), argThat(idp -> idp.getName().equals(GOOGLE_ID)));
 
-        verify(identityProviderService, times(1))
-            .update(any(ExecutionContext.class), eq(GOOGLE_ID), argThat(idp -> idp.getName().equals(GOOGLE_ID)));
+        verify(identityProviderService, times(1)).update(
+            any(ExecutionContext.class),
+            eq(GOOGLE_ID),
+            argThat(idp -> idp.getName().equals(GOOGLE_ID))
+        );
 
         verify(identityProviderActivationService, times(1)).deactivateIdpOnAllTargets(any(ExecutionContext.class), eq(GOOGLE_NAME));
 
-        verify(identityProviderActivationService, times(1))
-            .activateIdpOnTargets(any(ExecutionContext.class), eq(GOOGLE_NAME), eq(expectedActivationTargets()));
+        verify(identityProviderActivationService, times(1)).activateIdpOnTargets(
+            any(ExecutionContext.class),
+            eq(GOOGLE_NAME),
+            eq(expectedActivationTargets())
+        );
     }
 
     @Test
@@ -121,22 +126,26 @@ public class IdentityProviderInitializerTest {
 
         verify(identityProviderService, never()).create(any(ExecutionContext.class), any());
 
-        verify(identityProviderService, times(1))
-            .update(any(ExecutionContext.class), eq(GOOGLE_ID), argThat(idp -> idp.getName().equals(GOOGLE_ID)));
+        verify(identityProviderService, times(1)).update(
+            any(ExecutionContext.class),
+            eq(GOOGLE_ID),
+            argThat(idp -> idp.getName().equals(GOOGLE_ID))
+        );
 
         verify(identityProviderActivationService, times(1)).deactivateIdpOnAllTargets(any(ExecutionContext.class), eq(GOOGLE_NAME));
 
-        verify(identityProviderActivationService, times(1))
-            .activateIdpOnTargets(any(ExecutionContext.class), eq(GOOGLE_NAME), eq(expectedActivationTargets()));
+        verify(identityProviderActivationService, times(1)).activateIdpOnTargets(
+            any(ExecutionContext.class),
+            eq(GOOGLE_NAME),
+            eq(expectedActivationTargets())
+        );
     }
 
     private static ActivationTarget[] expectedActivationTargets() {
-        return List
-            .of(
-                new ActivationTarget("DEFAULT", IdentityProviderActivationReferenceType.ORGANIZATION),
-                new ActivationTarget("DEFAULT", IdentityProviderActivationReferenceType.ENVIRONMENT)
-            )
-            .toArray(new ActivationTarget[] {});
+        return List.of(
+            new ActivationTarget("DEFAULT", IdentityProviderActivationReferenceType.ORGANIZATION),
+            new ActivationTarget("DEFAULT", IdentityProviderActivationReferenceType.ENVIRONMENT)
+        ).toArray(new ActivationTarget[] {});
     }
 
     private static OrganizationEntity defaultOrganization() {

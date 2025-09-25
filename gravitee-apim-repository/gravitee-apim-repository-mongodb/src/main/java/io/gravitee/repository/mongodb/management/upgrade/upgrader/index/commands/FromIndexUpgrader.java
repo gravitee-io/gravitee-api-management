@@ -27,8 +27,7 @@ public class FromIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("commands")
             .name("f1")
             .key("from", ascending())

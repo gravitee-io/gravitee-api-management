@@ -58,8 +58,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_create() throws Exception {
-        final Cluster cluster = Cluster
-            .builder()
+        final Cluster cluster = Cluster.builder()
             .id("cluster-id")
             // Because by default, PostgreSQL's timestamp type (without with time zone) supports up to 6 digits of fractional seconds (microsecond precision),
             // while Java's Instant supports up to nanoseconds (9 digits).
@@ -89,8 +88,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_update() throws Exception {
-        Cluster toUpdate = Cluster
-            .builder()
+        Cluster toUpdate = Cluster.builder()
             .id("cluster-id-1")
             // Because by default, PostgreSQL's timestamp type (without with time zone) supports up to 6 digits of fractional seconds (microsecond precision),
             // while Java's Instant supports up to nanoseconds (9 digits).
@@ -128,8 +126,7 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void search_by_env_id_and_ids_no_sortable() {
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
-        ClusterCriteria criteria = ClusterCriteria
-            .builder()
+        ClusterCriteria criteria = ClusterCriteria.builder()
             .environmentId("env-1")
             .ids(List.of("cluster-id-1", "cluster-id-2", "cluster-id-3", "cluster-id-4"))
             .build();
@@ -154,8 +151,9 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             () -> assertThat(clusters.getPageElements()).isEqualTo(3),
             () -> assertThat(clusters.getTotalElements()).isEqualTo(4),
             () ->
-                assertThat(clusters.getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(List.of("8-cluster", "cluster-1", "cluster-10"))
+                assertThat(clusters.getContent().stream().map(Cluster::getName).toList()).isEqualTo(
+                    List.of("8-cluster", "cluster-1", "cluster-10")
+                )
         );
     }
 
@@ -171,8 +169,9 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
             () -> assertThat(clusters.getPageElements()).isEqualTo(3),
             () -> assertThat(clusters.getTotalElements()).isEqualTo(4),
             () ->
-                assertThat(clusters.getContent().stream().map(Cluster::getName).toList())
-                    .isEqualTo(List.of("cluster-no-2", "cluster-10", "cluster-1"))
+                assertThat(clusters.getContent().stream().map(Cluster::getName).toList()).isEqualTo(
+                    List.of("cluster-no-2", "cluster-10", "cluster-1")
+                )
         );
     }
 

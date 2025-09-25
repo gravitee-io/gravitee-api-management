@@ -98,8 +98,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
             final Response response = evaluateTarget.request().post(null);
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -112,8 +111,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
             final Response response = evaluateTarget.request().post(null);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(ACCEPTED_202)
                 .asEntity(ApiScoringTriggerResponse.class)
                 .isEqualTo(new ApiScoringTriggerResponse().status(ScoringStatus.PENDING));
@@ -138,8 +136,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
             final Response response = latestReportTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiScoring.class)
                 .isEqualTo(
@@ -180,8 +177,7 @@ public class ApiScoringResourceTest extends ApiResourceTest {
 
             final Response response = latestReportTarget.request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(ApiScoring.class)
                 .isEqualTo(

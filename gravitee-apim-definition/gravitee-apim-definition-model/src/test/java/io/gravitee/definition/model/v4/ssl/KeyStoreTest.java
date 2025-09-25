@@ -29,8 +29,7 @@ class KeyStoreTest {
 
     @Test
     void builder_should_init_pem_keystore() {
-        var keyStore = PEMKeyStore
-            .builder()
+        var keyStore = PEMKeyStore.builder()
             .certContent("certContent")
             .certPath("certPath")
             .keyContent("keyContent")
@@ -48,8 +47,7 @@ class KeyStoreTest {
 
     @Test
     void builder_should_init_jks_keystore() {
-        var keyStore = JKSKeyStore
-            .builder()
+        var keyStore = JKSKeyStore.builder()
             .alias("alias")
             .content("content")
             .keyPassword("keyPassword")
@@ -69,8 +67,7 @@ class KeyStoreTest {
 
     @Test
     void builder_should_init_pkcs12_keystore() {
-        var keyStore = PKCS12KeyStore
-            .builder()
+        var keyStore = PKCS12KeyStore.builder()
             .alias("alias")
             .content("content")
             .keyPassword("keyPassword")

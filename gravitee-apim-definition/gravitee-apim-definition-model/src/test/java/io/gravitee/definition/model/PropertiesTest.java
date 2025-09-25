@@ -37,12 +37,9 @@ class PropertiesTest {
 
     @Test
     void shouldNotSetDuplicateProperties() {
-        assertThrows(
-            RuntimeException.class,
-            () -> {
-                Properties props = new Properties();
-                props.setProperties(Arrays.asList(new Property("key1", "value1"), new Property("key1", "value2")));
-            }
-        );
+        assertThrows(RuntimeException.class, () -> {
+            Properties props = new Properties();
+            props.setProperties(Arrays.asList(new Property("key1", "value1"), new Property("key1", "value2")));
+        });
     }
 }

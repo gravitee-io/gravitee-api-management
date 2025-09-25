@@ -47,6 +47,7 @@ public class SearchApiConnectionLogDetailUseCase {
         Output(ConnectionLogDetail connectionLogDetail) {
             this(Optional.of(connectionLogDetail));
         }
+
         Output() {
             this(Optional.empty());
         }

@@ -37,6 +37,14 @@ export class PortalPagesService {
     return this.http.get<PortalPageWithDetails>(`${this.constants.env.v2BaseURL}/portal-pages/_homepage`);
   }
 
+  publishPage(pageId: string): Observable<PortalPageWithDetails> {
+    return this.http.post<PortalPageWithDetails>(`${this.constants.env.v2BaseURL}/portal-pages/${pageId}/_publish`, {});
+  }
+
+  unpublishPage(pageId: string): Observable<PortalPageWithDetails> {
+    return this.http.post<PortalPageWithDetails>(`${this.constants.env.v2BaseURL}/portal-pages/${pageId}/_unpublish`, {});
+  }
+
   patchPortalPage(portalPageId: string, patchedPage: PatchPortalPage): Observable<PortalPageWithDetails> {
     return this.http.patch<PortalPageWithDetails>(`${this.constants.env.v2BaseURL}/portal-pages/${portalPageId}`, patchedPage);
   }

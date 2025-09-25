@@ -55,7 +55,11 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
     @Override
     protected void validatePolicies(SwaggerApiEntity api, int expectedPathSize, int expectedFlowSize, List<String> expectedPaths) {
         assertEquals(expectedFlowSize, api.getFlows().size());
-        List<String> paths = api.getFlows().stream().map(flow -> flow.getPath()).collect(Collectors.toList());
+        List<String> paths = api
+            .getFlows()
+            .stream()
+            .map(flow -> flow.getPath())
+            .collect(Collectors.toList());
         assertTrue(paths.containsAll(expectedPaths));
     }
 
@@ -67,7 +71,11 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
         List<HttpMethod> firstRuleMethods,
         String firstRuleDescription
     ) {
-        List<Flow> flows = api.getFlows().stream().filter(flow1 -> flow1.getPath().equals(path)).collect(Collectors.toList());
+        List<Flow> flows = api
+            .getFlows()
+            .stream()
+            .filter(flow1 -> flow1.getPath().equals(path))
+            .collect(Collectors.toList());
         //        assertEquals(1, flows.size());
         assertEquals(expectedRuleSize, flows.get(0).getPre().size());
         assertTrue(flows.get(0).getMethods().containsAll(firstRuleMethods));

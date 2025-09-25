@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @JsonIgnoreProperties({ "empty", "values" })
 @Slf4j
-public abstract class ParsedListStringParam<T> extends ArrayList<String> /* to generate the right open-api def */{
+public abstract class ParsedListStringParam<T> extends ArrayList<String> /* to generate the right open-api def */ {
 
     private List<T> values;
 

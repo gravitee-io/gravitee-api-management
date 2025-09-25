@@ -51,8 +51,8 @@ public class DebugApiReactorHandler extends ApiReactorHandler {
     protected void contextualizeRequest(ExecutionContext context) {
         final String path = ((HttpAcceptor) context.getAttribute(ATTR_ENTRYPOINT)).path();
         ((MutableExecutionContext) context).request(
-                new ContextualizedDebugHttpServerRequest(path, context.request(), ((DebugApiV2) reactable).getEventId())
-            );
+            new ContextualizedDebugHttpServerRequest(path, context.request(), ((DebugApiV2) reactable).getEventId())
+        );
     }
 
     @Override

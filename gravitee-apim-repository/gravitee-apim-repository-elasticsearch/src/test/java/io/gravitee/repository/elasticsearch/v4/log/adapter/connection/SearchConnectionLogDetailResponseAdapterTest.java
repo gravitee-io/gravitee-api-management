@@ -58,8 +58,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
         }
 
         private static Stream<Arguments> generate() {
-            ConnectionLogDetail.Response.ResponseBuilder entrypointResponse = ConnectionLogDetail.Response
-                .builder()
+            ConnectionLogDetail.Response.ResponseBuilder entrypointResponse = ConnectionLogDetail.Response.builder()
                 .status(200)
                 .headers(
                     Map.of(
@@ -74,8 +73,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     )
                 );
 
-            ConnectionLogDetail.Request.RequestBuilder endpointRequest = ConnectionLogDetail.Request
-                .builder()
+            ConnectionLogDetail.Request.RequestBuilder endpointRequest = ConnectionLogDetail.Request.builder()
                 .method("GET")
                 .uri("")
                 .headers(
@@ -91,8 +89,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     )
                 );
 
-            ConnectionLogDetail.Request.RequestBuilder entrypointRequest = ConnectionLogDetail.Request
-                .builder()
+            ConnectionLogDetail.Request.RequestBuilder entrypointRequest = ConnectionLogDetail.Request.builder()
                 .method("GET")
                 .uri("/test?param=paramValue")
                 .headers(
@@ -108,16 +105,14 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     )
                 );
 
-            ConnectionLogDetail.Response.ResponseBuilder endpointResponse = ConnectionLogDetail.Response
-                .builder()
+            ConnectionLogDetail.Response.ResponseBuilder endpointResponse = ConnectionLogDetail.Response.builder()
                 .status(200)
                 .headers(Map.of());
 
             return Stream.of(
                 Arguments.of(
                     "connection-log-detail.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -131,8 +126,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-endpoint-only.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -144,8 +138,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-entrypoint-only.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -157,8 +150,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-response-only.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -170,8 +162,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-request-only.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -183,8 +174,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-with-body.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -219,8 +209,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
         }
 
         private static Stream<Arguments> generate() {
-            ConnectionLogDetail.Response.ResponseBuilder entrypointResponse = ConnectionLogDetail.Response
-                .builder()
+            ConnectionLogDetail.Response.ResponseBuilder entrypointResponse = ConnectionLogDetail.Response.builder()
                 .status(200)
                 .headers(
                     Map.of(
@@ -235,8 +224,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     )
                 );
 
-            ConnectionLogDetail.Request.RequestBuilder endpointRequest = ConnectionLogDetail.Request
-                .builder()
+            ConnectionLogDetail.Request.RequestBuilder endpointRequest = ConnectionLogDetail.Request.builder()
                 .method("GET")
                 .uri("")
                 .headers(
@@ -252,8 +240,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     )
                 );
 
-            ConnectionLogDetail.Request.RequestBuilder entrypointRequest = ConnectionLogDetail.Request
-                .builder()
+            ConnectionLogDetail.Request.RequestBuilder entrypointRequest = ConnectionLogDetail.Request.builder()
                 .method("GET")
                 .uri("/test?param=paramValue")
                 .headers(
@@ -269,16 +256,14 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     )
                 );
 
-            ConnectionLogDetail.Response.ResponseBuilder endpointResponse = ConnectionLogDetail.Response
-                .builder()
+            ConnectionLogDetail.Response.ResponseBuilder endpointResponse = ConnectionLogDetail.Response.builder()
                 .status(200)
                 .headers(Map.of());
 
             return Stream.of(
                 Arguments.of(
                     "connection-log-detail.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -292,8 +277,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-endpoint-only.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -305,8 +289,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-entrypoint-only.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -318,8 +301,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-response-only.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -331,8 +313,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-request-only.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
@@ -344,8 +325,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                 ),
                 Arguments.of(
                     "connection-log-detail-with-body.json",
-                    ConnectionLogDetail
-                        .builder()
+                    ConnectionLogDetail.builder()
                         .timestamp("2023-10-27T07:41:39.317+02:00")
                         .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
                         .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")

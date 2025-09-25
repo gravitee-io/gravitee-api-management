@@ -50,6 +50,19 @@ public class PortalPageContextCrudServiceInMemory implements PortalPageContextCr
     }
 
     @Override
+    public PortalPageView update(PageId pageId, PortalPageView toUpdate) {
+        storage
+            .stream()
+            .filter(ppc -> ppc.getPageId().equals(pageId.toString()))
+            .findFirst()
+            .ifPresent(portalPageContext -> {
+                portalPageContext.setContextType(PortalPageContextType.valueOf(toUpdate.context().name()));
+                portalPageContext.setPublished(toUpdate.published());
+            });
+        return toUpdate;
+    }
+
+    @Override
     public void initWith(List<PortalPageContext> items) {
         this.storage = items;
     }

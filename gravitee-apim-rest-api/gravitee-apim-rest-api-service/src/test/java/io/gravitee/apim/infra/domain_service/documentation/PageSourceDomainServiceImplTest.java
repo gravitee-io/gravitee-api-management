@@ -74,19 +74,15 @@ class PageSourceDomainServiceImplTest {
     @Test
     @SuppressWarnings("unchecked")
     void should_report_build_fetcher_error() {
-        var error = assertThrows(
-            TechnicalDomainException.class,
-            () -> {
-                when(pluginManager.get("http-fetcher")).thenReturn(fetcherPlugin);
-                cut.setContentFromSource(Page.builder().source(httpSource()).build());
-            }
-        );
+        var error = assertThrows(TechnicalDomainException.class, () -> {
+            when(pluginManager.get("http-fetcher")).thenReturn(fetcherPlugin);
+            cut.setContentFromSource(Page.builder().source(httpSource()).build());
+        });
         assertThat(error).hasMessage("unable to build fetcher instance");
     }
 
     private static PageSource httpSource() {
-        return PageSource
-            .builder()
+        return PageSource.builder()
             .type("http-fetcher")
             .configuration(
                 """

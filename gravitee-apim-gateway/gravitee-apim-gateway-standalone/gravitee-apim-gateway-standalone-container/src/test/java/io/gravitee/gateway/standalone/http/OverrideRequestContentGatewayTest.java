@@ -44,8 +44,7 @@ public class OverrideRequestContentGatewayTest extends AbstractWiremockGatewayTe
 
         HttpResponse response = execute(
             Request.Post("http://localhost:8082/api").bodyString("Request content overriden by policy", ContentType.TEXT_PLAIN)
-        )
-            .returnResponse();
+        ).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

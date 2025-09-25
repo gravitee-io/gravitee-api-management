@@ -58,12 +58,11 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         var events = eventRepository.findEventsToClean("DEFAULT").toList();
 
         // then
-        assertThat(events)
-            .allSatisfy(event -> {
-                assertThat(event.group()).isNotNull();
-                assertThat(event.group().type()).isNotNull();
-                assertThat(event.group().referenceId()).isNotNull();
-            });
+        assertThat(events).allSatisfy(event -> {
+            assertThat(event.group()).isNotNull();
+            assertThat(event.group().type()).isNotNull();
+            assertThat(event.group().referenceId()).isNotNull();
+        });
     }
 
     @Test
@@ -74,19 +73,19 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         // then
         List<EventRepository.EventToClean> apiEvents = events
             .stream()
-            .filter(event ->
-                event.group().type().startsWith("PUBLISH_API") ||
-                event.group().type().startsWith("UNPUBLISH_API") ||
-                event.group().type().startsWith("START_API") ||
-                event.group().type().startsWith("STOP_API")
+            .filter(
+                event ->
+                    event.group().type().startsWith("PUBLISH_API") ||
+                    event.group().type().startsWith("UNPUBLISH_API") ||
+                    event.group().type().startsWith("START_API") ||
+                    event.group().type().startsWith("STOP_API")
             )
             .collect(Collectors.toList());
 
         assertThat(apiEvents).isNotEmpty();
-        assertThat(apiEvents)
-            .allSatisfy(event -> {
-                assertThat(event.group().referenceId()).isEqualTo("api-1");
-            });
+        assertThat(apiEvents).allSatisfy(event -> {
+            assertThat(event.group().referenceId()).isEqualTo("api-1");
+        });
     }
 
     @Test
@@ -119,11 +118,12 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
         // then
         List<EventRepository.EventToClean> dictionaryEvents = events
             .stream()
-            .filter(event ->
-                event.group().type().startsWith("PUBLISH_DICTIONARY") ||
-                event.group().type().startsWith("UNPUBLISH_DICTIONARY") ||
-                event.group().type().startsWith("START_DICTIONARY") ||
-                event.group().type().startsWith("STOP_DICTIONARY")
+            .filter(
+                event ->
+                    event.group().type().startsWith("PUBLISH_DICTIONARY") ||
+                    event.group().type().startsWith("UNPUBLISH_DICTIONARY") ||
+                    event.group().type().startsWith("START_DICTIONARY") ||
+                    event.group().type().startsWith("STOP_DICTIONARY")
             )
             .collect(Collectors.toList());
 
@@ -183,11 +183,10 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
             .collect(Collectors.toList());
 
         assertThat(orgEvents).hasSize(1);
-        assertThat(orgEvents)
-            .allSatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("PUBLISH_ORGANIZATION");
-                assertThat(event.group().referenceId()).isEqualTo("org-1");
-            });
+        assertThat(orgEvents).allSatisfy(event -> {
+            assertThat(event.group().type()).isEqualTo("PUBLISH_ORGANIZATION");
+            assertThat(event.group().referenceId()).isEqualTo("org-1");
+        });
     }
 
     @Test
@@ -226,11 +225,10 @@ public class EventRepository_CleanEventsTest extends AbstractManagementRepositor
             .collect(Collectors.toList());
 
         assertThat(policyEvents).hasSize(1);
-        assertThat(policyEvents)
-            .allSatisfy(event -> {
-                assertThat(event.group().type()).isEqualTo("DEPLOY_SHARED_POLICY_GROUP");
-                assertThat(event.group().referenceId()).isEqualTo("policy-group-1");
-            });
+        assertThat(policyEvents).allSatisfy(event -> {
+            assertThat(event.group().type()).isEqualTo("DEPLOY_SHARED_POLICY_GROUP");
+            assertThat(event.group().referenceId()).isEqualTo("policy-group-1");
+        });
     }
 
     @Test

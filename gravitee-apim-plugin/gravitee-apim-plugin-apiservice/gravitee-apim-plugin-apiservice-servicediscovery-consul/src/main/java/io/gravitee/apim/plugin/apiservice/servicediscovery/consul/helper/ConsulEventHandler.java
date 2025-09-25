@@ -77,12 +77,11 @@ public class ConsulEventHandler {
             if (old.size() > newEntries.getList().size()) {
                 old.forEach(oldEntry -> endpointManager.disable(EndpointFactory.endpointName(oldEntry.getService())));
 
-                Completable
-                    .defer(() -> {
-                        old.removeAll(newEntries.getList());
-                        old.forEach(oldEntry -> endpointManager.removeEndpoint(EndpointFactory.endpointName(oldEntry.getService())));
-                        return Completable.complete();
-                    })
+                Completable.defer(() -> {
+                    old.removeAll(newEntries.getList());
+                    old.forEach(oldEntry -> endpointManager.removeEndpoint(EndpointFactory.endpointName(oldEntry.getService())));
+                    return Completable.complete();
+                })
                     .onErrorComplete()
                     .delaySubscription(pendingRequestsTimeout, TimeUnit.MILLISECONDS, Schedulers.io())
                     .subscribe();

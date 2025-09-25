@@ -101,8 +101,7 @@ class ApiPolicyValidatorDomainServiceTest {
             );
             api.setPlans(
                 List.of(
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id("plan1")
                         .paths(
                             Map.of(
@@ -115,8 +114,7 @@ class ApiPolicyValidatorDomainServiceTest {
                             )
                         )
                         .build(),
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id("plan2")
                         .paths(
                             Map.of(
@@ -138,7 +136,12 @@ class ApiPolicyValidatorDomainServiceTest {
                 // Verify paths at api level
                 softly
                     .assertThat(
-                        api.getPaths().values().stream().flatMap(Collection::stream).map(rule -> rule.getPolicy().getConfiguration())
+                        api
+                            .getPaths()
+                            .values()
+                            .stream()
+                            .flatMap(Collection::stream)
+                            .map(rule -> rule.getPolicy().getConfiguration())
                     )
                     .hasSize(3)
                     .allMatch(configuration -> configuration.equals("validated"));
@@ -192,8 +195,7 @@ class ApiPolicyValidatorDomainServiceTest {
             api.setDefinitionVersion(DefinitionVersion.V2);
             api.setFlows(
                 List.of(
-                    Flow
-                        .builder()
+                    Flow.builder()
                         .id("flow1")
                         .pre(
                             List.of(
@@ -208,13 +210,11 @@ class ApiPolicyValidatorDomainServiceTest {
             );
             api.setPlans(
                 List.of(
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id("plan1")
                         .flows(
                             List.of(
-                                Flow
-                                    .builder()
+                                Flow.builder()
                                     .id("flow1")
                                     .pre(
                                         List.of(
@@ -227,13 +227,11 @@ class ApiPolicyValidatorDomainServiceTest {
                             )
                         )
                         .build(),
-                    Plan
-                        .builder()
+                    Plan.builder()
                         .id("plan2")
                         .flows(
                             List.of(
-                                Flow
-                                    .builder()
+                                Flow.builder()
                                     .id("flow1")
                                     .pre(
                                         List.of(
@@ -270,7 +268,10 @@ class ApiPolicyValidatorDomainServiceTest {
                             .getPlans()
                             .stream()
                             .flatMap(plan ->
-                                plan.getFlows().stream().flatMap(flow -> Stream.concat(flow.getPre().stream(), flow.getPost().stream()))
+                                plan
+                                    .getFlows()
+                                    .stream()
+                                    .flatMap(flow -> Stream.concat(flow.getPre().stream(), flow.getPost().stream()))
                             )
                             .map(Step::getConfiguration)
                     )
@@ -305,23 +306,19 @@ class ApiPolicyValidatorDomainServiceTest {
         @Test
         void should_validate_flows() {
             var api = new DebugApiV4(
-                ApiDefinitionFixtures
-                    .aHttpProxyApiV4(API_ID)
+                ApiDefinitionFixtures.aHttpProxyApiV4(API_ID)
                     .toBuilder()
                     .flows(
                         List.of(
-                            io.gravitee.definition.model.v4.flow.Flow
-                                .builder()
+                            io.gravitee.definition.model.v4.flow.Flow.builder()
                                 .id("flow1")
                                 .request(
                                     List.of(
-                                        io.gravitee.definition.model.v4.flow.step.Step
-                                            .builder()
+                                        io.gravitee.definition.model.v4.flow.step.Step.builder()
                                             .policy("policy1")
                                             .configuration("config1")
                                             .build(),
-                                        io.gravitee.definition.model.v4.flow.step.Step
-                                            .builder()
+                                        io.gravitee.definition.model.v4.flow.step.Step.builder()
                                             .policy("policy2")
                                             .configuration("config2")
                                             .build()
@@ -329,8 +326,7 @@ class ApiPolicyValidatorDomainServiceTest {
                                 )
                                 .response(
                                     List.of(
-                                        io.gravitee.definition.model.v4.flow.step.Step
-                                            .builder()
+                                        io.gravitee.definition.model.v4.flow.step.Step.builder()
                                             .policy("policy3")
                                             .configuration("config3")
                                             .build()
@@ -344,23 +340,19 @@ class ApiPolicyValidatorDomainServiceTest {
                         Map.ofEntries(
                             Map.entry(
                                 "plan1",
-                                io.gravitee.definition.model.v4.plan.Plan
-                                    .builder()
+                                io.gravitee.definition.model.v4.plan.Plan.builder()
                                     .id("plan1")
                                     .flows(
                                         List.of(
-                                            io.gravitee.definition.model.v4.flow.Flow
-                                                .builder()
+                                            io.gravitee.definition.model.v4.flow.Flow.builder()
                                                 .id("flow1")
                                                 .request(
                                                     List.of(
-                                                        io.gravitee.definition.model.v4.flow.step.Step
-                                                            .builder()
+                                                        io.gravitee.definition.model.v4.flow.step.Step.builder()
                                                             .policy("policy1")
                                                             .configuration("config1")
                                                             .build(),
-                                                        io.gravitee.definition.model.v4.flow.step.Step
-                                                            .builder()
+                                                        io.gravitee.definition.model.v4.flow.step.Step.builder()
                                                             .policy("policy2")
                                                             .configuration("config2")
                                                             .build()
@@ -368,8 +360,7 @@ class ApiPolicyValidatorDomainServiceTest {
                                                 )
                                                 .response(
                                                     List.of(
-                                                        io.gravitee.definition.model.v4.flow.step.Step
-                                                            .builder()
+                                                        io.gravitee.definition.model.v4.flow.step.Step.builder()
                                                             .policy("policy3")
                                                             .configuration("config3")
                                                             .build()
@@ -382,23 +373,19 @@ class ApiPolicyValidatorDomainServiceTest {
                             ),
                             Map.entry(
                                 "plan2",
-                                io.gravitee.definition.model.v4.plan.Plan
-                                    .builder()
+                                io.gravitee.definition.model.v4.plan.Plan.builder()
                                     .id("plan2")
                                     .flows(
                                         List.of(
-                                            io.gravitee.definition.model.v4.flow.Flow
-                                                .builder()
+                                            io.gravitee.definition.model.v4.flow.Flow.builder()
                                                 .id("flow1")
                                                 .request(
                                                     List.of(
-                                                        io.gravitee.definition.model.v4.flow.step.Step
-                                                            .builder()
+                                                        io.gravitee.definition.model.v4.flow.step.Step.builder()
                                                             .policy("policy1")
                                                             .configuration("config1")
                                                             .build(),
-                                                        io.gravitee.definition.model.v4.flow.step.Step
-                                                            .builder()
+                                                        io.gravitee.definition.model.v4.flow.step.Step.builder()
                                                             .policy("policy2")
                                                             .configuration("config2")
                                                             .build()
@@ -406,8 +393,7 @@ class ApiPolicyValidatorDomainServiceTest {
                                                 )
                                                 .response(
                                                     List.of(
-                                                        io.gravitee.definition.model.v4.flow.step.Step
-                                                            .builder()
+                                                        io.gravitee.definition.model.v4.flow.step.Step.builder()
                                                             .policy("policy3")
                                                             .configuration("config3")
                                                             .build()
@@ -447,8 +433,7 @@ class ApiPolicyValidatorDomainServiceTest {
                 // verify paths for plans
                 softly
                     .assertThat(
-                        Objects
-                            .requireNonNull(api.getApiDefinition().getPlans())
+                        Objects.requireNonNull(api.getApiDefinition().getPlans())
                             .stream()
                             .flatMap(plan ->
                                 plan

@@ -17,10 +17,13 @@ package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalPageRepository;
+import io.gravitee.repository.management.model.ExpandsViewContext;
 import io.gravitee.repository.management.model.PortalPage;
 import java.sql.Types;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,8 +44,7 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
 
     @Override
     protected JdbcObjectMapper<PortalPage> buildOrm() {
-        return JdbcObjectMapper
-            .builder(PortalPage.class, this.tableName, "id")
+        return JdbcObjectMapper.builder(PortalPage.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
@@ -74,6 +76,27 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
             return jdbcTemplate.query(sql.toString(), getOrm().getRowMapper(), ids.toArray());
         } catch (Exception ex) {
             LOGGER.error("Failed to find PortalPages by ids {}", ids, ex);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<PortalPage> findByIdsWithExpand(List<String> ids, List<ExpandsViewContext> expands) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        try {
+            Set<String> selected = new LinkedHashSet<>();
+            selected.add("id");
+            if (expands != null) {
+                expands.forEach(e -> selected.add(e.getValue()));
+            }
+
+            StringBuilder sql = new StringBuilder("SELECT ").append(String.join(", ", selected)).append(" FROM ").append(this.tableName);
+            getOrm().buildInCondition(true, sql, "id", ids);
+            return jdbcTemplate.query(sql.toString(), getOrm().getRowMapper(), ids.toArray());
+        } catch (Exception ex) {
+            LOGGER.error("Failed to find PortalPages by ids {} with expands {}", ids, expands, ex);
             return List.of();
         }
     }

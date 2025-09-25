@@ -47,7 +47,10 @@ public class MongoAsyncJobRepository implements AsyncJobRepository {
     @Override
     public Optional<AsyncJob> findById(String s) throws TechnicalException {
         log.debug("Find asyncJob by id [{}]", s);
-        Optional<AsyncJob> result = internalRepository.findById(s).map(source -> mapper.map(source)).map(this::handleDeadLine);
+        Optional<AsyncJob> result = internalRepository
+            .findById(s)
+            .map(source -> mapper.map(source))
+            .map(this::handleDeadLine);
         log.debug("Find asyncJob by id [{}] - DONE", s);
         return result;
     }

@@ -143,8 +143,7 @@ public class ApiCRDSpec {
      */
     public Api.ApiBuilder toApiBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return Api
-            .builder()
+        return Api.builder()
             .id(id)
             .crossId(crossId)
             .hrid(hrid)
@@ -173,8 +172,7 @@ public class ApiCRDSpec {
      */
     public io.gravitee.definition.model.v4.Api.ApiBuilder<?, ?> toApiDefinitionBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return io.gravitee.definition.model.v4.Api
-            .builder()
+        return io.gravitee.definition.model.v4.Api.builder()
             .analytics(analytics)
             .apiVersion(version)
             .definitionVersion(DefinitionVersion.V4)
@@ -198,8 +196,7 @@ public class ApiCRDSpec {
      */
     public io.gravitee.definition.model.v4.nativeapi.NativeApi.NativeApiBuilder<?, ?> toNativeApiDefinitionBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return io.gravitee.definition.model.v4.nativeapi.NativeApi
-            .builder()
+        return io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
             .apiVersion(version)
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups(endpointGroups != null ? (List<NativeEndpointGroup>) endpointGroups : null)
@@ -243,22 +240,19 @@ public class ApiCRDSpec {
             .entrySet()
             .stream()
             .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey,
-                    v -> {
-                        PlanCRD planCRD = v.getValue();
-                        Plan plan = new Plan();
-                        plan.setId(planCRD.getId());
-                        plan.setName(planCRD.getName());
-                        plan.setTags(planCRD.getTags());
-                        plan.setSecurity(planCRD.getSecurity());
-                        plan.setSelectionRule(planCRD.getSelectionRule());
-                        plan.setStatus(planCRD.getStatus());
-                        plan.setFlows((List<Flow>) planCRD.getFlows());
+                Collectors.toMap(Map.Entry::getKey, v -> {
+                    PlanCRD planCRD = v.getValue();
+                    Plan plan = new Plan();
+                    plan.setId(planCRD.getId());
+                    plan.setName(planCRD.getName());
+                    plan.setTags(planCRD.getTags());
+                    plan.setSecurity(planCRD.getSecurity());
+                    plan.setSelectionRule(planCRD.getSelectionRule());
+                    plan.setStatus(planCRD.getStatus());
+                    plan.setFlows((List<Flow>) planCRD.getFlows());
 
-                        return plan;
-                    }
-                )
+                    return plan;
+                })
             );
     }
 
@@ -267,22 +261,19 @@ public class ApiCRDSpec {
             .entrySet()
             .stream()
             .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey,
-                    v -> {
-                        PlanCRD planCRD = v.getValue();
-                        NativePlan nativePlan = new NativePlan();
-                        nativePlan.setId(planCRD.getId());
-                        nativePlan.setName(planCRD.getName());
-                        nativePlan.setTags(planCRD.getTags());
-                        nativePlan.setSecurity(planCRD.getSecurity());
-                        nativePlan.setSelectionRule(planCRD.getSelectionRule());
-                        nativePlan.setStatus(planCRD.getStatus());
-                        nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
+                Collectors.toMap(Map.Entry::getKey, v -> {
+                    PlanCRD planCRD = v.getValue();
+                    NativePlan nativePlan = new NativePlan();
+                    nativePlan.setId(planCRD.getId());
+                    nativePlan.setName(planCRD.getName());
+                    nativePlan.setTags(planCRD.getTags());
+                    nativePlan.setSecurity(planCRD.getSecurity());
+                    nativePlan.setSelectionRule(planCRD.getSelectionRule());
+                    nativePlan.setStatus(planCRD.getStatus());
+                    nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
 
-                        return nativePlan;
-                    }
-                )
+                    return nativePlan;
+                })
             );
     }
 
@@ -298,8 +289,7 @@ public class ApiCRDSpec {
                         paths
                             .stream()
                             .map(path ->
-                                io.gravitee.definition.model.v4.listener.http.Path
-                                    .builder()
+                                io.gravitee.definition.model.v4.listener.http.Path.builder()
                                     .host(path.getHost())
                                     .path(path.getPath())
                                     .overrideAccess(path.isOverrideAccess())

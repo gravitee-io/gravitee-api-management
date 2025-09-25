@@ -27,8 +27,7 @@ public class HooksIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("portalnotificationconfigs")
             .name("hooks_1")
             .key("hooks", ascending())

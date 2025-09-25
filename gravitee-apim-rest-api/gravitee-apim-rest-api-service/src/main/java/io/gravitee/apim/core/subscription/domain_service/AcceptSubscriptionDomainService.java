@@ -249,8 +249,7 @@ public class AcceptSubscriptionDomainService {
 
     private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity acceptedSubscriptionEntity, AuditInfo auditInfo) {
         auditDomainService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .actor(auditInfo.actor())
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
@@ -263,8 +262,7 @@ public class AcceptSubscriptionDomainService {
                 .build()
         );
         auditDomainService.createApplicationAuditLog(
-            ApplicationAuditLogEntity
-                .builder()
+            ApplicationAuditLogEntity.builder()
                 .actor(auditInfo.actor())
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())

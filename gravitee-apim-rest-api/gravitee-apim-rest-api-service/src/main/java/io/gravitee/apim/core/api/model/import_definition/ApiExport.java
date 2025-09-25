@@ -116,8 +116,7 @@ public class ApiExport {
     private Instant updatedAt;
 
     public ApiBuilder toApiBuilder() {
-        return Api
-            .builder()
+        return Api.builder()
             .id(id)
             .crossId(crossId)
             .name(name)
@@ -138,8 +137,7 @@ public class ApiExport {
         if (ApiType.NATIVE.equals(type)) {
             return null;
         }
-        return io.gravitee.definition.model.v4.Api
-            .builder()
+        return io.gravitee.definition.model.v4.Api.builder()
             .analytics(analytics)
             .apiVersion(apiVersion)
             .definitionVersion(DefinitionVersion.V4)
@@ -161,8 +159,7 @@ public class ApiExport {
         if (!ApiType.NATIVE.equals(type)) {
             return null;
         }
-        return io.gravitee.definition.model.v4.nativeapi.NativeApi
-            .builder()
+        return io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
             .apiVersion(apiVersion)
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups((List<NativeEndpointGroup>) endpointGroups)

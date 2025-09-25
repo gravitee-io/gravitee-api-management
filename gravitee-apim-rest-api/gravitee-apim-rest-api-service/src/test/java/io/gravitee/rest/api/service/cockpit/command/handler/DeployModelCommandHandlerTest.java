@@ -97,8 +97,7 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void creates_an_API_DOCUMENTED() throws InterruptedException {
-        DeployModelCommandPayload payload = DeployModelCommandPayload
-            .builder()
+        DeployModelCommandPayload payload = DeployModelCommandPayload.builder()
             .modelId("model#1")
             .swaggerDefinition("swagger-definition")
             .userId("cockpit_user#id")
@@ -113,8 +112,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(any(), eq("cockpit"), eq(payload.userId()), eq(true))).thenReturn(user);
 
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
@@ -126,12 +126,11 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_DOCUMENTED,
                 payload.labels()
             )
-        )
-            .thenAnswer(i -> {
-                ApiEntity apiEntity = new ApiEntity();
-                apiEntity.setId(i.getArgument(1));
-                return ApiEntityResult.success(apiEntity);
-            });
+        ).thenAnswer(i -> {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setId(i.getArgument(1));
+            return ApiEntityResult.success(apiEntity);
+        });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -148,8 +147,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_MOCKED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_MOCKED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
@@ -161,12 +161,11 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_MOCKED,
                 payload.labels()
             )
-        )
-            .thenAnswer(i -> {
-                ApiEntity apiEntity = new ApiEntity();
-                apiEntity.setId(i.getArgument(1));
-                return ApiEntityResult.success(apiEntity);
-            });
+        ).thenAnswer(i -> {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setId(i.getArgument(1));
+            return ApiEntityResult.success(apiEntity);
+        });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -183,8 +182,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
@@ -196,12 +196,11 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_PUBLISHED,
                 payload.labels()
             )
-        )
-            .thenAnswer(i -> {
-                ApiEntity apiEntity = new ApiEntity();
-                apiEntity.setId(i.getArgument(1));
-                return ApiEntityResult.success(apiEntity);
-            });
+        ).thenAnswer(i -> {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setId(i.getArgument(1));
+            return ApiEntityResult.success(apiEntity);
+        });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -221,8 +220,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(any(), eq("cockpit"), eq(payload.userId()), eq(true))).thenReturn(user);
 
-        when(permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.updateApi(
@@ -234,12 +234,11 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_DOCUMENTED,
                 payload.labels()
             )
-        )
-            .thenAnswer(i -> {
-                ApiEntity result = new ApiEntity();
-                result.setId(i.getArgument(1));
-                return ApiEntityResult.success(result);
-            });
+        ).thenAnswer(i -> {
+            ApiEntity result = new ApiEntity();
+            result.setId(i.getArgument(1));
+            return ApiEntityResult.success(result);
+        });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -259,8 +258,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(any(), eq("cockpit"), eq(payload.userId()), eq(true))).thenReturn(user);
 
-        when(permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_MOCKED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_MOCKED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.updateApi(
@@ -272,12 +272,11 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_MOCKED,
                 payload.labels()
             )
-        )
-            .thenAnswer(i -> {
-                ApiEntity result = new ApiEntity();
-                result.setId(i.getArgument(1));
-                return ApiEntityResult.success(result);
-            });
+        ).thenAnswer(i -> {
+            ApiEntity result = new ApiEntity();
+            result.setId(i.getArgument(1));
+            return ApiEntityResult.success(result);
+        });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -297,8 +296,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_PUBLISHED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_PUBLISHED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.updateApi(
@@ -310,12 +310,11 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_PUBLISHED,
                 payload.labels()
             )
-        )
-            .thenAnswer(i -> {
-                ApiEntity result = new ApiEntity();
-                result.setId(i.getArgument(1));
-                return ApiEntityResult.success(result);
-            });
+        ).thenAnswer(i -> {
+            ApiEntity result = new ApiEntity();
+            result.setId(i.getArgument(1));
+            return ApiEntityResult.success(result);
+        });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -332,8 +331,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
@@ -345,12 +345,11 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_DOCUMENTED,
                 payload.labels()
             )
-        )
-            .thenAnswer(i -> {
-                ApiEntity apiEntity = new ApiEntity();
-                apiEntity.setId(i.getArgument(1));
-                return ApiEntityResult.success(apiEntity);
-            });
+        ).thenAnswer(i -> {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setId(i.getArgument(1));
+            return ApiEntityResult.success(apiEntity);
+        });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -367,8 +366,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
@@ -380,8 +380,7 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_DOCUMENTED,
                 payload.labels()
             )
-        )
-            .thenThrow(new RuntimeException("fake error"));
+        ).thenThrow(new RuntimeException("fake error"));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -399,16 +398,16 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
-            .thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> {
-            Assertions
-                .assertThat(reply)
+            Assertions.assertThat(reply)
                 .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
                 .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
             return true;
@@ -427,16 +426,16 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED))
-            .thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
+        when(
+            permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> {
-            Assertions
-                .assertThat(reply)
+            Assertions.assertThat(reply)
                 .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
                 .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
             return true;
@@ -452,8 +451,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
@@ -465,12 +465,11 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_DOCUMENTED,
                 payload.labels()
             )
-        )
-            .thenAnswer(i -> {
-                ApiEntity apiEntity = new ApiEntity();
-                apiEntity.setId(i.getArgument(0));
-                return ApiEntityResult.success(apiEntity);
-            });
+        ).thenAnswer(i -> {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setId(i.getArgument(0));
+            return ApiEntityResult.success(apiEntity);
+        });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
         obs.await();
@@ -486,8 +485,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
-            .thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -504,8 +504,9 @@ public class DeployModelCommandHandlerTest {
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
 
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
@@ -517,16 +518,14 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_DOCUMENTED,
                 payload.labels()
             )
-        )
-            .thenReturn(ApiEntityResult.failure("context path not available"));
+        ).thenReturn(ApiEntityResult.failure("context path not available"));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> {
-            Assertions
-                .assertThat(reply)
+            Assertions.assertThat(reply)
                 .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
                 .containsExactly(command.getId(), CommandStatus.ERROR, "Failed to import API [context path not available].");
             return true;
@@ -541,17 +540,17 @@ public class DeployModelCommandHandlerTest {
             ORGANIZATION_ID
         );
         when(environmentService.findByCockpitId(ENVIRONMENT_ID)).thenThrow(new EnvironmentNotFoundException(ENVIRONMENT_ID));
-        when(environmentService.findById(ENVIRONMENT_ID))
-            .thenReturn(
-                EnvironmentEntity.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).cockpitId(COCKPIT_ENVIRONMENT_ID).build()
-            );
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(
+            EnvironmentEntity.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).cockpitId(COCKPIT_ENVIRONMENT_ID).build()
+        );
         DeployModelCommand command = new DeployModelCommand(payload);
 
         UserEntity user = createUserEntity(payload);
 
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
-        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED))
-            .thenReturn(Optional.empty());
+        when(
+            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED)
+        ).thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
@@ -563,12 +562,11 @@ public class DeployModelCommandHandlerTest {
                 DeploymentMode.API_PUBLISHED,
                 payload.labels()
             )
-        )
-            .thenAnswer(i -> {
-                ApiEntity apiEntity = new ApiEntity();
-                apiEntity.setId(i.getArgument(1));
-                return ApiEntityResult.success(apiEntity);
-            });
+        ).thenAnswer(i -> {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setId(i.getArgument(1));
+            return ApiEntityResult.success(apiEntity);
+        });
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -582,8 +580,7 @@ public class DeployModelCommandHandlerTest {
         final String environmentId,
         final String organizationId
     ) {
-        return DeployModelCommandPayload
-            .builder()
+        return DeployModelCommandPayload.builder()
             .modelId("model#1")
             .swaggerDefinition("swagger-definition")
             .userId("cockpit_user#id")

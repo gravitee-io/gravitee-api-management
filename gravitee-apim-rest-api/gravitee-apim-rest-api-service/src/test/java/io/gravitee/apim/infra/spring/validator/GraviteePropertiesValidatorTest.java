@@ -93,8 +93,9 @@ class GraviteePropertiesValidatorTest {
             final ConstraintViolation constraintViolationProbabilistic = prepareConstraintViolation(
                 "Invalid probabilistic default value, 'default' should be lower than 'limit'"
             );
-            when(validator.validate(any()))
-                .thenReturn(Set.of(constraintViolationTemporal, constraintViolationCount, constraintViolationProbabilistic));
+            when(validator.validate(any())).thenReturn(
+                Set.of(constraintViolationTemporal, constraintViolationCount, constraintViolationProbabilistic)
+            );
             assertThatThrownBy(() -> cut.validateProperties())
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContainingAll(

@@ -243,8 +243,7 @@ public class MigrateApiUseCase {
         var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), input.apiId());
 
         auditService.createApiAuditLog(
-            ApiAuditLogEntity
-                .builder()
+            ApiAuditLogEntity.builder()
                 .event(ApiAuditEvent.API_UPDATED)
                 .actor(AuditActor.builder().userId(input.auditInfo().actor().userId()).build())
                 .apiId(input.apiId())

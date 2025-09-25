@@ -163,16 +163,16 @@ public class InstallationServiceTest {
         final InstallationEntity updatedInstallationEntity = installationService.setAdditionalInformation(newAdditionalInformation);
 
         verify(installationRepository).find();
-        verify(installationRepository)
-            .update(
-                ArgumentMatchers.argThat(argument ->
+        verify(installationRepository).update(
+            ArgumentMatchers.argThat(
+                argument ->
                     argument != null &&
                     INSTALLATION_ID.equals(argument.getId()) &&
                     NOW.equals(argument.getCreatedAt()) &&
                     NOW.before(argument.getUpdatedAt()) &&
                     newAdditionalInformation.equals(argument.getAdditionalInformation())
-                )
-            );
+            )
+        );
 
         assertNotNull(updatedInstallationEntity);
         assertEquals(INSTALLATION_ID, updatedInstallationEntity.getId());

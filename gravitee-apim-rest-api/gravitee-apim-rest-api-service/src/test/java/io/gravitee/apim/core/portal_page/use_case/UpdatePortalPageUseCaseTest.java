@@ -64,8 +64,8 @@ class UpdatePortalPageUseCaseTest {
     void should_return_throw_when_page_does_not_exist() {
         PageId pageId = PageId.random();
 
-        assertThatThrownBy(() -> updatePortalPageUseCase.execute(new UpdatePortalPageUseCase.Input("env", pageId.toString(), "New content"))
-            )
-            .isInstanceOf(PortalPageSpecificationException.class);
+        assertThatThrownBy(() ->
+            updatePortalPageUseCase.execute(new UpdatePortalPageUseCase.Input("env", pageId.toString(), "New content"))
+        ).isInstanceOf(PortalPageSpecificationException.class);
     }
 }

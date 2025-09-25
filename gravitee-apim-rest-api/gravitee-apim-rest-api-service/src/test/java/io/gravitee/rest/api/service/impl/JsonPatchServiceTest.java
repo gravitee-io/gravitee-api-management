@@ -45,65 +45,64 @@ import org.springframework.mock.env.MockEnvironment;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class JsonPatchServiceTest {
 
-    static final String API_DEFINITION =
-        """
-                    {
-                      "description" : "Gravitee.io",
-                      "paths" : { },
-                      "path_mappings":[],
-                      "proxy": {
-                        "virtual_hosts": [{
-                          "path": "/test"
-                        }],
-                        "strip_context_path": false,
-                        "preserve_host":false,
-                        "logging": {
-                          "mode":"CLIENT_PROXY",
-                          "condition":"condition"
-                        },
-                        "groups": [
-                          {
-                            "name": "default-group",
-                            "endpoints": [
-                              {
-                                "name": "default",
-                                "target": "http://test",
-                                "weight": 1,
-                                "backup": true,
-                                "type": "HTTP",
-                                "http": {
-                                  "connectTimeout": 5000,
-                                  "idleTimeout": 60000,
-                                  "keepAliveTimeout": 30000,
-                                  "keepAlive": true,
-                                  "readTimeout": 10000,
-                                  "pipelining": false,
-                                  "maxConcurrentConnections": 100,
-                                  "useCompression": true,
-                                  "followRedirects": false,
-                                  "encodeURI":false
-                                }
-                              }
-                            ],
-                            "load_balancing": {
-                              "type": "ROUND_ROBIN"
-                            },
-                            "http": {
-                              "connectTimeout": 5000,
-                              "idleTimeout": 60000,
-                              "keepAlive": true,
-                              "readTimeout": 10000,
-                              "pipelining": false,
-                              "maxConcurrentConnections": 100,
-                              "useCompression": true,
-                              "followRedirects": false,
-                              "encodeURI":false
-                            }
-                          }
-                        ]
-                      }
+    static final String API_DEFINITION = """
+        {
+          "description" : "Gravitee.io",
+          "paths" : { },
+          "path_mappings":[],
+          "proxy": {
+            "virtual_hosts": [{
+              "path": "/test"
+            }],
+            "strip_context_path": false,
+            "preserve_host":false,
+            "logging": {
+              "mode":"CLIENT_PROXY",
+              "condition":"condition"
+            },
+            "groups": [
+              {
+                "name": "default-group",
+                "endpoints": [
+                  {
+                    "name": "default",
+                    "target": "http://test",
+                    "weight": 1,
+                    "backup": true,
+                    "type": "HTTP",
+                    "http": {
+                      "connectTimeout": 5000,
+                      "idleTimeout": 60000,
+                      "keepAliveTimeout": 30000,
+                      "keepAlive": true,
+                      "readTimeout": 10000,
+                      "pipelining": false,
+                      "maxConcurrentConnections": 100,
+                      "useCompression": true,
+                      "followRedirects": false,
+                      "encodeURI":false
                     }
-                    """;
+                  }
+                ],
+                "load_balancing": {
+                  "type": "ROUND_ROBIN"
+                },
+                "http": {
+                  "connectTimeout": 5000,
+                  "idleTimeout": 60000,
+                  "keepAlive": true,
+                  "readTimeout": 10000,
+                  "pipelining": false,
+                  "maxConcurrentConnections": 100,
+                  "useCompression": true,
+                  "followRedirects": false,
+                  "encodeURI":false
+                }
+              }
+            ]
+          }
+        }
+        """;
 
     JsonPatchServiceImpl jsonPatchService;
 
@@ -120,12 +119,12 @@ class JsonPatchServiceTest {
     void should_replace_endpoint_backup() throws JsonProcessingException {
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(
             """
-                        [
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].backup",
-                            "value": false
-                          }
-                        ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].backup",
+                "value": false
+              }
+            ]""",
             new TypeReference<>() {}
         );
 
@@ -141,12 +140,12 @@ class JsonPatchServiceTest {
     void should_remove_endpoint() throws JsonProcessingException {
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(
             """
-                        [
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')]",
-                            "operation": "REMOVE"
-                          }
-                        ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')]",
+                "operation": "REMOVE"
+              }
+            ]""",
             new TypeReference<>() {}
         );
 
@@ -162,13 +161,13 @@ class JsonPatchServiceTest {
     void should_add_endpoint() throws JsonProcessingException {
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(
             """
-                        [
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
-                            "value": { "name": "new-endpoint" },
-                            "operation": "ADD"
-                          }
-                        ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
+                "value": { "name": "new-endpoint" },
+                "operation": "ADD"
+              }
+            ]""",
             new TypeReference<>() {}
         );
 
@@ -186,23 +185,23 @@ class JsonPatchServiceTest {
     void should_add_endpoint_and_switch_backup() throws JsonProcessingException {
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(
             """
-                        [
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
-                            "value": { "name": "new-endpoint", "backup": false },
-                            "operation": "ADD"
-                          },
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].backup",
-                            "value": false,
-                            "operation": "REPLACE"
-                          },
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'new-endpoint')].backup",
-                            "value": true,
-                            "operation": "REPLACE"
-                          }
-                        ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
+                "value": { "name": "new-endpoint", "backup": false },
+                "operation": "ADD"
+              },
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].backup",
+                "value": false,
+                "operation": "REPLACE"
+              },
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'new-endpoint')].backup",
+                "value": true,
+                "operation": "REPLACE"
+              }
+            ]""",
             new TypeReference<>() {}
         );
 
@@ -222,13 +221,13 @@ class JsonPatchServiceTest {
     void should_add_leaf_property_if_not_exist() throws JsonProcessingException {
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(
             """
-                        [
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].foobar",
-                            "value": 1234,
-                            "operation": "REPLACE"
-                          }
-                        ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].foobar",
+                "value": 1234,
+                "operation": "REPLACE"
+              }
+            ]""",
             new TypeReference<>() {}
         );
 
@@ -245,18 +244,18 @@ class JsonPatchServiceTest {
         // first operation should fail silently, and the second one you go through
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(
             """
-                        [
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'foobar')].foobar",
-                            "value": 1234,
-                            "operation": "REPLACE"
-                          },
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
-                            "value": { "name": "new-endpoint" },
-                            "operation": "ADD"
-                          }
-                        ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'foobar')].foobar",
+                "value": 1234,
+                "operation": "REPLACE"
+              },
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
+                "value": { "name": "new-endpoint" },
+                "operation": "ADD"
+              }
+            ]""",
             new TypeReference<>() {}
         );
 
@@ -274,29 +273,29 @@ class JsonPatchServiceTest {
     @ValueSource(
         strings = {
             """
-                [
-                  {
-                    "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].foobar",
-                    "value": "<script src=”http://localhost:8080”></script>",
-                    "operation": "ADD"
-                  }
-                ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].foobar",
+                "value": "<script src=”http://localhost:8080”></script>",
+                "operation": "ADD"
+              }
+            ]""",
             """
-                [
-                  {
-                    "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
-                    "value": { "name": "new-endpoint", "value": "<script src=”http://localhost:8080”></script>" },
-                    "operation": "ADD"
-                  }
-                ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
+                "value": { "name": "new-endpoint", "value": "<script src=”http://localhost:8080”></script>" },
+                "operation": "ADD"
+              }
+            ]""",
             """
-                [
-                  {
-                    "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
-                    "value": { "name": "new-endpoint", "values": ["<script src=”http://localhost:8080”></script>"] },
-                    "operation": "ADD"
-                  }
-                ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
+                "value": { "name": "new-endpoint", "values": ["<script src=”http://localhost:8080”></script>"] },
+                "operation": "ADD"
+              }
+            ]""",
         }
     )
     void should_generate_an_unsafe_error(String unsafePatch) throws JsonProcessingException {
@@ -309,13 +308,13 @@ class JsonPatchServiceTest {
     void shouldThrowTechnicalManagementExceptionWithInvalidJsonPath() throws JsonProcessingException {
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(
             """
-                        [
-                          {
-                            "jsonPath": "$.proxy.groups[name == 'default-group']",
-                            "value": 1234,
-                            "operation": "REPLACE"
-                          }
-                        ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[name == 'default-group']",
+                "value": 1234,
+                "operation": "REPLACE"
+              }
+            ]""",
             new TypeReference<>() {}
         );
 
@@ -326,28 +325,28 @@ class JsonPatchServiceTest {
     void shouldThrowJsonPatchTestFailedException() throws JsonProcessingException {
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(
             """
-                        [
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
-                            "value": { "name": "new-endpoint", "backup": false },
-                            "operation": "ADD"
-                          },
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].backup",
-                            "value": false,
-                            "operation": "TEST"
-                          },
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].backup",
-                            "value": false,
-                            "operation": "REPLACE"
-                          },
-                          {
-                            "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'new-endpoint')].backup",
-                            "value": true,
-                            "operation": "REPLACE"
-                          }
-                        ]""",
+            [
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints",
+                "value": { "name": "new-endpoint", "backup": false },
+                "operation": "ADD"
+              },
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].backup",
+                "value": false,
+                "operation": "TEST"
+              },
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'default')].backup",
+                "value": false,
+                "operation": "REPLACE"
+              },
+              {
+                "jsonPath": "$.proxy.groups[?(@.name == 'default-group')].endpoints[?(@.name == 'new-endpoint')].backup",
+                "value": true,
+                "operation": "REPLACE"
+              }
+            ]""",
             new TypeReference<>() {}
         );
 
@@ -358,31 +357,31 @@ class JsonPatchServiceTest {
     void shouldManageArrays() throws JsonProcessingException {
         Collection<JsonPatch> jsonPatches = objectMapper.readValue(
             """
-                        [
-                         {
-                           "jsonPath": "$.properties",
-                           "value": "null",
-                           "operation": "TEST"
-                          },
-                         {
-                           "jsonPath": "$.properties",
-                           "value": [
-                             { "key": "a", "value": "0" },
-                             { "key": "b", "value": "1" }
-                           ],
-                           "operation": "REPLACE"
-                          },
-                         {
-                           "jsonPath": "$.properties.length()",
-                           "value": 2,
-                           "operation": "TEST"
-                          },
-                         {
-                           "jsonPath": "$.properties",
-                           "value": { "key": "c", "value": 2 },
-                           "operation": "ADD"
-                          }
-                        ]""",
+            [
+             {
+               "jsonPath": "$.properties",
+               "value": "null",
+               "operation": "TEST"
+              },
+             {
+               "jsonPath": "$.properties",
+               "value": [
+                 { "key": "a", "value": "0" },
+                 { "key": "b", "value": "1" }
+               ],
+               "operation": "REPLACE"
+              },
+             {
+               "jsonPath": "$.properties.length()",
+               "value": 2,
+               "operation": "TEST"
+              },
+             {
+               "jsonPath": "$.properties",
+               "value": { "key": "c", "value": 2 },
+               "operation": "ADD"
+              }
+            ]""",
             new TypeReference<>() {}
         );
 

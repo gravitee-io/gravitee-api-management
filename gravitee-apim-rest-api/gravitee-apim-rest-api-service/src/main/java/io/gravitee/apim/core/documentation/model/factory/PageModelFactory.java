@@ -31,13 +31,13 @@ public class PageModelFactory {
     private PageModelFactory() {}
 
     public static Page fromCRDSpec(String hrid, PageCRD pageCRD) {
-        return Page
-            .builder()
+        return Page.builder()
             .id(pageCRD.getId())
             .hrid(hrid)
             .name(pageCRD.getName())
             .crossId(pageCRD.getCrossId())
             .parentId(pageCRD.getParentId())
+            .parentHrid(pageCRD.getParentHrid())
             .type(Page.Type.valueOf(pageCRD.getType().name()))
             .visibility(Page.Visibility.valueOf(pageCRD.getVisibility().name()))
             .order(pageCRD.getOrder())
@@ -69,12 +69,12 @@ public class PageModelFactory {
     }
 
     public static PageCRD toCRDSpec(Page page) {
-        return PageCRD
-            .builder()
+        return PageCRD.builder()
             .id(page.getId())
             .name(page.getName())
             .crossId(page.getCrossId())
             .parentId(page.getParentId())
+            .parentHrid(page.getParentHrid())
             .type(PageCRD.Type.valueOf(page.getType().name()))
             .visibility(PageCRD.Visibility.valueOf(page.getVisibility().name()))
             .order(page.getOrder())

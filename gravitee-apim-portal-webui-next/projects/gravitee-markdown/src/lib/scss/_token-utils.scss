@@ -18,16 +18,13 @@
 
 // Get the css variable value from the token mapping
 @function slot($token-name, $gmd-tokens) {
-  $token-data: map.get($gmd-tokens, $token-name);
+  $tokens: map.get($gmd-tokens, tokens);
+  $token-data: map.get($tokens, $token-name);
+  $namespace: map.get($gmd-tokens, namespace);
   @if $token-data {
-    $value: map.get($token-data, 'value');
-    $css-var: map.get($token-data, 'css-var');
+    $css-var: -calculate-css-var($namespace, $token-name);
 
-    @if $value {
-      @return var(#{$css-var}, #{$value});
-    } @else {
-      @return var(#{$css-var});
-    }
+    @return var(#{$css-var}, #{$token-data});
   }
   @error 'Token #{$token-name} not found in gmd tokens';
 }
@@ -35,42 +32,33 @@
 /**
 *  Apply token overrides to the component
 */
-@mixin apply-token-overrides($token-mapping, $overrides: ()) {
+@mixin apply-token-overrides($token-values, $overrides: ()) {
+  $token-mapping: map.get($token-values, tokens);
+
   @include -validate-token-overrides($token-mapping, $overrides);
 
-  $token-values: -extract-token-data($token-mapping, 'value');
-  $token-css-vars: -extract-token-data($token-mapping, 'css-var');
-  $merged-overrides: -merge-token-overrides($token-values, $overrides);
+  $merged-overrides: -merge-token-overrides($token-mapping, $overrides);
+  $namespace: map.get($token-values, namespace);
 
-  @each $token, $value in $merged-overrides {
-    $css-var: map.get($token-css-vars, $token);
-    @if $css-var {
-      #{$css-var}: #{$value};
-    }
+  @each $key, $value in $merged-overrides {
+    $css-var: -calculate-css-var($namespace, $key);
+
+    #{$css-var}: #{$value};
   }
+}
+
+@function -calculate-css-var($prefix, $token-name) {
+  @return '--gmd-#{$prefix}-#{$token-name}';
 }
 
 @function -merge-token-overrides($default-tokens, $overrides) {
   @return map.deep-merge($default-tokens, $overrides);
 }
 
-@function -extract-token-data($tokens, $attribute) {
-  $data: ();
-  @each $token-name, $token-data in $tokens {
-    $data: map.deep-merge(
-      $data,
-      (
-        $token-name: map.get($token-data, $attribute),
-      )
-    );
-  }
-  @return $data;
-}
-
-@mixin -validate-token-overrides($token-mapping, $overrides) {
+@mixin -validate-token-overrides($default-values, $overrides) {
   @each $token, $value in $overrides {
-    @if not map.has-key($token-mapping, $token) {
-      @error 'Token "#{$token}" does not exist in the token mapping. Available tokens: #{map.keys($token-mapping)}';
+    @if not map.has-key($default-values, $token) {
+      @error 'Token "#{$token}" does not exist in the token mapping. Available tokens: #{map.keys($default-values)}';
     }
   }
 }

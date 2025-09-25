@@ -24,4 +24,6 @@ public interface PortalPageContextCrudService {
     List<PageId> findAllIdsByContextTypeAndEnvironmentId(PortalViewContext contextType, String environmentId);
 
     PortalPageView findByPageId(PageId pageId);
+
+    PortalPageView update(PageId pageId, PortalPageView toUpdate);
 }

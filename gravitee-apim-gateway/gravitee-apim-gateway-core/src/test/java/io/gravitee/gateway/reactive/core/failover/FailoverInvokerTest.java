@@ -102,12 +102,11 @@ class FailoverInvokerTest {
 
     @Test
     void should_create_a_circuit_breaker_per_subscription() {
-        cut =
-            new FailoverInvoker(
-                endpointInvoker,
-                Failover.builder().slowCallDuration(50).maxRetries(2).perSubscription(true).build(),
-                API_ID
-            );
+        cut = new FailoverInvoker(
+            endpointInvoker,
+            Failover.builder().slowCallDuration(50).maxRetries(2).perSubscription(true).build(),
+            API_ID
+        );
         when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete());
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
         executionContext.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, "first-subscription");
@@ -129,20 +128,21 @@ class FailoverInvokerTest {
 
     @Test
     void should_invoke_endpoint_invoker_with_same_target_on_each_retry() {
-        cut =
-            new FailoverInvoker(
-                endpointInvoker,
-                Failover.builder().slowCallDuration(50).maxRetries(2).perSubscription(false).build(),
-                API_ID
-            );
+        cut = new FailoverInvoker(
+            endpointInvoker,
+            Failover.builder().slowCallDuration(50).maxRetries(2).perSubscription(false).build(),
+            API_ID
+        );
         when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete().delay(100, TimeUnit.MILLISECONDS));
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
         cut
             .invoke(executionContext)
             .test()
             .awaitDone(2, TimeUnit.SECONDS)
-            .assertError(t ->
-                t instanceof InterruptionFailureException && ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
+            .assertError(
+                t ->
+                    t instanceof InterruptionFailureException &&
+                    ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
             );
 
         ArgumentCaptor<HttpExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(HttpExecutionContext.class);
@@ -155,14 +155,15 @@ class FailoverInvokerTest {
 
     @Test
     void should_invoke_endpoint_invoker_with_execution_failure_on_first_attempt_and_complete_on_second_attempt() {
-        cut =
-            new FailoverInvoker(
-                endpointInvoker,
-                Failover.builder().slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
-                API_ID
-            );
-        when(endpointInvoker.invoke(executionContext))
-            .thenReturn(executionContext.interruptWith(new ExecutionFailure(505)), Completable.complete());
+        cut = new FailoverInvoker(
+            endpointInvoker,
+            Failover.builder().slowCallDuration(50000).maxRetries(2).perSubscription(false).build(),
+            API_ID
+        );
+        when(endpointInvoker.invoke(executionContext)).thenReturn(
+            executionContext.interruptWith(new ExecutionFailure(505)),
+            Completable.complete()
+        );
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
         cut.invoke(executionContext).test().awaitDone(2, TimeUnit.SECONDS).assertComplete();
 
@@ -178,20 +179,21 @@ class FailoverInvokerTest {
 
     @Test
     void should_fail_immediately_if_no_retry() {
-        cut =
-            new FailoverInvoker(
-                endpointInvoker,
-                Failover.builder().slowCallDuration(50).maxRetries(0).perSubscription(false).build(),
-                API_ID
-            );
+        cut = new FailoverInvoker(
+            endpointInvoker,
+            Failover.builder().slowCallDuration(50).maxRetries(0).perSubscription(false).build(),
+            API_ID
+        );
         when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete().delay(100, TimeUnit.MILLISECONDS));
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
         cut
             .invoke(executionContext)
             .test()
             .awaitDone(2, TimeUnit.SECONDS)
-            .assertError(t ->
-                t instanceof InterruptionFailureException && ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
+            .assertError(
+                t ->
+                    t instanceof InterruptionFailureException &&
+                    ((InterruptionFailureException) t).getExecutionFailure().statusCode() == 502
             );
 
         ArgumentCaptor<HttpExecutionContext> executionContextArgumentCaptor = ArgumentCaptor.forClass(HttpExecutionContext.class);

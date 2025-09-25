@@ -24,8 +24,7 @@ public class TypeEnvironmentsCreatedAtIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("events")
             .name("t1e1ua")
             .key("type", ascending())

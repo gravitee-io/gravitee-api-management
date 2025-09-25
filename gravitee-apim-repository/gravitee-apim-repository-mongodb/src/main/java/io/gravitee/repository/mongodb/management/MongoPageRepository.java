@@ -124,6 +124,7 @@ public class MongoPageRepository implements PageRepository {
                 pageMongo.setAttachedMedia(null);
             }
             pageMongo.setParentId(page.getParentId());
+            pageMongo.setParentHrid(page.getParentHrid());
             if (page.getSource() != null) {
                 pageMongo.setSource(convert(page.getSource()));
             } else {
@@ -244,11 +245,15 @@ public class MongoPageRepository implements PageRepository {
                 pmm.setAttachedAt(pageMedia.getAttachedAt());
                 return pmm;
             })
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
     public Set<Page> findAll() throws TechnicalException {
-        return internalPageRepo.findAll().stream().map(pageMongo -> mapper.map(pageMongo)).collect(Collectors.toSet());
+        return internalPageRepo
+            .findAll()
+            .stream()
+            .map(pageMongo -> mapper.map(pageMongo))
+            .collect(Collectors.toSet());
     }
 }

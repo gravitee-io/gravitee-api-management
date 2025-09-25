@@ -61,8 +61,7 @@ public abstract class AbstractApiSynchronizer {
         return eventsFlowable
             // fetch per page
             .flatMap(events ->
-                Flowable
-                    .just(events)
+                Flowable.just(events)
                     .doOnNext(e -> log.debug("New api events fetch"))
                     .flatMapIterable(e -> e)
                     .groupBy(Event::getType)
@@ -109,8 +108,7 @@ public abstract class AbstractApiSynchronizer {
                 if (reactableByAction.getKey() == ActionOnApi.DEPLOY) {
                     return reactableByAction
                         .map(reactableApi ->
-                            ApiReactorDeployable
-                                .builder()
+                            ApiReactorDeployable.builder()
                                 .apiId(reactableApi.getId())
                                 .syncAction(SyncAction.DEPLOY)
                                 .reactableApi(reactableApi)

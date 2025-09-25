@@ -107,8 +107,7 @@ public class ListEnvironmentOperationHandlerTest {
 
         when(installationService.get()).thenReturn(installationEntity);
 
-        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload
-            .builder()
+        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload.builder()
             .operation(BridgeOperation.LIST_ENVIRONMENT.name())
             .installationId(INSTALLATION_ID)
             .organizationId(ORGANIZATION_ID)
@@ -162,10 +161,11 @@ public class ListEnvironmentOperationHandlerTest {
 
         // Then
         obs.await();
-        obs.assertValue(reply ->
-            reply.getCommandId().equals(command.getId()) &&
-            reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-            reply.getErrorDetails().equals("No environment available for organization: " + ORGANIZATION_ID)
+        obs.assertValue(
+            reply ->
+                reply.getCommandId().equals(command.getId()) &&
+                reply.getCommandStatus().equals(CommandStatus.ERROR) &&
+                reply.getErrorDetails().equals("No environment available for organization: " + ORGANIZATION_ID)
         );
     }
 }

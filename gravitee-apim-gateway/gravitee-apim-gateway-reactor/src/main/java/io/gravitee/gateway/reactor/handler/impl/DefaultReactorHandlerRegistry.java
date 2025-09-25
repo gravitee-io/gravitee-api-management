@@ -185,19 +185,16 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     }
 
     private Class<? extends Acceptor<?>> resolve(Class<? extends Acceptor> acceptor) {
-        return acceptorsClassMapping.computeIfAbsent(
-            (Class<? extends Acceptor<?>>) acceptor,
-            aClass -> {
-                Class<?>[] acceptorClasses = aClass.getInterfaces();
-                for (Class<?> acceptorClass : acceptorClasses) {
-                    if (Acceptor.class.isAssignableFrom(acceptorClass)) {
-                        return (Class<? extends Acceptor<?>>) acceptorClass;
-                    }
+        return acceptorsClassMapping.computeIfAbsent((Class<? extends Acceptor<?>>) acceptor, aClass -> {
+            Class<?>[] acceptorClasses = aClass.getInterfaces();
+            for (Class<?> acceptorClass : acceptorClasses) {
+                if (Acceptor.class.isAssignableFrom(acceptorClass)) {
+                    return (Class<? extends Acceptor<?>>) acceptorClass;
                 }
-
-                return null;
             }
-        );
+
+            return null;
+        });
     }
 
     private void registerAcceptors(List<? extends Acceptor<?>> newAcceptors) {
@@ -206,18 +203,15 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                 newAcceptors.forEach(acceptor -> {
                     Class<? extends Acceptor<?>> acceptorType = resolve(acceptor.getClass());
                     if (acceptorType != null) {
-                        acceptors.compute(
-                            acceptorType,
-                            (k, v) -> {
-                                if (v == null) {
-                                    v = new ArrayList<>();
-                                }
-                                v.add(acceptor);
-                                // Sort list based on Acceptor comparable
-                                v.sort(null);
-                                return v;
+                        acceptors.compute(acceptorType, (k, v) -> {
+                            if (v == null) {
+                                v = new ArrayList<>();
                             }
-                        );
+                            v.add(acceptor);
+                            // Sort list based on Acceptor comparable
+                            v.sort(null);
+                            return v;
+                        });
                     }
                 });
             }
@@ -230,20 +224,17 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                 previousAcceptors.forEach(acceptor -> {
                     Class<? extends Acceptor<?>> acceptorType = resolve(acceptor.getClass());
                     if (acceptorType != null) {
-                        acceptors.computeIfPresent(
-                            acceptorType,
-                            (k, v) -> {
-                                v.remove(acceptor);
-                                acceptor.clear();
-                                if (!v.isEmpty()) {
-                                    // Sort list based on Acceptor comparable
-                                    v.sort(null);
-                                    return v;
-                                } else {
-                                    return null;
-                                }
+                        acceptors.computeIfPresent(acceptorType, (k, v) -> {
+                            v.remove(acceptor);
+                            acceptor.clear();
+                            if (!v.isEmpty()) {
+                                // Sort list based on Acceptor comparable
+                                v.sort(null);
+                                return v;
+                            } else {
+                                return null;
                             }
-                        );
+                        });
                     }
                 });
             }

@@ -96,16 +96,14 @@ public class DynamicPropertySchedulerTest {
         apiProperties.setProperties(List.of());
         existingApi.setProperties(apiProperties);
 
-        dynamicPropertyScheduler =
-            DynamicPropertyScheduler
-                .builder()
-                .schedule("* * * * * *")
-                .clusterManager(clusterManager)
-                .apiService(apiService)
-                .api(existingApi)
-                .executionContext(executionContext)
-                .apiConverter(apiConverter)
-                .build();
+        dynamicPropertyScheduler = DynamicPropertyScheduler.builder()
+            .schedule("* * * * * *")
+            .clusterManager(clusterManager)
+            .apiService(apiService)
+            .api(existingApi)
+            .executionContext(executionContext)
+            .apiConverter(apiConverter)
+            .build();
         lenient().when(provider.name()).thenReturn("mock");
         testScheduler = new TestScheduler();
         RxJavaPlugins.setComputationSchedulerHandler(scheduler -> testScheduler);
@@ -152,8 +150,13 @@ public class DynamicPropertySchedulerTest {
         testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
 
         verify(apiService, times(1)).update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false));
-        verify(apiService, times(1))
-            .deploy(eq(executionContext), eq(existingApi.getId()), eq("dynamic-property-updater"), eq(EventType.PUBLISH_API), any());
+        verify(apiService, times(1)).deploy(
+            eq(executionContext),
+            eq(existingApi.getId()),
+            eq("dynamic-property-updater"),
+            eq(EventType.PUBLISH_API),
+            any()
+        );
     }
 
     @Test
@@ -161,8 +164,9 @@ public class DynamicPropertySchedulerTest {
         when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
         when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(true);
 
-        when(apiService.update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false)))
-            .thenThrow(new TechnicalManagementException("Unable to update the API"));
+        when(apiService.update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false))).thenThrow(
+            new TechnicalManagementException("Unable to update the API")
+        );
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
         dynamicPropertyScheduler.schedule(provider);

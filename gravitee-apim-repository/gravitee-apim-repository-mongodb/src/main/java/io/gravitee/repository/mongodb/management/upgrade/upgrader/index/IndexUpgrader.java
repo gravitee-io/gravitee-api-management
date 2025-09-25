@@ -68,8 +68,7 @@ public abstract class IndexUpgrader extends IndexMongoUpgrader {
             })
             .cache();
 
-        Flux
-            .interval(Duration.ofSeconds(10))
+        Flux.interval(Duration.ofSeconds(10))
             .doOnNext(t ->
                 LOG.info("Index {} on {} is still being created...", name, collection)
             )

@@ -263,8 +263,7 @@ class ApisResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     any()
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = target.request().post(Entity.json(new CreateApiV4()));
 
@@ -354,16 +353,16 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_created_api() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
+                invocation.getArgument(0)
+            );
 
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
-                .thenAnswer(invocation -> {
-                    Api api = invocation.getArgument(0);
-                    return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionHttpV4().getFlows());
-                });
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
+                Api api = invocation.getArgument(0);
+                return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionHttpV4().getFlows());
+            });
 
             var newApi = aValidV4Api();
 
@@ -393,16 +392,16 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_created_native_api() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
+                invocation.getArgument(0)
+            );
 
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
-                .thenAnswer(invocation -> {
-                    Api api = invocation.getArgument(0);
-                    return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionNativeV4().getFlows());
-                });
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
+                Api api = invocation.getArgument(0);
+                return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionNativeV4().getFlows());
+            });
 
             var newApi = aValidNativeV4Api();
 
@@ -432,16 +431,16 @@ class ApisResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_created_native_api_without_kafka_listener_port() {
-            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
+                invocation.getArgument(0)
+            );
 
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any()))
-                .thenAnswer(invocation -> {
-                    Api api = invocation.getArgument(0);
-                    return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionNativeV4().getFlows());
-                });
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
+                Api api = invocation.getArgument(0);
+                return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionNativeV4().getFlows());
+            });
 
             var newApi = aValidNativeV4Api();
             var kafkaListenerWithoutPort = newApi.getListeners().getFirst().getKafkaListener().port(null);
@@ -614,8 +613,7 @@ class ApisResourceTest extends AbstractResourceTest {
             when(verifyApiPathDomainService.validateAndSanitize(any())).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
             roleQueryService.initWith(
                 List.of(
-                    Role
-                        .builder()
+                    Role.builder()
                         .name(PRIMARY_OWNER.name())
                         .referenceType(Role.ReferenceType.ORGANIZATION)
                         .referenceId(ORGANIZATION)
@@ -633,8 +631,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -642,8 +639,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
                             .errors(
-                                ApiCRDStatus.Errors
-                                    .builder()
+                                ApiCRDStatus.Errors.builder()
                                     .warning(List.of("category [unknown-category] is not defined in environment [fake-env]"))
                                     .severe(List.of())
                                     .build()
@@ -662,8 +658,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -671,8 +666,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
                             .errors(
-                                ApiCRDStatus.Errors
-                                    .builder()
+                                ApiCRDStatus.Errors.builder()
                                     .warning(List.of("member [unknown] of source [memory] could not be found in organization [fake-org]"))
                                     .severe(List.of())
                                     .build()
@@ -691,8 +685,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -700,8 +693,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
                             .errors(
-                                ApiCRDStatus.Errors
-                                    .builder()
+                                ApiCRDStatus.Errors.builder()
                                     .warning(List.of("Group [unknown-group] could not be found in environment [fake-env]"))
                                     .severe(List.of())
                                     .build()
@@ -720,8 +712,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -742,8 +733,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")
@@ -751,8 +741,7 @@ class ApisResourceTest extends AbstractResourceTest {
                             .plan("API_KEY", "6bf5ca72-e70b-4f59-b0a6-b5dca782ce24")
                             .state("STARTED")
                             .errors(
-                                ApiCRDStatus.Errors
-                                    .builder()
+                                ApiCRDStatus.Errors.builder()
                                     .severe(List.of("property [owner] is required in [github-fetcher] configuration for page [swagger]"))
                                     .warning(List.of())
                                     .build()
@@ -771,8 +760,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft
                     .assertThat(crdStatus)
                     .isEqualTo(
-                        ApiCRDStatus
-                            .builder()
+                        ApiCRDStatus.builder()
                             .organizationId(ORGANIZATION)
                             .environmentId(ENVIRONMENT)
                             .crossId("f4feb2f7-ae13-47bc-800f-289592105119")

@@ -83,19 +83,18 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
     }
 
     protected Stream<Arguments> provideWrongSecurityHeaders() {
-        return provideApis()
-            .flatMap(arguments -> {
-                String apiId = (String) arguments.get()[0];
-                return Stream.of(
-                    Arguments.of(apiId, null, null),
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
-                    Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
-                    Arguments.of(apiId, "Authorization", ""),
-                    Arguments.of(apiId, "Authorization", "Bearer"),
-                    Arguments.of(apiId, "Authorization", "Bearer "),
-                    Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
-                );
-            });
+        return provideApis().flatMap(arguments -> {
+            String apiId = (String) arguments.get()[0];
+            return Stream.of(
+                Arguments.of(apiId, null, null),
+                Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                Arguments.of(apiId, "X-Gravitee-Api-Key", ""),
+                Arguments.of(apiId, "Authorization", ""),
+                Arguments.of(apiId, "Authorization", "Bearer"),
+                Arguments.of(apiId, "Authorization", "Bearer "),
+                Arguments.of(apiId, "Authorization", "Bearer a-jwt-token")
+            );
+        });
     }
 
     @ParameterizedTest
@@ -258,14 +257,14 @@ public class PlanApiKeyV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     private OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(ApiKey apiKey) {
         return when(
-            getBean(SubscriptionService.class)
-                .getByApiAndSecurityToken(
-                    eq(apiKey.getApi()),
-                    argThat(securityToken ->
+            getBean(SubscriptionService.class).getByApiAndSecurityToken(
+                eq(apiKey.getApi()),
+                argThat(
+                    securityToken ->
                         securityToken.getTokenType().equals(API_KEY.name()) && securityToken.getTokenValue().equals(apiKey.getKey())
-                    ),
-                    eq(apiKey.getPlan())
-                )
+                ),
+                eq(apiKey.getPlan())
+            )
         );
     }
 }

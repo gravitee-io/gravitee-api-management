@@ -48,8 +48,7 @@ public class GroupCRDSpec {
     private String origin = Origin.KUBERNETES.name();
 
     public Group toGroup(String environmentId) {
-        return Group
-            .builder()
+        return Group.builder()
             .origin(origin)
             .id(id)
             .name(name)

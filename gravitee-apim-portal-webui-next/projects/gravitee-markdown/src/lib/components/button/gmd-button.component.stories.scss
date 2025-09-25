@@ -1,0 +1,49 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use './public-api' as gmd;
+
+.with-custom-theming {
+  @include gmd.button-overrides(
+    (
+      text-label-text-weight: 700,
+      text-label-text-size: 22px,
+      text-label-text-color: #c81f3c,
+      text-container-shape: 99px,
+      text-hover-container-color: #e39aad,
+      text-active-container-color: #e35b6f,
+      text-horizontal-padding: 32px,
+
+      outlined-container-shape: 99px,
+      outlined-label-text-weight: 700,
+      outlined-label-text-size: 22px,
+      outlined-outline-color: #c81f3c,
+      outlined-outline-width: 6px,
+      outlined-hover-container-color: #bd7a84,
+      outlined-active-container-color: #f8bec7,
+      outlined-label-text-color: #c81f3c,
+      outlined-horizontal-padding: 32px,
+
+      filled-container-shape: 99px,
+      filled-label-text-weight: 700,
+      filled-label-text-size: 22px,
+      filled-container-color: #c81f3c,
+      filled-hover-container-color: #c65b6e,
+      filled-active-container-color: #bf6d7a,
+      filled-label-text-color: white,
+      filled-horizontal-padding: 32px,
+    )
+  );
+}

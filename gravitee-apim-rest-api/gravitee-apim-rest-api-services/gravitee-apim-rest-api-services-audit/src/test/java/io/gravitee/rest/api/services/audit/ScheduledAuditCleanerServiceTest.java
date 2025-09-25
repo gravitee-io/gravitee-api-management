@@ -64,17 +64,16 @@ class ScheduledAuditCleanerServiceTest {
 
     @BeforeEach
     void setup() {
-        sut =
-            new ScheduledAuditCleanerService(
-                scheduler,
-                "",
-                true,
-                1,
-                removeOldAuditDataUseCase,
-                organizationService,
-                environmentService,
-                clusterManager
-            );
+        sut = new ScheduledAuditCleanerService(
+            scheduler,
+            "",
+            true,
+            1,
+            removeOldAuditDataUseCase,
+            organizationService,
+            environmentService,
+            clusterManager
+        );
     }
 
     @Test

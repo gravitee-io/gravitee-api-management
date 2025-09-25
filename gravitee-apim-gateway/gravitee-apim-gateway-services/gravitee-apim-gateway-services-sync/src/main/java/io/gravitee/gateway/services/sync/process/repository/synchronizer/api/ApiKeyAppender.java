@@ -82,8 +82,7 @@ public class ApiKeyAppender {
     ) {
         try {
             Map<String, Subscription> subscriptionsById = subscriptions.stream().collect(Collectors.toMap(Subscription::getId, s -> s));
-            ApiKeyCriteria.ApiKeyCriteriaBuilder criteriaBuilder = ApiKeyCriteria
-                .builder()
+            ApiKeyCriteria.ApiKeyCriteriaBuilder criteriaBuilder = ApiKeyCriteria.builder()
                 .subscriptions(subscriptionsById.keySet())
                 .environments(environments);
             if (initialSync) {

@@ -48,12 +48,14 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
 
     @Override
     public Maybe<DistributedSyncState> findByClusterId(final String clusterId) {
-        return Maybe
-            .defer(() ->
-                Maybe.fromCompletionStage(
-                    redisClient.redisApi().flatMap(redisAPI -> redisAPI.hgetall(REDIS_KEY_PREFIX + clusterId)).toCompletionStage()
-                )
+        return Maybe.defer(() ->
+            Maybe.fromCompletionStage(
+                redisClient
+                    .redisApi()
+                    .flatMap(redisAPI -> redisAPI.hgetall(REDIS_KEY_PREFIX + clusterId))
+                    .toCompletionStage()
             )
+        )
             .filter(response -> response.type() == ResponseType.MULTI && response.size() != 0)
             .map(item -> {
                 DistributedSyncState.DistributedSyncStateBuilder distributedSyncStateBuilder = DistributedSyncState.builder();

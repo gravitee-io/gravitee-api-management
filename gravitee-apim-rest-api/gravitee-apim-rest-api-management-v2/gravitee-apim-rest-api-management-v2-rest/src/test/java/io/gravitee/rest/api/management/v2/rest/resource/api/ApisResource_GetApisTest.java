@@ -99,8 +99,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq(ENVIRONMENT),
                 any()
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
@@ -137,8 +136,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq(new SortableImpl("name", true)),
                 eq(new PageableImpl(1, 10))
             )
-        )
-            .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
+        ).thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -216,8 +214,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq(new SortableImpl("name", true)),
                 eq(new PageableImpl(1, 10))
             )
-        )
-            .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
+        ).thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -295,8 +292,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq(new SortableImpl("name", true)),
                 eq(new PageableImpl(1, 10))
             )
-        )
-            .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
+        ).thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -368,8 +364,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq(new SortableImpl("name", true)),
                 eq(new PageableImpl(1, 2))
             )
-        )
-            .thenReturn(new Page<>(apiList, 1, 2, 42));
+        ).thenReturn(new Page<>(apiList, 1, 2, 42));
 
         final Response response = rootTarget()
             .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
@@ -434,8 +429,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
                 eq(new SortableImpl("name", true)),
                 eq(new PageableImpl(1, 2))
             )
-        )
-            .thenReturn(new Page<>(apiList, 1, 2, 42));
+        ).thenReturn(new Page<>(apiList, 1, 2, 42));
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1))).thenReturn(true);
 
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi2))).thenReturn(false);

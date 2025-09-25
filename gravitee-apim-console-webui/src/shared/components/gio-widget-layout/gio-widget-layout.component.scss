@@ -15,6 +15,10 @@ $cardHeaderBorderColor: map.get(gio.$mat-theme, foreground);
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
+
+    &__tooltip-icon {
+      color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, 'darker20');
+    }
   }
 
   &__header {

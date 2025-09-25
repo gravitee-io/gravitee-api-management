@@ -49,32 +49,31 @@ class HealthCheckLogAdapterTest {
             var result = adapter.adaptQuery(query);
 
             // Then
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                                {
-                                   "query": {
-                                     "bool": {
-                                       "filter": [
-                                         { "term": { "api": "my-api-id" } },
-                                         {
-                                           "range": {
-                                             "@timestamp": {
-                                               "from": 1697883330000,
-                                               "to": 1697969730000,
-                                               "include_lower": true,
-                                               "include_upper": true
-                                             }
-                                           }
-                                         }
-                                       ]
-                                     }
-                                   },
-                                   "sort": [{ "@timestamp": { "order": "asc" } }],
-                                   "size": 5,
-                                   "from": 0
-                                 }"""
-                );
+            assertThatJson(result).isEqualTo(
+                """
+                {
+                   "query": {
+                     "bool": {
+                       "filter": [
+                         { "term": { "api": "my-api-id" } },
+                         {
+                           "range": {
+                             "@timestamp": {
+                               "from": 1697883330000,
+                               "to": 1697969730000,
+                               "include_lower": true,
+                               "include_upper": true
+                             }
+                           }
+                         }
+                       ]
+                     }
+                   },
+                   "sort": [{ "@timestamp": { "order": "asc" } }],
+                   "size": 5,
+                   "from": 0
+                 }"""
+            );
         }
 
         @Test
@@ -88,33 +87,32 @@ class HealthCheckLogAdapterTest {
             var result = adapter.adaptQuery(query);
 
             // Then
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                                {
-                                   "query": {
-                                     "bool": {
-                                       "must": { "term": { "success": false } },
-                                       "filter": [
-                                         { "term": { "api": "my-api-id" } },
-                                         {
-                                           "range": {
-                                             "@timestamp": {
-                                               "from": 1697883330000,
-                                               "to": 1697969730000,
-                                               "include_lower": true,
-                                               "include_upper": true
-                                             }
-                                           }
-                                         }
-                                       ]
-                                     }
-                                   },
-                                   "sort": [{ "@timestamp": { "order": "asc" } }],
-                                   "size": 5,
-                                   "from": 0
-                                 }"""
-                );
+            assertThatJson(result).isEqualTo(
+                """
+                {
+                   "query": {
+                     "bool": {
+                       "must": { "term": { "success": false } },
+                       "filter": [
+                         { "term": { "api": "my-api-id" } },
+                         {
+                           "range": {
+                             "@timestamp": {
+                               "from": 1697883330000,
+                               "to": 1697969730000,
+                               "include_lower": true,
+                               "include_upper": true
+                             }
+                           }
+                         }
+                       ]
+                     }
+                   },
+                   "sort": [{ "@timestamp": { "order": "asc" } }],
+                   "size": 5,
+                   "from": 0
+                 }"""
+            );
         }
 
         @Test
@@ -128,32 +126,31 @@ class HealthCheckLogAdapterTest {
             var result = adapter.adaptQuery(query);
 
             // Then
-            assertThatJson(result)
-                .isEqualTo(
-                    """
-                                {
-                                   "query": {
-                                     "bool": {
-                                       "filter": [
-                                         { "term": { "api": "my-api-id" } },
-                                         {
-                                           "range": {
-                                             "@timestamp": {
-                                               "from": 1697883330000,
-                                               "to": 1697969730000,
-                                               "include_lower": true,
-                                               "include_upper": true
-                                             }
-                                           }
-                                         }
-                                       ]
-                                     }
-                                   },
-                                   "sort": [{ "@timestamp": { "order": "asc" } }],
-                                   "size": 5,
-                                   "from": 10
-                                 }"""
-                );
+            assertThatJson(result).isEqualTo(
+                """
+                {
+                   "query": {
+                     "bool": {
+                       "filter": [
+                         { "term": { "api": "my-api-id" } },
+                         {
+                           "range": {
+                             "@timestamp": {
+                               "from": 1697883330000,
+                               "to": 1697969730000,
+                               "include_lower": true,
+                               "include_upper": true
+                             }
+                           }
+                         }
+                       ]
+                     }
+                   },
+                   "sort": [{ "@timestamp": { "order": "asc" } }],
+                   "size": 5,
+                   "from": 10
+                 }"""
+            );
         }
     }
 }

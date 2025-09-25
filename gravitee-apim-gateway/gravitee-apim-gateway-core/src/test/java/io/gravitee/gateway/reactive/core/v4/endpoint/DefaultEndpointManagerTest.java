@@ -115,8 +115,12 @@ class DefaultEndpointManagerTest {
             final EndpointConnector connector3 = mock(EndpointConnector.class);
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_SHARED_CONFIG_OVERRIDE))
-                .thenReturn(connector1, connector2, connector3, connector4);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_SHARED_CONFIG_OVERRIDE)).thenReturn(
+                connector1,
+                connector2,
+                connector3,
+                connector4
+            );
             final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
@@ -138,8 +142,12 @@ class DefaultEndpointManagerTest {
             final EndpointConnector connector3 = mock(EndpointConnector.class);
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
-                .thenReturn(connector1, connector2, connector3, connector4);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(
+                connector1,
+                connector2,
+                connector3,
+                connector4
+            );
             final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
 
@@ -162,9 +170,10 @@ class DefaultEndpointManagerTest {
             api.getEndpointGroups().forEach(g -> g.setName("group" + i.incrementAndGet()));
 
             i.set(0);
-            Stream
-                .concat(api.getEndpointGroups().get(0).getEndpoints().stream(), api.getEndpointGroups().get(1).getEndpoints().stream())
-                .forEachOrdered(e -> e.setName("endpoint" + i.incrementAndGet()));
+            Stream.concat(
+                api.getEndpointGroups().get(0).getEndpoints().stream(),
+                api.getEndpointGroups().get(1).getEndpoints().stream()
+            ).forEachOrdered(e -> e.setName("endpoint" + i.incrementAndGet()));
 
             final EndpointConnector connector = mock(EndpointConnector.class);
 
@@ -274,8 +283,12 @@ class DefaultEndpointManagerTest {
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
             when(connector2.preStop()).thenThrow(new Exception(MOCK_EXCEPTION));
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
-                .thenReturn(connector1, connector2, connector3, connector4);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(
+                connector1,
+                connector2,
+                connector3,
+                connector4
+            );
 
             final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
@@ -297,8 +310,12 @@ class DefaultEndpointManagerTest {
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
             when(connector2.stop()).thenThrow(new Exception(MOCK_EXCEPTION));
-            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG))
-                .thenReturn(connector1, connector2, connector3, connector4);
+            when(connectorFactory.createConnector(deploymentContext, ENDPOINT_CONFIG, ENDPOINT_GROUP_SHARED_CONFIG)).thenReturn(
+                connector1,
+                connector2,
+                connector3,
+                connector4
+            );
 
             final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
@@ -370,8 +387,7 @@ class DefaultEndpointManagerTest {
             var api = buildApi();
             var groupName = api.getEndpointGroups().get(0).getName();
             var endpointToUpdate = api.getEndpointGroups().get(0).getEndpoints().get(0);
-            var updatedEndpoint = Endpoint
-                .builder()
+            var updatedEndpoint = Endpoint.builder()
                 .name(endpointToUpdate.getName())
                 .type(endpointToUpdate.getType())
                 .configuration("updated")
@@ -443,8 +459,12 @@ class DefaultEndpointManagerTest {
             final EndpointConnector connector3 = mock(EndpointConnector.class);
             final EndpointConnector connector4 = mock(EndpointConnector.class);
 
-            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString()))
-                .thenReturn(connector1, connector2, connector3, connector4);
+            when(connectorFactory.createConnector(eq(deploymentContext), anyString(), anyString())).thenReturn(
+                connector1,
+                connector2,
+                connector3,
+                connector4
+            );
 
             final DefaultEndpointManager cut = new DefaultEndpointManager(api, pluginManager, deploymentContext, gatewayConfiguration);
             cut.start();
@@ -770,8 +790,7 @@ class DefaultEndpointManagerTest {
     }
 
     private EndpointGroup anEndpointGroup(Supplier<Endpoint> endpointSupplier) {
-        return EndpointGroup
-            .builder()
+        return EndpointGroup.builder()
             .name(randomUUID().toString())
             .type(ENDPOINT_TYPE)
             .sharedConfiguration(ENDPOINT_GROUP_SHARED_CONFIG)
@@ -789,8 +808,7 @@ class DefaultEndpointManagerTest {
     }
 
     private EndpointGroup anEndpointGroupFromEndpoints(Supplier<List<Endpoint>> endpointsSupplier) {
-        return EndpointGroup
-            .builder()
+        return EndpointGroup.builder()
             .name(randomUUID().toString())
             .type(ENDPOINT_TYPE)
             .sharedConfiguration(ENDPOINT_GROUP_SHARED_CONFIG)
@@ -799,8 +817,7 @@ class DefaultEndpointManagerTest {
     }
 
     Endpoint anEndpointWithSharedConfigurationOverride(String configuration) {
-        return Endpoint
-            .builder()
+        return Endpoint.builder()
             .name(randomUUID().toString())
             .type(ENDPOINT_TYPE)
             .configuration(ENDPOINT_CONFIG)
@@ -810,8 +827,7 @@ class DefaultEndpointManagerTest {
     }
 
     Endpoint anEndpointWithInheritedConfig() {
-        return Endpoint
-            .builder()
+        return Endpoint.builder()
             .name(randomUUID().toString())
             .type(ENDPOINT_TYPE)
             .configuration(ENDPOINT_CONFIG)

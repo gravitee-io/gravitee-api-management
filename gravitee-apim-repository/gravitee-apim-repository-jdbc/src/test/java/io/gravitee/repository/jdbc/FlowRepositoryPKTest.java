@@ -47,12 +47,9 @@ public class FlowRepositoryPKTest extends AbstractManagementRepositoryTest {
     public void shouldHaveNoNullIds() {
         final JdbcTemplate jt = new JdbcTemplate(dataSource);
         AtomicBoolean areIdsOk = new AtomicBoolean(false);
-        jt.query(
-            "SELECT COUNT(*) FROM test_gio_flow_steps WHERE test_gio_flow_steps.id IS NULL",
-            rs -> {
-                areIdsOk.set(rs.getInt(1) == 0);
-            }
-        );
+        jt.query("SELECT COUNT(*) FROM test_gio_flow_steps WHERE test_gio_flow_steps.id IS NULL", rs -> {
+            areIdsOk.set(rs.getInt(1) == 0);
+        });
         assertTrue(areIdsOk.get());
     }
 }

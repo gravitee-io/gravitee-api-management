@@ -88,14 +88,14 @@ public class GroupServiceImplTest {
                 UPDATE,
                 DELETE
             )
-        )
-            .thenReturn(false);
+        ).thenReturn(false);
 
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Set.of());
 
         RoleEntity roleEntity = RoleEntity.builder().id("re1").build();
-        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId()))
-            .thenReturn(Optional.of(roleEntity));
+        when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), executionContext.getOrganizationId())).thenReturn(
+            Optional.of(roleEntity)
+        );
 
         Set<MembershipEntity> memberships = Set.of(
             MembershipEntity.builder().id("m1").referenceId("gr1").build(),
@@ -108,11 +108,9 @@ public class GroupServiceImplTest {
                 eq(MembershipReferenceType.GROUP),
                 eq(roleEntity.getId())
             )
-        )
-            .thenReturn(memberships);
+        ).thenReturn(memberships);
 
-        GroupCriteria groupCriteria = GroupCriteria
-            .builder()
+        GroupCriteria groupCriteria = GroupCriteria.builder()
             .environmentId(executionContext.getEnvironmentId())
             .query(searchTerm)
             .idIn(Set.of("gr1", "gr2"))
@@ -148,8 +146,7 @@ public class GroupServiceImplTest {
                 UPDATE,
                 DELETE
             )
-        )
-            .thenReturn(true);
+        ).thenReturn(true);
 
         GroupCriteria groupCriteria = GroupCriteria.builder().environmentId(executionContext.getEnvironmentId()).query(searchTerm).build();
         List<Group> groups = List.of(Group.builder().id("gr1").build(), Group.builder().id("gr2").build());

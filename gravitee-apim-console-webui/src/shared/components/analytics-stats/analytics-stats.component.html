@@ -17,6 +17,10 @@
 -->
 <div class="analytics-stats">
   <p class="analytics-stats__record">
-    {{ input().stats != null ? (input().stats | number) + (input().statsUnit ?? '') : '-' }}
+    {{ statsFormatted() }}
+
+    @if (isTooltipShown()) {
+      <mat-icon class="icon" svgIcon="gio:info" [matTooltip]="tooltipText()" matTooltipPosition="right"></mat-icon>
+    }
   </p>
 </div>

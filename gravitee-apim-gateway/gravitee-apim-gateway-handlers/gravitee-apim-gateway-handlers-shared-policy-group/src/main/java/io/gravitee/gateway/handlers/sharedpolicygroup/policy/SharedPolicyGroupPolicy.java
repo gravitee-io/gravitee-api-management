@@ -76,13 +76,11 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
 
     private Optional<HttpPolicyChain> getPolicyChain(BaseExecutionContext ctx) {
         final SharedPolicyGroupRegistry sharedPolicyGroupRegistry = ctx.getComponent(SharedPolicyGroupRegistry.class);
-        return Optional
-            .ofNullable(
-                sharedPolicyGroupRegistry.get(
-                    policyConfiguration.getSharedPolicyGroupId(),
-                    ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)
-                )
+        return Optional.ofNullable(
+            sharedPolicyGroupRegistry.get(
+                policyConfiguration.getSharedPolicyGroupId(),
+                ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)
             )
-            .map(SharedPolicyGroupReactor::policyChain);
+        ).map(SharedPolicyGroupReactor::policyChain);
     }
 }

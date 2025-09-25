@@ -71,11 +71,10 @@ class ApiEventListenerTest {
         );
         verify(managementApiServicesManager).deployServices(coreApiCaptor.capture());
 
-        assertThat(coreApiCaptor.getValue())
-            .satisfies(api -> {
-                assertThat(api.getId()).isEqualTo(eventApi.getId());
-                assertThat(api.getName()).isEqualTo(eventApi.getName());
-            });
+        assertThat(coreApiCaptor.getValue()).satisfies(api -> {
+            assertThat(api.getId()).isEqualTo(eventApi.getId());
+            assertThat(api.getName()).isEqualTo(eventApi.getName());
+        });
     }
 
     @ParameterizedTest
@@ -95,11 +94,10 @@ class ApiEventListenerTest {
         );
         verify(managementApiServicesManager).undeployServices(coreApiCaptor.capture());
 
-        assertThat(coreApiCaptor.getValue())
-            .satisfies(api -> {
-                assertThat(api.getId()).isEqualTo(eventApi.getId());
-                assertThat(api.getName()).isEqualTo(eventApi.getName());
-            });
+        assertThat(coreApiCaptor.getValue()).satisfies(api -> {
+            assertThat(api.getId()).isEqualTo(eventApi.getId());
+            assertThat(api.getName()).isEqualTo(eventApi.getName());
+        });
     }
 
     @ParameterizedTest
@@ -119,11 +117,10 @@ class ApiEventListenerTest {
         );
         verify(managementApiServicesManager).updateServices(coreApiCaptor.capture());
 
-        assertThat(coreApiCaptor.getValue())
-            .satisfies(api -> {
-                assertThat(api.getId()).isEqualTo(eventApi.getId());
-                assertThat(api.getName()).isEqualTo(eventApi.getName());
-            });
+        assertThat(coreApiCaptor.getValue()).satisfies(api -> {
+            assertThat(api.getId()).isEqualTo(eventApi.getId());
+            assertThat(api.getName()).isEqualTo(eventApi.getName());
+        });
     }
 
     @ParameterizedTest
@@ -144,11 +141,10 @@ class ApiEventListenerTest {
         );
         verify(managementApiServicesManager).startDynamicProperties(coreApiCaptor.capture());
 
-        assertThat(coreApiCaptor.getValue())
-            .satisfies(api -> {
-                assertThat(api.getId()).isEqualTo(eventApi.getId());
-                assertThat(api.getName()).isEqualTo(eventApi.getName());
-            });
+        assertThat(coreApiCaptor.getValue()).satisfies(api -> {
+            assertThat(api.getId()).isEqualTo(eventApi.getId());
+            assertThat(api.getName()).isEqualTo(eventApi.getName());
+        });
     }
 
     @ParameterizedTest
@@ -169,10 +165,9 @@ class ApiEventListenerTest {
         );
         verify(managementApiServicesManager).stopDynamicProperties(coreApiCaptor.capture());
 
-        assertThat(coreApiCaptor.getValue())
-            .satisfies(api -> {
-                assertThat(api.getId()).isEqualTo(eventApi.getId());
-                assertThat(api.getName()).isEqualTo(eventApi.getName());
-            });
+        assertThat(coreApiCaptor.getValue()).satisfies(api -> {
+            assertThat(api.getId()).isEqualTo(eventApi.getId());
+            assertThat(api.getName()).isEqualTo(eventApi.getName());
+        });
     }
 }

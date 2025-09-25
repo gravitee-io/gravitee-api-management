@@ -60,14 +60,13 @@ class AccessPointSynchronizerTest {
 
     @BeforeEach
     public void beforeEach() {
-        cut =
-            new AccessPointSynchronizer(
-                accessPointFetcher,
-                new AccessPointMapper(),
-                deployerFactory,
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
-            );
+        cut = new AccessPointSynchronizer(
+            accessPointFetcher,
+            new AccessPointMapper(),
+            deployerFactory,
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+        );
 
         lenient().when(accessPointFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(List.of()));
         lenient().when(accessPointFetcher.bulkItems()).thenReturn(100);

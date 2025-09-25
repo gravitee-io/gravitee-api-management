@@ -74,13 +74,12 @@ public class IntegrationQueryServiceImpl extends AbstractService implements Inte
                     .stream()
                     .map(MembershipEntity::getReferenceId)
                     .collect(Collectors.toSet());
-                integrations =
-                    integrationRepository.findAllByEnvironmentAndGroups(
-                        environmentId,
-                        integrationAccessibleDirectlyByUser,
-                        groups,
-                        convert(pageable)
-                    );
+                integrations = integrationRepository.findAllByEnvironmentAndGroups(
+                    environmentId,
+                    integrationAccessibleDirectlyByUser,
+                    groups,
+                    convert(pageable)
+                );
             }
             return integrations.map(IntegrationAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {

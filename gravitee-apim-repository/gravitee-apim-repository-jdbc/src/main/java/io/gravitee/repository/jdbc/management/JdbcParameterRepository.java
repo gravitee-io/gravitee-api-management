@@ -53,22 +53,21 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
 
     @Override
     protected JdbcObjectMapper<Parameter> buildOrm() {
-        return JdbcObjectMapper
-            .builder(Parameter.class, this.tableName)
+        return JdbcObjectMapper.builder(Parameter.class, this.tableName)
             .updateSql(
                 "update " +
-                this.tableName +
-                " set " +
-                escapeReservedWord("key") +
-                " = ?" +
-                " , reference_type = ?" +
-                " , reference_id = ?" +
-                " , value = ?" +
-                " where " +
-                escapeReservedWord("key") +
-                " = ? " +
-                "and reference_type = ? " +
-                "and reference_id = ? "
+                    this.tableName +
+                    " set " +
+                    escapeReservedWord("key") +
+                    " = ?" +
+                    " , reference_type = ?" +
+                    " , reference_id = ?" +
+                    " , value = ?" +
+                    " where " +
+                    escapeReservedWord("key") +
+                    " = ? " +
+                    "and reference_type = ? " +
+                    "and reference_id = ? "
             )
             .addColumn("key", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, ParameterReferenceType.class)
@@ -101,26 +100,24 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            final PreparedStatementCreator psc = getOrm()
-                .buildUpdatePreparedStatementCreator(
-                    parameter,
-                    parameter.getKey(),
-                    parameter.getReferenceType().name(),
-                    parameter.getReferenceId()
-                );
+            final PreparedStatementCreator psc = getOrm().buildUpdatePreparedStatementCreator(
+                parameter,
+                parameter.getKey(),
+                parameter.getReferenceType().name(),
+                parameter.getReferenceId()
+            );
             jdbcTemplate.update(psc);
 
-            return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType())
-                .orElseThrow(() ->
-                    new IllegalStateException(
-                        format(
-                            "No parameter found with id [%s, %s, %s]",
-                            parameter.getKey(),
-                            parameter.getReferenceId(),
-                            parameter.getReferenceType()
-                        )
+            return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType()).orElseThrow(() ->
+                new IllegalStateException(
+                    format(
+                        "No parameter found with id [%s, %s, %s]",
+                        parameter.getKey(),
+                        parameter.getReferenceId(),
+                        parameter.getReferenceType()
                     )
-                );
+                )
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -135,10 +132,10 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
         try {
             jdbcTemplate.update(
                 "delete from " +
-                this.tableName +
-                " where " +
-                escapeReservedWord("key") +
-                " = ? and reference_type = ? and reference_id = ? ",
+                    this.tableName +
+                    " where " +
+                    escapeReservedWord("key") +
+                    " = ? and reference_type = ? and reference_id = ? ",
                 key,
                 referenceType.name(),
                 referenceId
@@ -177,11 +174,11 @@ public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Param
             }
             List<Parameter> parameters = jdbcTemplate.query(
                 getOrm().getSelectAllSql() +
-                " where reference_id = ? and reference_type = ? and " +
-                escapeReservedWord("key") +
-                " in ( " +
-                getOrm().buildInClause(keys) +
-                " )",
+                    " where reference_id = ? and reference_type = ? and " +
+                    escapeReservedWord("key") +
+                    " in ( " +
+                    getOrm().buildInClause(keys) +
+                    " )",
                 (PreparedStatement ps) -> {
                     ps.setString(1, referenceId);
                     ps.setString(2, referenceType.name());

@@ -148,8 +148,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         roleQueryService.initWith(
             List.of(
-                io.gravitee.apim.core.membership.model.Role
-                    .builder()
+                io.gravitee.apim.core.membership.model.Role.builder()
                     .id(ROLE_ID)
                     .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
                     .referenceType(Role.ReferenceType.ORGANIZATION)
@@ -165,20 +164,18 @@ class ApiPagesResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        Stream
-            .of(
-                pageQueryServiceInMemory,
-                pageCrudServiceInMemory,
-                pageRevisionCrudServiceInMemory,
-                auditCrudService,
-                apiCrudServiceInMemory,
-                planQueryServiceInMemory,
-                membershipQueryService,
-                groupQueryServiceInMemory,
-                roleQueryService,
-                indexer
-            )
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(
+            pageQueryServiceInMemory,
+            pageCrudServiceInMemory,
+            pageRevisionCrudServiceInMemory,
+            auditCrudService,
+            apiCrudServiceInMemory,
+            planQueryServiceInMemory,
+            membershipQueryService,
+            groupQueryServiceInMemory,
+            roleQueryService,
+            indexer
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Override
@@ -203,13 +200,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                     eq("api-id"),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -228,8 +223,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_get_all_pages_if_no_parameters_specified() {
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.MARKDOWN)
@@ -238,24 +232,21 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .excludedAccessControls(true)
                 .accessControls(REPO_ACCESS_CONTROLS)
                 .build();
-            Page page2 = Page
-                .builder()
+            Page page2 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.SWAGGER)
                 .id("swagger")
                 .name("swagger")
                 .build();
-            Page page3 = Page
-                .builder()
+            Page page3 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.ASYNCAPI)
                 .id("async-api")
                 .name("async-api")
                 .build();
-            Page page4 = Page
-                .builder()
+            Page page4 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.FOLDER)
@@ -278,6 +269,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name("swagger")
                             .order(0)
                             .published(false)
+                            .visibility(Visibility.PRIVATE)
                             .homepage(false)
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -289,6 +281,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name("async-api")
                             .order(0)
                             .published(false)
+                            .visibility(Visibility.PRIVATE)
                             .homepage(false)
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -300,6 +293,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name("folder")
                             .order(0)
                             .published(false)
+                            .visibility(Visibility.PRIVATE)
                             .homepage(false)
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -332,32 +326,28 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_get_all_pages_if_empty_parent_id() {
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.MARKDOWN)
                 .id("page-1")
                 .name("page-1")
                 .build();
-            Page page2 = Page
-                .builder()
+            Page page2 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.SWAGGER)
                 .id("swagger")
                 .name("swagger")
                 .build();
-            Page page3 = Page
-                .builder()
+            Page page3 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.ASYNCAPI)
                 .id("async-api")
                 .name("async-api")
                 .build();
-            Page page4 = Page
-                .builder()
+            Page page4 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.FOLDER)
@@ -370,61 +360,63 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
             assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
-            assertThat(body.getPages())
-                .isEqualTo(
-                    List.of(
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("page-1")
-                            .type(PageType.MARKDOWN)
-                            .name("page-1")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .generalConditions(false),
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("swagger")
-                            .type(PageType.SWAGGER)
-                            .name("swagger")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .generalConditions(false),
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("async-api")
-                            .type(PageType.ASYNCAPI)
-                            .name("async-api")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .generalConditions(false),
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("folder")
-                            .type(PageType.FOLDER)
-                            .name("folder")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .hidden(true)
-                    )
-                );
+            assertThat(body.getPages()).isEqualTo(
+                List.of(
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("page-1")
+                        .type(PageType.MARKDOWN)
+                        .name("page-1")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .generalConditions(false),
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("swagger")
+                        .type(PageType.SWAGGER)
+                        .name("swagger")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .generalConditions(false),
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("async-api")
+                        .type(PageType.ASYNCAPI)
+                        .name("async-api")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .generalConditions(false),
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("folder")
+                        .type(PageType.FOLDER)
+                        .name("folder")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .hidden(true)
+                )
+            );
         }
 
         @Test
         void should_return_root_pages() {
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.MARKDOWN)
@@ -432,8 +424,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .name("page-1")
                 .parentId("")
                 .build();
-            Page page2 = Page
-                .builder()
+            Page page2 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.SWAGGER)
@@ -441,8 +432,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .name("swagger")
                 .parentId("")
                 .build();
-            Page page3 = Page
-                .builder()
+            Page page3 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.ASYNCAPI)
@@ -450,16 +440,14 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .name("async-api")
                 .parentId("")
                 .build();
-            Page page4 = Page
-                .builder()
+            Page page4 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.FOLDER)
                 .id("folder-1")
                 .name("folder 1")
                 .build();
-            Page page5 = Page
-                .builder()
+            Page page5 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.FOLDER)
@@ -473,64 +461,66 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
             assertThat(body.getBreadcrumb()).isEmpty();
-            assertThat(body.getPages())
-                .isEqualTo(
-                    List.of(
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("page-1")
-                            .type(PageType.MARKDOWN)
-                            .name("page-1")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .parentId("")
-                            .generalConditions(false),
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("swagger")
-                            .type(PageType.SWAGGER)
-                            .name("swagger")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .parentId("")
-                            .generalConditions(false),
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("async-api")
-                            .type(PageType.ASYNCAPI)
-                            .name("async-api")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .parentId("")
-                            .generalConditions(false),
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("folder-1")
-                            .type(PageType.FOLDER)
-                            .name("folder 1")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .hidden(true)
-                    )
-                );
+            assertThat(body.getPages()).isEqualTo(
+                List.of(
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("page-1")
+                        .type(PageType.MARKDOWN)
+                        .name("page-1")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .parentId("")
+                        .generalConditions(false),
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("swagger")
+                        .type(PageType.SWAGGER)
+                        .name("swagger")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .parentId("")
+                        .generalConditions(false),
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("async-api")
+                        .type(PageType.ASYNCAPI)
+                        .name("async-api")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .parentId("")
+                        .generalConditions(false),
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("folder-1")
+                        .type(PageType.FOLDER)
+                        .name("folder 1")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .hidden(true)
+                )
+            );
         }
 
         @Test
         void should_return_pages_of_parent_id() {
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.MARKDOWN)
@@ -538,8 +528,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .name("page-1")
                 .parentId("parent-id")
                 .build();
-            Page page2 = Page
-                .builder()
+            Page page2 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.SWAGGER)
@@ -547,16 +536,14 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .name("swagger")
                 .parentId("parent-id")
                 .build();
-            Page page3 = Page
-                .builder()
+            Page page3 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.FOLDER)
                 .id("folder-1")
                 .name("folder 1")
                 .build();
-            Page page4 = Page
-                .builder()
+            Page page4 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.FOLDER)
@@ -582,6 +569,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .name("page-1")
                         .order(0)
                         .published(false)
+                        .visibility(Visibility.PRIVATE)
                         .homepage(false)
                         .configuration(Map.of())
                         .metadata(Map.of())
@@ -598,6 +586,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .name("swagger")
                         .order(0)
                         .published(false)
+                        .visibility(Visibility.PRIVATE)
                         .homepage(false)
                         .configuration(Map.of())
                         .metadata(Map.of())
@@ -609,8 +598,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_folder_with_published_children() {
-            Page child1 = Page
-                .builder()
+            Page child1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.MARKDOWN)
@@ -619,8 +607,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .parentId("parent-id")
                 .published(true)
                 .build();
-            Page child2 = Page
-                .builder()
+            Page child2 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.SWAGGER)
@@ -629,8 +616,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .parentId("parent-id")
                 .published(true)
                 .build();
-            Page page = Page
-                .builder()
+            Page page = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.FOLDER)
@@ -653,6 +639,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name("page-1")
                             .order(0)
                             .published(false)
+                            .visibility(Visibility.PRIVATE)
                             .homepage(false)
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -666,6 +653,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name("swagger-1")
                             .order(0)
                             .published(false)
+                            .visibility(Visibility.PRIVATE)
                             .homepage(false)
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -679,6 +667,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name(page.getName())
                             .order(page.getOrder())
                             .published(page.isPublished())
+                            .visibility(Visibility.PRIVATE)
                             .homepage(page.isHomepage())
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -691,8 +680,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_swagger_with_published_children() {
-            Page child = Page
-                .builder()
+            Page child = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.SWAGGER)
@@ -701,8 +689,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .parentId("parent-id")
                 .published(true)
                 .build();
-            Page page = Page
-                .builder()
+            Page page = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.FOLDER)
@@ -725,6 +712,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name("swagger")
                             .order(0)
                             .published(false)
+                            .visibility(Visibility.PRIVATE)
                             .homepage(false)
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -738,6 +726,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name(page.getName())
                             .order(page.getOrder())
                             .published(page.isPublished())
+                            .visibility(Visibility.PRIVATE)
                             .homepage(page.isHomepage())
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -750,8 +739,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_async_api_with_published_children() {
-            Page child = Page
-                .builder()
+            Page child = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.ASYNCAPI)
@@ -760,8 +748,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .parentId("parent-id")
                 .published(true)
                 .build();
-            Page page = Page
-                .builder()
+            Page page = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.FOLDER)
@@ -784,6 +771,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name("async-api")
                             .order(0)
                             .published(false)
+                            .visibility(Visibility.PRIVATE)
                             .homepage(false)
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -797,6 +785,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .name(page.getName())
                             .order(page.getOrder())
                             .published(page.isPublished())
+                            .visibility(Visibility.PRIVATE)
                             .homepage(page.isHomepage())
                             .configuration(Map.of())
                             .metadata(Map.of())
@@ -809,32 +798,28 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_pages_with_general_conditions_indicated() {
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.MARKDOWN)
                 .id("page-1")
                 .name("page-1")
                 .build();
-            Page page2 = Page
-                .builder()
+            Page page2 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.SWAGGER)
                 .id("swagger-1")
                 .name("swagger-1")
                 .build();
-            Page page3 = Page
-                .builder()
+            Page page3 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.SWAGGER)
                 .id("swagger-2")
                 .name("swagger-2")
                 .build();
-            Page page4 = Page
-                .builder()
+            Page page4 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.MARKDOWN)
@@ -844,8 +829,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             givenApiPagesQuery(List.of(page1, page2, page3, page4));
             planQueryServiceInMemory.initWith(
                 List.of(
-                    PlanFixtures
-                        .aPlanHttpV4()
+                    PlanFixtures.aPlanHttpV4()
                         .toBuilder()
                         .id("plan-1")
                         .apiId("api-id")
@@ -860,61 +844,63 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             var body = response.readEntity(ApiDocumentationPagesResponse.class);
             assertThat(body.getBreadcrumb()).isNotNull().isEmpty();
-            assertThat(body.getPages())
-                .isEqualTo(
-                    List.of(
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("page-1")
-                            .type(PageType.MARKDOWN)
-                            .name("page-1")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .generalConditions(true),
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("swagger-1")
-                            .type(PageType.SWAGGER)
-                            .name("swagger-1")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .generalConditions(false),
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("swagger-2")
-                            .type(PageType.SWAGGER)
-                            .name("swagger-2")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .generalConditions(false),
-                        new io.gravitee.rest.api.management.v2.rest.model.Page()
-                            .id("page-2")
-                            .type(PageType.MARKDOWN)
-                            .name("page-2")
-                            .order(0)
-                            .published(false)
-                            .homepage(false)
-                            .configuration(Map.of())
-                            .metadata(Map.of())
-                            .excludedAccessControls(false)
-                            .generalConditions(false)
-                    )
-                );
+            assertThat(body.getPages()).isEqualTo(
+                List.of(
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("page-1")
+                        .type(PageType.MARKDOWN)
+                        .name("page-1")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .generalConditions(true),
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("swagger-1")
+                        .type(PageType.SWAGGER)
+                        .name("swagger-1")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .generalConditions(false),
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("swagger-2")
+                        .type(PageType.SWAGGER)
+                        .name("swagger-2")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .generalConditions(false),
+                    new io.gravitee.rest.api.management.v2.rest.model.Page()
+                        .id("page-2")
+                        .type(PageType.MARKDOWN)
+                        .name("page-2")
+                        .order(0)
+                        .published(false)
+                        .visibility(Visibility.PRIVATE)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .generalConditions(false)
+                )
+            );
         }
 
         @Test
         void should_throw_error_if_parent_not_folder() {
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.MARKDOWN)
@@ -922,8 +908,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .name("page-1")
                 .parentId("parent-id")
                 .build();
-            Page parent = Page
-                .builder()
+            Page parent = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId("api-id")
                 .type(Page.Type.MARKDOWN)
@@ -946,8 +931,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
             membershipQueryService.initWith(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .id("member-id")
                         .memberId("my-member-id")
                         .memberType(Membership.Type.USER)
@@ -969,13 +953,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                     eq("api-id"),
                     eq(RolePermissionAction.CREATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().request().post(Entity.json(new CreateDocumentation()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -1128,8 +1110,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().request().post(Entity.json(request));
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -1147,8 +1128,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().request().post(Entity.json(request));
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -1170,13 +1150,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                     eq(API_ID),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().path(PAGE_ID).request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -1187,8 +1165,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         public void should_return_404_if_api_does_not_exist() {
             final Response response = rootTarget().path(PAGE_ID).request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -1201,8 +1178,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().path(PAGE_ID).request().get();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -1213,8 +1189,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         void should_get_page() {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
 
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
                 .type(Page.Type.MARKDOWN)
@@ -1226,20 +1201,20 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
 
             var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
-            assertThat(body)
-                .isEqualTo(
-                    new io.gravitee.rest.api.management.v2.rest.model.Page()
-                        .id(PAGE_ID)
-                        .type(PageType.MARKDOWN)
-                        .name("page-1")
-                        .order(0)
-                        .published(false)
-                        .homepage(false)
-                        .configuration(Map.of())
-                        .metadata(Map.of())
-                        .excludedAccessControls(false)
-                        .generalConditions(false)
-                );
+            assertThat(body).isEqualTo(
+                new io.gravitee.rest.api.management.v2.rest.model.Page()
+                    .id(PAGE_ID)
+                    .type(PageType.MARKDOWN)
+                    .name("page-1")
+                    .order(0)
+                    .published(false)
+                    .visibility(Visibility.PRIVATE)
+                    .homepage(false)
+                    .configuration(Map.of())
+                    .metadata(Map.of())
+                    .excludedAccessControls(false)
+                    .generalConditions(false)
+            );
         }
     }
 
@@ -1254,8 +1229,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
             roleQueryService.initWith(
                 List.of(
-                    io.gravitee.apim.core.membership.model.Role
-                        .builder()
+                    io.gravitee.apim.core.membership.model.Role.builder()
                         .id(ROLE_ID)
                         .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
                         .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
@@ -1266,8 +1240,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             );
             membershipQueryService.initWith(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .id("member-id")
                         .memberId("my-member-id")
                         .memberType(Membership.Type.USER)
@@ -1289,13 +1262,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                     eq(API_ID),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(new UpdateDocumentation()));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -1313,8 +1284,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .excludedAccessControls(true)
                 .accessControls(MAPI_V2_ACCESS_ROLES)
                 .name("created page");
-            var oldMarkdown = Page
-                .builder()
+            var oldMarkdown = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1328,8 +1298,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .excludedAccessControls(false)
                 .accessControls(
                     Set.of(
-                        io.gravitee.apim.core.documentation.model.AccessControl
-                            .builder()
+                        io.gravitee.apim.core.documentation.model.AccessControl.builder()
                             .referenceId("group-2")
                             .referenceType("GROUP")
                             .build()
@@ -1369,8 +1338,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .order(1)
                 .visibility(Visibility.PUBLIC)
                 .name("created page");
-            var oldPage = Page
-                .builder()
+            var oldPage = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1411,8 +1379,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .order(1)
                 .visibility(Visibility.PUBLIC)
                 .name("created page");
-            var oldPage = Page
-                .builder()
+            var oldPage = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1453,8 +1420,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .order(1)
                 .visibility(Visibility.PUBLIC)
                 .name("updated page");
-            var oldPage = Page
-                .builder()
+            var oldPage = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1493,8 +1459,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .type(UpdateDocumentation.TypeEnum.FOLDER)
                 .order(24)
                 .visibility(Visibility.PUBLIC);
-            var oldFolder = Page
-                .builder()
+            var oldFolder = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1533,8 +1498,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .visibility(Visibility.PUBLIC)
                 .name("created page");
 
-            var oldMarkdown = Page
-                .builder()
+            var oldMarkdown = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1564,8 +1528,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .visibility(Visibility.PUBLIC)
                 .name("created page");
 
-            var oldMarkdown = Page
-                .builder()
+            var oldMarkdown = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1596,8 +1559,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .visibility(Visibility.PUBLIC)
                 .configuration(configuration)
                 .name("created page");
-            var oldMarkdown = Page
-                .builder()
+            var oldMarkdown = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1631,8 +1593,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .visibility(Visibility.PUBLIC)
                 .source(pageSource)
                 .name("created page");
-            var oldMarkdown = Page
-                .builder()
+            var oldMarkdown = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1669,8 +1630,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -1688,8 +1648,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -1707,8 +1666,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -1726,8 +1684,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -1745,8 +1702,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -1770,13 +1726,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                     eq(API_ID),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -1787,8 +1741,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         public void should_return_404_if_api_does_not_exist() {
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -1801,8 +1754,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -1813,8 +1765,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         void should_publish_page() {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
 
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
                 .type(Page.Type.MARKDOWN)
@@ -1847,13 +1798,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                     eq(API_ID),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -1864,8 +1813,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         public void should_return_404_if_api_does_not_exist() {
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -1878,8 +1826,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -1890,8 +1837,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         void should_unpublish_page() {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
 
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
                 .type(Page.Type.MARKDOWN)
@@ -1921,8 +1867,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
             roleQueryService.initWith(
                 List.of(
-                    io.gravitee.apim.core.membership.model.Role
-                        .builder()
+                    io.gravitee.apim.core.membership.model.Role.builder()
                         .id(ROLE_ID)
                         .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
                         .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
@@ -1933,8 +1878,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             );
             membershipQueryService.initWith(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .id("member-id")
                         .memberId("my-member-id")
                         .memberType(Membership.Type.USER)
@@ -1956,13 +1900,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                     eq(API_ID),
                     eq(RolePermissionAction.UPDATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -1971,8 +1913,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_update_markdown_page() {
-            var oldMarkdown = Page
-                .builder()
+            var oldMarkdown = Page.builder()
                 .id(PAGE_ID)
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
@@ -1999,8 +1940,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         public void should_not_allow_page_missing_source() {
             givenApiPagesQuery(
                 List.of(
-                    Page
-                        .builder()
+                    Page.builder()
                         .id(PAGE_ID)
                         .type(Page.Type.MARKDOWN)
                         .referenceId(API_ID)
@@ -2013,8 +1953,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -2038,13 +1977,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                     eq(API_ID),
                     eq(RolePermissionAction.DELETE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             final Response response = rootTarget().path(PATH).request().delete();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
@@ -2055,8 +1992,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         void should_return_404_if_api_does_not_exist() {
             final Response response = rootTarget().path(PATH).request().delete();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -2069,8 +2005,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().path(PATH).request().delete();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
@@ -2081,8 +2016,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         void should_return_400_if_page_is_not_api_page() {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
 
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.ENVIRONMENT)
                 .referenceId(API_ID)
                 .type(Page.Type.MARKDOWN)
@@ -2094,8 +2028,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().path(PATH).request().delete();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -2107,8 +2040,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         void should_return_400_if_page_is_used_as_general_condition(PlanStatus planStatus) {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
 
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
                 .type(Page.Type.MARKDOWN)
@@ -2120,8 +2052,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             planQueryServiceInMemory.initWith(
                 List.of(
-                    PlanFixtures
-                        .aPlanHttpV4()
+                    PlanFixtures.aPlanHttpV4()
                         .toBuilder()
                         .id("plan-id")
                         .apiId(API_ID)
@@ -2133,8 +2064,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().path(PATH).request().delete();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -2145,8 +2075,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         void should_return_400_if_page_is_a_non_empty_folder() {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
 
-            Page folder = Page
-                .builder()
+            Page folder = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
                 .type(Page.Type.FOLDER)
@@ -2154,8 +2083,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .name("page-1")
                 .published(true)
                 .build();
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
                 .type(Page.Type.MARKDOWN)
@@ -2168,8 +2096,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().path("folder-id").request().delete();
 
-            MAPIAssertions
-                .assertThat(response)
+            MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
                 .asError()
                 .hasHttpStatus(BAD_REQUEST_400)
@@ -2180,8 +2107,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         void should_delete_page() {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
 
-            Page page1 = Page
-                .builder()
+            Page page1 = Page.builder()
                 .referenceType(Page.ReferenceType.API)
                 .referenceId(API_ID)
                 .type(Page.Type.MARKDOWN)

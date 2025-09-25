@@ -112,8 +112,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
     public static boolean isOrganizationAdmin() {
         return (
             SecurityContextHolder.getContext().getAuthentication() != null &&
-            SecurityContextHolder
-                .getContext()
+            SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getAuthorities()
                 .stream()
@@ -162,7 +161,9 @@ public class PermissionServiceImpl extends AbstractService implements Permission
     }
 
     private Stream<Map.Entry<String, char[]>> streamUserRolePermissions(UserEntity user, RoleScope scope) {
-        return streamUserRoles(user).filter(role -> scope == role.getScope()).flatMap(role -> role.getPermissions().entrySet().stream());
+        return streamUserRoles(user)
+            .filter(role -> scope == role.getScope())
+            .flatMap(role -> role.getPermissions().entrySet().stream());
     }
 
     private Stream<UserRoleEntity> streamUserRoles(UserEntity user) {

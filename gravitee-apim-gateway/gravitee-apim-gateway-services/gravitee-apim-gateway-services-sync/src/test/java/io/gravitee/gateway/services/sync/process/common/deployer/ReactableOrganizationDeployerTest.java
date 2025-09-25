@@ -56,8 +56,7 @@ class ReactableOrganizationDeployerTest {
 
         @Test
         void should_deploy_organization() {
-            OrganizationDeployable organizationDeployable = OrganizationDeployable
-                .builder()
+            OrganizationDeployable organizationDeployable = OrganizationDeployable.builder()
                 .reactableOrganization(new ReactableOrganization(new Organization()))
                 .build();
             cut.deploy(organizationDeployable).test().assertComplete();
@@ -67,8 +66,7 @@ class ReactableOrganizationDeployerTest {
         @Test
         void should_return_error_when_api_manager_throw_exception() {
             Organization organization = mock(Organization.class);
-            OrganizationDeployable organizationDeployable = OrganizationDeployable
-                .builder()
+            OrganizationDeployable organizationDeployable = OrganizationDeployable.builder()
                 .reactableOrganization(new ReactableOrganization(new Organization()))
                 .build();
             doThrow(new SyncException("error")).when(organizationManager).register(any());

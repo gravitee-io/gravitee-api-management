@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 export enum ComponentSelector {
-  GRID = 'grid',
-  CELL = 'cell',
+  GRID = 'gmd-grid',
+  CELL = 'gmd-cell',
+  CARD = 'gmd-card',
+  CARD_TITLE = 'gmd-card-title',
+  CARD_SUBTITLE = 'gmd-card-subtitle',
+  MD_BLOCK = 'gmd-block',
+  BUTTON = 'gmd-button',
 }

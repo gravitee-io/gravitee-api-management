@@ -79,16 +79,14 @@ class SearchGroupsUseCaseTest {
         Pageable pageable = new PageableImpl(0, 10);
 
         List<Group> groups = List.of(
-            Group
-                .builder()
+            Group.builder()
                 .id("group-1")
                 .name("Group 1")
                 .environmentId(ENVIRONMENT_ID)
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .build(),
-            Group
-                .builder()
+            Group.builder()
                 .id("group-2")
                 .name("Group 2")
                 .environmentId(ENVIRONMENT_ID)

@@ -348,8 +348,9 @@ class VertxWebSocketTest {
             final Buffer buffer2 = Buffer.buffer("Test2");
             final Buffer buffer3 = Buffer.buffer("Test3");
 
-            when(webSocket.toFlowable())
-                .thenReturn(Flowable.just(buffer1, buffer2, buffer3).concatWith(Flowable.error(new RuntimeException(MOCK_EXCEPTION))));
+            when(webSocket.toFlowable()).thenReturn(
+                Flowable.just(buffer1, buffer2, buffer3).concatWith(Flowable.error(new RuntimeException(MOCK_EXCEPTION)))
+            );
 
             final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs = cut.read().test();
 
@@ -370,8 +371,9 @@ class VertxWebSocketTest {
             final Buffer buffer2 = Buffer.buffer("Test2");
             final Buffer buffer3 = Buffer.buffer("Test3");
 
-            when(webSocket.toFlowable())
-                .thenReturn(Flowable.just(buffer1, buffer2, buffer3).concatWith(Flowable.error(new HttpClosedException(""))));
+            when(webSocket.toFlowable()).thenReturn(
+                Flowable.just(buffer1, buffer2, buffer3).concatWith(Flowable.error(new HttpClosedException("")))
+            );
 
             final TestSubscriber<io.gravitee.gateway.api.buffer.Buffer> obs = cut.read().test();
 

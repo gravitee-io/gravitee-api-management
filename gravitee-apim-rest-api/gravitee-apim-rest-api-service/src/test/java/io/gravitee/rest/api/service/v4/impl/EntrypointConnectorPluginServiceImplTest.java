@@ -83,8 +83,9 @@ public class EntrypointConnectorPluginServiceImplTest {
             cut.getSubscriptionSchema(CONNECTOR_ID);
             fail("We should not go further because call should throw a TechnicalManagementException");
         } catch (TechnicalManagementException e) {
-            assertThat(e.getMessage())
-                .isEqualTo("An error occurs while trying to get entrypoint subscription schema for plugin " + CONNECTOR_ID);
+            assertThat(e.getMessage()).isEqualTo(
+                "An error occurs while trying to get entrypoint subscription schema for plugin " + CONNECTOR_ID
+            );
         }
     }
 

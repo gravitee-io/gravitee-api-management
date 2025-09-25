@@ -126,19 +126,17 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
             final Long from = query.timeRange().range().from();
             final Long to = query.timeRange().range().to();
 
-            result =
-                this.client.search(
-                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), type, from, to, clusters),
-                        !info.getVersion().canUseTypeRequests() ? null : type.getType(),
-                        sQuery
-                    );
+            result = this.client.search(
+                this.indexNameGenerator.getIndexName(queryContext.placeholder(), type, from, to, clusters),
+                !info.getVersion().canUseTypeRequests() ? null : type.getType(),
+                sQuery
+            );
         } else {
-            result =
-                this.client.search(
-                        this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), type, clusters),
-                        !info.getVersion().canUseTypeRequests() ? null : type.getType(),
-                        sQuery
-                    );
+            result = this.client.search(
+                this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), type, clusters),
+                !info.getVersion().canUseTypeRequests() ? null : type.getType(),
+                sQuery
+            );
         }
 
         return result;
@@ -154,19 +152,17 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
             final Long from = query.timeRange().range().from();
             final Long to = query.timeRange().range().to();
 
-            result =
-                this.client.count(
-                        this.indexNameGenerator.getIndexName(queryContext.placeholder(), type, from, to, clusters),
-                        !info.getVersion().canUseTypeRequests() ? null : type.getType(),
-                        sQuery
-                    );
+            result = this.client.count(
+                this.indexNameGenerator.getIndexName(queryContext.placeholder(), type, from, to, clusters),
+                !info.getVersion().canUseTypeRequests() ? null : type.getType(),
+                sQuery
+            );
         } else {
-            result =
-                this.client.count(
-                        this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), type, clusters),
-                        !info.getVersion().canUseTypeRequests() ? null : type.getType(),
-                        sQuery
-                    );
+            result = this.client.count(
+                this.indexNameGenerator.getTodayIndexName(queryContext.placeholder(), type, clusters),
+                !info.getVersion().canUseTypeRequests() ? null : type.getType(),
+                sQuery
+            );
         }
 
         return result;

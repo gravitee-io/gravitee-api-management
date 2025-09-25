@@ -90,8 +90,7 @@ public class StartIngestIntegrationApisUseCase {
             return Single.error(new IntegrationNotFoundException(integrationId));
         }
         return switch (integ.get()) {
-            case Integration.ApiIntegration apiIntegration -> Single
-                .just(apiIntegration)
+            case Integration.ApiIntegration apiIntegration -> Single.just(apiIntegration)
                 .flatMap(integration -> startApiIngestion(input, integration, auditInfo))
                 .doOnError(throwable -> log.error("Error to start ingest {}", integrationId, throwable));
             case Integration.A2aIntegration a2aIntegration -> a2aIngestions(a2aIntegration, auditInfo);
@@ -119,8 +118,7 @@ public class StartIngestIntegrationApisUseCase {
 
     private Single<AsyncJob.Status> a2aIngestions(Integration.A2aIntegration a2aIntegration, AuditInfo auditInfo) {
         try (var bulk = apiIndexerDomainService.bulk(auditInfo)) {
-            return Flowable
-                .fromIterable(a2aIntegration.wellKnownUrls())
+            return Flowable.fromIterable(a2aIntegration.wellKnownUrls())
                 .flatMapMaybe(url -> a2aIngestion(bulk, url.url(), a2aIntegration, auditInfo))
                 .toList()
                 .flatMap(failedUrls -> {
@@ -157,8 +155,7 @@ public class StartIngestIntegrationApisUseCase {
                     federatedAgent.getUrl()
                 );
 
-                Api api = Api
-                    .builder()
+                Api api = Api.builder()
                     .id(id)
                     .name(federatedAgent.getName())
                     .description(federatedAgent.getDescription())
@@ -201,8 +198,7 @@ public class StartIngestIntegrationApisUseCase {
 
     public AsyncJob newIngestJob(String id, Integration integration, String initiatorId, Long total) {
         var now = TimeProvider.now();
-        return AsyncJob
-            .builder()
+        return AsyncJob.builder()
             .id(id)
             .sourceId(integration.id())
             .environmentId(integration.environmentId())
@@ -231,15 +227,13 @@ public class StartIngestIntegrationApisUseCase {
         var id = UuidString.generateForEnvironment(api.getId(), PlanSecurityType.KEY_LESS.getLabel());
         var now = TimeProvider.now();
         var oid = api.getFederatedAgent().getProvider() != null ? api.getFederatedAgent().getProvider().organization() : null;
-        return Plan
-            .builder()
+        return Plan.builder()
             .id(id)
             .name("Key less plan")
             .description("Default plan")
             .apiId(api.getId())
             .federatedPlanDefinition(
-                FederatedPlan
-                    .builder()
+                FederatedPlan.builder()
                     .id(id)
                     .providerId(oid)
                     .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS.getLabel()).build())

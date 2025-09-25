@@ -116,13 +116,11 @@ public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
                 apikey,
                 api,
                 subscription,
-                AuditInfo
-                    .builder()
+                AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
                     .environmentId(executionContext.getEnvironmentId())
                     .actor(
-                        AuditActor
-                            .builder()
+                        AuditActor.builder()
                             .userId(user.getUsername())
                             .userSource(user.getSource())
                             .userSourceId(user.getSourceId())
@@ -152,8 +150,7 @@ public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
         SubscriptionEntity subscriptionEntity = checkSubscription(subscription);
 
         if (!apikey.equals(apiKey.getId())) {
-            return Response
-                .status(BAD_REQUEST)
+            return Response.status(BAD_REQUEST)
                 .entity("'apikey' parameter in path does not correspond to the api-key id to update")
                 .build();
         }

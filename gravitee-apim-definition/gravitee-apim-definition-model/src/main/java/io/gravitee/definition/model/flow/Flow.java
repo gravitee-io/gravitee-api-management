@@ -176,8 +176,7 @@ public class Flow implements Serializable, ConditionSupplier {
 
     @JsonIgnore
     private List<Plugin> computePlugins(List<Step> steps) {
-        return Optional
-            .ofNullable(steps)
+        return Optional.ofNullable(steps)
             .map(s -> s.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
             .orElse(List.of());
     }

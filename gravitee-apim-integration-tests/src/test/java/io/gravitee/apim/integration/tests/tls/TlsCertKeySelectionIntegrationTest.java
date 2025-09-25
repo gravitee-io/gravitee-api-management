@@ -87,25 +87,23 @@ public class TlsCertKeySelectionIntegrationTest {
 
         void shouldFallbackOnBrightCertTest(GatewayDynamicConfig.HttpConfig httpConfig) {
             // We call with another domain name, it should use the fallback on first alias of the keystore => bright cert
-            var httpClient = getBean(Vertx.class)
-                .createHttpClient(
-                    new HttpClientOptions()
-                        .setSsl(true)
-                        .setVerifyHost(false) // given the host is not the good one, we bypass this check
-                        .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(brightCert)))
-                );
+            var httpClient = getBean(Vertx.class).createHttpClient(
+                new HttpClientOptions()
+                    .setSsl(true)
+                    .setVerifyHost(false) // given the host is not the good one, we bypass this check
+                    .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(brightCert)))
+            );
             assertApiCall(httpClient, httpConfig.httpPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
         }
 
         void shouldFallbackOnDefaultAliasTest(GatewayDynamicConfig.HttpConfig httpConfig) {
             // We call with another domain name, it should use the fallback on default alias => dark cert
-            var httpClient = getBean(Vertx.class)
-                .createHttpClient(
-                    new HttpClientOptions()
-                        .setSsl(true)
-                        .setVerifyHost(false) // given the host is not the good one, we bypass this check
-                        .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(darkCert)))
-                );
+            var httpClient = getBean(Vertx.class).createHttpClient(
+                new HttpClientOptions()
+                    .setSsl(true)
+                    .setVerifyHost(false) // given the host is not the good one, we bypass this check
+                    .setPemTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(darkCert)))
+            );
             assertApiCall(httpClient, httpConfig.httpPort(), "www.foo.com", GATEWAY_HTTP_API_URI);
         }
     }

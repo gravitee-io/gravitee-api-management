@@ -278,8 +278,7 @@ final class LogBuilder {
             return null;
         }
 
-        return LogDiagnostic
-            .builder()
+        return LogDiagnostic.builder()
             .key(asTextOrNull(json.get(FIELD_KEY)))
             .message(asTextOrNull(json.get(FIELD_MESSAGE)))
             .componentType(asTextOrNull(json.get(FIELD_COMPONENT_TYPE)))

@@ -50,8 +50,7 @@ public class SecurityContextFilter implements ContainerRequestFilter {
 
                 @Override
                 public boolean isUserInRole(final String role) {
-                    return SecurityContextHolder
-                        .getContext()
+                    return SecurityContextHolder.getContext()
                         .getAuthentication()
                         .getAuthorities()
                         .stream()

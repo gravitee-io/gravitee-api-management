@@ -51,38 +51,33 @@ public class IntegrationPrimaryOwnerDomainService {
             );
         }
 
-        findPrimaryOwnerRole(auditInfo.organizationId())
-            .ifPresent(role -> {
-                var membership = Membership
-                    .builder()
-                    .id(UuidString.generateRandom())
-                    .referenceId(integrationId)
-                    .referenceType(Membership.ReferenceType.INTEGRATION)
-                    .roleId(role.getId())
-                    .memberId(primaryOwner.id())
-                    .memberType(Membership.Type.valueOf(primaryOwner.type().name()))
-                    .createdAt(TimeProvider.now())
-                    .updatedAt(TimeProvider.now())
-                    .build();
-                membershipCrudService.create(membership);
-            });
+        findPrimaryOwnerRole(auditInfo.organizationId()).ifPresent(role -> {
+            var membership = Membership.builder()
+                .id(UuidString.generateRandom())
+                .referenceId(integrationId)
+                .referenceType(Membership.ReferenceType.INTEGRATION)
+                .roleId(role.getId())
+                .memberId(primaryOwner.id())
+                .memberType(Membership.Type.valueOf(primaryOwner.type().name()))
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .build();
+            membershipCrudService.create(membership);
+        });
     }
 
     public Maybe<PrimaryOwnerEntity> getIntegrationPrimaryOwner(final String organizationId, String integrationId) {
-        return Maybe
-            .fromOptional(findPrimaryOwnerRole(organizationId))
-            .flatMap(role ->
-                findApiPrimaryOwnerMembership(integrationId, role)
-                    .flatMap(membership ->
-                        switch (membership.getMemberType()) {
-                            case USER -> findUserPrimaryOwner(membership);
-                            case GROUP -> {
-                                log.error("Can't have group primary owner for Integrations");
-                                yield Maybe.empty();
-                            }
-                        }
-                    )
-            );
+        return Maybe.fromOptional(findPrimaryOwnerRole(organizationId)).flatMap(role ->
+            findApiPrimaryOwnerMembership(integrationId, role).flatMap(membership ->
+                switch (membership.getMemberType()) {
+                    case USER -> findUserPrimaryOwner(membership);
+                    case GROUP -> {
+                        log.error("Can't have group primary owner for Integrations");
+                        yield Maybe.empty();
+                    }
+                }
+            )
+        );
     }
 
     private Optional<Role> findPrimaryOwnerRole(String organizationId) {
@@ -93,24 +88,19 @@ public class IntegrationPrimaryOwnerDomainService {
     }
 
     private Maybe<Membership> findApiPrimaryOwnerMembership(String integrationId, Role role) {
-        return Flowable
-            .fromIterable(
-                membershipQueryService.findByReferenceAndRoleId(Membership.ReferenceType.INTEGRATION, integrationId, role.getId())
-            )
-            .firstElement();
+        return Flowable.fromIterable(
+            membershipQueryService.findByReferenceAndRoleId(Membership.ReferenceType.INTEGRATION, integrationId, role.getId())
+        ).firstElement();
     }
 
     private Maybe<PrimaryOwnerEntity> findUserPrimaryOwner(Membership membership) {
-        return Maybe
-            .fromOptional(userCrudService.findBaseUserById(membership.getMemberId()))
-            .map(user ->
-                PrimaryOwnerEntity
-                    .builder()
-                    .id(user.getId())
-                    .displayName(user.displayName())
-                    .email(user.getEmail())
-                    .type(PrimaryOwnerEntity.Type.USER)
-                    .build()
-            );
+        return Maybe.fromOptional(userCrudService.findBaseUserById(membership.getMemberId())).map(user ->
+            PrimaryOwnerEntity.builder()
+                .id(user.getId())
+                .displayName(user.displayName())
+                .email(user.getEmail())
+                .type(PrimaryOwnerEntity.Type.USER)
+                .build()
+        );
     }
 }

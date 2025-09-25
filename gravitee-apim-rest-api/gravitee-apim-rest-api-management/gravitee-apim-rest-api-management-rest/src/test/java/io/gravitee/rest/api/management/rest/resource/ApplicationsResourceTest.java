@@ -102,8 +102,9 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetApplications() {
         Page<ApplicationListItem> applications = mock(Page.class);
-        when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any()))
-            .thenReturn(applications);
+        when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any())).thenReturn(
+            applications
+        );
 
         final Response response = envTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -126,8 +127,9 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         List<ApplicationListItem> applications = List.of(app1, app2, app3);
         Page<ApplicationListItem> pagedApplications = new Page(applications, 0, 3, 3);
-        when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any()))
-            .thenReturn(pagedApplications);
+        when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any())).thenReturn(
+            pagedApplications
+        );
 
         final Response response = envTarget("/_paged").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -140,7 +142,16 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(1, pagedApplicationsResult.getPage().getTotalPages());
         assertEquals(3, pagedApplicationsResult.getPage().getTotalElements());
         Collection<ApplicationListItem> resultApplications = pagedApplicationsResult.getData();
-        assertEquals(2, resultApplications.stream().filter(app -> app.getId().equals("app2")).findFirst().get().getGroups().size());
+        assertEquals(
+            2,
+            resultApplications
+                .stream()
+                .filter(app -> app.getId().equals("app2"))
+                .findFirst()
+                .get()
+                .getGroups()
+                .size()
+        );
     }
 
     @Test
@@ -151,8 +162,9 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         List<ApplicationListItem> applications = List.of(app1);
         Page<ApplicationListItem> pagedApplications = new Page(applications, 2, 1, 7);
-        when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any()))
-            .thenReturn(pagedApplications);
+        when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any())).thenReturn(
+            pagedApplications
+        );
 
         final Response response = envTarget("/_paged").queryParam("page", 3).queryParam("size", 3).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

@@ -51,8 +51,7 @@ class ValidateGroupsDomainServiceTest {
             List.of(
                 Group.builder().environmentId(ENVIRONMENT).id("group-with-po-id").name("group-with-po").apiPrimaryOwner("some-po").build(),
                 Group.builder().environmentId(ENVIRONMENT).id("group-without-po-id").name("group-without-po").build(),
-                Group
-                    .builder()
+                Group.builder()
                     .environmentId(ENVIRONMENT)
                     .id("default-group")
                     .name("default-group")

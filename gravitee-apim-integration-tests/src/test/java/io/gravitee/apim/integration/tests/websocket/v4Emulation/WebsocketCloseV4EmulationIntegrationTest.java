@@ -37,22 +37,18 @@ public class WebsocketCloseV4EmulationIntegrationTest extends AbstractWebsocketG
 
         Promise<Void> clientReady = Promise.promise();
 
-        websocketServerHandler =
-            serverWebSocket ->
-                Completable
-                    .fromRunnable(() -> {
-                        serverConnected.flag();
-                        serverWebSocket.exceptionHandler(testContext::failNow);
-                        serverWebSocket.accept();
+        websocketServerHandler = serverWebSocket ->
+            Completable.fromRunnable(() -> {
+                serverConnected.flag();
+                serverWebSocket.exceptionHandler(testContext::failNow);
+                serverWebSocket.accept();
 
-                        clientReady
-                            .future()
-                            .onSuccess(__ ->
-                                serverWebSocket.close().doOnComplete(serverClosed::flag).doOnError(testContext::failNow).subscribe()
-                            );
-                    })
-                    .subscribeOn(Schedulers.io())
-                    .subscribe();
+                clientReady
+                    .future()
+                    .onSuccess(__ -> serverWebSocket.close().doOnComplete(serverClosed::flag).doOnError(testContext::failNow).subscribe());
+            })
+                .subscribeOn(Schedulers.io())
+                .subscribe();
 
         httpClient
             .webSocket("/test")

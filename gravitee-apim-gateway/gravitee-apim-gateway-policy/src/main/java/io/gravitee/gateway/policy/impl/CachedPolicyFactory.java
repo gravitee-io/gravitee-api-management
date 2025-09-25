@@ -47,9 +47,8 @@ public class CachedPolicyFactory implements PolicyFactory {
         PolicyConfiguration policyConfiguration,
         PolicyMetadata policyMetadata
     ) {
-        return policies.computeIfAbsent(
-            getKey(streamType, policyManifest, policyConfiguration, policyMetadata.getCondition()),
-            k -> delegate.create(streamType, policyManifest, policyConfiguration, policyMetadata)
+        return policies.computeIfAbsent(getKey(streamType, policyManifest, policyConfiguration, policyMetadata.getCondition()), k ->
+            delegate.create(streamType, policyManifest, policyConfiguration, policyMetadata)
         );
     }
 

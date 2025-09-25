@@ -275,8 +275,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     ) {
         when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), permission, referenceId, action)).thenReturn(false);
 
-        MAPIAssertions
-            .assertThat(response.call())
+        MAPIAssertions.assertThat(response.call())
             .hasStatus(FORBIDDEN_403)
             .asError()
             .hasHttpStatus(FORBIDDEN_403)

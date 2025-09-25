@@ -27,8 +27,7 @@ public class ApiIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index
-            .builder()
+        return Index.builder()
             .collection("apiqualityrules")
             .name("ia1")
             .key("_id.api", ascending())

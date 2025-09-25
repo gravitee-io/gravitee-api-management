@@ -33,7 +33,7 @@ export class GraviteeMarkdownViewerComponent {
   constructor(private readonly markdownService: GraviteeMarkdownRendererService) {
     effect(() => {
       const parser = new DOMParser();
-      const parsedContent = this.markdownService.render(this.content());
+      const parsedContent = this.markdownService.render(this.content().trim());
       const document = parser.parseFromString(parsedContent, 'text/html');
       this.renderedContent = document.body.outerHTML;
     });

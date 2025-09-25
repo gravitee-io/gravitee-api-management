@@ -68,8 +68,9 @@ class ValidateCategoryIdsDomainServiceTest {
             .peek(
                 sanitized -> assertThat(sanitized).usingRecursiveComparison().isEqualTo(expected),
                 errors ->
-                    assertThat(errors)
-                        .isEqualTo(List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]")))
+                    assertThat(errors).isEqualTo(
+                        List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]"))
+                    )
             );
     }
 
@@ -82,8 +83,9 @@ class ValidateCategoryIdsDomainServiceTest {
             .peek(
                 sanitized -> assertThat(sanitized).usingRecursiveComparison().isEqualTo(expected),
                 errors ->
-                    assertThat(errors)
-                        .isEqualTo(List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]")))
+                    assertThat(errors).isEqualTo(
+                        List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]"))
+                    )
             );
     }
 
@@ -96,8 +98,9 @@ class ValidateCategoryIdsDomainServiceTest {
             .peek(
                 sanitized -> assertThat(sanitized).usingRecursiveComparison().isEqualTo(expected),
                 errors ->
-                    assertThat(errors)
-                        .isEqualTo(List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]")))
+                    assertThat(errors).isEqualTo(
+                        List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]"))
+                    )
             );
     }
 }

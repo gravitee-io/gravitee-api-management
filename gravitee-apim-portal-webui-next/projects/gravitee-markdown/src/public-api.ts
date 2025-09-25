@@ -21,3 +21,5 @@ export * from './lib/gravitee-markdown.service';
 export * from './lib/gravitee-markdown.component';
 export * from './lib/gravitee-markdown-editor/public-api';
 export * from './lib/gravitee-markdown-viewer/public-api';
+export * from './lib/components/card/public-api';
+export * from './lib/components/button/public-api';

@@ -162,15 +162,11 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
 
             // Validate logging option according to api
             if (
-                (
-                    type == ApiType.PROXY &&
-                    (
-                        logging.getContent().isMessageHeaders() ||
+                (type == ApiType.PROXY &&
+                    (logging.getContent().isMessageHeaders() ||
                         logging.getContent().isMessagePayload() ||
                         logging.getContent().isMessageMetadata() ||
-                        logging.getMessageCondition() != null
-                    )
-                ) ||
+                        logging.getMessageCondition() != null)) ||
                 (type == ApiType.MESSAGE && logging.getContent().isPayload())
             ) {
                 throw new LoggingInvalidConfigurationException();

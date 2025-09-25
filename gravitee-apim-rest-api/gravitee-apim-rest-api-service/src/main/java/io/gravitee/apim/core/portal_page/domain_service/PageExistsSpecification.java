@@ -16,8 +16,9 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.portal_page.exception.PortalPageSpecificationException;
-import io.gravitee.apim.core.portal_page.model.PageId;
+import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class PageExistsSpecification<T> {
@@ -26,6 +27,10 @@ public class PageExistsSpecification<T> {
 
     public PageExistsSpecification(Predicate<T> existenceChecker) {
         this.existenceChecker = existenceChecker;
+    }
+
+    public static PageExistsSpecification<Optional<PortalPage>> ofOptional() {
+        return new PageExistsSpecification<>(Optional::isPresent);
     }
 
     public boolean satisfies(T locator) {
@@ -43,10 +48,6 @@ public class PageExistsSpecification<T> {
     }
 
     public static PageExistsSpecification<PortalViewContext> byPortalViewContext(Predicate<PortalViewContext> existenceChecker) {
-        return new PageExistsSpecification<>(existenceChecker);
-    }
-
-    public static PageExistsSpecification<PageId> byPageId(Predicate<PageId> existenceChecker) {
         return new PageExistsSpecification<>(existenceChecker);
     }
 }

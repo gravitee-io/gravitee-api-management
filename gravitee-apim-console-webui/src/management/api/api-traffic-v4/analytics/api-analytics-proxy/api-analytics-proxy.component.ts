@@ -22,6 +22,7 @@ import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, shareReplay } from 'rxjs/operators';
+import { MatButtonModule } from '@angular/material/button';
 
 import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
 import {
@@ -43,11 +44,14 @@ import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../a
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { Stats, StatsField } from '../../../../../entities/management-api-v2/analytics/analyticsStats';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { StatsUnitType } from '../../../../../shared/components/analytics-stats/analytics-stats.component';
+import { ApiNavigationModule } from '../../../api-navigation/api-navigation.module';
+import { MenuItemHeader } from '../../../api-navigation/MenuGroupItem';
 
 type WidgetDisplayConfig = {
   title: string;
   statsKey?: Stats;
-  statsUnit?: string;
+  statsUnit?: StatsUnitType;
   tooltip: string;
   shouldSortBuckets?: boolean;
   type: ApiAnalyticsWidgetType;
@@ -100,6 +104,8 @@ export type ApiAnalyticsDashboardWidgetConfig = WidgetDisplayConfig & WidgetData
     ApiAnalyticsProxyFilterBarComponent,
     ApiAnalyticsWidgetComponent,
     GioChartPieModule,
+    ApiNavigationModule,
+    MatButtonModule,
   ],
   templateUrl: './api-analytics-proxy.component.html',
   styleUrl: './api-analytics-proxy.component.scss',
@@ -115,13 +121,16 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
 
   public activeFilters: Signal<ApiAnalyticsProxyFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
 
+  public menuItemHeader: MenuItemHeader = {
+    title: 'API Traffic',
+  };
+
   private topRowWidgets: ApiAnalyticsDashboardWidgetConfig[] = [
     {
       type: 'stats',
       apiId: this.apiId,
       title: 'Total Requests',
       statsKey: 'count',
-      statsUnit: '',
       tooltip: '',
       shouldSortBuckets: false,
       statsField: 'gateway-response-time-ms',
@@ -165,7 +174,6 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       apiId: this.apiId,
       title: 'Requests Per Second',
       statsKey: 'rps',
-      statsUnit: '',
       tooltip: '',
       shouldSortBuckets: false,
       statsField: 'gateway-response-time-ms',
@@ -374,6 +382,23 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
     this.apiAnalyticsWidgetService.clearStatsCache();
   }
 
+  navigateToLogs(): void {
+    const queryParams = this.activatedRoute.snapshot.queryParams;
+
+    const queryParamsForLogs = {
+      from: this.getFromAndToTimestamps(queryParams).fromTimestamp,
+      to: this.getFromAndToTimestamps(queryParams).toTimestamp,
+      statuses: queryParams.httpStatuses,
+      planIds: queryParams.plans,
+      applicationIds: queryParams.applications,
+    };
+
+    this.router.navigate(['../runtime-logs'], {
+      relativeTo: this.activatedRoute,
+      queryParams: queryParamsForLogs,
+    });
+  }
+
   private updateQueryParamsFromFilters(filters: ApiAnalyticsProxyFilters): void {
     const queryParams = this.createQueryParamsFromFilters(filters);
     this.router.navigate([], {
@@ -471,5 +496,20 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
   private calculateCustomInterval(from: number, to: number, nbValuesByBucket = 30): number {
     const range: number = to - from;
     return Math.floor(range / nbValuesByBucket);
+  }
+
+  private getFromAndToTimestamps(queryParams: any) {
+    let fromTimestamp: number;
+    let toTimestamp: number;
+    if (queryParams.period === 'custom' && queryParams.from && queryParams.to) {
+      fromTimestamp = +queryParams.from;
+      toTimestamp = +queryParams.to;
+    } else {
+      const timeFrame = timeFrames.find((tf) => tf.id === queryParams.period);
+      const timeRangeParams = timeFrame.timeFrameRangesParams();
+      fromTimestamp = timeRangeParams.from;
+      toTimestamp = timeRangeParams.to;
+    }
+    return { fromTimestamp, toTimestamp };
   }
 }

@@ -242,6 +242,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_7_0/01_add_origin_to_groups_table.yml
     - include:
+        - file: liquibase/changelogs/v4_7_15/00_remove_orphaned_subscriptions.yml
+    - include:
         - file: liquibase/changelogs/v4_7_0/02_add_application_name_to_subscription_table.yml
     - include:
         - file: liquibase/changelogs/v4_7_0/03_add_deadline_to_async_jobs_table.yml
@@ -271,3 +273,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_9_0/05_add_portal_pages_table.yml
     - include:
         - file: liquibase/changelogs/v4_9_0/06_add_portal_page_contexts_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/07_add_parent_hrid_to_page_table.yml

@@ -73,8 +73,7 @@ public class OrganizationCommandHandlerTest {
 
     @Test
     public void handle() throws InterruptedException {
-        OrganizationCommandPayload organizationPayload = OrganizationCommandPayload
-            .builder()
+        OrganizationCommandPayload organizationPayload = OrganizationCommandPayload.builder()
             .id("orga#1")
             .cockpitId("org#cockpit-1")
             .hrids(Collections.singletonList("orga-1"))
@@ -93,15 +92,15 @@ public class OrganizationCommandHandlerTest {
         when(
             organizationService.createOrUpdate(
                 argThat(orgaId -> orgaId.equals("orga#1")),
-                argThat(newOrganization ->
-                    newOrganization.getCockpitId().equals(organizationPayload.cockpitId()) &&
-                    newOrganization.getHrids().equals(organizationPayload.hrids()) &&
-                    newOrganization.getDescription().equals(organizationPayload.description()) &&
-                    newOrganization.getName().equals(organizationPayload.name())
+                argThat(
+                    newOrganization ->
+                        newOrganization.getCockpitId().equals(organizationPayload.cockpitId()) &&
+                        newOrganization.getHrids().equals(organizationPayload.hrids()) &&
+                        newOrganization.getDescription().equals(organizationPayload.description()) &&
+                        newOrganization.getName().equals(organizationPayload.name())
                 )
             )
-        )
-            .thenReturn(new OrganizationEntity());
+        ).thenReturn(new OrganizationEntity());
 
         TestObserver<OrganizationReply> obs = cut.handle(command).test();
 
@@ -111,8 +110,7 @@ public class OrganizationCommandHandlerTest {
 
     @Test
     public void handleWithException() throws InterruptedException {
-        OrganizationCommandPayload organizationPayload = OrganizationCommandPayload
-            .builder()
+        OrganizationCommandPayload organizationPayload = OrganizationCommandPayload.builder()
             .id("orga#1")
             .description("Organization description")
             .name("Organization name")
@@ -126,8 +124,9 @@ public class OrganizationCommandHandlerTest {
         OrganizationCommand command = new OrganizationCommand(organizationPayload);
 
         when(organizationService.findByCockpitId(any())).thenThrow(new OrganizationNotFoundException("Org not found"));
-        when(organizationService.createOrUpdate(argThat(orgaId -> orgaId.equals("orga#1")), any(UpdateOrganizationEntity.class)))
-            .thenThrow(new RuntimeException("fake error"));
+        when(organizationService.createOrUpdate(argThat(orgaId -> orgaId.equals("orga#1")), any(UpdateOrganizationEntity.class))).thenThrow(
+            new RuntimeException("fake error")
+        );
 
         TestObserver<OrganizationReply> obs = cut.handle(command).test();
 
@@ -138,8 +137,7 @@ public class OrganizationCommandHandlerTest {
 
     @Test
     public void handleWithExistingCockpitId() throws InterruptedException {
-        OrganizationCommandPayload organizationPayload = OrganizationCommandPayload
-            .builder()
+        OrganizationCommandPayload organizationPayload = OrganizationCommandPayload.builder()
             .id("orga#1")
             .cockpitId("org#cockpit-1")
             .hrids(Collections.singletonList("orga-1"))
@@ -160,15 +158,15 @@ public class OrganizationCommandHandlerTest {
         when(
             organizationService.createOrUpdate(
                 argThat(orgaId -> orgaId.equals("DEFAULT")),
-                argThat(newOrganization ->
-                    newOrganization.getCockpitId().equals(organizationPayload.cockpitId()) &&
-                    newOrganization.getHrids().equals(organizationPayload.hrids()) &&
-                    newOrganization.getDescription().equals(organizationPayload.description()) &&
-                    newOrganization.getName().equals(organizationPayload.name())
+                argThat(
+                    newOrganization ->
+                        newOrganization.getCockpitId().equals(organizationPayload.cockpitId()) &&
+                        newOrganization.getHrids().equals(organizationPayload.hrids()) &&
+                        newOrganization.getDescription().equals(organizationPayload.description()) &&
+                        newOrganization.getName().equals(organizationPayload.name())
                 )
             )
-        )
-            .thenReturn(new OrganizationEntity());
+        ).thenReturn(new OrganizationEntity());
 
         TestObserver<OrganizationReply> obs = cut.handle(command).test();
 

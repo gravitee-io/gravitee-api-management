@@ -55,15 +55,13 @@ class NodeMetadataMapperTest {
             INSTALLATION_ID
         );
 
-        distributedEvent =
-            DistributedEvent
-                .builder()
-                .id(UUID.randomUUID().toString())
-                .payload(objectMapper.writeValueAsString(metadataDeployable))
-                .updatedAt(new Date())
-                .type(DistributedEventType.NODE_METADATA)
-                .syncAction(DistributedSyncAction.DEPLOY)
-                .build();
+        distributedEvent = DistributedEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .payload(objectMapper.writeValueAsString(metadataDeployable))
+            .updatedAt(new Date())
+            .type(DistributedEventType.NODE_METADATA)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
 
         nodeMetadataDeployable = NodeMetadataDeployable.builder().organizationIds(ORGANIZATION_IDS).installationId(INSTALLATION_ID).build();
     }

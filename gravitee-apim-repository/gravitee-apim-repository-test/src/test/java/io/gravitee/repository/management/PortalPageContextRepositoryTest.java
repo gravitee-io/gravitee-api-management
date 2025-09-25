@@ -79,7 +79,7 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
     }
 
     @Test
-    public void should_throw_error_when_updating_non_existing_portal_page_context() throws TechnicalException {
+    public void should_throw_error_when_updating_non_existing_portal_page_context() {
         // Given
         PortalPageContext nonExisting = new PortalPageContext();
         nonExisting.setId("non-existing-id");
@@ -98,8 +98,7 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         PortalPageContext existing = portalPageContextRepository.findById("test-portal-page-context-id").orElse(null);
         assertThat(existing).isNotNull();
 
-        PortalPageContext duplicate = PortalPageContext
-            .builder()
+        PortalPageContext duplicate = PortalPageContext.builder()
             .id("new-id-for-duplicate")
             .pageId(existing.getPageId())
             .contextType(existing.getContextType())
@@ -117,7 +116,7 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
     }
 
     @Test
-    public void should_find_by_page_id() throws Exception {
+    public void should_find_by_page_id() {
         String pageId = "test-portal-page-id";
 
         PortalPageContext foundContext = portalPageContextRepository.findByPageId(pageId);
@@ -125,5 +124,28 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         assertThat(foundContext).isNotNull();
         assertThat(foundContext.getPageId()).isEqualTo(pageId);
         assertThat(foundContext.getId()).isEqualTo("test-portal-page-context-id");
+    }
+
+    @Test
+    public void should_update_by_page_id() throws Exception {
+        // Given
+        PortalPageContext existing = portalPageContextRepository.findById("update-portal-page-context-id").orElse(null);
+        assertThat(existing).isNotNull();
+        assertThat(existing.isPublished()).isFalse();
+
+        PortalPageContext toUpdate = PortalPageContext.builder()
+            .pageId(existing.getPageId())
+            .contextType(existing.getContextType())
+            .environmentId(existing.getEnvironmentId())
+            .published(true)
+            .build();
+
+        // When
+        portalPageContextRepository.updateByPageId(toUpdate);
+
+        // Then
+        PortalPageContext updated = portalPageContextRepository.findByPageId(existing.getPageId());
+        assertThat(updated).isNotNull();
+        assertThat(updated.isPublished()).isTrue();
     }
 }

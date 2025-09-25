@@ -51,8 +51,7 @@ public class SharedPolicyGroupMapper {
             try {
                 var sharedPolicyGroupDefinition = objectMapper.readValue(sharedPolicyGroupEvent.getPayload(), SharedPolicyGroup.class);
 
-                final ReactableSharedPolicyGroup reactableSharedPolicyGroup = ReactableSharedPolicyGroup
-                    .builder()
+                final ReactableSharedPolicyGroup reactableSharedPolicyGroup = ReactableSharedPolicyGroup.builder()
                     .id(sharedPolicyGroupDefinition.getId())
                     .name(sharedPolicyGroupDefinition.getName())
                     .environmentId(sharedPolicyGroupDefinition.getEnvironmentId())

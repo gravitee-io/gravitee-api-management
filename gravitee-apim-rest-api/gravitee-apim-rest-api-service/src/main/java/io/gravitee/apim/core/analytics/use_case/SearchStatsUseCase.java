@@ -35,9 +35,12 @@ public class SearchStatsUseCase {
     private final AnalyticsQueryService analyticsQueryService;
 
     public Output execute(ExecutionContext executionContext, Input input) {
-        ApiAnalyticsSpecification
-            .forSearchStatsAnalytics()
-            .throwIfNotSatisfied(apiCrudService.get(input.api()), executionContext, input.from(), input.to());
+        ApiAnalyticsSpecification.forSearchStatsAnalytics().throwIfNotSatisfied(
+            apiCrudService.get(input.api()),
+            executionContext,
+            input.from(),
+            input.to()
+        );
 
         var statsQuery = new AnalyticsQueryService.StatsQuery(
             AnalyticsQueryService.SearchTermId.forApi(input.api()),

@@ -69,8 +69,9 @@ public class ApplicationCrudServiceImplTest {
         void should_return_application_entity_when_found() throws TechnicalException {
             // Given
             String applicationId = "appId";
-            when(applicationRepository.findById(any()))
-                .thenAnswer(invocation -> Optional.of(anApplication().id(invocation.getArgument(0)).build()));
+            when(applicationRepository.findById(any())).thenAnswer(invocation ->
+                Optional.of(anApplication().id(invocation.getArgument(0)).build())
+            );
 
             // When
             var result = service.findById(applicationId, ENVIRONMENT_ID);
@@ -98,8 +99,9 @@ public class ApplicationCrudServiceImplTest {
         void should_throw_when_environment_does_not_match_with_current_environment() throws TechnicalException {
             // Given
             String applicationId = "appId";
-            when(applicationRepository.findById(any()))
-                .thenAnswer(invocation -> Optional.of(anApplication().id(invocation.getArgument(0)).build()));
+            when(applicationRepository.findById(any())).thenAnswer(invocation ->
+                Optional.of(anApplication().id(invocation.getArgument(0)).build())
+            );
 
             // When
             Throwable throwable = catchThrowable(() -> service.findById(applicationId, "OTHER"));
@@ -140,8 +142,7 @@ public class ApplicationCrudServiceImplTest {
     }
 
     private Application.ApplicationBuilder anApplication() {
-        return Application
-            .builder()
+        return Application.builder()
             .apiKeyMode(io.gravitee.repository.management.model.ApiKeyMode.EXCLUSIVE)
             .background("app-background")
             .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))

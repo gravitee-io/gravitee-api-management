@@ -317,8 +317,6 @@ public class UserServiceTest {
     public void shouldComputeRolesToAddToUserFromRoleMapping() throws IOException {
         List<RoleMappingEntity> roleMappingEntities = getRoleMappingEntities();
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token_body.json"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token_body.json"), Charset.defaultCharset());
 
         RoleEntity orgAdminRole = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", ORGANIZATION)).thenReturn(Optional.of(orgAdminRole));
@@ -333,18 +331,14 @@ public class UserServiceTest {
             EXECUTION_CONTEXT,
             roleMappingEntities,
             USER_NAME,
-            userInfo,
-            accessToken,
-            idToken
+            userInfo
         );
 
         Map<String, Set<RoleEntity>> roleEntitiesForEnvironments = userService.computeEnvironmentRoles(
             EXECUTION_CONTEXT,
             roleMappingEntities,
             USER_NAME,
-            userInfo,
-            accessToken,
-            idToken
+            userInfo
         );
 
         assertEquals(2, roleEntitiesForOrganization.size());
@@ -359,9 +353,6 @@ public class UserServiceTest {
     @Test
     public void setDefaultRolesIfRoleMappingIsNotMatching() throws IOException {
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token_body.json"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token_body.json"), Charset.defaultCharset());
-
         RoleMappingEntity role1 = new RoleMappingEntity();
         role1.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_4'}");
         role1.setOrganizations(Collections.singletonList("ADMIN"));
@@ -377,29 +368,27 @@ public class UserServiceTest {
         final List<RoleMappingEntity> rolesMapping = Arrays.asList(role1, role2, role3);
 
         RoleEntity orgAdminRole = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(EXECUTION_CONTEXT.getOrganizationId(), RoleScope.ORGANIZATION))
-            .thenReturn(List.of(orgAdminRole));
+        when(roleService.findDefaultRoleByScopes(EXECUTION_CONTEXT.getOrganizationId(), RoleScope.ORGANIZATION)).thenReturn(
+            List.of(orgAdminRole)
+        );
 
         RoleEntity envUserRole = mockRoleEntity(RoleScope.ENVIRONMENT, "USER");
-        when(roleService.findDefaultRoleByScopes(EXECUTION_CONTEXT.getOrganizationId(), RoleScope.ENVIRONMENT))
-            .thenReturn(List.of(envUserRole));
+        when(roleService.findDefaultRoleByScopes(EXECUTION_CONTEXT.getOrganizationId(), RoleScope.ENVIRONMENT)).thenReturn(
+            List.of(envUserRole)
+        );
 
         Set<RoleEntity> roleEntitiesForOrganization = userService.computeOrganizationRoles(
             EXECUTION_CONTEXT,
             rolesMapping,
             USER_NAME,
-            userInfo,
-            accessToken,
-            idToken
+            userInfo
         );
 
         Map<String, Set<RoleEntity>> roleEntitiesForEnvironments = userService.computeEnvironmentRoles(
             EXECUTION_CONTEXT,
             rolesMapping,
             USER_NAME,
-            userInfo,
-            accessToken,
-            idToken
+            userInfo
         );
 
         assertEquals(1, roleEntitiesForOrganization.size());
@@ -456,8 +445,9 @@ public class UserServiceTest {
         when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
 
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER))
-            .thenReturn(1000);
+        when(
+            environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)
+        ).thenReturn(1000);
         when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(empty());
 
         // Mock create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole, boolean autoRegistrationEnabled)
@@ -474,18 +464,21 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT))
-            .thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
+            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
+        );
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId()))
-            .thenReturn(new HashSet<>(List.of(roleEnv)));
+        when(
+            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleEnv)));
         RoleEntity roleOrg = mock(RoleEntity.class);
         when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
         when(roleOrg.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId()))
-            .thenReturn(new HashSet<>(List.of(roleOrg)));
+        when(
+            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleOrg)));
 
         // Come back to our method
 
@@ -530,18 +523,21 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT))
-            .thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
+            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
+        );
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId()))
-            .thenReturn(new HashSet<>(List.of(roleEnv)));
+        when(
+            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleEnv)));
         RoleEntity roleOrg = mock(RoleEntity.class);
         when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
         when(roleOrg.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId()))
-            .thenReturn(new HashSet<>(List.of(roleOrg)));
+        when(
+            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleOrg)));
 
         // Come back to our method
 
@@ -576,18 +572,21 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT))
-            .thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
+            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
+        );
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId()))
-            .thenReturn(new HashSet<>(List.of(roleEnv)));
+        when(
+            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleEnv)));
         RoleEntity roleOrg = mock(RoleEntity.class);
         when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
         when(roleOrg.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId()))
-            .thenReturn(new HashSet<>(List.of(roleOrg)));
+        when(
+            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleOrg)));
 
         // Come back to our method
 
@@ -623,13 +622,15 @@ public class UserServiceTest {
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId()))
-            .thenReturn(new HashSet<>(Arrays.asList(roleEnv)));
+        when(
+            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(Arrays.asList(roleEnv)));
         RoleEntity roleOrg = mock(RoleEntity.class);
         when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
         when(roleOrg.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId()))
-            .thenReturn(new HashSet<>(Arrays.asList(roleOrg)));
+        when(
+            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(Arrays.asList(roleOrg)));
 
         when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
         mockDefaultEnvironment();
@@ -640,9 +641,9 @@ public class UserServiceTest {
 
         final UserEntity createdUserEntity = userService.create(EXECUTION_CONTEXT, newUser, false);
 
-        verify(userRepository)
-            .create(
-                argThat(userToCreate ->
+        verify(userRepository).create(
+            argThat(
+                userToCreate ->
                     USER_NAME.equals(userToCreate.getSourceId()) &&
                     USER_SOURCE.equals(userToCreate.getSource()) &&
                     EMAIL.equals(userToCreate.getEmail()) &&
@@ -651,8 +652,8 @@ public class UserServiceTest {
                     userToCreate.getCreatedAt() != null &&
                     userToCreate.getUpdatedAt() != null &&
                     userToCreate.getCreatedAt().equals(userToCreate.getUpdatedAt())
-                )
-            );
+            )
+        );
 
         assertEquals(USER_NAME, createdUserEntity.getId());
         assertEquals(FIRST_NAME, createdUserEntity.getFirstname());
@@ -700,16 +701,15 @@ public class UserServiceTest {
         user.setSourceId(USER_EMAIL);
         user.setOrganizationId(ORGANIZATION);
 
-        when(userRepository.update(any(User.class)))
-            .thenAnswer(
-                new Answer<User>() {
-                    @Override
-                    public User answer(InvocationOnMock invocation) throws Throwable {
-                        Object[] args = invocation.getArguments();
-                        return (User) args[0];
-                    }
+        when(userRepository.update(any(User.class))).thenAnswer(
+            new Answer<User>() {
+                @Override
+                public User answer(InvocationOnMock invocation) throws Throwable {
+                    Object[] args = invocation.getArguments();
+                    return (User) args[0];
                 }
-            );
+            }
+        );
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(userRepository.findBySource(GIO_SOURCE, USER_EMAIL, ORGANIZATION)).thenReturn(Optional.empty());
@@ -721,17 +721,17 @@ public class UserServiceTest {
         when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
         userService.update(EXECUTION_CONTEXT, user.getId(), updateUser);
 
-        verify(userRepository)
-            .update(
-                argThat(userToUpdate ->
+        verify(userRepository).update(
+            argThat(
+                userToUpdate ->
                     USER_ID.equals(userToUpdate.getId()) &&
                     GIO_SOURCE.equals(userToUpdate.getSource()) &&
                     USER_EMAIL.equals(userToUpdate.getEmail()) &&
                     USER_EMAIL.equals(userToUpdate.getSourceId()) && // update of sourceId authorized for gravitee source
                     UPDATED_FIRST_NAME.equals(userToUpdate.getFirstname()) &&
                     UPDATED_LAST_NAME.equals(userToUpdate.getLastname())
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -749,16 +749,15 @@ public class UserServiceTest {
         user.setSourceId(USER_ID);
         user.setOrganizationId(ORGANIZATION);
 
-        when(userRepository.update(any(User.class)))
-            .thenAnswer(
-                new Answer<User>() {
-                    @Override
-                    public User answer(InvocationOnMock invocation) throws Throwable {
-                        Object[] args = invocation.getArguments();
-                        return (User) args[0];
-                    }
+        when(userRepository.update(any(User.class))).thenAnswer(
+            new Answer<User>() {
+                @Override
+                public User answer(InvocationOnMock invocation) throws Throwable {
+                    Object[] args = invocation.getArguments();
+                    return (User) args[0];
                 }
-            );
+            }
+        );
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
 
@@ -769,17 +768,17 @@ public class UserServiceTest {
         when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
         userService.update(EXECUTION_CONTEXT, user.getId(), updateUser);
 
-        verify(userRepository)
-            .update(
-                argThat(userToUpdate ->
+        verify(userRepository).update(
+            argThat(
+                userToUpdate ->
                     USER_ID.equals(userToUpdate.getId()) &&
                     SOURCE.equals(userToUpdate.getSource()) &&
                     USER_EMAIL.equals(userToUpdate.getEmail()) &&
                     USER_ID.equals(userToUpdate.getSourceId()) && //sourceId shouldn't be updated in this case
                     UPDATED_FIRST_NAME.equals(userToUpdate.getFirstname()) &&
                     UPDATED_LAST_NAME.equals(userToUpdate.getLastname())
-                )
-            );
+            )
+        );
     }
 
     @Test(expected = UserAlreadyExistsException.class)
@@ -821,8 +820,9 @@ public class UserServiceTest {
 
     @Test(expected = UserAlreadyExistsException.class)
     public void shouldNotCreateBecauseExists() throws TechnicalException {
-        when(userRepository.findBySource(nullable(String.class), nullable(String.class), nullable(String.class)))
-            .thenReturn(of(new User()));
+        when(userRepository.findBySource(nullable(String.class), nullable(String.class), nullable(String.class))).thenReturn(
+            of(new User())
+        );
 
         userService.create(EXECUTION_CONTEXT, newUser, false);
 
@@ -911,8 +911,7 @@ public class UserServiceTest {
                 ENVIRONMENT,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(passwordValidator.validate(anyString())).thenReturn(true);
 
@@ -954,16 +953,15 @@ public class UserServiceTest {
 
         userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
 
-        verify(auditService)
-            .createOrganizationAuditLog(
-                eq(EXECUTION_CONTEXT),
-                eq(ORGANIZATION),
-                anyMap(),
-                argThat(evt -> evt.equals(User.AuditEvent.PASSWORD_CHANGED)),
-                any(),
-                any(),
-                any()
-            );
+        verify(auditService).createOrganizationAuditLog(
+            eq(EXECUTION_CONTEXT),
+            eq(ORGANIZATION),
+            anyMap(),
+            argThat(evt -> evt.equals(User.AuditEvent.PASSWORD_CHANGED)),
+            any(),
+            any(),
+            any()
+        );
     }
 
     @Test(expected = PasswordFormatInvalidException.class)
@@ -1006,8 +1004,7 @@ public class UserServiceTest {
                 ENVIRONMENT,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
 
         RegisterUserEntity userEntity = new RegisterUserEntity();
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
@@ -1025,8 +1022,7 @@ public class UserServiceTest {
                 ENVIRONMENT,
                 ParameterReferenceType.ENVIRONMENT
             )
-        )
-            .thenReturn(Boolean.TRUE);
+        ).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(passwordValidator.validate(anyString())).thenReturn(true);
 
@@ -1045,15 +1041,15 @@ public class UserServiceTest {
 
         userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
 
-        verify(userRepository)
-            .update(
-                argThat(userToCreate ->
+        verify(userRepository).update(
+            argThat(
+                userToCreate ->
                     "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
                     EMAIL.equals(userToCreate.getEmail()) &&
                     FIRST_NAME.equals(userToCreate.getFirstname()) &&
                     LAST_NAME.equals(userToCreate.getLastname())
-                )
-            );
+            )
+        );
     }
 
     @Test(expected = UserRegistrationUnavailableException.class)
@@ -1072,16 +1068,18 @@ public class UserServiceTest {
     @Test
     public void shouldResetPassword() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER))
-            .thenReturn(1000);
+        when(
+            environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)
+        ).thenReturn(1000);
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(user.getSourceId()).thenReturn(EMAIL);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        when(auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))))
-            .thenReturn(mock(MetadataPage.class));
+        when(
+            auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name())))
+        ).thenReturn(mock(MetadataPage.class));
 
         SecurityContextHolder.setContext(
             new SecurityContext() {
@@ -1105,8 +1103,9 @@ public class UserServiceTest {
     @Test
     public void shouldResetPassword_auditEventNotMatch() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER))
-            .thenReturn(1000);
+        when(
+            environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)
+        ).thenReturn(1000);
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
         when(user.getSourceId()).thenReturn(EMAIL);
@@ -1117,8 +1116,9 @@ public class UserServiceTest {
         AuditEntity entity1 = new AuditEntity();
         entity1.setProperties(Collections.singletonMap("USER", "unknown"));
         when(mdPage.getContent()).thenReturn(Arrays.asList(entity1));
-        when(auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))))
-            .thenReturn(mdPage);
+        when(
+            auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name())))
+        ).thenReturn(mdPage);
 
         SecurityContextHolder.setContext(
             new SecurityContext() {
@@ -1151,8 +1151,9 @@ public class UserServiceTest {
         AuditEntity entity1 = new AuditEntity();
         entity1.setProperties(Collections.singletonMap("USER", USER_NAME));
         when(mdPage.getContent()).thenReturn(Arrays.asList(entity1));
-        when(auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))))
-            .thenReturn(mdPage);
+        when(
+            auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name())))
+        ).thenReturn(mdPage);
 
         SecurityContextHolder.setContext(
             new SecurityContext() {
@@ -1238,8 +1239,7 @@ public class UserServiceTest {
         Date issueAt = new Date();
         Instant expireAt = issueAt.toInstant().plus(Duration.ofSeconds(expirationSeconds));
 
-        return JWT
-            .create()
+        return JWT.create()
             .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
             .withIssuedAt(issueAt)
             .withExpiresAt(Date.from(expireAt))
@@ -1298,26 +1298,26 @@ public class UserServiceTest {
 
         userService.update(EXECUTION_CONTEXT, USER_ID, toUpdate);
 
-        verify(userMetadataService)
-            .update(
-                eq(EXECUTION_CONTEXT),
-                argThat(entity ->
+        verify(userMetadataService).update(
+            eq(EXECUTION_CONTEXT),
+            argThat(
+                entity ->
                     entity.getKey().equals(existingField.getKey()) &&
                     entity.getName().equals(existingField.getName()) &&
                     entity.getUserId().equals(existingField.getUserId()) &&
                     entity.getValue().equals(toUpdate.getCustomFields().get(existingField.getKey()))
-                )
-            );
+            )
+        );
 
-        verify(userMetadataService)
-            .create(
-                eq(EXECUTION_CONTEXT),
-                argThat(entity ->
+        verify(userMetadataService).create(
+            eq(EXECUTION_CONTEXT),
+            argThat(
+                entity ->
                     entity.getName().equals("fieldToCreate") &&
                     entity.getUserId().equals(existingField.getUserId()) &&
                     entity.getValue().equals(toUpdate.getCustomFields().get("fieldToCreate"))
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -1340,8 +1340,7 @@ public class UserServiceTest {
                 MembershipReferenceType.API,
                 apiPoRole.getId()
             )
-        )
-            .thenReturn(Set.of(new MembershipEntity()));
+        ).thenReturn(Set.of(new MembershipEntity()));
 
         RoleEntity appPoRole = new RoleEntity();
         appPoRole.setId("po-role");
@@ -1353,8 +1352,7 @@ public class UserServiceTest {
                 MembershipReferenceType.APPLICATION,
                 appPoRole.getId()
             )
-        )
-            .thenReturn(Set.of());
+        ).thenReturn(Set.of());
 
         try {
             userService.delete(EXECUTION_CONTEXT, USER_NAME);
@@ -1387,8 +1385,7 @@ public class UserServiceTest {
                 MembershipReferenceType.API,
                 apiPoRole.getId()
             )
-        )
-            .thenReturn(Set.of());
+        ).thenReturn(Set.of());
 
         RoleEntity appPoRole = new RoleEntity();
         appPoRole.setId("po-role");
@@ -1400,8 +1397,7 @@ public class UserServiceTest {
                 MembershipReferenceType.APPLICATION,
                 appPoRole.getId()
             )
-        )
-            .thenReturn(Set.of((new MembershipEntity())));
+        ).thenReturn(Set.of((new MembershipEntity())));
 
         try {
             userService.delete(EXECUTION_CONTEXT, USER_NAME);
@@ -1442,8 +1438,7 @@ public class UserServiceTest {
                 MembershipReferenceType.API,
                 apiPoRole.getId()
             )
-        )
-            .thenReturn(Set.of());
+        ).thenReturn(Set.of());
 
         RoleEntity appPoRole = new RoleEntity();
         appPoRole.setId("po-role");
@@ -1455,41 +1450,42 @@ public class UserServiceTest {
                 MembershipReferenceType.APPLICATION,
                 appPoRole.getId()
             )
-        )
-            .thenReturn(Set.of());
+        ).thenReturn(Set.of());
 
         userService.delete(EXECUTION_CONTEXT, userId);
 
-        verify(membershipService, times(1))
-            .getMembershipsByMemberAndReferenceAndRole(MembershipMemberType.USER, userId, MembershipReferenceType.API, apiPoRole.getId());
-        verify(membershipService, times(1))
-            .getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.USER,
-                userId,
-                MembershipReferenceType.APPLICATION,
-                appPoRole.getId()
-            );
+        verify(membershipService, times(1)).getMembershipsByMemberAndReferenceAndRole(
+            MembershipMemberType.USER,
+            userId,
+            MembershipReferenceType.API,
+            apiPoRole.getId()
+        );
+        verify(membershipService, times(1)).getMembershipsByMemberAndReferenceAndRole(
+            MembershipMemberType.USER,
+            userId,
+            MembershipReferenceType.APPLICATION,
+            appPoRole.getId()
+        );
 
         verify(membershipService, times(1)).removeMemberMemberships(EXECUTION_CONTEXT, MembershipMemberType.USER, userId);
-        verify(userRepository, times(1))
-            .update(
-                argThat(
-                    new ArgumentMatcher<User>() {
-                        @Override
-                        public boolean matches(User user) {
-                            return (
-                                userId.equals(user.getId()) &&
-                                UserStatus.ARCHIVED.equals(user.getStatus()) &&
-                                "deleted-sourceId".equals(user.getSourceId()) &&
-                                !updatedAt.equals(user.getUpdatedAt()) &&
-                                firstName.equals(user.getFirstname()) &&
-                                lastName.equals(user.getLastname()) &&
-                                email.equals(user.getEmail())
-                            );
-                        }
+        verify(userRepository, times(1)).update(
+            argThat(
+                new ArgumentMatcher<User>() {
+                    @Override
+                    public boolean matches(User user) {
+                        return (
+                            userId.equals(user.getId()) &&
+                            UserStatus.ARCHIVED.equals(user.getStatus()) &&
+                            "deleted-sourceId".equals(user.getSourceId()) &&
+                            !updatedAt.equals(user.getUpdatedAt()) &&
+                            firstName.equals(user.getFirstname()) &&
+                            lastName.equals(user.getLastname()) &&
+                            email.equals(user.getEmail())
+                        );
                     }
-                )
-            );
+                }
+            )
+        );
         verify(searchEngineService, times(1)).delete(eq(EXECUTION_CONTEXT), any());
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
@@ -1529,8 +1525,7 @@ public class UserServiceTest {
                 MembershipReferenceType.API,
                 apiPoRole.getId()
             )
-        )
-            .thenReturn(Set.of());
+        ).thenReturn(Set.of());
 
         RoleEntity appPoRole = new RoleEntity();
         appPoRole.setId("po-role");
@@ -1542,43 +1537,44 @@ public class UserServiceTest {
                 MembershipReferenceType.APPLICATION,
                 appPoRole.getId()
             )
-        )
-            .thenReturn(Set.of());
+        ).thenReturn(Set.of());
 
         userService.delete(EXECUTION_CONTEXT, userId);
 
-        verify(membershipService, times(1))
-            .getMembershipsByMemberAndReferenceAndRole(MembershipMemberType.USER, userId, MembershipReferenceType.API, apiPoRole.getId());
-        verify(membershipService, times(1))
-            .getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.USER,
-                userId,
-                MembershipReferenceType.APPLICATION,
-                appPoRole.getId()
-            );
+        verify(membershipService, times(1)).getMembershipsByMemberAndReferenceAndRole(
+            MembershipMemberType.USER,
+            userId,
+            MembershipReferenceType.API,
+            apiPoRole.getId()
+        );
+        verify(membershipService, times(1)).getMembershipsByMemberAndReferenceAndRole(
+            MembershipMemberType.USER,
+            userId,
+            MembershipReferenceType.APPLICATION,
+            appPoRole.getId()
+        );
 
         verify(membershipService, times(1)).removeMemberMemberships(EXECUTION_CONTEXT, MembershipMemberType.USER, userId);
-        verify(userRepository, times(1))
-            .update(
-                argThat(
-                    new ArgumentMatcher<User>() {
-                        @Override
-                        public boolean matches(User user) {
-                            return (
-                                userId.equals(user.getId()) &&
-                                organizationId.equals(user.getOrganizationId()) &&
-                                UserStatus.ARCHIVED.equals(user.getStatus()) &&
-                                ("deleted-" + userId).equals(user.getSourceId()) &&
-                                !updatedAt.equals(user.getUpdatedAt()) &&
-                                "Unknown".equals(user.getFirstname()) &&
-                                user.getLastname().isEmpty() &&
-                                user.getEmail() == null &&
-                                user.getPicture() == null
-                            );
-                        }
+        verify(userRepository, times(1)).update(
+            argThat(
+                new ArgumentMatcher<User>() {
+                    @Override
+                    public boolean matches(User user) {
+                        return (
+                            userId.equals(user.getId()) &&
+                            organizationId.equals(user.getOrganizationId()) &&
+                            UserStatus.ARCHIVED.equals(user.getStatus()) &&
+                            ("deleted-" + userId).equals(user.getSourceId()) &&
+                            !updatedAt.equals(user.getUpdatedAt()) &&
+                            "Unknown".equals(user.getFirstname()) &&
+                            user.getLastname().isEmpty() &&
+                            user.getEmail() == null &&
+                            user.getPicture() == null
+                        );
                     }
-                )
-            );
+                }
+            )
+        );
         verify(searchEngineService, times(1)).delete(eq(EXECUTION_CONTEXT), any());
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
@@ -1601,9 +1597,7 @@ public class UserServiceTest {
         when(identityProvider.isEmailRequired()).thenReturn(Boolean.TRUE);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
     }
 
     @Test
@@ -1627,9 +1621,7 @@ public class UserServiceTest {
         when(userRepository.create(any())).thenReturn(mockUser());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         verify(groupService, times(1)).findById(EXECUTION_CONTEXT, "Api consumer");
 
@@ -1651,10 +1643,8 @@ public class UserServiceTest {
         when(userRepository.update(user)).thenReturn(user);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
         verify(userRepository, times(1)).update(refEq(user));
     }
 
@@ -1681,10 +1671,8 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
         verify(userRepository, times(1)).create(any(User.class));
     }
 
@@ -1701,10 +1689,8 @@ public class UserServiceTest {
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
         verify(userRepository, times(1)).create(any(User.class));
     }
 
@@ -1721,18 +1707,15 @@ public class UserServiceTest {
         when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION)).thenReturn(Optional.empty());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body_no_matching.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         //verify group creations
-        verify(membershipService, never())
-            .addRoleToMemberOnReference(
-                eq(EXECUTION_CONTEXT),
-                any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipMember.class),
-                any(MembershipService.MembershipRole.class)
-            );
+        verify(membershipService, never()).addRoleToMemberOnReference(
+            eq(EXECUTION_CONTEXT),
+            any(MembershipService.MembershipReference.class),
+            any(MembershipService.MembershipMember.class),
+            any(MembershipService.MembershipRole.class)
+        );
     }
 
     @Test
@@ -1762,130 +1745,129 @@ public class UserServiceTest {
 
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationAdmin));
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationUser));
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION))
-            .thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION)).thenReturn(
+            Arrays.asList(roleApiUser, roleApplicationAdmin)
+        );
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
                 eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
-        )
-            .thenReturn(Collections.singletonList(mockMemberEntity()));
+        ).thenReturn(Collections.singletonList(mockMemberEntity()));
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
                 eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
-        )
-            .thenReturn(Collections.singletonList(mockMemberEntity()));
+        ).thenReturn(Collections.singletonList(mockMemberEntity()));
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
                 eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
-        )
-            .thenReturn(Collections.singletonList(mockMemberEntity()));
+        ).thenReturn(Collections.singletonList(mockMemberEntity()));
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
                 eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
                 ),
                 eq("oauth2")
             )
-        )
-            .thenReturn(Collections.singletonList(mockMemberEntity()));
+        ).thenReturn(Collections.singletonList(mockMemberEntity()));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         //verify group creations
-        verify(membershipService, times(1))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(1)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
 
-        verify(membershipService, times(1))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(1)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
 
-        verify(membershipService, times(0))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(0)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
 
-        verify(membershipService, times(1))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(1)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
 
-        verify(membershipService, times(1))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(1)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
     }
 
     @Test
@@ -1915,8 +1897,9 @@ public class UserServiceTest {
 
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationAdmin));
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationUser));
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION))
-            .thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION)).thenReturn(
+            Arrays.asList(roleApiUser, roleApplicationAdmin)
+        );
 
         Membership membership = new Membership();
         membership.setSource("oauth2");
@@ -1930,140 +1913,136 @@ public class UserServiceTest {
                 io.gravitee.repository.management.model.MembershipMemberType.USER,
                 io.gravitee.repository.management.model.MembershipReferenceType.GROUP
             )
-        )
-            .thenReturn(memberships);
+        ).thenReturn(memberships);
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
                 eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
-        )
-            .thenReturn(Collections.singletonList(mockMemberEntity()));
+        ).thenReturn(Collections.singletonList(mockMemberEntity()));
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
                 eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
-        )
-            .thenReturn(Collections.singletonList(mockMemberEntity()));
+        ).thenReturn(Collections.singletonList(mockMemberEntity()));
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
                 eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
                 ),
                 eq("oauth2")
             )
-        )
-            .thenReturn(Collections.singletonList(mockMemberEntity()));
+        ).thenReturn(Collections.singletonList(mockMemberEntity()));
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
                 eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
                 ),
                 eq("oauth2")
             )
-        )
-            .thenReturn(Collections.singletonList(mockMemberEntity()));
+        ).thenReturn(Collections.singletonList(mockMemberEntity()));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         //verify group creations
-        verify(membershipService, times(1))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(1)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
 
-        verify(membershipService, times(1))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(1)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
 
-        verify(membershipService, times(0))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(0)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
 
-        verify(membershipService, times(1))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(1)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
 
-        verify(membershipService, times(1))
-            .updateRolesToMemberOnReferenceBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
-                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
-                argThat(roles ->
+        verify(membershipService, times(1)).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
+            eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
                     roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
-                ),
-                eq("oauth2")
-            );
+            ),
+            eq("oauth2")
+        );
 
-        verify(membershipService, times(1))
-            .deleteReferenceMemberBySource(
-                eq(EXECUTION_CONTEXT),
-                eq(MembershipReferenceType.GROUP),
-                eq("membershipId"),
-                eq(MembershipMemberType.USER),
-                eq("janedoe@example.com"),
-                eq("oauth2")
-            );
+        verify(membershipService, times(1)).deleteReferenceMemberBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(MembershipReferenceType.GROUP),
+            eq("membershipId"),
+            eq(MembershipMemberType.USER),
+            eq("janedoe@example.com"),
+            eq("oauth2")
+        );
     }
 
     @Test
@@ -2079,124 +2058,15 @@ public class UserServiceTest {
         when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         //verify group creations
-        verify(membershipService, never())
-            .addRoleToMemberOnReference(
-                eq(EXECUTION_CONTEXT),
-                any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipMember.class),
-                any(MembershipService.MembershipRole.class)
-            );
-
-        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION);
-        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ENVIRONMENT);
-    }
-
-    @Test
-    public void shouldCreateNewUserWithGroupsMappingFromAccessTokenWhenGroupIsNotFound() throws IOException, TechnicalException {
-        reset(identityProvider, userRepository, groupService, roleService, membershipService);
-        mockDefaultEnvironment();
-
-        GroupMappingEntity groupCondition1 = new GroupMappingEntity();
-        groupCondition1.setCondition("{#jsonPath(#accessToken, '$.custom_access_token') == 'foobar'}");
-        groupCondition1.setGroups(Collections.singletonList("Api consumer"));
-        GroupMappingEntity groupCondition2 = new GroupMappingEntity();
-        groupCondition2.setCondition("{#jsonPath(#accessToken, '$.custom_access_token') == 'unknown'}");
-        groupCondition2.setGroups(Collections.singletonList("Api consumer"));
-
-        when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(groupCondition1, groupCondition2));
-
-        User createdUser = mockUser();
-        when(userRepository.create(any(User.class))).thenReturn(createdUser);
-
-        when(identityProvider.getId()).thenReturn(createdUser.getSource());
-        when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
-
-        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
-
-        //verify group creations
-        verify(membershipService, never())
-            .addRoleToMemberOnReference(
-                eq(EXECUTION_CONTEXT),
-                any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipMember.class),
-                any(MembershipService.MembershipRole.class)
-            );
-
-        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION);
-        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ENVIRONMENT);
-        verify(groupService, times(1)).findById(EXECUTION_CONTEXT, "Api consumer");
-    }
-
-    @Test
-    public void shouldCreateNewUserWithGroupsMappingFromIdTokenWhenGroupIsNotFound() throws IOException, TechnicalException {
-        reset(identityProvider, userRepository, groupService, roleService, membershipService);
-        mockDefaultEnvironment();
-
-        GroupMappingEntity groupCondition1 = new GroupMappingEntity();
-        groupCondition1.setCondition("{#jsonPath(#idToken, '$.custom_id_token') == 'foobar'}");
-        groupCondition1.setGroups(Collections.singletonList("Api consumer"));
-        GroupMappingEntity groupCondition2 = new GroupMappingEntity();
-        groupCondition2.setCondition("{#jsonPath(#idToken, '$.custom_id_token') == 'unknown'}");
-        groupCondition2.setGroups(Collections.singletonList("Api consumer"));
-
-        when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(groupCondition1, groupCondition2));
-
-        User createdUser = mockUser();
-        when(userRepository.create(any(User.class))).thenReturn(createdUser);
-
-        when(identityProvider.getId()).thenReturn(createdUser.getSource());
-        when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
-
-        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
-
-        //verify group creations
-        verify(membershipService, never())
-            .addRoleToMemberOnReference(
-                eq(EXECUTION_CONTEXT),
-                any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipMember.class),
-                any(MembershipService.MembershipRole.class)
-            );
-
-        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION);
-        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ENVIRONMENT);
-        verify(groupService, times(1)).findById(EXECUTION_CONTEXT, "Api consumer");
-    }
-
-    @Test
-    public void shouldCreateNewUserWithGroupsMappingFromIdTokenWhenGroupIsNull() throws IOException, TechnicalException {
-        reset(identityProvider, userRepository, groupService, roleService, membershipService);
-        mockDefaultEnvironment();
-        mockGroupsMapping();
-
-        User createdUser = mockUser();
-        when(userRepository.create(any(User.class))).thenReturn(createdUser);
-
-        when(identityProvider.getId()).thenReturn(createdUser.getSource());
-        when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
-
-        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, null, null);
-
-        //verify group creations
-        verify(membershipService, never())
-            .addRoleToMemberOnReference(
-                eq(EXECUTION_CONTEXT),
-                any(MembershipService.MembershipReference.class),
-                any(MembershipService.MembershipMember.class),
-                any(MembershipService.MembershipRole.class)
-            );
+        verify(membershipService, never()).addRoleToMemberOnReference(
+            eq(EXECUTION_CONTEXT),
+            any(MembershipService.MembershipReference.class),
+            any(MembershipService.MembershipMember.class),
+            any(MembershipService.MembershipRole.class)
+        );
 
         verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION);
         verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ENVIRONMENT);
@@ -2232,17 +2102,17 @@ public class UserServiceTest {
                 eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group-1")),
                 eq(new MembershipService.MembershipMember(createdUser.getId(), null, MembershipMemberType.USER)),
-                argThat(roles ->
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "API_OVERRIDE")) &&
-                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "APP_OVERRIDE"))
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "API_OVERRIDE")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "APP_OVERRIDE"))
                 ),
                 eq("oauth2")
             )
-        )
-            .thenReturn(List.of(mockMemberEntity()));
+        ).thenReturn(List.of(mockMemberEntity()));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, null, null);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
         verify(membershipService).updateRolesToMemberOnReferenceBySource(any(), any(), any(), any(), any());
     }
 
@@ -2273,7 +2143,7 @@ public class UserServiceTest {
         when(roleService.findDefaultRoleByScopes(eq(ORGANIZATION), any())).thenReturn(Collections.emptyList());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, null, null);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         // No memberships should be created
         verify(membershipService, never()).updateRolesToMemberOnReferenceBySource(any(), any(), any(), any(), any());
@@ -2306,11 +2176,7 @@ public class UserServiceTest {
         condition2.setGroups(Collections.singletonList("Others"));
 
         GroupMappingEntity condition3 = new GroupMappingEntity();
-        condition3.setCondition(
-            "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'" +
-            "&& #jsonPath(#accessToken, '$.custom_access_token') == 'foobar' " +
-            "&& #jsonPath(#idToken, '$.custom_id_token') == 'foobar'}"
-        );
+        condition3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         condition3.setGroups(Collections.singletonList("Api consumer"));
 
         when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(condition1, condition2, condition3));
@@ -2324,10 +2190,7 @@ public class UserServiceTest {
     private List<RoleMappingEntity> getRoleMappingEntities() {
         RoleMappingEntity role1 = new RoleMappingEntity();
         role1.setCondition(
-            "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' " +
-            "&& #jsonPath(#profile, '$.job_id') != 'API_BREAKER' " +
-            "&& #jsonPath(#accessToken, '$.custom_access_token') == 'foobar' " +
-            "&& #jsonPath(#idToken, '$.custom_id_token') == 'foobar'}"
+            "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
         );
         role1.setOrganizations(Collections.singletonList("ADMIN"));
 
@@ -2336,11 +2199,7 @@ public class UserServiceTest {
         role2.setOrganizations(Collections.singletonList("USER"));
 
         RoleMappingEntity role3 = new RoleMappingEntity();
-        role3.setCondition(
-            "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'" +
-            "&& #jsonPath(#accessToken, '$.custom_access_token') == 'foobar' " +
-            "&& #jsonPath(#idToken, '$.custom_id_token') == 'foobar'}"
-        );
+        role3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         role3.setOrganizations(Collections.singletonList("USER"));
         role3.setEnvironments(Collections.singletonMap(ENVIRONMENT, Collections.singletonList("USER")));
         final List<RoleMappingEntity> roleMappingList = Arrays.asList(role1, role2, role3);
@@ -2405,12 +2264,9 @@ public class UserServiceTest {
                 eq(MembershipReferenceType.API),
                 eq(apiPORole.getId())
             )
-        )
-            .thenReturn(
-                java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>singleton(
-                    new io.gravitee.rest.api.model.MembershipEntity()
-                )
-            );
+        ).thenReturn(
+            java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>singleton(new io.gravitee.rest.api.model.MembershipEntity())
+        );
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 eq(MembershipMemberType.USER),
@@ -2418,8 +2274,7 @@ public class UserServiceTest {
                 eq(MembershipReferenceType.API),
                 eq(apiPORole.getId())
             )
-        )
-            .thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
+        ).thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 eq(MembershipMemberType.USER),
@@ -2427,8 +2282,7 @@ public class UserServiceTest {
                 eq(MembershipReferenceType.API),
                 eq(apiPORole.getId())
             )
-        )
-            .thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
+        ).thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
 
         // No application PO for anyone
         when(
@@ -2438,19 +2292,17 @@ public class UserServiceTest {
                 eq(MembershipReferenceType.APPLICATION),
                 eq(appPORole.getId())
             )
-        )
-            .thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
+        ).thenReturn(java.util.Collections.<io.gravitee.rest.api.model.MembershipEntity>emptySet());
 
         // Tokens per user: u1=1, u2=3, u3=0
         when(tokenService.findByUser("u1")).thenReturn(Collections.singletonList(new io.gravitee.rest.api.model.TokenEntity()));
-        when(tokenService.findByUser("u2"))
-            .thenReturn(
-                Arrays.asList(
-                    new io.gravitee.rest.api.model.TokenEntity(),
-                    new io.gravitee.rest.api.model.TokenEntity(),
-                    new io.gravitee.rest.api.model.TokenEntity()
-                )
-            );
+        when(tokenService.findByUser("u2")).thenReturn(
+            Arrays.asList(
+                new io.gravitee.rest.api.model.TokenEntity(),
+                new io.gravitee.rest.api.model.TokenEntity(),
+                new io.gravitee.rest.api.model.TokenEntity()
+            )
+        );
         when(tokenService.findByUser("u3")).thenReturn(Collections.emptyList());
 
         io.gravitee.rest.api.model.common.Pageable pageable = new io.gravitee.rest.api.model.common.PageableImpl(2, 5);

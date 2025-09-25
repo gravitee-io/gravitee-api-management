@@ -99,13 +99,12 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
             if (proxy.isUseSystemProxy()) {
                 proxyOptions = this.systemProxyOptions;
             } else {
-                proxyOptions =
-                    new ProxyOptions()
-                        .setHost(proxy.getHost())
-                        .setPort(proxy.getPort())
-                        .setUsername(proxy.getUsername())
-                        .setPassword(proxy.getPassword())
-                        .setType(ProxyType.valueOf(proxy.getType().name()));
+                proxyOptions = new ProxyOptions()
+                    .setHost(proxy.getHost())
+                    .setPort(proxy.getPort())
+                    .setUsername(proxy.getUsername())
+                    .setPassword(proxy.getPassword())
+                    .setType(ProxyType.valueOf(proxy.getType().name()));
             }
             httpClientOptions.setProxyOptions(proxyOptions);
         }

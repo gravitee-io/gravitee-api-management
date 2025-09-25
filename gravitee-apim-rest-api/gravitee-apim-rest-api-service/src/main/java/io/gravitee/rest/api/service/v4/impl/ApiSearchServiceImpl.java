@@ -301,10 +301,9 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         Stream<GenericApiEntity> apisStream;
 
         if (mapToFullGenericApiEntity) {
-            apisStream =
-                apis
-                    .stream()
-                    .map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()))));
+            apisStream = apis
+                .stream()
+                .map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()))));
         } else {
             // Map to simple GenericApiEntity
             apisStream = apis.stream().map(api -> enrichFederatedApi(genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId()))));
@@ -314,9 +313,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         return apisStream
             .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
             .collect(
-                Collectors.collectingAndThen(
-                    Collectors.toList(),
-                    apiEntityList -> new Page<>(apiEntityList, pageable.getPageNumber(), apis.size(), apiIds.size())
+                Collectors.collectingAndThen(Collectors.toList(), apiEntityList ->
+                    new Page<>(apiEntityList, pageable.getPageNumber(), apis.size(), apiIds.size())
                 )
             );
     }
@@ -438,8 +436,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Sortable sortable,
         Collection<DefinitionVersion> excludeDefinitionVersions
     ) {
-        QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = QueryBuilder
-            .create(GenericApiEntity.class)
+        QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = QueryBuilder.create(GenericApiEntity.class)
             .setSort(sortable)
             .setFilters(filters);
         if (isNotEmpty(excludeDefinitionVersions)) {
@@ -461,7 +458,10 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         //find primary owners usernames of each apis
         final List<String> apiIds = apis.stream().map(Api::getId).collect(toList());
         Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(executionContext, apiIds);
-        Set<String> apiWithoutPo = apiIds.stream().filter(apiId -> !primaryOwners.containsKey(apiId)).collect(toSet());
+        Set<String> apiWithoutPo = apiIds
+            .stream()
+            .filter(apiId -> !primaryOwners.containsKey(apiId))
+            .collect(toSet());
         Stream<Api> streamApis = apis.stream();
         if (!apiWithoutPo.isEmpty()) {
             String apisAsString = String.join(" / ", apiWithoutPo);
@@ -477,7 +477,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         try {
             if (
                 genericApi instanceof FederatedApiEntity fede &&
-                fede.getOriginContext() != null && fede.getOriginContext().integrationName() == null
+                fede.getOriginContext() != null &&
+                fede.getOriginContext().integrationName() == null
             ) {
                 integrationRepository
                     .findByIntegrationId(fede.getOriginContext().integrationId())

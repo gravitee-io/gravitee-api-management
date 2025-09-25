@@ -89,8 +89,7 @@ public class EntrypointServiceTest {
                 REFERENCE_ID,
                 io.gravitee.repository.management.model.EntrypointReferenceType.ORGANIZATION
             )
-        )
-            .thenReturn(of(entrypointCreated));
+        ).thenReturn(of(entrypointCreated));
 
         entrypointUpdated.setId(ID);
         entrypointUpdated.setTarget(HTTP);

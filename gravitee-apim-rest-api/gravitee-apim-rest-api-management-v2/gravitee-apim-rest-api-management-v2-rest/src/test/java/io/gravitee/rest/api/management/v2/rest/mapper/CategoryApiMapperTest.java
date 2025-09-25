@@ -50,14 +50,12 @@ public class CategoryApiMapperTest {
         virtualHost2.setHost(null);
         virtualHost2.setPath("/great-path");
 
-        var definition = io.gravitee.definition.model.Api
-            .builder()
+        var definition = io.gravitee.definition.model.Api.builder()
             .definitionVersion(DefinitionVersion.V2)
             .proxy(Proxy.builder().virtualHosts(List.of(virtualHost1, virtualHost2)).build())
             .build();
 
-        var apiV2 = Api
-            .builder()
+        var apiV2 = Api.builder()
             .id(API_ID)
             .definitionVersion(DefinitionVersion.V2)
             .name(API_NAME)
@@ -84,14 +82,12 @@ public class CategoryApiMapperTest {
 
     @Test
     void should_map_v2_api_without_virtual_hosts() {
-        var definition = io.gravitee.definition.model.Api
-            .builder()
+        var definition = io.gravitee.definition.model.Api.builder()
             .definitionVersion(DefinitionVersion.V2)
             .proxy(Proxy.builder().virtualHosts(List.of()).build())
             .build();
 
-        var apiV2 = Api
-            .builder()
+        var apiV2 = Api.builder()
             .id(API_ID)
             .definitionVersion(DefinitionVersion.V2)
             .name(API_NAME)
@@ -120,15 +116,13 @@ public class CategoryApiMapperTest {
     void should_map_v4_api_with_tcp_listeners() {
         var tcpListener = TcpListener.builder().hosts(List.of("one-host", "two-host")).build();
 
-        var definition = io.gravitee.definition.model.v4.Api
-            .builder()
+        var definition = io.gravitee.definition.model.v4.Api.builder()
             .id(API_ID)
             .definitionVersion(DefinitionVersion.V4)
             .listeners(List.of(tcpListener))
             .build();
 
-        var apiV4 = Api
-            .builder()
+        var apiV4 = Api.builder()
             .id(API_ID)
             .name(API_NAME)
             .description(API_DESCRIPTION)
@@ -155,20 +149,17 @@ public class CategoryApiMapperTest {
 
     @Test
     void should_map_v4_api_with_http_listeners() {
-        var httpListener = HttpListener
-            .builder()
+        var httpListener = HttpListener.builder()
             .paths(List.of(Path.builder().host("host-1").path("/path-2").build(), Path.builder().host(null).path("/great-path").build()))
             .build();
 
-        var definition = io.gravitee.definition.model.v4.Api
-            .builder()
+        var definition = io.gravitee.definition.model.v4.Api.builder()
             .id(API_ID)
             .definitionVersion(DefinitionVersion.V4)
             .listeners(List.of(httpListener))
             .build();
 
-        var apiV4 = Api
-            .builder()
+        var apiV4 = Api.builder()
             .id(API_ID)
             .name(API_NAME)
             .description(API_DESCRIPTION)
@@ -197,20 +188,17 @@ public class CategoryApiMapperTest {
     void should_map_v4_api_with_tcp_and_http_listeners() {
         var tcpListener = TcpListener.builder().hosts(List.of("one-host", "two-host")).build();
 
-        var httpListener = HttpListener
-            .builder()
+        var httpListener = HttpListener.builder()
             .paths(List.of(Path.builder().host("host-1").path("/path-2").build(), Path.builder().host(null).path("/great-path").build()))
             .build();
 
-        var definition = io.gravitee.definition.model.v4.Api
-            .builder()
+        var definition = io.gravitee.definition.model.v4.Api.builder()
             .id(API_ID)
             .definitionVersion(DefinitionVersion.V4)
             .listeners(List.of(tcpListener, httpListener))
             .build();
 
-        var apiV4 = Api
-            .builder()
+        var apiV4 = Api.builder()
             .id(API_ID)
             .name(API_NAME)
             .description(API_DESCRIPTION)
@@ -237,15 +225,13 @@ public class CategoryApiMapperTest {
 
     @Test
     void should_map_v4_api_with_no_tcp_or_http_listeners() {
-        var definition = io.gravitee.definition.model.v4.Api
-            .builder()
+        var definition = io.gravitee.definition.model.v4.Api.builder()
             .id(API_ID)
             .definitionVersion(DefinitionVersion.V4)
             .listeners(List.of())
             .build();
 
-        var apiV4 = Api
-            .builder()
+        var apiV4 = Api.builder()
             .id(API_ID)
             .name(API_NAME)
             .description(API_DESCRIPTION)

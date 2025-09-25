@@ -100,8 +100,9 @@ public class MongoFactoryTest {
 
         assertThat(clusterSettings).isNotNull();
         assertThat(clusterSettings.getServerSelectionTimeout(TimeUnit.MILLISECONDS)).isEqualTo(200);
-        assertThat(clusterSettings.getHosts())
-            .isEqualTo(List.of(new ServerAddress("mongohost1", 27117), new ServerAddress("mongohost2", 27118)));
+        assertThat(clusterSettings.getHosts()).isEqualTo(
+            List.of(new ServerAddress("mongohost1", 27117), new ServerAddress("mongohost2", 27118))
+        );
         assertThat(clusterSettings.getLocalThreshold(TimeUnit.MILLISECONDS)).isEqualTo(300);
     }
 
@@ -245,13 +246,16 @@ public class MongoFactoryTest {
 
         assertThat(mongoClientSettings).isNotNull();
         assertThat(mongoClientSettings.getApplicationName()).isEqualTo("my-application");
-        assertThat(mongoClientSettings.getCredential())
-            .isEqualTo(MongoCredential.createCredential("username", "authSource", "password".toCharArray()));
+        assertThat(mongoClientSettings.getCredential()).isEqualTo(
+            MongoCredential.createCredential("username", "authSource", "password".toCharArray())
+        );
         assertThat(mongoClientSettings.getRetryWrites()).isFalse();
-        assertThat(mongoClientSettings.getReadPreference())
-            .isEqualTo(ReadPreference.secondaryPreferred(new TagSet(List.of(new Tag("tag1", "value1"), new Tag("tag2", "value2")))));
-        assertThat(mongoClientSettings.getWriteConcern())
-            .isEqualTo(WriteConcern.MAJORITY.withWTimeout(1000, TimeUnit.MILLISECONDS).withJournal(true));
+        assertThat(mongoClientSettings.getReadPreference()).isEqualTo(
+            ReadPreference.secondaryPreferred(new TagSet(List.of(new Tag("tag1", "value1"), new Tag("tag2", "value2"))))
+        );
+        assertThat(mongoClientSettings.getWriteConcern()).isEqualTo(
+            WriteConcern.MAJORITY.withWTimeout(1000, TimeUnit.MILLISECONDS).withJournal(true)
+        );
     }
 
     @Test
@@ -271,8 +275,9 @@ public class MongoFactoryTest {
 
         assertThat(mongoClientSettings).isNotNull();
         assertThat(mongoClientSettings.getApplicationName()).isEqualTo("my-application");
-        assertThat(mongoClientSettings.getCredential())
-            .isEqualTo(MongoCredential.createCredential("username", "authSource", "password".toCharArray()));
+        assertThat(mongoClientSettings.getCredential()).isEqualTo(
+            MongoCredential.createCredential("username", "authSource", "password".toCharArray())
+        );
         assertThat(mongoClientSettings.getRetryWrites()).isFalse();
 
         // These are not supported in reactive mode and so fallback to default values
@@ -289,8 +294,9 @@ public class MongoFactoryTest {
         MongoClient mongoClient = spiedMongoFactory.getObject();
 
         assertThat(mongoClient).isNotNull();
-        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts())
-            .isEqualTo(List.of(new ServerAddress("localhost", 27017)));
+        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts()).isEqualTo(
+            List.of(new ServerAddress("localhost", 27017))
+        );
 
         verify(spiedMongoFactory).buildSslSettings();
         verify(spiedMongoFactory).buildServerSettings();
@@ -312,8 +318,9 @@ public class MongoFactoryTest {
         com.mongodb.reactivestreams.client.MongoClient mongoClient = mongoFactory.getReactiveClient();
 
         assertThat(mongoClient).isNotNull();
-        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts())
-            .isEqualTo(List.of(new ServerAddress("localhost", 27017)));
+        assertThat(mongoClient.getClusterDescription().getClusterSettings().getHosts()).isEqualTo(
+            List.of(new ServerAddress("localhost", 27017))
+        );
     }
 
     @Test

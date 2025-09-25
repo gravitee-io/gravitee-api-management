@@ -128,8 +128,9 @@ public class IntegrationQueryServiceImplTest {
             var pageable = new PageableImpl(1, 5);
             var expectedIntegration = IntegrationFixture.anApiIntegration();
             var page = integrationPage(pageable, expectedIntegration);
-            when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
-                .thenReturn(Set.of(MembershipEntity.builder().id("My-ID").build()));
+            when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(
+                Set.of(MembershipEntity.builder().id("My-ID").build())
+            );
             when(integrationRepository.findAllByEnvironmentAndGroups(any(), any(), any(), any())).thenReturn(page);
 
             //When

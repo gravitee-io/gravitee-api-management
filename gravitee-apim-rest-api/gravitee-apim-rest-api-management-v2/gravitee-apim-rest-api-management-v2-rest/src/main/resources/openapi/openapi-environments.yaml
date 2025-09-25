@@ -760,18 +760,64 @@ paths:
             $ref: "#/components/responses/PortalPageResponse"
           default:
             $ref: "#/components/responses/Error"
+    /portal-pages/{pageId}:
       patch:
         tags:
           - Portal Pages
         summary: Patch portal page
-        description: User must have the ENVIRONMENT_DOCUMENTATION[write] permission.
+        description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         operationId: patchPortalPage
+        parameters:
+          - name: pageId
+            in: path
+            description: The unique ID of the portal page
+            required: true
+            schema:
+              type: string
         requestBody:
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PatchPortalPage"
           required: true
+        responses:
+          "200":
+            $ref: "#/components/responses/PortalPageResponse"
+          default:
+            $ref: "#/components/responses/Error"
+    /portal-pages/{pageId}/_publish:
+      post:
+        tags:
+          - Portal Pages
+        summary: Publish portal page
+        description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        operationId: publishPortalPage
+        parameters:
+          - name: pageId
+            in: path
+            description: The unique ID of the portal page
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            $ref: "#/components/responses/PortalPageResponse"
+          default:
+            $ref: "#/components/responses/Error"
+    /portal-pages/{pageId}/_unpublish:
+      post:
+        tags:
+          - Portal Pages
+        summary: Unpublish portal page
+        description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        operationId: unpublishPortalPage
+        parameters:
+          - name: pageId
+            in: path
+            description: The unique ID of the portal page
+            required: true
+            schema:
+              type: string
         responses:
           "200":
             $ref: "#/components/responses/PortalPageResponse"

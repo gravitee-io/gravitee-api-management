@@ -234,8 +234,7 @@ public class IndexableApiDocumentTransformerTest {
     void should_transform_a_federated_api() {
         // Given
         var indexable = new IndexableApi(
-            ApiFixtures
-                .aFederatedApi()
+            ApiFixtures.aFederatedApi()
                 .toBuilder()
                 .id(API_ID)
                 .lifecycleState(Api.LifecycleState.STARTED)
@@ -528,8 +527,9 @@ public class IndexableApiDocumentTransformerTest {
             var apiDocument = apiDocumentTransformer.transform(genericApiEntity);
 
             // Then
-            assertThat(indexableApiDocument.getField(FIELD_HAS_HEALTH_CHECK).stringValue())
-                .isEqualTo(apiDocument.getField(FIELD_HAS_HEALTH_CHECK).stringValue());
+            assertThat(indexableApiDocument.getField(FIELD_HAS_HEALTH_CHECK).stringValue()).isEqualTo(
+                apiDocument.getField(FIELD_HAS_HEALTH_CHECK).stringValue()
+            );
         }
 
         @Test
@@ -544,8 +544,9 @@ public class IndexableApiDocumentTransformerTest {
             var apiDocument = apiDocumentTransformer.transform(genericApiEntity);
 
             // Then
-            assertThat(indexableApiDocument.getField(FIELD_ORIGIN).stringValue())
-                .isEqualTo(apiDocument.getField(FIELD_ORIGIN).stringValue());
+            assertThat(indexableApiDocument.getField(FIELD_ORIGIN).stringValue()).isEqualTo(
+                apiDocument.getField(FIELD_ORIGIN).stringValue()
+            );
         }
 
         private Api createV2ApiWithFullData() {
@@ -553,19 +554,16 @@ public class IndexableApiDocumentTransformerTest {
         }
 
         private Api createV2ApiWithPaths() {
-            return ApiFixtures
-                .aProxyApiV2()
+            return ApiFixtures.aProxyApiV2()
                 .toBuilder()
                 .apiDefinition(
-                    io.gravitee.definition.model.Api
-                        .builder()
+                    io.gravitee.definition.model.Api.builder()
                         .id("api-id")
                         .name("api-name")
                         .version("1.0.0")
                         .definitionVersion(DefinitionVersion.V2)
                         .proxy(
-                            io.gravitee.definition.model.Proxy
-                                .builder()
+                            io.gravitee.definition.model.Proxy.builder()
                                 .virtualHosts(
                                     List.of(
                                         new io.gravitee.definition.model.VirtualHost("host1", "/path1"),
@@ -580,20 +578,17 @@ public class IndexableApiDocumentTransformerTest {
         }
 
         private Api createV2ApiWithTags() {
-            return ApiFixtures
-                .aProxyApiV2()
+            return ApiFixtures.aProxyApiV2()
                 .toBuilder()
                 .apiDefinition(
-                    io.gravitee.definition.model.Api
-                        .builder()
+                    io.gravitee.definition.model.Api.builder()
                         .id("api-id")
                         .name("api-name")
                         .version("1.0.0")
                         .definitionVersion(DefinitionVersion.V2)
                         .tags(Set.of("tag1", "tag2", "tag3"))
                         .proxy(
-                            io.gravitee.definition.model.Proxy
-                                .builder()
+                            io.gravitee.definition.model.Proxy.builder()
                                 .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/path")))
                                 .build()
                         )
@@ -603,29 +598,24 @@ public class IndexableApiDocumentTransformerTest {
         }
 
         private Api createV2ApiWithHealthCheck() {
-            return ApiFixtures
-                .aProxyApiV2()
+            return ApiFixtures.aProxyApiV2()
                 .toBuilder()
                 .apiDefinition(
-                    io.gravitee.definition.model.Api
-                        .builder()
+                    io.gravitee.definition.model.Api.builder()
                         .id("api-id")
                         .name("api-name")
                         .version("1.0.0")
                         .definitionVersion(DefinitionVersion.V2)
                         .proxy(
-                            io.gravitee.definition.model.Proxy
-                                .builder()
+                            io.gravitee.definition.model.Proxy.builder()
                                 .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/path")))
                                 .groups(
                                     Set.of(
-                                        io.gravitee.definition.model.EndpointGroup
-                                            .builder()
+                                        io.gravitee.definition.model.EndpointGroup.builder()
                                             .name("default-group")
                                             .endpoints(
                                                 Set.of(
-                                                    io.gravitee.definition.model.Endpoint
-                                                        .builder()
+                                                    io.gravitee.definition.model.Endpoint.builder()
                                                         .name("default")
                                                         .type("http1")
                                                         .target("https://api.gravitee.io/echo")
@@ -644,8 +634,7 @@ public class IndexableApiDocumentTransformerTest {
         }
 
         private Api createV2ApiWithOriginContext() {
-            return ApiFixtures
-                .aProxyApiV2()
+            return ApiFixtures.aProxyApiV2()
                 .toBuilder()
                 .originContext(new io.gravitee.rest.api.model.context.OriginContext.Management())
                 .build();
@@ -694,8 +683,7 @@ public class IndexableApiDocumentTransformerTest {
 
                 @Override
                 public io.gravitee.rest.api.model.PrimaryOwnerEntity getPrimaryOwner() {
-                    return io.gravitee.rest.api.model.PrimaryOwnerEntity
-                        .builder()
+                    return io.gravitee.rest.api.model.PrimaryOwnerEntity.builder()
                         .id(PRIMARY_OWNER.id())
                         .email(PRIMARY_OWNER.email())
                         .displayName(PRIMARY_OWNER.displayName())

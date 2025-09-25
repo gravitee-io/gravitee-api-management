@@ -181,8 +181,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     eq(RolePermissionAction.CREATE)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             //When
             Response response = target.request().post(Entity.json(createIntegration));
@@ -197,12 +196,13 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setup() {
-            var integration = IntStream.range(0, 15).mapToObj(i -> IntegrationFixture.anApiIntegration()).toList();
+            var integration = IntStream.range(0, 15)
+                .mapToObj(i -> IntegrationFixture.anApiIntegration())
+                .toList();
             integrationCrudServiceInMemory.initializeWith(integration);
             membershipQueryServiceInMemory.initWith(
                 List.of(
-                    Membership
-                        .builder()
+                    Membership.builder()
                         .memberId(USER_NAME)
                         .referenceId(INTEGRATION_ID)
                         .roleId("int-po-id-fake-org")
@@ -323,8 +323,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                     eq(ENVIRONMENT),
                     eq(RolePermissionAction.READ)
                 )
-            )
-                .thenReturn(false);
+            ).thenReturn(false);
 
             //When
             Response response = target.queryParam("page", 1).queryParam("perPage", 5).request().get();

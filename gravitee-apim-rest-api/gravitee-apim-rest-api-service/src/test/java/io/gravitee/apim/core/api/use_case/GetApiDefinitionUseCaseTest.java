@@ -21,6 +21,7 @@ import static fixtures.core.model.ApiFixtures.aProxyApiV2;
 import static fixtures.core.model.PlanFixtures.aPlanHttpV4;
 import static fixtures.core.model.PlanFixtures.aPlanNativeV4;
 import static fixtures.core.model.PlanFixtures.aPlanV2;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import inmemory.ApiCrudServiceInMemory;
@@ -29,6 +30,7 @@ import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
@@ -69,8 +71,7 @@ class GetApiDefinitionUseCaseTest {
             var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(API_ID));
 
             // Then
-            assertNotNull(output);
-            assertEquals(API.getApiDefinitionHttpV4(), output.apiDefinitionHttpV4());
+            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinitionHttpV4());
         }
 
         @Test
@@ -102,14 +103,17 @@ class GetApiDefinitionUseCaseTest {
             var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(API_ID));
 
             // Then
-            assertNotNull(output);
-            assertEquals(API.getApiDefinitionHttpV4(), output.apiDefinitionHttpV4());
-            assertEquals(flows, output.apiDefinitionHttpV4().getFlows());
-            assertEquals(2, output.apiDefinitionHttpV4().getPlans().size());
-            assertEquals(planFlows, output.apiDefinitionHttpV4().getPlans().get(0).getFlows());
-            assertEquals(PlanStatus.PUBLISHED, output.apiDefinitionHttpV4().getPlans().get(0).getStatus());
-            assertEquals(planFlows, output.apiDefinitionHttpV4().getPlans().get(1).getFlows());
-            assertEquals(PlanStatus.DEPRECATED, output.apiDefinitionHttpV4().getPlans().get(1).getStatus());
+            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinitionHttpV4());
+            if (output.apiDefinition() instanceof io.gravitee.definition.model.v4.Api definition) {
+                assertThat(definition.getFlows()).isEqualTo(flows);
+                assertThat(definition.getPlans()).hasSize(2);
+                assertThat(definition.getPlans().getFirst().getFlows()).isEqualTo(planFlows);
+                assertThat(definition.getPlans().getFirst().getStatus()).isEqualTo(PlanStatus.PUBLISHED);
+                assertThat(definition.getPlans().getLast().getFlows()).isEqualTo(planFlows);
+                assertThat(definition.getPlans().getLast().getStatus()).isEqualTo(PlanStatus.DEPRECATED);
+            } else {
+                fail("Unexpected type of api definition");
+            }
         }
     }
 
@@ -128,7 +132,7 @@ class GetApiDefinitionUseCaseTest {
 
             // Then
             assertNotNull(output);
-            assertEquals(API.getApiDefinitionNativeV4(), output.apiDefinitionNativeV4());
+            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinitionNativeV4());
         }
 
         @Test
@@ -158,15 +162,17 @@ class GetApiDefinitionUseCaseTest {
             var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(API_ID));
 
             // Then
-            assertNotNull(output);
-            assertEquals(API.getApiDefinitionNativeV4(), output.apiDefinitionNativeV4());
-            assertNull(API.getApiDefinitionHttpV4());
-            assertEquals(flows, output.apiDefinitionNativeV4().getFlows());
-            assertEquals(2, output.apiDefinitionNativeV4().getPlans().size());
-            assertEquals(planFlows, output.apiDefinitionNativeV4().getPlans().get(0).getFlows());
-            assertEquals(PlanStatus.PUBLISHED, output.apiDefinitionNativeV4().getPlans().get(0).getStatus());
-            assertEquals(planFlows, output.apiDefinitionNativeV4().getPlans().get(1).getFlows());
-            assertEquals(PlanStatus.DEPRECATED, output.apiDefinitionNativeV4().getPlans().get(1).getStatus());
+            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinitionNativeV4());
+            if (output.apiDefinition() instanceof NativeApi definition) {
+                assertThat(definition.getFlows()).isEqualTo(flows);
+                assertThat(definition.getPlans()).hasSize(2);
+                assertThat(definition.getPlans().getFirst().getFlows()).isEqualTo(planFlows);
+                assertThat(definition.getPlans().getFirst().getStatus()).isEqualTo(PlanStatus.PUBLISHED);
+                assertThat(definition.getPlans().getLast().getFlows()).isEqualTo(planFlows);
+                assertThat(definition.getPlans().getLast().getStatus()).isEqualTo(PlanStatus.DEPRECATED);
+            } else {
+                fail("Unexpected type of api definition");
+            }
         }
     }
 
@@ -184,8 +190,7 @@ class GetApiDefinitionUseCaseTest {
             var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(API_ID));
 
             // Then
-            assertNotNull(output);
-            assertEquals(API.getApiDefinition(), output.apiDefinition());
+            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinition());
         }
 
         @Test
@@ -215,14 +220,18 @@ class GetApiDefinitionUseCaseTest {
             var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(API_ID));
 
             // Then
-            assertNotNull(output);
-            assertEquals(API.getApiDefinition(), output.apiDefinition());
-            assertEquals(flows, output.apiDefinition().getFlows());
-            assertEquals(2, output.apiDefinition().getPlans().size());
-            assertEquals(planFlows, output.apiDefinition().getPlans().get(0).getFlows());
-            assertEquals("PUBLISHED", output.apiDefinition().getPlans().get(0).getStatus());
-            assertEquals(planFlows, output.apiDefinition().getPlans().get(1).getFlows());
-            assertEquals("DEPRECATED", output.apiDefinition().getPlans().get(1).getStatus());
+            assertThat(output.apiDefinition()).isEqualTo(API.getApiDefinition());
+
+            if (output.apiDefinition() instanceof io.gravitee.definition.model.Api definition) {
+                assertThat(definition.getFlows()).isEqualTo(flows);
+                assertThat(definition.getPlans()).hasSize(2);
+                assertThat(definition.getPlans().getFirst().getFlows()).isEqualTo(planFlows);
+                assertThat(definition.getPlans().getFirst().getStatus()).isEqualTo("PUBLISHED");
+                assertThat(definition.getPlans().getLast().getFlows()).isEqualTo(planFlows);
+                assertThat(definition.getPlans().getLast().getStatus()).isEqualTo("DEPRECATED");
+            } else {
+                fail("Unexpected type of api definition");
+            }
         }
     }
 }

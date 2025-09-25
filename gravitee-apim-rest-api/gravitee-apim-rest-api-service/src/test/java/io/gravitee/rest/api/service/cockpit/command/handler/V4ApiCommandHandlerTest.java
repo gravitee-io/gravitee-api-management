@@ -60,8 +60,7 @@ public class V4ApiCommandHandlerTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        final V4ApiCommandPayload payload = V4ApiCommandPayload
-            .builder()
+        final V4ApiCommandPayload payload = V4ApiCommandPayload.builder()
             .userId("123")
             .apiDefinition("any-definition")
             .environmentId("environment-id")
@@ -87,20 +86,22 @@ public class V4ApiCommandHandlerTest {
         TestObserver<V4ApiReply> observer = commandHandler.handle(command).test();
         observer.await();
 
-        observer.assertValue(reply ->
-            reply.getCommandId().equals(command.getId()) &&
-            reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-            reply.getPayload().apiId().equals("test-id") &&
-            reply.getPayload().apiName().equals("test-name") &&
-            reply.getPayload().apiVersion().equals("V4")
+        observer.assertValue(
+            reply ->
+                reply.getCommandId().equals(command.getId()) &&
+                reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
+                reply.getPayload().apiId().equals("test-id") &&
+                reply.getPayload().apiName().equals("test-name") &&
+                reply.getPayload().apiVersion().equals("V4")
         );
         verify(v4ApiServiceCockpit, times(1)).createPublishApi(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
     public void handleException() throws Exception {
-        when(v4ApiServiceCockpit.createPublishApi(anyString(), anyString(), anyString(), anyString()))
-            .thenThrow(new JsonProcessingException("exception") {});
+        when(v4ApiServiceCockpit.createPublishApi(anyString(), anyString(), anyString(), anyString())).thenThrow(
+            new JsonProcessingException("exception") {}
+        );
 
         TestObserver<V4ApiReply> observer = commandHandler.handle(command).test();
 

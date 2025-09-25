@@ -143,12 +143,11 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
 
         assertFalse(canHandle);
         verify(authenticationContext, times(1)).get(APIKEY_CONTEXT_ATTRIBUTE);
-        verify(subscriptionService, times(1))
-            .getByApiAndSecurityToken(
-                eq("apiId"),
-                argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
-                eq("planId")
-            );
+        verify(subscriptionService, times(1)).getByApiAndSecurityToken(
+            eq("apiId"),
+            argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
+            eq("planId")
+        );
     }
 
     @Test
@@ -171,8 +170,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
                 argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
                 eq("planId")
             )
-        )
-            .thenReturn(Optional.of(subscription));
+        ).thenReturn(Optional.of(subscription));
         when(subscription.isTimeValid(anyLong())).thenReturn(false);
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(authenticationContext);
@@ -200,8 +198,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
                 argThat(s -> "API_KEY".equals(s.getTokenType()) && "api-key".equals(s.getTokenValue())),
                 eq("planId")
             )
-        )
-            .thenReturn(Optional.of(subscription));
+        ).thenReturn(Optional.of(subscription));
         when(subscription.isTimeValid(anyLong())).thenReturn(true);
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(authenticationContext);
