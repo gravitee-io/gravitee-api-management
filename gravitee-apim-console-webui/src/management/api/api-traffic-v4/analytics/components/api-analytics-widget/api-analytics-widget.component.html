@@ -15,7 +15,13 @@
     limitations under the License.
 
 -->
-<gio-widget-layout [title]="config().title" [state]="config().state" [errors]="config().errors" [tooltip]="config().tooltip">
+<gio-widget-layout
+  [title]="config().title"
+  [state]="config().state"
+  [errors]="config().errors"
+  [tooltip]="config().tooltip"
+  [minHeight]="config().minHeight"
+>
   <div [ngClass]="config().widgetType" gioWidgetLayoutChart>
     @if (config().state === 'success') {
       @switch (config().widgetType) {
