@@ -40,6 +40,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -230,6 +231,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                                 .dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build())
                                 .build()
                         )
+                        .analytics(new NativeAnalytics(true))
                         .build()
                 )
                 .build();
@@ -293,7 +295,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .first()
                     .isInstanceOf(KafkaListener.class)
                     .hasFieldOrPropertyWithValue("type", ListenerType.KAFKA)
-                    .extracting(l -> l.getEntrypoints().get(0))
+                    .extracting(l -> l.getEntrypoints().getFirst())
                     .hasFieldOrPropertyWithValue("type", "sanitized");
                 soft
                     .assertThat(result.getApiDefinitionNativeV4().getEndpointGroups())
@@ -301,7 +303,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .first()
                     .isInstanceOf(NativeEndpointGroup.class)
                     .hasFieldOrPropertyWithValue("type", "sanitized")
-                    .extracting(ls -> ls.getEndpoints().get(0))
+                    .extracting(ls -> ls.getEndpoints().getFirst())
                     .isInstanceOf(NativeEndpoint.class)
                     .hasFieldOrPropertyWithValue("name", "sanitized")
                     .hasFieldOrPropertyWithValue("type", "sanitized");
@@ -309,6 +311,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 soft
                     .assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration())
                     .isEqualTo("sanitized");
+                soft.assertThat(result.getApiDefinitionNativeV4().getAnalytics().isEnabled()).isTrue();
             });
         }
 
@@ -448,7 +451,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .first()
                     .isInstanceOf(KafkaListener.class)
                     .hasFieldOrPropertyWithValue("type", ListenerType.KAFKA)
-                    .extracting(l -> l.getEntrypoints().get(0))
+                    .extracting(l -> l.getEntrypoints().getFirst())
                     .hasFieldOrPropertyWithValue("type", "sanitized");
                 soft
                     .assertThat(result.getApiDefinitionNativeV4().getEndpointGroups())
@@ -456,7 +459,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .first()
                     .isInstanceOf(NativeEndpointGroup.class)
                     .hasFieldOrPropertyWithValue("type", "sanitized")
-                    .extracting(ls -> ls.getEndpoints().get(0))
+                    .extracting(ls -> ls.getEndpoints().getFirst())
                     .isInstanceOf(NativeEndpoint.class)
                     .hasFieldOrPropertyWithValue("name", "sanitized")
                     .hasFieldOrPropertyWithValue("type", "sanitized");
