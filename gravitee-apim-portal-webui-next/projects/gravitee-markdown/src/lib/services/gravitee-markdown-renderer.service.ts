@@ -44,14 +44,26 @@ export class GraviteeMarkdownRendererService {
           start(src) {
             return src.match(/<gmd-[a-z0-9-]*\b/i)?.index;
           },
-          tokenizer(src) {
-            // Match opening <gmd-xxx ...> until matching closing </gmd-xxx>
-            const rule = /^<gmd-[a-z0-9-]*\b[^>]*>[\s\S]*?<\/gmd-[a-z0-9-]*>/i;
-            const match = rule.exec(src.trim());
-            if (match) {
+          tokenizer: src => {
+            const openingGmdTagMatch = src.match(/^<gmd-([a-z0-9-]*)\b[^>]*>/i);
+            if (!openingGmdTagMatch) {
+              return;
+            }
+
+            const gmdComponentName = this.extractGmdComponentNameFromTag(openingGmdTagMatch[0]);
+            if (!gmdComponentName) {
+              return;
+            }
+
+            // Find the first complete component
+            const domParser = new DOMParser();
+            const doc = domParser.parseFromString(src, 'text/html');
+            const foundComponent = doc.body.querySelector(gmdComponentName);
+
+            if (foundComponent) {
               return {
                 type: 'gmd-any',
-                raw: src,
+                raw: foundComponent.outerHTML,
               };
             }
             return;
@@ -102,5 +114,20 @@ export class GraviteeMarkdownRendererService {
       const rendered = marked(normalized) as string;
       return `<gmd-md>${rendered}</gmd-md>`;
     });
+  }
+
+  /**
+   * Extract the gmd component name from an opening tag string
+   *
+   * @param openingTag extracted from dom, e.g. <gmd-card title="My Card">
+   * @private
+   */
+  private extractGmdComponentNameFromTag(openingTag: string): string | null {
+    const componentNameMatch = openingTag.match(/<gmd-([a-z0-9-]*)\b[^>]*>/i);
+    if (!componentNameMatch) {
+      return null;
+    }
+    const componentName = componentNameMatch[1]; // Group found in the regex
+    return `gmd-${componentName}`;
   }
 }
