@@ -239,6 +239,60 @@ describe('GraviteeMarkdownRendererService', () => {
         input: 'Content above\n\n---\n\nContent below',
         expected: '<p>Content above</p>\n<hr>\n<p>Content below</p>\n',
       },
+      {
+        description: 'should handle nested GMD components correctly',
+        input: `# Button Component Integration
+
+This markdown editor demonstrates the **button component** integration.
+
+<gmd-grid columns="3">
+  <gmd-cell style="text-align: center;">
+    <gmd-button appearance="filled" link="/save">Save</gmd-button>
+  </gmd-cell>
+  <gmd-cell style="text-align: center;">
+    <gmd-button appearance="outlined" link="/preview">Preview</gmd-button>
+  </gmd-cell>
+  <gmd-cell style="text-align: center;">
+    <gmd-button appearance="text" link="/cancel">Cancel</gmd-button>
+  </gmd-cell>
+</gmd-grid>
+
+> All buttons use the token-based theming system.`,
+        expected:
+          '<h1 id="button-component-integration">Button Component Integration</h1>\n<p>This markdown editor demonstrates the <strong>button component</strong> integration.</p>\n<gmd-grid columns="3">\n  <gmd-cell style="text-align: center;">\n    <gmd-button appearance="filled" link="/save">Save</gmd-button>\n  </gmd-cell>\n  <gmd-cell style="text-align: center;">\n    <gmd-button appearance="outlined" link="/preview">Preview</gmd-button>\n  </gmd-cell>\n  <gmd-cell style="text-align: center;">\n    <gmd-button appearance="text" link="/cancel">Cancel</gmd-button>\n  </gmd-cell>\n</gmd-grid><blockquote>\n<p>All buttons use the token-based theming system.</p>\n</blockquote>\n',
+      },
+      {
+        description: 'should handle deeply nested GMD components',
+        input: `<gmd-card>
+  <gmd-card-title>Card Title</gmd-card-title>
+  <gmd-card-subtitle>Card Subtitle</gmd-card-subtitle>
+  <gmd-grid columns="2">
+    <gmd-cell>
+      <gmd-button appearance="filled">Action 1</gmd-button>
+    </gmd-cell>
+    <gmd-cell>
+      <gmd-button appearance="outlined">Action 2</gmd-button>
+    </gmd-cell>
+  </gmd-grid>
+</gmd-card>`,
+        expected:
+          '<gmd-card>\n  <gmd-card-title>Card Title</gmd-card-title>\n  <gmd-card-subtitle>Card Subtitle</gmd-card-subtitle>\n  <gmd-grid columns="2">\n    <gmd-cell>\n      <gmd-button appearance="filled">Action 1</gmd-button>\n    </gmd-cell>\n    <gmd-cell>\n      <gmd-button appearance="outlined">Action 2</gmd-button>\n    </gmd-cell>\n  </gmd-grid>\n</gmd-card>',
+      },
+      {
+        description: 'should handle nested components of the same type',
+        input: `<gmd-card>
+  <gmd-card-title>Parent Card</gmd-card-title>
+  <gmd-card-subtitle>This card contains another card</gmd-card-subtitle>
+  <gmd-card>
+    <gmd-card-title>Child Card</gmd-card-title>
+    <gmd-card-subtitle>Nested inside parent</gmd-card-subtitle>
+    <gmd-button appearance="filled">Child Action</gmd-button>
+  </gmd-card>
+  <gmd-button appearance="outlined">Parent Action</gmd-button>
+</gmd-card>`,
+        expected:
+          '<gmd-card>\n  <gmd-card-title>Parent Card</gmd-card-title>\n  <gmd-card-subtitle>This card contains another card</gmd-card-subtitle>\n  <gmd-card>\n    <gmd-card-title>Child Card</gmd-card-title>\n    <gmd-card-subtitle>Nested inside parent</gmd-card-subtitle>\n    <gmd-button appearance="filled">Child Action</gmd-button>\n  </gmd-card>\n  <gmd-button appearance="outlined">Parent Action</gmd-button>\n</gmd-card>',
+      },
     ];
 
     complexTestCases.forEach(({ description, input, expected }) => {
