@@ -73,7 +73,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
     }
 
     @Nested
-    class GetPortalHomepage {
+    class GetPortalPages {
 
         @Test
         void should_return_homepage_portal_page() {

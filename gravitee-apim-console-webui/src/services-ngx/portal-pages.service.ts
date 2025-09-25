@@ -35,7 +35,7 @@ export class PortalPagesService {
    * Get the homepage portal page
    */
   getHomepage(): Observable<PortalPagesResponse> {
-    return this.http.get<PortalPagesResponse>(`${this.constants.env.v2BaseURL}/portal-pages?type=homepage&expand=content`);
+    return this.http.get<PortalPagesResponse>(`${this.constants.env.v2BaseURL}/portal-pages?type=homepage&expands=content`);
   }
 
   publishPage(pageId: string): Observable<PortalPageWithDetails> {
