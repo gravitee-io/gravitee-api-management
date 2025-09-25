@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 export type ButtonAppearance = 'filled' | 'outlined' | 'text';
 
@@ -26,4 +26,9 @@ export type ButtonAppearance = 'filled' | 'outlined' | 'text';
 })
 export class GmdButtonComponent {
   appearance = input<ButtonAppearance>('filled');
+  link = input<string | undefined>();
+  target = input<string | undefined>();
+
+  hrefVM = computed(() => this.link() || '/');
+  targetVM = computed(() => this.target() || '_self');
 }
