@@ -56,7 +56,7 @@ services:
       - storage
 
   gateway:
-    image: graviteeio/apim-gateway:latest
+    image: graviteeio/apim-gateway:ai_ml_vector_store_demo
     container_name: gio_apim_gateway
     restart: always
     ports:
@@ -79,7 +79,7 @@ services:
       - frontend
 
   management_api:
-    image: graviteeio/apim-management-api:latest
+    image: graviteeio/apim-management-api:ai_ml_vector_store_demo
     container_name: mgmtapi
     restart: always
     ports:
@@ -106,7 +106,7 @@ services:
       - frontend
 
   management_ui:
-    image: graviteeio/apim-management-ui:latest
+    image: graviteeio/apim-management-ui:4.9.0-alpha.2
     container_name: gio_apim_management_ui
     restart: always
     ports:
@@ -121,7 +121,7 @@ services:
       - frontend
 
   portal_ui:
-    image: graviteeio/apim-portal-ui:latest
+    image: graviteeio/apim-portal-ui:4.9.0-alpha.2
     container_name: gio_apim_portal_ui
     restart: always
     ports:
