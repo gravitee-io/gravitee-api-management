@@ -116,4 +116,64 @@ class PortalPageContextCrudServiceImplTest {
         var view = service.findByPageId(PageId.of(id));
         assertThat(view).isNull();
     }
+
+    @Test
+    void should_update_portal_page_view_successfully() throws TechnicalException {
+        String id = "55555555-5555-5555-5555-555555555555";
+        var repoCtxUpdated = PortalPageContext.builder()
+            .id("ctx-updated")
+            .pageId(id)
+            .contextType(PortalPageContextType.HOMEPAGE)
+            .environmentId("env-1")
+            .published(false)
+            .build();
+
+        when(contextRepository.updateByPageId(org.mockito.ArgumentMatchers.any(PortalPageContext.class))).thenReturn(repoCtxUpdated);
+
+        var toUpdate = new io.gravitee.apim.core.portal_page.model.PortalPageView(PortalViewContext.HOMEPAGE, false);
+        var result = service.update(PageId.of(id), toUpdate);
+        assertThat(result).isNotNull();
+        assertThat(result.context()).isEqualTo(PortalViewContext.HOMEPAGE);
+        assertThat(result.published()).isFalse();
+    }
+
+    @Test
+    void should_throw_domain_exception_when_update_fails() throws TechnicalException {
+        String id = "66666666-6666-6666-6666-666666666666";
+        when(contextRepository.updateByPageId(org.mockito.ArgumentMatchers.any(PortalPageContext.class))).thenThrow(
+            new TechnicalException("boom")
+        );
+        var toUpdate = new io.gravitee.apim.core.portal_page.model.PortalPageView(PortalViewContext.HOMEPAGE, true);
+        assertThrows(TechnicalDomainException.class, () -> service.update(PageId.of(id), toUpdate));
+    }
+
+    @Test
+    void should_create_portal_page_context_successfully() throws TechnicalException {
+        String id = "77777777-7777-7777-7777-777777777777";
+        // No exception thrown by repository create
+        var portalPageContext = io.gravitee.apim.core.portal_page.model.PortalPageContext.builder()
+            .pageId(id)
+            .published(true)
+            .environmentId("env-1")
+            .contextType(PortalViewContext.HOMEPAGE)
+            .build();
+        service.create(portalPageContext);
+
+        org.mockito.Mockito.verify(contextRepository).create(org.mockito.ArgumentMatchers.any(PortalPageContext.class));
+    }
+
+    @Test
+    void should_throw_domain_exception_when_create_fails() throws TechnicalException {
+        String id = "88888888-8888-8888-8888-888888888888";
+        org.mockito.Mockito.doThrow(new TechnicalException("boom"))
+            .when(contextRepository)
+            .create(org.mockito.ArgumentMatchers.any(PortalPageContext.class));
+        var portalPageContext = io.gravitee.apim.core.portal_page.model.PortalPageContext.builder()
+            .pageId(id)
+            .published(true)
+            .environmentId("env-1")
+            .contextType(PortalViewContext.HOMEPAGE)
+            .build();
+        assertThrows(TechnicalDomainException.class, () -> service.create(portalPageContext));
+    }
 }
