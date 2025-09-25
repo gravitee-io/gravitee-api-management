@@ -33,6 +33,13 @@ export default {
       control: 'select',
       options: ['filled', 'outlined', 'text'],
     },
+    link: {
+      control: 'text',
+    },
+    target: {
+      control: 'select',
+      options: ['_self', '_blank'],
+    },
   },
   decorators: [
     moduleMetadata({
@@ -81,6 +88,56 @@ export const WithCustomTheming: StoryObj<GmdButtonComponent> = {
   },
 };
 
+export const WithInternalLinks: StoryObj<GmdButtonComponent> = {
+  render: () => ({
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+        <h3 style="margin: 0; color: #333;">Internal Links (Same Tab)</h3>
+        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: center;">
+          <gmd-button appearance="filled" link="/dashboard">Dashboard</gmd-button>
+          <gmd-button appearance="outlined" link="/settings">Settings</gmd-button>
+          <gmd-button appearance="text" link="/profile">Profile</gmd-button>
+        </div>
+        <p style="margin: 0; color: #666; font-size: 14px; text-align: center;">
+          Internal links start with "/" and open in the same tab by default
+        </p>
+      </div>
+    `,
+  }),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Demonstrates internal navigation buttons that link to different pages within the application.',
+      },
+    },
+  },
+};
+
+export const WithExternalLinks: StoryObj<GmdButtonComponent> = {
+  render: () => ({
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+        <h3 style="margin: 0; color: #333;">External Links (New Tab)</h3>
+        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: center;">
+          <gmd-button appearance="filled" link="https://gravitee.io" target="_blank">Gravitee.io</gmd-button>
+          <gmd-button appearance="outlined" link="https://docs.gravitee.io" target="_blank">Documentation</gmd-button>
+          <gmd-button appearance="text" link="https://github.com/gravitee-io" target="_blank">GitHub</gmd-button>
+        </div>
+        <p style="margin: 0; color: #666; font-size: 14px; text-align: center;">
+          External links open in a new tab with target="_blank"
+        </p>
+      </div>
+    `,
+  }),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Demonstrates external navigation buttons that link to external websites and open in new tabs.',
+      },
+    },
+  },
+};
+
 export const WithMarkdownEditor: StoryObj<GmdButtonComponent> = {
   render: () => ({
     template: `
@@ -106,17 +163,27 @@ This markdown editor demonstrates the **button component** integration with the 
 ## Button component usage
 
 <gmd-grid columns="3">
-  <gmd-cell>
-    <gmd-button appearance="filled">Save</button>
+  <gmd-cell style="text-align: center;">
+    <gmd-button appearance="filled" link="/save">Save</gmd-button>
   </gmd-cell>
-  <gmd-cell>
-    <gmd-button appearance="outlined">Preview</button>
+  <gmd-cell style="text-align: center;">
+    <gmd-button appearance="outlined" link="/preview">Preview</gmd-button>
   </gmd-cell>
-  <gmd-cell>
-    <gmd-button appearance="text">Cancel</button>
+  <gmd-cell style="text-align: center;">
+    <gmd-button appearance="text" link="/cancel">Cancel</gmd-button>
   </gmd-cell>
 </gmd-grid>
 
+## External Links
+
+<gmd-grid columns="2">
+  <gmd-cell style="text-align: center;">
+    <gmd-button appearance="filled" link="https://gravitee.io" target="_blank">Visit Gravitee</gmd-button>
+  </gmd-cell>
+  <gmd-cell style="text-align: center;">
+    <gmd-button appearance="outlined" link="https://docs.gravitee.io" target="_blank">Read Docs</gmd-button>
+  </gmd-cell>
+</gmd-grid>
 
 > All buttons use the token-based theming system for consistent styling across the application.
 
