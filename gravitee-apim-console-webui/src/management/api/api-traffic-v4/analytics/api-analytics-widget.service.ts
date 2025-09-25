@@ -157,7 +157,8 @@ export class ApiAnalyticsWidgetService {
     statsResponse: AnalyticsStatsResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
-    if (Object.values(statsResponse).every((value) => value === 0)) {
+    const statsValue = widgetConfig.statsKey ? statsResponse[widgetConfig.statsKey] : undefined;
+    if (statsValue == null || statsValue === 0) {
       return this.createEmptyConfig(widgetConfig);
     }
 
@@ -166,7 +167,7 @@ export class ApiAnalyticsWidgetService {
       tooltip: widgetConfig.tooltip,
       state: 'success',
       widgetType: 'stats' as const,
-      widgetData: { stats: statsResponse[widgetConfig.statsKey], statsUnit: widgetConfig.statsUnit },
+      widgetData: { stats: statsValue, statsUnit: widgetConfig.statsUnit },
     };
   }
 
