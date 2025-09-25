@@ -15,7 +15,7 @@
  */
 import { JKSTrustStore, PKCS12TrustStore } from 'src/entities/management-api-v2';
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
@@ -61,6 +61,12 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
     { label: 'Java Key Store (.jks)', value: 'JKS' },
     { label: 'PKCS#12 (.p12) / PFX (.pfx)', value: 'PKCS12' },
   ];
+
+  hideClientSecretPassword = signal(true);
+  clickHideClientSecretPassword(event: MouseEvent) {
+    this.hideClientSecretPassword.set(!this.hideClientSecretPassword());
+    event.stopPropagation();
+  }
 
   constructor(
     private readonly router: Router,
