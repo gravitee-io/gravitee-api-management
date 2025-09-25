@@ -46,7 +46,7 @@
         </div>
       }
       @default {
-        <div class="empty">
+        <div class="empty" [ngClass]="'empty--' + minHeight()">
           <div class="icon">
             <mat-icon svgIcon="gio:stat-up"></mat-icon>
           </div>
