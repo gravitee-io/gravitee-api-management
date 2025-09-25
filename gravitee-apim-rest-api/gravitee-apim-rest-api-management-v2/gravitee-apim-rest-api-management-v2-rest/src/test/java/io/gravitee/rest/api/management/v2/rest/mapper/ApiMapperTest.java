@@ -25,6 +25,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.FailoverV4;
@@ -187,6 +188,9 @@ public class ApiMapperTest {
             apiV4.setListeners(List.of(new Listener(ListenerFixtures.aKafkaListener())));
             apiV4.setFlows(List.of(FlowFixtures.aFlowNativeV4()));
             apiV4.setType(ApiType.NATIVE);
+            Analytics analytics = new Analytics();
+            analytics.setEnabled(true);
+            apiV4.setAnalytics(analytics);
 
             var result = ApiMapper.INSTANCE.toApiExport(apiV4);
             SoftAssertions.assertSoftly(softly -> {
@@ -207,6 +211,8 @@ public class ApiMapperTest {
 
                 var expectedFlow = FlowFixtures.aModelFlowNativeV4().toBuilder().tags(Set.of("tag1", "tag2")).build();
                 softly.assertThat(result.getFlows()).isNotNull().first().isEqualTo(expectedFlow);
+                io.gravitee.definition.model.v4.analytics.Analytics mappedAnalytics = result.getAnalytics();
+                softly.assertThat(mappedAnalytics.isEnabled()).isTrue();
             });
         }
 
