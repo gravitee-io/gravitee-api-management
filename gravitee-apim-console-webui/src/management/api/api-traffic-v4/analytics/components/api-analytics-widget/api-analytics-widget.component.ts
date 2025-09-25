@@ -57,6 +57,7 @@ interface BaseApiAnalyticsWidgetConfig {
   tooltip?: string;
   state: GioWidgetLayoutState;
   errors?: string[];
+  minHeight?: 'small' | 'medium' | 'large';
 }
 
 type ApiAnalyticsWidgetStatsConfig = BaseApiAnalyticsWidgetConfig & {

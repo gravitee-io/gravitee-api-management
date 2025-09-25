@@ -57,6 +57,7 @@ type WidgetDisplayConfig = {
   type: ApiAnalyticsWidgetType;
   isClickable?: boolean;
   relativePath?: string;
+  minHeight?: 'small' | 'medium' | 'large';
 };
 
 interface Range {
@@ -189,6 +190,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       tooltip: 'Displays the distribution of HTTP status codes returned by the API',
       groupByField: 'status',
       analyticsType: 'GROUP_BY',
+      minHeight: 'medium',
       ranges: [
         { label: '100-199', value: '100:199', color: '#2B72FB' },
         { label: '200-299', value: '200:299', color: '#64BDC6' },
@@ -210,6 +212,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       tooltip: 'Visualizes the breakdown of HTTP status codes (2xx, 4xx, 5xx) across time',
       shouldSortBuckets: true,
       analyticsType: 'HISTOGRAM',
+      minHeight: 'medium',
     },
     {
       type: 'line',
@@ -230,6 +233,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       tooltip: 'Measures response time for gateway and endpoint',
       shouldSortBuckets: false,
       analyticsType: 'HISTOGRAM',
+      minHeight: 'medium',
     },
     {
       type: 'line',
@@ -238,6 +242,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       tooltip: 'Hits repartition by application',
       shouldSortBuckets: false,
       analyticsType: 'HISTOGRAM',
+      minHeight: 'medium',
       aggregations: [
         {
           type: AggregationTypes.FIELD,

@@ -304,6 +304,7 @@ export class ApiAnalyticsWidgetService {
       title: widgetConfig.title,
       tooltip: widgetConfig.tooltip,
       state: 'success',
+      minHeight: widgetConfig.minHeight,
       widgetType: 'table',
       widgetData: {
         columns: transformedColumns,
@@ -396,6 +397,7 @@ export class ApiAnalyticsWidgetService {
         title: widgetConfig.title,
         tooltip: widgetConfig.tooltip,
         state: 'success',
+        minHeight: widgetConfig.minHeight,
         widgetType: 'multi-stats' as const,
         widgetData: multiStatsData,
       };
@@ -436,6 +438,7 @@ export class ApiAnalyticsWidgetService {
         title: widgetConfig.title,
         tooltip: widgetConfig.tooltip,
         state: 'success',
+        minHeight: widgetConfig.minHeight,
         widgetType: 'line' as const,
         widgetData: { data: lineData, options },
       };
@@ -527,6 +530,7 @@ export class ApiAnalyticsWidgetService {
         title: widgetConfig.title,
         tooltip: widgetConfig.tooltip,
         state: 'success',
+        minHeight: widgetConfig.minHeight,
         widgetType: 'bar' as const,
         widgetData: { data: barData, options },
       };
@@ -550,6 +554,7 @@ export class ApiAnalyticsWidgetService {
       title: widgetConfig.title,
       tooltip: widgetConfig.tooltip,
       state,
+      minHeight: widgetConfig.minHeight,
       ...(errors && { errors }),
     };
 

@@ -82,6 +82,18 @@ $cardHeaderBorderColor: map.get(gio.$mat-theme, foreground);
   flex-direction: column;
   word-break: break-word;
   text-align: center;
+
+  &.empty--small {
+    min-height: 180px;
+  }
+
+  &.empty--medium {
+    min-height: 240px;
+  }
+
+  &.empty--large {
+    min-height: 350px;
+  }
 }
 
 // Success state (chart content)
