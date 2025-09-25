@@ -84,7 +84,6 @@ public class TargetTokenCommandHandler implements CommandHandler<TargetTokenComm
             }
 
             if (!assignEnvironmentRole(context, payload, user)) {
-                rollbackMemberships(context, user);
                 rollbackUserCreation(context, user);
                 return Single.just(new TargetTokenReply(command.getId(), "Failed to assign environment role."));
             }
@@ -93,8 +92,6 @@ public class TargetTokenCommandHandler implements CommandHandler<TargetTokenComm
             return Single.just(new TargetTokenReply(command.getId(), CommandStatus.SUCCEEDED, tokenEntity.getToken()));
         } catch (Exception e) {
             log.error("Rolling back due to failure in handling target token command.", e);
-            rollbackTokenCreation(context, tokenEntity);
-            rollbackMemberships(context, user);
             rollbackUserCreation(context, user);
 
             String errorDetails = String.format(
@@ -195,20 +192,6 @@ public class TargetTokenCommandHandler implements CommandHandler<TargetTokenComm
         if (user != null) {
             userService.delete(context, user.getId());
             log.info("Rolled back user creation with id [{}].", user.getId());
-        }
-    }
-
-    private void rollbackMemberships(ExecutionContext context, UserEntity user) {
-        if (user != null) {
-            membershipService.removeMemberMemberships(context, MembershipMemberType.USER, user.getId());
-            log.info("Rolled back memberships for user [{}].", user.getId());
-        }
-    }
-
-    private void rollbackTokenCreation(ExecutionContext context, TokenEntity tokenEntity) {
-        if (tokenEntity != null) {
-            tokenService.revoke(context, tokenEntity.getId());
-            log.info("Revoked token with id [{}].", tokenEntity.getId());
         }
     }
 }
