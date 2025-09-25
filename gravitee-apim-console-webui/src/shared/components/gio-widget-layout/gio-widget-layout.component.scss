@@ -79,6 +79,12 @@ $cardHeaderBorderColor: map.get(gio.$mat-theme, foreground);
   flex-direction: column;
   word-break: break-word;
   text-align: center;
+
+  // Make line chart empty states taller to suggest large datasets expected
+  &.empty--line,
+  &.empty--pie {
+    min-height: 240px;
+  }
 }
 
 // Success state (chart content)
