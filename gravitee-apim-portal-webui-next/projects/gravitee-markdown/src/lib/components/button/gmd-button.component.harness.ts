@@ -42,4 +42,14 @@ export class GmdButtonComponentHarness extends ComponentHarness {
 
     return 'unknown';
   }
+
+  async getHref(): Promise<string | null> {
+    const button = await this.locatorFor('a')();
+    return await button.getAttribute('href');
+  }
+
+  async getTarget(): Promise<string | null> {
+    const button = await this.locatorFor('a')();
+    return await button.getAttribute('target');
+  }
 }
