@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
+import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalHomepageUseCase;
 import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
@@ -33,7 +34,6 @@ import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.PortalPageService;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
@@ -59,13 +59,13 @@ public class EnvironmentCommandHandlerTest {
     private AccessPointCrudService accessPointService;
 
     @Mock
-    private PortalPageService portalPageService;
+    private CreateDefaultPortalHomepageUseCase createDefaultPortalHomepageUseCase;
 
     public EnvironmentCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new EnvironmentCommandHandler(environmentService, accessPointService, portalPageService);
+        cut = new EnvironmentCommandHandler(environmentService, accessPointService, createDefaultPortalHomepageUseCase);
     }
 
     @Test
@@ -113,7 +113,7 @@ public class EnvironmentCommandHandlerTest {
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        verify(portalPageService).createDefaultPortalHomePage(envId);
+        verify(createDefaultPortalHomepageUseCase).execute(envId);
     }
 
     @Test
