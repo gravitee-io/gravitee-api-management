@@ -18,133 +18,133 @@ import { ComponentSuggestionConfiguration } from '../../models/componentSuggesti
 
 const grid1Column: ComponentSuggestion = {
   label: 'Grid - 1 column',
-  insertText: `<grid columns="1">
-	<cell>
+  insertText: `<gmd-grid columns="1">
+	<gmd-cell>
 		$1
-	</cell>
-</grid>`,
+	</gmd-cell>
+</gmd-grid>`,
   detail: 'Component template',
 };
 
 const grid2Columns: ComponentSuggestion = {
   label: 'Grid - 2 columns',
-  insertText: `<grid columns="2">
-	<cell>
+  insertText: `<gmd-grid columns="2">
+	<gmd-cell>
 		$1
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$2
-	</cell>
-</grid>`,
+	</gmd-cell>
+</gmd-grid>`,
   detail: 'Component template',
 };
 
 const grid3Columns: ComponentSuggestion = {
   label: 'Grid - 3 columns',
-  insertText: `<grid columns="3">
-	<cell>
+  insertText: `<gmd-grid columns="3">
+	<gmd-cell>
 		$1
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$2
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$3
-	</cell>
-</grid>`,
+	</gmd-cell>
+</gmd-grid>`,
   detail: 'Component template',
 };
 
 const grid4Columns: ComponentSuggestion = {
   label: 'Grid - 4 columns',
-  insertText: `<grid columns="4">
-	<cell>
+  insertText: `<gmd-grid columns="4">
+	<gmd-cell>
 		$1
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$2
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$3
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$4
-	</cell>
-</grid>`,
+	</gmd-cell>
+</gmd-grid>`,
   detail: 'Component template',
 };
 
 const grid5Columns: ComponentSuggestion = {
   label: 'Grid - 5 columns',
-  insertText: `<grid columns="5">
-	<cell>
+  insertText: `<gmd-grid columns="5">
+	<gmd-cell>
 		$1
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$2
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$3
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$4
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$5
-	</cell>
-</grid>`,
+	</gmd-cell>
+</gmd-grid>`,
   detail: 'Component template',
 };
 
 const grid6Columns: ComponentSuggestion = {
   label: 'Grid - 6 columns',
-  insertText: `<grid columns="6">
-	<cell>
+  insertText: `<gmd-grid columns="6">
+	<gmd-cell>
 		$1
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$2
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$3
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$4
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$5
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$6
-	</cell>
-</grid>`,
+	</gmd-cell>
+</gmd-grid>`,
   detail: 'Component template',
 };
 
 const emptyGrid2Columns: ComponentSuggestion = {
   label: 'Grid - Empty 2 columns',
-  insertText: `<grid columns="2">
+  insertText: `<gmd-grid columns="2">
 	$1
-</grid>`,
+</gmd-grid>`,
   detail: 'Component template',
 };
 
 const grid2Columns2Rows: ComponentSuggestion = {
   label: 'Grid - 2 columns 2 rows',
-  insertText: `<grid columns="2">
-	<cell>
+  insertText: `<gmd-grid columns="2">
+	<gmd-cell>
 		$1
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$2
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$3
-	</cell>
-	<cell>
+	</gmd-cell>
+	<gmd-cell>
 		$4
-	</cell>
-</grid>`,
+	</gmd-cell>
+</gmd-grid>`,
   detail: 'Component template',
 };
 
