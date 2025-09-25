@@ -43,7 +43,6 @@ export default {
         <gmd-viewer [content]="contentToRender"></gmd-viewer>
       </div>
     `,
-    styles: ['@import "../projects/gravitee-markdown/src/lib/components/card/gmd-card.component.stories.scss";'],
     props: args,
   }),
 } as Meta<GmdCardComponent>;
