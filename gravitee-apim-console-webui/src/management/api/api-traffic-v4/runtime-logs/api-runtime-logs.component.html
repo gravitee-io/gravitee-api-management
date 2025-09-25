@@ -15,6 +15,12 @@
     limitations under the License.
 
 -->
+<api-navigation-header [menuItemHeader]="{ title: 'Runtime Logs' }">
+  <div actionButtons>
+    <a mat-raised-button [routerLink]="['../../reporter-settings']"> Configure Reporting </a>
+  </div>
+</api-navigation-header>
+
 @if (isReportingDisabled$ | async) {
   <gio-banner-info class="banner-warning">
     <div class="banner-warning__content">
@@ -25,12 +31,6 @@
     </div>
   </gio-banner-info>
 }
-<div class="header">
-  <div class="header__title">Runtime Logs</div>
-  <div>
-    <a mat-raised-button [routerLink]="['../../reporter-settings']"> Configure Reporting </a>
-  </div>
-</div>
 <mat-card>
   @if (initialValues) {
     <!-- TODO: move filters into the gio-table-wrapper in the log list when this new feature is available -->

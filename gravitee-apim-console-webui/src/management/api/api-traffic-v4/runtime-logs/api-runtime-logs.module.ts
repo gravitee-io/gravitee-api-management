@@ -26,6 +26,9 @@ import { ApiRuntimeLogsQuickFiltersModule } from './components';
 import { QuickFiltersStoreService } from './services';
 import { ApiRuntimeLogsListComponent } from './components/api-runtime-logs-list/api-runtime-logs-list.component';
 
+import { ActionButtonsDirective } from '../../api-navigation/api-navigation-header/action-buttons.directive';
+import { ApiNavigationModule } from '../../api-navigation/api-navigation.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -37,6 +40,8 @@ import { ApiRuntimeLogsListComponent } from './components/api-runtime-logs-list/
     RouterLink,
     ApiRuntimeLogsListComponent,
     GioBannerModule,
+    ActionButtonsDirective,
+    ApiNavigationModule,
   ],
   declarations: [ApiRuntimeLogsComponent],
   exports: [ApiRuntimeLogsComponent],
