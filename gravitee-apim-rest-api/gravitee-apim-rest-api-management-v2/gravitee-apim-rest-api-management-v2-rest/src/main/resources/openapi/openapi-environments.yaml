@@ -1820,7 +1820,10 @@ components:
             Comma-separated list of fields to expand. Possible value: 'content'
           required: false
           schema:
-            type: string
+            type: array
+            items:
+              type: string
+              enum: [content]
 
     responses:
         SchemaFormResponse:

@@ -61,19 +61,20 @@ public class PortalPagesResource extends AbstractResource {
     @GET
     @Produces("application/json")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
-    public PortalPageResponse getPortalPages(@QueryParam("type") String type, @QueryParam("expands") List<ExpandsViewContext> expands) {
+    public PortalPageResponse getPortalPages(@QueryParam("type") String type, @QueryParam("expands") List<String> expands) {
         GetPortalPageUseCase.Input input = toGetPortalPageInput(envId, type, expands);
         var page = getPortalPageUseCase.execute(input);
 
         return PortalPagesMapper.INSTANCE.map(page);
     }
 
-    private GetPortalPageUseCase.Input toGetPortalPageInput(String envId, String type, List<ExpandsViewContext> expands) {
+    private GetPortalPageUseCase.Input toGetPortalPageInput(String envId, String type, List<String> expands) {
         var pageType = Arrays.stream(PortalViewContext.values())
             .filter(pcv -> pcv.name().equalsIgnoreCase(type))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown page type: " + type));
-        return new GetPortalPageUseCase.Input(envId, pageType, ofNullable(expands).orElseGet(Collections::emptyList));
+        var expandsEnum = ofNullable(expands).orElseGet(Collections::emptyList).stream().map(ExpandsViewContext::fromValue).toList();
+        return new GetPortalPageUseCase.Input(envId, pageType, expandsEnum);
     }
 
     @PATCH
