@@ -106,9 +106,9 @@
       metricValue?.message ||
       (metricValue?.warnings && metricValue?.warnings.length > 0)
     ) {
-      <mat-expansion-panel class="mat-elevation-z0 more-details">
+      <mat-expansion-panel class="mat-elevation-z0 more-details issues-panel">
         <mat-expansion-panel-header>
-          <mat-panel-title> Diagnostics </mat-panel-title>
+          <mat-panel-title> Issues </mat-panel-title>
         </mat-expansion-panel-header>
         <div class="card__container">
           @if (metricValue?.errorKey || metricValue?.errorComponentName || metricValue?.errorComponentType || metricValue?.message) {

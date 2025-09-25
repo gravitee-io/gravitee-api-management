@@ -16,8 +16,15 @@
   }
 
   .mat-column-timestamp {
-    min-width: 220px;
-    width: 220px;
+    min-width: 100px;
+    width: 200px;
+  }
+
+  .diagnostics-container {
+    .gio-badge-error,
+    .gio-badge-warning {
+      margin: 2px;
+    }
   }
 
   .mat-column-method,
@@ -26,5 +33,18 @@
   .mat-column-actions,
   .mat-column-status {
     width: 0;
+  }
+
+  .mat-column-timestamp,
+  .mat-column-method,
+  .mat-column-status,
+  .mat-column-uri,
+  .mat-column-application,
+  .mat-column-plan,
+  .mat-column-endpoint,
+  .mat-column-issues,
+  .mat-column-responseTime,
+  .mat-column-actions {
+    padding: 0 8px;
   }
 }
