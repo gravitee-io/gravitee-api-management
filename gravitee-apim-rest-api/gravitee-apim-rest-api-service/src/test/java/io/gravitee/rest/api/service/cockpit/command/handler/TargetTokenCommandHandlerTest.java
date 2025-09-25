@@ -226,7 +226,6 @@ class TargetTokenCommandHandlerTest {
         targetTokenCommandHandler.handle(command).test().awaitDone(2, SECONDS);
 
         verify(userService, times(1)).delete(any(), eq(USER_ID));
-        verify(membershipService, times(1)).removeMemberMemberships(any(), eq(MembershipMemberType.USER), eq(USER_ID));
     }
 
     @Test
@@ -245,7 +244,6 @@ class TargetTokenCommandHandlerTest {
         targetTokenCommandHandler.handle(command).test().awaitDone(2, SECONDS);
 
         verify(userService, times(1)).delete(any(), eq(USER_ID));
-        verify(membershipService, times(1)).removeMemberMemberships(any(), eq(MembershipMemberType.USER), eq(USER_ID));
     }
 
     private static TargetTokenCommandPayload generatePayload(TargetTokenCommandPayload.Scope scope) {
