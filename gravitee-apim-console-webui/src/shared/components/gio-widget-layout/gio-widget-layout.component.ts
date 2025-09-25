@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, input, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,7 +25,7 @@ export type GioWidgetLayoutState = 'loading' | 'error' | 'success' | 'empty';
 @Component({
   selector: 'gio-widget-layout',
   standalone: true,
-  imports: [MatCardModule, MatIconModule, GioLoaderModule, MatTooltipModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, GioLoaderModule, MatTooltipModule],
   templateUrl: './gio-widget-layout.component.html',
   styleUrl: './gio-widget-layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +35,7 @@ export class GioWidgetLayoutComponent implements OnChanges {
   tooltip = input<string>();
   state = input.required<GioWidgetLayoutState>();
   errors = input<string[]>();
+  minHeight = input<'small' | 'medium' | 'large'>('small');
 
   errorMessage = computed(() => {
     const errors = this.errors();
