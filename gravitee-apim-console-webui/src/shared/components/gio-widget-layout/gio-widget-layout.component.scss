@@ -41,8 +41,8 @@ $cardHeaderBorderColor: map.get(gio.$mat-theme, foreground);
 }
 
 .icon {
-  color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, default);
-  background: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter');
+  color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, darker80);
+  background: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, lighter40);
   border-radius: 50%;
   display: flex;
   justify-content: center;
