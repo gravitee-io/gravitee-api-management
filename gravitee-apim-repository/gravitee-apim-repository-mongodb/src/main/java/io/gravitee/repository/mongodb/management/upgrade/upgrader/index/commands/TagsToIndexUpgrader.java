@@ -22,17 +22,16 @@ import org.springframework.stereotype.Component;
 /**
  * @author GraviteeSource Team
  */
-@Component("TagsToAcknowledgmentsIndexUpgrader")
-public class TagsToAcknowledgmentsIndexUpgrader extends IndexUpgrader {
+@Component("TagsToIndexUpgrader")
+public class TagsToIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index.builder()
             .collection("commands")
-            .name("t1to1a1")
+            .name("t1to1")
             .key("tags", ascending())
             .key("to", ascending())
-            .key("acknowledgments", ascending())
             .build();
     }
 }
