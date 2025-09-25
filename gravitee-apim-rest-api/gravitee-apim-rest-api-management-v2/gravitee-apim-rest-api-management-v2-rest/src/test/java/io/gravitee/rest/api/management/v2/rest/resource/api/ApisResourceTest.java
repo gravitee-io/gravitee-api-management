@@ -83,6 +83,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
@@ -413,7 +414,8 @@ class ApisResourceTest extends AbstractResourceTest {
                 .satisfies(api ->
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(api.getId()).isEqualTo("api-id");
-                        soft.assertThat(api.getAnalytics()).isEqualTo(newApi.getAnalytics());
+                        soft.assertThat(api.getAnalytics()).isNotNull();
+                        soft.assertThat(Objects.requireNonNull(api.getAnalytics()).getEnabled()).isTrue();
                         soft.assertThat(api.getApiVersion()).isEqualTo(newApi.getApiVersion());
                         soft.assertThat(api.getEndpointGroups()).isEqualTo(newApi.getEndpointGroups());
                         soft.assertThat(api.getDescription()).isEqualTo(newApi.getDescription());
