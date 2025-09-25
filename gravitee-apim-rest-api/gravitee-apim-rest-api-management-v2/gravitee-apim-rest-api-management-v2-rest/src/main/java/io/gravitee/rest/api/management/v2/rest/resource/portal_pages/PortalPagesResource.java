@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.portal_pages;
 
+import static java.util.Optional.ofNullable;
+
 import io.gravitee.apim.core.portal_page.model.ExpandsViewContext;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
@@ -41,7 +43,6 @@ import jakarta.ws.rs.QueryParam;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public class PortalPagesResource extends AbstractResource {
 
@@ -60,20 +61,19 @@ public class PortalPagesResource extends AbstractResource {
     @GET
     @Produces("application/json")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
-    public PortalPageResponse getPortalHomepage(@QueryParam("type") String type, @QueryParam("expand") List<String> expand) {
-        GetPortalPageUseCase.Input input = toGetPortalPageInput(envId, type, expand);
+    public PortalPageResponse getPortalPages(@QueryParam("type") String type, @QueryParam("expands") List<ExpandsViewContext> expands) {
+        GetPortalPageUseCase.Input input = toGetPortalPageInput(envId, type, expands);
         var page = getPortalPageUseCase.execute(input);
 
         return PortalPagesMapper.INSTANCE.map(page);
     }
 
-    private GetPortalPageUseCase.Input toGetPortalPageInput(String envId, String type, List<String> expand) {
+    private GetPortalPageUseCase.Input toGetPortalPageInput(String envId, String type, List<ExpandsViewContext> expands) {
         var pageType = Arrays.stream(PortalViewContext.values())
             .filter(pcv -> pcv.name().equalsIgnoreCase(type))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown page type: " + type));
-        var expands = Optional.ofNullable(expand).orElse(Collections.emptyList()).stream().map(ExpandsViewContext::fromValue).toList();
-        return new GetPortalPageUseCase.Input(envId, pageType, expands);
+        return new GetPortalPageUseCase.Input(envId, pageType, ofNullable(expands).orElseGet(Collections::emptyList));
     }
 
     @PATCH
