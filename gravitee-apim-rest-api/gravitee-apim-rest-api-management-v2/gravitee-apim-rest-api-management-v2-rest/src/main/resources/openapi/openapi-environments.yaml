@@ -752,9 +752,9 @@ paths:
       get:
         tags:
           - Portal Pages
-        summary: Get portal homepage
-        description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission. This endpoint is under active development and might change or be removed in future releases without prior notice.
-        operationId: getPortalHomepage
+        summary: Get portal pages
+        description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        operationId: getPortalPages
         parameters:
           - $ref: '#/components/parameters/contextType'
           - $ref: '#/components/parameters/expandComponents'
@@ -1814,10 +1814,10 @@ components:
             type: string
             enum: [homepage]
         expandComponents:
-          name: expand
+          name: expands
           in: query
           description: >
-            Comma-separated list of fields to expand. Possible value: 'components'
+            Comma-separated list of fields to expand. Possible value: 'content'
           required: false
           schema:
             type: string

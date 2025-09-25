@@ -69,7 +69,7 @@ describe('HomepageComponent', () => {
     httpTestingController
       .expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages?type=homepage&expand=content`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages?type=homepage&expands=content`,
       })
       .flush({ pages: [portalPage] });
   };
