@@ -28,17 +28,16 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Objects;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -216,6 +215,8 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
 
         // Validate and clean flows
         apiDefinition.setFlows(flowValidationDomainService.validateAndSanitizeNativeV4(apiDefinition.getFlows()));
+
+        apiDefinition.setAnalytics(apiDefinition.getAnalytics() != null ? apiDefinition.getAnalytics() : new NativeAnalytics());
 
         apiValidationService.validateDynamicProperties(
             apiDefinition.getServices() != null ? apiDefinition.getServices().getDynamicProperty() : null
