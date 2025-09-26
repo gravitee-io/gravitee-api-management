@@ -28,10 +28,7 @@ import { PortalPage } from '../../entities/portal/portal-page';
   template: ` <gmd-viewer [content]="homepageContent()" appInnerLink /> `,
 })
 export class HomepageComponent {
-  homepage = input<PortalPage>({
-    page: { id: '', name: 'Homepage', pageContent: '', type: 'GRAVITEE_MARKDOWN' },
-    viewDetails: {},
-  });
+  homepage = input<PortalPage>({ id: '' });
 
-  homepageContent = computed(() => this.homepage().page.pageContent ?? '');
+  homepageContent = computed(() => this.homepage().content ?? '');
 }
