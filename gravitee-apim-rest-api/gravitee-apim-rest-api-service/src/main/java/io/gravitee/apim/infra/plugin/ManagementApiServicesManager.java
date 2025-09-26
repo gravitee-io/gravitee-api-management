@@ -22,7 +22,7 @@ import io.gravitee.apim.rest.api.common.apiservices.ManagementApiService;
 import io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceFactory;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.ArrayList;
@@ -66,21 +66,25 @@ public class ManagementApiServicesManager extends AbstractService {
     @SuppressWarnings("java:S6204")
     public void deployServices(Api api) {
         log.debug("Deploying services for api: {}", api.getId());
-        if (!api.getDefinitionVersion().equals(DefinitionVersion.V4)) {
-            return;
-        }
-        List<ManagementApiService> services = apiServicePluginManager
-            .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
-            .stream()
-            .map(managementApiServiceFactory ->
-                managementApiServiceFactory.createService(
-                    api.getType() == ApiType.NATIVE
-                        ? new DefaultManagementDeploymentContext(api.getApiDefinitionNativeV4(), applicationContext)
-                        : new DefaultManagementDeploymentContext(api.getApiDefinitionHttpV4(), applicationContext)
+        List<ManagementApiService> services = switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api v4Api -> apiServicePluginManager
+                .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
+                .stream()
+                .map(managementApiServiceFactory ->
+                    managementApiServiceFactory.createService(new DefaultManagementDeploymentContext(v4Api, applicationContext))
                 )
-            )
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+            case NativeApi v4NativeApi -> apiServicePluginManager
+                .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
+                .stream()
+                .map(managementApiServiceFactory ->
+                    managementApiServiceFactory.createService(new DefaultManagementDeploymentContext(v4NativeApi, applicationContext))
+                )
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+            default -> List.of();
+        };
         Completable.concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
             .doOnError(throwable -> log.error("Unable to start management-api-service: {}", throwable.getMessage(), throwable))
             .blockingAwait();
@@ -120,9 +124,7 @@ public class ManagementApiServicesManager extends AbstractService {
             .doOnError(throwable -> log.error("Unable to start dynamic-api-service for api {}", api.getId(), throwable))
             .blockingAwait();
         if (!services.isEmpty()) {
-            if (!services.isEmpty()) {
-                servicesByApi.computeIfAbsent(api.getId(), k -> new ArrayList<>()).addAll(services);
-            }
+            servicesByApi.computeIfAbsent(api.getId(), k -> new ArrayList<>()).addAll(services);
         }
     }
 

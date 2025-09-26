@@ -27,6 +27,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import java.util.HashSet;
 import java.util.List;
@@ -148,9 +149,8 @@ public class VerifyApiHostsDomainService {
     }
 
     private Stream<String> extractHostsFromListeners(Api api) {
-        if (api.getType() == ApiType.PROXY && api.getApiDefinitionHttpV4() != null) {
-            return api
-                .getApiDefinitionHttpV4()
+        return switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api v4Api -> v4Api
                 .getListeners()
                 .stream()
                 .filter(TcpListener.class::isInstance)
@@ -158,15 +158,13 @@ public class VerifyApiHostsDomainService {
                 .map(TcpListener::getHosts)
                 .filter(extractedHosts -> !extractedHosts.isEmpty())
                 .flatMap(List::stream);
-        } else if (api.getType() == ApiType.NATIVE && api.getApiDefinitionNativeV4() != null) {
-            return api
-                .getApiDefinitionNativeV4()
+            case NativeApi nativeApi -> nativeApi
                 .getListeners()
                 .stream()
                 .filter(KafkaListener.class::isInstance)
                 .map(KafkaListener.class::cast)
                 .map(KafkaListener::getHost);
-        }
-        return Stream.of();
+            case null, default -> Stream.of();
+        };
     }
 }

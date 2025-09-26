@@ -189,14 +189,12 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
     }
 
     private void transformV4Api(Document doc, IndexableApi api) {
-        var apiDefinitionV4 = api.getApi().getType() == ApiType.NATIVE
-            ? api.getApi().getApiDefinitionNativeV4()
-            : api.getApi().getApiDefinitionHttpV4();
+        var apiDefinitionV4 = api.getApi().getApiDefinitionValue();
 
-        if (api.getApi().getType() == ApiType.NATIVE) {
-            transformV4ApiNativeListeners(doc, api.getApi().getApiDefinitionNativeV4());
-        } else {
-            transformV4ApiHttpListeners(doc, api.getApi().getApiDefinitionHttpV4());
+        switch (apiDefinitionV4) {
+            case io.gravitee.definition.model.v4.Api v4Api -> transformV4ApiHttpListeners(doc, v4Api);
+            case io.gravitee.definition.model.v4.nativeapi.NativeApi v4NativeApi -> transformV4ApiNativeListeners(doc, v4NativeApi);
+            default -> {}
         }
 
         // tags
