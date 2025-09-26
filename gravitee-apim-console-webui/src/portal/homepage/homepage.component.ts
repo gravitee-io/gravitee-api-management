@@ -113,9 +113,9 @@ export class HomepageComponent {
       .pipe(
         filter((confirmed) => confirmed),
         switchMap((_) => toggleApiCall$),
-        tap((updatedPage) => {
-          this.portalHomepage.set(updatedPage);
-          this.snackbarService.success(`Page has been ${updatedPage.published ? 'publish' : 'unpublish'}ed successfully.`);
+        tap(({ pages: [homepageUpdated] }) => {
+          this.portalHomepage.set(homepageUpdated);
+          this.snackbarService.success(`Page has been ${homepageUpdated.published ? 'publish' : 'unpublish'}ed successfully.`);
         }),
         takeUntilDestroyed(this.destroyRef),
         catchError(({ error }) => {
