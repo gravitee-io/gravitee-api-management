@@ -21,6 +21,8 @@ import java.util.Objects;
 
 public class ClientRegistrationProvider {
 
+    public static List<String> PATHS_TO_ANONYMIZE_FOR_AUDIT_LOGS = List.of("/initialAccessToken", "/clientSecret");
+
     public enum AuditEvent implements Audit.AuditEvent {
         CLIENT_REGISTRATION_PROVIDER_CREATED,
         CLIENT_REGISTRATION_PROVIDER_UPDATED,
