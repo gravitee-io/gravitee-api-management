@@ -31,13 +31,18 @@ import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
-import jakarta.ws.rs.core.GenericType;
+import io.gravitee.rest.api.portal.rest.model.PortalPageResponse;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalPagesResourceTest extends AbstractResourceTest {
 
     @Autowired
@@ -91,7 +96,9 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
 
         // And we have both published and unpublished pages in storage
         PortalPage page1 = new PortalPage(pageId1, new GraviteeMarkdown("content1"));
+        page1.setCreatedAt(Date.from(Instant.parse("2025-07-20T20:02:40.347Z")));
         PortalPage page2 = new PortalPage(pageId2, new GraviteeMarkdown("content2"));
+        page2.setCreatedAt(Date.from(Instant.parse("2025-07-20T20:02:40.347Z")));
         var pages = List.of(
             new PortalPageWithViewDetails(page1, new PortalPageView(PortalViewContext.HOMEPAGE, true)),
             new PortalPageWithViewDetails(page2, new PortalPageView(PortalViewContext.HOMEPAGE, false))
@@ -99,11 +106,13 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         portalPageQueryServiceInMemory.initWith(pages);
 
         // When
-        Response response = target().queryParam("type", "HOMEPAGE").request().get();
+        Response response = target().queryParam("type", "HOMEPAGE").queryParam("expands", "CREATED_AT").request().get();
 
         // Then
         assertEquals(OK_200, response.getStatus());
-        List<?> returned = response.readEntity(new GenericType<>() {});
-        assertThat(returned).hasSize(1);
+        PortalPageResponse returned = response.readEntity(PortalPageResponse.class);
+        assertThat(returned.getPages()).hasSize(1);
+        assertThat(returned.getPages().getFirst().getContent()).isEqualTo("content1");
+        assertThat(returned.getPages().getFirst().getCreatedAt()).isEqualTo("2025-07-20T20:02:40.347Z");
     }
 }

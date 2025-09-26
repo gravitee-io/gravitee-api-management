@@ -19,6 +19,7 @@ import io.gravitee.apim.core.portal_page.model.ExpandsViewContext;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageUseCase;
+import io.gravitee.rest.api.portal.rest.mapper.PortalPagesMapper;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -53,6 +54,7 @@ public class PortalPagesResource {
             .stream()
             .filter(page -> page.viewDetails().published())
             .toList();
-        return Response.ok(filteredPages).build();
+        var response = PortalPagesMapper.INSTANCE.map(filteredPages);
+        return Response.ok(response).build();
     }
 }
