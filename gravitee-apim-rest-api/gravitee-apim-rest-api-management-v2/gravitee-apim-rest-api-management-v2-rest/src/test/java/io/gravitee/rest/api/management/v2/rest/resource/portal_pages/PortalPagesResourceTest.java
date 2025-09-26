@@ -29,7 +29,8 @@ import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import io.gravitee.rest.api.management.v2.rest.model.PatchPortalPage;
-import io.gravitee.rest.api.management.v2.rest.model.PortalPageResponse;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPagesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -82,8 +83,8 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             Response response = target.queryParam("type", "HOMEPAGE").request().get();
             assertThat(response)
                 .hasStatus(OK_200)
-                .asEntity(PortalPageResponse.class)
-                .extracting(PortalPageResponse::getPages)
+                .asEntity(PortalPagesResponse.class)
+                .extracting(PortalPagesResponse::getPages)
                 .extracting(List::getFirst)
                 .satisfies(r -> {
                     assertThat(r.getContent()).isEqualTo("Welcome!");
@@ -155,9 +156,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
                 .method("PATCH", jakarta.ws.rs.client.Entity.json(patchPortalPage));
             assertThat(response)
                 .hasStatus(OK_200)
-                .asEntity(PortalPageResponse.class)
-                .extracting(PortalPageResponse::getPages)
-                .extracting(List::getFirst)
+                .asEntity(PortalPageWithDetails.class)
                 .satisfies(r -> {
                     assertThat(r.getContent()).isEqualTo(updatedContent);
                     assertThat(r.getContext()).isEqualTo(
@@ -189,9 +188,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             Response response = target.path("/" + existingHomepage.page().getId() + "/_publish").request().post(null);
             assertThat(response)
                 .hasStatus(OK_200)
-                .asEntity(PortalPageResponse.class)
-                .extracting(PortalPageResponse::getPages)
-                .extracting(List::getFirst)
+                .asEntity(PortalPageWithDetails.class)
                 .satisfies(r -> {
                     assertThat(r.getContent()).isEqualTo("Welcome!");
                     assertThat(r.getContext()).isEqualTo(
@@ -222,9 +219,7 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
             Response response = target.path("/" + existingHomepage.page().getId() + "/_unpublish").request().post(null);
             assertThat(response)
                 .hasStatus(OK_200)
-                .asEntity(PortalPageResponse.class)
-                .extracting(PortalPageResponse::getPages)
-                .extracting(List::getFirst)
+                .asEntity(PortalPageWithDetails.class)
                 .satisfies(r -> {
                     assertThat(r.getContent()).isEqualTo("Welcome!");
                     assertThat(r.getContext()).isEqualTo(
