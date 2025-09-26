@@ -197,6 +197,10 @@ data:
       {{- if .Values.api.http.client.proxy }}
       proxy:
         type: {{ .Values.api.http.client.proxy.type }}
+        {{- with .Values.api.http.client.proxy.excludeHosts }}
+        exclude-hosts:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         {{- if .Values.api.http.client.proxy.http }}
         http:
           host: {{ .Values.api.http.client.proxy.http.host }}
