@@ -68,7 +68,7 @@ public class SearchResponseTimeUseCase {
     }
 
     private static Single<Api> validateApiIsNotTcp(Api api) {
-        return api.getApiDefinitionHttpV4().isTcpProxy() ? Single.error(new TcpProxyNotSupportedException(api.getId())) : Single.just(api);
+        return api.isTcpProxy() ? Single.error(new TcpProxyNotSupportedException(api.getId())) : Single.just(api);
     }
 
     private static Single<Api> validateApiMultiTenancyAccess(Api api, String environmentId) {
