@@ -15,6 +15,7 @@ const config: StorybookConfig = {
   staticDirs: [
     { from: '../src/assets', to: 'assets' },
     { from: '../node_modules/monaco-editor', to: '/assets/monaco-editor' },
+    { from: '../projects/gravitee-markdown/src/lib/assets/homepage', to: 'assets/homepage' },
   ],
 };
 export default config;

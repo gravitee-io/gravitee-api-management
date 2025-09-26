@@ -98,6 +98,11 @@
                 "glob": "oauth2-redirect.html",
                 "input": "node_modules/swagger-ui-dist",
                 "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@gravitee/gravitee-markdown/src/lib/assets/homepage",
+                "output": "assets/homepage"
               }
             ],
             "styles": [
