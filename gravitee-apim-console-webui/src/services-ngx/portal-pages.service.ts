@@ -18,7 +18,6 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { PortalPageWithDetails } from '../entities/portal/portal-page-with-details';
 import { PatchPortalPage } from '../entities/portal/patch-portal-page';
 import { PortalPagesResponse } from '../entities/portal/portal-pages-response';
 
@@ -46,7 +45,7 @@ export class PortalPagesService {
     return this.http.post<PortalPagesResponse>(`${this.constants.env.v2BaseURL}/portal-pages/${pageId}/_unpublish`, {});
   }
 
-  patchPortalPage(portalPageId: string, patchedPage: PatchPortalPage): Observable<PortalPageWithDetails> {
-    return this.http.patch<PortalPageWithDetails>(`${this.constants.env.v2BaseURL}/portal-pages/${portalPageId}`, patchedPage);
+  patchPortalPage(portalPageId: string, patchedPage: PatchPortalPage): Observable<PortalPagesResponse> {
+    return this.http.patch<PortalPagesResponse>(`${this.constants.env.v2BaseURL}/portal-pages/${portalPageId}`, patchedPage);
   }
 }
