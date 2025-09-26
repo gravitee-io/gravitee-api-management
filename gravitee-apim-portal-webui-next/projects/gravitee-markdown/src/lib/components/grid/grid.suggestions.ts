@@ -15,6 +15,8 @@
  */
 import { ComponentSuggestion } from '../../models/componentSuggestion';
 import { ComponentSuggestionConfiguration } from '../../models/componentSuggestionConfiguration';
+import {AttributeSelector} from "../../models/attributeSelector";
+import {ComponentSelector} from "../../models/componentSelector";
 
 const grid1Column: ComponentSuggestion = {
   label: 'Grid - 1 column',
@@ -162,9 +164,6 @@ export const gridConfiguration: ComponentSuggestionConfiguration = {
     description: 'Layout component for organizing content in columns and rows',
   },
   attributeHoverDocumentation: {
-    columns: {
-      label: 'columns',
-      description: 'Number of columns to display (1-6)',
-    },
-  },
+    [AttributeSelector.GRID_COLUMNS]: 'Number of columns to display (1-6)',
+  }
 };

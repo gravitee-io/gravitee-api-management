@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentDocumentation, ComponentDocumentationMap } from './componentDocumentation';
+import {AttributeHoverDocumentation, ComponentDocumentation} from './componentDocumentation';
 import { ComponentSuggestion } from './componentSuggestion';
 
 export interface ComponentSuggestionConfiguration {
   suggestions: ComponentSuggestion[];
   attributeSuggestions: ComponentSuggestion[];
   hoverDocumentation: ComponentDocumentation;
-  attributeHoverDocumentation: ComponentDocumentationMap;
+  attributeHoverDocumentation: AttributeHoverDocumentation;
 }

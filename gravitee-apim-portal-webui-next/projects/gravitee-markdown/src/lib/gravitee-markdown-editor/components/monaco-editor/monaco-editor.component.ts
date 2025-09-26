@@ -280,7 +280,9 @@ export class MonacoEditorComponent implements OnDestroy {
       // Get component tag for the attribute context
       const componentTag = this.getComponentTag(lineText);
       if (componentTag) {
-        return componentSuggestionMap[componentTag].attributeHoverDocumentation[wordText];
+        const label = wordText;
+        const description = componentSuggestionMap[componentTag].attributeHoverDocumentation[label]
+        return { label, description};
       }
     }
 
