@@ -68,11 +68,7 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, never()).update(any());
         verify(mockAuditService, never()).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CATEGORY_UPDATED),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_UPDATED))
         );
     }
 
@@ -87,11 +83,7 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, never()).update(any());
         verify(mockAuditService, never()).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CATEGORY_UPDATED),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_UPDATED))
         );
     }
 
@@ -129,11 +121,7 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, times(1)).update(any());
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CATEGORY_UPDATED),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_UPDATED))
         );
     }
 
@@ -170,11 +158,7 @@ public class CategoryService_UpdateTest {
         verify(mockCategoryRepository, times(1)).update(any());
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CATEGORY_UPDATED),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_UPDATED))
         );
     }
 }

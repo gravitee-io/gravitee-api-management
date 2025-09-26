@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
 import static java.util.Collections.singletonMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -25,7 +26,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
@@ -59,12 +60,14 @@ public class AuditService_CreateTest {
 
         auditService.createApiAuditLog(
             executionContext,
-            apiId,
-            Collections.singletonMap(Audit.AuditProperties.PLAN, "123"),
-            Plan.AuditEvent.PLAN_CREATED,
-            createdAt,
-            singletonMap("name", "Joe"),
-            singletonMap("name", "Bar")
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, "123"))
+                .event(PLAN_CREATED)
+                .createdAt(createdAt)
+                .oldValue(singletonMap("name", "Joe"))
+                .newValue(singletonMap("name", "Bar"))
+                .build(),
+            apiId
         );
 
         verify(auditRepository, times(1)).create(
@@ -93,12 +96,14 @@ public class AuditService_CreateTest {
 
         auditService.createApplicationAuditLog(
             executionContext,
-            applicationId,
-            Collections.singletonMap(Audit.AuditProperties.PLAN, "123"),
-            Plan.AuditEvent.PLAN_CREATED,
-            createdAt,
-            singletonMap("name", "Joe"),
-            singletonMap("name", "Bar")
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, "123"))
+                .event(PLAN_CREATED)
+                .createdAt(createdAt)
+                .oldValue(singletonMap("name", "Joe"))
+                .newValue(singletonMap("name", "Bar"))
+                .build(),
+            applicationId
         );
 
         verify(auditRepository, times(1)).create(
@@ -126,11 +131,13 @@ public class AuditService_CreateTest {
 
         auditService.createAuditLog(
             executionContext,
-            Collections.singletonMap(Audit.AuditProperties.PLAN, "123"),
-            Plan.AuditEvent.PLAN_CREATED,
-            createdAt,
-            singletonMap("name", "Joe"),
-            singletonMap("name", "Bar")
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, "123"))
+                .event(PLAN_CREATED)
+                .createdAt(createdAt)
+                .oldValue(singletonMap("name", "Joe"))
+                .newValue(singletonMap("name", "Bar"))
+                .build()
         );
 
         verify(auditRepository, times(1)).create(
@@ -158,11 +165,13 @@ public class AuditService_CreateTest {
 
         auditService.createAuditLog(
             executionContext,
-            Collections.singletonMap(Audit.AuditProperties.PLAN, "123"),
-            Plan.AuditEvent.PLAN_CREATED,
-            createdAt,
-            singletonMap("name", "Joe"),
-            singletonMap("name", "Bar")
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, "123"))
+                .event(PLAN_CREATED)
+                .createdAt(createdAt)
+                .oldValue(singletonMap("name", "Joe"))
+                .newValue(singletonMap("name", "Bar"))
+                .build()
         );
 
         verify(auditRepository, times(1)).create(

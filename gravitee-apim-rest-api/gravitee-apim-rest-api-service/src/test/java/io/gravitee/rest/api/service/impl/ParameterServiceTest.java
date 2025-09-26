@@ -315,11 +315,13 @@ public class ParameterServiceTest {
         verify(parameterRepository).create(parameter);
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-            eq(PARAMETER_CREATED),
-            any(),
-            eq(null),
-            eq(parameter)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_CREATED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(parameter)
+            )
         );
     }
 
@@ -345,11 +347,13 @@ public class ParameterServiceTest {
         verify(parameterRepository).create(parameter);
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-            eq(PARAMETER_CREATED),
-            any(),
-            eq(null),
-            eq(parameter)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_CREATED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(parameter)
+            )
         );
     }
 
@@ -374,7 +378,7 @@ public class ParameterServiceTest {
 
         assertEquals("api10", result.getValue());
         verify(parameterRepository, times(0)).create(any());
-        verify(auditService, times(0)).createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
+        verify(auditService, times(0)).createAuditLog(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -398,7 +402,7 @@ public class ParameterServiceTest {
 
         assertEquals("api1", result.getValue());
         verify(parameterRepository, times(1)).create(any());
-        verify(auditService, times(1)).createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
+        verify(auditService, times(1)).createAuditLog(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -422,7 +426,7 @@ public class ParameterServiceTest {
 
         assertEquals("api10;api11;api12", result.getValue());
         verify(parameterRepository, times(0)).create(any());
-        verify(auditService, times(0)).createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
+        verify(auditService, times(0)).createAuditLog(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -446,7 +450,7 @@ public class ParameterServiceTest {
 
         assertEquals("api1", result.getValue());
         verify(parameterRepository, times(1)).create(any());
-        verify(auditService, times(1)).createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
+        verify(auditService, times(1)).createAuditLog(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -474,11 +478,13 @@ public class ParameterServiceTest {
         verify(parameterRepository).update(newParameter);
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-            eq(PARAMETER_UPDATED),
-            any(),
-            eq(parameter),
-            eq(newParameter)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_UPDATED) &&
+                    auditLogData.getOldValue().equals(parameter) &&
+                    auditLogData.getNewValue().equals(newParameter)
+            )
         );
     }
 
@@ -503,11 +509,13 @@ public class ParameterServiceTest {
         verify(parameterRepository).create(parameter);
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-            eq(PARAMETER_CREATED),
-            any(),
-            eq(null),
-            eq(parameter)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_CREATED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(parameter)
+            )
         );
     }
 
@@ -534,7 +542,7 @@ public class ParameterServiceTest {
         );
 
         verify(parameterRepository, never()).update(newParameter);
-        verify(auditService, never()).createAuditLog(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any());
+        verify(auditService, never()).createAuditLog(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test
@@ -564,11 +572,13 @@ public class ParameterServiceTest {
         verify(parameterRepository).update(newParameter);
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
-            eq(PARAMETER_UPDATED),
-            any(),
-            eq(parameter),
-            eq(newParameter)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_UPDATED) &&
+                    auditLogData.getOldValue().equals(parameter) &&
+                    auditLogData.getNewValue().equals(newParameter)
+            )
         );
     }
 

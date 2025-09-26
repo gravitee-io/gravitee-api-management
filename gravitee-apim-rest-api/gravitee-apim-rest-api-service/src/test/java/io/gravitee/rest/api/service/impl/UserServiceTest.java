@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.User.AuditEvent.PASSWORD_CHANGED;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.RESET_PASSWORD;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
@@ -50,7 +51,6 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -968,12 +968,7 @@ public class UserServiceTest {
 
         verify(auditService).createOrganizationAuditLog(
             eq(EXECUTION_CONTEXT),
-            eq(ORGANIZATION),
-            anyMap(),
-            argThat(evt -> evt.equals(User.AuditEvent.PASSWORD_CHANGED)),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(PASSWORD_CHANGED))
         );
     }
 
