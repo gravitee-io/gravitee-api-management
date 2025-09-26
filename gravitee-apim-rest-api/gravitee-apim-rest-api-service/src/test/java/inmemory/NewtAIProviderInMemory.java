@@ -17,9 +17,11 @@ package inmemory;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 
+import io.gravitee.apim.core.newtai.model.ELGenFeedback;
 import io.gravitee.apim.core.newtai.model.ELGenQuery;
 import io.gravitee.apim.core.newtai.model.ELGenReply;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +38,15 @@ public class NewtAIProviderInMemory implements NewtAIProvider, InMemoryAlternati
         return switch (storage.get(query.message())) {
             case Tuple.Fail fail -> Single.error(fail.reply());
             case Tuple.Success success -> Single.just(success.reply());
+        };
+    }
+
+    @Override
+    public Completable submitFeedback(ELGenFeedback feedback) {
+        return switch (storage.get(feedback.agentMessageId())) {
+            case Tuple.Fail fail -> Completable.error(fail.reply());
+            case Tuple.Success success -> Completable.complete();
+            case null -> Completable.complete();
         };
     }
 

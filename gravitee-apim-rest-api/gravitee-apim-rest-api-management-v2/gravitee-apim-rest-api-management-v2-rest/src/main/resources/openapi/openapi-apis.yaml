@@ -2934,6 +2934,28 @@ paths:
             $ref: "#/components/responses/GenerateExpressionLanguageResponse"
           default:
             $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/el/feedback:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      post:
+        tags:
+          - newtai
+        summary: Submit Newt AI generated Expression Language feedback
+        description: |-
+          Submit feedback for the Newt AI generated Expression Language.
+        operationId: feedbackEl
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpressionLanguageFeedback"
+          required: true
+        responses:
+          "204":
+            description: Feedback successfully submitted
+          default:
+            $ref: "#/components/responses/Error"
 
     # DebugMode
     /environments/{envId}/apis/{apiId}/debug:
@@ -3796,6 +3818,19 @@ components:
             message:
               description: Prompt of generation.
               type: string
+
+        ExpressionLanguageFeedback:
+          type: object
+          description: Feedback of expression language generation
+          required:
+            - answerHelpful
+            - feedbackRequestId
+          properties:
+            feedbackRequestId:
+              $ref: "#/components/schemas/FeedbackRequestId"
+            answerHelpful:
+              description: Indicates if the answer was helpful.
+              type: boolean
 
         ApiDeployment:
             type: object
