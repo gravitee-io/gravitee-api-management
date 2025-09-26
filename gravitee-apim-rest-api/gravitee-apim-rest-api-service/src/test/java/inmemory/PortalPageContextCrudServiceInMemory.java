@@ -63,6 +63,17 @@ public class PortalPageContextCrudServiceInMemory implements PortalPageContextCr
     }
 
     @Override
+    public void create(PageId pageId, PortalPageView toCreate, String environmentId) {
+        var ctx = new PortalPageContext();
+        ctx.setId("in-memory-" + pageId);
+        ctx.setEnvironmentId(environmentId);
+        ctx.setPageId(pageId.toString());
+        ctx.setContextType(PortalPageContextType.valueOf(toCreate.context().name()));
+        ctx.setPublished(toCreate.published());
+        storage.add(ctx);
+    }
+
+    @Override
     public void initWith(List<PortalPageContext> items) {
         this.storage = items;
     }
