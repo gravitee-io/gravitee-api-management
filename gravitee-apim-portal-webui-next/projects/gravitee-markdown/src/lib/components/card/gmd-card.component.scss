@@ -37,11 +37,6 @@ $token-mapping: overrides.tokens();
   text-align: token-utils.slot(text-align, $token-mapping);
   word-break: break-word;
 
-  &__header {
-    display: flex;
-    flex-direction: column;
-  }
-
   ::ng-deep {
     gmd-md {
       margin-top: 12px;
