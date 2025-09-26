@@ -55,8 +55,9 @@ import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.infra.adapter.GraviteeDefinitionAdapter;
 import io.gravitee.apim.infra.adapter.MemberAdapter;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.federation.FederatedAgent;
+import io.gravitee.definition.model.federation.FederatedApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -208,27 +209,16 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     }
 
     private ValidatedType apiType(Api api1) {
-        if (
-            api1.getDefinitionVersion() == DefinitionVersion.V4 && api1.getApiDefinitionHttpV4() != null && api1.getType() != ApiType.NATIVE
-        ) {
-            return ValidatedType.V4;
-        } else if (
-            api1.getDefinitionVersion() == DefinitionVersion.V4 &&
-            api1.getApiDefinitionNativeV4() != null &&
-            api1.getType() == ApiType.NATIVE
-        ) {
-            return ValidatedType.V4_NATIVE;
-        } else if (api1.getDefinitionVersion() == DefinitionVersion.FEDERATED && api1.getFederatedApiDefinition() != null) {
-            return ValidatedType.FEDERATED;
-        } else if (api1.getDefinitionVersion() == DefinitionVersion.FEDERATED_AGENT && api1.getFederatedAgent() != null) {
-            return ValidatedType.FEDERATED_AGENT;
-        } else if (api1.getDefinitionVersion() == DefinitionVersion.V2 && api1.getApiDefinition() != null) {
-            return ValidatedType.V2;
-        } else {
-            throw new ApiDefinitionVersionNotSupportedException(
+        return switch (api1.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api api -> ValidatedType.V4;
+            case NativeApi nativeApi -> ValidatedType.V4_NATIVE;
+            case FederatedApi federatedApi -> ValidatedType.FEDERATED;
+            case FederatedAgent federatedAgent -> ValidatedType.FEDERATED_AGENT;
+            case io.gravitee.definition.model.Api api -> ValidatedType.V2;
+            case null, default -> throw new ApiDefinitionVersionNotSupportedException(
                 api1.getDefinitionVersion() != null ? api1.getDefinitionVersion().getLabel() : null
             );
-        }
+        };
     }
 
     @Nullable
