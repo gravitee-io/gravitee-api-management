@@ -114,6 +114,40 @@
                 }
             }
         },
+        "http2ConnectionWindowSize": {
+          "type": "integer",
+          "title": "Connection Window Size for an HTTP/2 connection",
+          "default": -1,
+          "gioConfig": {
+            "banner": {
+              "title": "Connection Window Size for an HTTP/2 connection",
+              "text": "Connection Window Size in bytes can be increased to a larger value such as 1MB (1048576 bytes) to improve throughput. If set to -1, the default HTTP/2 spec value is use (e.g., 65535 bytes). -1 is the default."
+            }
+          }
+        },
+        "http2StreamWindowSize": {
+          "type": "integer",
+          "title": "Stream initial window size for each HTTP/2 stream",
+          "default": -1,
+          "gioConfig": {
+            "banner": {
+              "title": "Stream initial window size for each HTTP/2 stream",
+              "text": "Stream Window Size in bytes can be increased to a larger value such as 256KB (262144 bytes) to improve throughput (initial settings). If set to -1, the default HTTP/2 spec value is used (65535 bytes). -1 is the default."
+            }
+          }
+        },
+        "http2MaxFrameSize": {
+          "type": "integer",
+          "title": "Max frame size for HTTP/2 stream data frame",
+          "default": 16384,
+          "maximum": 16777215,
+          "gioConfig": {
+            "banner": {
+              "title": "Max frame size for HTTP/2 stream data frame",
+              "text": "Max frame size in bytes (initial settings). Default is the HTTP/2 spec default value (16384 bytes). Max value is 16777215."
+            }
+          }
+        },
         "http": {
             "type": "object",
             "title": "Security configuration",
@@ -199,6 +233,15 @@
                         },
                         "http2MultiplexingLimit": {
                             "$ref": "#/definitions/http2MultiplexingLimit"
+                        },
+                        "http2ConnectionWindowSize": {
+                          "$ref": "#/definitions/http2ConnectionWindowSize"
+                        },
+                        "http2StreamWindowSize": {
+                          "$ref": "#/definitions/http2StreamWindowSize"
+                        },
+                        "http2MaxFrameSize": {
+                          "$ref": "#/definitions/http2MaxFrameSize"
                         }
                     },
                     "required": ["connectTimeout", "readTimeout", "idleTimeout", "maxConcurrentConnections"],
