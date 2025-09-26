@@ -15,9 +15,13 @@
  */
 import { Component, effect, input } from '@angular/core';
 import { HookParserEntry } from 'ngx-dynamic-hooks';
+import DOMPurify from 'dompurify'; // Import DOMPurify
 
 import { prefixStripperParser } from '../components/prefix-stripper.parser';
 import { GraviteeMarkdownRendererService } from '../services/gravitee-markdown-renderer.service';
+import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
+import {ComponentSelector} from "../models/componentSelector";
+import {AttributeSelector} from "../models/attributeSelector";
 
 @Component({
   selector: 'gmd-viewer',
@@ -30,12 +34,23 @@ export class GraviteeMarkdownViewerComponent {
   renderedContent!: string;
   parsers: HookParserEntry[] = prefixStripperParser;
 
-  constructor(private readonly markdownService: GraviteeMarkdownRendererService) {
+  constructor(private readonly markdownService: GraviteeMarkdownRendererService, private readonly domSanitizer: DomSanitizer) {
     effect(() => {
+      // <img src=a onerror=alert(document.domain)>
       const parser = new DOMParser();
       const parsedContent = this.markdownService.render(this.content().trim());
       const document = parser.parseFromString(parsedContent, 'text/html');
-      this.renderedContent = document.body.outerHTML;
+      const cleanedHtml = this.domSanitizer.bypassSecurityTrustHtml(document.body.outerHTML);
+
+      const d = DOMPurify.sanitize(document.body.outerHTML, {
+        ADD_TAGS: [...Object.values(ComponentSelector)],
+        ADD_ATTR: [...Object.values(AttributeSelector), "backgroundColor"] // not working for cards!
+      })
+      // console.log(d)
+      // const clean = this.domSanitizer.bypassSecurityTrustHtml(d)
+      // console.log(clean)
+
+      this.renderedContent = d;
     });
   }
 }

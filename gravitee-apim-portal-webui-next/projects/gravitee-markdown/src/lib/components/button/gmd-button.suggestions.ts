@@ -15,6 +15,8 @@
  */
 import { ComponentSuggestion } from '../../models/componentSuggestion';
 import { ComponentSuggestionConfiguration } from '../../models/componentSuggestionConfiguration';
+import {ComponentSelector} from "../../models/componentSelector";
+import {AttributeSelector} from "../../models/attributeSelector";
 
 const filledButton: ComponentSuggestion = {
   label: 'Button - Filled',
@@ -97,17 +99,8 @@ export const buttonConfiguration: ComponentSuggestionConfiguration = {
       'A customizable button component with three appearance styles: filled, outlined, and text. Supports both internal and external links.',
   },
   attributeHoverDocumentation: {
-    appearance: {
-      label: 'appearance',
-      description: 'The visual style of the button (filled, outlined, text)',
-    },
-    link: {
-      label: 'link',
-      description: 'The URL or path for the button link. Use "/" prefix for internal links or full URLs for external links.',
-    },
-    target: {
-      label: 'target',
-      description: 'Where to open the link: "_self" for same tab, "_blank" for new tab',
-    },
+    [AttributeSelector.BUTTON_APPEARANCE]: 'The visual style of the button (filled, outlined, text)',
+    [AttributeSelector.BUTTON_LINK]: 'The URL or path for the button link. Use "/" prefix for internal links or full URLs for external links.',
+    [AttributeSelector.BUTTON_TARGET]: 'Where to open the link: "_self" for same tab, "_blank" for new tab',
   },
 };

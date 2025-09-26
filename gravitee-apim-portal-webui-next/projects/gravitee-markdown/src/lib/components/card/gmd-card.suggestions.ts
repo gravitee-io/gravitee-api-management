@@ -15,6 +15,8 @@
  */
 import { ComponentSuggestion } from '../../models/componentSuggestion';
 import { ComponentSuggestionConfiguration } from '../../models/componentSuggestionConfiguration';
+import {ComponentSelector} from "../../models/componentSelector";
+import {AttributeSelector} from "../../models/attributeSelector";
 
 const emptyCard: ComponentSuggestion = {
   label: 'Card - with markdown content only',
@@ -62,13 +64,7 @@ export const cardConfiguration: ComponentSuggestionConfiguration = {
     description: 'Layout container for text, photos, and actions.',
   },
   attributeHoverDocumentation: {
-    backgroundColor: {
-      label: 'backgroundColor',
-      description: 'The background color of the card.',
-    },
-    textColor: {
-      label: 'textColor',
-      description: 'The color of the text in the card.',
-    },
+    [AttributeSelector.CARD_BACKGROUND_COLOR]: 'The background color of the card.',
+    [AttributeSelector.CARD_TEXT_COLOR]: 'The color of the text in the card.',
   },
 };

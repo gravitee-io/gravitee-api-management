@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentSuggestionConfiguration } from '../../../models/componentSuggestionConfiguration';
+import {ComponentSelector} from "../../../models/componentSelector";
 
 export const cellConfiguration: ComponentSuggestionConfiguration = {
   suggestions: [],

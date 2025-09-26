@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {AttributeSelector} from "./attributeSelector";
+
 export interface ComponentDocumentation {
   label: string;
   description: string;
 }
 export type ComponentDocumentationMap = Record<string, ComponentDocumentation>;
+export type AttributeHoverDocumentation = Record<string, string>
