@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED;
+import static io.gravitee.repository.management.model.ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API_QUALITY_RULE;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
@@ -120,11 +122,12 @@ public class ApiQualityRuleServiceTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(API_QUALITY_RULE, API_ID)),
-            eq(ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED),
-            any(Date.class),
-            isNull(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(API_QUALITY_RULE, API_ID)) &&
+                    auditLogData.getEvent().equals(API_QUALITY_RULE_CREATED) &&
+                    auditLogData.getOldValue() == null
+            )
         );
     }
 
@@ -172,11 +175,11 @@ public class ApiQualityRuleServiceTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(API_QUALITY_RULE, API_ID)),
-            eq(ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(API_QUALITY_RULE, API_ID)) &&
+                    auditLogData.getEvent().equals(API_QUALITY_RULE_UPDATED)
+            )
         );
     }
 

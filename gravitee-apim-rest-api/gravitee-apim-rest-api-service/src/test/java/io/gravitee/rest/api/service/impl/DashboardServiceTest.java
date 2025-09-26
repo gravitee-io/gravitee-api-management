@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DASHBOARD;
+import static io.gravitee.repository.management.model.Dashboard.AuditEvent.DASHBOARD_CREATED;
+import static io.gravitee.repository.management.model.Dashboard.AuditEvent.DASHBOARD_DELETED;
+import static io.gravitee.repository.management.model.Dashboard.AuditEvent.DASHBOARD_UPDATED;
 import static io.gravitee.rest.api.model.DashboardReferenceType.ENVIRONMENT;
 import static io.gravitee.rest.api.model.DashboardType.API;
 import static io.gravitee.rest.api.model.DashboardType.APPLICATION;
@@ -28,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -236,11 +238,12 @@ class DashboardServiceTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
-            eq(Dashboard.AuditEvent.DASHBOARD_CREATED),
-            any(Date.class),
-            isNull(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)) &&
+                    auditLogData.getEvent().equals(DASHBOARD_CREATED) &&
+                    auditLogData.getOldValue() == null
+            )
         );
     }
 
@@ -307,11 +310,11 @@ class DashboardServiceTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
-            eq(Dashboard.AuditEvent.DASHBOARD_UPDATED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)) &&
+                    auditLogData.getEvent().equals(DASHBOARD_UPDATED)
+            )
         );
     }
 
@@ -336,11 +339,13 @@ class DashboardServiceTest {
         verify(dashboardRepository, times(1)).delete(DASHBOARD_ID);
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
-            eq(Dashboard.AuditEvent.DASHBOARD_DELETED),
-            any(Date.class),
-            isNull(),
-            eq(dashboard)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)) &&
+                    auditLogData.getEvent().equals(DASHBOARD_DELETED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(dashboard)
+            )
         );
     }
 
