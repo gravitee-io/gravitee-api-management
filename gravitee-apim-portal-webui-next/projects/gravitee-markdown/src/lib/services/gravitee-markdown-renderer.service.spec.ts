@@ -205,6 +205,46 @@ describe('GraviteeMarkdownRendererService', () => {
 </gmd-md>
         </div>`);
     });
+
+    it('should preserve style and class attributes in gmd-md elements', () => {
+      const htmlInput = `
+        <div>
+          <gmd-md style="color: red; font-size: 16px;">
+            # Styled Title
+            This is **styled** content.
+          </gmd-md>
+          <gmd-md class="custom-class">
+            # Classed Title
+            This is **classed** content.
+          </gmd-md>
+          <gmd-md style="background: blue;" class="styled-class">
+            # Both Attributes
+            This has both **style** and class.
+          </gmd-md>
+          <gmd-md>
+            # Regular Title
+            This is regular content.
+          </gmd-md>
+        </div>
+      `;
+
+      const result = service.preprocessGmdBlocks(htmlInput);
+
+      expect(result).toContain('<gmd-md style="color: red; font-size: 16px;">');
+      expect(result).toContain('<h1 id="styled-title">Styled Title</h1>');
+      expect(result).toContain('<p>This is <strong>styled</strong> content.</p>');
+
+      expect(result).toContain('<gmd-md class="custom-class">');
+      expect(result).toContain('<h1 id="classed-title">Classed Title</h1>');
+      expect(result).toContain('<p>This is <strong>classed</strong> content.</p>');
+
+      expect(result).toContain('<gmd-md style="background: blue;" class="styled-class">');
+      expect(result).toContain('<h1 id="both-attributes">Both Attributes</h1>');
+      expect(result).toContain('<p>This has both <strong>style</strong> and class.</p>');
+
+      expect(result).toContain('<gmd-md><h1 id="regular-title">Regular Title</h1>');
+      expect(result).toContain('<p>This is regular content.</p>');
+    });
   });
 
   describe('Complex Markdown Scenarios', () => {
