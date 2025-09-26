@@ -27,7 +27,7 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { ApiInformation } from '../entities/api/api-information';
@@ -47,11 +47,13 @@ export class PortalService {
   }
 
   public getPortalHomepages(): Observable<PortalPage[]> {
-    return this.http.get<PortalPage[]>(`${this.configService.baseURL}/portal-pages`, {
-      params: {
-        type: 'HOMEPAGE',
-        expands: 'CONTENT',
-      },
-    });
+    return this.http
+      .get<{ pages: PortalPage[] }>(`${this.configService.baseURL}/portal-pages`, {
+        params: {
+          type: 'HOMEPAGE',
+          expands: 'CONTENT',
+        },
+      })
+      .pipe(map(resp => resp?.pages ?? []));
   }
 }
