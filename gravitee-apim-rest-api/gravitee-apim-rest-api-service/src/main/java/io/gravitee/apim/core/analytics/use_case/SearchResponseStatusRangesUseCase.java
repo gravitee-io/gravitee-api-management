@@ -67,7 +67,7 @@ public class SearchResponseStatusRangesUseCase {
     }
 
     private void validateApiIsNotTcp(Api api) {
-        if (api.getApiDefinitionHttpV4().isTcpProxy()) {
+        if (api.isTcpProxy()) {
             throw new TcpProxyNotSupportedException(api.getId());
         }
     }

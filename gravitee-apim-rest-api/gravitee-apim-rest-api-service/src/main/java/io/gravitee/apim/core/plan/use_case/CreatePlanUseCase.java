@@ -48,7 +48,7 @@ public class CreatePlanUseCase {
 
         var plan = input.toPlan.apply(api);
 
-        if (isMtls(api, plan) && api.getApiDefinitionHttpV4() != null && api.getApiDefinitionHttpV4().isTcpProxy()) {
+        if (isMtls(api, plan) && api.isTcpProxy()) {
             throw new PlanInvalidException("Cannot create mTLS plan for TCP API");
         }
 
