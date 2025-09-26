@@ -58,10 +58,11 @@ describe('PortalService', () => {
     const mockPages: PortalPage[] = [
       {
         id: 'home-1',
-        name: 'Home',
-        type: 'HOMEPAGE',
+        type: 'GRAVITEE_MARKDOWN',
         content: 'Hello',
-      } as unknown as PortalPage,
+        context: 'HOME',
+        published: true,
+      } as PortalPage,
     ];
 
     service.getPortalHomepages().subscribe(data => {
@@ -70,6 +71,6 @@ describe('PortalService', () => {
 
     const req = httpMock.expectOne(`${baseURL}/portal-pages?type=HOMEPAGE&expands=CONTENT`);
     expect(req.request.method).toBe('GET');
-    req.flush(mockPages);
+    req.flush({ pages: mockPages });
   });
 });
