@@ -100,7 +100,9 @@ export class GraviteeMarkdownRendererService {
   public render(content: string): string {
     marked.use({ renderer: this.getRenderer() });
     const processed = this.preprocessGmdBlocks(content);
-    return marked(processed) as string;
+    const parsed = new DOMParser().parseFromString(processed, 'text/html');
+    const decoded = this.decodeMarkdown(parsed.body.innerHTML);
+    return marked(decoded) as string;
   }
 
   /**
@@ -129,5 +131,16 @@ export class GraviteeMarkdownRendererService {
     }
     const componentName = componentNameMatch[1]; // Group found in the regex
     return `gmd-${componentName}`;
+  }
+
+  /**
+   * Decodes specific markdown elements by replacing encoded entities.
+   *
+   * @param {string} content - The markdown content as a string.
+   * @return {string} The decoded markdown content with replacements applied.
+   */
+  private decodeMarkdown(content: string): string {
+    // Replace greater than for blockquote
+    return content.replace(/^&gt;/gm, '>');
   }
 }
