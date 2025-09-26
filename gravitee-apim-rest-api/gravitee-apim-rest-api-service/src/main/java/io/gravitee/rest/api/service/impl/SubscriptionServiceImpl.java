@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CREATED;
@@ -1825,21 +1826,25 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     ) {
         auditService.createApiAuditLog(
             executionContext,
-            apiId,
-            Collections.singletonMap(APPLICATION, applicationId),
-            event,
-            createdAt,
-            oldValue,
-            newValue
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(APPLICATION, applicationId))
+                .event(event)
+                .createdAt(createdAt)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .build(),
+            apiId
         );
         auditService.createApplicationAuditLog(
             executionContext,
-            applicationId,
-            Collections.singletonMap(API, apiId),
-            event,
-            createdAt,
-            oldValue,
-            newValue
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(API, apiId))
+                .event(event)
+                .createdAt(createdAt)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .build(),
+            applicationId
         );
     }
 

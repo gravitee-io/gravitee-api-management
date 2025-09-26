@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntityResult;
 import io.gravitee.rest.api.model.api.RollbackApiEntity;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.AuditService;
@@ -62,12 +61,13 @@ public class ApiService_RollbackTest {
 
         verify(auditService, times(1)).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq("my-api-id"),
-            anyMap(),
-            same(API_ROLLBACKED),
-            any(),
-            isNull(),
-            isNull()
+            argThat(
+                auditLogData ->
+                    auditLogData.getEvent().equals(API_ROLLBACKED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue() == null
+            ),
+            eq("my-api-id")
         );
     }
 

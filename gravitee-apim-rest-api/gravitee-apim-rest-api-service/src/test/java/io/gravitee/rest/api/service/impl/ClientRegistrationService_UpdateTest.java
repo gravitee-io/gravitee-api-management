@@ -43,8 +43,6 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
-import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
-import io.gravitee.rest.api.model.configuration.application.registration.TrustStoreEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -133,11 +131,7 @@ public class ClientRegistrationService_UpdateTest {
 
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_UPDATED))
         );
         verify(mockClientRegistrationProviderRepository, times(1)).update(any());
     }
@@ -158,11 +152,7 @@ public class ClientRegistrationService_UpdateTest {
 
         verify(mockAuditService, never()).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_UPDATED))
         );
         verify(mockClientRegistrationProviderRepository, never()).update(any());
     }
@@ -282,11 +272,7 @@ public class ClientRegistrationService_UpdateTest {
 
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_UPDATED))
         );
         verify(mockClientRegistrationProviderRepository, times(1)).update(any());
     }

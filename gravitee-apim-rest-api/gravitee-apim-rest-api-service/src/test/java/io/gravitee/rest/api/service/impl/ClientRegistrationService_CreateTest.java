@@ -102,11 +102,9 @@ public class ClientRegistrationService_CreateTest {
 
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CLIENT_REGISTRATION_PROVIDER_CREATED),
-            any(),
-            isNull(),
-            any()
+            argThat(
+                auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_CREATED) && auditLogData.getOldValue() == null
+            )
         );
         verify(mockClientRegistrationProviderRepository, times(1)).create(any());
     }

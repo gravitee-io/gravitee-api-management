@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ACCEPTED;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ASKED;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_REJECTED;
@@ -52,6 +53,7 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -200,7 +202,17 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
                 break;
         }
 
-        auditService.createApiAuditLog(executionContext, genericApiEntity.getId(), properties, evtType, new Date(), null, workflow);
+        auditService.createApiAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(properties)
+                .event(evtType)
+                .createdAt(new Date())
+                .oldValue(null)
+                .newValue(workflow)
+                .build(),
+            genericApiEntity.getId()
+        );
         return genericApiEntity;
     }
 

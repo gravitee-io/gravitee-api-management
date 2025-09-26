@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.ApiHeader.AuditEvent.*;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API_HEADER;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.GROUP;
+import static io.gravitee.repository.management.model.Group.AuditEvent.GROUP_CREATED;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 
@@ -71,11 +73,13 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(API_HEADER, apiHeader.getId()),
-                API_HEADER_CREATED,
-                apiHeader.getCreatedAt(),
-                null,
-                apiHeader
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(API_HEADER, apiHeader.getId()))
+                    .event(API_HEADER_CREATED)
+                    .createdAt(apiHeader.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(apiHeader)
+                    .build()
             );
 
             return convert(apiHeaderRepository.create(apiHeader));
@@ -97,11 +101,13 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
 
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(API_HEADER, apiHeaderId),
-                API_HEADER_DELETED,
-                new Date(),
-                apiHeader,
-                null
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(API_HEADER, apiHeaderId))
+                    .event(API_HEADER_DELETED)
+                    .createdAt(new Date())
+                    .oldValue(apiHeader)
+                    .newValue(null)
+                    .build()
             );
 
             //reorder headers
@@ -143,11 +149,13 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 ApiHeader header = apiHeaderRepository.update(updatedHeader);
                 auditService.createAuditLog(
                     executionContext,
-                    singletonMap(API_HEADER, header.getId()),
-                    API_HEADER_UPDATED,
-                    header.getUpdatedAt(),
-                    apiHeader,
-                    header
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(API_HEADER, header.getId()))
+                        .event(API_HEADER_UPDATED)
+                        .createdAt(header.getUpdatedAt())
+                        .oldValue(apiHeader)
+                        .newValue(header)
+                        .build()
                 );
                 return convert(header);
             }

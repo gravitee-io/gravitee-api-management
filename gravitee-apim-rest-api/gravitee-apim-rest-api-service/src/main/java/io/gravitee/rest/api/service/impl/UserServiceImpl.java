@@ -16,7 +16,14 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService.DEFAULT_CONSOLE_URL;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.CLIENT_REGISTRATION_PROVIDER;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
+import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED;
+import static io.gravitee.repository.management.model.User.AuditEvent.PASSWORD_CHANGED;
+import static io.gravitee.repository.management.model.User.AuditEvent.PASSWORD_RESET;
+import static io.gravitee.repository.management.model.User.AuditEvent.USER_CONNECTED;
+import static io.gravitee.repository.management.model.User.AuditEvent.USER_CREATED;
+import static io.gravitee.repository.management.model.User.AuditEvent.USER_UPDATED;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.GROUP_INVITATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.RESET_PASSWORD;
@@ -27,6 +34,7 @@ import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAUL
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -372,12 +380,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             User updatedUser = userRepository.update(user);
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(USER, userId),
-                User.AuditEvent.USER_CONNECTED,
-                user.getUpdatedAt(),
-                previousUser,
-                user
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(USER, userId))
+                    .event(USER_CONNECTED)
+                    .createdAt(user.getUpdatedAt())
+                    .oldValue(previousUser)
+                    .newValue(user)
+                    .build()
             );
 
             final UserEntity userEntity = convert(updatedUser, true);
@@ -609,12 +618,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user = userRepository.update(user);
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(USER, user.getId()),
-                User.AuditEvent.USER_CREATED,
-                user.getUpdatedAt(),
-                null,
-                user
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(USER, user.getId()))
+                    .event(USER_CREATED)
+                    .createdAt(user.getUpdatedAt())
+                    .oldValue(null)
+                    .newValue(user)
+                    .build()
             );
 
             // Do not send back the password
@@ -665,12 +675,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(USER, user.getId()),
-                User.AuditEvent.PASSWORD_CHANGED,
-                user.getUpdatedAt(),
-                null,
-                null
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(USER, user.getId()))
+                    .event(PASSWORD_CHANGED)
+                    .createdAt(user.getUpdatedAt())
+                    .build()
             );
 
             // Do not send back the password
@@ -791,12 +800,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             User createdUser = userRepository.create(user);
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(USER, user.getId()),
-                User.AuditEvent.USER_CREATED,
-                user.getCreatedAt(),
-                null,
-                user
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(USER, user.getId()))
+                    .event(USER_CREATED)
+                    .createdAt(user.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(user)
+                    .build()
             );
 
             List<UserMetadataEntity> metadata = new ArrayList<>();
@@ -1046,11 +1056,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         );
         auditService.createAuditLog(
             executionContext,
-            Collections.singletonMap(USER, processedUser.getId()),
-            accepted ? User.AuditEvent.USER_CONFIRMED : User.AuditEvent.USER_REJECTED,
-            processedUser.getUpdatedAt(),
-            userToProcess,
-            processedUser
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(USER, processedUser.getId()))
+                .event(accepted ? User.AuditEvent.USER_CONFIRMED : User.AuditEvent.USER_REJECTED)
+                .createdAt(processedUser.getUpdatedAt())
+                .oldValue(userToProcess)
+                .newValue(processedUser)
+                .build()
         );
 
         return processedUser;
@@ -1224,12 +1236,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             User updatedUser = userRepository.update(user);
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(USER, user.getId()),
-                User.AuditEvent.USER_UPDATED,
-                user.getUpdatedAt(),
-                previousUser,
-                user
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(USER, user.getId()))
+                    .event(USER_UPDATED)
+                    .createdAt(user.getUpdatedAt())
+                    .oldValue(previousUser)
+                    .newValue(user)
+                    .build()
             );
 
             List<UserMetadataEntity> updatedMetadata = new ArrayList<>();
@@ -1541,12 +1554,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(USER, user.getId()),
-                User.AuditEvent.PASSWORD_RESET,
-                new Date(),
-                null,
-                null
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(USER, user.getId()))
+                    .event(PASSWORD_RESET)
+                    .createdAt(new Date())
+                    .build()
             );
             emailService.sendAsyncEmailNotification(
                 executionContext,

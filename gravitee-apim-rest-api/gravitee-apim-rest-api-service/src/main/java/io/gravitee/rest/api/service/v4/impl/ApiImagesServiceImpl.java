@@ -16,6 +16,10 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_DELETED;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static java.util.Optional.of;
 
 import com.google.common.base.Strings;
@@ -91,12 +95,14 @@ public class ApiImagesServiceImpl implements ApiImagesService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                apiId,
-                Collections.emptyMap(),
-                API_UPDATED,
-                newApi.getUpdatedAt(),
-                apiToUpdate,
-                newApi
+                AuditService.AuditLogData.builder()
+                    .properties(emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(newApi.getUpdatedAt())
+                    .oldValue(apiToUpdate)
+                    .newValue(newApi)
+                    .build(),
+                apiId
             );
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
@@ -134,12 +140,14 @@ public class ApiImagesServiceImpl implements ApiImagesService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                apiId,
-                Collections.emptyMap(),
-                API_UPDATED,
-                newApi.getUpdatedAt(),
-                apiToUpdate,
-                newApi
+                AuditService.AuditLogData.builder()
+                    .properties(emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(newApi.getUpdatedAt())
+                    .oldValue(apiToUpdate)
+                    .newValue(newApi)
+                    .build(),
+                apiId
             );
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);

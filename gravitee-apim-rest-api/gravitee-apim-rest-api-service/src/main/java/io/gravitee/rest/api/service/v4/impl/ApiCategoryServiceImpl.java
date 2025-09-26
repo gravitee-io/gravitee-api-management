@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.TAG;
+import static io.gravitee.repository.management.model.Tag.AuditEvent.TAG_CREATED;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
@@ -125,12 +127,14 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
             apiNotificationService.triggerUpdateNotification(executionContext, api);
             auditService.createApiAuditLog(
                 executionContext,
-                api.getId(),
-                Collections.emptyMap(),
-                API_UPDATED,
-                api.getUpdatedAt(),
-                apiSnapshot,
-                api
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(api.getUpdatedAt())
+                    .oldValue(apiSnapshot)
+                    .newValue(api)
+                    .build(),
+                api.getId()
             );
             apiCategoryOrderRepository.delete(api.getId(), categoryId);
         } catch (TechnicalException e) {

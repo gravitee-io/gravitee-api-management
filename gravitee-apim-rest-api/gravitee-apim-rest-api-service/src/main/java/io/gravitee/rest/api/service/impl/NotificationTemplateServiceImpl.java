@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENTRYPOINT;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.NOTIFICATION_TEMPLATE;
+import static io.gravitee.repository.management.model.Entrypoint.AuditEvent.ENTRYPOINT_UPDATED;
+import static java.util.Collections.singletonMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -607,12 +610,13 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         String notificationTemplateName = oldValue != null ? oldValue.getName() : newValue.getName();
         auditService.createOrganizationAuditLog(
             executionContext,
-            executionContext.getOrganizationId(),
-            Collections.singletonMap(NOTIFICATION_TEMPLATE, notificationTemplateName),
-            event,
-            createdAt,
-            oldValue,
-            newValue
+            AuditService.AuditLogData.builder()
+                .properties(singletonMap(NOTIFICATION_TEMPLATE, notificationTemplateName))
+                .event(event)
+                .createdAt(createdAt)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .build()
         );
     }
 

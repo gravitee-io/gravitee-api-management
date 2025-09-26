@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_LOGGING_DISABLED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_LOGGING_ENABLED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_LOGGING_UPDATED;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ACCEPTED;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ASKED;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_REJECTED;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
@@ -24,7 +30,6 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -33,7 +38,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
@@ -146,7 +150,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -1116,12 +1119,8 @@ public class ApiService_UpdateTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            argThat(apiId -> apiId.equals(API_ID)),
-            anyMap(),
-            argThat(Workflow.AuditEvent.API_REVIEW_REJECTED::equals),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(API_REVIEW_REJECTED)),
+            eq(API_ID)
         );
         verify(apiNotificationService, times(0)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class));
     }
@@ -1152,12 +1151,8 @@ public class ApiService_UpdateTest {
         apiService.askForReview(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, reviewEntity);
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            argThat(apiId -> apiId.equals(API_ID)),
-            anyMap(),
-            argThat(evt -> Workflow.AuditEvent.API_REVIEW_ASKED.equals(evt)),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(API_REVIEW_ASKED)),
+            eq(API_ID)
         );
         verify(emailService).sendAsyncEmailNotification(
             eq(GraviteeContext.getExecutionContext()),
@@ -1183,12 +1178,8 @@ public class ApiService_UpdateTest {
         apiService.acceptReview(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, reviewEntity);
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            argThat(apiId -> apiId.equals(API_ID)),
-            anyMap(),
-            argThat(evt -> Workflow.AuditEvent.API_REVIEW_ACCEPTED.equals(evt)),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(API_REVIEW_ACCEPTED)),
+            eq(API_ID)
         );
         verify(apiNotificationService, times(0)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class));
     }
@@ -1317,12 +1308,8 @@ public class ApiService_UpdateTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            eq(emptyMap()),
-            eq(Api.AuditEvent.API_LOGGING_DISABLED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_LOGGING_DISABLED)),
+            eq(API_ID)
         );
     }
 
@@ -1359,12 +1346,8 @@ public class ApiService_UpdateTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            eq(emptyMap()),
-            eq(Api.AuditEvent.API_LOGGING_ENABLED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_LOGGING_ENABLED)),
+            eq(API_ID)
         );
     }
 
@@ -1413,12 +1396,8 @@ public class ApiService_UpdateTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            eq(emptyMap()),
-            eq(Api.AuditEvent.API_LOGGING_UPDATED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_LOGGING_UPDATED)),
+            eq(API_ID)
         );
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }

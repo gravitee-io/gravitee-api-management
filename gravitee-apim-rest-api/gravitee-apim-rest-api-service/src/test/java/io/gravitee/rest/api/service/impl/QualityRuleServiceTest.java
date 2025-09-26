@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.QUALITY_RULE;
+import static io.gravitee.repository.management.model.QualityRule.AuditEvent.QUALITY_RULE_CREATED;
+import static io.gravitee.repository.management.model.QualityRule.AuditEvent.QUALITY_RULE_DELETED;
+import static io.gravitee.repository.management.model.QualityRule.AuditEvent.QUALITY_RULE_UPDATED;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
@@ -236,11 +240,12 @@ public class QualityRuleServiceTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-            eq(QualityRule.AuditEvent.QUALITY_RULE_CREATED),
-            any(Date.class),
-            isNull(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)) &&
+                    auditLogData.getEvent().equals(QUALITY_RULE_CREATED) &&
+                    auditLogData.getOldValue() == null
+            )
         );
     }
 
@@ -296,11 +301,11 @@ public class QualityRuleServiceTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-            eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)) &&
+                    auditLogData.getEvent().equals(QUALITY_RULE_UPDATED)
+            )
         );
     }
 
@@ -331,11 +336,11 @@ public class QualityRuleServiceTest {
         verify(qualityRuleRepository, never()).update(any());
         verify(auditService, never()).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-            eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)) &&
+                    auditLogData.getEvent().equals(API_QUALITY_RULE_CREATED)
+            )
         );
     }
 
@@ -361,11 +366,13 @@ public class QualityRuleServiceTest {
         verify(qualityRuleRepository, times(1)).delete(QUALITY_RULE_ID);
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-            eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
-            any(Date.class),
-            isNull(),
-            eq(qualityRule)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)) &&
+                    auditLogData.getEvent().equals(QUALITY_RULE_DELETED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(qualityRule)
+            )
         );
         verify(apiQualityRuleRepository, times(1)).deleteByQualityRule(QUALITY_RULE_ID);
     }
@@ -382,11 +389,13 @@ public class QualityRuleServiceTest {
         verify(qualityRuleRepository, never()).delete(any());
         verify(auditService, never()).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
-            eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
-            any(Date.class),
-            isNull(),
-            eq(qualityRule)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)) &&
+                    auditLogData.getEvent().equals(API_QUALITY_RULE_CREATED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(qualityRule)
+            )
         );
         verify(apiQualityRuleRepository, never()).deleteByQualityRule(any());
     }

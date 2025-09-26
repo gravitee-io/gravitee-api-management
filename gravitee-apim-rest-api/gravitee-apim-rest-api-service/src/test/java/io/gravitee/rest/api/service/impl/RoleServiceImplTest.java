@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -180,12 +180,11 @@ class RoleServiceImplTest {
 
             verify(auditService).createOrganizationAuditLog(
                 any(),
-                eq("orgId"),
-                eq(Map.of(ROLE, scope + ":" + "Groudon")),
-                eq(ROLE_DELETED),
-                any(),
-                any(),
-                any()
+                argThat(
+                    auditLogData ->
+                        auditLogData.getProperties().equals(Map.of(ROLE, scope + ":" + "Groudon")) &&
+                        auditLogData.getEvent().equals(ROLE_DELETED)
+                )
             );
         }
     }

@@ -127,7 +127,11 @@ public class ApplicationService_UpdateApiKeyModeTest {
         );
 
         verify(applicationRepository).update(argThat(application -> application.getApiKeyMode() == ApiKeyMode.SHARED));
-        verify(auditService).createApplicationAuditLog(any(), eq(APPLICATION_ID), any(), eq(APPLICATION_UPDATED), any(), any(), any());
+        verify(auditService).createApplicationAuditLog(
+            any(),
+            argThat(auditLogData -> auditLogData.getEvent().equals(APPLICATION_UPDATED)),
+            eq(APPLICATION_ID)
+        );
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());

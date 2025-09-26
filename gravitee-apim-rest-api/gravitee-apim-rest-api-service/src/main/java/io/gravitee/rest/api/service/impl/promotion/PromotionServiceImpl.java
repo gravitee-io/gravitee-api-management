@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.promotion;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_CREATED;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
@@ -25,9 +27,11 @@ import static java.util.Collections.singletonList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.util.Maps;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.api.search.PromotionCriteria;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.management.model.PromotionAuthor;
 import io.gravitee.repository.management.model.PromotionStatus;
@@ -181,12 +185,14 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             auditService.createApiAuditLog(
                 executionContext,
-                createdPromotion.getApiId(),
-                emptyMap(),
-                PROMOTION_CREATED,
-                createdPromotion.getCreatedAt(),
-                null,
-                createdPromotion
+                AuditService.AuditLogData.builder()
+                    .properties(emptyMap())
+                    .event(PROMOTION_CREATED)
+                    .createdAt(createdPromotion.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(createdPromotion)
+                    .build(),
+                createdPromotion.getApiId()
             );
         } catch (TechnicalException exception) {
             throw new TechnicalManagementException(

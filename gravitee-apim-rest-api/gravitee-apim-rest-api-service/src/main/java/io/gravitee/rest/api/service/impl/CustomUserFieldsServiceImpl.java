@@ -189,15 +189,25 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
         if (type == ORGANIZATION) {
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(USER_FIELD, key),
-                event,
-                createdAt,
-                oldValue,
-                newValue
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(USER_FIELD, key))
+                    .event(event)
+                    .createdAt(createdAt)
+                    .oldValue(oldValue)
+                    .newValue(newValue)
+                    .build()
             );
         } else if (type == ENVIRONMENT) {
-            auditService.createAuditLog(executionContext, Collections.singletonMap(USER_FIELD, key), event, createdAt, oldValue, newValue);
+            auditService.createAuditLog(
+                executionContext,
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(USER_FIELD, key))
+                    .event(event)
+                    .createdAt(createdAt)
+                    .oldValue(oldValue)
+                    .newValue(newValue)
+                    .build()
+            );
         }
     }
 

@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE
 import static io.gravitee.repository.management.model.Page.AuditEvent.*;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.rest.api.model.PageType.*;
+import static io.gravitee.rest.api.service.impl.MessageServiceImpl.MessageEvent.MESSAGE_SENT;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
@@ -2623,16 +2624,27 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     ) {
         String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
         if (apiId == null) {
-            auditService.createAuditLog(executionContext, Collections.singletonMap(PAGE, pageId), event, createdAt, oldValue, newValue);
+            auditService.createAuditLog(
+                executionContext,
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(PAGE, pageId))
+                    .event(event)
+                    .createdAt(createdAt)
+                    .oldValue(oldValue)
+                    .newValue(newValue)
+                    .build()
+            );
         } else {
             auditService.createApiAuditLog(
                 executionContext,
-                apiId,
-                Collections.singletonMap(PAGE, pageId),
-                event,
-                createdAt,
-                oldValue,
-                newValue
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(PAGE, pageId))
+                    .event(event)
+                    .createdAt(createdAt)
+                    .oldValue(oldValue)
+                    .newValue(newValue)
+                    .build(),
+                apiId
             );
         }
     }

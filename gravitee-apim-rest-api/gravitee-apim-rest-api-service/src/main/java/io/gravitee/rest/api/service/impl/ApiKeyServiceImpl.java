@@ -22,6 +22,7 @@ import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_R
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API_KEY;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsLast;
@@ -67,6 +68,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -708,7 +710,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 properties.put(API_KEY, key.getKey());
                 properties.put(API, subscription.getApi());
                 properties.put(APPLICATION, key.getApplication().getId());
-                auditService.createApiAuditLog(executionContext, subscription.getApi(), properties, event, eventDate, previousApiKey, key);
+                auditService.createApiAuditLog(
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                        .properties(properties)
+                        .event(event)
+                        .createdAt(eventDate)
+                        .oldValue(previousApiKey)
+                        .newValue(key)
+                        .build(),
+                    subscription.getApi()
+                );
             });
     }
 
