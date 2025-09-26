@@ -68,13 +68,9 @@ public class ApiFreemarkerTemplate {
         if (api == null) {
             return;
         }
-        if (DefinitionVersion.V4.equals(api.getDefinitionVersion())) {
-            if (api.getApiDefinitionHttpV4() != null) {
-                this.tags = api.getApiDefinitionHttpV4().getTags();
-            }
-        } else if (api.getApiDefinition() != null) {
-            this.tags = api.getApiDefinition().getTags();
-            this.proxy = api.getApiDefinition().getProxy();
+        this.tags = api.getTags();
+        if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api v2) {
+            this.proxy = v2.getProxy();
         }
 
         this.state = api.getLifecycleState();

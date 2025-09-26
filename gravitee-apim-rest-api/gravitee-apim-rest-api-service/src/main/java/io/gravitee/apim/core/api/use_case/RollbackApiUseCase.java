@@ -79,9 +79,8 @@ public class RollbackApiUseCase {
         Api api = eventQueryService
             .findApiFromPublishApiEvent(input.eventId)
             .orElseThrow(() -> new IllegalStateException("Cannot rollback an event that is not a publish event!"));
-        var apiUpdated = switch (api.getDefinitionVersion()) {
-            case V4 -> {
-                var apiDefinition = api.getApiDefinitionHttpV4();
+        var apiUpdated = switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api apiDefinition -> {
                 var toRollback = apiCrudService.get(apiDefinition.getId());
 
                 // Rollback API from API definition without plans
@@ -96,8 +95,7 @@ public class RollbackApiUseCase {
                 rollbackPlansV4(apiDefinition.getPlans(), apiUpdatedV4, input.auditInfo);
                 yield apiUpdatedV4;
             }
-            case V2 -> {
-                var apiDefinition = api.getApiDefinition();
+            case io.gravitee.definition.model.Api apiDefinition -> {
                 var toRollback = apiCrudService.get(api.getId());
                 if (toRollback.getDefinitionVersion() != io.gravitee.definition.model.DefinitionVersion.V4) {
                     throw new IllegalStateException("The migration is only built for rollback migration from V2 to V4.");
@@ -134,10 +132,9 @@ public class RollbackApiUseCase {
                 }
                 yield apiUpdatedV2;
             }
-            case FEDERATED_AGENT -> throw new IllegalStateException("Cannot rollback a federated Agent");
-            case FEDERATED -> throw new IllegalStateException("Cannot rollback a federated API");
-            case V1 -> throw new IllegalStateException("Cannot rollback an API that is not a V4 API");
-            case null -> throw new IllegalStateException("Cannot determine API definition version from event" + input.eventId());
+            case null, default -> throw new IllegalStateException(
+                "Cannot rollback an API that is not a V4 or V2 API (%s)".formatted(input.eventId)
+            );
         };
 
         createAuditLog(input.auditInfo, apiUpdated.getId(), apiUpdated.getUpdatedAt());
@@ -276,7 +273,7 @@ public class RollbackApiUseCase {
             });
 
         // Reopen plans
-        existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).forEach(plan -> planCrudService.update(plan));
+        existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).forEach(planCrudService::update);
         var opens = Stream.concat(
             existingPlansMustBeRollbackOrClose.getOrDefault(ROLLBACK, List.of()).stream(),
             existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).stream()

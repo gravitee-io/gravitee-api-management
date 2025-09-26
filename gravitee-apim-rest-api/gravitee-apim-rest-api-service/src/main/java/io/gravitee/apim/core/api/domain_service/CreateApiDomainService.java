@@ -36,12 +36,14 @@ import io.gravitee.apim.core.parameters.model.ParameterContext;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 @DomainService
 @RequiredArgsConstructor
@@ -158,16 +160,12 @@ public class CreateApiDomainService {
         }
     }
 
+    @Nullable
     private List<? extends AbstractFlow> saveApiFlows(Api api) {
-        return switch (api.getDefinitionVersion()) {
-            case V4 -> switch (api.getType()) {
-                case LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> flowCrudService.saveApiFlows(
-                    api.getId(),
-                    api.getApiDefinitionHttpV4().getFlows()
-                );
-                case NATIVE -> flowCrudService.saveNativeApiFlows(api.getId(), api.getApiDefinitionNativeV4().getFlows());
-            };
-            case V1, V2, FEDERATED, FEDERATED_AGENT -> null;
+        return switch (api.getApiDefinitionValue()) {
+            case NativeApi nativeApi -> flowCrudService.saveNativeApiFlows(api.getId(), nativeApi.getFlows());
+            case io.gravitee.definition.model.v4.Api v4Api -> flowCrudService.saveApiFlows(v4Api.getId(), v4Api.getFlows());
+            default -> null;
         };
     }
 

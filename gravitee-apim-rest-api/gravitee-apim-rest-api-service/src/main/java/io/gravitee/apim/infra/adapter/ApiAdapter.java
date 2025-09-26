@@ -186,14 +186,13 @@ public interface ApiAdapter {
     }
 
     default String serializeApiDefinition(Api api) {
-        return switch (api.getDefinitionVersion()) {
-            case V1, V2 -> serialize(api.getApiDefinition(), "V2 API");
-            case V4 -> switch (api.getType()) {
-                case NATIVE -> serialize(api.getApiDefinitionNativeV4(), "V4 Native API");
-                case LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> serialize(api.getApiDefinitionHttpV4(), "V4 API");
-            };
-            case FEDERATED -> serialize(api.getFederatedApiDefinition(), "Federated API");
-            case FEDERATED_AGENT -> serialize(api.getFederatedAgent(), "Federated Agent");
+        return switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.Api v2 -> serialize(v2, "V2 API");
+            case NativeApi nativeApi -> serialize(nativeApi, "V4 Native API");
+            case io.gravitee.definition.model.v4.Api v4 -> serialize(v4, "V4 API");
+            case FederatedApi federatedApi -> serialize(federatedApi, "Federated API");
+            case FederatedAgent federatedAgent -> serialize(federatedAgent, "Federated Agent");
+            default -> null;
         };
     }
 
