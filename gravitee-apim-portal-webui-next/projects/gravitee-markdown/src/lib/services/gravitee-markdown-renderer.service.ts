@@ -111,11 +111,23 @@ export class GraviteeMarkdownRendererService {
    * @returns The HTML content with gmd-blocks transformed
    */
   public preprocessGmdBlocks(html: string): string {
-    return html.replace(/<gmd-md>([\s\S]*?)<\/gmd-md>/gi, (_, rawContent) => {
+    return html.replace(/<gmd-md(?:\s+[^>]+)?>([\s\S]*?)<\/gmd-md>/gi, (match, rawContent) => {
+      const attributes = this.extractAttributesFromGmdMdTag(match);
       const normalized = normalizeIndentation(rawContent);
       const rendered = marked(normalized) as string;
-      return `<gmd-md>${rendered}</gmd-md>`;
+      return `<gmd-md${attributes}>${rendered}</gmd-md>`;
     });
+  }
+
+  /**
+   * Extract attributes from a gmd-md opening tag
+   * @param tag The opening tag string (e.g., '<gmd-md style="color: red;" class="my-class">')
+   * @returns The attributes string with leading space, or empty string if no attributes
+   * @private
+   */
+  private extractAttributesFromGmdMdTag(tag: string): string {
+    const attributesMatch = tag.match(/<gmd-md\s+(.+?)>/);
+    return attributesMatch ? ` ${attributesMatch[1]}` : '';
   }
 
   /**
