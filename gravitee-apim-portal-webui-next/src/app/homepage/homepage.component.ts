@@ -19,13 +19,13 @@
 import { Component, computed, input } from '@angular/core';
 
 import { GraviteeMarkdownViewerModule } from '../../../projects/gravitee-markdown/src/lib/gravitee-markdown-viewer/gravitee-markdown-viewer.module';
-import { PortalPage } from '../../entities/portal/portal-page';
 import { InnerLinkDirective } from '../../directives/inner-link.directive';
+import { PortalPage } from '../../entities/portal/portal-page';
 
 @Component({
   selector: 'app-homepage',
   imports: [GraviteeMarkdownViewerModule, InnerLinkDirective],
-  template: ` <gmd-viewer [content]="homepageContent()" appInnerLink/> `,
+  template: ` <gmd-viewer [content]="homepageContent()" appInnerLink /> `,
 })
 export class HomepageComponent {
   homepage = input<PortalPage>({
