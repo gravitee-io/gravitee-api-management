@@ -5,5 +5,5 @@
     "entryFile": "src/public-api.ts"
   },
   "allowedNonPeerDependencies": ["ngx-dynamic-hooks", "marked-gfm-heading-id"],
-  "assets": ["index.scss", "src/public-api.scss", "src/scss/**/*.scss", "src/lib/**/!(*.component).scss"]
+  "assets": ["index.scss", "src/public-api.scss", "src/scss/**/*.scss", "src/lib/**/!(*.component).scss", "src/lib/assets/**/*"]
 }
