@@ -760,7 +760,7 @@ paths:
           - $ref: '#/components/parameters/expandComponents'
         responses:
           "200":
-            $ref: "#/components/responses/PortalPageResponse"
+            $ref: "#/components/responses/PortalPagesResponse"
           default:
             $ref: "#/components/responses/Error"
     /portal-pages/{pageId}:
@@ -2143,7 +2143,14 @@ components:
           content:
             application/json:
               schema:
-                title: "PortalPageResponse"
+                $ref: "#/components/schemas/PortalPageWithDetails"
+
+        PortalPagesResponse:
+          description: A list of portal pages
+          content:
+            application/json:
+              schema:
+                title: "PortalPagesResponse"
                 properties:
                   pages:
                     type: array
