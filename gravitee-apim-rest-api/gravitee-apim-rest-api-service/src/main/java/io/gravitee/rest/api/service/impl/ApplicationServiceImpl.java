@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.log.model.Log.AuditEvent.LOG_READ;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_ARCHIVED;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_RESTORED;
@@ -24,6 +25,7 @@ import static io.gravitee.repository.management.model.Application.METADATA_CLIEN
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
 import static io.gravitee.repository.management.model.Application.METADATA_TYPE;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.REQUEST_ID;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -572,12 +574,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Audit
             auditService.createApplicationAuditLog(
                 executionContext,
-                createdApplication.getId(),
-                Collections.emptyMap(),
-                APPLICATION_CREATED,
-                createdApplication.getCreatedAt(),
-                null,
-                createdApplication
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(APPLICATION_CREATED)
+                    .createdAt(createdApplication.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(createdApplication)
+                    .build(),
+                createdApplication.getId()
             );
 
             // Add the primary owner of the newly created Application
@@ -787,12 +791,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Audit
             auditService.createApplicationAuditLog(
                 executionContext,
-                updatedApplication.getId(),
-                Collections.emptyMap(),
-                APPLICATION_UPDATED,
-                updatedApplication.getUpdatedAt(),
-                applicationToUpdate,
-                updatedApplication
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(APPLICATION_UPDATED)
+                    .createdAt(updatedApplication.getUpdatedAt())
+                    .oldValue(applicationToUpdate)
+                    .newValue(updatedApplication)
+                    .build(),
+                updatedApplication.getId()
             );
 
             // Set correct client_id for all active subscriptions
@@ -889,12 +895,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Audit
             auditService.createApplicationAuditLog(
                 executionContext,
-                updatedApplication.getId(),
-                Collections.emptyMap(),
-                APPLICATION_UPDATED,
-                updatedApplication.getUpdatedAt(),
-                applicationToUpdate,
-                updatedApplication
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(APPLICATION_UPDATED)
+                    .createdAt(updatedApplication.getUpdatedAt())
+                    .oldValue(applicationToUpdate)
+                    .newValue(updatedApplication)
+                    .build(),
+                updatedApplication.getId()
             );
 
             return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
@@ -996,12 +1004,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 // Audit
                 auditService.createApplicationAuditLog(
                     executionContext,
-                    updatedApplication.getId(),
-                    Collections.emptyMap(),
-                    APPLICATION_UPDATED,
-                    updatedApplication.getUpdatedAt(),
-                    applicationToUpdate,
-                    updatedApplication
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.emptyMap())
+                        .event(APPLICATION_UPDATED)
+                        .createdAt(updatedApplication.getUpdatedAt())
+                        .oldValue(applicationToUpdate)
+                        .newValue(updatedApplication)
+                        .build(),
+                    updatedApplication.getId()
                 );
 
                 return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
@@ -1073,12 +1083,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Audit
             auditService.createApplicationAuditLog(
                 executionContext,
-                restoredApplication.getId(),
-                Collections.emptyMap(),
-                APPLICATION_RESTORED,
-                restoredApplication.getUpdatedAt(),
-                application,
-                restoredApplication
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(APPLICATION_RESTORED)
+                    .createdAt(restoredApplication.getUpdatedAt())
+                    .oldValue(application)
+                    .newValue(restoredApplication)
+                    .build(),
+                restoredApplication.getId()
             );
 
             return convert(executionContext, restoredApplication, userEntity);
@@ -1161,12 +1173,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Audit
             auditService.createApplicationAuditLog(
                 executionContext,
-                application.getId(),
-                Collections.emptyMap(),
-                APPLICATION_ARCHIVED,
-                application.getUpdatedAt(),
-                previousApplication,
-                application
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(APPLICATION_ARCHIVED)
+                    .createdAt(application.getUpdatedAt())
+                    .oldValue(previousApplication)
+                    .newValue(application)
+                    .build(),
+                application.getId()
             );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete application {}", applicationId, ex);

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
 import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CLOSED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
@@ -22,6 +23,8 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DELET
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_DEPRECATED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLISHED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -235,12 +238,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             auditService.createApiAuditLog(
                 executionContext,
-                newPlan.getApiId(),
-                Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()),
-                PLAN_CREATED,
-                plan.getCreatedAt(),
-                null,
-                plan
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
+                    .event(PLAN_CREATED)
+                    .createdAt(plan.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(plan)
+                    .build(),
+                newPlan.getApiId()
             );
             return mapToEntity(plan);
         } catch (TechnicalException ex) {
@@ -387,12 +392,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
                 auditService.createApiAuditLog(
                     executionContext,
-                    apiId,
-                    Collections.singletonMap(Audit.AuditProperties.PLAN, newPlan.getId()),
-                    PLAN_UPDATED,
-                    newPlan.getUpdatedAt(),
-                    oldPlan,
-                    newPlan
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, newPlan.getId()))
+                        .event(PLAN_UPDATED)
+                        .createdAt(newPlan.getUpdatedAt())
+                        .oldValue(oldPlan)
+                        .newValue(newPlan)
+                        .build(),
+                    apiId
                 );
 
                 return mapToEntity(newPlan);
@@ -495,12 +502,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                plan.getApi(),
-                Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()),
-                PLAN_CLOSED,
-                plan.getUpdatedAt(),
-                previousPlan,
-                plan
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
+                    .event(PLAN_CLOSED)
+                    .createdAt(plan.getUpdatedAt())
+                    .oldValue(previousPlan)
+                    .newValue(plan)
+                    .build(),
+                plan.getApi()
             );
 
             //reorder plan
@@ -541,12 +550,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                plan.getApi(),
-                Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()),
-                PLAN_DELETED,
-                new Date(),
-                plan,
-                null
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
+                    .event(PLAN_DELETED)
+                    .createdAt(new Date())
+                    .oldValue(plan)
+                    .newValue(null)
+                    .build(),
+                plan.getApi()
             );
 
             //reorder plan
@@ -614,12 +625,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                plan.getApi(),
-                Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()),
-                PLAN_PUBLISHED,
-                plan.getUpdatedAt(),
-                previousPlan,
-                plan
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
+                    .event(PLAN_PUBLISHED)
+                    .createdAt(plan.getUpdatedAt())
+                    .oldValue(previousPlan)
+                    .newValue(plan)
+                    .build(),
+                plan.getApi()
             );
 
             return mapToGenericEntity(plan);
@@ -659,12 +672,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                plan.getApi(),
-                Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()),
-                PLAN_DEPRECATED,
-                plan.getUpdatedAt(),
-                previousPlan,
-                plan
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(Audit.AuditProperties.PLAN, plan.getId()))
+                    .event(PLAN_DEPRECATED)
+                    .createdAt(plan.getUpdatedAt())
+                    .oldValue(previousPlan)
+                    .newValue(plan)
+                    .build(),
+                plan.getApi()
             );
 
             return mapToGenericEntity(plan);

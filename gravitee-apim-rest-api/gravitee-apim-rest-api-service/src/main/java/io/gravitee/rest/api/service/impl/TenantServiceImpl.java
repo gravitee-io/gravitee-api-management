@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.TENANT;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.THEME;
 import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_CREATED;
 import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_DELETED;
 import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_UPDATED;
+import static io.gravitee.repository.management.model.Theme.AuditEvent.THEME_UPDATED;
 
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -120,11 +122,13 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                 savedTenants.add(convert(tenantRepository.create(tenant)));
                 auditService.createAuditLog(
                     executionContext,
-                    Collections.singletonMap(TENANT, tenant.getId()),
-                    TENANT_CREATED,
-                    new Date(),
-                    null,
-                    tenant
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(TENANT, tenant.getId()))
+                        .event(TENANT_CREATED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(tenant)
+                        .build()
                 );
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to create tenant {}", tenantEntity.getName(), ex);
@@ -157,11 +161,13 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                     savedTenants.add(convert(tenantRepository.update(tenant)));
                     auditService.createAuditLog(
                         executionContext,
-                        Collections.singletonMap(TENANT, tenant.getId()),
-                        TENANT_UPDATED,
-                        new Date(),
-                        tenantOptional.get(),
-                        tenant
+                        AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(TENANT, tenant.getId()))
+                            .event(TENANT_UPDATED)
+                            .createdAt(new Date())
+                            .oldValue(tenantOptional.get())
+                            .newValue(tenant)
+                            .build()
                     );
                 }
             } catch (TechnicalException ex) {
@@ -184,11 +190,13 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
                 tenantRepository.delete(tenantId);
                 auditService.createAuditLog(
                     executionContext,
-                    Collections.singletonMap(TENANT, tenantId),
-                    TENANT_DELETED,
-                    new Date(),
-                    null,
-                    tenantOptional.get()
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(TENANT, tenantId))
+                        .event(TENANT_DELETED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(tenantOptional.get())
+                        .build()
                 );
                 tenantRepository.delete(tenantId);
             }

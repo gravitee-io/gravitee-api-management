@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.identity;
 
+import static io.gravitee.repository.management.model.ApiHeader.AuditEvent.API_HEADER_CREATED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API_HEADER;
+import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_ACTIVATED;
+import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.model.Audit;
@@ -219,13 +224,14 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
             for (IdentityProviderActivation ipa : iPAsToRemove) {
                 auditService.createAuditLog(
                     executionContext,
-                    Audit.AuditReferenceType.valueOf(ipa.getReferenceType().name()),
-                    ipa.getReferenceId(),
-                    Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, ipa.getIdentityProviderId()),
-                    IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED,
-                    new Date(),
-                    ipa,
-                    null
+                    AuditService.AuditLogData.builder()
+                        .referenceType(Audit.AuditReferenceType.valueOf(ipa.getReferenceType().name()))
+                        .referenceId(ipa.getReferenceId())
+                        .properties(Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, ipa.getIdentityProviderId()))
+                        .event(IDENTITY_PROVIDER_DEACTIVATED)
+                        .createdAt(new Date())
+                        .oldValue(ipa)
+                        .build()
                 );
             }
         } catch (TechnicalException ex) {
@@ -255,13 +261,15 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
             for (IdentityProviderActivation ipa : iPAsToRemove) {
                 auditService.createAuditLog(
                     executionContext,
-                    Audit.AuditReferenceType.valueOf(ipa.getReferenceType().name()),
-                    ipa.getReferenceId(),
-                    Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, ipa.getReferenceId()),
-                    IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED,
-                    new Date(),
-                    ipa,
-                    null
+                    AuditService.AuditLogData.builder()
+                        .referenceType(Audit.AuditReferenceType.valueOf(ipa.getReferenceType().name()))
+                        .referenceId(ipa.getReferenceId())
+                        .properties(Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, ipa.getReferenceId()))
+                        .event(IDENTITY_PROVIDER_DEACTIVATED)
+                        .createdAt(new Date())
+                        .oldValue(ipa)
+                        .newValue(null)
+                        .build()
                 );
             }
         } catch (TechnicalException ex) {
@@ -300,13 +308,20 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
 
         auditService.createAuditLog(
             executionContext,
-            Audit.AuditReferenceType.valueOf(target.getReferenceType().name()),
-            target.getReferenceId(),
-            Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, createdIdentityProviderActivation.getIdentityProviderId()),
-            IdentityProvider.AuditEvent.IDENTITY_PROVIDER_ACTIVATED,
-            createdIdentityProviderActivation.getCreatedAt(),
-            null,
-            createdIdentityProviderActivation
+            AuditService.AuditLogData.builder()
+                .referenceType(Audit.AuditReferenceType.valueOf(target.getReferenceType().name()))
+                .referenceId(target.getReferenceId())
+                .properties(
+                    Collections.singletonMap(
+                        Audit.AuditProperties.IDENTITY_PROVIDER,
+                        createdIdentityProviderActivation.getIdentityProviderId()
+                    )
+                )
+                .event(IDENTITY_PROVIDER_ACTIVATED)
+                .createdAt(createdIdentityProviderActivation.getCreatedAt())
+                .oldValue(null)
+                .newValue(createdIdentityProviderActivation)
+                .build()
         );
 
         return createdIdentityProviderActivation;
@@ -327,13 +342,15 @@ public class IdentityProviderActivationServiceImpl extends AbstractService imple
 
         auditService.createAuditLog(
             executionContext,
-            Audit.AuditReferenceType.valueOf(target.getReferenceType().name()),
-            target.getReferenceId(),
-            Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, identityProviderId),
-            IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED,
-            new Date(),
-            optIPAToRemove.get(),
-            null
+            AuditService.AuditLogData.builder()
+                .referenceType(Audit.AuditReferenceType.valueOf(target.getReferenceType().name()))
+                .referenceId(target.getReferenceId())
+                .properties(Collections.singletonMap(Audit.AuditProperties.IDENTITY_PROVIDER, identityProviderId))
+                .event(IDENTITY_PROVIDER_DEACTIVATED)
+                .createdAt(new Date())
+                .oldValue(optIPAToRemove.get())
+                .newValue(null)
+                .build()
         );
     }
 

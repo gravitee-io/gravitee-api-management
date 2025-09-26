@@ -16,8 +16,10 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.log.model.Log.AuditEvent.LOG_READ;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.REQUEST_ID;
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.emptyMap;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.analytics.AnalyticsException;
@@ -199,12 +201,14 @@ public class LogsServiceImpl implements LogsService {
             if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ORGANIZATION)) {
                 auditService.createApiAuditLog(
                     executionContext,
-                    log.getApi(),
-                    Collections.singletonMap(REQUEST_ID, id),
-                    LOG_READ,
-                    new Date(),
-                    null,
-                    null
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(REQUEST_ID, id))
+                        .event(LOG_READ)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(null)
+                        .build(),
+                    log.getApi()
                 );
             }
             return toApiRequest(executionContext, log);

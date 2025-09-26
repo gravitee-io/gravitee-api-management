@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_CREATED;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 
@@ -358,12 +360,14 @@ public class ApiStateServiceImpl implements ApiStateService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                apiId,
-                Collections.emptyMap(),
-                API_UPDATED,
-                api.getUpdatedAt(),
-                previousApi,
-                api
+                AuditService.AuditLogData.builder()
+                    .properties(emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(api.getUpdatedAt())
+                    .oldValue(previousApi)
+                    .newValue(api)
+                    .build(),
+                apiId
             );
 
             EventType eventType = null;

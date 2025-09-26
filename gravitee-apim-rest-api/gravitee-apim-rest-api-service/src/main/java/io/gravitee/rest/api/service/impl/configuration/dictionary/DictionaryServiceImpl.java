@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
+import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -412,11 +413,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         auditService.createAuditLog(
             executionContext,
-            Collections.singletonMap(DICTIONARY, dictionaryName),
-            event,
-            createdAt,
-            oldValue,
-            newValue
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(DICTIONARY, dictionaryName))
+                .event(event)
+                .createdAt(createdAt)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .build()
         );
     }
 
