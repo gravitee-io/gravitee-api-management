@@ -70,7 +70,17 @@
 
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
           <mat-label>Client Secret</mat-label>
-          <input type="text" matInput formControlName="client_secret" required />
+          <input matInput [type]="hideClientSecretPassword() ? 'password' : 'text'" formControlName="client_secret" required />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            [attr.aria-label]="'Hide password'"
+            (click)="clickHideClientSecretPassword($event)"
+          >
+            <mat-icon class="gio-metadata-dialog__title__cancel" [svgIcon]="hideClientSecretPassword() ? 'gio:eye-empty' : 'gio:eye-off'">
+            </mat-icon>
+          </button>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
