@@ -242,11 +242,7 @@ public class GroupService_DeleteTest {
 
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(GROUP_DELETED),
-            any(),
-            any(),
-            eq(null)
+            argThat(auditLogData -> auditLogData.getEvent().equals(GROUP_DELETED) && auditLogData.getNewValue() == null)
         );
 
         verify(portalNotificationConfigService, times(1)).removeGroupIds(any(), eq(Set.of(GROUP_ID)));

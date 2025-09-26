@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,7 +29,6 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiTagService;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -94,7 +92,7 @@ public class ApiTagServiceImplTest {
         apiTagService.deleteTagFromAPIs(executionContext, "intranet");
 
         verify(apiNotificationService, times(1)).triggerUpdateNotification(any(), any(Api.class));
-        verify(auditService, times(1)).createApiAuditLog(any(), any(), any(), any(), any(), any(), any());
+        verify(auditService, times(1)).createApiAuditLog(any(), any(), any());
         verify(apiRepository, times(1)).update(argThat(apiUpdate -> !apiUpdate.getDefinition().contains("intranet")));
     }
 
@@ -124,6 +122,6 @@ public class ApiTagServiceImplTest {
 
         verify(apiRepository, times(1)).update(argThat(apiUpdate -> !apiUpdate.getDefinition().contains("intranet")));
         verify(apiNotificationService, times(1)).triggerUpdateNotification(any(), any(Api.class));
-        verify(auditService, times(1)).createApiAuditLog(any(), any(), any(), any(), any(), any(), any());
+        verify(auditService, times(1)).createApiAuditLog(any(), any(), any());
     }
 }

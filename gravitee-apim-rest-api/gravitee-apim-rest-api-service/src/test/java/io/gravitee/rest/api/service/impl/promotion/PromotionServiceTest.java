@@ -23,7 +23,6 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -35,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.model.Promotion;
@@ -402,12 +400,8 @@ public class PromotionServiceTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq("api#1"),
-            any(),
-            eq(PROMOTION_CREATED),
-            any(),
-            isNull(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(PROMOTION_CREATED) && auditLogData.getOldValue() == null),
+            eq("api#1")
         );
     }
 

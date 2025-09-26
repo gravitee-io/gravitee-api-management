@@ -15,12 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_CREATED;
+import static io.gravitee.repository.management.model.NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -227,12 +229,7 @@ public class NotificationTemplateServiceTest {
         verify(notificationTemplateRepository, times(1)).create(any());
         verify(auditService, times(1)).createOrganizationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(GraviteeContext.getCurrentOrganization()),
-            any(),
-            eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_CREATED),
-            any(),
-            isNull(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(NOTIFICATION_TEMPLATE_CREATED) && auditLogData.getOldValue() == null)
         );
     }
 
@@ -259,12 +256,12 @@ public class NotificationTemplateServiceTest {
         verify(notificationTemplateRepository, times(1)).update(any());
         verify(auditService, times(1)).createOrganizationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(GraviteeContext.getCurrentOrganization()),
-            any(),
-            eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),
-            any(),
-            eq(toUpdate),
-            eq(notificationTemplate)
+            argThat(
+                auditLogData ->
+                    auditLogData.getEvent().equals(NOTIFICATION_TEMPLATE_UPDATED) &&
+                    auditLogData.getOldValue().equals(toUpdate) &&
+                    auditLogData.getNewValue().equals(notificationTemplate)
+            )
         );
 
         ArgumentCaptor<Command> captor = ArgumentCaptor.forClass(Command.class);
@@ -296,12 +293,12 @@ public class NotificationTemplateServiceTest {
         verify(notificationTemplateRepository, never()).update(any());
         verify(auditService, never()).createOrganizationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(GraviteeContext.getCurrentOrganization()),
-            any(),
-            eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),
-            any(),
-            eq(toUpdate),
-            eq(notificationTemplate)
+            argThat(
+                auditLogData ->
+                    auditLogData.getEvent().equals(NOTIFICATION_TEMPLATE_UPDATED) &&
+                    auditLogData.getOldValue().equals(toUpdate) &&
+                    auditLogData.getNewValue().equals(notificationTemplate)
+            )
         );
     }
 

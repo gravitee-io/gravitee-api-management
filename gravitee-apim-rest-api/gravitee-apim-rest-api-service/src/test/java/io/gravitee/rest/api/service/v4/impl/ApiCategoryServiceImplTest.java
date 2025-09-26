@@ -15,12 +15,14 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchException;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -50,7 +52,6 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.exception.ApiNotInCategoryException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -191,21 +192,13 @@ public class ApiCategoryServiceImplTest {
             verify(apiNotificationService, times(1)).triggerUpdateNotification(GraviteeContext.getExecutionContext(), secondOrphan);
             verify(auditService, times(1)).createApiAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(firstOrphan.getId()),
-                eq(Collections.emptyMap()),
-                eq(Api.AuditEvent.API_UPDATED),
-                any(),
-                any(),
-                any()
+                argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_UPDATED)),
+                eq(firstOrphan.getId())
             );
             verify(auditService, times(1)).createApiAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
-                eq(secondOrphan.getId()),
-                eq(Collections.emptyMap()),
-                eq(Api.AuditEvent.API_UPDATED),
-                any(),
-                any(),
-                any()
+                argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_UPDATED)),
+                eq(secondOrphan.getId())
             );
 
             assertThat(firstOrphan.getCategories()).isEmpty();

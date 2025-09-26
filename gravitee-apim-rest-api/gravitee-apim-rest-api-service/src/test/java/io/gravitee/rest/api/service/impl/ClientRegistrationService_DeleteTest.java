@@ -16,18 +16,15 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
-import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationProviderNotFoundException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
-import io.gravitee.rest.api.service.impl.configuration.application.registration.InvalidRenewClientSecretException;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,11 +59,9 @@ public class ClientRegistrationService_DeleteTest {
 
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CLIENT_REGISTRATION_PROVIDER_DELETED),
-            any(),
-            any(),
-            isNull()
+            argThat(
+                auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_DELETED) && auditLogData.getNewValue() == null
+            )
         );
         verify(mockClientRegistrationProviderRepository, times(1)).delete(existingPayload.getId());
     }
@@ -83,11 +78,9 @@ public class ClientRegistrationService_DeleteTest {
 
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(CLIENT_REGISTRATION_PROVIDER_DELETED),
-            any(),
-            any(),
-            isNull()
+            argThat(
+                auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_DELETED) && auditLogData.getNewValue() == null
+            )
         );
         verify(mockClientRegistrationProviderRepository, never()).delete(existingPayload.getId());
     }

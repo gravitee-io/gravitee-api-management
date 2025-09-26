@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
 import static io.gravitee.rest.api.service.V4EmulationEngineService.DefaultMode.YES;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -294,11 +295,7 @@ public class ApiService_CreateTest {
         verify(apiRepository, times(1)).create(any());
         verify(auditService, times(1)).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            any(),
-            eq(Api.AuditEvent.API_CREATED),
-            any(),
-            eq(null),
+            argThat(auditLogData -> auditLogData.getEvent().equals(API_CREATED) && auditLogData.getOldValue() == null),
             any()
         );
         verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_EXPIRED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -157,17 +158,9 @@ public class ApiKeyServiceTest {
         assertEquals(subscription.getEndingAt(), apiKey.getExpireAt());
         assertEquals(subscription.getId(), apiKey.getSubscriptions().iterator().next().getId());
 
-        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            any(),
-            argument.capture(),
-            any(),
-            any(),
-            any(),
-            any()
-        );
-        Map<Audit.AuditProperties, String> properties = argument.getValue();
+        ArgumentCaptor<AuditService.AuditLogData> argument = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService).createApiAuditLog(eq(GraviteeContext.getExecutionContext()), argument.capture(), any());
+        Map<Audit.AuditProperties, String> properties = argument.getValue().getProperties();
         assertEquals(3, properties.size());
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
@@ -245,17 +238,9 @@ public class ApiKeyServiceTest {
         assertEquals(subscription.getEndingAt(), apiKey.getExpireAt());
         assertEquals(subscription.getId(), apiKey.getSubscriptions().iterator().next().getId());
 
-        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            any(),
-            argument.capture(),
-            any(),
-            any(),
-            any(),
-            any()
-        );
-        Map<Audit.AuditProperties, String> properties = argument.getValue();
+        ArgumentCaptor<AuditService.AuditLogData> argument = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService).createApiAuditLog(eq(GraviteeContext.getExecutionContext()), argument.capture(), any());
+        Map<Audit.AuditProperties, String> properties = argument.getValue().getProperties();
         assertEquals(3, properties.size());
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
@@ -342,17 +327,9 @@ public class ApiKeyServiceTest {
         // Run
         apiKeyService.reactivate(GraviteeContext.getExecutionContext(), apiKeyEntity);
 
-        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            any(),
-            argument.capture(),
-            any(),
-            any(),
-            any(),
-            any()
-        );
-        Map<Audit.AuditProperties, String> properties = argument.getValue();
+        ArgumentCaptor<AuditService.AuditLogData> argument = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService).createApiAuditLog(eq(GraviteeContext.getExecutionContext()), argument.capture(), any());
+        Map<Audit.AuditProperties, String> properties = argument.getValue().getProperties();
         assertEquals(3, properties.size());
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
@@ -391,17 +368,9 @@ public class ApiKeyServiceTest {
         // Run
         apiKeyService.reactivate(GraviteeContext.getExecutionContext(), apiKeyEntity);
 
-        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            any(),
-            argument.capture(),
-            any(),
-            any(),
-            any(),
-            any()
-        );
-        Map<Audit.AuditProperties, String> properties = argument.getValue();
+        ArgumentCaptor<AuditService.AuditLogData> argument = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService).createApiAuditLog(eq(GraviteeContext.getExecutionContext()), argument.capture(), any());
+        Map<Audit.AuditProperties, String> properties = argument.getValue().getProperties();
         assertEquals(3, properties.size());
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
@@ -513,17 +482,10 @@ public class ApiKeyServiceTest {
         verify(apiKeyRepository, times(1)).create(any());
         assertEquals(API_KEY, apiKeyEntity.getKey());
 
-        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService, times(2)).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            any(),
-            argument.capture(),
-            any(),
-            any(),
-            any(),
-            any()
-        );
-        for (Map<Audit.AuditProperties, String> properties : argument.getAllValues()) {
+        ArgumentCaptor<AuditService.AuditLogData> argument = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService, times(2)).createApiAuditLog(eq(GraviteeContext.getExecutionContext()), argument.capture(), any());
+        for (AuditService.AuditLogData auditLogData : argument.getAllValues()) {
+            Map<Audit.AuditProperties, String> properties = auditLogData.getProperties();
             assertEquals(3, properties.size());
             assertTrue(properties.containsKey(Audit.AuditProperties.API));
             assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
@@ -801,11 +763,7 @@ public class ApiKeyServiceTest {
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.APIKEY_EXPIRED), any(), any());
         verify(auditService, times(1)).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            any(),
-            eq(ApiKey.AuditEvent.APIKEY_EXPIRED),
-            any(),
-            any(),
+            argThat(auditLogData -> auditLogData.getEvent().equals(APIKEY_EXPIRED)),
             any()
         );
     }

@@ -18,11 +18,14 @@ package io.gravitee.rest.api.service.v4.impl;
 import static io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_LOGGING_DISABLED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_LOGGING_ENABLED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_LOGGING_UPDATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -38,7 +41,6 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
@@ -164,12 +166,10 @@ import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -680,12 +680,14 @@ public class ApiServiceImplTest {
 
         verify(auditService).createApiAuditLog(
             eq(executionContext),
-            eq(API_ID),
-            eq(emptyMap()),
-            eq(Api.AuditEvent.API_CREATED),
-            any(Date.class),
-            isNull(),
-            any(Api.class)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().isEmpty() &&
+                    auditLogData.getEvent().equals(API_CREATED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue() instanceof Api
+            ),
+            eq(API_ID)
         );
         verify(membershipService).addRoleToMemberOnReference(
             GraviteeContext.getExecutionContext(),
@@ -1072,12 +1074,8 @@ public class ApiServiceImplTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            eq(emptyMap()),
-            eq(Api.AuditEvent.API_LOGGING_DISABLED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_LOGGING_DISABLED)),
+            eq(API_ID)
         );
     }
 
@@ -1113,12 +1111,8 @@ public class ApiServiceImplTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            eq(emptyMap()),
-            eq(Api.AuditEvent.API_LOGGING_ENABLED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_LOGGING_ENABLED)),
+            eq(API_ID)
         );
     }
 
@@ -1156,12 +1150,8 @@ public class ApiServiceImplTest {
 
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            eq(emptyMap()),
-            eq(Api.AuditEvent.API_LOGGING_UPDATED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getProperties().isEmpty() && auditLogData.getEvent().equals(API_LOGGING_UPDATED)),
+            eq(API_ID)
         );
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
