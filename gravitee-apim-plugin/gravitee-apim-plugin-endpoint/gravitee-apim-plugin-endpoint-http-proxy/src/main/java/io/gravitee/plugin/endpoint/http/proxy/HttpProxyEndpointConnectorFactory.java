@@ -39,7 +39,7 @@ public class HttpProxyEndpointConnectorFactory implements HttpEndpointSyncConnec
 
     @Override
     public Set<ConnectorMode> supportedModes() {
-        return HttpProxyEndpointConnector.SUPPORTED_MODES;
+        return Set.of(ConnectorMode.REQUEST_RESPONSE);
     }
 
     @Override
