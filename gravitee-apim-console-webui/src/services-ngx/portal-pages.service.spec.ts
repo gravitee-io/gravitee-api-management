@@ -20,6 +20,7 @@ import { PortalPagesService } from './portal-pages.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakePortalPageWithDetails } from '../entities/portal/portal-page-with-details.fixture';
+import { PortalPagesResponse } from '../entities/portal/portal-pages-response';
 
 describe('PortalPagesService', () => {
   let httpTestingController: HttpTestingController;
@@ -79,10 +80,11 @@ describe('PortalPagesService', () => {
   describe('publishPage', () => {
     it('should call the API to publish a page', (done) => {
       const pageId = 'test-98';
-      const fakePortalPage = fakePortalPageWithDetails({ published: true, id: pageId });
+      const fakePortalPage = fakePortalPageWithDetails({ published: false, id: pageId });
+      const fakeResponse: PortalPagesResponse = { pages: [{ ...fakePortalPage, published: true }] };
 
       portalPagesService.publishPage(fakePortalPage.id).subscribe((response) => {
-        expect(response).toStrictEqual(fakePortalPage);
+        expect(response).toStrictEqual(fakeResponse);
         done();
       });
 
@@ -93,17 +95,18 @@ describe('PortalPagesService', () => {
 
       // Expect the body to be an empty object as sent by the service
       expect(req.request.body).toEqual({});
-      req.flush(fakePortalPage);
+      req.flush(fakeResponse);
     });
   });
 
   describe('unpublishPage', () => {
     it('should call the API to unpublish a page', (done) => {
       const pageId = 'test-99';
-      const fakePortalPage = fakePortalPageWithDetails({ published: false, id: pageId });
+      const fakePortalPage = fakePortalPageWithDetails({ published: true, id: pageId });
+      const fakeResponse: PortalPagesResponse = { pages: [{ ...fakePortalPage, published: false }] };
 
       portalPagesService.unpublishPage(pageId).subscribe((response) => {
-        expect(response).toStrictEqual(fakePortalPage);
+        expect(response).toStrictEqual(fakeResponse);
         done();
       });
 
@@ -114,8 +117,7 @@ describe('PortalPagesService', () => {
 
       // Expect the body to be an empty object
       expect(req.request.body).toEqual({});
-
-      req.flush(fakePortalPage);
+      req.flush(fakeResponse);
     });
   });
 });
