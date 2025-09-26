@@ -293,6 +293,54 @@ This markdown editor demonstrates the **button component** integration.
         expected:
           '<gmd-card>\n  <gmd-card-title>Parent Card</gmd-card-title>\n  <gmd-card-subtitle>This card contains another card</gmd-card-subtitle>\n  <gmd-card>\n    <gmd-card-title>Child Card</gmd-card-title>\n    <gmd-card-subtitle>Nested inside parent</gmd-card-subtitle>\n    <gmd-button appearance="filled">Child Action</gmd-button>\n  </gmd-card>\n  <gmd-button appearance="outlined">Parent Action</gmd-button>\n</gmd-card>',
       },
+      {
+        description: 'should handle images inside GMD components without parsing errors',
+        input: `## Outside
+
+<img src="https://supertails.com/cdn/shop/articles/360_f_681163919_71bp2aiyziip3l4j5mbphdxtipdtm2zh_e2c1dbbd-e3b0-4c7d-bc09-1ebff39513ef.jpg?v=1747293323"
+                 alt="Sample image"
+                 style="width: 100%; max-width: 500px; height: auto; border-radius: 8px;" />
+
+<gmd-grid columns="1">
+<gmd-cell>
+        Inside
+</gmd-cell>
+  <gmd-cell>
+    <img src="https://supertails.com/cdn/shop/articles/360_f_681163919_71bp2aiyziip3l4j5mbphdxtipdtm2zh_e2c1dbbd-e3b0-4c7d-bc09-1ebff39513ef.jpg?v=1747293323"
+                 alt="Sample image"
+                 >
+  </gmd-cell>
+</gmd-grid>
+
+## Sample Content
+- *Italic text* and **bold text**
+- \`Inline code\`
+- [Links](https://gravitee.io)`,
+        expected:
+          '<h2 id="outside">Outside</h2>\n<img src="https://supertails.com/cdn/shop/articles/360_f_681163919_71bp2aiyziip3l4j5mbphdxtipdtm2zh_e2c1dbbd-e3b0-4c7d-bc09-1ebff39513ef.jpg?v=1747293323" alt="Sample image" style="width: 100%; max-width: 500px; height: auto; border-radius: 8px;">\n\n<gmd-grid columns="1">\n<gmd-cell>\n        Inside\n</gmd-cell>\n  <gmd-cell>\n    <img src="https://supertails.com/cdn/shop/articles/360_f_681163919_71bp2aiyziip3l4j5mbphdxtipdtm2zh_e2c1dbbd-e3b0-4c7d-bc09-1ebff39513ef.jpg?v=1747293323" alt="Sample image">\n  </gmd-cell>\n</gmd-grid><h2 id="sample-content">Sample Content</h2>\n<ul>\n<li><em>Italic text</em> and <strong>bold text</strong></li>\n<li><code>Inline code</code></li>\n<li><a href="https://gravitee.io">Links</a></li>\n</ul>\n',
+      },
+      {
+        description: 'should handle markdown with special characters at root level',
+        input: `# Special Characters Test
+
+> This is a blockquote at root level
+> It spans multiple lines
+> And should render properly
+
+- List item with special characters: > < * #
+- Another item with symbols: @ $ % ^ &
+
+## Code with special characters
+\`\`\`javascript
+// This code contains special characters
+const special = "> < * # @ $ % ^ &";
+console.log(special);
+\`\`\`
+
+> Final blockquote to test parsing`,
+        expected:
+          '<h1 id="special-characters-test">Special Characters Test</h1>\n<blockquote>\n<p>This is a blockquote at root level<br>It spans multiple lines<br>And should render properly</p>\n</blockquote>\n<ul>\n<li>List item with special characters: &gt; &lt; * #</li>\n<li>Another item with symbols: @ $ % ^ &amp;</li>\n</ul>\n<h2 id="code-with-special-characters">Code with special characters</h2>\n<pre><code class="language-javascript">// This code contains special characters\nconst special = &quot;&amp;gt; &amp;lt; * # @ $ % ^ &amp;amp;&quot;;\nconsole.log(special);\n</code></pre>\n<blockquote>\n<p>Final blockquote to test parsing</p>\n</blockquote>\n',
+      },
     ];
 
     complexTestCases.forEach(({ description, input, expected }) => {
