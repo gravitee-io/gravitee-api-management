@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, computed, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map, shareReplay } from 'rxjs/operators';
 
 import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
@@ -33,14 +33,17 @@ import { ApiAnalyticsWidgetService, ApiAnalyticsWidgetUrlParamsData } from '../a
 import { ApiAnalyticsDashboardWidgetConfig } from '../api-analytics-proxy/api-analytics-proxy.component';
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
-import { AggregationTypes, AggregationFields } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import { AggregationFields, AggregationTypes } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
+import { BaseApplication } from '../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 interface QueryParamsBase {
   from?: string;
   to?: string;
   period?: string;
   plans?: string;
-  applications?: string[];
+  applications?: string;
+  terms: string;
 }
 
 @Component({
@@ -61,11 +64,13 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   private readonly apiId: string = this.activatedRoute.snapshot.params.apiId;
   private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
   private planService = inject(ApiPlanV2Service);
+  private apiService = inject(ApiV2Service);
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public bottomRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
+  public applications: BaseApplication[] = [];
 
   public activeFilters: Signal<ApiAnalyticsNativeFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
 
@@ -254,6 +259,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly apiAnalyticsWidgetService: ApiAnalyticsWidgetService,
+    private readonly destroyRef: DestroyRef,
   ) {
     effect(() => {
       this.apiAnalyticsWidgetService.setUrlParamsData(this.mapQueryParamsToUrlParamsData(this.activatedRouteQueryParams()));
@@ -261,6 +267,16 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.apiService
+      .getSubscribers(this.apiId, null, 1, 200)
+      .pipe(
+        map((response) => {
+          this.applications = response.data;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
     this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);
     });
@@ -309,9 +325,18 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       params.period = filters.period;
     }
 
+    let plans: string = null;
+    let applications: string = null;
+
     if (filters.plans?.length) {
       params.plans = filters.plans.join(',');
+      plans = filters.plans.map((planId) => `plan-id:${planId}`).join(',');
     }
+    if (filters.applications?.length) {
+      params.applications = filters.applications.join(',');
+      applications = filters.applications.map((appId) => `app-id:${appId}`).join(',');
+    }
+    params.terms = [plans, applications].filter((term) => term).join(',');
 
     return params as QueryParamsBase;
   }
@@ -345,12 +370,28 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     const normalizedPeriod = params.period || '1d';
     const filters = this.getFilterFields(params);
 
+    const filterBucket: Record<string, string[]> = {
+      'app-id': [],
+      'plan-id': [],
+    };
+
+    if (filters.terms?.length) {
+      for (const term of filters.terms) {
+        const [key, value] = term.split(':', 2);
+
+        if (value && filterBucket[key] && !filterBucket[key].includes(value)) {
+          filterBucket[key].push(value);
+        }
+      }
+    }
+
     if (normalizedPeriod === 'custom' && params.from && params.to) {
       return <ApiAnalyticsNativeFilters>{
         period: normalizedPeriod,
         from: +params.from,
         to: +params.to,
-        ...filters,
+        plans: filterBucket['plan-id'],
+        applications: filterBucket['app-id'],
       };
     }
 
@@ -358,7 +399,8 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       period: normalizedPeriod,
       from: null,
       to: null,
-      ...filters,
+      plans: filterBucket['plan-id'],
+      applications: filterBucket['app-id'],
     };
   }
 
@@ -366,6 +408,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     return {
       plans: this.processFilter(queryParams.plans),
       applications: this.processFilter(queryParams.applications),
+      terms: this.processFilter(queryParams.terms),
     };
   }
 

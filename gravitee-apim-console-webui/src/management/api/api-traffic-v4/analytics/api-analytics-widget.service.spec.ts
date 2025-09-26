@@ -1159,6 +1159,18 @@ describe('ApiAnalyticsWidgetService', () => {
         ).toBe('application-id:("app1" OR "app2")');
       });
 
+      it('should build query for terms', () => {
+        expect(
+          service['queryOf']({
+            httpStatuses: [],
+            plans: [],
+            terms: ['app-id:app1', 'app-id:app2', 'plan-id:plan1', 'plan-id:plan2'],
+            applications: ['app1', 'app2'],
+            timeRangeParams: undefined,
+          }),
+        ).toBe('application-id:("app1" OR "app2")&terms=app-id:app1,app-id:app2,plan-id:plan1,plan-id:plan2');
+      });
+
       it('should build query for multiple filters', () => {
         expect(
           service['queryOf']({
@@ -1175,6 +1187,7 @@ describe('ApiAnalyticsWidgetService', () => {
           service['queryOf']({
             httpStatuses: [],
             plans: ['plan1'],
+            terms: [],
             applications: [],
             timeRangeParams: undefined,
           }),

@@ -75,7 +75,7 @@ public class ApiExport {
 
     private List<? extends AbstractListener<? extends AbstractEntrypoint>> listeners;
     private List<? extends AbstractEndpointGroup<? extends AbstractEndpoint>> endpointGroups;
-    private Analytics analytics;
+    private Analytics analytics = new Analytics();
     private Failover failover;
 
     @Builder.Default
