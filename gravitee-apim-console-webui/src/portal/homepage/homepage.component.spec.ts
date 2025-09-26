@@ -264,12 +264,12 @@ describe('HomepageComponent', () => {
     return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Update portal page"]' }));
   }
 
-  function expectPortalPageUpdate(expected: PatchPortalPage, response: PortalPageWithDetails) {
+  function expectPortalPageUpdate(expectedBody: PatchPortalPage, response: PortalPageWithDetails) {
     const req = httpTestingController.expectOne({
       method: 'PATCH',
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${response.id}`,
     });
-    expect(req.request.body).toStrictEqual(expected);
-    req.flush(response);
+    expect(req.request.body).toStrictEqual(expectedBody);
+    req.flush({ pages: [response] });
   }
 });

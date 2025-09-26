@@ -132,9 +132,9 @@ export class HomepageComponent {
         content: this.contentControl.value,
       })
       .pipe(
-        tap((portalPage) => {
+        tap(({ pages: [updatedPage] }) => {
           this.snackbarService.success(`The page has been updated successfully`);
-          this.portalHomepage.set(portalPage);
+          this.portalHomepage.set(updatedPage);
         }),
         catchError(() => {
           this.snackbarService.error('An error occurred while updating the homepage');

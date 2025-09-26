@@ -63,7 +63,7 @@ describe('PortalPagesService', () => {
       const toUpdate = { content: 'test' };
 
       portalPagesService.patchPortalPage(fakePortalPage.id, toUpdate).subscribe((response) => {
-        expect(response).toStrictEqual(fakePortalPage);
+        expect(response).toStrictEqual({ pages: [fakePortalPage] });
         done();
       });
 
@@ -73,7 +73,7 @@ describe('PortalPagesService', () => {
       });
 
       expect(req.request.body).toEqual(toUpdate);
-      req.flush(fakePortalPage);
+      req.flush({ pages: [fakePortalPage] });
     });
   });
 
