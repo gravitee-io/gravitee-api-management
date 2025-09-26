@@ -21,7 +21,12 @@ import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -29,55 +34,47 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface AuditService {
-    void createApiAuditLog(
-        ExecutionContext executionContext,
-        String apiId,
-        Map<Audit.AuditProperties, String> properties,
-        Audit.AuditEvent event,
-        Date createdAt,
-        Object oldValue,
-        Object newValue
-    );
+    @Builder
+    @AllArgsConstructor
+    @Setter
+    @Getter
+    public class AuditLogData {
 
-    void createApplicationAuditLog(
-        ExecutionContext executionContext,
-        String applicationId,
-        Map<Audit.AuditProperties, String> properties,
-        Audit.AuditEvent event,
-        Date createdAt,
-        Object oldValue,
-        Object newValue
-    );
+        Audit.AuditReferenceType referenceType;
+        String referenceId;
+        Map<Audit.AuditProperties, String> properties;
+        Audit.AuditEvent event;
+        Date createdAt;
+        Object oldValue;
+        Object newValue;
+        List<String> pathsToAnonymize;
+    }
 
-    void createAuditLog(
-        ExecutionContext executionContext,
-        Map<Audit.AuditProperties, String> properties,
-        Audit.AuditEvent event,
-        Date createdAt,
-        Object oldValue,
-        Object newValue
-    );
+    default void createApiAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String apiId) {
+        auditLogData.setReferenceType(Audit.AuditReferenceType.API);
+        auditLogData.setReferenceId(apiId);
+        createAuditLog(executionContext, auditLogData);
+    }
 
-    void createOrganizationAuditLog(
-        ExecutionContext executionContext,
-        final String organization,
-        Map<Audit.AuditProperties, String> properties,
-        Audit.AuditEvent event,
-        Date createdAt,
-        Object oldValue,
-        Object newValue
-    );
+    default void createApplicationAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String applicationId) {
+        auditLogData.setReferenceType(Audit.AuditReferenceType.APPLICATION);
+        auditLogData.setReferenceId(applicationId);
+        createAuditLog(executionContext, auditLogData);
+    }
 
-    void createAuditLog(
-        ExecutionContext executionContext,
-        Audit.AuditReferenceType referenceType,
-        String referenceId,
-        Map<Audit.AuditProperties, String> properties,
-        Audit.AuditEvent event,
-        Date createdAt,
-        Object oldValue,
-        Object newValue
-    );
+    default void createEnvironmentAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
+        auditLogData.setReferenceType(Audit.AuditReferenceType.ENVIRONMENT);
+        auditLogData.setReferenceId(executionContext.getEnvironmentId());
+        createAuditLog(executionContext, auditLogData);
+    }
+
+    default void createOrganizationAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
+        auditLogData.setReferenceType(Audit.AuditReferenceType.ORGANIZATION);
+        auditLogData.setReferenceId(executionContext.getOrganizationId());
+        createAuditLog(executionContext, auditLogData);
+    }
+
+    void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData);
 
     MetadataPage<AuditEntity> search(final ExecutionContext executionContext, AuditQuery query);
 }
