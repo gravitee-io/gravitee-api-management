@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.7.15
-appVersion: 4.7.15
+version: 4.7.16
+appVersion: 4.7.16
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,6 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: changed
-      description: 'BREAKING CHANGE: fix(scraping): Introduce modular utilities for performance and concurrency with default concurrent limit 3'
+  artifacthub.io/changes: 
