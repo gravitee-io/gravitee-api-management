@@ -237,11 +237,19 @@
             <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
               <mat-form-field>
                 <mat-label>API role</mat-label>
-                <mat-select [id]="group.id" [aria-label]="'API roles for ' + group.id" formControlName="API">
+                <mat-select
+                  [id]="group.id"
+                  [aria-label]="'API roles for ' + group.id"
+                  formControlName="API"
+                  [disabled]="isApiRolePrimaryOwner(group.id)"
+                >
                   <mat-option>-- None --</mat-option>
-                  <mat-option *ngFor="let role of apiRoles$ | async" [disabled]="role.system" [value]="role.name">{{
-                    role.name
-                  }}</mat-option>
+                  <mat-option
+                    *ngFor="let role of apiRoles$ | async"
+                    [disabled]="role.system || isApiRolePrimaryOwner(group.id)"
+                    [value]="role.name"
+                    >{{ role.name }}</mat-option
+                  >
                 </mat-select>
               </mat-form-field>
             </td>
