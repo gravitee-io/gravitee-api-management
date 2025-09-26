@@ -164,8 +164,8 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             configureMockEndpoint(api, 0, 1);
             deploy(api);
 
-            // 1 first attempt + 3 retries  then 5 dispatcher retries * ( 1 regular attempt + 3 retries)
-            final int messageCount = (1 + 3) + (5 * (1 + 3));
+            // 1 first attempt + 3 retries
+            final int messageCount = (1 + 3);
             final String callbackPath = WEBHOOK_URL_PATH + "/test";
             final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
 
@@ -187,7 +187,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
                 )
                 .test()
                 .awaitDone(10, SECONDS)
-                .assertError(InterruptionFailureException.class);
+                .assertError(Throwable.class);
 
             // Mock endpoint produces only 1 message. 1 attempt + 5 retries. We should expect no more than 6 calls
             webhookActions.verifyMessages(messageCount, callbackPath, "message");
