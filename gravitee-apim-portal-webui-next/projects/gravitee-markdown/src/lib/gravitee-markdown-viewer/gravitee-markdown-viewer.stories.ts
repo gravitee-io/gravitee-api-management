@@ -159,39 +159,39 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
         <gmd-button link="/guides" appearance="outlined" style="--gmd-button-outlined-label-text-weight: 700; --gmd-button-outlined-label-text-color: black;"
         >Get started</gmd-button>
     </gmd-cell>
-    <gmd-md class="homepage-cover-photo"> ![homepage](assets/images/homepage/desk.png "Homepage picture")</gmd-md>
+    <img class="homepage-cover-photo" src="assets/homepage/desk.png" title="Homepage picture"/>
 </gmd-grid>
 
 ### Your toolkit for building
 
 <gmd-grid [columns]="3">
     <gmd-md>
-        ![book](./assets/images/homepage/book.svg "Book icon")
+        ![book](assets/homepage/book.svg "Book icon")
         #### API catalog
         Browse and test all available APIs in one place.
     </gmd-md>
     <gmd-md>
-        ![laptop](./assets/images/homepage/laptop.svg "Laptop icon")
+        ![laptop](assets/homepage/laptop.svg "Laptop icon")
         #### Interactive docs
         Explore clear, structured documentation with code samples.
     </gmd-md>
     <gmd-md>
-        ![vector](./assets/images/homepage/vector.svg "Vector icon")
+        ![vector](assets/homepage/vector.svg "Vector icon")
         #### Usage analytics
         Track API usage, error rates, and performance metrics.
     </gmd-md>
     <gmd-md>
-        ![group](./assets/images/homepage/group.svg "Group icon")
+        ![group](assets/homepage/group.svg "Group icon")
         #### API catalog
         Browse and test all available APIs in one place.
     </gmd-md>
     <gmd-md>
-        ![support](./assets/images/homepage/support.svg "Support icon")
+        ![support](assets/homepage/support.svg "Support icon")
         #### Interactive docs
         Explore clear, structured documentation with code samples.
     </gmd-md>
     <gmd-md>
-        ![support](./assets/images/homepage/service.svg "Service icon")
+        ![support](assets/homepage/service.svg "Service icon")
         #### Usage analytics
         Track API usage, error rates, and performance metrics.
     </gmd-md>
@@ -205,7 +205,7 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
         <gmd-md>Learn how to make a basic request and receive a response.Learn how to make a basic request and receive a response.</gmd-md>
         <div class="flex-container">
           <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
-          >Read <img src="assets/images/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
+          >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
         </div>
     </gmd-card>
     <gmd-card backgroundColor="none">
@@ -213,7 +213,7 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
         <gmd-md>A step-by-step guide to generating and managing API keys.</gmd-md>
         <div class="flex-container">
           <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
-          >Read <img src="assets/images/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
+          >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
         </div>
     </gmd-card>
     <gmd-card backgroundColor="none">
@@ -221,7 +221,7 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
         <gmd-md>Use our official library to simplify your code.</gmd-md>
         <div class="flex-container">
           <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
-          >Read <img src="assets/images/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
+          >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
         </div>
     </gmd-card>
 </gmd-grid>
