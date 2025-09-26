@@ -164,7 +164,7 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
 
 ### Your toolkit for building
 
-<gmd-grid [columns]="3">
+<gmd-grid columns="3">
     <gmd-md>
         ![book](assets/homepage/book.svg "Book icon")
         #### API catalog
@@ -199,7 +199,7 @@ export const PortalHomePage: StoryObj<GraviteeMarkdownViewerComponent> = {
 
 ### Get started in minutes
 
-<gmd-grid [columns]="3">
+<gmd-grid columns="3">
     <gmd-card backgroundColor="none">
         <gmd-card-title>Your first API call</gmd-card-title>
         <gmd-md>Learn how to make a basic request and receive a response.Learn how to make a basic request and receive a response.</gmd-md>
