@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.configuration.application.registration;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.CLIENT_REGISTRATION_PROVIDER;
+import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED;
 import static java.util.Collections.singletonMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -216,14 +217,16 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 clientRegistrationProvider
             );
 
-            // Audit
             auditService.createAuditLog(
                 executionContext,
-                singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
-                ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED,
-                clientRegistrationProvider.getUpdatedAt(),
-                clientProviderToUpdate,
-                updatedClientRegistrationProvider
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(CLIENT_REGISTRATION_PROVIDER, id))
+                    .event(CLIENT_REGISTRATION_PROVIDER_UPDATED)
+                    .createdAt(clientRegistrationProvider.getUpdatedAt())
+                    .oldValue(clientProviderToUpdate)
+                    .newValue(updatedClientRegistrationProvider)
+                    .pathsToAnonymize(ClientRegistrationProvider.PATHS_TO_ANONYMIZE_FOR_AUDIT_LOGS)
+                    .build()
             );
 
             return convert(updatedClientRegistrationProvider);
