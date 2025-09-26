@@ -4,6 +4,6 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
-  "allowedNonPeerDependencies": ["ngx-dynamic-hooks", "marked-gfm-heading-id"],
+  "allowedNonPeerDependencies": ["ngx-dynamic-hooks", "marked-gfm-heading-id", "dompurify"],
   "assets": ["index.scss", "src/public-api.scss", "src/scss/**/*.scss", "src/lib/**/!(*.component).scss"]
 }
