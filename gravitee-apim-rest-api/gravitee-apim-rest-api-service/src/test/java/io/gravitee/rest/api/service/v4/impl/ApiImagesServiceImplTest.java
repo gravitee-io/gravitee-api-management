@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.*;
 
@@ -27,8 +27,6 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -124,12 +122,13 @@ public class ApiImagesServiceImplTest {
         verify(apiRepository, times(1)).update(argThat(api -> DATA_IMAGE.equals(api.getPicture()) && api.getUpdatedAt() != null));
         verify(auditService, times(1)).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq("my-api"),
-            anyMap(),
-            eq(Api.AuditEvent.API_UPDATED),
-            any(),
-            eq(foundApi),
-            argThat(api -> DATA_IMAGE.equals(((Api) api).getPicture()) && (((Api) api).getUpdatedAt() != null))
+            argThat(auditLogData -> {
+                boolean res = auditLogData.getEvent().equals(API_UPDATED) && auditLogData.getOldValue().equals(foundApi);
+                Api api = (Api) auditLogData.getNewValue();
+                res = res && api.getPicture().equals(DATA_IMAGE) && api.getUpdatedAt() != null;
+                return res;
+            }),
+            eq("my-api")
         );
     }
 
@@ -168,12 +167,13 @@ public class ApiImagesServiceImplTest {
         verify(apiRepository, times(1)).update(argThat(api -> DATA_IMAGE.equals(api.getBackground()) && api.getUpdatedAt() != null));
         verify(auditService, times(1)).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq("my-api"),
-            anyMap(),
-            eq(Api.AuditEvent.API_UPDATED),
-            any(),
-            eq(foundApi),
-            argThat(api -> DATA_IMAGE.equals(((Api) api).getBackground()) && (((Api) api).getUpdatedAt() != null))
+            argThat(auditLogData -> {
+                boolean res = auditLogData.getEvent().equals(API_UPDATED) && auditLogData.getOldValue().equals(foundApi);
+                Api api = (Api) auditLogData.getNewValue();
+                res = res && api.getBackground().equals(DATA_IMAGE) && api.getUpdatedAt() != null;
+                return res;
+            }),
+            eq("my-api")
         );
     }
 }

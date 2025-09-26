@@ -35,11 +35,9 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
-import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -141,15 +139,7 @@ public class ApplicationService_RestoreTest {
         verify(membershipService, times(1)).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
         verify(genericNotificationConfigService, times(1)).deleteReference(NotificationReferenceType.APPLICATION, APP);
         verify(portalNotificationConfigService, times(1)).deleteReference(NotificationReferenceType.APPLICATION, APP);
-        verify(auditService, times(1)).createApplicationAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            any(),
-            any(),
-            any(),
-            any(),
-            any(),
-            any()
-        );
+        verify(auditService, times(1)).createApplicationAuditLog(eq(GraviteeContext.getExecutionContext()), any(), any());
         Assertions.assertThat(result.getStatus()).isEqualTo(ApplicationStatus.ACTIVE.name());
     }
 

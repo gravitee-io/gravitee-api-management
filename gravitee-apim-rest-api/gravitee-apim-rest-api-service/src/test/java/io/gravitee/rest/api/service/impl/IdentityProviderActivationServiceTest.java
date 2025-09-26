@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_ACTIVATED;
+import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
@@ -25,7 +27,6 @@ import static org.mockito.internal.util.collections.Sets.newSet;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.repository.management.model.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
@@ -147,24 +148,28 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
-            eq(TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_ACTIVATED),
-            eq(now),
-            isNull(),
-            eq(createdIPA)
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED) &&
+                    auditLogData.getCreatedAt().equals(now) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(createdIPA)
+            )
         );
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())),
-            eq(ANOTHER_TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_ACTIVATED),
-            eq(now),
-            isNull(),
-            eq(anotherCreatedIPA)
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(ANOTHER_TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED) &&
+                    auditLogData.getCreatedAt().equals(now) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(anotherCreatedIPA)
+            )
         );
     }
 
@@ -241,24 +246,28 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
-            eq(TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_ACTIVATED),
-            eq(now),
-            isNull(),
-            eq(createdIPA)
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED) &&
+                    auditLogData.getCreatedAt().equals(now) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(createdIPA)
+            )
         );
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
-            eq(TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_ACTIVATED),
-            eq(now),
-            isNull(),
-            eq(anotherCreatedIPA)
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_ACTIVATED) &&
+                    auditLogData.getCreatedAt().equals(now) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(anotherCreatedIPA)
+            )
         );
     }
 
@@ -387,24 +396,26 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
-            eq(TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED),
-            any(),
-            eq(ipaToRemove),
-            isNull()
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
+                    auditLogData.getOldValue().equals(ipaToRemove) &&
+                    auditLogData.getNewValue() == null
+            )
         );
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())),
-            eq(ANOTHER_TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED),
-            any(),
-            eq(anotherIpaToRemove),
-            isNull()
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(ANOTHER_TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
+                    auditLogData.getOldValue().equals(anotherIpaToRemove) &&
+                    auditLogData.getNewValue() == null
+            )
         );
     }
 
@@ -453,24 +464,26 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
-            eq(TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED),
-            any(),
-            eq(ipaToRemove),
-            isNull()
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
+                    auditLogData.getOldValue().equals(ipaToRemove) &&
+                    auditLogData.getNewValue() == null
+            )
         );
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
-            eq(TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED),
-            any(),
-            eq(anotherIpaToRemove),
-            isNull()
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
+                    auditLogData.getOldValue().equals(anotherIpaToRemove) &&
+                    auditLogData.getNewValue() == null
+            )
         );
     }
 
@@ -504,24 +517,26 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
-            eq(TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED),
-            any(),
-            eq(ipaToRemove),
-            isNull()
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
+                    auditLogData.getOldValue().equals(ipaToRemove) &&
+                    auditLogData.getNewValue() == null
+            )
         );
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())),
-            eq(ANOTHER_TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED),
-            any(),
-            eq(anotherIpaToRemove),
-            isNull()
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(ANOTHER_TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(ANOTHER_TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
+                    auditLogData.getOldValue().equals(anotherIpaToRemove) &&
+                    auditLogData.getNewValue() == null
+            )
         );
     }
 
@@ -563,24 +578,26 @@ public class IdentityProviderActivationServiceTest {
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
-            eq(TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED),
-            any(),
-            eq(ipaToRemove),
-            isNull()
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
+                    auditLogData.getOldValue().equals(ipaToRemove) &&
+                    auditLogData.getNewValue() == null
+            )
         );
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())),
-            eq(TARGET_REFERENCE_ID),
-            any(),
-            eq(IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED),
-            any(),
-            eq(anotherIpaToRemove),
-            isNull()
+            argThat(
+                auditLogData ->
+                    auditLogData.getReferenceType().equals(Audit.AuditReferenceType.valueOf(TARGET_REFERENCE_TYPE.name())) &&
+                    auditLogData.getReferenceId().equals(TARGET_REFERENCE_ID) &&
+                    auditLogData.getEvent().equals(IDENTITY_PROVIDER_DEACTIVATED) &&
+                    auditLogData.getOldValue().equals(anotherIpaToRemove) &&
+                    auditLogData.getNewValue() == null
+            )
         );
     }
 
