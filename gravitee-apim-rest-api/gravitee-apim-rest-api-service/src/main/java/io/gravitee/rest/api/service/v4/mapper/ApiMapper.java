@@ -35,7 +35,6 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -64,7 +63,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -77,6 +75,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ApiMapper {
 
+    public static final String API_DEFINITION_UNEXPECTED_ERROR_MESSAGE = "Unexpected error while generating API definition";
     private final ObjectMapper objectMapper;
     private final PlanService planService;
     private final FlowService flowService;
@@ -131,7 +130,7 @@ public class ApiMapper {
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
             } catch (IOException ioe) {
-                log.error("Unexpected error while generating API definition", ioe);
+                log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, ioe);
             }
         }
 
@@ -192,7 +191,7 @@ public class ApiMapper {
                 apiEntity.setFlows(apiDefinition.getFlows());
                 apiEntity.setAnalytics(apiDefinition.getAnalytics());
             } catch (IOException ioe) {
-                log.error("Unexpected error while generating API definition", ioe);
+                log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, ioe);
             }
         }
 
@@ -388,7 +387,7 @@ public class ApiMapper {
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
-            log.error("Unexpected error while generating API definition", jse);
+            log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, jse);
             throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
         }
     }
@@ -411,10 +410,8 @@ public class ApiMapper {
 
         repoApi.setName(updateApiEntity.getName().trim());
         repoApi.setVersion(updateApiEntity.getApiVersion().trim());
-        String description = updateApiEntity.getDescription();
-        if (description != null) {
-            repoApi.setDescription(description.trim());
-        }
+        repoApi.setDescription(updateApiEntity.getDescription());
+
         repoApi.setPicture(updateApiEntity.getPicture());
         repoApi.setBackground(updateApiEntity.getBackground());
 
@@ -460,7 +457,7 @@ public class ApiMapper {
                                 propertyEntity.isDynamic()
                             )
                         )
-                        .collect(Collectors.toList())
+                        .toList()
                 );
             }
             apiDefinition.setResources(updateApiEntity.getResources());
@@ -471,7 +468,7 @@ public class ApiMapper {
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
-            log.error("Unexpected error while generating API definition", jse);
+            log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, jse);
             throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
         }
     }
@@ -539,7 +536,7 @@ public class ApiMapper {
                         .getProperties()
                         .stream()
                         .map(propertyEntity -> new Property(propertyEntity.getKey(), propertyEntity.getValue()))
-                        .collect(Collectors.toList())
+                        .toList()
                 );
             }
             apiDefinition.setResources(apiEntity.getResources());
@@ -550,7 +547,7 @@ public class ApiMapper {
 
             return objectMapper.writeValueAsString(apiDefinition);
         } catch (JsonProcessingException jse) {
-            log.error("Unexpected error while generating API definition", jse);
+            log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, jse);
             throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
         }
     }

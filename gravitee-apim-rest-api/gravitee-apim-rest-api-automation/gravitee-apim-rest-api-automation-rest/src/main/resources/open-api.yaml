@@ -413,7 +413,7 @@ components:
           maxLength: 512
         version:
           type: string
-          description: API's version. It's a simple string only used in the portal.
+          description: API's version. It's a simple string only used to help manage API versioning.
           examples:
             - 1.0.0
           minLength: 1
@@ -422,27 +422,29 @@ components:
           $ref: "#/components/schemas/ApiType"
         description:
           type: string
-          description: API's description. A short description of your API.
+          description: Basic API documentation to describe what this API does.
           examples:
             - I can use many characters to describe this API.
           maxLength: 4000
         tags:
           type: array
-          description: The list of sharding tags associated with this API.
-          examples:
-            - [ "public" ]
+          description: Sharding tags that restrict deployment to Gateways having those tags on. No tags means "always deploy".
           items:
             type: string
             maxLength: 64
+          default: [ ]
           uniqueItems: true
+          examples:
+            - [ "europe" ]
         listeners:
           type: array
-          description: The list of listeners associated with this API.
+          description: The list of listeners defining how this API can be called. They depend on the API type.
           items:
             $ref: "#/components/schemas/Listener"
           minItems: 1
         endpointGroups:
           type: array
+          description: Common endpoints properties and container of endpoints specifying backends this API can call.
           items:
             $ref: "#/components/schemas/EndpointGroupV4"
           minItems: 1
@@ -451,48 +453,54 @@ components:
         failover:
           $ref: "#/components/schemas/FailoverV4"
         properties:
+          description: Properties usable using EL.
           type: array
           items:
             $ref: "#/components/schemas/Property"
+          default: [ ]
         resources:
           type: array
+          description: Data resources usable in policy to access (mostly) external data (authentication, cache, registries...).
           items:
-            $ref: "#/components/schemas/Resource"
-        plans:
+            $ref: "#/components/schemas/APIResource"
           default: [ ]
-          description: List of Plans for the API
+        plans:
+          type: array
+          description: Available plans for the API to define API security. You must provide a plan if `state` is `STARTED`.
           items:
             $ref: '#/components/schemas/PlanV4'
-          type: array
+          default: [ ]
         flowExecution:
           $ref: "#/components/schemas/FlowExecution"
         flows:
-          default: [ ]
-          description: List of flows for the API
+          type: array
+          description: Common flows for the API where traffic policies are configured.
           items:
             $ref: "#/components/schemas/FlowV4"
-          type: array
+          default: [ ]
         responseTemplates:
           type: object
-          description:
-            A list of Response Templates for the API (Not applicable for Native
-            API)
+          description: |
+            Map of content-type dependent Response Templates for the API (Not applicable for Native
+            API) to customize Gateway responses body on predefined errors.
+            
+            Key of the map is the error code.
           additionalProperties:
             type: object
+            description: |
+              Map of content-type that matched the `Accept` header content and a template configuration.
+              
+              Key is a MIME content type (eg. */*, application/json ...)
             additionalProperties:
               $ref: "#/components/schemas/ResponseTemplate"
         services:
           $ref: "#/components/schemas/ApiServices"
         groups:
-          default: [ ]
-          description: >-
-            List of groups associated with the API.
-
-            This groups are id or name references to existing groups in
-            APIM.
+          type: array
+          description: Name or UUIDs of existing groups (of users) associated with this API.
           items:
             type: string
-          type: array
+          default: [ ]
         visibility:
           $ref: "#/components/schemas/Visibility"
         state:
@@ -500,33 +508,36 @@ components:
         primaryOwner:
           $ref: "#/components/schemas/PrimaryOwner"
         labels:
-          default: [ ]
-          description: List of labels of the API
+          type: array
+          description: Informative labels for this API.
           items:
             type: string
             maxLength: 64
-          type: array
           uniqueItems: true
+          default: [ ]
         metadata:
           type: array
           description: The list of API's metadata.
           items:
             $ref: "#/components/schemas/Metadata"
           uniqueItems: true
+          default: [ ]
         lifecycleState:
           $ref: "#/components/schemas/ApiLifecycleState"
         categories:
           type: array
-          description: The list of category keys associated with this API.
-          examples:
-            - [ health, media ]
+          description: The list of category names (or UUID) associated with this API.
           items:
             type: string
+          default: [ ]
+          examples:
+            - [ "3ac914a2-4279-4aab-a19c-f784f07f8a42" ]
         members:
           type: array
-          description: Set of members associated with the plan
+          description: Users that can access or manage the API (depending on their roles).
           items:
             $ref: '#/components/schemas/Member'
+          default: [ ]
           uniqueItems: true
         notifyMembers:
           default: true
@@ -536,11 +547,11 @@ components:
           type: boolean
           writeOnly: true
         pages:
-          default: [ ]
-          description: List of Pages for the API
+          type: array
+          description: Pages for the API
           items:
             $ref: '#/components/schemas/PageV4'
-          type: array
+          default: [ ]
       required:
         - hrid
         - name
@@ -596,9 +607,9 @@ components:
           maxLength: 512
         description:
           type: string
-          description: Application's description.
+          description: This is where you can clearly state the API’s purpose and what problems it solves to help drive API discovery and adoption by making it easier for developers to find and understand the API’s capabilities.
           examples:
-            - This is the documentation explaining purpose of this Application  .
+            - This is the documentation explaining purpose of this Application.
           minLength: 1
           maxLength: 4000
         domain:
@@ -608,15 +619,13 @@ components:
             - examples.com
           maxLength: 256
         groups:
-          default: [ ]
+          type: array
           description: >-
             List of groups associated with the Application.
-
-            This groups are id or name references to existing groups in
-            APIM.
+            This groups are names or UUIDs of existing groups in APIM.
           items:
             type: string
-          type: array
+          default: [ ]
           example: [ "developers" ]
         pictureUrl:
           type: string
@@ -624,11 +633,11 @@ components:
           examples:
             - "https://upload.wikimedia.org/wikipedia/fr/0/09/Logo_App_Store_d%27Apple.png"
         notifyMembers:
-          default: false
+          type: boolean
           description: |-
             If true, new members added to the Application spec will
             be notified when the Application is synced with APIM.
-          type: boolean
+          default: false
         background:
           type: string
           description: Application's background url
@@ -644,12 +653,14 @@ components:
           description: The list of Application's metadata.
           items:
             $ref: "#/components/schemas/Metadata"
+          default: []
         members:
           type: array
-          description: Set of members associated with the application
+          description: Users that can access or manage this application (depending on their roles).
           items:
             $ref: '#/components/schemas/Member'
           uniqueItems: true
+          default: []
         status:
           type: string
           description: Application are either ACTIVE or ARCHIVED never actually deleted.
@@ -664,6 +675,7 @@ components:
         - name
         - description
     ApplicationSettings:
+      type: object
       description: Application settings defines the configuration of consumers authentication.
         Depending on the control plane configuration some applications types may be restricted.
         `app` and `oauth` are mutually exclusive. If none is set it fallbacks to `app` without any property set.
@@ -676,6 +688,7 @@ components:
           $ref: '#/components/schemas/ApplicationTLSSettings'
 
     SimpleApplicationSettings:
+      type: object
       description: Simple application settings
       properties:
         type:
@@ -690,7 +703,8 @@ components:
           examples:
             - example-client-id
     ApplicationOAuthClientSettings:
-      description: Application OAuth client settings
+      type: object
+      description: Application OAuth client settings. This require Dynamic Client Registration to be enabled at the environment level.
       properties:
         applicationType:
           type: string
@@ -725,13 +739,15 @@ components:
           minItems: 1
           uniqueItems: true
           examples:
-            - authorization_code
+            - ["authorization_code"]
         redirectUris:
           description: OAuth client redirect Uris
           items:
             type: string
           type: array
-          example: [ "https://myapp.example.com/oauth/callback" ]
+          examples: 
+            - [ "https://myapp.example.com/oauth/callback" ]
+          default: []
         additionalClientMetadata:
           type: object
           additionalProperties:
@@ -800,21 +816,19 @@ components:
               examples:
                 - DEFAULT
 
-    # Subscription
     SubscriptionSpec:
-      description: SubscriptionSpec defines the desired state of Subscription.
+      description: Subscription specification
       type: object
       properties:
         hrid:
           $ref: "#/components/schemas/Hrid"
         applicationHrid:
           type: string
-          description: Application's Hrid that needs to subscribe to the API.
+          description: Application's hrid selected to subscribe an API.
           example: demo-app
-          minLength: 1
         planHrid:
           type: string
-          description: API plan's Hrid
+          description: API plan's hrid
           example: demo-plan
         endingAt:
           type: string
@@ -823,7 +837,6 @@ components:
       required:
         - hrid
         - applicationHrid
-        - apiHrid
         - planHrid
 
     SubscriptionState:
@@ -844,15 +857,14 @@ components:
               description: The API's Hrid.
               example: demo-api
             environmentId:
-              description:
-                The environment ID of the Subscription.
+              description: The environment ID of the Subscription.
               type: string
             organizationId:
-              description:
-                The organization ID of the Subscription.
+              description: The organization ID of the Subscription.
               type: string
             startingAt:
               type: string
+              description: Start validity date time of this Subscription
               format: date-time
               example: "2040-12-25T09:12:28+01:00"
 
@@ -939,32 +951,37 @@ components:
           $ref: "#/components/schemas/Hrid"
         name:
           type: string
+          description: Name of the plan
           maxLength: 64
         description:
           type: string
+          description: A description for this plan.
         security:
           $ref: '#/components/schemas/PlanSecurity'
         characteristics:
           type: array
+          description: Plan informative characteristics
           items:
             type: string
             maxLength: 64
         excludedGroups:
+          description: Access-control, UUID of groups excluded from this plan
           type: array
           items:
             type: string
-        generalConditions:
-          type: string
-          maxLength: 64
         order:
+          description: Priority of the plan, lowest number is executed first. By default it respects order of creation.
           type: integer
+          minimum: 0
         selectionRule:
           type: string
           maxLength: 256
+          description: An EL expression that must return a boolean to enable the flow based on the request.
         status:
           $ref: '#/components/schemas/PlanStatus'
         tags:
           type: array
+          description: Sharding tags that restrict deployment to Gateways having those tags on. No tags means "always deploy". This tags list must be a subset of the API's tags list.
           items:
             type: string
             maxLength: 64
@@ -975,6 +992,10 @@ components:
           $ref: '#/components/schemas/PlanValidation'
         flows:
           type: array
+          description: |
+            Flows like API flows, composed of step running plolicies. 
+            All steps are executed before the next plan flow or before the API flows,
+            same on the reponse, which means API reponse flows will always run last.
           items:
             $ref: '#/components/schemas/FlowV4'
         mode:
@@ -992,10 +1013,6 @@ components:
       description: Users that can manage an object (API, Application, etc.)
       type: object
       properties:
-        id:
-          type: string
-          description: "User UUID of the memeber"
-          readOnly: true
         source:
           type: string
           description: Where the memeber was created (system, idp, etc.)
@@ -1016,12 +1033,12 @@ components:
         - sourceId
         - role
     Analytics:
-      description: API analytics
+      description: API analytics configuration to enable/disable what can be observed.
       type: object
       properties:
         enabled:
           type: boolean
-          description: Whether or not analytics is enabled.
+          description: Whether or not analytics are enabled.
           default: true
         sampling:
           $ref: "#/components/schemas/Sampling"
@@ -1042,7 +1059,7 @@ components:
         - PUBLISHED
         - UNPUBLISHED
     ApiServices:
-      description: Api services
+      description: Api services (dynamic properties)
       type: object
       properties:
         dynamicProperty:
@@ -1058,7 +1075,7 @@ components:
         - NATIVE
     Visibility:
       type: string
-      description: The visibility of the resource regarding the portal.
+      description: The visibility of the entity regarding the portal.
       default: PUBLIC
       examples:
         - PUBLIC
@@ -1097,10 +1114,21 @@ components:
               $ref: "#/components/schemas/Operator"
             entrypoints:
               type: array
+              description: Among all entrypoints types, restrict which one will trigger this flow. Unset or empty means "all types".
               items:
                 type: string
                 maxLength: 32
               uniqueItems: true
+              examples:
+               - ["mcp"]
+               - ["webhook"]
+               - ["http-proxy"]
+               - ["native-kafka"]
+               - ["http-post"]
+               - ["agent-to-agent"]
+               - ["tcp-proxy"]
+               - ["http-get"]
+               - ["websocket"]
     ConditionSelector:
       description: Condition selector
       type: object
@@ -1114,45 +1142,73 @@ components:
           properties:
             condition:
               type: string
-              description: The condition of the selector
+              description: The EL condition of the selector
               examples:
-                - ${#jsonPath(payload, '$.myField') == 'myValue'}
+                - "{#jsonPath(payload, '$.myField') == 'myValue'}"
     Cors:
       description: Http listener Cross-Origin Resource Sharing
       type: object
       properties:
-        allowCredentials:
-          type: boolean
-        allowHeaders:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-        allowMethods:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-        allowOrigin:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
         enabled:
           type: boolean
-        exposeHeaders:
+          description: Enable CORS
+        allowCredentials:
+          type: boolean
+          description: |
+            `Access-Control-Allow-Credentials`: Indicates whether or not the response to the request can be exposed when the credentials flag is true.
+        allowHeaders:
+          type: array
+          description: |
+            `Access-Control-Allow-Headers`: Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+          items:
+            type: string
+          uniqueItems: true
+        allowMethods:
+          description: |
+           `Access-Control-Allow-Methods`: Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request. HTTP methods that are allow to access the resource.
           uniqueItems: true
           type: array
           items:
             type: string
+            enum:
+             - "*"
+             - GET
+             - DELETE
+             - PATCH
+             - POST
+             - PUT
+             - OPTIONS
+             - TRACE
+             - HEAD
+        allowOrigin:
+          uniqueItems: true
+          description: |
+            `Access-Control-Allow-Origin`: The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the same-origin definition.
+            If you choose to enable '*' it means that is allows all requests, regardless of origin. URIs RegExp patterns that may access the resource
+          type: array
+          items:
+            type: string
+          examples:
+            - ["*","http://api.acme\\.com", ".*\\.api\\.acme\\.com"]
+        exposeHeaders:
+          description: | 
+            `Access-Control-Expose-Headers`: This header lets a server whitelist headers that browsers are allowed to access.
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+          examples:
+            - ["Content-Type"]
         maxAge:
+          description: How long (in seconds) the results of a preflight request can be cached (-1 if disabled).
           type: integer
           format: int32
           default: -1
         runPolicies:
+          description: Allow the Gateway to run policies during in pre-flight request
           type: boolean
     Dlq:
-      description: DLQ
+      description: Dead Letter Queue to process undelivered messages.
       type: object
       properties:
         endpoint:
@@ -1169,31 +1225,33 @@ components:
             - default-endpoint
         type:
           type: string
-          description: The type of the endpoint
+          description: The type of endpoint
           examples:
-            - mock
+            - http-proxy
         weight:
           type: integer
           format: int32
-          description: The weight of the endpoint
+          description: The weight of the endpoint for the load balancer algorythm.
           default: 1
         inheritConfiguration:
           type: boolean
-          description: Is the configuration of the endpoint inherited from the endpoint group it belongs to.
+          description: Enables shared configuration inheritance.
           default: false
         configuration:
           type: object
+          description: JSON Configuration specific to this endpoint that cannot be define at the group level.
         sharedConfigurationOverride:
           type: object
+          description: JSON Configuration that replaces the shared configuration defined at the group level.
         services:
-          $ref: "#/components/schemas/EndpointServices"
+          $ref: "#/components/schemas/EndpointServices" 
         secondary:
           type: boolean
-          description: Is the endpoint a secondary endpoint.
+          description: Define this endpoint as fallback endpoint in case other endpoints are no longer responding.
           default: false
         tenants:
           type: array
-          description: The list of tenants associated to the endpoint.
+          description: The list of Getaway's tenants on which the endpoint can be used.
           items:
             type: string
       required:
@@ -1211,13 +1269,15 @@ components:
           type: string
           description: The type of the endpoint group
           examples:
-            - default
+            - http-proxy
         loadBalancer:
           $ref: "#/components/schemas/LoadBalancer"
         sharedConfiguration:
+          description: JSON configuration for the `type` of `endpoints` that will be shared across all endpoints.
           type: object
         endpoints:
           type: array
+          description: All endpoints of this API.
           items:
             $ref: "#/components/schemas/EndpointV4"
         services:
@@ -1254,17 +1314,13 @@ components:
         dlq:
           $ref: "#/components/schemas/Dlq"
         configuration:
+          description: JSON configuration for the selected `type`.
           type: object
 
     FlowV4:
       description: API or PLan Flow
       type: object
       properties:
-        id:
-          type: string
-          description: Flow's uuid.
-          examples:
-            - 4e6abbd2-c0c6-462d-be9e-6371209af34b
         name:
           type: string
           description: Flow's name.
@@ -1314,25 +1370,25 @@ components:
           items:
             type: string
             maxLength: 32
-          description: Flow's tags.
+          description: Flow's informative tags.
           examples:
             - [ tag1, tag2 ]
           uniqueItems: true
       required:
         - enabled
     FlowExecution:
-      description: Flow execution
+      description: Flow execution enablement (Not applicable for Native API)
       type: object
       properties:
         mode:
           $ref: "#/components/schemas/FlowMode"
         matchRequired:
           type: boolean
-          description: Is the flow execution match required.
+          description: To indicate failure if no flow matches the request.
           default: false
     FlowMode:
       type: string
-      description: API's flow mode.
+      description: "DEFAULT : all flows that match the conditions are executed in the order they are defined BEST_MATCH: only the best matching flow will be executed"
       examples:
         - BEST_MATCH
       default: DEFAULT
@@ -1350,14 +1406,11 @@ components:
         - type: object
           properties:
             paths:
+              description: One of the possible context paths of this API
               type: array
               minItems: 1
               items:
                 $ref: "#/components/schemas/PathV4"
-            pathMappings:
-              type: array
-              items:
-                type: string
             cors:
               $ref: "#/components/schemas/Cors"
     HttpMethod:
@@ -1390,7 +1443,7 @@ components:
           properties:
             path:
               type: string
-              description: The path of the selector
+              description: The path to match
               examples:
                 - /my/path
               default: /
@@ -1399,6 +1452,7 @@ components:
               $ref: "#/components/schemas/Operator"
             methods:
               type: array
+              description: Methods to match, unset or empty means "any"
               items:
                 $ref: "#/components/schemas/HttpMethod"
               uniqueItems: true
@@ -1426,12 +1480,14 @@ components:
         type:
           $ref: "#/components/schemas/ListenerType"
         entrypoints:
+          description: A list of possible entrypoint of the same type.
           type: array
           minItems: 1
           items:
             $ref: "#/components/schemas/Entrypoint"
         servers:
           type: array
+          description: Restrict the API to a given "server id", when the gateway runs in multiple servers mode (several ports per protocol).
           items:
             type: string
       discriminator:
@@ -1452,7 +1508,7 @@ components:
         - TCP
         - KAFKA
     LoadBalancer:
-      description: Load Balancer
+      description: Load Balancer to distribute traffic between endpoints.
       type: object
       properties:
         type:
@@ -1466,14 +1522,22 @@ components:
             - ROUND_ROBIN
             - WEIGHTED_RANDOM
             - WEIGHTED_ROUND_ROBIN
+      required:
+        - type
     LoggingV4:
-      description: API logging configuration
+      description: API logging configuration (Not for native APIs)
       type: object
       properties:
         condition:
           type: string
+          description: Filter using EL what request should be logged
+          examples:
+            - "{#request.headers['Content-Type'][0] == 'application/json'}"
         messageCondition:
           type: string
+          description: Filter using EL what message should be logged
+          examples:
+            - "{ #message.headers['Content-Type'][0] == 'application/json'}"
         content:
           $ref: "#/components/schemas/LoggingContentV4"
         phase:
@@ -1481,37 +1545,46 @@ components:
         mode:
           $ref: "#/components/schemas/LoggingModeV4"
     LoggingContentV4:
-      description: API logging content
+      description: API logging content when one of logging mode is enabled (Not for native APIs)
       type: object
       properties:
         headers:
           type: boolean
+          description: Enable to log request headers
         messageHeaders:
           type: boolean
+          description: Enable to log message headers (Message APIs only)
         payload:
           type: boolean
+          description: Enable to log request headers (Proxy APIs only)
         messagePayload:
           type: boolean
+          description: Enable to log message headers (Message APIs only)
         messageMetadata:
           type: boolean
+          description: Enable to log message metadata (Message APIs only)
     LoggingModeV4:
-      description: API logging mode
+      description: API logging mode (Not for native APIs)
       type: object
       properties:
         endpoint:
           type: boolean
+          description: Enables endpoint logging
         entrypoint:
           type: boolean
+          description: Enables entrypoint logging
     LoggingPhase:
-      description: Logging phase
+      description: Logging phase when one of logging mode is enabled (Not for native APIs)
       type: object
       properties:
         request:
           type: boolean
+          description: Enables logging durring request phase 
         response:
           type: boolean
+          description: Enables logging durring response phase 
     TracingV4:
-      description: API analytic tracing
+      description: OpenTelemetry tracing (Not for native APIs)
       type: object
       properties:
         enabled:
@@ -1519,10 +1592,10 @@ components:
           description: Enable OpenTelemetry tracing
         verbose:
           type: boolean
-          description: Enable technical tracing to get more details on request execution. Be careful this settings would generate more noise and would impact performance.
+          description: Enable technical tracing to get more details on request execution. Be careful this settings can generate more noise and can impact performance.
     Operator:
       type: string
-      description: The path operator of the selector
+      description: Operator function to match a URI path
       examples:
         - EQUALS
       default: STARTS_WITH
@@ -1531,24 +1604,6 @@ components:
         - STARTS_WITH
 
     PageV4:
-      description: Documentation page. Can be of multiple formats.
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/BasePageV4"
-      properties:
-        translations:
-          type: array
-          description: List of page translations.
-          items:
-            $ref: "#/components/schemas/PageV4Translation"
-
-    PageV4Translation:
-      description: Documentation page translation. Can be of multiple formats.
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/BasePageV4"
-
-    BasePageV4:
       description: Documentation page.
       type: object
       properties:
@@ -1588,16 +1643,6 @@ components:
           default: false
         visibility:
           $ref: "#/components/schemas/Visibility"
-        updatedAt:
-          type: string
-          format: date-time
-          description: Page's last update date.
-          example: 2018-01-01T00:00:00.000Z
-        contentType:
-          type: string
-          description: Page's content type.
-          examples:
-            - application/json
         source:
           $ref: "#/components/schemas/PageSource"
         configuration:
@@ -1620,17 +1665,6 @@ components:
             into APIM by making the page a child of this folder.
           examples:
             - guides
-        accessControls:
-          type: array
-          description: List of access controls.
-          items:
-            $ref: "#/components/schemas/AccessControl"
-        metadata:
-          type: object
-          description: Page's metadata.
-          additionalProperties:
-            type: string
-            maxLength: 200
         hidden:
           type: boolean
           description: If folder is published but not shown in Portal.
@@ -1657,23 +1691,6 @@ components:
         - ROOT
         - SYSTEM_FOLDER
         - TRANSLATION
-
-    # Documentation pages
-    AccessControl:
-      description: Document access control
-      type: object
-      properties:
-        referenceId:
-          type: string
-          description: The id of the resource used to check the access control
-          examples:
-            - 00f8c9e7-78fc-4907-b8c9-e778fc790750
-        referenceType:
-          type: string
-          description: The type of the resource used to check the access control
-          examples:
-            - GROUP
-            - ROLE
     PageSource:
       description: | 
         Allow you to fetch pages from various external sources, 
@@ -1682,7 +1699,7 @@ components:
       properties:
         type:
           type: string
-          description: The type of the page source (=fetcher type).
+          description: The type of the page source (fetcher plugin ID).
           examples:
             - http-fetcher
             - git-fetcher
@@ -1692,21 +1709,24 @@ components:
           maxLength: 64
         configuration:
           type: object
-          description: Page source's configuration.
-          maxLength: 512
+          description: JSON object configuration of the fetch plugin.
 
     PathV4:
-      description: API Path
+      description: API Path specification
       type: object
       properties:
         host:
           type: string
+          description: Virtual host required to access this API. (`Host` or `:Authority` headers, remote address for websockets) 
         path:
           type: string
           default: "/"
         overrideAccess:
           type: boolean
+          description: Override default organization entrypoint with `host`
           default: false
+      required:
+        - path
 
     PlanSecurity:
       description: API plan security
@@ -1715,12 +1735,13 @@ components:
         type:
           $ref: "#/components/schemas/PlanSecurityType"
         configuration:
+          description: JSON Object to configure specific attributes of a Plan.
           type: object
       required:
         - type
     PlanSecurityType:
       type: string
-      description: Plan security type.
+      description: API Plan security implementation.
       examples:
         - KEY_LESS
       enum:
@@ -1730,7 +1751,7 @@ components:
         - MTLS
     PlanStatus:
       type: string
-      description: Plan status.
+      description: Plan status, only `PUBLISHED` makes the plan available at runtime.
       examples:
         - STAGING
       enum:
@@ -1740,20 +1761,24 @@ components:
         - CLOSED
     PlanType:
       type: string
-      description: Plan type.
+      description: "Only one possible type: API"
       examples:
         - API
       enum:
         - API
         - CATALOG
-    PlanValidation:
+      default: API
+    PlanValidation: 
       type: string
-      description: Plan validation type.
+      description: |
+        Specifies if subscriptions must be manually validated by a human actor.
+        For automation API, it is default to `AUTO`.
       examples:
         - AUTO
       enum:
         - AUTO
         - MANUAL
+      default: AUTO
     PlanMode:
       type: string
       description: The behavioural mode of the Plan (Standard for classical plan, Push for subscription plan).
@@ -1762,9 +1787,8 @@ components:
       enum:
         - STANDARD
         - PUSH
-
     PrimaryOwner:
-      description: Primary owner, the creator of the application. Can perform all possible API actions.
+      description: User owner of this. Can perform all possible actions on it. 
       type: object
       properties:
         id:
@@ -1786,31 +1810,32 @@ components:
         type:
           $ref: "#/components/schemas/MembershipMemberType"
     Property:
-      description: Api property
+      description: API property can be used within the API using EL expression `{#api.properties['key']}.
       type: object
       required:
         - key
         - value
       properties:
         key:
-          description: property key
+          description: Property key.
           type: string
         value:
-          description: property value
+          description: Property value.
           type: string
         encrypted:
-          description: is property encrypted or not?
+          description: When the value has been encrypted in database.
           type: boolean
+          readOnly: true
         dynamic:
-          description: is a dynamic property or not?
+          description: When the value was populated from dynamic property service.
           type: boolean
         encryptable:
-          description: is property encryptable?
+          description: When the input value needs to be encrypted.
           type: boolean
           writeOnly: true
     Qos:
       type: string
-      description: Type of the quality of service.
+      description: Type of the quality of service (for message APIs).
       examples:
         - NONE
       default: AUTO
@@ -1819,60 +1844,87 @@ components:
         - AUTO
         - AT_MOST_ONCE
         - AT_LEAST_ONCE
-    Resource:
+    APIResource:
       description: API resource
       type: object
+      properties:
+        name:
+          description: API resource name
+          type: string
+        type:
+          description: Resource type (resource plugin ID)
+          type: string
+          examples:
+            - cache
+            - cache-redis
+            - auth-provider-ldap-resource
+            - oauth2-am-resource
+            - oauth2
+            - oauth2-keycloak-resource
+            - auth-provider-inline-resource
+            - auth-provider-http-resource
+            - storage-azure-blob
+            - ai-vector-store-redis
+            - ai-vector-store-aws-s3
+            - ai-model-text-classification
+            - confluent-schema-registry
+            - content-provider-inline-resource
+        configuration:
+          description: JSON Object configuration specific to this resource.
+          type: object
+        enabled:
+          description: Make it available or not.
+          type: boolean
+          default: true
       required:
         - name
         - type
         - configuration
-      properties:
-        name:
-          description: Resource name
-          type: string
-        type:
-          description: Resource type
-          type: string
-        configuration:
-          description: Resource configuration
-          type: object
-        enabled:
-          description: API resource is enabled or not?
-          type: boolean
     ResponseTemplate:
       description: API response template
       type: object
       properties:
         status:
-          description: API response template status
+          description: HTTP Status to return
           type: integer
         headers:
-          description: API response template headers
+          description: Headers to return as key/value pairs
           type: object
           additionalProperties:
             type: string
         body:
-          description: API response template body
+          description: Response body (use `Content-Type` header to specify the content type)
           type: string
         propagateErrorKeyToLogs:
           type: boolean
+          description: Log the key associated with this response template
           default: false
       required:
         - status
     Sampling:
-      description: API analytics sampling
+      description: API analytics sampling (message API only). This is meant to log only a portion to avoid overflowing the log sink.
       type: object
       properties:
         type:
           type: string
-          description: The type of the sampling
+          description: |
+            The type of the sampling:
+
+            `PROBABILITY`: based on a specified probability,
+            `TEMPORAL`: all messages for on time duration,
+            `COUNT`: for every number of specified messages
           enum:
             - PROBABILITY
             - TEMPORAL
             - COUNT
         value:
           type: string
-          description: The value of the sampling
+          description: |
+            The value of the sampling:
+
+            `PROBABILITY`: between `0.01` and `0.5`,
+            `TEMPORAL`: ISO-8601 duration format, 1 second minimum (PT1S)
+            `COUNT`: greater than `1`,
       required:
         - type
     MembershipMemberType:
@@ -1916,22 +1968,26 @@ components:
       required:
         - type
     ServiceV4:
-      description: Service
+      description: Specifies an API property fetch using an external source.
       type: object
       properties:
         overrideConfiguration:
           type: boolean
-          description: Override the configuration of the service
+          description: When the configuration overrides an inherited configuration.
           default: false
         configuration:
           type: object
-          description: The configuration of the service
+          description: JSON configuration of the service.
         enabled:
           type: boolean
           description: Is the service enabled or not.
           default: true
         type:
           type: string
+          description: The service plugin ID used.
+      required:
+        - type
+        - configuration
     BaseStep:
       description: Base step
       type: object
@@ -1942,22 +1998,22 @@ components:
           maxLength: 64
         description:
           type: string
-          description: The description of the step
+          description: A description for the step
           maxLength: 256
         enabled:
           type: boolean
-          description: Is the step enabled or not.
+          description: To enable the step globally.
           default: true
         policy:
           type: string
-          description: The policy of the step
+          description: The policy of the step (plugin ID)
           maxLength: 64
         configuration:
           type: object
-          description: The configuration of the step
+          description: JSON Object configuration of the policy used.
         condition:
           type: string
-          description: The condition of the step
+          description: The EL condition return a boolean to execute this step at runtime. Empty expression implies it is enabled.
           maxLength: 1024
       required:
         - enabled
@@ -1970,10 +2026,10 @@ components:
         - properties:
             messageCondition:
               type: string
-              description: The message condition of the step
+              description: The message condition of the step (for message API)
               maxLength: 256
     SubscriptionListener:
-      description: Subscription listener
+      description: Subscription listener for message API.
       title: "SubscriptionListener"
       required:
         - type
@@ -2011,34 +2067,26 @@ components:
             host:
               description: A hostname for which the API will match against SNI.
               type: string
-            port:
-              type: integer
-              minimum: 0
-              description: The port of the listener
-              examples:
-                - 8080
           required:
             - "host"
-
-    # Failover v4
     FailoverV4:
-      description: API Failover
+      description: Defines the failover behavior to bypass endpoints when some are slow.
       type: object
       properties:
         enabled:
           type: boolean
-          description: Is the failover enabled.
+          description: Automatically redirects request to the next endpoint if the response is too slow.
           default: false
         maxRetries:
           type: integer
           format: int32
-          description: The maximum number of retries.
+          description: Limit the number of retry attempts before recording an error. Each attempt dynamically selects an endpoint based on the load balancing algorithm.
           default: 2
           minimum: 0
         slowCallDuration:
           type: integer
           format: int64
-          description: The duration in milliseconds to consider a request as slow.
+          description: Define a threshold for slow responses. Requests exceeding this duration are recorded as slow.
           default: 2000
           minimum: 50
         openStateDuration:
@@ -2057,8 +2105,6 @@ components:
           type: boolean
           description: If true, a circuit breaker breaker will be dedicated for each subscriber, else, one and only circuit breaker will be used for the API.
           default: true
-
-    # Metadata Page
     Metadata:
       description: Metadata is a generic data structure used internally
       type: object
@@ -2079,6 +2125,10 @@ components:
         defaultValue:
           type: string
           description: The default value of the metadata if the value is not set.
+        hidden:
+          type: boolean
+          description: if this metadata should be hidden
+          default: false
       required:
         - name
         - format
@@ -2097,7 +2147,7 @@ components:
 
     LifecycleState:
       type: string
-      description: The state of the API regarding the gateway(s).
+      description: STARTED will make this API callable on tis context path, STOPPED will yield 404 error
       examples:
         - STARTED
       enum:
@@ -2148,7 +2198,7 @@ components:
                 examples:
                   - updateApi.properties[0].key
               invalidValue:
-                type: string
+                type: object
                 description: The invalid value.
 
     Errors:
