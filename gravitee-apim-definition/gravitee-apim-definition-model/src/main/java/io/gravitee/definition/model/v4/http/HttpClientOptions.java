@@ -43,6 +43,15 @@ public class HttpClientOptions implements Serializable {
     private int http2MultiplexingLimit = -1;
 
     @Builder.Default
+    private int http2ConnectionWindowSize = -1;
+
+    @Builder.Default
+    private int http2StreamWindowSize = -1;
+
+    @Builder.Default
+    private int http2MaxFrameSize = DEFAULT_MAX_FRAME_SIZE;
+
+    @Builder.Default
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     @Builder.Default
