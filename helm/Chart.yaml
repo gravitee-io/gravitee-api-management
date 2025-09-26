@@ -35,3 +35,8 @@ annotations:
       links:
         - name: Github Issue
           url: https://github.com/gravitee-io/issues/issues/10966
+    - kind: added
+      description: 'allow configuration of httpClient proxy excludes'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/10855
