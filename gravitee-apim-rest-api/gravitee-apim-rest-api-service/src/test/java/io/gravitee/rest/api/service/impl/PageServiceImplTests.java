@@ -20,14 +20,12 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageMedia;
 import io.gravitee.repository.management.model.PageReferenceType;
@@ -80,7 +78,7 @@ public class PageServiceImplTests {
     PageRevisionService pageRevisionService;
 
     @Captor
-    private ArgumentCaptor<Page> pageCaptor;
+    private ArgumentCaptor<AuditService.AuditLogData> auditLogDataCaptor;
 
     @Test
     public void getParentPathFromFilePath_should_return_correct_path() {
@@ -209,16 +207,10 @@ public class PageServiceImplTests {
 
         pageService.createPage(executionContext, API_ID, aNewPageEntity);
 
-        verify(auditService).createApiAuditLog(
-            any(ExecutionContext.class),
-            eq(API_ID),
-            any(),
-            any(Audit.AuditEvent.class),
-            any(),
-            isNull(),
-            pageCaptor.capture()
-        );
-        var auditPage = pageCaptor.getValue();
+        verify(auditService).createApiAuditLog(any(ExecutionContext.class), auditLogDataCaptor.capture(), eq(API_ID));
+        AuditService.AuditLogData auditLogData = auditLogDataCaptor.getValue();
+        assertThat(auditLogData.getOldValue()).isNull();
+        Page auditPage = (Page) auditLogData.getNewValue();
         assertThat(auditPage).isNotNull();
         assertThat(auditPage.getContent()).isNotNull();
         assertThat(auditPage.getContent().length()).isEqualTo(aNewPageEntity.getContent().length());
@@ -234,16 +226,10 @@ public class PageServiceImplTests {
 
         pageService.createPage(executionContext, API_ID, aNewPageEntity);
 
-        verify(auditService).createApiAuditLog(
-            any(ExecutionContext.class),
-            eq(API_ID),
-            any(),
-            any(Audit.AuditEvent.class),
-            any(),
-            isNull(),
-            pageCaptor.capture()
-        );
-        var auditPage = pageCaptor.getValue();
+        verify(auditService).createApiAuditLog(any(ExecutionContext.class), auditLogDataCaptor.capture(), eq(API_ID));
+        AuditService.AuditLogData auditLogData = auditLogDataCaptor.getValue();
+        assertThat(auditLogData.getOldValue()).isNull();
+        Page auditPage = (Page) auditLogData.getNewValue();
         assertThat(auditPage).isNotNull();
         assertThat(auditPage.getContent()).isEqualTo(
             """
@@ -262,16 +248,10 @@ public class PageServiceImplTests {
 
         pageService.createPage(executionContext, API_ID, aNewPageEntity);
 
-        verify(auditService).createApiAuditLog(
-            any(ExecutionContext.class),
-            eq(API_ID),
-            any(),
-            any(Audit.AuditEvent.class),
-            any(),
-            isNull(),
-            pageCaptor.capture()
-        );
-        var auditPage = pageCaptor.getValue();
+        verify(auditService).createApiAuditLog(any(ExecutionContext.class), auditLogDataCaptor.capture(), eq(API_ID));
+        AuditService.AuditLogData auditLogData = auditLogDataCaptor.getValue();
+        assertThat(auditLogData.getOldValue()).isNull();
+        Page auditPage = (Page) auditLogData.getNewValue();
         assertThat(auditPage).isNotNull();
         assertThat(auditPage.getContent()).isNull();
     }

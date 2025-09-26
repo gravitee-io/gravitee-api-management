@@ -16,6 +16,10 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.THEME;
+import static io.gravitee.repository.management.model.Theme.AuditEvent.THEME_CREATED;
+import static io.gravitee.repository.management.model.Theme.AuditEvent.THEME_DELETED;
+import static io.gravitee.repository.management.model.Theme.AuditEvent.THEME_RESET;
+import static io.gravitee.repository.management.model.Theme.AuditEvent.THEME_UPDATED;
 import static io.gravitee.repository.management.model.ThemeReferenceType.ENVIRONMENT;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -361,11 +365,12 @@ public class ThemeServiceTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(THEME, THEME_ID)),
-            eq(Theme.AuditEvent.THEME_CREATED),
-            any(Date.class),
-            isNull(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(THEME, THEME_ID)) &&
+                    auditLogData.getEvent().equals(THEME_CREATED) &&
+                    auditLogData.getOldValue() == null
+            )
         );
     }
 
@@ -441,11 +446,10 @@ public class ThemeServiceTest {
 
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(THEME, THEME_ID)),
-            eq(Theme.AuditEvent.THEME_UPDATED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(THEME, THEME_ID)) && auditLogData.getEvent().equals(THEME_UPDATED)
+            )
         );
     }
 
@@ -477,11 +481,10 @@ public class ThemeServiceTest {
 
         verify(auditService, never()).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(THEME, THEME_ID)),
-            eq(Theme.AuditEvent.THEME_UPDATED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(THEME, THEME_ID)) && auditLogData.getEvent().equals(THEME_UPDATED)
+            )
         );
     }
 
@@ -556,11 +559,10 @@ public class ThemeServiceTest {
 
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(THEME, THEME_ID)),
-            eq(Theme.AuditEvent.THEME_RESET),
-            any(Date.class),
-            any(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(THEME, THEME_ID)) && auditLogData.getEvent().equals(THEME_RESET)
+            )
         );
     }
 
@@ -576,11 +578,13 @@ public class ThemeServiceTest {
         verify(themeRepository, times(1)).delete(THEME_ID);
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(THEME, THEME_ID)),
-            eq(Theme.AuditEvent.THEME_DELETED),
-            any(Date.class),
-            isNull(),
-            eq(theme)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(THEME, THEME_ID)) &&
+                    auditLogData.getEvent().equals(THEME_DELETED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue() == theme
+            )
         );
     }
 
@@ -596,11 +600,13 @@ public class ThemeServiceTest {
         verify(themeRepository, never()).delete(THEME_ID);
         verify(auditService, never()).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(THEME, THEME_ID)),
-            eq(Theme.AuditEvent.THEME_DELETED),
-            any(Date.class),
-            isNull(),
-            eq(theme)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(THEME, THEME_ID)) &&
+                    auditLogData.getEvent().equals(THEME_DELETED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(theme)
+            )
         );
     }
 
@@ -733,11 +739,12 @@ public class ThemeServiceTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(THEME, THEME_ID)),
-            eq(Theme.AuditEvent.THEME_CREATED),
-            any(Date.class),
-            isNull(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(THEME, THEME_ID)) &&
+                    auditLogData.getEvent().equals(THEME_CREATED) &&
+                    auditLogData.getOldValue() == null
+            )
         );
     }
 
@@ -793,11 +800,10 @@ public class ThemeServiceTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ImmutableMap.of(THEME, THEME_ID)),
-            eq(Theme.AuditEvent.THEME_UPDATED),
-            any(Date.class),
-            any(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(ImmutableMap.of(THEME, THEME_ID)) && auditLogData.getEvent().equals(THEME_UPDATED)
+            )
         );
     }
 

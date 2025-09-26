@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_PAUSED_BY_CONSUMER;
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER;
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
 import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
@@ -37,8 +39,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -96,7 +96,6 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
@@ -132,19 +131,16 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -158,7 +154,6 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -2164,21 +2159,13 @@ public class SubscriptionServiceTest {
         verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            anyMap(),
-            eq(Subscription.AuditEvent.SUBSCRIPTION_PAUSED_BY_CONSUMER),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_PAUSED_BY_CONSUMER)),
+            eq(API_ID)
         );
         verify(auditService).createApplicationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(APPLICATION_ID),
-            anyMap(),
-            eq(Subscription.AuditEvent.SUBSCRIPTION_PAUSED_BY_CONSUMER),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_PAUSED_BY_CONSUMER)),
+            eq(APPLICATION_ID)
         );
     }
 
@@ -2253,21 +2240,13 @@ public class SubscriptionServiceTest {
         verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            anyMap(),
-            eq(Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_RESUMED_BY_CONSUMER)),
+            eq(API_ID)
         );
         verify(auditService).createApplicationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(APPLICATION_ID),
-            anyMap(),
-            eq(Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_RESUMED_BY_CONSUMER)),
+            eq(APPLICATION_ID)
         );
     }
 
@@ -2293,21 +2272,13 @@ public class SubscriptionServiceTest {
         verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(API_ID),
-            anyMap(),
-            eq(Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_RESUMED_BY_CONSUMER)),
+            eq(API_ID)
         );
         verify(auditService).createApplicationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(APPLICATION_ID),
-            anyMap(),
-            eq(Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_RESUMED_BY_CONSUMER)),
+            eq(APPLICATION_ID)
         );
     }
 

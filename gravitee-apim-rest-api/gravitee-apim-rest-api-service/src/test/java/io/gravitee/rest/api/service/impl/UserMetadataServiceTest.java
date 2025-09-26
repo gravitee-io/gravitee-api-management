@@ -139,12 +139,13 @@ public class UserMetadataServiceTest {
             .build();
         verify(auditService).createOrganizationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(GraviteeContext.getCurrentOrganization()),
-            eq(properties),
-            eq(METADATA_CREATED),
-            any(),
-            eq(null),
-            eq(newUserMetadata)
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(properties) &&
+                    auditLogData.getEvent().equals(METADATA_CREATED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(newUserMetadata)
+            )
         );
     }
 
@@ -184,12 +185,7 @@ public class UserMetadataServiceTest {
             .build();
         verify(auditService).createOrganizationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(GraviteeContext.getCurrentOrganization()),
-            eq(properties),
-            eq(METADATA_UPDATED),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getProperties().equals(properties) && auditLogData.getEvent().equals(METADATA_UPDATED))
         );
     }
 

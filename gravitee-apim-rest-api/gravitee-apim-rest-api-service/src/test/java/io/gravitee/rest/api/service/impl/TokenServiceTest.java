@@ -26,7 +26,6 @@ import static org.junit.Assert.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.anyMap;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -205,12 +204,7 @@ public class TokenServiceTest {
 
         verify(auditService).createOrganizationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(CURRENT_ORGANIZATION),
-            anyMap(),
-            eq(TOKEN_CREATED),
-            any(Date.class),
-            isNull(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(TOKEN_CREATED) && auditLogData.getOldValue() == null)
         );
         verify(tokenRepository).create(any());
         verify(tokenRepository).findByReference(eq(USER.name()), eq(USER_ID));
@@ -232,12 +226,12 @@ public class TokenServiceTest {
 
         verify(auditService).createOrganizationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(CURRENT_ORGANIZATION),
-            anyMap(),
-            eq(TOKEN_DELETED),
-            any(Date.class),
-            isNull(),
-            eq(token)
+            argThat(
+                auditLogData ->
+                    auditLogData.getEvent().equals(TOKEN_DELETED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(token)
+            )
         );
         verify(tokenRepository).delete(TOKEN_ID);
     }
@@ -250,12 +244,12 @@ public class TokenServiceTest {
 
         verify(auditService).createOrganizationAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            eq(CURRENT_ORGANIZATION),
-            anyMap(),
-            eq(TOKEN_DELETED),
-            any(Date.class),
-            isNull(),
-            eq(token)
+            argThat(
+                auditLogData ->
+                    auditLogData.getEvent().equals(TOKEN_DELETED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(token)
+            )
         );
         verify(tokenRepository).delete(TOKEN_ID);
     }

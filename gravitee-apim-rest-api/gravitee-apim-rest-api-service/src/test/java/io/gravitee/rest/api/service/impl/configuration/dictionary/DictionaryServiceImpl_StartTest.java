@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
@@ -93,11 +94,11 @@ public class DictionaryServiceImpl_StartTest {
         );
         verify(auditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
-            eq(updatedDictionary.getUpdatedAt()),
-            any(),
-            any()
+            argThat(
+                auditLogData ->
+                    auditLogData.getEvent().equals(DICTIONARY_UPDATED) &&
+                    auditLogData.getCreatedAt().equals(updatedDictionary.getUpdatedAt())
+            )
         );
     }
 
@@ -123,11 +124,7 @@ public class DictionaryServiceImpl_StartTest {
         );
         verify(auditService, never()).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            any(),
-            eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
-            any(),
-            any(),
-            any()
+            argThat(auditLogData -> auditLogData.getEvent().equals(DICTIONARY_UPDATED))
         );
     }
 
