@@ -43,6 +43,11 @@
                 "glob": "build.json",
                 "input": ".",
                 "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "projects/gravitee-markdown/src/lib/assets/homepage",
+                "output": "assets/homepage"
               }
             ],
             "scripts": [
