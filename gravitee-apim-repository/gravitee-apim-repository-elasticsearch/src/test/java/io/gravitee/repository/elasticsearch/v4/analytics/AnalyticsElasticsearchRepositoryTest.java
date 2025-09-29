@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.definition.model.DefinitionVersion.V4;
+import static io.gravitee.repository.elasticsearch.TestConfiguration.DEFAULT_SEARCH_TYPE;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
@@ -24,6 +25,7 @@ import static org.assertj.core.api.Assertions.not;
 import static org.assertj.core.api.Assertions.offset;
 import static org.assertj.core.api.Assertions.withPrecision;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.common.query.QueryContext;
@@ -69,11 +71,13 @@ import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.SoftAssertions;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -1087,6 +1091,15 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
         private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
         private static final TimeProvider TIME_PROVIDER = new TimeProvider();
+
+        @Value("${search.type:" + DEFAULT_SEARCH_TYPE + "}")
+        private String searchType;
+
+        @BeforeEach
+        void beforeEach() {
+            // Event Analytics can only be executed on Elasticsearch.
+            assumeTrue(searchType.equals(DEFAULT_SEARCH_TYPE));
+        }
 
         @Test
         void should_search_top_value_hits_for_active_connections() {
