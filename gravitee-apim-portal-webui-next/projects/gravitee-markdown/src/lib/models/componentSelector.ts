@@ -19,7 +19,7 @@ export enum ComponentSelector {
   CARD = 'gmd-card',
   CARD_TITLE = 'gmd-card-title',
   CARD_SUBTITLE = 'gmd-card-subtitle',
-  MD_BLOCK = 'gmd-block',
+  MD_BLOCK = 'gmd-md',
   BUTTON = 'gmd-button',
 }
 
