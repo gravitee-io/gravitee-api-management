@@ -309,12 +309,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         // Audit
         auditService.createApiAuditLog(
             executionContext,
-            createdApi.getId(),
-            Collections.emptyMap(),
-            API_CREATED,
-            createdApi.getCreatedAt(),
-            null,
-            createdApi
+            AuditService.AuditLogData.builder()
+                .properties(Collections.emptyMap())
+                .event(API_CREATED)
+                .createdAt(createdApi.getCreatedAt())
+                .oldValue(null)
+                .newValue(createdApi)
+                .build(),
+            createdApi.getId()
         );
 
         // Add the primary owner of the newly created API
@@ -534,12 +536,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                updatedApi.getId(),
-                Collections.emptyMap(),
-                API_UPDATED,
-                updatedApi.getUpdatedAt(),
-                apiToUpdate,
-                updatedApi
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(updatedApi.getUpdatedAt())
+                    .oldValue(apiToUpdate)
+                    .newValue(updatedApi)
+                    .build(),
+                updatedApi.getId()
             );
 
             if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
@@ -657,7 +661,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // delete all reference on api quality rule
             apiQualityRuleRepository.deleteByApi(apiId);
             // Audit
-            auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
+            auditService.createApiAuditLog(
+                executionContext,
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(API_DELETED)
+                    .createdAt(new Date())
+                    .oldValue(api)
+                    .newValue(null)
+                    .build(),
+                apiId
+            );
             // remove from search engine
             searchEngineService.delete(executionContext, genericApiMapper.toGenericApi(api, null));
 
@@ -775,12 +789,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                apiId,
-                Collections.emptyMap(),
-                auditEvent,
-                new Date(),
-                existingLogging,
-                updatedLogging
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(auditEvent)
+                    .createdAt(new Date())
+                    .oldValue(existingLogging)
+                    .newValue(updatedLogging)
+                    .build(),
+                apiId
             );
         } catch (Exception ex) {
             String errorMsg = String.format("An error occurs while auditing API logging configuration for API:  %s", apiId);

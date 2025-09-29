@@ -125,12 +125,14 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
             apiNotificationService.triggerUpdateNotification(executionContext, api);
             auditService.createApiAuditLog(
                 executionContext,
-                api.getId(),
-                Collections.emptyMap(),
-                API_UPDATED,
-                api.getUpdatedAt(),
-                apiSnapshot,
-                api
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(api.getUpdatedAt())
+                    .oldValue(apiSnapshot)
+                    .newValue(api)
+                    .build(),
+                api.getId()
             );
             apiCategoryOrderRepository.delete(api.getId(), categoryId);
         } catch (TechnicalException e) {

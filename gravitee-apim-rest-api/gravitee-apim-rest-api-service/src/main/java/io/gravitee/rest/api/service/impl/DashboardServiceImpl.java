@@ -164,11 +164,13 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             Dashboard dashboard = dashboardRepository.create(convert(dashboardEntity, dashboards));
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(DASHBOARD, dashboard.getId()),
-                DASHBOARD_CREATED,
-                dashboard.getCreatedAt(),
-                null,
-                dashboard
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(DASHBOARD, dashboard.getId()))
+                    .event(DASHBOARD_CREATED)
+                    .createdAt(dashboard.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(dashboard)
+                    .build()
             );
             return convert(dashboard);
         } catch (TechnicalException ex) {
@@ -243,11 +245,13 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             }
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(DASHBOARD, dashboard.getId()),
-                DASHBOARD_UPDATED,
-                new Date(),
-                existing,
-                dashboard
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(DASHBOARD, dashboard.getId()))
+                    .event(DASHBOARD_UPDATED)
+                    .createdAt(new Date())
+                    .oldValue(existing)
+                    .newValue(dashboard)
+                    .build()
             );
             return savedDashboard;
         } catch (TechnicalException ex) {
@@ -339,11 +343,13 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 reorderAndSaveDashboards(referenceType, referenceId, dashboardOptional.get(), true);
                 auditService.createAuditLog(
                     executionContext,
-                    Collections.singletonMap(DASHBOARD, dashboardId),
-                    DASHBOARD_DELETED,
-                    new Date(),
-                    null,
-                    dashboardOptional.get()
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(DASHBOARD, dashboardId))
+                        .event(DASHBOARD_DELETED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(dashboardOptional.get())
+                        .build()
                 );
             }
         } catch (TechnicalException ex) {

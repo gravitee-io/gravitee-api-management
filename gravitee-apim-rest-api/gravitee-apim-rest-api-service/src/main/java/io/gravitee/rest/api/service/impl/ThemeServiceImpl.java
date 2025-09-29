@@ -147,11 +147,13 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(THEME, theme.getId()),
-                THEME_CREATED,
-                theme.getCreatedAt(),
-                null,
-                theme
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(THEME, theme.getId()))
+                    .event(THEME_CREATED)
+                    .createdAt(theme.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(theme)
+                    .build()
             );
 
             return convertToPortalThemeEntity(theme);
@@ -229,11 +231,13 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 final ThemeEntity savedTheme = convertToPortalThemeEntity(themeRepository.update(theme));
                 auditService.createAuditLog(
                     executionContext,
-                    Collections.singletonMap(THEME, theme.getId()),
-                    THEME_UPDATED,
-                    new Date(),
-                    themeOptional.get(),
-                    theme
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(THEME, theme.getId()))
+                        .event(THEME_UPDATED)
+                        .createdAt(new Date())
+                        .oldValue(themeOptional.get())
+                        .newValue(theme)
+                        .build()
                 );
                 return savedTheme;
             } else {
@@ -268,11 +272,13 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 themeRepository.delete(themeId);
                 auditService.createAuditLog(
                     executionContext,
-                    Collections.singletonMap(THEME, themeId),
-                    THEME_DELETED,
-                    new Date(),
-                    null,
-                    themeOptional.get()
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(THEME, themeId))
+                        .event(THEME_DELETED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(themeOptional.get())
+                        .build()
                 );
             }
         } catch (TechnicalException ex) {
@@ -358,11 +364,13 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                             this.themeRepository.update(themeUpdate);
                             auditService.createAuditLog(
                                 executionContext,
-                                Collections.singletonMap(THEME, theme.getId()),
-                                THEME_UPDATED,
-                                new Date(),
-                                theme,
-                                themeUpdate
+                                AuditService.AuditLogData.builder()
+                                    .properties(Collections.singletonMap(THEME, theme.getId()))
+                                    .event(THEME_UPDATED)
+                                    .createdAt(new Date())
+                                    .oldValue(theme)
+                                    .newValue(themeUpdate)
+                                    .build()
                             );
                         } catch (IOException ex) {
                             final String error =
@@ -456,11 +464,13 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             themeRepository.delete(previousTheme.getId());
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(THEME, themeId),
-                THEME_RESET,
-                new Date(),
-                previousTheme,
-                null
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(THEME, themeId))
+                    .event(THEME_RESET)
+                    .createdAt(new Date())
+                    .oldValue(previousTheme)
+                    .newValue(null)
+                    .build()
             );
             if (io.gravitee.rest.api.model.theme.ThemeType.PORTAL.equals(previousTheme.getType())) {
                 return findOrCreateDefaultPortalTheme(executionContext);

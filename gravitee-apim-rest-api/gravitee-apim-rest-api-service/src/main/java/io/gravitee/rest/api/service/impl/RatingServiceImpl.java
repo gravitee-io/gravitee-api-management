@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Rating.RatingEvent.RATING_CREATED;
+import static io.gravitee.repository.management.model.Rating.RatingEvent.RATING_DELETED;
+import static io.gravitee.repository.management.model.Rating.RatingEvent.RATING_UPDATED;
+import static io.gravitee.repository.management.model.RatingAnswer.RatingAnswerEvent.RATING_ANSWER_CREATED;
+import static io.gravitee.repository.management.model.RatingAnswer.RatingAnswerEvent.RATING_ANSWER_DELETED;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.*;
@@ -100,12 +105,13 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             Rating rating = ratingRepository.create(convert(ratingEntity));
             auditService.createApiAuditLog(
                 executionContext,
-                rating.getReferenceId(),
-                null,
-                Rating.RatingEvent.RATING_CREATED,
-                rating.getCreatedAt(),
-                null,
-                rating
+                AuditService.AuditLogData.builder()
+                    .event(RATING_CREATED)
+                    .createdAt(rating.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(rating)
+                    .build(),
+                rating.getReferenceId()
             );
 
             notifierService.trigger(
@@ -139,12 +145,13 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             ratingAnswerRepository.create(ratingAnswer);
             auditService.createApiAuditLog(
                 executionContext,
-                rating.getReferenceId(),
-                null,
-                RatingAnswer.RatingAnswerEvent.RATING_ANSWER_CREATED,
-                ratingAnswer.getCreatedAt(),
-                null,
-                ratingAnswer
+                AuditService.AuditLogData.builder()
+                    .event(RATING_ANSWER_CREATED)
+                    .createdAt(ratingAnswer.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(ratingAnswer)
+                    .build(),
+                rating.getReferenceId()
             );
 
             notifierService.trigger(
@@ -315,12 +322,13 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             Rating updatedRating = ratingRepository.update(rating);
             auditService.createApiAuditLog(
                 executionContext,
-                rating.getReferenceId(),
-                null,
-                Rating.RatingEvent.RATING_UPDATED,
-                updatedRating.getUpdatedAt(),
-                oldRating,
-                updatedRating
+                AuditService.AuditLogData.builder()
+                    .event(RATING_UPDATED)
+                    .createdAt(updatedRating.getUpdatedAt())
+                    .oldValue(oldRating)
+                    .newValue(updatedRating)
+                    .build(),
+                rating.getReferenceId()
             );
             return convert(executionContext, updatedRating);
         } catch (TechnicalException ex) {
@@ -339,12 +347,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             ratingRepository.delete(id);
             auditService.createApiAuditLog(
                 executionContext,
-                rating.getReferenceId(),
-                null,
-                Rating.RatingEvent.RATING_DELETED,
-                new Date(),
-                rating,
-                null
+                AuditService.AuditLogData.builder().event(RATING_DELETED).createdAt(new Date()).oldValue(rating).newValue(null).build(),
+                rating.getReferenceId()
             );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete rating {}", id, ex);
@@ -362,12 +366,13 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             ratingAnswerRepository.delete(answerId);
             auditService.createApiAuditLog(
                 executionContext,
-                rating.getReferenceId(),
-                null,
-                RatingAnswer.RatingAnswerEvent.RATING_ANSWER_DELETED,
-                new Date(),
-                rating,
-                null
+                AuditService.AuditLogData.builder()
+                    .event(RATING_ANSWER_DELETED)
+                    .createdAt(new Date())
+                    .oldValue(rating)
+                    .newValue(null)
+                    .build(),
+                rating.getReferenceId()
             );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete rating answer {}", answerId, ex);

@@ -16,8 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.QUALITY_RULE;
+import static io.gravitee.repository.management.model.QualityRule.AuditEvent.QUALITY_RULE_CREATED;
+import static io.gravitee.repository.management.model.QualityRule.AuditEvent.QUALITY_RULE_DELETED;
 import static io.gravitee.repository.management.model.QualityRule.AuditEvent.QUALITY_RULE_UPDATED;
-import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -125,11 +126,13 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             final QualityRule createdQualityRule = qualityRuleRepository.create(qualityRule);
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(QUALITY_RULE, createdQualityRule.getId()),
-                QualityRule.AuditEvent.QUALITY_RULE_CREATED,
-                qualityRule.getCreatedAt(),
-                null,
-                qualityRule
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(QUALITY_RULE, createdQualityRule.getId()))
+                    .event(QUALITY_RULE_CREATED)
+                    .createdAt(qualityRule.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(qualityRule)
+                    .build()
             );
             return convert(createdQualityRule);
         } catch (TechnicalException e) {
@@ -152,11 +155,13 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             final QualityRule updatedQualityRule = qualityRuleRepository.update(convert(updateEntity, qualityRule));
             auditService.createAuditLog(
                 executionContext,
-                singletonMap(QUALITY_RULE, updatedQualityRule.getId()),
-                QUALITY_RULE_UPDATED,
-                updatedQualityRule.getUpdatedAt(),
-                qualityRule,
-                updatedQualityRule
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(QUALITY_RULE, updatedQualityRule.getId()))
+                    .event(QUALITY_RULE_UPDATED)
+                    .createdAt(updatedQualityRule.getUpdatedAt())
+                    .oldValue(qualityRule)
+                    .newValue(updatedQualityRule)
+                    .build()
             );
             return convert(updatedQualityRule);
         } catch (TechnicalException e) {
@@ -181,11 +186,13 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 apiQualityRuleRepository.deleteByQualityRule(qualityRule);
                 auditService.createAuditLog(
                     executionContext,
-                    Collections.singletonMap(QUALITY_RULE, qualityRule),
-                    QualityRule.AuditEvent.QUALITY_RULE_DELETED,
-                    new Date(),
-                    null,
-                    qualityRuleOptional.get()
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(QUALITY_RULE, qualityRule))
+                        .event(QUALITY_RULE_DELETED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(qualityRuleOptional.get())
+                        .build()
                 );
             }
         } catch (TechnicalException ex) {

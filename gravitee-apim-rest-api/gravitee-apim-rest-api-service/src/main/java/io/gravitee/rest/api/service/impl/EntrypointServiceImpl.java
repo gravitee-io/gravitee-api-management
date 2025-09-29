@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENTRYPOINT;
 import static io.gravitee.repository.management.model.Entrypoint.AuditEvent.*;
-import static java.util.Arrays.sort;
+import static java.util.Collections.singletonMap;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EntrypointRepository;
@@ -98,12 +98,13 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
-                ENTRYPOINT_CREATED,
-                new Date(),
-                null,
-                entrypoint
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(ENTRYPOINT, entrypoint.getId()))
+                    .event(ENTRYPOINT_CREATED)
+                    .createdAt(new Date())
+                    .oldValue(null)
+                    .newValue(entrypoint)
+                    .build()
             );
             return savedEntryPoint;
         } catch (TechnicalException ex) {
@@ -128,12 +129,13 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 final EntrypointEntity savedEntryPoint = convert(entrypointRepository.update(entrypoint));
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    executionContext.getOrganizationId(),
-                    Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
-                    ENTRYPOINT_UPDATED,
-                    new Date(),
-                    entrypointOptional.get(),
-                    entrypoint
+                    AuditService.AuditLogData.builder()
+                        .properties(singletonMap(ENTRYPOINT, entrypoint.getId()))
+                        .event(ENTRYPOINT_UPDATED)
+                        .createdAt(new Date())
+                        .oldValue(entrypointOptional.get())
+                        .newValue(entrypoint)
+                        .build()
                 );
                 return savedEntryPoint;
             } else {
@@ -157,12 +159,13 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 entrypointRepository.delete(entrypointId);
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    executionContext.getOrganizationId(),
-                    Collections.singletonMap(ENTRYPOINT, entrypointId),
-                    ENTRYPOINT_DELETED,
-                    new Date(),
-                    null,
-                    entrypointOptional.get()
+                    AuditService.AuditLogData.builder()
+                        .properties(singletonMap(ENTRYPOINT, entrypointId))
+                        .event(ENTRYPOINT_DELETED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(entrypointOptional.get())
+                        .build()
                 );
             } else {
                 throw new EntrypointNotFoundException(entrypointId);

@@ -120,11 +120,13 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
 
             auditService.createAuditLog(
                 executionContext,
-                singletonMap(METADATA, created.getKey()),
-                METADATA_CREATED,
-                created.getCreatedAt(),
-                null,
-                created
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(METADATA, created.getKey()))
+                    .event(METADATA_CREATED)
+                    .createdAt(created.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(created)
+                    .build()
             );
             return convert(created);
         } catch (TechnicalException ex) {
@@ -160,11 +162,13 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             // FIXME: Use OrganizationAuditLog?
             auditService.createAuditLog(
                 executionContext,
-                singletonMap(METADATA, metadata.getKey()),
-                METADATA_UPDATED,
-                metadata.getCreatedAt(),
-                null,
-                metadata
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(METADATA, metadata.getKey()))
+                    .event(METADATA_UPDATED)
+                    .createdAt(metadata.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(metadata)
+                    .build()
             );
             return convert(metadata);
         } catch (TechnicalException ex) {
@@ -194,11 +198,13 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                 // FIXME: Use OrganizationAuditLog?
                 auditService.createAuditLog(
                     executionContext,
-                    singletonMap(METADATA, key),
-                    METADATA_DELETED,
-                    new Date(),
-                    optMetadata.get(),
-                    null
+                    AuditService.AuditLogData.builder()
+                        .properties(singletonMap(METADATA, key))
+                        .event(METADATA_DELETED)
+                        .createdAt(new Date())
+                        .oldValue(optMetadata.get())
+                        .newValue(null)
+                        .build()
                 );
                 // delete all overridden API metadata
                 final List<Metadata> apiMetadata = metadataRepository.findByKeyAndReferenceType(key, MetadataReferenceType.API);
@@ -208,12 +214,14 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                     // Audit
                     auditService.createApiAuditLog(
                         executionContext,
-                        metadata.getReferenceId(),
-                        singletonMap(METADATA, key),
-                        METADATA_DELETED,
-                        new Date(),
-                        metadata,
-                        null
+                        AuditService.AuditLogData.builder()
+                            .properties(singletonMap(METADATA, key))
+                            .event(METADATA_DELETED)
+                            .createdAt(new Date())
+                            .oldValue(metadata)
+                            .newValue(null)
+                            .build(),
+                        metadata.getReferenceId()
                     );
                 }
             }

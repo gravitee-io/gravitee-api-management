@@ -230,34 +230,39 @@ public abstract class AbstractReferenceMetadataService extends AbstractService {
             case API:
                 auditService.createApiAuditLog(
                     executionContext,
-                    referenceId,
-                    Collections.singletonMap(METADATA, key),
-                    auditEvent,
-                    updatedAt,
-                    oldMetadata,
-                    metadata
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(METADATA, key))
+                        .event(auditEvent)
+                        .createdAt(updatedAt)
+                        .oldValue(oldMetadata)
+                        .newValue(metadata)
+                        .build(),
+                    referenceId
                 );
                 break;
             case APPLICATION:
                 auditService.createApplicationAuditLog(
                     executionContext,
-                    referenceId,
-                    Collections.singletonMap(METADATA, key),
-                    auditEvent,
-                    updatedAt,
-                    oldMetadata,
-                    metadata
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(METADATA, key))
+                        .event(auditEvent)
+                        .createdAt(updatedAt)
+                        .oldValue(oldMetadata)
+                        .newValue(metadata)
+                        .build(),
+                    referenceId
                 );
                 break;
             case USER:
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    executionContext.getOrganizationId(),
-                    Maps.<Audit.AuditProperties, String>builder().put(USER, referenceId).put(METADATA, key).build(),
-                    auditEvent,
-                    updatedAt,
-                    oldMetadata,
-                    metadata
+                    AuditService.AuditLogData.builder()
+                        .properties(Maps.<Audit.AuditProperties, String>builder().put(USER, referenceId).put(METADATA, key).build())
+                        .event(auditEvent)
+                        .createdAt(updatedAt)
+                        .oldValue(oldMetadata)
+                        .newValue(metadata)
+                        .build()
                 );
                 break;
         }

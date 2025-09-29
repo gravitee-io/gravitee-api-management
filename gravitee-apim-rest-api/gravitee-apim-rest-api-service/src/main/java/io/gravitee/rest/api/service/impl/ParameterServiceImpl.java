@@ -432,11 +432,13 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                     final Parameter updatedParameter = parameterRepository.update(parameter);
                     auditService.createAuditLog(
                         executionContext,
-                        singletonMap(PARAMETER, updatedParameter.getKey()),
-                        PARAMETER_UPDATED,
-                        new Date(),
-                        optionalParameter.get(),
-                        updatedParameter
+                        AuditService.AuditLogData.builder()
+                            .properties(singletonMap(PARAMETER, updatedParameter.getKey()))
+                            .event(PARAMETER_UPDATED)
+                            .createdAt(new Date())
+                            .oldValue(optionalParameter.get())
+                            .newValue(updatedParameter)
+                            .build()
                     );
                     eventManager.publishEvent(key, parameter);
                     return updatedParameter;
@@ -450,11 +452,13 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 final Parameter savedParameter = parameterRepository.create(parameter);
                 auditService.createAuditLog(
                     executionContext,
-                    singletonMap(PARAMETER, savedParameter.getKey()),
-                    PARAMETER_CREATED,
-                    new Date(),
-                    null,
-                    savedParameter
+                    AuditService.AuditLogData.builder()
+                        .properties(singletonMap(PARAMETER, savedParameter.getKey()))
+                        .event(PARAMETER_CREATED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(savedParameter)
+                        .build()
                 );
                 eventManager.publishEvent(key, parameter);
                 return savedParameter;
