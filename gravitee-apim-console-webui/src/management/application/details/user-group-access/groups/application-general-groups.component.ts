@@ -15,16 +15,24 @@
  */
 import { Group } from 'src/entities/group/group';
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { catchError, map, takeUntil, tap, switchMap } from 'rxjs/operators';
 import { FormControl, FormGroup } from '@angular/forms';
+import { MatSelect } from '@angular/material/select';
 
-import { GroupService } from '../../../../../services-ngx/group.service';
+import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { Application } from '../../../../../entities/application/Application';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+
+interface Pagination {
+  page: number;
+  pageCount: number;
+  perPage?: number;
+  totalCount?: number;
+}
 
 @Component({
   selector: 'application-general-access-groups',
@@ -32,35 +40,88 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
   styleUrls: ['./application-general-groups.component.scss'],
 })
 export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
-  public groups: Group[];
-  public application: Application;
-  public form: FormGroup;
+  @ViewChild('groupsMatSelect') groupMatSelect!: MatSelect;
+  public groups: Group[] = [];
+  public application!: Application;
+  public form!: FormGroup;
   public initialFormValue: unknown;
   public isReadonly = false;
 
+  public page = 1;
+  public pageSize = 50;
+  public hasMoreGroups = true;
+  public isLoading = false;
+
   private unsubscribe$: Subject<void> = new Subject<void>();
+  private scrollContainer: HTMLElement | null = null;
+  private scrollListener: (() => void) | null = null;
+  private totalPages = 0;
 
   constructor(
-    private readonly groupService: GroupService,
+    private readonly groupv2Service: GroupV2Service,
     private readonly applicationService: ApplicationService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
-    combineLatest([this.applicationService.getById(this.activatedRoute.snapshot.params.applicationId), this.groupService.list()])
+    this.applicationService
+      .getById(this.activatedRoute.snapshot.params.applicationId)
       .pipe(
-        tap(([application, groups]) => {
-          this.groups = groups;
+        tap((application) => {
           this.application = application;
           this.isReadonly = application.origin === 'KUBERNETES';
         }),
+        switchMap(() => this.loadInitialGroups()),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => {
-        const userGroupList: Group[] = this.groups.filter((group) => this.application.groups?.includes(group.id));
+      .subscribe();
+  }
+
+  private updatePagination(pagination: Pagination): void {
+    if (!pagination) return;
+    this.totalPages = pagination.pageCount;
+    if (pagination.page >= this.totalPages) {
+      this.hasMoreGroups = false;
+    } else {
+      this.page = pagination.page + 1;
+    }
+  }
+
+  private mergeGroups(newGroups: Group[]): void {
+    const selectedIds = new Set(this.application.groups ?? []);
+    const existingIds = new Set(this.groups.map((g) => g.id));
+    const filteredNewGroups = newGroups.filter((g) => !existingIds.has(g.id));
+
+    const selectedGroups: Group[] = [];
+    const unselectedGroups: Group[] = [];
+
+    for (const group of this.groups) {
+      (selectedIds.has(group.id) ? selectedGroups : unselectedGroups).push(group);
+    }
+
+    this.groups = [...selectedGroups, ...unselectedGroups, ...filteredNewGroups];
+  }
+
+  private loadInitialGroups(): Observable<Group[]> {
+    this.isLoading = true;
+
+    const selectedGroupIds = this.application.groups ?? [];
+    return combineLatest([
+      this.groupv2Service.list(1, this.pageSize),
+      selectedGroupIds.length > 0 ? this.groupv2Service.listById(selectedGroupIds, 1, selectedGroupIds.length) : of([]),
+    ]).pipe(
+      map(([page1Res, selectedRes]: any) => {
+        const page1Groups: Group[] = page1Res?.data ?? [];
+        const selectedGroups: Group[] = selectedRes?.data ?? [];
+
+        this.groups = [...selectedGroups];
+        this.mergeGroups(page1Groups);
+        this.updatePagination(page1Res?.pagination);
+
+        const userGroupList: Group[] = this.groups.filter((g) => this.application.groups?.includes(g.id));
         this.form = new FormGroup({
-          selectedGroups: new FormControl(userGroupList.map((group) => group.id)),
+          selectedGroups: new FormControl(userGroupList.map((g) => g.id)),
         });
 
         if (this.isReadonly) {
@@ -68,12 +129,74 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
         }
 
         this.initialFormValue = this.form.getRawValue();
-      });
+
+        return this.groups;
+      }),
+      tap(() => (this.isLoading = false)),
+      takeUntil(this.unsubscribe$),
+    );
+  }
+
+  private loadGroups(page: number): Observable<Group[]> {
+    if (this.isLoading || !this.hasMoreGroups) {
+      return of([]);
+    }
+
+    this.isLoading = true;
+
+    return this.groupv2Service.list(page, this.pageSize).pipe(
+      tap((res: any) => {
+        this.mergeGroups(res?.data ?? []);
+        this.updatePagination(res?.pagination);
+        this.isLoading = false;
+      }),
+      map((res: any) => res?.data ?? []),
+      catchError(() => {
+        this.isLoading = false;
+        return of([]);
+      }),
+      takeUntil(this.unsubscribe$),
+    );
+  }
+
+  onSelectToggle(opened: boolean): void {
+    if (opened) {
+      const panelElement = this.groupMatSelect?.panel?.nativeElement as HTMLElement | null;
+
+      if (!panelElement) {
+        return;
+      }
+
+      this.scrollContainer = panelElement;
+      const boundScrollHandler = this.onScroll.bind(this);
+      panelElement.addEventListener('scroll', boundScrollHandler);
+      this.scrollListener = () => panelElement.removeEventListener('scroll', boundScrollHandler);
+    } else {
+      this.cleanupScrollListener();
+    }
+  }
+
+  private onScroll(event: Event): void {
+    const target = event.target as HTMLElement;
+    const threshold = 0.7 * target.scrollHeight;
+
+    if (target.scrollTop + target.clientHeight >= threshold && this.hasMoreGroups && !this.isLoading) {
+      this.loadGroups(this.page).subscribe();
+    }
+  }
+
+  private cleanupScrollListener(): void {
+    if (this.scrollListener) {
+      this.scrollListener();
+    }
+    this.scrollListener = null;
+    this.scrollContainer = null;
   }
 
   ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
+    this.cleanupScrollListener();
   }
 
   save() {
