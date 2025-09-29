@@ -46,6 +46,7 @@
 
         mat-expansion-panel {
           @include mat.elevation(0);
+          overflow: visible;
         }
 
         &__panel {
@@ -70,6 +71,8 @@
           &__editor {
             display: flex;
             flex-direction: column;
+            z-index: 1;
+            position: relative;
           }
         }
       }
