@@ -69,8 +69,8 @@ class SubmitFeedbackUseCaseTest {
         submitFeedbackUseCase
             .execute(input)
             .test()
-            .assertError(throwable ->
-                throwable instanceof NewtAiSubmitFeedbackException && throwable.getMessage().equals("Unexpected error")
+            .assertError(
+                throwable -> throwable instanceof NewtAiSubmitFeedbackException && throwable.getMessage().equals("Unexpected error")
             );
     }
 }
