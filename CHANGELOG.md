@@ -1,3 +1,10 @@
+## [6.2.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.2.0...6.2.1) (2025-09-29)
+
+
+### Bug Fixes
+
+* adapt opensearch for event-metrics ([929de61](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/929de612fbb0e264f12861d1363803c6549e4aca))
+
 # [6.2.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/6.1.2...6.2.0) (2025-09-22)
 
 
