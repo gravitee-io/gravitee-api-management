@@ -138,7 +138,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     apiType: true,
     states: true,
     access: true,
-    qualityScore: true,
+    qualityScore: false,
     tags: true,
     categories: true,
     owner: true,
@@ -166,10 +166,14 @@ export class ApiListComponent implements OnInit, OnDestroy {
     this.isQualityDisplayed = this.constants.env.settings.apiQualityMetrics && this.constants.env.settings.apiQualityMetrics.enabled;
     if (this.isQualityDisplayed) {
       this.displayedColumns.splice(5, 0, 'qualityScore');
+      this.checkedVisibleColumns.qualityScore = true;
     }
 
     if (localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`)) {
-      const storedColumns = JSON.parse(localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`));
+      let storedColumns = JSON.parse(localStorage.getItem(`${this.constants.org.currentEnv.id}-api-list-visible-columns`));
+      if (!this.isQualityDisplayed && storedColumns.includes('qualityScore')) {
+        storedColumns = storedColumns.filter((item) => item !== 'qualityScore');
+      }
       this.displayedColumns = storedColumns;
       this.checkedVisibleColumns = {
         apiType: this.displayedColumns.includes('apiType'),
