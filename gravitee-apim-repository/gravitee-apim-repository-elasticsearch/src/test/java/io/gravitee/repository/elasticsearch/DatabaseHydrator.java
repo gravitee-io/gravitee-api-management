@@ -23,7 +23,6 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.buffer.Buffer;
 import jakarta.annotation.PostConstruct;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,18 +32,18 @@ public class DatabaseHydrator {
 
     Client client;
     FreeMarkerComponent freeMarkerComponent;
-    String elasticMajorVersion;
+    AnatlyticsDatabase anatlyticsDatabase;
     private final TimeProvider timeProvider;
 
     public DatabaseHydrator(
         Client client,
         FreeMarkerComponent freeMarkerComponent,
-        String elasticsearchVersion,
+        AnatlyticsDatabase anatlyticsDatabase,
         TimeProvider timeProvider
     ) {
         this.client = client;
         this.freeMarkerComponent = freeMarkerComponent;
-        this.elasticMajorVersion = elasticsearchVersion.split("\\.")[0];
+        this.anatlyticsDatabase = anatlyticsDatabase;
         this.timeProvider = timeProvider;
     }
 
@@ -74,14 +73,28 @@ public class DatabaseHydrator {
                     Map.entry("refreshInterval", "1s"),
                     Map.entry("indexName", indexName)
                 );
-                var filename = "es" + elasticMajorVersion + "x/mapping/index-template-" + type + ".ftl";
+                String filename;
+                if (this.anatlyticsDatabase.getDatabaseType() == AnatlyticsDatabase.DatabaseType.ELASTICSEARCH) {
+                    filename = "es" + this.anatlyticsDatabase.getDatabaseMajorVersion() + "x";
+                } else {
+                    filename = "opensearch";
+                }
+                filename += "/mapping/index-template-" + type + ".ftl";
                 return Map.entry(indexName, freeMarkerComponent.generateFromTemplate(filename, data));
             })
             .flatMapCompletable(entry -> {
-                if (elasticMajorVersion.equals("7")) {
-                    return client.putTemplate(entry.getKey(), entry.getValue());
+                if (this.anatlyticsDatabase.getDatabaseType() == AnatlyticsDatabase.DatabaseType.ELASTICSEARCH) {
+                    if (this.anatlyticsDatabase.getDatabaseMajorVersion().equals("7")) {
+                        return client.putTemplate(entry.getKey(), entry.getValue());
+                    }
+                    return client.putIndexTemplate(entry.getKey(), entry.getValue());
+                } else {
+                    //OpenSearch
+                    if (!entry.getKey().endsWith("event-metrics")) {
+                        return client.putTemplate(entry.getKey(), entry.getValue());
+                    }
+                    return client.putIndexTemplate(entry.getKey(), entry.getValue());
                 }
-                return client.putIndexTemplate(entry.getKey(), entry.getValue());
             });
     }
 
