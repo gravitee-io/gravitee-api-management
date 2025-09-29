@@ -77,8 +77,7 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         @Test
         void should_generate_expression_language() {
             // Given
-            String requestJson =
-                """
+            String requestJson = """
                 {
                     "message": "Generate an expression to get the user ID",
                     "context": {
@@ -111,8 +110,7 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         @Test
         void should_generate_expression_language_without_api_context() {
             // Given
-            String requestJson =
-                """
+            String requestJson = """
                 {
                     "message": "Generate a simple expression",
                     "context": {}
@@ -143,8 +141,7 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         @Test
         void should_submit_positive_feedback() {
             // Given
-            String requestJson =
-                """
+            String requestJson = """
                 {
                     "feedbackRequestId": {
                         "chatId": "chat-123",
@@ -165,8 +162,7 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         @Test
         void should_submit_negative_feedback() {
             // Given
-            String requestJson =
-                """
+            String requestJson = """
                 {
                     "feedbackRequestId": {
                         "chatId": "chat-456",
@@ -187,8 +183,7 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         @Test
         void should_return_500_when_error_occurs() {
             // Given
-            String requestJson =
-                """
+            String requestJson = """
                 {
                     "feedbackRequestId": {
                         "chatId": "chat-123",

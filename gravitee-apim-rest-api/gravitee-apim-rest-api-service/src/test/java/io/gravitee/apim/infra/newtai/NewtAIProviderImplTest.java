@@ -150,14 +150,15 @@ class NewtAIProviderImplTest {
     @Test
     void should_throw_exception_when_send_feedback_command_fails() {
         var feedback = new FeedbackInput("chatId", "userMessageId", "agentMessageId", true);
-        when(cockpitConnector.sendCommand(any(ELGenFeedbackCommand.class)))
-            .thenReturn(Single.error(new RuntimeException("send command error")));
+        when(cockpitConnector.sendCommand(any(ELGenFeedbackCommand.class))).thenReturn(
+            Single.error(new RuntimeException("send command error"))
+        );
 
         cut
             .submitFeedback(feedback)
             .test()
-            .assertError(throwable ->
-                throwable instanceof NewtAiSubmitFeedbackException && throwable.getMessage().equals("send command error")
+            .assertError(
+                throwable -> throwable instanceof NewtAiSubmitFeedbackException && throwable.getMessage().equals("send command error")
             );
     }
 
