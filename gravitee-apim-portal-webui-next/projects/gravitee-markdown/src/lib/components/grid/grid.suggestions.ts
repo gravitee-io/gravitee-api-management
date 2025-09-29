@@ -162,9 +162,6 @@ export const gridConfiguration: ComponentSuggestionConfiguration = {
     description: 'Layout component for organizing content in columns and rows',
   },
   attributeHoverDocumentation: {
-    columns: {
-      label: 'columns',
-      description: 'Number of columns to display (1-6)',
-    },
+    columns: 'Number of columns to display (1-6)',
   },
 };

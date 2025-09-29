@@ -22,3 +22,9 @@ export enum ComponentSelector {
   MD_BLOCK = 'gmd-block',
   BUTTON = 'gmd-button',
 }
+
+export function getComponentSelector(componentTag: string): ComponentSelector | undefined {
+  return Object.values(ComponentSelector).find((selector): selector is ComponentSelector => selector === componentTag) as
+    | ComponentSelector
+    | undefined;
+}
