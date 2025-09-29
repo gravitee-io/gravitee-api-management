@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 import { Component, effect, input } from '@angular/core';
+import DOMPurify from 'dompurify';
 import { HookParserEntry } from 'ngx-dynamic-hooks';
 
+import { componentAttributeNames } from '../components/component-attribute-selectors';
 import { prefixStripperParser } from '../components/prefix-stripper.parser';
+import { ComponentSelector } from '../models/componentSelector';
 import { GraviteeMarkdownRendererService } from '../services/gravitee-markdown-renderer.service';
 
 @Component({
@@ -35,7 +38,13 @@ export class GraviteeMarkdownViewerComponent {
       const parser = new DOMParser();
       const parsedContent = this.markdownService.render(this.content().trim());
       const document = parser.parseFromString(parsedContent, 'text/html');
-      this.renderedContent = document.body.outerHTML;
+
+      // DO NOT CHANGE
+      // This performs necessary security checks against XSS attacks
+      this.renderedContent = DOMPurify.sanitize(document.body.outerHTML, {
+        ADD_TAGS: [...Object.values(ComponentSelector)],
+        ADD_ATTR: componentAttributeNames,
+      });
     });
   }
 }
