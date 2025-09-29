@@ -161,6 +161,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                     .createdAt(createdClientRegistrationProvider.getUpdatedAt())
                     .oldValue(null)
                     .newValue(createdClientRegistrationProvider)
+                    .pathsToAnonymize(ClientRegistrationProvider.PATHS_TO_ANONYMIZE_FOR_AUDIT_LOGS)
                     .build()
             );
 
