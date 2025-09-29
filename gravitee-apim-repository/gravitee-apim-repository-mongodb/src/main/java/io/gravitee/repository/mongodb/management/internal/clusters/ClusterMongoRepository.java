@@ -17,7 +17,14 @@ package io.gravitee.repository.mongodb.management.internal.clusters;
 
 import io.gravitee.repository.mongodb.management.internal.model.ClusterMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ClusterMongoRepository extends MongoRepository<ClusterMongo, String>, ClusterMongoRepositoryCustom {}
+public interface ClusterMongoRepository extends MongoRepository<ClusterMongo, String>, ClusterMongoRepositoryCustom {
+    @Query(value = "{ 'environmentId': ?0 }", delete = true)
+    void deleteByEnvironmentId(String environmentId);
+
+    @Query(value = "{ 'organizationId': ?0 }", delete = true)
+    void deleteByOrganizationId(String organizationId);
+}

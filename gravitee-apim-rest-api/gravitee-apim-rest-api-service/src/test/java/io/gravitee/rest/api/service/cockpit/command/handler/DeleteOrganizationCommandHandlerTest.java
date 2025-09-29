@@ -30,6 +30,7 @@ import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.api.AuditRepository;
+import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.EntrypointRepository;
@@ -164,6 +165,9 @@ public class DeleteOrganizationCommandHandlerTest {
     @Mock
     private EntrypointRepository entrypointRepository;
 
+    @Mock
+    private ClusterRepository clusterRepository;
+
     private DeleteOrganizationCommandHandler cut;
 
     @Before
@@ -199,6 +203,7 @@ public class DeleteOrganizationCommandHandlerTest {
             tenantRepository,
             tokenRepository,
             userRepository,
+            clusterRepository,
             accessPointService,
             environmentService,
             identityProviderActivationService,
@@ -314,6 +319,7 @@ public class DeleteOrganizationCommandHandlerTest {
             executionContext.getOrganizationId(),
             EntrypointReferenceType.ORGANIZATION
         );
+        verify(clusterRepository).deleteByOrganizationId(executionContext.getOrganizationId());
     }
 
     private void verifyDisableOrganization(ExecutionContext context) {

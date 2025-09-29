@@ -140,4 +140,16 @@ public class MongoPortalPageRepository implements PortalPageRepository {
             })
             .collect(Collectors.toList());
     }
+
+    @Override
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Delete portal pages by environment id [{}]", environmentId);
+        try {
+            internalRepo.deleteByEnvironmentId(environmentId);
+        } catch (Exception ex) {
+            final String error = "An error occurred when deleting portal pages by environment id: " + environmentId;
+            log.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
 }

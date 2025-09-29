@@ -37,4 +37,7 @@ public interface PortalPageContextMongoRepository
 
     @Query("{ 'pageId': ?0 }")
     Optional<PortalPageContextMongo> findByPageId(String pageId);
+
+    @Query(value = "{ 'environmentId': ?0 }", delete = true)
+    void deleteByEnvironmentId(String environmentId);
 }

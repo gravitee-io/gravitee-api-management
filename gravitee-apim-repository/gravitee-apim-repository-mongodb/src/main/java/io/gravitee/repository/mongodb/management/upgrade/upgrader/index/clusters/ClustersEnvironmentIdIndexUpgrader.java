@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.clusters;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.clusters;
 
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
@@ -24,6 +24,10 @@ public class ClustersEnvironmentIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index.builder().collection("clusters").name("ce1").key("environmentId", ascending()).build();
+        return Index.builder()
+            .collection("clusters")
+            .name("ce1")
+            .key("environmentId", ascending())
+            .build();
     }
 }
