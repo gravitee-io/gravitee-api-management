@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static java.util.Collections.emptyMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -29,7 +30,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiTagService;
-import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -121,12 +121,14 @@ public class ApiTagServiceImpl implements ApiTagService {
                 apiNotificationService.triggerUpdateNotification(executionContext, api);
                 auditService.createApiAuditLog(
                     executionContext,
-                    api.getId(),
-                    Collections.emptyMap(),
-                    API_UPDATED,
-                    api.getUpdatedAt(),
-                    previousApi,
-                    updated
+                    AuditService.AuditLogData.builder()
+                        .properties(emptyMap())
+                        .event(API_UPDATED)
+                        .createdAt(api.getUpdatedAt())
+                        .oldValue(previousApi)
+                        .newValue(updated)
+                        .build(),
+                    api.getId()
                 );
                 log.debug("API update notification and audit log triggered for API: {}", api.getId());
             }

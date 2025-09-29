@@ -163,12 +163,13 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             RoleEntity entity = convert(roleRepository.create(role));
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
-                ROLE_CREATED,
-                role.getCreatedAt(),
-                null,
-                role
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()))
+                    .event(ROLE_CREATED)
+                    .createdAt(role.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(role)
+                    .build()
             );
             if (entity != null && entity.isDefaultRole()) {
                 toggleDefaultRole(executionContext, roleEntity.getScope(), entity.getName());
@@ -204,12 +205,13 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             RoleEntity entity = convert(roleRepository.update(updatedRole));
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
-                ROLE_UPDATED,
-                updatedRole.getUpdatedAt(),
-                role,
-                updatedRole
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()))
+                    .event(ROLE_UPDATED)
+                    .createdAt(updatedRole.getUpdatedAt())
+                    .oldValue(role)
+                    .newValue(updatedRole)
+                    .build()
             );
             if (entity != null && entity.isDefaultRole()) {
                 toggleDefaultRole(executionContext, scope, entity.getName());
@@ -240,12 +242,13 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(ROLE, scope + ":" + role.getName()),
-                ROLE_DELETED,
-                role.getUpdatedAt(),
-                role,
-                null
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(ROLE, scope + ":" + role.getName()))
+                    .event(ROLE_DELETED)
+                    .createdAt(role.getUpdatedAt())
+                    .oldValue(role)
+                    .newValue(null)
+                    .build()
             );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete role {}", roleId, ex);
@@ -340,12 +343,13 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 roleRepository.update(role);
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    executionContext.getOrganizationId(),
-                    Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
-                    ROLE_UPDATED,
-                    role.getUpdatedAt(),
-                    previousRole,
-                    role
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()))
+                        .event(ROLE_UPDATED)
+                        .createdAt(role.getUpdatedAt())
+                        .oldValue(previousRole)
+                        .newValue(role)
+                        .build()
                 );
             }
         }
@@ -574,23 +578,25 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 roleRepository.update(systemRole);
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    organizationId,
-                    Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
-                    ROLE_UPDATED,
-                    systemRole.getCreatedAt(),
-                    existingRole.get(),
-                    systemRole
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()))
+                        .event(ROLE_UPDATED)
+                        .createdAt(systemRole.getCreatedAt())
+                        .oldValue(existingRole.get())
+                        .newValue(systemRole)
+                        .build()
                 );
             } else if (existingRole.isEmpty()) {
                 roleRepository.create(systemRole);
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    organizationId,
-                    Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
-                    ROLE_CREATED,
-                    systemRole.getCreatedAt(),
-                    null,
-                    systemRole
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()))
+                        .event(ROLE_CREATED)
+                        .createdAt(systemRole.getCreatedAt())
+                        .oldValue(null)
+                        .newValue(systemRole)
+                        .build()
                 );
             }
         } catch (TechnicalException ex) {

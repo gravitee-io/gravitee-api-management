@@ -158,11 +158,13 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(CATEGORY, category.getId()),
-                CATEGORY_CREATED,
-                createdAt,
-                null,
-                category
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(CATEGORY, category.getId()))
+                    .event(CATEGORY_CREATED)
+                    .createdAt(createdAt)
+                    .oldValue(null)
+                    .newValue(category)
+                    .build()
             );
 
             return createdCategory;
@@ -198,11 +200,13 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(CATEGORY, category.getId()),
-                CATEGORY_UPDATED,
-                updatedAt,
-                categoryToUpdate,
-                category
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(CATEGORY, category.getId()))
+                    .event(CATEGORY_UPDATED)
+                    .createdAt(updatedAt)
+                    .oldValue(categoryToUpdate)
+                    .newValue(category)
+                    .build()
             );
 
             return updatedCategory;
@@ -239,11 +243,13 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                     savedCategories.add(convert(categoryRepository.update(category)));
                     auditService.createAuditLog(
                         executionContext,
-                        Collections.singletonMap(CATEGORY, category.getId()),
-                        CATEGORY_UPDATED,
-                        updatedAt,
-                        categoryToUpdate,
-                        category
+                        AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(CATEGORY, category.getId()))
+                            .event(CATEGORY_UPDATED)
+                            .createdAt(updatedAt)
+                            .oldValue(categoryToUpdate)
+                            .newValue(category)
+                            .build()
                     );
                 }
             } catch (TechnicalException ex) {
@@ -265,11 +271,13 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 categoryRepository.delete(categoryToDelete.getId());
                 auditService.createAuditLog(
                     executionContext,
-                    Collections.singletonMap(CATEGORY, categoryId),
-                    CATEGORY_DELETED,
-                    new Date(),
-                    null,
-                    categoryToDelete
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(CATEGORY, categoryId))
+                        .event(CATEGORY_DELETED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(categoryToDelete)
+                        .build()
                 );
 
                 // delete all reference on APIs

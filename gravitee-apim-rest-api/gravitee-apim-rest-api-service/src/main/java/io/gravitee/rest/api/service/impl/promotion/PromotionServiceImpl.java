@@ -181,12 +181,14 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             auditService.createApiAuditLog(
                 executionContext,
-                createdPromotion.getApiId(),
-                emptyMap(),
-                PROMOTION_CREATED,
-                createdPromotion.getCreatedAt(),
-                null,
-                createdPromotion
+                AuditService.AuditLogData.builder()
+                    .properties(emptyMap())
+                    .event(PROMOTION_CREATED)
+                    .createdAt(createdPromotion.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(createdPromotion)
+                    .build(),
+                createdPromotion.getApiId()
             );
         } catch (TechnicalException exception) {
             throw new TechnicalManagementException(

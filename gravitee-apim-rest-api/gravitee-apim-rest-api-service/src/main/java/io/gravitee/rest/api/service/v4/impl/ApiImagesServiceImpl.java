@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static java.util.Collections.emptyMap;
 import static java.util.Optional.of;
 
 import com.google.common.base.Strings;
@@ -28,12 +29,9 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -91,12 +89,14 @@ public class ApiImagesServiceImpl implements ApiImagesService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                apiId,
-                Collections.emptyMap(),
-                API_UPDATED,
-                newApi.getUpdatedAt(),
-                apiToUpdate,
-                newApi
+                AuditService.AuditLogData.builder()
+                    .properties(emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(newApi.getUpdatedAt())
+                    .oldValue(apiToUpdate)
+                    .newValue(newApi)
+                    .build(),
+                apiId
             );
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
@@ -134,12 +134,14 @@ public class ApiImagesServiceImpl implements ApiImagesService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                apiId,
-                Collections.emptyMap(),
-                API_UPDATED,
-                newApi.getUpdatedAt(),
-                apiToUpdate,
-                newApi
+                AuditService.AuditLogData.builder()
+                    .properties(emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(newApi.getUpdatedAt())
+                    .oldValue(apiToUpdate)
+                    .newValue(newApi)
+                    .build(),
+                apiId
             );
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);

@@ -199,12 +199,14 @@ public class LogsServiceImpl implements LogsService {
             if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ORGANIZATION)) {
                 auditService.createApiAuditLog(
                     executionContext,
-                    log.getApi(),
-                    Collections.singletonMap(REQUEST_ID, id),
-                    LOG_READ,
-                    new Date(),
-                    null,
-                    null
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(REQUEST_ID, id))
+                        .event(LOG_READ)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(null)
+                        .build(),
+                    log.getApi()
                 );
             }
             return toApiRequest(executionContext, log);
