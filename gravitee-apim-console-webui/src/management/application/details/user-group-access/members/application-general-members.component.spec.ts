@@ -33,7 +33,8 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testi
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
 import { RoleService } from '../../../../../services-ngx/role.service';
-import { fakeGroup, fakeGroupsResponse, Member } from '../../../../../entities/management-api-v2';
+import { fakeGroup, fakeGroupsResponse } from '../../../../../entities/management-api-v2';
+import { Member } from '../../../../../entities/members/members';
 import { fakeMembers } from '../../../../../entities/members/Members.fixture';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 import { Application } from '../../../../../entities/application/Application';
@@ -201,7 +202,9 @@ describe('ApplicationGeneralMembersComponent', () => {
   function expectRequests(application: Application, membersList: Member[]) {
     expectGetApplication(application);
     expectGetMembers(membersList);
-    expectGetGroupsListRequest(application.groups);
+    if (application.groups && application.groups.length > 0) {
+      expectGetGroupsListRequest(application.groups);
+    }
   }
 
   function expectGetMembers(members: Member[]) {
@@ -220,9 +223,86 @@ describe('ApplicationGeneralMembersComponent', () => {
   }
 
   function expectGetGroupsListRequest(groups: string[]) {
+    // Expect selected groups fetch via POST /groups/_search
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
-      .flush(fakeGroupsResponse({ data: groups.map((id) => fakeGroup({ id, name: id + '-name' })) }));
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search?page=1&perPage=${groups.length || 10}`, method: 'POST' })
+      .flush(
+        fakeGroupsResponse({
+          data: groups.map((id) => fakeGroup({ id, name: id + '-name' })),
+          pagination: {
+            page: 1,
+            perPage: groups.length || 10,
+            pageCount: 1,
+            pageItemsCount: groups.length,
+            totalCount: groups.length,
+          },
+        }),
+      );
     fixture.detectChanges();
   }
+
+  describe('fetchGroupsForApp', () => {
+    it('should not call groups search and set empty groupData when no groups', () => {
+      const applicationDetails = fakeApplication({ type: 'NATIVE', groups: [] });
+      const membersList = [fakeMembers()];
+
+      expectGetApplication(applicationDetails);
+      expectGetMembers(membersList);
+
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.groupData).toEqual([]);
+    });
+
+    it('should map groupData from paged result when groups exist', () => {
+      const groups = ['group-1', 'group-2'];
+      const applicationDetails = fakeApplication({ type: 'NATIVE', groups });
+      const membersList = [fakeMembers()];
+
+      expectGetApplication(applicationDetails);
+      expectGetMembers(membersList);
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search?page=1&perPage=${groups.length}`,
+          method: 'POST',
+        })
+        .flush(
+          fakeGroupsResponse({
+            data: groups.map((id) => fakeGroup({ id, name: id + '-name' })),
+            pagination: {
+              page: 1,
+              perPage: groups.length,
+              pageCount: 1,
+              pageItemsCount: groups.length,
+              totalCount: groups.length,
+            },
+          }),
+        );
+
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.groupData).toEqual(groups.map((id) => ({ id, name: `${id}-name`, isVisible: true })));
+    });
+
+    it('should map groupData when backend returns a raw array', () => {
+      const groups = ['group-a'];
+      const applicationDetails = fakeApplication({ type: 'NATIVE', groups });
+      const membersList = [fakeMembers()];
+
+      expectGetApplication(applicationDetails);
+      expectGetMembers(membersList);
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/_search?page=1&perPage=${groups.length}`,
+          method: 'POST',
+        })
+        .flush(groups.map((id) => fakeGroup({ id, name: id + '-name' })));
+
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.groupData).toEqual(groups.map((id) => ({ id, name: `${id}-name`, isVisible: true })));
+    });
+  });
 });
