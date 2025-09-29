@@ -19,6 +19,7 @@ import * as Monaco from 'monaco-editor';
 import { editor } from 'monaco-editor';
 
 import { componentSuggestionMap } from '../../../components/suggestions.index';
+import { ComponentSelector, getComponentSelector } from '../../../models/componentSelector';
 import { ComponentSuggestion } from '../../../models/componentSuggestion';
 import { MonacoEditorService } from '../../services/monaco-editor.service';
 
@@ -254,10 +255,10 @@ export class MonacoEditorComponent implements OnDestroy {
     monaco: typeof Monaco,
     textBeforeCursor: string,
   ): { componentSuggestions: ComponentSuggestion[]; itemKind: Monaco.languages.CompletionItemKind } {
-    const componentTag = this.getComponentTag(textBeforeCursor);
-    if (componentTag) {
+    const componentSelector = this.extractComponentSelector(textBeforeCursor);
+    if (componentSelector) {
       return {
-        componentSuggestions: componentSuggestionMap[componentTag]?.attributeSuggestions || [],
+        componentSuggestions: componentSuggestionMap[componentSelector]?.attributeSuggestions || [],
         itemKind: monaco.languages.CompletionItemKind.Property,
       };
     }
@@ -269,40 +270,41 @@ export class MonacoEditorComponent implements OnDestroy {
   }
 
   private getHoverInfo(wordText: string, lineText: string): { label: string; description: string } | null {
-    // Check if hovering over a component tag (grid, cell, etc.)
-    const config = componentSuggestionMap[wordText];
-    if (config) {
-      return config.hoverDocumentation;
+    // Check if hovering over a line containing a component tag (gmd-grid, gmd-cell, etc.)
+    const componentSelector = this.extractComponentSelector(lineText);
+    if (!componentSelector) {
+      return null;
     }
+
+    const componentSuggestionConfig = componentSuggestionMap[componentSelector];
 
     // Check if hovering over an attribute name with a value
     if (lineText.includes(`${wordText}=`)) {
-      // Get component tag for the attribute context
-      const componentTag = this.getComponentTag(lineText);
-      if (componentTag) {
-        return componentSuggestionMap[componentTag].attributeHoverDocumentation[wordText];
-      }
+      return { label: wordText, description: componentSuggestionConfig.attributeHoverDocumentation[wordText] ?? '' };
+    } else if (componentSelector === wordText) {
+      // Hovering over the tag name itself
+      return componentSuggestionConfig.hoverDocumentation ?? null;
     }
 
     return null;
   }
 
-  private getComponentTag(text: string): string | null {
-    // Look for the most recent opening tag that contains the current position
+  private extractComponentSelector(lineText: string): ComponentSelector | null {
+    // Extract the tag name which could be an opening or closing tag
     const openingTagRegex = /<([a-zA-Z][a-zA-Z0-9-]*)(?:\s[^>]*)?/g;
-    const match = openingTagRegex.exec(text);
+    const closingTagRegex = /<\/([a-zA-Z][a-zA-Z0-9-]*)>/g;
 
+    const openingTagComponentSelector = this.extractComponentSelectorWithRegex(lineText, openingTagRegex);
+    const closingTagComponentSelector = this.extractComponentSelectorWithRegex(lineText, closingTagRegex);
+    return openingTagComponentSelector ?? closingTagComponentSelector;
+  }
+
+  private extractComponentSelectorWithRegex(lineText: string, regex: RegExp): ComponentSelector | null {
+    const match = regex.exec(lineText);
     if (!match) {
       return null;
     }
-
     const tagName = match[1];
-
-    // Check if this tag is in our component suggestion map
-    if (componentSuggestionMap[tagName]) {
-      return tagName;
-    }
-
-    return null;
+    return getComponentSelector(tagName) ?? null;
   }
 }

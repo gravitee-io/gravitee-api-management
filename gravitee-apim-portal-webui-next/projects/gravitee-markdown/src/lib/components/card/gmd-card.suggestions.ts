@@ -62,13 +62,7 @@ export const cardConfiguration: ComponentSuggestionConfiguration = {
     description: 'Layout container for text, photos, and actions.',
   },
   attributeHoverDocumentation: {
-    backgroundColor: {
-      label: 'backgroundColor',
-      description: 'The background color of the card.',
-    },
-    textColor: {
-      label: 'textColor',
-      description: 'The color of the text in the card.',
-    },
+    backgroundColor: 'The background color of the card.',
+    textColor: 'The color of the text in the card.',
   },
 };

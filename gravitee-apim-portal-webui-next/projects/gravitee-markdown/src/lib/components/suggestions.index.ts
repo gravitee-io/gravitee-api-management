@@ -23,7 +23,11 @@ import { cardTitleConfiguration } from './card/components/card-title/gmd-card-ti
 import { cardConfiguration } from './card/gmd-card.suggestions';
 import { cellConfiguration } from './grid/cell/cell.suggestions';
 
-export const componentSuggestionMap: Record<string, ComponentSuggestionConfiguration> = {
+type ComponentSuggestionMap = {
+  [Key in ComponentSelector]: ComponentSuggestionConfiguration;
+};
+
+export const componentSuggestionMap: ComponentSuggestionMap = {
   [ComponentSelector.GRID]: gridConfiguration,
   [ComponentSelector.CELL]: cellConfiguration,
   [ComponentSelector.CARD]: cardConfiguration,
