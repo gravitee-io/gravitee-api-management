@@ -31,7 +31,6 @@ import { fakePortalPageWithDetails } from '../../entities/portal/portal-page-wit
 import { PatchPortalPage } from '../../entities/portal/patch-portal-page';
 import { PortalPageWithDetails } from '../../entities/portal/portal-page-with-details';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { PortalPagesResponse } from '../../entities/portal/portal-pages-response';
 
 describe('HomepageComponent', () => {
   let fixture: ComponentFixture<HomepageComponent>;
@@ -158,8 +157,8 @@ describe('HomepageComponent', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${fakePortalPageWithDetails().id}/_publish`,
       });
 
-      const publishedPageRes: PortalPagesResponse = { pages: [{ ...unpublishedPage, published: true }] };
-      req.flush(publishedPageRes);
+      const publishedPage = { ...unpublishedPage, published: true };
+      req.flush(publishedPage);
       fixture.detectChanges();
 
       expect(snackBarService.success).toHaveBeenCalledWith('Page has been published successfully.');
@@ -181,8 +180,8 @@ describe('HomepageComponent', () => {
         method: 'POST',
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-pages/${fakePortalPageWithDetails().id}/_unpublish`,
       });
-      const unpublishedPageRes: PortalPagesResponse = { pages: [{ ...publishedPage, published: false }] };
-      req.flush(unpublishedPageRes);
+      const unpublishedPage = { ...publishedPage, published: false };
+      req.flush(unpublishedPage);
       fixture.detectChanges();
 
       expect(snackBarService.success).toHaveBeenCalledWith('Page has been unpublished successfully.');
