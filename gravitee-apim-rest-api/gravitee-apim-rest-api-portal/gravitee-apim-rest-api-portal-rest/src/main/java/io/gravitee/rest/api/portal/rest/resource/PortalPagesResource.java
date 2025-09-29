@@ -45,6 +45,7 @@ public class PortalPagesResource {
     ) {
         final String envId = GraviteeContext.getCurrentEnvironment();
 
+        // TODO: handle unauthenticated users when portal page visibility is implemented.
         var output = getPortalPageUseCase.execute(new GetPortalPageUseCase.Input(envId, pageType, expands));
         var pages = output.pages();
         List<PortalPageWithViewDetails> filteredPages = Optional.ofNullable(pages)

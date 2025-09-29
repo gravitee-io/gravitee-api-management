@@ -296,6 +296,9 @@ public class BasicSecurityConfigurerAdapter {
             // Categories
             .requestMatchers(HttpMethod.GET, uriPrefix + "/categories/**")
             .permitAll()
+            // GMD pages
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-pages")
+            .permitAll()
             // Portal Menu Links
             .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-menu-links")
             .permitAll()
