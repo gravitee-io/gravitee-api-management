@@ -708,7 +708,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 properties.put(API_KEY, key.getKey());
                 properties.put(API, subscription.getApi());
                 properties.put(APPLICATION, key.getApplication().getId());
-                auditService.createApiAuditLog(executionContext, subscription.getApi(), properties, event, eventDate, previousApiKey, key);
+                auditService.createApiAuditLog(
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                        .properties(properties)
+                        .event(event)
+                        .createdAt(eventDate)
+                        .oldValue(previousApiKey)
+                        .newValue(key)
+                        .build(),
+                    subscription.getApi()
+                );
             });
     }
 

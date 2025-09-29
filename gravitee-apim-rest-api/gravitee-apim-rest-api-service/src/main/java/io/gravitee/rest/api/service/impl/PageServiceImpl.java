@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -2623,16 +2622,27 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     ) {
         String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
         if (apiId == null) {
-            auditService.createAuditLog(executionContext, Collections.singletonMap(PAGE, pageId), event, createdAt, oldValue, newValue);
+            auditService.createAuditLog(
+                executionContext,
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(PAGE, pageId))
+                    .event(event)
+                    .createdAt(createdAt)
+                    .oldValue(oldValue)
+                    .newValue(newValue)
+                    .build()
+            );
         } else {
             auditService.createApiAuditLog(
                 executionContext,
-                apiId,
-                Collections.singletonMap(PAGE, pageId),
-                event,
-                createdAt,
-                oldValue,
-                newValue
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(PAGE, pageId))
+                    .event(event)
+                    .createdAt(createdAt)
+                    .oldValue(oldValue)
+                    .newValue(newValue)
+                    .build(),
+                apiId
             );
         }
     }

@@ -200,7 +200,17 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
                 break;
         }
 
-        auditService.createApiAuditLog(executionContext, genericApiEntity.getId(), properties, evtType, new Date(), null, workflow);
+        auditService.createApiAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(properties)
+                .event(evtType)
+                .createdAt(new Date())
+                .oldValue(null)
+                .newValue(workflow)
+                .build(),
+            genericApiEntity.getId()
+        );
         return genericApiEntity;
     }
 

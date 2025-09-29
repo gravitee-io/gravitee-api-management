@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED;
+import static io.gravitee.repository.management.model.ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API_QUALITY_RULE;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
@@ -27,7 +29,6 @@ import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.*;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -78,11 +79,13 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             final ApiQualityRule apiQualityRule = convert(newEntity);
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
-                ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED,
-                apiQualityRule.getCreatedAt(),
-                null,
-                apiQualityRule
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()))
+                    .event(API_QUALITY_RULE_CREATED)
+                    .createdAt(apiQualityRule.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(apiQualityRule)
+                    .build()
             );
             return convert(apiQualityRuleRepository.create(apiQualityRule));
         } catch (TechnicalException e) {
@@ -105,11 +108,13 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
             final ApiQualityRule apiQualityRule = apiQualityRuleRepository.update(convert(updateEntity));
             auditService.createAuditLog(
                 executionContext,
-                singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
-                ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED,
-                apiQualityRule.getUpdatedAt(),
-                optionalApiQualityRule.get(),
-                apiQualityRule
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()))
+                    .event(API_QUALITY_RULE_UPDATED)
+                    .createdAt(apiQualityRule.getUpdatedAt())
+                    .oldValue(optionalApiQualityRule.get())
+                    .newValue(apiQualityRule)
+                    .build()
             );
             return convert(apiQualityRule);
         } catch (TechnicalException e) {

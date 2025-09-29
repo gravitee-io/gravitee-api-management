@@ -595,12 +595,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                createdApi.getId(),
-                Collections.emptyMap(),
-                API_CREATED,
-                createdApi.getCreatedAt(),
-                null,
-                createdApi
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(API_CREATED)
+                    .createdAt(createdApi.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(createdApi)
+                    .build(),
+                createdApi.getId()
             );
 
             // Add the primary owner of the newly created API
@@ -1281,12 +1283,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                updatedApi.getId(),
-                Collections.emptyMap(),
-                API_UPDATED,
-                updatedApi.getUpdatedAt(),
-                apiToUpdate,
-                updatedApi
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(updatedApi.getUpdatedAt())
+                    .oldValue(apiToUpdate)
+                    .newValue(updatedApi)
+                    .build(),
+                updatedApi.getId()
             );
 
             if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
@@ -1625,7 +1629,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Delete all api category order entries
             apiCategoryService.deleteApiFromCategories(apiId);
             // Audit
-            auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
+            auditService.createApiAuditLog(
+                executionContext,
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(API_DELETED)
+                    .createdAt(new Date())
+                    .oldValue(api)
+                    .newValue(null)
+                    .build(),
+                apiId
+            );
             // remove from search engine
             searchEngineService.delete(executionContext, convert(executionContext, api));
 
@@ -1785,7 +1799,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         try {
             // Audit
-            auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_ROLLBACKED, new Date(), null, null);
+            auditService.createApiAuditLog(
+                executionContext,
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(API_ROLLBACKED)
+                    .createdAt(new Date())
+                    .oldValue(null)
+                    .newValue(null)
+                    .build(),
+                apiId
+            );
 
             return apiDuplicatorService.updateWithImportedDefinition(
                 executionContext,
@@ -2350,7 +2374,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             default -> API_REVIEW_ASKED;
         };
 
-        auditService.createApiAuditLog(executionContext, apiId, properties, evtType, new Date(), null, workflow);
+        auditService.createApiAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(properties)
+                .event(evtType)
+                .createdAt(new Date())
+                .oldValue(null)
+                .newValue(workflow)
+                .build(),
+            apiId
+        );
         return apiEntity;
     }
 
@@ -2458,12 +2492,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                apiId,
-                Collections.emptyMap(),
-                API_UPDATED,
-                api.getUpdatedAt(),
-                previousApi,
-                api
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(API_UPDATED)
+                    .createdAt(api.getUpdatedAt())
+                    .oldValue(previousApi)
+                    .newValue(api)
+                    .build(),
+                apiId
             );
 
             EventType eventType = null;
@@ -2535,12 +2571,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(
                 executionContext,
-                apiUpdated.getId(),
-                Collections.emptyMap(),
-                auditEvent,
-                new Date(),
-                loggingToUpdate,
-                loggingUpdated
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(auditEvent)
+                    .createdAt(new Date())
+                    .oldValue(loggingToUpdate)
+                    .newValue(loggingUpdated)
+                    .build(),
+                apiUpdated.getId()
             );
         } catch (Exception ex) {
             LOGGER.error("An error occurs while auditing API logging configuration for API: {}", apiUpdated.getId(), ex);

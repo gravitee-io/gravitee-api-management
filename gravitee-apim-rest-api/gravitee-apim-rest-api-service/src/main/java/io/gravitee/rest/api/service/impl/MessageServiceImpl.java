@@ -145,7 +145,17 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
             int msgSize = send(executionContext, api, message, getRecipientsId(executionContext, api, message));
 
-            auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
+            auditService.createApiAuditLog(
+                executionContext,
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.emptyMap())
+                    .event(MESSAGE_SENT)
+                    .createdAt(new Date())
+                    .oldValue(null)
+                    .newValue(message)
+                    .build(),
+                apiId
+            );
             return msgSize;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get create a message", ex);
@@ -159,7 +169,16 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
         int msgSize = send(executionContext, null, message, getRecipientsId(executionContext, message));
 
-        auditService.createAuditLog(executionContext, Collections.emptyMap(), MESSAGE_SENT, new Date(), null, message);
+        auditService.createAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(Collections.emptyMap())
+                .event(MESSAGE_SENT)
+                .createdAt(new Date())
+                .oldValue(null)
+                .newValue(message)
+                .build()
+        );
         return msgSize;
     }
 

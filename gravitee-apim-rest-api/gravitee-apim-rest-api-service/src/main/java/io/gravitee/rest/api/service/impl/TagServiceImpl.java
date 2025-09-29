@@ -30,7 +30,6 @@ import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.UpdateTagEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
@@ -152,12 +151,13 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 savedTags.add(convert(tagRepository.create(tag)));
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    executionContext.getOrganizationId(),
-                    Collections.singletonMap(TAG, tag.getId()),
-                    TAG_CREATED,
-                    new Date(),
-                    null,
-                    tag
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(TAG, tag.getId()))
+                        .event(TAG_CREATED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(tag)
+                        .build()
                 );
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
@@ -190,12 +190,13 @@ public class TagServiceImpl extends AbstractService implements TagService {
                     savedTags.add(convert(tagRepository.update(tag)));
                     auditService.createOrganizationAuditLog(
                         executionContext,
-                        executionContext.getOrganizationId(),
-                        Collections.singletonMap(TAG, tag.getId()),
-                        TAG_UPDATED,
-                        new Date(),
-                        tagOptional.get(),
-                        tag
+                        AuditService.AuditLogData.builder()
+                            .properties(Collections.singletonMap(TAG, tag.getId()))
+                            .event(TAG_UPDATED)
+                            .createdAt(new Date())
+                            .oldValue(tagOptional.get())
+                            .newValue(tag)
+                            .build()
                     );
                 }
             } catch (TechnicalException ex) {
@@ -216,12 +217,13 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 apiTagService.deleteTagFromAPIs(executionContext, tagId);
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    executionContext.getOrganizationId(),
-                    Collections.singletonMap(TAG, tagId),
-                    TAG_DELETED,
-                    new Date(),
-                    null,
-                    tagOptional.get()
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(TAG, tagId))
+                        .event(TAG_DELETED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(tagOptional.get())
+                        .build()
                 );
             }
         } catch (TechnicalException ex) {

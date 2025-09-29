@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.service.impl.configuration.identity;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.IDENTITY_PROVIDER;
+import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_CREATED;
+import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DELETED;
+import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_UPDATED;
 import static java.util.Collections.singletonMap;
 
 import io.gravitee.common.utils.IdGenerator;
@@ -102,12 +105,13 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                singletonMap(IDENTITY_PROVIDER, createdIdentityProvider.getId()),
-                IdentityProvider.AuditEvent.IDENTITY_PROVIDER_CREATED,
-                createdIdentityProvider.getUpdatedAt(),
-                null,
-                createdIdentityProvider
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(IDENTITY_PROVIDER, createdIdentityProvider.getId()))
+                    .event(IDENTITY_PROVIDER_CREATED)
+                    .createdAt(createdIdentityProvider.getUpdatedAt())
+                    .oldValue(null)
+                    .newValue(createdIdentityProvider)
+                    .build()
             );
 
             return convert(createdIdentityProvider);
@@ -144,12 +148,13 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             // Audit
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                singletonMap(IDENTITY_PROVIDER, id),
-                IdentityProvider.AuditEvent.IDENTITY_PROVIDER_UPDATED,
-                identityProvider.getUpdatedAt(),
-                identityProviderToUpdate,
-                updatedIdentityProvider
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(IDENTITY_PROVIDER, id))
+                    .event(IDENTITY_PROVIDER_UPDATED)
+                    .createdAt(identityProvider.getUpdatedAt())
+                    .oldValue(identityProviderToUpdate)
+                    .newValue(updatedIdentityProvider)
+                    .build()
             );
 
             return convert(updatedIdentityProvider);
@@ -191,12 +196,13 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(IDENTITY_PROVIDER, id),
-                IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DELETED,
-                new Date(),
-                identityProvider,
-                null
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(IDENTITY_PROVIDER, id))
+                    .event(IDENTITY_PROVIDER_DELETED)
+                    .createdAt(new Date())
+                    .oldValue(identityProvider)
+                    .newValue(null)
+                    .build()
             );
 
             identityProviderActivationService.deactivateIdpOnAllTargets(executionContext, id);

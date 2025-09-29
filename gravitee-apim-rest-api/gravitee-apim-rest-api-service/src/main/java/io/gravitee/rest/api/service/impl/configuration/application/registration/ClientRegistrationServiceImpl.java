@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.service.impl.configuration.application.registration;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.CLIENT_REGISTRATION_PROVIDER;
+import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED;
+import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED;
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED;
 import static java.util.Collections.singletonMap;
 
@@ -51,7 +53,6 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.InitialAccessTokenProvider;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.PlainInitialAccessTokenProvider;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -154,11 +155,13 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             auditService.createAuditLog(
                 executionContext,
-                singletonMap(CLIENT_REGISTRATION_PROVIDER, createdClientRegistrationProvider.getId()),
-                ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
-                createdClientRegistrationProvider.getUpdatedAt(),
-                null,
-                createdClientRegistrationProvider
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(CLIENT_REGISTRATION_PROVIDER, createdClientRegistrationProvider.getId()))
+                    .event(CLIENT_REGISTRATION_PROVIDER_CREATED)
+                    .createdAt(createdClientRegistrationProvider.getUpdatedAt())
+                    .oldValue(null)
+                    .newValue(createdClientRegistrationProvider)
+                    .build()
             );
 
             return convert(createdClientRegistrationProvider);
@@ -293,11 +296,13 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
-                ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED,
-                new Date(),
-                clientRegistrationProvider.get(),
-                null
+                AuditService.AuditLogData.builder()
+                    .properties(singletonMap(CLIENT_REGISTRATION_PROVIDER, id))
+                    .event(CLIENT_REGISTRATION_PROVIDER_DELETED)
+                    .createdAt(new Date())
+                    .oldValue(clientRegistrationProvider.get())
+                    .newValue(null)
+                    .build()
             );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete a client registration provider using its ID {}", id, ex);

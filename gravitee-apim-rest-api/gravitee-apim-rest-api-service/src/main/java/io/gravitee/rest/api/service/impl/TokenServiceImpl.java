@@ -87,12 +87,13 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
             final Token token = convert(newToken, TokenReferenceType.USER, user, passwordEncoder.encode(decodedToken));
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
-                Collections.singletonMap(TOKEN, token.getId()),
-                TOKEN_CREATED,
-                token.getCreatedAt(),
-                null,
-                token
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(TOKEN, token.getId()))
+                    .event(TOKEN_CREATED)
+                    .createdAt(token.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(token)
+                    .build()
             );
             return convert(tokenRepository.create(token), decodedToken);
         } catch (TechnicalException e) {
@@ -116,12 +117,13 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
                 tokenRepository.delete(tokenId);
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    executionContext.getOrganizationId(),
-                    Collections.singletonMap(TOKEN, tokenId),
-                    TOKEN_DELETED,
-                    new Date(),
-                    null,
-                    tokenOptional.get()
+                    AuditService.AuditLogData.builder()
+                        .properties(Collections.singletonMap(TOKEN, tokenId))
+                        .event(TOKEN_DELETED)
+                        .createdAt(new Date())
+                        .oldValue(null)
+                        .newValue(tokenOptional.get())
+                        .build()
                 );
             }
         } catch (TechnicalException ex) {
