@@ -219,10 +219,10 @@ export const MultipleCardUsingInputs: StoryObj = {
   args: {
     width: '100%',
     padding: '20px',
-    contentToRender: `<gmd-grid [columns]="4">
+    contentToRender: `<gmd-grid columns="4">
     <gmd-cell>
 
-        <gmd-card [backgroundColor]="'#ffffff'" [textColor]="'orange'">
+        <gmd-card backgroundColor="#ffffff" textColor="orange">
             <gmd-card-title>First card</gmd-card-title>
             <gmd-card-subtitle>Version: 1.0</gmd-card-subtitle>
             <gmd-md>
@@ -236,7 +236,7 @@ export const MultipleCardUsingInputs: StoryObj = {
 
     <!-- empty line to ensure that it does not break the layout-->
     <gmd-cell>
-        <gmd-card [backgroundColor]="'#222222'" [textColor]="'#f5f5f5'">
+        <gmd-card backgroundColor="#222222" textColor="#f5f5f5">
             <gmd-card-title>Second card</gmd-card-title>
             <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
              <gmd-md>
@@ -250,7 +250,7 @@ export const MultipleCardUsingInputs: StoryObj = {
         </gmd-card>
     </gmd-cell>
     <gmd-cell>
-        <gmd-card [backgroundColor]="'rgb(0, 102, 204)'" [textColor]="'white'">
+        <gmd-card backgroundColor="rgb(0, 102, 204)" textColor="white">
             <gmd-card-title>Third card</gmd-card-title>
             <gmd-card-subtitle>Version: 3.0</gmd-card-subtitle>
             <gmd-md>
