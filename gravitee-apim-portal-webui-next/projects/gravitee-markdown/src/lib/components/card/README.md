@@ -51,7 +51,7 @@ The card component provides:
 ### Card with Custom Colors
 
 ```html
-<gmd-card [backgroundColor]="'#ffffff'" [textColor]="'#333333'">
+<gmd-card backgroundColor="#ffffff" textColor="#333333">
   <gmd-card-title>Custom Styled Card</gmd-card-title>
   <gmd-card-subtitle>Version: 2.0</gmd-card-subtitle>
   <gmd-md>
@@ -81,19 +81,19 @@ The card component supports the following input properties for dynamic styling:
 
 ```html
 <!-- Using string values -->
-<gmd-card [backgroundColor]="'#ff0000'" [textColor]="'#ffffff'">
+<gmd-card backgroundColor="#ff0000" textColor="#ffffff">
   <gmd-card-title>Red Card</gmd-card-title>
   <gmd-md>This card has a red background with white text.</gmd-md>
 </gmd-card>
 
 <!-- Using CSS color functions -->
-<gmd-card [backgroundColor]="'rgb(0, 102, 204)'" [textColor]="'white'">
+<gmd-card backgroundColor="rgb(0, 102, 204)" textColor="white">
   <gmd-card-title>Blue Card</gmd-card-title>
   <gmd-md>This card uses RGB color values.</gmd-md>
 </gmd-card>
 
 <!-- Using CSS custom properties -->
-<gmd-card [backgroundColor]="'var(--my-custom-color)'" [textColor]="'var(--my-text-color)'">
+<gmd-card backgroundColor="var(--my-custom-color)" textColor="var(--my-text-color)">
   <gmd-card-title>Themed Card</gmd-card-title>
   <gmd-md>This card uses CSS custom properties.</gmd-md>
 </gmd-card>
@@ -127,19 +127,19 @@ The card component uses CSS custom properties for theming. You can override any 
 ```html
 <gmd-grid [columns]="3">
   <gmd-cell>
-    <gmd-card [backgroundColor]="'#ffffff'">
+    <gmd-card backgroundColor="#ffffff">
       <gmd-card-title>First Card</gmd-card-title>
       <gmd-md>Content for the first card.</gmd-md>
     </gmd-card>
   </gmd-cell>
   <gmd-cell>
-    <gmd-card [backgroundColor]="'#f0f0f0'">
+    <gmd-card backgroundColor="#f0f0f0">
       <gmd-card-title>Second Card</gmd-card-title>
       <gmd-md>Content for the second card.</gmd-md>
     </gmd-card>
   </gmd-cell>
   <gmd-cell>
-    <gmd-card [backgroundColor]="'#e0e0e0'">
+    <gmd-card backgroundColor="#e0e0e0">
       <gmd-card-title>Third Card</gmd-card-title>
       <gmd-md>Content for the third card.</gmd-md>
     </gmd-card>

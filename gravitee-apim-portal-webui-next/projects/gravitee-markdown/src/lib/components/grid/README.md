@@ -5,7 +5,7 @@ A responsive grid component that provides flexible layout capabilities for organ
 ## Usage
 
 ```html
-<gmd-grid [columns]="3">
+<gmd-grid columns="3">
   <gmd-cell>Content 1</gmd-cell>
   <gmd-cell>Content 2</gmd-cell>
   <gmd-cell>Content 3</gmd-cell>
@@ -30,7 +30,7 @@ The grid automatically adjusts to different screen sizes:
 
 ### Basic Grid
 ```html
-<gmd-grid [columns]="2">
+<gmd-grid columns="2">
   <gmd-cell>Left content</gmd-cell>
   <gmd-cell>Right content</gmd-cell>
 </gmd-grid>
@@ -38,7 +38,7 @@ The grid automatically adjusts to different screen sizes:
 
 ### Three Column Layout
 ```html
-<gmd-grid [columns]="3">
+<gmd-grid columns="3">
   <gmd-cell>Column 1</gmd-cell>
   <gmd-cell>Column 2</gmd-cell>
   <gmd-cell>Column 3</gmd-cell>
