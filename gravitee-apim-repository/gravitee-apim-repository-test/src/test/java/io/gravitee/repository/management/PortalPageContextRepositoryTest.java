@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -147,5 +148,25 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         PortalPageContext updated = portalPageContextRepository.findByPageId(existing.getPageId());
         assertThat(updated).isNotNull();
         assertThat(updated.isPublished()).isTrue();
+    }
+
+    @Test
+    public void should_delete_by_environment_id() throws Exception {
+        String environmentToDelete = "test-environment";
+
+        // Given
+        Set<PortalPageContext> allContexts = portalPageContextRepository.findAll();
+        assertThat(allContexts).hasSize(3);
+        assertThat(allContexts.stream())
+            .filteredOn(context -> context.getEnvironmentId().equals(environmentToDelete))
+            .hasSize(2);
+
+        // When
+        portalPageContextRepository.deleteByEnvironmentId(environmentToDelete);
+
+        // Then
+        Set<PortalPageContext> updatedContexts = portalPageContextRepository.findAll();
+        assertThat(updatedContexts).hasSize(1);
+        assertThat(updatedContexts).noneMatch(context -> context.getEnvironmentId().equals(environmentToDelete));
     }
 }
