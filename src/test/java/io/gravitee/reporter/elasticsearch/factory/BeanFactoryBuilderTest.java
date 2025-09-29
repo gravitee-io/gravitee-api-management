@@ -31,6 +31,7 @@ import io.gravitee.reporter.elasticsearch.indexer.PerTypeAndDateIndexNameGenerat
 import io.gravitee.reporter.elasticsearch.indexer.PerTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es8.ES8IndexPreparer;
+import io.gravitee.reporter.elasticsearch.mapping.opensearch.OpenSearchIndexPreparer;
 import io.reactivex.rxjava3.core.Single;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -125,7 +126,8 @@ class BeanFactoryBuilderTest {
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES7IndexPreparer.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                .isInstanceOf(OpenSearchIndexPreparer.class);
         }
 
         @DisplayName("should instantiate beans for OpenSearch ilm mode")
@@ -140,7 +142,8 @@ class BeanFactoryBuilderTest {
 
             assertThat(beanFactory).isNotNull();
             assertThat(beanFactory.createIndexNameGenerator(reporterConfiguration)).isInstanceOf(PerTypeIndexNameGenerator.class);
-            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null)).isInstanceOf(ES7IndexPreparer.class);
+            assertThat(beanFactory.createIndexPreparer(reporterConfiguration, null, null, null))
+                .isInstanceOf(OpenSearchIndexPreparer.class);
         }
     }
 

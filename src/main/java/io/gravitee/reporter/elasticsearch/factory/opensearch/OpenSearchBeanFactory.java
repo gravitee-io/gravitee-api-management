@@ -26,6 +26,7 @@ import io.gravitee.reporter.elasticsearch.indexer.PerTypeAndDateIndexNameGenerat
 import io.gravitee.reporter.elasticsearch.indexer.PerTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
+import io.gravitee.reporter.elasticsearch.mapping.opensearch.OpenSearchIndexPreparer;
 import lombok.NoArgsConstructor;
 
 /**
@@ -54,6 +55,6 @@ public class OpenSearchBeanFactory implements BeanFactory {
         final FreeMarkerComponent freeMarkerComponent,
         final Client client
     ) {
-        return new ES7IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, client);
+        return new OpenSearchIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, client);
     }
 }
