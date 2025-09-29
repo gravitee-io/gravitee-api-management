@@ -36,6 +36,7 @@ import io.gravitee.gateway.reactive.core.context.ExecutionContextTemplateVariabl
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * {@link TemplateVariableProvider} allowing to add access to request and response content from the template engine.
@@ -53,6 +54,9 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
     protected static final String TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON = TEMPLATE_ATTRIBUTE_RESPONSE + ".jsonContent";
     protected static final String TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML = TEMPLATE_ATTRIBUTE_RESPONSE + ".xmlContent";
 
+    private static final Pattern EXTRACTING_ROOT_TAG_PATTERN = java.util.regex.Pattern.compile(
+        "(?s)(?:<\\?[^>]*+>\\s*+)?<([^?!/][^>]*+)>.*+"
+    );
     private static final TypeReference<HashMap<String, Object>> MAPPER_TYPE_REFERENCE = new TypeReference<>() {};
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final XmlMapper XML_MAPPER = new XmlMapper();
@@ -122,10 +126,25 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
             if (buffer.length() == 0) {
                 return Collections.emptyMap();
             }
-            // Need to "wrap" the xml to get all sub tag in the resulted map (else the first level is skipped).
-            return XML_MAPPER.readValue("<wrap>" + buffer + "</wrap>", MAPPER_TYPE_REFERENCE);
+
+            var xml = buffer.toString();
+            var rootTagName = extractRootTagName(xml);
+
+            HashMap<String, Object> parsed = XML_MAPPER.readValue(xml, MAPPER_TYPE_REFERENCE);
+            // Specific case for <root>content</root>, to avoid creating { "root": { "": "content" } }
+            if (parsed.size() == 1 && parsed.containsKey("")) {
+                return Map.of(rootTagName, parsed.get(""));
+            }
+
+            return Map.of(rootTagName, parsed);
         } catch (Exception e) {
             return Collections.emptyMap();
         }
+    }
+
+    private static String extractRootTagName(String xml) {
+        var matcher = EXTRACTING_ROOT_TAG_PATTERN.matcher(xml.trim().replaceAll("\\s+", " "));
+        // To deal with tag containing attributes like <users xmlns="http://example.com" version="1.0"> we take the 1st element
+        return matcher.replaceFirst("$1").split("\\s+")[0];
     }
 }
