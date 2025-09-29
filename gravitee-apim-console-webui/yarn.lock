@@ -3117,6 +3117,7 @@ __metadata:
   peerDependencies:
     "@angular/common": ^19.2.0
     "@angular/core": ^19.2.0
+    dompurify: 3.2.7
   languageName: node
   linkType: soft
 
@@ -10479,6 +10480,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dompurify@npm:3.2.7, dompurify@npm:^3.2.7":
+  version: 3.2.7
+  resolution: "dompurify@npm:3.2.7"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10c0/d41bb31a72f1acdf9b84c56723c549924b05d92a39a15bd8c40bec9007ff80d5fccf844bc53ee12af5b69044f9a7ce24a1e71c267a4f49cf38711379ed8c1363
+  languageName: node
+  linkType: hard
+
 "dompurify@npm:=3.2.4":
   version: 3.2.4
   resolution: "dompurify@npm:3.2.4"
@@ -10502,18 +10515,6 @@ __metadata:
   version: 3.1.6
   resolution: "dompurify@npm:3.1.6"
   checksum: 10c0/3de1cca187c78d3d8cb4134fc2985b644d6a81f6b4e024c77cfb04c1c2f38544ccf7b0ea37a48ce22fcca64594170ed7c22252574c75b801c44345cdd7b06c64
-  languageName: node
-  linkType: hard
-
-"dompurify@npm:^3.2.7":
-  version: 3.2.7
-  resolution: "dompurify@npm:3.2.7"
-  dependencies:
-    "@types/trusted-types": "npm:^2.0.7"
-  dependenciesMeta:
-    "@types/trusted-types":
-      optional: true
-  checksum: 10c0/d41bb31a72f1acdf9b84c56723c549924b05d92a39a15bd8c40bec9007ff80d5fccf844bc53ee12af5b69044f9a7ce24a1e71c267a4f49cf38711379ed8c1363
   languageName: node
   linkType: hard
 
@@ -12347,6 +12348,7 @@ __metadata:
     codemirror-asciidoc: "npm:1.0.4"
     diff: "npm:3.5.0"
     diff2html: "npm:3.4.51"
+    dompurify: "npm:3.2.7"
     dragular: "npm:4.6.0"
     eslint: "npm:8.57.1"
     eslint-config-angular: "npm:0.5.0"

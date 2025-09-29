@@ -104,4 +104,99 @@ describe('GraviteeMarkdownViewerComponent', () => {
       expect(renderedHtml).toContain('Cell content');
     });
   });
+
+  describe('DOM sanitization', () => {
+    const xssAttackCases = [
+      {
+        name: 'script tag injection',
+        payload: '<script>alert(123)</script>',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'img onerror injection',
+        payload: '<img src=a onerror=alert(document.domain)>',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'javascript: protocol in href',
+        payload: '<a href="javascript:alert(1)">Click me</a>',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'onclick event handler',
+        payload: '<div onclick="alert(1)">Click me</div>',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'onload event handler',
+        payload: '<img src="x" onload="alert(1)">',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'iframe with javascript src',
+        payload: '<iframe src="javascript:alert(1)"></iframe>',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'form with javascript action',
+        payload: '<form action="javascript:alert(1)"><input type="submit"></form>',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'object with javascript data',
+        payload: '<object data="javascript:alert(1)"></object>',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'embed with javascript src',
+        payload: '<embed src="javascript:alert(1)">',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'svg with script',
+        payload: '<svg><script>alert(1)</script></svg>',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'data URI with javascript',
+        payload: '<iframe src="data:text/html,<script>alert(1)</script>"></iframe>',
+        expectedToBeSanitized: true,
+      },
+      {
+        name: 'legitimate content should not be sanitized',
+        payload: '<div>Hello World</div>',
+        expectedToBeSanitized: false,
+      },
+      {
+        name: 'legitimate img tag should not be sanitized',
+        payload: '<img src="https://example.com/image.jpg" alt="Test">',
+        expectedToBeSanitized: false,
+      },
+      {
+        name: 'legitimate link should not be sanitized',
+        payload: '<a href="https://example.com">Test Link</a>',
+        expectedToBeSanitized: false,
+      },
+    ];
+
+    xssAttackCases.forEach(({ name, payload, expectedToBeSanitized }) => {
+      it(`should ${expectedToBeSanitized ? 'sanitize' : 'preserve'} ${name}`, async () => {
+        const content = `<div>Hello</div>${payload}<div>World</div>`;
+        component.content = content;
+        fixture.detectChanges();
+
+        const renderedHtml = await harness.getRenderedHtml();
+
+        if (expectedToBeSanitized) {
+          // The malicious payload should be sanitized/removed
+          expect(renderedHtml).not.toContain(payload);
+          expect(renderedHtml).toContain('<div>Hello</div>');
+          expect(renderedHtml).toContain('<div>World</div>');
+        } else {
+          // Legitimate content should be preserved
+          expect(renderedHtml).toContain(payload);
+        }
+      });
+    });
+  });
 });
