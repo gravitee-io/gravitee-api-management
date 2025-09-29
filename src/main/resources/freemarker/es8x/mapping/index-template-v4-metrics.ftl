@@ -114,7 +114,7 @@
                     }
                 },
                 "request-content-length": {
-                    "type": "integer",
+                    "type": "long",
                     "index": false
                 },
                 "request-ended": {
@@ -133,7 +133,7 @@
                     "type": "short"
                 },
                 "response-content-length": {
-                    "type": "integer",
+                    "type": "long",
                     "index": false
                 },
                 "gateway-latency-ms": {

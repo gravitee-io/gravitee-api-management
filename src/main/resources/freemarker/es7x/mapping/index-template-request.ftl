@@ -75,11 +75,11 @@
                     }
                 },
                 "request-content-length": {
-                    "type": "integer",
+                    "type": "long",
                     "index": false
                 },
                 "response-content-length": {
-                    "type": "integer",
+                    "type": "long",
                     "index": false
                 },
                 "response-time": {
