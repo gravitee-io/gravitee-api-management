@@ -350,12 +350,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         }
     }
 
-    private void anonymizeData(JsonNode diff, List<String> pathsToAnonymize) {
+    void anonymizeData(JsonNode diff, List<String> pathsToAnonymize) {
         Iterator<JsonNode> diffElements = diff.elements();
         while (diffElements.hasNext()) {
             JsonNode element = diffElements.next();
             String path = element.get("path").asText();
-            if (pathsToAnonymize.contains(path)) {
+            if (pathsToAnonymize.contains(path) && element.get("value") != null) {
                 ((ObjectNode) element).put("value", "*****");
             }
         }
