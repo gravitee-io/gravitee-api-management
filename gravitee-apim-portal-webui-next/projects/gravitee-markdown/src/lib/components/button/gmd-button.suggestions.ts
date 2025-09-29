@@ -97,17 +97,8 @@ export const buttonConfiguration: ComponentSuggestionConfiguration = {
       'A customizable button component with three appearance styles: filled, outlined, and text. Supports both internal and external links.',
   },
   attributeHoverDocumentation: {
-    appearance: {
-      label: 'appearance',
-      description: 'The visual style of the button (filled, outlined, text)',
-    },
-    link: {
-      label: 'link',
-      description: 'The URL or path for the button link. Use "/" prefix for internal links or full URLs for external links.',
-    },
-    target: {
-      label: 'target',
-      description: 'Where to open the link: "_self" for same tab, "_blank" for new tab',
-    },
+    appearance: 'The visual style of the button (filled, outlined, text)',
+    link: 'The URL or path for the button link. Use "/" prefix for internal links or full URLs for external links.',
+    target: 'Where to open the link: "_self" for same tab, "_blank" for new tab',
   },
 };
