@@ -59,6 +59,7 @@
     "@fontsource/roboto": "5.2.5",
     "@types/swagger-ui": "3.52.4",
     "asciidoctor": "3.0.4",
+    "dompurify": "3.2.7",
     "highlight.js": "11.11.1",
     "jdenticon": "3.3.0",
     "js-yaml": "4.1.0",
