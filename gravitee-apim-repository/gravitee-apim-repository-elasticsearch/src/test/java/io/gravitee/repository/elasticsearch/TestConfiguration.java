@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
 /**
  * Spring configuration for the test.
@@ -44,7 +45,7 @@ public class TestConfiguration {
 
     public static final String DEFAULT_ELASTICSEARCH_VERSION = "8.17.2";
     public static final String DEFAULT_OPENSEARCH_VERSION = "2";
-    private static final String DEFAULT_SEARCH_TYPE = "elasticsearch";
+    public static final String DEFAULT_SEARCH_TYPE = "elasticsearch";
 
     public static final String CLUSTER_NAME = "gravitee_test";
     private boolean isElasticsearch = true;
@@ -70,7 +71,15 @@ public class TestConfiguration {
 
     @Bean
     public DatabaseHydrator databaseHydrator(Client client, FreeMarkerComponent freeMarkerComponent, TimeProvider timeProvider) {
-        return new DatabaseHydrator(client, freeMarkerComponent, elasticsearchVersion, timeProvider);
+        AnatlyticsDatabase anatlyticsDatabase = new AnatlyticsDatabase();
+        if (isElasticsearch) {
+            anatlyticsDatabase.setDatabaseType(AnatlyticsDatabase.DatabaseType.ELASTICSEARCH);
+            anatlyticsDatabase.setDatabaseVersion(elasticsearchVersion);
+        } else {
+            anatlyticsDatabase.setDatabaseType(AnatlyticsDatabase.DatabaseType.OPENSEARCH);
+            anatlyticsDatabase.setDatabaseVersion(opensearchVersion);
+        }
+        return new DatabaseHydrator(client, freeMarkerComponent, anatlyticsDatabase, timeProvider);
     }
 
     @Bean
