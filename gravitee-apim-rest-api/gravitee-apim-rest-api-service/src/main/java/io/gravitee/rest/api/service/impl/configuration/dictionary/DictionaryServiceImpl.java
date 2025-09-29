@@ -412,11 +412,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         auditService.createAuditLog(
             executionContext,
-            Collections.singletonMap(DICTIONARY, dictionaryName),
-            event,
-            createdAt,
-            oldValue,
-            newValue
+            AuditService.AuditLogData.builder()
+                .properties(Collections.singletonMap(DICTIONARY, dictionaryName))
+                .event(event)
+                .createdAt(createdAt)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .build()
         );
     }
 

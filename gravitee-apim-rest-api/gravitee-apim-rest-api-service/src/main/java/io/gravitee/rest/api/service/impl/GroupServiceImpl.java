@@ -352,14 +352,16 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             newGroup.setCreatedAt(new Date());
             newGroup.setUpdatedAt(newGroup.getCreatedAt());
             GroupEntity grp = this.map(groupRepository.create(newGroup));
-            // Audit
+
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(GROUP, newGroup.getId()),
-                GROUP_CREATED,
-                newGroup.getCreatedAt(),
-                null,
-                newGroup
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(GROUP, newGroup.getId()))
+                    .event(GROUP_CREATED)
+                    .createdAt(newGroup.getCreatedAt())
+                    .oldValue(null)
+                    .newValue(newGroup)
+                    .build()
             );
             logger.debug("create {} - DONE", grp);
             return grp;
@@ -394,11 +396,13 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             // Audit
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(GROUP, groupId),
-                GROUP_UPDATED,
-                updatedGroupEntity.getUpdatedAt(),
-                previousGroup,
-                updatedGroup
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(GROUP, groupId))
+                    .event(GROUP_UPDATED)
+                    .createdAt(updatedGroupEntity.getUpdatedAt())
+                    .oldValue(previousGroup)
+                    .newValue(updatedGroup)
+                    .build()
             );
             reindexApisIfPrimaryOwnerGroup(executionContext, grp);
             return findById(executionContext, groupId);
@@ -750,11 +754,13 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             // Audit
             auditService.createAuditLog(
                 executionContext,
-                Collections.singletonMap(GROUP, groupId),
-                GROUP_DELETED,
-                new Date(),
-                group.get(),
-                null
+                AuditService.AuditLogData.builder()
+                    .properties(Collections.singletonMap(GROUP, groupId))
+                    .event(GROUP_DELETED)
+                    .createdAt(new Date())
+                    .oldValue(group.get())
+                    .newValue(null)
+                    .build()
             );
 
             logger.debug("delete {} - DONE", groupId);

@@ -28,7 +28,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import io.gravitee.apim.core.membership.model.TransferOwnership;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.utils.UUID;
@@ -465,27 +464,66 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         properties.put(Audit.AuditProperties.USER, username);
         switch (referenceType) {
             case API:
-                auditService.createApiAuditLog(executionContext, referenceId, properties, event, date, oldValue, newValue);
+                auditService.createApiAuditLog(
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                        .properties(properties)
+                        .event(event)
+                        .createdAt(date)
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build(),
+                    referenceId
+                );
                 break;
             case APPLICATION:
-                auditService.createApplicationAuditLog(executionContext, referenceId, properties, event, date, oldValue, newValue);
+                auditService.createApplicationAuditLog(
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                        .properties(properties)
+                        .event(event)
+                        .createdAt(date)
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build(),
+                    referenceId
+                );
                 break;
             case GROUP:
                 properties.put(Audit.AuditProperties.GROUP, referenceId);
-                auditService.createAuditLog(executionContext, properties, event, date, oldValue, newValue);
+                auditService.createAuditLog(
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                        .properties(properties)
+                        .event(event)
+                        .createdAt(date)
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build()
+                );
                 break;
             case ENVIRONMENT:
-                auditService.createAuditLog(executionContext, properties, event, date, oldValue, newValue);
+                auditService.createAuditLog(
+                    executionContext,
+                    AuditService.AuditLogData.builder()
+                        .properties(properties)
+                        .event(event)
+                        .createdAt(date)
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build()
+                );
                 break;
             case ORGANIZATION:
                 auditService.createOrganizationAuditLog(
                     executionContext,
-                    executionContext.getOrganizationId(),
-                    properties,
-                    event,
-                    date,
-                    oldValue,
-                    newValue
+                    AuditService.AuditLogData.builder()
+                        .properties(properties)
+                        .event(event)
+                        .createdAt(date)
+                        .oldValue(oldValue)
+                        .newValue(newValue)
+                        .build()
                 );
                 break;
         }
