@@ -35,6 +35,7 @@ import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
+import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
@@ -53,6 +54,8 @@ import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.api.PortalPageContextRepository;
+import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
@@ -147,6 +150,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final PlanRepository planRepository;
     private final PortalMenuLinkRepository portalMenuLinkRepository;
     private final PortalNotificationConfigRepository portalNotificationConfigRepository;
+    private final PortalPageRepository portalPageRepository;
+    private final PortalPageContextRepository portalPageContextRepository;
     private final PromotionRepository promotionRepository;
     private final QualityRuleRepository qualityRuleRepository;
     private final RatingAnswerRepository ratingAnswerRepository;
@@ -162,6 +167,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final ThemeRepository themeRepository;
     private final TicketRepository ticketRepository;
     private final WorkflowRepository workflowRepository;
+    private final ClusterRepository clusterRepository;
 
     public DeleteEnvironmentCommandHandler(
         @Lazy AccessPointRepository accessPointRepository,
@@ -194,6 +200,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy PlanRepository planRepository,
         @Lazy PortalMenuLinkRepository portalMenuLinkRepository,
         @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
+        @Lazy PortalPageRepository portalPageRepository,
+        @Lazy PortalPageContextRepository portalPageContextRepository,
         @Lazy PromotionRepository promotionRepository,
         @Lazy QualityRuleRepository qualityRuleRepository,
         @Lazy RatingAnswerRepository ratingAnswerRepository,
@@ -208,6 +216,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy ThemeRepository themeRepository,
         @Lazy TicketRepository ticketRepository,
         @Lazy WorkflowRepository workflowRepository,
+        @Lazy ClusterRepository clusterRepository,
         AccessPointCrudService accessPointService,
         AlertService alertService,
         ApiStateService apiStateService,
@@ -254,6 +263,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.planRepository = planRepository;
         this.portalMenuLinkRepository = portalMenuLinkRepository;
         this.portalNotificationConfigRepository = portalNotificationConfigRepository;
+        this.portalPageRepository = portalPageRepository;
+        this.portalPageContextRepository = portalPageContextRepository;
         this.promotionRepository = promotionRepository;
         this.qualityRuleRepository = qualityRuleRepository;
         this.ratingAnswerRepository = ratingAnswerRepository;
@@ -269,6 +280,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.themeRepository = themeRepository;
         this.ticketRepository = ticketRepository;
         this.workflowRepository = workflowRepository;
+        this.clusterRepository = clusterRepository;
     }
 
     @Override
@@ -349,6 +361,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         accessPointRepository.deleteByReferenceIdAndReferenceType(environment.getId(), AccessPointReferenceType.ENVIRONMENT);
         parameterRepository.deleteByReferenceIdAndReferenceType(environment.getId(), ParameterReferenceType.ENVIRONMENT);
         portalMenuLinkRepository.deleteByEnvironmentId(environment.getId());
+        portalPageRepository.deleteByEnvironmentId(environment.getId());
+        portalPageContextRepository.deleteByEnvironmentId(environment.getId());
         customUserFieldsRepository.deleteByReferenceIdAndReferenceType(environment.getId(), CustomUserFieldReferenceType.ENVIRONMENT);
         groupRepository
             .deleteByEnvironmentId(environment.getId())
@@ -388,6 +402,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         auditRepository.deleteByReferenceIdAndReferenceType(environment.getId(), Audit.AuditReferenceType.ENVIRONMENT);
         clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());
         qualityRuleRepository.deleteByReferenceIdAndReferenceType(environment.getId(), QualityRule.ReferenceType.ENVIRONMENT);
+        clusterRepository.deleteByEnvironmentId(environment.getId());
     }
 
     private void deleteApis(ExecutionContext executionContext) throws TechnicalException {

@@ -119,4 +119,28 @@ public class MongoClusterRepository implements ClusterRepository {
         }
         log.debug("Update groups for cluster id [{}] - Done", clusterId);
     }
+
+    @Override
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Delete cluster by environment id [{}]", environmentId);
+        try {
+            internalClusterMongoRepo.deleteByEnvironmentId(environmentId);
+        } catch (Exception ex) {
+            final String error = String.format("Unable to delete cluster by environment id [%s]", environmentId);
+            log.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public void deleteByOrganizationId(String organizationId) throws TechnicalException {
+        log.debug("Delete cluster by organization id [{}]", organizationId);
+        try {
+            internalClusterMongoRepo.deleteByOrganizationId(organizationId);
+        } catch (Exception ex) {
+            final String error = String.format("Unable to delete cluster by organization id [%s]", organizationId);
+            log.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
 }

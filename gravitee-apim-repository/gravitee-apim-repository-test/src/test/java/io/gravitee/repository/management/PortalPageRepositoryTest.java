@@ -224,4 +224,24 @@ public class PortalPageRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(pagesWithoutContent).allMatch(p -> p.getContent() == null);
         assertThat(pagesWithNullExpand).allMatch(p -> p.getContent() == null);
     }
+
+    @Test
+    public void should_delete_by_environment_id() throws Exception {
+        String environmentToDelete = "test-environment";
+
+        // Given
+        Set<PortalPage> allPagesBeforeDelete = portalPageRepository.findAll();
+        assertThat(allPagesBeforeDelete).hasSize(3);
+        assertThat(allPagesBeforeDelete)
+            .filteredOn(page -> page.getEnvironmentId().equals(environmentToDelete))
+            .hasSize(2);
+
+        // When
+        portalPageRepository.deleteByEnvironmentId(environmentToDelete);
+
+        // Then
+        Set<PortalPage> allPagesAfterDelete = portalPageRepository.findAll();
+        assertThat(allPagesAfterDelete).hasSize(1);
+        assertThat(allPagesAfterDelete).noneMatch(page -> page.getEnvironmentId().equals(environmentToDelete));
+    }
 }
