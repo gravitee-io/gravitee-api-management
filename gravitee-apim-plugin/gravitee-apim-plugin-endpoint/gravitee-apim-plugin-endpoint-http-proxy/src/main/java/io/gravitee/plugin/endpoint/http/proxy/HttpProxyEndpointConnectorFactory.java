@@ -36,10 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 public class HttpProxyEndpointConnectorFactory implements HttpEndpointSyncConnectorFactory {
 
     private final PluginConfigurationHelper connectorFactoryHelper;
+    private final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
 
     @Override
     public Set<ConnectorMode> supportedModes() {
-        return HttpProxyEndpointConnector.SUPPORTED_MODES;
+        return SUPPORTED_MODES;
     }
 
     @Override
