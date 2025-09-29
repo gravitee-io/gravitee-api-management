@@ -72,6 +72,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final TenantRepository tenantRepository;
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
+    private final ClusterRepository clusterRepository;
 
     public DeleteOrganizationCommandHandler(
         @Lazy AccessPointRepository accessPointRepository,
@@ -94,6 +95,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         @Lazy TenantRepository tenantRepository,
         @Lazy TokenRepository tokenRepository,
         @Lazy UserRepository userRepository,
+        @Lazy ClusterRepository clusterRepository,
         AccessPointCrudService accessPointService,
         EnvironmentService environmentService,
         IdentityProviderActivationService identityProviderActivationService,
@@ -125,6 +127,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.tenantRepository = tenantRepository;
         this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
+        this.clusterRepository = clusterRepository;
     }
 
     @Override
@@ -220,5 +223,6 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
             NotificationTemplateReferenceType.ORGANIZATION
         );
         entrypointRepository.deleteByReferenceIdAndReferenceType(organization.getId(), EntrypointReferenceType.ORGANIZATION);
+        clusterRepository.deleteByOrganizationId(organization.getId());
     }
 }
