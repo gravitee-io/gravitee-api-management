@@ -17,28 +17,7 @@
 -->
 <div class="nav-bar__container">
   <app-company-title [title]="siteTitle" [logo]="logo()" />
-  <div class="menu-items">
-    <app-nav-bar-button i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
-    <app-nav-bar-button i18n="@@guides" [path]="['guides']">Guides</app-nav-bar-button>
-    @for (link of customLinks(); track link.id) {
-      <a
-        [href]="link.target"
-        mat-stroked-button
-        color="primary"
-        class="menu-items__custom_link"
-        [target]="link.type === 'external' ? '_blank' : ''">
-        {{ link.name }}
-      </a>
-    }
-  </div>
-
-  @if (!isEmpty(currentUser())) {
-    <div class="authenticated-actions">
-      <app-user-avatar [user]="currentUser()" />
-    </div>
-  } @else {
-    <div class="unauthenticated-actions">
-      <button mat-flat-button color="primary" i18n="@@logIn" [routerLink]="['log-in']">Sign in</button>
-    </div>
+  @if (isDesktop()) {
+    <app-desktop-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />
   }
 </div>

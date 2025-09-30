@@ -22,6 +22,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { NavBarComponent } from './nav-bar.component';
 import { fakeUser } from '../../entities/user/user.fixtures';
+import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 import { AppTestingModule } from '../../testing/app-testing.module';
 
 describe('NavBarComponent', () => {
@@ -29,47 +30,53 @@ describe('NavBarComponent', () => {
   let harnessLoader: HarnessLoader;
   let componentRef: ComponentRef<NavBarComponent>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NavBarComponent, AppTestingModule],
-    }).compileComponents();
+  const init = async () => {
+    await TestBed.configureTestingModule({ imports: [NavBarComponent, AppTestingModule] }).compileComponents();
 
     fixture = TestBed.createComponent(NavBarComponent);
     componentRef = fixture.componentRef;
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
-  });
+  };
 
-  it('should show login button if user not connected', async () => {
-    let logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign in' }));
-    expect(logInButton).toBeTruthy();
-    componentRef.setInput('currentUser', fakeUser());
-    logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign in' }));
-    expect(logInButton).toBeFalsy();
-  });
+  describe('using desktop view', () => {
+    beforeEach(async () => {
+      await init();
+      const observabilityBreakpointService = TestBed.inject(ObservabilityBreakpointService);
+      observabilityBreakpointService.isDesktop.set(true);
+    });
 
-  it('should show custom links', async () => {
-    const customLinks = [
-      {
-        id: 'link-id-1',
-        type: 'external',
-        name: 'link-name-1',
-        target: 'link-target-1',
-        order: 1,
-      },
-      {
-        id: 'link-id-2',
-        type: 'external',
-        name: 'link-name-2',
-        target: 'link-target-2',
-        order: 2,
-      },
-    ];
+    it('should show login button if user not connected', async () => {
+      let logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign in' }));
+      expect(logInButton).toBeTruthy();
+      componentRef.setInput('currentUser', fakeUser());
+      logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign in' }));
+      expect(logInButton).toBeFalsy();
+    });
 
-    componentRef.setInput('customLinks', customLinks);
-    const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
-    expect(link1Anchor).toBeTruthy();
-    const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
-    expect(link2Anchor).toBeTruthy();
+    it('should show custom links', async () => {
+      const customLinks = [
+        {
+          id: 'link-id-1',
+          type: 'external',
+          name: 'link-name-1',
+          target: 'link-target-1',
+          order: 1,
+        },
+        {
+          id: 'link-id-2',
+          type: 'external',
+          name: 'link-name-2',
+          target: 'link-target-2',
+          order: 2,
+        },
+      ];
+
+      componentRef.setInput('customLinks', customLinks);
+      const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-1' }));
+      expect(link1Anchor).toBeTruthy();
+      const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
+      expect(link2Anchor).toBeTruthy();
+    });
   });
 });

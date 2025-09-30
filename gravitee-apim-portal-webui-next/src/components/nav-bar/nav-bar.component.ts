@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, input, InputSignal } from '@angular/core';
+import { Component, inject, Input, input, InputSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterLink } from '@angular/router';
-import { isEmpty } from 'lodash';
 
-import { NavBarButtonComponent } from './nav-bar-button/nav-bar-button.component';
+import { DesktopNavBarComponent } from './desktop-nav-bar/desktop-nav-bar.component';
 import { User } from '../../entities/user/user';
+import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 import { PortalMenuLink } from '../../services/portal-menu-links.service';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
-import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
 
 @Component({
   selector: 'app-nav-bar',
-  imports: [MatButtonModule, CompanyTitleComponent, NavBarButtonComponent, UserAvatarComponent, RouterLink],
+  imports: [MatButtonModule, CompanyTitleComponent, DesktopNavBarComponent],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.scss'],
 })
@@ -37,5 +35,5 @@ export class NavBarComponent {
   customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
   currentUser: InputSignal<User> = input({});
   logo: InputSignal<string> = input('');
-  protected readonly isEmpty = isEmpty;
+  protected isDesktop = inject(ObservabilityBreakpointService).isDesktop;
 }
