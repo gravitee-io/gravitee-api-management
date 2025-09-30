@@ -19,8 +19,8 @@ import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Observable } from 'rxjs';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Observable, of } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { map, shareReplay } from 'rxjs/operators';
 
 import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
@@ -70,7 +70,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public rightColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public bottomRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
-  public applications: BaseApplication[] = [];
+  public applications$: Observable<BaseApplication[]> = of([]);
 
   public activeFilters: Signal<ApiAnalyticsNativeFilters> = computed(() => this.mapQueryParamsToFilters(this.activatedRouteQueryParams()));
 
@@ -267,15 +267,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.apiService
-      .getSubscribers(this.apiId, null, 1, 200)
-      .pipe(
-        map((response) => {
-          this.applications = response.data;
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
+    this.applications$ = this.apiService.getSubscribers(this.apiId, null, 1, 200).pipe(map((response) => response?.data ?? []));
 
     this.topRowTransformed$ = this.topRowWidgets.map((widgetConfig) => {
       return this.apiAnalyticsWidgetService.getApiAnalyticsWidgetConfig$(widgetConfig);

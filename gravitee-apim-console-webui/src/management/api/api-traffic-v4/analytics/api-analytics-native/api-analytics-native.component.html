@@ -18,7 +18,7 @@
 <api-analytics-native-filter-bar
   [activeFilters]="activeFilters()"
   [plans]="apiPlans$ | async"
-  [applications]="applications"
+  [applications]="applications$ | async"
   (filtersChange)="onFiltersChange($event)"
   (refresh)="onRefreshFilters()"
 />
