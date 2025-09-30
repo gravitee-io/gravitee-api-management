@@ -14,25 +14,36 @@
  * limitations under the License.
  */
 @use '@angular/material' as mat;
-@use '../../scss/theme' as app-theme;
+@use '../../../scss/theme' as app-theme;
 
 :host {
-  position: sticky;
-  z-index: 99;
-  top: 0;
-  display: block;
-}
-
-.nav-bar__container {
-  position: relative;
   display: flex;
   width: 100%;
-  box-sizing: border-box;
-  flex-direction: row;
+  justify-content: space-between;
+}
+
+.menu-items {
+  display: flex;
+  flex: 1 1 auto;
   align-items: center;
-  padding: 8px 16px;
-  border-bottom: 1px solid app-theme.$nav-bar-border-color;
-  background: app-theme.$nav-bar-background-color;
-  box-shadow: app-theme.$nav-bar-elevation;
+  gap: 16px;
+
+  @include mat.button-overrides(
+    (
+      outlined-outline-color: transparent,
+      outlined-label-text-color: app-theme.$nav-bar-link-color,
+      filled-label-text-color: app-theme.$nav-bar-link-active-color,
+      filled-container-color: app-theme.$nav-bar-link-active-background-color,
+      outlined-hover-state-layer-opacity: 7%,
+      filled-horizontal-padding: app-theme.$nav-bar-link-padding,
+      outlined-horizontal-padding: app-theme.$nav-bar-link-padding,
+      outlined-outline-width: 0,
+    )
+  );
+}
+
+.actions {
+  display: flex;
+  align-items: center;
   gap: 16px;
 }
