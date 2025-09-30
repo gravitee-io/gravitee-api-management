@@ -17,6 +17,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 
 export type ButtonAppearance = 'filled' | 'outlined' | 'text';
+const VALID_APPEARANCES: string[] = ['filled', 'outlined', 'text'];
 
 @Component({
   selector: 'gmd-button',
@@ -29,6 +30,9 @@ export class GmdButtonComponent {
   link = input<string | undefined>();
   target = input<string | undefined>();
 
+  appearanceVM = computed(() => {
+    return VALID_APPEARANCES.includes(this.appearance()) ? this.appearance() : 'filled';
+  });
   hrefVM = computed(() => this.link() || '/');
   targetVM = computed(() => this.target() || '_self');
 }

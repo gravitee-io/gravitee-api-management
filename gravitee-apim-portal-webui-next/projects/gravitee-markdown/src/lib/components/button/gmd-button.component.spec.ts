@@ -81,6 +81,13 @@ describe('ButtonComponent', () => {
     expect(appearance).toBe('text');
   });
 
+  it('should show filled button if input is an invalid value', async () => {
+    fixture.componentRef.setInput('appearance', 'kitty-cat');
+    fixture.detectChanges();
+    const appearance = await harness.getAppearance();
+    expect(appearance).toBe('filled');
+  });
+
   it('should get href and target attributes through harness', async () => {
     // Test internal link
     fixture.componentRef.setInput('link', '/internal');
