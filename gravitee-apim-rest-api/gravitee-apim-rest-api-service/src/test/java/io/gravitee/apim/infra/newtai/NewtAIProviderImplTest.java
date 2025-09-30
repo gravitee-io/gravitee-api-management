@@ -36,6 +36,7 @@ import java.util.Map;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -160,6 +161,66 @@ class NewtAIProviderImplTest {
             .assertError(
                 throwable -> throwable instanceof NewtAiSubmitFeedbackException && throwable.getMessage().equals("send command error")
             );
+    }
+
+    @Nested
+    class MappingPayload {
+
+        @Test
+        void should_remove_tics(VertxTestContext context) {
+            assertPayload(context, "```{#request.path}```", "{#request.path}");
+        }
+
+        @Test
+        void should_remove_only_start_end_tics(VertxTestContext context) {
+            assertPayload(context, "{#```request.path```}", "{#```request.path```}");
+        }
+
+        @Test
+        void should_support_multi_lines(VertxTestContext context) {
+            assertPayload(
+                context,
+                """
+                ```{#request
+                .path}```
+                """,
+                """
+                {#request
+                .path}"""
+            );
+        }
+
+        @Test
+        void should_remove_tics_even_with_others_tics(VertxTestContext context) {
+            assertPayload(context, "```{#request```.path}```", "{#request```.path}");
+        }
+
+        @Test
+        void should_passthrough_if_nothing_to_do(VertxTestContext context) {
+            assertPayload(context, "{#request.path}", "{#request.path}");
+        }
+
+        void assertPayload(VertxTestContext context, String input, String expected) {
+            when(installationService.get()).thenReturn(INSTALLATION_ENTITY);
+            var query = new Input("apiId", "test message", "cid", Map.of("key", "value"));
+            var replyPayload = new ELReplyPayload(input, new ELReplyPayload.RequestId("chatId", "userMessageId", "agentMessageId"));
+            var reply = new ELReply("commandId", CommandStatus.SUCCEEDED, replyPayload);
+            when(cockpitConnector.sendCommand(any(ELCommand.class))).thenReturn(Single.just(reply));
+
+            cut
+                .generateEL(query)
+                .subscribe(
+                    elGenReply ->
+                        context.verify(() -> {
+                            assertThat(elGenReply.message()).isEqualTo(expected);
+                            assertThat(elGenReply.feedbackId().chatId()).isEqualTo("chatId");
+                            assertThat(elGenReply.feedbackId().userMessageId()).isEqualTo("userMessageId");
+                            assertThat(elGenReply.feedbackId().agentMessageId()).isEqualTo("agentMessageId");
+                            context.completeNow();
+                        }),
+                    context::failNow
+                );
+        }
     }
 
     record Input(String apiId, String message, String chatId, Map<String, String> properties) implements ELGenQuery {
