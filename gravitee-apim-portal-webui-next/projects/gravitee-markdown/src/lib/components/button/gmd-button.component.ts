@@ -30,9 +30,7 @@ export class GmdButtonComponent {
   link = input<string | undefined>();
   target = input<string | undefined>();
 
-  appearanceVM = computed(() => {
-    return VALID_APPEARANCES.includes(this.appearance()) ? this.appearance() : 'filled';
-  });
+  appearanceVM = computed(() => VALID_APPEARANCES.find(buttonAppearance => this.appearance() === buttonAppearance) ?? 'filled');
   hrefVM = computed(() => this.link() || '/');
   targetVM = computed(() => this.target() || '_self');
 }
