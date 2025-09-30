@@ -858,7 +858,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(aggregate -> {
                     assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
                     assertThat(aggregate.field()).isEqualTo("entrypoint-id");
-                    assertThat(aggregate.values()).containsExactlyEntriesOf(Map.of("http-get", 1L));
+                    assertThat(aggregate.values()).containsExactlyInAnyOrderEntriesOf(
+                        Map.of("http-get", 1L, "sse", 1L, "websocket", 2L, "webhook", 1L)
+                    );
                 });
         }
 
