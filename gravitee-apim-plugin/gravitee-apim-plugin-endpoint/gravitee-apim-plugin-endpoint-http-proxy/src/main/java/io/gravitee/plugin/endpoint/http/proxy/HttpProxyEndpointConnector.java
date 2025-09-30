@@ -136,16 +136,20 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private Completable handleException(Throwable throwable, HttpExecutionContext ctx) {
         return switch (throwable) {
             case InterruptionFailureException e -> Completable.error(e);
-            case TimeoutException e -> ctx.interruptWith(new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT));
-            case NoStackTraceTimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT)
+            case TimeoutException e -> ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
             );
-            case ReadTimeoutException e -> ctx.interruptWith(new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT));
+            case NoStackTraceTimeoutException e -> ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
+            );
+            case ReadTimeoutException e -> ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
+            );
             case ConnectTimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT)
+                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
             );
             case IOException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR)
+                new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR).cause(throwable)
             );
             default -> Completable.error(throwable);
         };
