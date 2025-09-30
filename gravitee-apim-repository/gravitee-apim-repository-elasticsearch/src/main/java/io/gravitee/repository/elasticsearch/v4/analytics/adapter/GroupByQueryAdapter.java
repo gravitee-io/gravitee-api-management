@@ -63,15 +63,6 @@ public class GroupByQueryAdapter {
     private ObjectNode createQueryNode(GroupByQuery query) {
         var filterArray = MAPPER.createArrayNode();
 
-        // Terms
-        ObjectNode boolShould = MAPPER.createObjectNode();
-        var shouldArray = MAPPER.createArrayNode();
-        ObjectNode termsNode = MAPPER.createObjectNode();
-        termsNode.set("terms", MAPPER.createObjectNode().set("entrypoint-id", MAPPER.valueToTree(ENTRYPOINT_IDS)));
-        shouldArray.add(termsNode);
-        boolShould.set("should", shouldArray);
-        filterArray.add(MAPPER.createObjectNode().set("bool", boolShould));
-
         ObjectNode termNode = MAPPER.createObjectNode();
         termNode.set("term", MAPPER.createObjectNode().put(query.searchTermId().searchTerm().getField(), query.searchTermId().id()));
         filterArray.add(termNode);
@@ -85,6 +76,17 @@ public class GroupByQueryAdapter {
                 queryStringNode.set("query_string", MAPPER.createObjectNode().put("query", q));
                 filterArray.add(queryStringNode);
             });
+
+        // EntrypointIds
+        if (query.entrypointIds() != null && !query.entrypointIds().isEmpty()) {
+            ObjectNode boolShould = MAPPER.createObjectNode();
+            var shouldArray = MAPPER.createArrayNode();
+            ObjectNode termsNode = MAPPER.createObjectNode();
+            termsNode.set("terms", MAPPER.createObjectNode().set("entrypoint-id", MAPPER.valueToTree(query.entrypointIds())));
+            shouldArray.add(termsNode);
+            boolShould.set("should", shouldArray);
+            filterArray.add(MAPPER.createObjectNode().set("bool", boolShould));
+        }
 
         // Time range using TimeRangeAdapter
         filterArray.add(TimeRangeAdapter.toRangeNode(query.timeRange()));

@@ -54,7 +54,8 @@ class GroupByQueryAdapterTest {
                 Collections.emptyList(),
                 Optional.empty(),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
+                Optional.empty(),
+                null
             );
             String json = cut.adapt(query);
 
@@ -62,9 +63,9 @@ class GroupByQueryAdapterTest {
             JsonNode node = mapper.readTree(json);
 
             assertEquals(0, node.get("size").asInt());
-            assertEquals(API_ID, node.at("/query/bool/filter/1/term/api-id").asText());
-            assertEquals(FROM, node.at("/query/bool/filter/2/range/@timestamp/from").asLong());
-            assertEquals(TO, node.at("/query/bool/filter/2/range/@timestamp/to").asLong());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
+            assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/from").asLong());
+            assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/to").asLong());
             assertEquals(FIELD, node.at("/aggregations/by_status/terms/field").asText());
         }
 
@@ -77,7 +78,8 @@ class GroupByQueryAdapterTest {
                 groups,
                 Optional.empty(),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
+                Optional.empty(),
+                null
             );
             String json = cut.adapt(query);
 
@@ -85,9 +87,9 @@ class GroupByQueryAdapterTest {
             JsonNode node = mapper.readTree(json);
 
             assertEquals(0, node.get("size").asInt());
-            assertEquals(API_ID, node.at("/query/bool/filter/1/term/api-id").asText());
-            assertEquals(FROM, node.at("/query/bool/filter/2/range/@timestamp/from").asLong());
-            assertEquals(TO, node.at("/query/bool/filter/2/range/@timestamp/to").asLong());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
+            assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/from").asLong());
+            assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/to").asLong());
             assertEquals(2, node.at("/aggregations/by_status_range/range/ranges").size());
             assertEquals(0, node.at("/aggregations/by_status_range/range/ranges/0/from").asInt());
             assertEquals(100, node.at("/aggregations/by_status_range/range/ranges/0/to").asInt());
@@ -102,7 +104,8 @@ class GroupByQueryAdapterTest {
                 List.of(),
                 Optional.empty(),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.of(queryString)
+                Optional.of(queryString),
+                null
             );
             String json = cut.adapt(query);
 
@@ -121,6 +124,41 @@ class GroupByQueryAdapterTest {
         }
 
         @Test
+        void shouldIncludeEntrypointFilterIfPresent() throws Exception {
+            List<String> entrypointIds = List.of("http-post", "http-get", "websocket");
+            GroupByQuery query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, API_ID),
+                FIELD,
+                List.of(),
+                Optional.empty(),
+                new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+                Optional.empty(),
+                entrypointIds
+            );
+            String json = cut.adapt(query);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(json);
+
+            boolean hasEntrypointFilter = false;
+            for (JsonNode filterNode : node.at("/query/bool/filter")) {
+                if (filterNode.has("bool") && filterNode.get("bool").has("should")) {
+                    hasEntrypointFilter = true;
+                    JsonNode shouldArray = filterNode.get("bool").get("should");
+                    assertEquals(1, shouldArray.size());
+                    JsonNode termsNode = shouldArray.get(0);
+                    assertTrue(termsNode.has("terms"));
+                    JsonNode entrypointTerms = termsNode.get("terms").get("entrypoint-id");
+                    assertEquals(3, entrypointTerms.size());
+                    assertTrue(entrypointTerms.toString().contains("http-post"));
+                    assertTrue(entrypointTerms.toString().contains("http-get"));
+                    assertTrue(entrypointTerms.toString().contains("websocket"));
+                }
+            }
+            assertTrue(hasEntrypointFilter, "Should contain entrypoint filter");
+        }
+
+        @Test
         void shouldGenerateTermsQueryWithAvgOrderAggregation() throws Exception {
             GroupByQuery.Order order = new GroupByQuery.Order("gateway-response-time-ms", false, "AVG");
             GroupByQuery query = new GroupByQuery(
@@ -129,7 +167,8 @@ class GroupByQueryAdapterTest {
                 List.of(),
                 Optional.of(order),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
+                Optional.empty(),
+                null
             );
             String json = cut.adapt(query);
 
@@ -152,7 +191,8 @@ class GroupByQueryAdapterTest {
                 List.of(),
                 Optional.of(order),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
+                Optional.empty(),
+                null
             );
             String json = cut.adapt(query);
 
@@ -178,7 +218,8 @@ class GroupByQueryAdapterTest {
                     List.of(),
                     Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                    Optional.empty()
+                    Optional.empty(),
+                    null
                 )
             );
 
@@ -211,7 +252,8 @@ class GroupByQueryAdapterTest {
                     groups,
                     Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                    Optional.empty()
+                    Optional.empty(),
+                    null
                 )
             );
 
@@ -243,7 +285,8 @@ class GroupByQueryAdapterTest {
                     List.of(),
                     Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                    Optional.empty()
+                    Optional.empty(),
+                    null
                 )
             );
             SearchResponse response = new SearchResponse();
@@ -260,7 +303,8 @@ class GroupByQueryAdapterTest {
                     List.of(),
                     Optional.empty(),
                     new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                    Optional.empty()
+                    Optional.empty(),
+                    null
                 )
             );
             SearchResponse response = new SearchResponse();
@@ -277,7 +321,8 @@ class GroupByQueryAdapterTest {
                 List.of(),
                 Optional.of(new GroupByQuery.Order("agg_value", true, "AVG")),
                 new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-                Optional.empty()
+                Optional.empty(),
+                null
             );
             cut.adapt(query);
             // Prepare bucket with aggregated field value

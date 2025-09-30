@@ -341,7 +341,8 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             repoGroups,
             repoOrder,
             new TimeRange(groupByQuery.from(), groupByQuery.to()),
-            groupByQuery.query()
+            groupByQuery.query(),
+            null
         );
     }
 

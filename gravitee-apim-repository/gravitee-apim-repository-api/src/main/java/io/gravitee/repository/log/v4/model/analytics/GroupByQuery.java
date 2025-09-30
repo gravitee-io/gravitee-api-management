@@ -24,7 +24,8 @@ public record GroupByQuery(
     List<Group> groups,
     Optional<Order> order,
     TimeRange timeRange,
-    Optional<String> query
+    Optional<String> query,
+    List<String> entrypointIds
 ) {
     public record Group(long from, long to) {}
 
