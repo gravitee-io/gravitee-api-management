@@ -140,14 +140,17 @@
             </mat-expansion-panel-header>
             <div class="portal-theme__left__form__content__panel__editor">
               This will override the configuration made in the Basic Theme tab.
-              <mat-form-field>
-                <gio-monaco-editor
-                  gioMonacoEditorFormField
-                  formControlName="customCSS"
-                  [languageConfig]="{ language: 'css' }"
-                  [disableMiniMap]="true"
-                ></gio-monaco-editor>
-              </mat-form-field>
+              @if (showMonacoEditor) {
+                <mat-form-field>
+                  <gio-monaco-editor
+                    gioMonacoEditorFormField
+                    formControlName="customCSS"
+                    [languageConfig]="{ language: 'css' }"
+                    [disableMiniMap]="true"
+                    [disableAutoFormat]="true"
+                  ></gio-monaco-editor>
+                </mat-form-field>
+              }
             </div>
           </mat-expansion-panel>
         </mat-accordion>
