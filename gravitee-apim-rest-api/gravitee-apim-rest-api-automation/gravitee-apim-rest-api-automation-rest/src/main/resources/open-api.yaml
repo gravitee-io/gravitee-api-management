@@ -501,6 +501,8 @@ components:
           items:
             type: string
           default: [ ]
+          examples:
+            - ["developers"]
         visibility:
           $ref: "#/components/schemas/Visibility"
         state:
@@ -515,6 +517,8 @@ components:
             maxLength: 64
           uniqueItems: true
           default: [ ]
+          examples: 
+            - ["example"]
         metadata:
           type: array
           description: The list of API's metadata.
@@ -531,7 +535,7 @@ components:
             type: string
           default: [ ]
           examples:
-            - [ "3ac914a2-4279-4aab-a19c-f784f07f8a42" ]
+            - [ "Example APIs" ]
         members:
           type: array
           description: Users that can access or manage the API (depending on their roles).
@@ -2200,6 +2204,8 @@ components:
               invalidValue:
                 type: object
                 description: The invalid value.
+                examples:
+                  - $...faulty
 
     Errors:
       description: >-
@@ -2265,6 +2271,8 @@ components:
       schema:
         type: string
         default: DEFAULT
+        examples:
+          - a44e0d1b-9fa9-4d64-8b76-3634623a2e27
     orgIdParam:
       name: orgId
       in: path
@@ -2273,6 +2281,8 @@ components:
       schema:
         type: string
         default: DEFAULT
+        examples:
+          - dedd0e0f-b3e9-4d2f-89cd-b2a9de7cb145
     dryRunQueryParam:
       name: dryRun
       in: query
@@ -2282,6 +2292,8 @@ components:
       schema:
         type: boolean
         default: false
+        examples: 
+          - true
     hridParam:
       name: hrid
       in: path
@@ -2289,6 +2301,12 @@ components:
       description: Human-readable ID of a spec
       schema:
         type: string
+        examples:
+          - my_demo_api
+          - simple_demo_app
+          - keyless_demo_plan
+          - demo_subscription
+          - demo_shared_policy_groups
     apiHridParam:
       name: apiHrid
       in: path
@@ -2296,6 +2314,8 @@ components:
       description: Human-readable ID of api
       schema:
         type: string
+        examples:
+          - my_demo_api
   securitySchemes:
     BasicAuth:
       description: Basic authentication
