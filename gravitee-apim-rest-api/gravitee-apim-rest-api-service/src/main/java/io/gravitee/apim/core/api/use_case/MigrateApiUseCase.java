@@ -42,7 +42,6 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainServ
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.flow.Flow;
 import jakarta.inject.Inject;
@@ -98,14 +97,17 @@ public class MigrateApiUseCase {
 
     public Output execute(Input input) {
         var api = apiCrudService.findById(input.apiId()).orElseThrow(() -> new ApiNotFoundException(input.apiId()));
-        if (api.getDefinitionVersion() != DefinitionVersion.V2) {
+        io.gravitee.definition.model.Api apiDefinition;
+        if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api ap) {
+            apiDefinition = ap;
+        } else {
             // Fatal issue, we don’t try to do anything in this case
             return new Output(
                 input.apiId(),
                 List.of(new MigrationResult.Issue(MigrationWarnings.API_NOT_V2_DEFINITION, MigrationResult.State.IMPOSSIBLE))
             );
         }
-        MigrationResult<?> precondition = chekPreconditions(input, api);
+        MigrationResult<?> precondition = chekPreconditions(input, api, apiDefinition);
         var pageEntities = pageQueryService.searchByApiId(input.apiId());
         precondition = precondition.addIssues(checkPages(pageEntities));
         // Migration
@@ -134,12 +136,12 @@ public class MigrateApiUseCase {
         return new Output(input.apiId(), migrationResult.issues(), state);
     }
 
-    private MigrationResult<?> chekPreconditions(Input input, Api api) {
+    private MigrationResult<?> chekPreconditions(Input input, Api api, io.gravitee.definition.model.Api apiDefinition) {
         MigrationResult<?> precondition = MigrationResult.value(1);
         if (!apiStateService.isSynchronized(api, input.auditInfo())) {
             precondition = precondition.addIssue(MigrationWarnings.API_OUT_OF_SYNC, CAN_BE_FORCED);
         }
-        if (api.getApiDefinition().getExecutionMode() == ExecutionMode.V3) {
+        if (apiDefinition.getExecutionMode() == ExecutionMode.V3) {
             precondition = precondition.addIssue(MigrationWarnings.V4_EMULATION_ENGINE_REQUIRED, IMPOSSIBLE);
         }
         return precondition;
@@ -226,17 +228,19 @@ public class MigrateApiUseCase {
 
     private void storeMigration(Input input, Migration migration, Api api) {
         if (
-            migration.api().getApiDefinitionHttpV4().getServices() != null &&
-            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty() != null &&
-            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty().isEnabled()
+            migration.api().getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4 &&
+            v4.getServices() != null &&
+            v4.getServices().getDynamicProperty() != null &&
+            v4.getServices().getDynamicProperty().isEnabled()
         ) {
             apiStateService.stopV2DynamicProperties(input.apiId());
         }
         var upgraded = apiCrudService.update(migration.api());
         if (
-            migration.api().getApiDefinitionHttpV4().getServices() != null &&
-            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty() != null &&
-            migration.api().getApiDefinitionHttpV4().getServices().getDynamicProperty().isEnabled()
+            migration.api().getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4 &&
+            v4.getServices() != null &&
+            v4.getServices().getDynamicProperty() != null &&
+            v4.getServices().getDynamicProperty().isEnabled()
         ) {
             apiStateService.startV4DynamicProperties(input.apiId());
         }
