@@ -83,6 +83,8 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                 .setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000))
                 .setKeepAliveTimeout((int) (endpoint.getHttpClientOptions().getKeepAliveTimeout() / 1000))
                 .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
+                .setMaxHeaderSize(endpoint.getHttpClientOptions().getMaxHeaderSize())
+                .setMaxChunkSize(endpoint.getHttpClientOptions().getMaxChunkSize())
                 .setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
 
             if (endpoint.getHttpClientOptions().getVersion() == ProtocolVersion.HTTP_2) {

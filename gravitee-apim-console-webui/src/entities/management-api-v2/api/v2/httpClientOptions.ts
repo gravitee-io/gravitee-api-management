@@ -62,4 +62,7 @@ export interface HttpClientOptions {
    */
   clearTextUpgrade?: boolean;
   version?: ProtocolVersion;
+
+  maxHeaderSize?: number;
+  maxChunkSize?: number;
 }
