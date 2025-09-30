@@ -79,9 +79,13 @@ class ApiMigration {
     }
 
     MigrationResult<Api> mapApi(Api source) {
-        return apiDefinitionHttpV4(source.getApiDefinition()).map(definition ->
-            source.toBuilder().apiDefinitionValue(definition).type(ApiType.PROXY).build()
-        );
+        if (source.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api apiDefinitionV2) {
+            return apiDefinitionHttpV4(apiDefinitionV2).map(definition ->
+                source.toBuilder().apiDefinitionValue(definition).type(ApiType.PROXY).build()
+            );
+        } else {
+            return MigrationResult.issue(MigrationWarnings.V2_API_NOT_NULL, MigrationResult.State.IMPOSSIBLE);
+        }
     }
 
     private MigrationResult<io.gravitee.definition.model.v4.Api> apiDefinitionHttpV4(io.gravitee.definition.model.Api apiDefinitionV2) {
