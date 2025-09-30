@@ -36,6 +36,8 @@ public class HttpClientOptions implements Serializable {
     public static boolean DEFAULT_FOLLOW_REDIRECTS = false;
     public static boolean DEFAULT_CLEAR_TEXT_UPGRADE = true;
     public static ProtocolVersion DEFAULT_PROTOCOL_VERSION = ProtocolVersion.HTTP_1_1;
+    public static int DEFAULT_MAX_HEADER_SIZE = 8192;
+    public static int DEFAULT_MAX_CHUNK_SIZE = 8192;
 
     @JsonProperty("idleTimeout")
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
@@ -72,6 +74,12 @@ public class HttpClientOptions implements Serializable {
 
     @JsonProperty("version")
     private ProtocolVersion version = DEFAULT_PROTOCOL_VERSION;
+
+    @JsonProperty("maxHeaderSize")
+    private int maxHeaderSize = DEFAULT_MAX_HEADER_SIZE;
+
+    @JsonProperty("maxChunkSize")
+    private int maxChunkSize = DEFAULT_MAX_CHUNK_SIZE;
 
     public long getConnectTimeout() {
         return connectTimeout;
@@ -167,5 +175,21 @@ public class HttpClientOptions implements Serializable {
 
     public void setVersion(ProtocolVersion version) {
         this.version = version;
+    }
+
+    public int getMaxHeaderSize() {
+        return maxHeaderSize;
+    }
+
+    public void setMaxHeaderSize(int maxHeaderSize) {
+        this.maxHeaderSize = maxHeaderSize;
+    }
+
+    public int getMaxChunkSize() {
+        return maxChunkSize;
+    }
+
+    public void setMaxChunkSize(int maxChunkSize) {
+        this.maxChunkSize = maxChunkSize;
     }
 }
