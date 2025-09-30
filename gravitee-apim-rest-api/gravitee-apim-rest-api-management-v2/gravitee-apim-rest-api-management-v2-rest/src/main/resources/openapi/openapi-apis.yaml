@@ -6215,6 +6215,16 @@ components:
                     default: true
                 version:
                     $ref: "#/components/schemas/ProtocolVersion"
+                maxHeaderSize:
+                    type: integer
+                    format: int32
+                    description: Maximum header size value
+                    default: 8192
+                maxChunkSize:
+                    type: integer
+                    format: int32
+                    description: Maximum chunk size value
+                    default: 8192
         HttpClientSslOptions:
             type: object
             properties:
