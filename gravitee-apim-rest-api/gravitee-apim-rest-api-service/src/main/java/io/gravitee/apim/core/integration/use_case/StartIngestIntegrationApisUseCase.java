@@ -40,6 +40,7 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -183,7 +184,7 @@ public class StartIngestIntegrationApisUseCase {
                             )
                     );
 
-                Plan plan = fromIntegration(api);
+                Plan plan = fromIntegration(api, federatedAgent);
                 planCrudService
                     .findById(plan.getId())
                     .ifPresentOrElse(
@@ -219,14 +220,14 @@ public class StartIngestIntegrationApisUseCase {
                 .name(newOne.getName())
                 .description(newOne.getDescription())
                 .version(newOne.getVersion())
-                .apiDefinitionValue(newOne.getFederatedAgent())
+                .apiDefinitionValue(newOne.getApiDefinitionValue())
                 .build();
     }
 
-    public static Plan fromIntegration(Api api) {
+    public static Plan fromIntegration(Api api, FederatedAgent federatedAgent) {
         var id = UuidString.generateForEnvironment(api.getId(), PlanSecurityType.KEY_LESS.getLabel());
         var now = TimeProvider.now();
-        var oid = api.getFederatedAgent().getProvider() != null ? api.getFederatedAgent().getProvider().organization() : null;
+        var oid = federatedAgent.getProvider() != null ? federatedAgent.getProvider().organization() : null;
         return Plan.builder()
             .id(id)
             .name("Key less plan")
