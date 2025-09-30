@@ -32,10 +32,13 @@ COPY docker/config/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/config/default.no-ipv6.conf /etc/nginx/conf.d/default.no-ipv6.conf
 COPY docker/config/default-next.conf /etc/nginx/conf.d/default-next.conf
 COPY docker/config/default-next.no-ipv6.conf /etc/nginx/conf.d/default-next.no-ipv6.conf
-COPY docker/config/portal-next-run.sh /portal-next-run.sh
-COPY docker/config/check_ip_config.sh /check_ip_config.sh
 
-RUN chmod -R g=u /usr/share/nginx/ /etc/nginx/
+RUN chown -R nginx:root /usr/share/nginx \
+    && chown -R nginx:root /etc/nginx \
+    && chmod -R g=u /usr/share/nginx/ /etc/nginx/
+
+COPY --chown=nginx:root docker/config/portal-next-run.sh /
+COPY --chown=nginx:root docker/config/check_ip_config.sh /
 
 USER nginx
 CMD ["/bin/sh", "-c", "sh /portal-next-run.sh; sh /check_ip_config.sh; sh /run.sh"]
