@@ -49,7 +49,7 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
@@ -170,9 +170,7 @@ class UpdateFederatedApiDomainServiceTest {
             .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
             .build();
 
-        CategoryEntity categoryEntity = new CategoryEntity();
         String categoryId = "categoryId-1";
-        categoryEntity.setId(categoryId);
         when(categoryDomainService.toCategoryId(any(), any())).thenReturn(Set.of(categoryId));
         when(categoryDomainService.toCategoryKey(any(), any())).thenReturn(Set.of(categoryKey));
         var ownerEntity = buildPrimaryOwnerEntity();
@@ -180,11 +178,11 @@ class UpdateFederatedApiDomainServiceTest {
         //when
         var updatedApi = usecase.update(apiToUpdate.getId(), old -> apiToUpdate, auditInfo, ownerEntity, oneShotIndexation(auditInfo));
         //then
-        assertThat(apiCrudService.storage()).extracting("federatedApiDefinition").doesNotContainNull();
+        assertThat(apiCrudService.storage()).map(Api::getApiDefinitionValue).doesNotContainNull();
         SoftAssertions.assertSoftly(soft -> {
             assertThat(updatedApi.getName()).isEqualTo("updated-name");
             assertThat(updatedApi.getDescription()).isEqualTo("updated-description");
-            assertThat(updatedApi.getFederatedApiDefinition()).isNotNull();
+            assertThat(updatedApi.getApiDefinitionValue()).isInstanceOf(FederatedApi.class);
             assertThat(updatedApi.getVersion()).isEqualTo("2.0.0");
             assertThat(updatedApi.getLabels()).containsExactly("label-1");
             assertThat(updatedApi.getCategories()).containsExactly(categoryKey);
@@ -206,9 +204,6 @@ class UpdateFederatedApiDomainServiceTest {
             .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
             .build();
 
-        CategoryEntity categoryEntity = new CategoryEntity();
-        String categoryId = "categoryId-1";
-        categoryEntity.setId(categoryId);
         var ownerEntity = buildPrimaryOwnerEntity();
 
         //when
