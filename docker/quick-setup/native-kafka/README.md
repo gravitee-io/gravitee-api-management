@@ -17,6 +17,7 @@ Docker compose will create the following services :
 - `gio_apim_kafka` : Kafka broker which must be accessible via Gravitee Gateway
 - `gio_apim_kafka-ui` : Simple Kafka UI to see topics and messages. Useful for testing
 - `gio_apim_kafka-client` : Kafka client container to run kafka commands. This avoids to configure kafka-client on your local machine.
+- `kibana` : Kibana service to view runtime data from Elasticsearch e.g. event metrics, logs.
 
 Docker volumes :
 - `./.license` : License file
