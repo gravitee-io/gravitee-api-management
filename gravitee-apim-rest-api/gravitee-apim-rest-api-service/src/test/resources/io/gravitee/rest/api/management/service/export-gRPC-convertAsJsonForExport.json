@@ -194,7 +194,9 @@
               "useCompression": true,
               "followRedirects": false,
               "version": "HTTP_2",
-              "clearTextUpgrade": true
+              "clearTextUpgrade": true,
+              "maxHeaderSize": 8192,
+              "maxChunkSize": 8192
             }
           }
         ],
@@ -210,7 +212,9 @@
           "pipelining": false,
           "maxConcurrentConnections": 100,
           "useCompression": true,
-          "followRedirects": false
+          "followRedirects": false,
+          "maxHeaderSize": 8192,
+          "maxChunkSize": 8192
         }
       }
     ]
