@@ -29,6 +29,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -140,8 +141,7 @@ public class VerifyApiHostsDomainService {
                 api ->
                     !api.getId().equals(apiId) &&
                     DefinitionVersion.V4.equals(api.getDefinitionVersion()) &&
-                    ((ApiType.PROXY.equals(api.getType()) && null != api.getApiDefinitionHttpV4()) ||
-                        (ApiType.NATIVE.equals(api.getType()) && null != api.getApiDefinitionNativeV4()))
+                    EnumSet.of(ApiType.PROXY, ApiType.NATIVE).contains(api.getType())
             )
             .flatMap(this::extractHostsFromListeners)
             .map(String::toLowerCase)

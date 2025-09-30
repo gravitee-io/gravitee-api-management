@@ -86,11 +86,18 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         if (existingApi.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ValidationDomainException("Definition not supported, should be V4");
         }
-        if (existingApi.getType() != ApiType.NATIVE) {
+        if (existingApi.getType() == ApiType.NATIVE && apiToBeUpdated.getApiDefinitionValue() instanceof NativeApi nativeApi) {
+            return validateAndSanitizeNativeV4ForUpdate(
+                existingApi,
+                apiToBeUpdated,
+                nativeApi,
+                primaryOwner,
+                environmentId,
+                organizationId
+            );
+        } else {
             throw new ValidationDomainException("Only Native V4 APIs are currently supported");
         }
-
-        return validateAndSanitizeNativeV4ForUpdate(existingApi, apiToBeUpdated, primaryOwner, environmentId, organizationId);
     }
 
     private void validateAndSanitizeHttpV4ForCreation(
@@ -136,28 +143,29 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         String environmentId,
         String organizationId
     ) {
-        if (newApi.getType() != ApiType.NATIVE) {
+        if (newApi.getType() == ApiType.NATIVE && newApi.getApiDefinitionValue() instanceof NativeApi nativeApi) {
+            var executionContext = new ExecutionContext(organizationId, environmentId);
+
+            // Clean description
+            newApi.setDescription(HtmlSanitizer.sanitize(newApi.getDescription()));
+
+            // Validate tags
+            newApi.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApi.getTags()));
+
+            // Validate groups
+            newApi.setGroups(groupValidationService.validateAndSanitize(newApi.getGroups(), newApi.getEnvironmentId(), primaryOwner, true));
+
+            // Validate and clean definition
+            newApi.setApiDefinitionValue(validateAndSanitizeNativeV4Definition(nativeApi, executionContext));
+        } else {
             throw new ValidationDomainException("Api type not supported, should be NATIVE");
         }
-
-        var executionContext = new ExecutionContext(organizationId, environmentId);
-
-        // Clean description
-        newApi.setDescription(HtmlSanitizer.sanitize(newApi.getDescription()));
-
-        // Validate tags
-        newApi.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApi.getTags()));
-
-        // Validate groups
-        newApi.setGroups(groupValidationService.validateAndSanitize(newApi.getGroups(), newApi.getEnvironmentId(), primaryOwner, true));
-
-        // Validate and clean definition
-        newApi.setApiDefinitionValue(validateAndSanitizeNativeV4Definition(newApi.getApiDefinitionNativeV4(), executionContext));
     }
 
     private Api validateAndSanitizeNativeV4ForUpdate(
         final Api existingApi,
         Api toBeUpdatedApi,
+        NativeApi nativeApiToBeUpdated,
         PrimaryOwnerEntity primaryOwner,
         String environmentId,
         String organizationId
@@ -188,14 +196,11 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         );
 
         // Validate and clean definition
-        toBeUpdatedApi.setApiDefinitionValue(
-            validateAndSanitizeNativeV4Definition(toBeUpdatedApi.getApiDefinitionNativeV4(), executionContext)
-        );
-
+        NativeApi newDefinition = validateAndSanitizeNativeV4Definition(nativeApiToBeUpdated, executionContext);
         // Validate and clean resources
-        toBeUpdatedApi
-            .getApiDefinitionNativeV4()
-            .setResources(resourcesValidationService.validateAndSanitize(toBeUpdatedApi.getApiDefinitionNativeV4().getResources()));
+        newDefinition.setResources(resourcesValidationService.validateAndSanitize(nativeApiToBeUpdated.getResources()));
+
+        toBeUpdatedApi.setApiDefinitionValue(newDefinition);
 
         return toBeUpdatedApi;
     }

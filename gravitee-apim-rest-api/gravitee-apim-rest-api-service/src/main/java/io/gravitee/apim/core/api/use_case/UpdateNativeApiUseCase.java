@@ -26,6 +26,7 @@ import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.property.Property;
 import java.util.List;
 import java.util.function.UnaryOperator;
@@ -91,10 +92,9 @@ public class UpdateNativeApiUseCase {
                 .categories(updateNativeApi.getCategories())
                 .groups(updateNativeApi.getGroups())
                 .disableMembershipNotifications(updateNativeApi.isDisableMembershipNotifications())
-                .apiDefinitionNativeV4(
-                    currentApi.getApiDefinitionNativeV4() != null
-                        ? currentApi
-                            .getApiDefinitionNativeV4()
+                .apiDefinitionValue(
+                    currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
+                        ? nativeApi
                             .toBuilder()
                             .name(updateNativeApi.getName())
                             .apiVersion(updateNativeApi.getApiVersion())
