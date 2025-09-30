@@ -20,7 +20,6 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedAgent;
-import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
@@ -201,10 +200,6 @@ public class Api {
 
     public io.gravitee.definition.model.Api getApiDefinition() {
         return apiDefinitionValue instanceof io.gravitee.definition.model.Api api ? api : null;
-    }
-
-    public FederatedApi getFederatedApiDefinition() {
-        return apiDefinitionValue instanceof FederatedApi api ? api : null;
     }
 
     public FederatedAgent getFederatedAgent() {
