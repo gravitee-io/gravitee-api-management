@@ -1886,7 +1886,7 @@ class IngestFederatedApisUseCaseTest {
         assertThat(result.getName()).isEqualTo("input");
         assertThat(result.getDescription()).isEqualTo("input");
         assertThat(result.getVersion()).isEqualTo("input");
-        assertThat(result.getFederatedApiDefinition()).isEqualTo(FederatedApi.builder().id("input").build());
+        assertThat(result.getApiDefinitionValue()).isEqualTo(FederatedApi.builder().id("input").build());
     }
 
     private void givenAnIngestJob(AsyncJob job) {

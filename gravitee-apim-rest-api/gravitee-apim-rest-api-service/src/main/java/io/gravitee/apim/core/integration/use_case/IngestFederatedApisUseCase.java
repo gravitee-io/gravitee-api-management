@@ -318,7 +318,7 @@ public class IngestFederatedApisUseCase {
                 .name(newOne.getName())
                 .description(newOne.getDescription())
                 .version(newOne.getVersion())
-                .federatedApiDefinition(newOne.getFederatedApiDefinition())
+                .apiDefinitionValue(newOne.getApiDefinitionValue())
                 .build();
     }
 

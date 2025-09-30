@@ -44,6 +44,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.federation.SubscriptionParameter;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
@@ -131,7 +132,10 @@ public class AcceptSubscriptionDomainService {
             var api = apiCrudService.get(subscription.getApiId());
             var application = applicationCrudService.findById(subscription.getApplicationId(), api.getEnvironmentId());
             var metadata = metadataCrudService.findByApiId(subscription.getApiId());
-            var integrationId = api.getOriginContext() instanceof OriginContext.Integration inte ? inte.integrationId() : null;
+            var integrationId = api.getOriginContext() instanceof OriginContext.Integration(Object a, String integId, Object c, Object d)
+                ? integId
+                : null;
+            var apiDefinition = api.getApiDefinitionValue() instanceof FederatedApi federatedApi ? federatedApi : null;
 
             SubscriptionParameter subscriptionParams;
             if (plan.isApiKey()) {
@@ -148,14 +152,7 @@ public class AcceptSubscriptionDomainService {
                 .orElseThrow(() -> new IntegrationNotFoundException(integrationId));
             var providerMetadata = getProviderRelatedMetadata(metadata, provider);
             return integrationAgent
-                .subscribe(
-                    integrationId,
-                    api.getFederatedApiDefinition(),
-                    subscriptionParams,
-                    subscription.getId(),
-                    application,
-                    providerMetadata
-                )
+                .subscribe(integrationId, apiDefinition, subscriptionParams, subscription.getId(), application, providerMetadata)
                 .map(integrationSubscription -> acceptByIntegration(subscription.getId(), integrationSubscription, auditInfo))
                 .onErrorReturn(throwable -> rejectByIntegration(integrationId, subscription.getId(), auditInfo, throwable.getMessage()))
                 .blockingGet();

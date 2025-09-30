@@ -27,6 +27,8 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.ApiDefinition;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -145,7 +147,7 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "type", source = "apiEntity.type")
     @Mapping(target = "state", source = "apiEntity.lifecycleState")
     @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
-    @Mapping(target = "providerId", source = "apiEntity.federatedApiDefinition.providerId")
+    @Mapping(target = "providerId", expression = "java(providerId(apiEntity.getApiDefinitionValue()))")
     @Mapping(target = "originContext.integrationId", source = "integration.id")
     @Mapping(target = "originContext.integrationName", source = "integration.name")
     @Mapping(target = "originContext.provider", source = "integration.provider")
@@ -162,6 +164,10 @@ public interface GraviteeDefinitionAdapter {
         Collection<NewApiMetadata> metadata,
         Integration.ApiIntegration integration
     );
+
+    default String providerId(ApiDefinition apiDefinition) {
+        return apiDefinition instanceof FederatedApi federatedApi ? federatedApi.getProviderId() : null;
+    }
 
     @Mapping(target = "id", source = "apiEntity.id")
     @Mapping(target = "apiVersion", source = "apiEntity.version")
