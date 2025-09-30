@@ -26,9 +26,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { catchError, map, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
-import { isEqual } from 'lodash';
 import { MatSelectModule } from '@angular/material/select';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { isEqual } from 'lodash';
 
 import { GioFormColorInputModule } from '../../shared/components/gio-form-color-input/gio-form-color-input.module';
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
@@ -120,12 +120,15 @@ export class PortalThemeComponent implements OnInit {
   });
 
   isReadOnly: boolean = true;
+  showMonacoEditor = true;
 
   isFormUnchanged$: Signal<boolean> = computed(() => isEqual(this.formValue$(), this.initialFormValue$()));
   isFormSubmitDisabled$: Signal<boolean> = computed(() => this.isFormNotValid$() || this.isFormUnchanged$());
 
   private formValue$: Signal<ThemeVM> = toSignal(this.portalThemeForm.valueChanges);
-  private isFormNotValid$: Signal<boolean> = toSignal(this.portalThemeForm.statusChanges.pipe(map((status) => status !== 'VALID')));
+  private isFormNotValid$: Signal<boolean> = toSignal(this.portalThemeForm.statusChanges.pipe(map((status) => status !== 'VALID')), {
+    initialValue: true,
+  });
 
   private initialFormValue$: WritableSignal<ThemeVM> = signal({});
   private initialTheme: ThemePortalNext;
@@ -184,6 +187,10 @@ export class PortalThemeComponent implements OnInit {
 
   restoreDefaultValues() {
     this.portalThemeForm.patchValue(this.defaultValues);
+    this.showMonacoEditor = false;
+    setTimeout(() => {
+      this.showMonacoEditor = true;
+    }, 0);
   }
 
   submit() {
@@ -220,7 +227,7 @@ export class PortalThemeComponent implements OnInit {
       errorColor: theme.definition.color.error,
       pageBackgroundColor: theme.definition.color.pageBackground,
       cardBackgroundColor: theme.definition.color.cardBackground,
-      customCSS: theme.definition.customCss ?? undefined,
+      customCSS: theme.definition.customCss ?? '',
     };
   }
 
