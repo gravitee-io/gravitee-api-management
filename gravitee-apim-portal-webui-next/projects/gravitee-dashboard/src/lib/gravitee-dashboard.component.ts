@@ -1,15 +1,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'lib-gravitee-dashboard',
+  selector: 'gd-dashboard',
   imports: [],
-  template: `
-    <p>
-      gravitee-dashboard works!
-    </p>
-  `,
-  styles: ``
+  template: ` <p>gravitee-dashboard works!</p> `,
+  styles: ``,
 })
-export class GraviteeDashboardComponent {
-
-}
+export class GraviteeDashboardComponent {}
