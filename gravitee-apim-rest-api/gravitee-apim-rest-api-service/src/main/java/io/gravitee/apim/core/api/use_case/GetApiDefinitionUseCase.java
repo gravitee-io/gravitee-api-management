@@ -22,7 +22,7 @@ import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.ApiDefinition;
-import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import lombok.RequiredArgsConstructor;
 
@@ -41,17 +41,17 @@ public class GetApiDefinitionUseCase {
     public Output execute(Input input) {
         Api api = apiCrudService.get(input.apiId);
 
-        var apiDefinition = switch (api.getDefinitionVersion()) {
-            case V1, V2 -> enrichApiDefinitionV2(api);
-            case V4 -> api.getType() == ApiType.NATIVE ? enrichApiDefinitionNative(api) : enrichApiDefinitionV4(api);
+        var apiDefinition = switch (api.getApiDefinitionValue()) {
+            case NativeApi nativeApi -> enrichApiDefinitionNative(api, nativeApi);
+            case io.gravitee.definition.model.v4.Api v4Api -> enrichApiDefinitionV4(api, v4Api);
+            case io.gravitee.definition.model.Api v2Api -> enrichApiDefinitionV2(api, v2Api);
             default -> null;
         };
 
         return new Output(apiDefinition);
     }
 
-    private ApiDefinition enrichApiDefinitionV4(Api api) {
-        var apiDefinitionHttpV4 = api.getApiDefinitionHttpV4();
+    private ApiDefinition enrichApiDefinitionV4(Api api, io.gravitee.definition.model.v4.Api apiDefinitionHttpV4) {
         apiDefinitionHttpV4.setFlows(flowCrudService.getApiV4Flows(api.getId()));
         var plans = planQueryService
             .findAllByApiId(api.getId())
@@ -64,8 +64,7 @@ public class GetApiDefinitionUseCase {
         return apiDefinitionHttpV4;
     }
 
-    private ApiDefinition enrichApiDefinitionNative(Api api) {
-        var apiDefinitionNativeV4 = api.getApiDefinitionNativeV4();
+    private ApiDefinition enrichApiDefinitionNative(Api api, NativeApi apiDefinitionNativeV4) {
         apiDefinitionNativeV4.setFlows(flowCrudService.getNativeApiFlows(api.getId()));
         var plans = planQueryService
             .findAllByApiId(api.getId())
@@ -78,8 +77,7 @@ public class GetApiDefinitionUseCase {
         return apiDefinitionNativeV4;
     }
 
-    private ApiDefinition enrichApiDefinitionV2(Api api) {
-        var apiDefinition = api.getApiDefinition();
+    private ApiDefinition enrichApiDefinitionV2(Api api, io.gravitee.definition.model.Api apiDefinition) {
         apiDefinition.setFlows(flowCrudService.getApiV2Flows(api.getId()));
 
         var plans = planQueryService
