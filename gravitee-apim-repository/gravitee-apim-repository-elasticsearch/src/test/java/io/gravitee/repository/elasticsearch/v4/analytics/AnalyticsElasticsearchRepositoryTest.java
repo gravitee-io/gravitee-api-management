@@ -855,7 +855,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(aggregate -> {
                     assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
                     assertThat(aggregate.field()).isEqualTo("entrypoint-id");
-                    assertThat(aggregate.values()).containsExactlyEntriesOf(Map.of("http-get", 1L));
+                    assertThat(aggregate.values()).containsExactlyInAnyOrderEntriesOf(
+                        Map.of("http-get", 1L, "sse", 1L, "webhook", 1L, "websocket", 2L)
+                    );
                 });
         }
 
@@ -881,8 +883,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(aggregate -> {
                     assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
                     assertThat(aggregate.field()).isEqualTo("entrypoint-id");
-                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
-                    assertThat(aggregate.order()).containsExactly("http-get", "http-post");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post", "sse", "webhook", "websocket");
+                    assertThat(aggregate.order()).containsExactlyInAnyOrder("http-get", "http-post", "sse", "webhook", "websocket");
                 });
         }
 
@@ -908,8 +910,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .hasValueSatisfying(aggregate -> {
                     assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
                     assertThat(aggregate.field()).isEqualTo("entrypoint-id");
-                    assertThat(aggregate.values()).containsKeys("http-get", "http-post");
-                    assertThat(aggregate.order()).containsExactly("http-get", "http-post");
+                    assertThat(aggregate.values()).containsKeys("http-get", "http-post", "sse", "webhook", "websocket");
+                    assertThat(aggregate.order()).containsExactlyInAnyOrder("http-get", "http-post", "sse", "webhook", "websocket");
                 });
         }
     }
