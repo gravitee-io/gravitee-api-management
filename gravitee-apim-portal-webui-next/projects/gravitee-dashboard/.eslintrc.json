@@ -1,19 +1,15 @@
 {
   "extends": "../../.eslintrc.json",
-  "ignorePatterns": [
-    "!**/*"
-  ],
+  "ignorePatterns": ["!**/*"],
   "overrides": [
     {
-      "files": [
-        "*.ts"
-      ],
+      "files": ["*.ts"],
       "rules": {
         "@angular-eslint/directive-selector": [
           "error",
           {
             "type": "attribute",
-            "prefix": "lib",
+            "prefix": "gd",
             "style": "camelCase"
           }
         ],
@@ -21,16 +17,14 @@
           "error",
           {
             "type": "element",
-            "prefix": "lib",
+            "prefix": "gd",
             "style": "kebab-case"
           }
         ]
       }
     },
     {
-      "files": [
-        "*.html"
-      ],
+      "files": ["*.html"],
       "rules": {}
     }
   ]
