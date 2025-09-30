@@ -17,11 +17,11 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.ENVIRONMENTS_DEFAULT_PORTAL_PAGE_UPGRADER;
 
+import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalHomepageUseCase;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.rest.api.service.PortalPageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -31,11 +31,14 @@ import org.springframework.stereotype.Component;
 public class EnvironmentsDefaultPortalPageUpgrader implements Upgrader {
 
     private final EnvironmentRepository environmentRepository;
-    private final PortalPageService portalPageService;
+    private final CreateDefaultPortalHomepageUseCase createDefaultPortalHomepageUseCase;
 
-    public EnvironmentsDefaultPortalPageUpgrader(@Lazy EnvironmentRepository environmentRepository, PortalPageService portalPageService) {
+    public EnvironmentsDefaultPortalPageUpgrader(
+        @Lazy EnvironmentRepository environmentRepository,
+        CreateDefaultPortalHomepageUseCase createDefaultPortalHomepageUseCase
+    ) {
         this.environmentRepository = environmentRepository;
-        this.portalPageService = portalPageService;
+        this.createDefaultPortalHomepageUseCase = createDefaultPortalHomepageUseCase;
     }
 
     @Override
@@ -45,9 +48,11 @@ public class EnvironmentsDefaultPortalPageUpgrader implements Upgrader {
 
     @Override
     public boolean upgrade() throws UpgraderException {
+        log.info("Starting EnvironmentsDefaultPortalPageUpgrader upgrader");
+
         try {
             for (var environment : environmentRepository.findAll()) {
-                portalPageService.createDefaultPortalHomePage(environment.getId());
+                createDefaultPortalHomepageUseCase.execute(environment.getId());
             }
             return true;
         } catch (TechnicalException e) {
