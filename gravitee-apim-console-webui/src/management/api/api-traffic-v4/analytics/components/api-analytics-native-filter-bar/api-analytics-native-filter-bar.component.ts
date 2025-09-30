@@ -111,7 +111,7 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
 
     if (filters?.applications?.length) {
       const applications = this.applications();
-      filters.applications.forEach((appId) => {
+      for (const appId of filters.applications) {
         const application = applications?.find((p) => p.id === appId);
         const display = application ? application.name : appId;
         chips.push({
@@ -119,7 +119,7 @@ export class ApiAnalyticsNativeFilterBarComponent implements OnInit {
           value: appId,
           display: display,
         });
-      });
+      }
     }
 
     return chips;
