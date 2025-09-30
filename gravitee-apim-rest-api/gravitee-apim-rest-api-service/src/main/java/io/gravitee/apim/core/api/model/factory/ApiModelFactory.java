@@ -81,12 +81,8 @@ public class ApiModelFactory {
             .disableMembershipNotifications(!crd.isNotifyMembers())
             .build();
 
-        if (api.isNative()) {
-            api.setApiDefinitionNativeV4(crd.toNativeApiDefinitionBuilder().id(id).build());
-        } else {
-            io.gravitee.definition.model.v4.Api build = crd.toApiDefinitionBuilder().id(id).build();
-            api.setApiDefinitionHttpV4(build);
-        }
+        var definition = api.isNative() ? crd.toNativeApiDefinitionBuilder().id(id).build() : crd.toApiDefinitionBuilder().id(id).build();
+        api.setApiDefinitionValue(definition);
 
         return api;
     }

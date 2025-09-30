@@ -201,26 +201,10 @@ public class Api {
         return apiDefinitionValue instanceof io.gravitee.definition.model.Api api ? api : null;
     }
 
-    public Api setApiDefinitionHttpV4(io.gravitee.definition.model.v4.Api apiDefinitionHttpV4) {
-        return setApiDefinitionValue(apiDefinitionHttpV4);
-    }
-
     public Api setApiDefinitionValue(ApiDefinition apiDefinition) {
         this.apiDefinitionValue = apiDefinition;
         this.definitionVersion = apiDefinition.getDefinitionVersion();
         return this;
-    }
-
-    public Api setApiDefinition(ApiDefinition apiDefinition) {
-        return setApiDefinitionValue(apiDefinition);
-    }
-
-    public Api setFederatedApiDefinition(io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition) {
-        return setApiDefinitionValue(federatedApiDefinition);
-    }
-
-    public Api setApiDefinitionNativeV4(NativeApi nativeApi) {
-        return setApiDefinitionValue(nativeApi);
     }
 
     public List<? extends AbstractListener<? extends AbstractEntrypoint>> getApiListeners() {

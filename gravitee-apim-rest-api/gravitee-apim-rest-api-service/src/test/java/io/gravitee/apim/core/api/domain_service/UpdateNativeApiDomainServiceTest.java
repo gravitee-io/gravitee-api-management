@@ -358,7 +358,7 @@ class UpdateNativeApiDomainServiceTest {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
         var apiToUpdate = ApiFixtures.aNativeApi();
         var nativeFlow = NativeFlow.builder().id("native-flow").build();
-        apiToUpdate.setApiDefinitionNativeV4(apiToUpdate.getApiDefinitionNativeV4().toBuilder().flows(List.of(nativeFlow)).build());
+        apiToUpdate.setApiDefinitionValue(apiToUpdate.getApiDefinitionNativeV4().toBuilder().flows(List.of(nativeFlow)).build());
         var ownerEntity = buildPrimaryOwnerEntity();
 
         var updatedApi = cut.update(
