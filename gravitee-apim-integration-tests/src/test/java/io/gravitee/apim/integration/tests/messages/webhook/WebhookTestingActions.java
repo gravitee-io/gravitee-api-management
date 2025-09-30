@@ -176,6 +176,7 @@ public class WebhookTestingActions {
         configuration.setHeaders(headers);
         configuration.getRetry().setRetryStrategy(RetryStrategy.EXPONENTIAL);
         configuration.getRetry().setRetryOnFail(true);
+        configuration.getRetry().setRetryOption("Retry On Fail");
         configuration.getRetry().setInitialDelaySeconds(3L);
         configuration.getRetry().setMaxDelaySeconds(3L);
         wiremock.stubFor(post(callbackPath).willReturn(ok("callback body")));
