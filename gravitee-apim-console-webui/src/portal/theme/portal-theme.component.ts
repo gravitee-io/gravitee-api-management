@@ -199,7 +199,6 @@ export class PortalThemeComponent implements OnInit {
         tap((theme: ThemePortalNext) => {
           this.initialTheme = theme;
           this.initialFormValue$.set(this.convertThemeToThemeVM(theme));
-
           this.reset();
         }),
         catchError((err) => {
