@@ -318,7 +318,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
         @Test
         void should_throw_when_multiple_api_flows() {
             var nativeApi = ApiFixtures.aNativeApi();
-            nativeApi.setApiDefinitionNativeV4(
+            nativeApi.setApiDefinitionValue(
                 nativeApi
                     .getApiDefinitionNativeV4()
                     .toBuilder()
@@ -474,7 +474,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
         @Test
         void should_throw_when_multiple_api_flows() {
             var nativeApi = ApiFixtures.aNativeApi();
-            nativeApi.setApiDefinitionNativeV4(
+            nativeApi.setApiDefinitionValue(
                 nativeApi
                     .getApiDefinitionNativeV4()
                     .toBuilder()
