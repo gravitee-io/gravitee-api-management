@@ -171,7 +171,52 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["projects/gravitee-markdown/**/*.ts", "projects/gravitee-markdown/**/*.html"]
+            "lintFilePatterns": [
+              "projects/gravitee-markdown/**/*.ts",
+              "projects/gravitee-markdown/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "gravitee-dashboard": {
+      "projectType": "library",
+      "root": "projects/gravitee-dashboard",
+      "sourceRoot": "projects/gravitee-dashboard/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/gravitee-dashboard/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "tsConfig": "projects/gravitee-dashboard/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/gravitee-dashboard/**/*.ts",
+              "projects/gravitee-dashboard/**/*.html"
+            ]
           }
         }
       }
