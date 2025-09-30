@@ -74,6 +74,9 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
             );
         }
 
+        httpClientOptions.setMaxHeaderSize(node.path("maxHeaderSize").asInt(HttpClientOptions.DEFAULT_MAX_HEADER_SIZE));
+        httpClientOptions.setMaxChunkSize(node.path("maxChunkSize").asInt(HttpClientOptions.DEFAULT_MAX_CHUNK_SIZE));
+
         return httpClientOptions;
     }
 }

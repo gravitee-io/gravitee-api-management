@@ -63,6 +63,18 @@
       <mat-hint>Maximum pool size for connections.</mat-hint>
     </mat-form-field>
 
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Max Header Size</mat-label>
+      <input matInput formControlName="maxHeaderSize" type="number" />
+      <mat-hint>Maximum header size.</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Max Chunk Size</mat-label>
+      <input matInput formControlName="maxChunkSize" type="number" />
+      <mat-hint>Maximum chunk size.</mat-hint>
+    </mat-form-field>
+
     <gio-form-slide-toggle class="endpointHttpConfig__formField">
       <gio-form-label>Allow h2c Clear Text Upgrade</gio-form-label>
       If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly
