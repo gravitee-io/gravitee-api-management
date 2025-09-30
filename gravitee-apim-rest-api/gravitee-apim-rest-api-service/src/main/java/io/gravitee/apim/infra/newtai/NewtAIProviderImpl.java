@@ -30,6 +30,8 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.InstallationNotFoundException;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class NewtAIProviderImpl implements NewtAIProvider {
 
+    private static final Pattern EL_MAPPING = Pattern.compile("^```(.*)```$", Pattern.DOTALL);
     private final CockpitConnector cockpitConnector;
     private final ApimProductInfoImpl apimMetadata;
     private final InstallationService installationService;
@@ -67,7 +70,7 @@ public class NewtAIProviderImpl implements NewtAIProvider {
                 if (reply.getCommandStatus() == CommandStatus.ERROR) {
                     throw new NewtAIReplyException(command.getId(), reply.getErrorDetails());
                 } else if (reply.getPayload() instanceof ELReplyPayload payload) {
-                    return new Output(payload);
+                    return new Output(mapPayload(payload));
                 }
                 throw new NewtAIReplyException(command.getId(), "Unexpected reply payload:" + reply.getPayload());
             });
@@ -90,6 +93,11 @@ public class NewtAIProviderImpl implements NewtAIProvider {
                 }
                 return Completable.complete();
             });
+    }
+
+    private ELReplyPayload mapPayload(ELReplyPayload payload) {
+        Matcher matcher = EL_MAPPING.matcher(payload.message());
+        return matcher.find() ? new ELReplyPayload(matcher.group(1), payload.feedbackId()) : payload;
     }
 
     private String getErrorMessage(Throwable error) {
