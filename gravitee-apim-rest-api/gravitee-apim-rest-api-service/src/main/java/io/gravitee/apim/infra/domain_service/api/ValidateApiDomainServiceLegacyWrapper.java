@@ -152,7 +152,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         newApi.setGroups(groupValidationService.validateAndSanitize(newApi.getGroups(), newApi.getEnvironmentId(), primaryOwner, true));
 
         // Validate and clean definition
-        newApi.setApiDefinitionNativeV4(validateAndSanitizeNativeV4Definition(newApi.getApiDefinitionNativeV4(), executionContext));
+        newApi.setApiDefinitionValue(validateAndSanitizeNativeV4Definition(newApi.getApiDefinitionNativeV4(), executionContext));
     }
 
     private Api validateAndSanitizeNativeV4ForUpdate(
@@ -188,7 +188,7 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         );
 
         // Validate and clean definition
-        toBeUpdatedApi.setApiDefinitionNativeV4(
+        toBeUpdatedApi.setApiDefinitionValue(
             validateAndSanitizeNativeV4Definition(toBeUpdatedApi.getApiDefinitionNativeV4(), executionContext)
         );
 
