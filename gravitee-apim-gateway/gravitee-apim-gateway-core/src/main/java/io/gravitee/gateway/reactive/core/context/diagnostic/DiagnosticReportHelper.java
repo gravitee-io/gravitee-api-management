@@ -79,6 +79,19 @@ public class DiagnosticReportHelper {
     private static String withCauseSuffix(String base, Throwable cause) {
         if (cause == null) return base;
         Throwable mostSpecific = NestedExceptionUtils.getMostSpecificCause(cause);
+        String mostSpecificMessage = Optional.ofNullable(mostSpecific.getMessage()).map(String::trim).orElse("");
+
+        // If the base message is the generic fallback, only display it when the most specific cause
+        // does not provide any message. In that case, do not add brackets.
+        if (UNKNOWN_TECHNICAL_ERROR_MESSAGE.equals(base)) {
+            if (!mostSpecificMessage.isEmpty()) {
+                // Use the most specific cause message directly, without the generic fallback or brackets
+                return prettifyThrowableName(mostSpecific);
+            } else {
+                return base;
+            }
+        }
+
         return base + " (" + prettifyThrowableName(mostSpecific) + ")";
     }
 
