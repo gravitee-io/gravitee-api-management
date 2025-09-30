@@ -62,9 +62,9 @@ class GroupByQueryAdapterTest {
             JsonNode node = mapper.readTree(json);
 
             assertEquals(0, node.get("size").asInt());
-            assertEquals(API_ID, node.at("/query/bool/filter/1/term/api-id").asText());
-            assertEquals(FROM, node.at("/query/bool/filter/2/range/@timestamp/from").asLong());
-            assertEquals(TO, node.at("/query/bool/filter/2/range/@timestamp/to").asLong());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
+            assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/from").asLong());
+            assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/to").asLong());
             assertEquals(FIELD, node.at("/aggregations/by_status/terms/field").asText());
         }
 
@@ -85,9 +85,9 @@ class GroupByQueryAdapterTest {
             JsonNode node = mapper.readTree(json);
 
             assertEquals(0, node.get("size").asInt());
-            assertEquals(API_ID, node.at("/query/bool/filter/1/term/api-id").asText());
-            assertEquals(FROM, node.at("/query/bool/filter/2/range/@timestamp/from").asLong());
-            assertEquals(TO, node.at("/query/bool/filter/2/range/@timestamp/to").asLong());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
+            assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/from").asLong());
+            assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/to").asLong());
             assertEquals(2, node.at("/aggregations/by_status_range/range/ranges").size());
             assertEquals(0, node.at("/aggregations/by_status_range/range/ranges/0/from").asInt());
             assertEquals(100, node.at("/aggregations/by_status_range/range/ranges/0/to").asInt());
