@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { BreakpointObserver } from '@angular/cdk/layout';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { ComponentRef, signal } from '@angular/core';
+import { ComponentRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { of } from 'rxjs';
@@ -34,8 +34,7 @@ describe('NavBarComponent', () => {
 
   const init = async (isMobile: boolean = false) => {
     const mockBreakpointObserver = {
-      observe: () => of({ matches: isMobile }),
-      isMobile: signal(isMobile),
+      observe: () => of({ matches: isMobile, breakpoints: { [Breakpoints.XSmall]: isMobile } }),
     };
 
     await TestBed.configureTestingModule({
