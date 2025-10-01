@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BreakpointObserver } from '@angular/cdk/layout';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { inject, Injectable } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, shareReplay } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class ObservabilityBreakpointService {
-  public static readonly mobileBreakpoint = 640;
-
+  // Using Breakpoints.XSmall for true mobile devices (max-width: 599.98px)
+  // This ensures only smartphones and very small tablets are considered mobile
+  // Laptops and larger screens will use desktop navigation
   readonly isMobile$ = inject(BreakpointObserver)
-    .observe([`(max-width: ${ObservabilityBreakpointService.mobileBreakpoint}px)`])
+    .observe([Breakpoints.XSmall])
     .pipe(
       map(state => state.matches),
       shareReplay({ refCount: true, bufferSize: 1 }),
