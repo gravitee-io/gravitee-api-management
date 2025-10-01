@@ -16,15 +16,16 @@
 import { Component, inject, Input, input, InputSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 
-import { DesktopNavBarComponent } from './desktop-nav-bar/desktop-nav-bar.component';
 import { User } from '../../entities/user/user';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 import { PortalMenuLink } from '../../services/portal-menu-links.service';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
+import { DesktopNavBarComponent } from './desktop-nav-bar/desktop-nav-bar.component';
+import { MobileNavBarComponent } from './mobile-nav-bar/mobile-nav-bar.component';
 
 @Component({
   selector: 'app-nav-bar',
-  imports: [MatButtonModule, CompanyTitleComponent, DesktopNavBarComponent],
+  imports: [MatButtonModule, CompanyTitleComponent, DesktopNavBarComponent, MobileNavBarComponent],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.scss'],
 })
@@ -35,5 +36,5 @@ export class NavBarComponent {
   customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
   currentUser: InputSignal<User> = input({});
   logo: InputSignal<string> = input('');
-  protected isDesktop = inject(ObservabilityBreakpointService).isDesktop;
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 }

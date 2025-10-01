@@ -14,24 +14,34 @@
  * limitations under the License.
  */
 
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { ComponentRef } from '@angular/core';
+import { ComponentRef, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { of } from 'rxjs';
 
 import { NavBarComponent } from './nav-bar.component';
 import { fakeUser } from '../../entities/user/user.fixtures';
-import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 import { AppTestingModule } from '../../testing/app-testing.module';
+import { DivHarness } from '../../testing/div.harness';
 
 describe('NavBarComponent', () => {
   let fixture: ComponentFixture<NavBarComponent>;
   let harnessLoader: HarnessLoader;
   let componentRef: ComponentRef<NavBarComponent>;
 
-  const init = async () => {
-    await TestBed.configureTestingModule({ imports: [NavBarComponent, AppTestingModule] }).compileComponents();
+  const init = async (isMobile: boolean = false) => {
+    const mockBreakpointObserver = {
+      observe: () => of({ matches: isMobile }),
+      isMobile: signal(isMobile),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [NavBarComponent, AppTestingModule],
+      providers: [{ provide: BreakpointObserver, useValue: mockBreakpointObserver }],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(NavBarComponent);
     componentRef = fixture.componentRef;
@@ -42,8 +52,6 @@ describe('NavBarComponent', () => {
   describe('using desktop view', () => {
     beforeEach(async () => {
       await init();
-      const observabilityBreakpointService = TestBed.inject(ObservabilityBreakpointService);
-      observabilityBreakpointService.isDesktop.set(true);
     });
 
     it('should show login button if user not connected', async () => {
@@ -77,6 +85,77 @@ describe('NavBarComponent', () => {
       expect(link1Anchor).toBeTruthy();
       const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'link-name-2' }));
       expect(link2Anchor).toBeTruthy();
+    });
+  });
+
+  describe('using mobile view', () => {
+    beforeEach(async () => {
+      await init(true);
+    });
+
+    it('should show login button if user not connected', async () => {
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+
+      const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
+      const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Guides', 'Sign in']);
+    });
+
+    it('should show custom links', async () => {
+      componentRef.setInput('currentUser', fakeUser());
+
+      const customLinks = [
+        {
+          id: 'link-id-1',
+          type: 'external',
+          name: 'link-name-1',
+          target: 'link-target-1',
+          order: 1,
+        },
+        {
+          id: 'link-id-2',
+          type: 'external',
+          name: 'link-name-2',
+          target: 'link-target-2',
+          order: 2,
+        },
+      ];
+      componentRef.setInput('customLinks', customLinks);
+      fixture.detectChanges();
+
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+      fixture.detectChanges();
+
+      const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
+      const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Guides', 'link-name-1', 'link-name-2', 'Applications', 'Log out']);
+    });
+
+    it('should close menu when clicking outside', async () => {
+      componentRef.setInput('currentUser', fakeUser());
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+      fixture.detectChanges();
+
+      expect(await harnessLoader.getHarness(DivHarness.with({ selector: '.mobile-menu__panel' }))).toBeTruthy();
+
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        clientX: 0,
+        clientY: 0,
+      });
+      const outsideElement = document.createElement('div');
+      Object.defineProperty(clickEvent, 'target', {
+        value: outsideElement,
+        writable: false,
+      });
+      document.dispatchEvent(clickEvent);
+      fixture.detectChanges();
+
+      expect(await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.mobile-menu__panel' }))).toBeNull();
     });
   });
 });

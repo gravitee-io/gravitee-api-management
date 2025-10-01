@@ -60,6 +60,8 @@ $nav-bar-link-active-background-color: var(
 );
 $nav-bar-border-color: var(--gio-app-nav-bar-outline-color, $border-color);
 $nav-bar-elevation: var(--gio-app-nav-bar-elevation);
+$nav-bar-mobile-menu-icon-color: var(--gio-app-nav-bar-mobile-menu-icon-color, #000);
+$nav-bar-mobile-menu-box-elevation-shadow: var(--gio-app-nav-bar-mobile-menu-elevation-shadow, 0 11px 15px 0 rgb(0 0 0 / 20%));
 
 // -- Banner --
 $banner-background-color: var(--gio-app-banner-container-color, var(--mdc-list-list-item-leading-avatar-color));
