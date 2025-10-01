@@ -55,12 +55,16 @@ body {
 
   .main-container-wrapper,
   app-footer {
-    width: calc(100% - 48px);
-    min-width: 1040px;
-    max-width: 1280px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 0 24px;
     margin-right: auto;
     margin-left: auto;
+
+    @media (width >= 1280px) {
+      max-width: 1280px !important;
+    }
   }
 
   p {

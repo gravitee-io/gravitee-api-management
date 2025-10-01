@@ -15,7 +15,11 @@
  */
 :host {
   display: flex;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   flex-flow: row;
   align-items: center;
   justify-content: space-between;
+  overflow-x: hidden;
 }
