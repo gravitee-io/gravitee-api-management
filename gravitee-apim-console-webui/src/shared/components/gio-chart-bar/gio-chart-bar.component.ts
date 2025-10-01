@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { HighchartsChartModule } from 'highcharts-angular';
 import * as Highcharts from 'highcharts';
 
@@ -45,6 +45,7 @@ export const defineBarColors = (code: string | number) => {
   templateUrl: './gio-chart-bar.component.html',
   styleUrls: ['./gio-chart-bar.component.scss'],
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
   imports: [HighchartsChartModule],
 })
 export class GioChartBarComponent implements OnInit {

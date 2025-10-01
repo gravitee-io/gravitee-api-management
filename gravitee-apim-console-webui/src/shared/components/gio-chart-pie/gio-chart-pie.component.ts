@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import * as Highcharts from 'highcharts';
 
 const defaultLabelFormatter = function () {
@@ -60,6 +60,7 @@ export interface GioChartPieInput {
   selector: 'gio-chart-pie',
   templateUrl: './gio-chart-pie.component.html',
   styleUrls: ['./gio-chart-pie.component.scss'],
+  encapsulation: ViewEncapsulation.None,
   standalone: false,
 })
 export class GioChartPieComponent implements OnInit {

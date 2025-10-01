@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import * as Highcharts from 'highcharts';
 
 export interface GioChartLineData {
   name: string;
   values: number[];
 }
+
 export interface GioChartLineOptions {
   pointStart: number;
   pointInterval: number;
@@ -38,6 +39,7 @@ export const defineLineColors = (code: string) => {
   selector: 'gio-chart-line',
   templateUrl: './gio-chart-line.component.html',
   styleUrls: ['./gio-chart-line.component.scss'],
+  encapsulation: ViewEncapsulation.None,
   standalone: false,
 })
 export class GioChartLineComponent implements OnInit {
