@@ -16,6 +16,12 @@
 
 -->
 <portal-header subtitle="Edit your Developer Portal Homepage with Gravitee Markdown" [title]="'Homepage'" [showActions]="true">
+  @if (portalHomepage()) {
+    <span badge [class]="portalHomepage()?.published ? 'gio-badge-success' : 'gio-badge-warning'" data-testid="status-badge">
+      {{ portalHomepage()?.published ? 'Published' : 'Unpublished' }}
+    </span>
+  }
+
   <div
     additionalActions
     matTooltip="You don’t have the permissions to update this page. Please contact your administrator."

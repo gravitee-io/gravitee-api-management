@@ -163,6 +163,12 @@ describe('HomepageComponent', () => {
 
       expect(snackBarService.success).toHaveBeenCalledWith('Page has been published successfully.');
       expect(await toggleButton.getText()).toBe('Unpublish');
+
+      const badgeElement = fixture.nativeElement.querySelector('[data-testid="status-badge"]');
+
+      expect(badgeElement).toBeTruthy();
+      expect(badgeElement?.textContent?.trim()).toBe('Published');
+      expect(badgeElement?.classList.contains('gio-badge-success')).toBe(true);
     });
 
     it('should unpublish a published page after confirmation', async () => {
@@ -186,6 +192,12 @@ describe('HomepageComponent', () => {
 
       expect(snackBarService.success).toHaveBeenCalledWith('Page has been unpublished successfully.');
       expect(await toggleButton.getText()).toBe('Publish');
+
+      const badgeElement = fixture.nativeElement.querySelector('[data-testid="status-badge"]');
+
+      expect(badgeElement).toBeTruthy();
+      expect(badgeElement?.textContent?.trim()).toBe('Unpublished');
+      expect(badgeElement?.classList.contains('gio-badge-warning')).toBe(true);
     });
 
     it('should not perform any action if the confirmation dialog is cancelled', async () => {
