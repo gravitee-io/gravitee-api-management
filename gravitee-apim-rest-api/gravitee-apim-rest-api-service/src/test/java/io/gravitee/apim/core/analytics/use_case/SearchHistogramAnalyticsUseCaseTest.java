@@ -29,7 +29,6 @@ import io.gravitee.apim.core.analytics.exception.IllegalTimeRangeException;
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.HistogramAnalytics;
-import io.gravitee.apim.core.analytics.model.Term;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.use_case.SearchHistogramAnalyticsUseCase.Input;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
@@ -41,7 +40,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -139,9 +137,12 @@ class SearchHistogramAnalyticsUseCaseTest {
     void shouldReturnTopValueHitsForANativeAPI() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        Map<String, Map<String, List<Long>>> analytics = new HashMap<>();
-        analytics.put("downstream-active-connections_latest", Map.of("downstream-active-connections", List.of(1L)));
-        analytics.put("upstream-active-connections_latest", Map.of("upstream-active-connections", List.of(1L)));
+        Map<String, List<Long>> analytics = Map.of(
+            "downstream-active-connections",
+            List.of(2L),
+            "upstream-active-connections",
+            List.of(2L)
+        );
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
         long to = INSTANT_NOW.toEpochMilli();
@@ -153,23 +154,42 @@ class SearchHistogramAnalyticsUseCaseTest {
         List<HistogramAnalytics.Bucket> buckets = result.values();
         assertFalse(buckets.isEmpty());
         assertEquals(2, buckets.size());
-        HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
-        assertEquals("downstream-active-connections", bucket0.getField());
-        assertEquals("downstream-active-connections_latest", bucket0.getName());
-        assertEquals(1L, bucket0.getValues().getFirst());
-        HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
-        assertEquals("upstream-active-connections", bucket1.getField());
-        assertEquals("upstream-active-connections_latest", bucket1.getName());
-        assertEquals(1L, bucket1.getValues().getFirst());
+        // Order-agnostic assertions: pick buckets by field name
+        HistogramAnalytics.MetricBucket downstream = buckets
+            .stream()
+            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+            .map(b -> (HistogramAnalytics.MetricBucket) b)
+            .filter(b -> "downstream-active-connections".equals(b.getField()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Missing downstream-active-connections bucket"));
+
+        HistogramAnalytics.MetricBucket upstream = buckets
+            .stream()
+            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+            .map(b -> (HistogramAnalytics.MetricBucket) b)
+            .filter(b -> "upstream-active-connections".equals(b.getField()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Missing upstream-active-connections bucket"));
+
+        assertEquals("downstream-active-connections", downstream.getField());
+        assertEquals("downstream-active-connections", downstream.getName());
+        assertEquals(2L, downstream.getValues().getFirst());
+
+        assertEquals("upstream-active-connections", upstream.getField());
+        assertEquals("upstream-active-connections", upstream.getName());
+        assertEquals(2L, upstream.getValues().getFirst());
     }
 
     @Test
     void shouldReturnTopDeltaHitsForANativeAPI() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        Map<String, Map<String, List<Long>>> analytics = new HashMap<>();
-        analytics.put("downstream-subscribe-message-bytes_delta", Map.of("downstream-subscribe-message-bytes", List.of(1432142112L)));
-        analytics.put("upstream-subscribe-message-bytes_delta", Map.of("upstream-subscribe-message-bytes", List.of(12321213L)));
+        Map<String, List<Long>> analytics = Map.of(
+            "downstream-publish-messages-total",
+            List.of(200L),
+            "upstream-publish-messages-total",
+            List.of(200L)
+        );
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
         long to = INSTANT_NOW.toEpochMilli();
@@ -181,52 +201,74 @@ class SearchHistogramAnalyticsUseCaseTest {
         List<HistogramAnalytics.Bucket> buckets = result.values();
         assertFalse(buckets.isEmpty());
         assertEquals(2, buckets.size());
-        HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
-        assertEquals("downstream-subscribe-message-bytes", bucket0.getField());
-        assertEquals("downstream-subscribe-message-bytes_delta", bucket0.getName());
-        assertEquals(1432142112L, bucket0.getValues().getFirst());
-        HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
-        assertEquals("upstream-subscribe-message-bytes", bucket1.getField());
-        assertEquals("upstream-subscribe-message-bytes_delta", bucket1.getName());
-        assertEquals(12321213L, bucket1.getValues().getFirst());
+        // Order-agnostic assertions: pick buckets by field name
+        HistogramAnalytics.MetricBucket downstream = buckets
+            .stream()
+            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+            .map(b -> (HistogramAnalytics.MetricBucket) b)
+            .filter(b -> "downstream-publish-messages-total".equals(b.getField()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Missing downstream-publish-messages-total bucket"));
+
+        HistogramAnalytics.MetricBucket upstream = buckets
+            .stream()
+            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+            .map(b -> (HistogramAnalytics.MetricBucket) b)
+            .filter(b -> "upstream-publish-messages-total".equals(b.getField()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Missing upstream-publish-messages-total bucket"));
+
+        assertEquals("downstream-publish-messages-total", downstream.getField());
+        assertEquals("downstream-publish-messages-total", downstream.getName());
+        assertEquals(200L, downstream.getValues().getFirst());
+        assertEquals("upstream-publish-messages-total", upstream.getField());
+        assertEquals("upstream-publish-messages-total", upstream.getName());
+        assertEquals(200L, upstream.getValues().getFirst());
     }
 
     @Test
-    void shouldReturnTopTrendsForANativeAPI() {
+    void shouldReturnMetricsTrendForANativeAPI() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
-        Map<String, Map<String, List<Long>>> analytics = new HashMap<>();
-        analytics.put("downstream-subscribe-message-bytes_delta", Map.of("downstream-subscribe-message-bytes", List.of(100L, 193L, 121L)));
-        analytics.put("upstream-subscribe-message-bytes_delta", Map.of("upstream-subscribe-message-bytes", List.of(100L, 193L, 121L)));
+        Map<String, List<Long>> analytics = Map.of(
+            "downstream-publish-messages-total",
+            List.of(0L, 10L, 10L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 50L, 50L, 0L),
+            "upstream-publish-messages-total",
+            List.of(0L, 10L, 10L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 50L, 50L, 0L)
+        );
         analyticsQueryService.eventAnalytics = new EventAnalytics(analytics);
         long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
         long to = INSTANT_NOW.toEpochMilli();
         long interval = 60000L;
-        Term appIdFilter = new Term("app-id", "xxx-xxx-xxx");
-        Term planIdFilter = new Term("plan-id", "yyy-yyy-yyy");
-        var input = new SearchHistogramAnalyticsUseCase.Input(
-            MY_API,
-            from,
-            to,
-            interval,
-            List.of(),
-            Optional.empty(),
-            Optional.of(List.of(appIdFilter, planIdFilter))
-        );
+        var input = new SearchHistogramAnalyticsUseCase.Input(MY_API, from, to, interval, List.of(), Optional.empty(), Optional.empty());
 
         var result = useCase.execute(GraviteeContext.getExecutionContext(), input);
 
         List<HistogramAnalytics.Bucket> buckets = result.values();
         assertFalse(buckets.isEmpty());
         assertEquals(2, buckets.size());
-        HistogramAnalytics.MetricBucket bucket0 = (HistogramAnalytics.MetricBucket) buckets.getFirst();
-        assertEquals("downstream-subscribe-message-bytes", bucket0.getField());
-        assertEquals("downstream-subscribe-message-bytes_delta", bucket0.getName());
-        assertEquals(List.of(100L, 193L, 121L), bucket0.getValues());
-        HistogramAnalytics.MetricBucket bucket1 = (HistogramAnalytics.MetricBucket) buckets.get(1);
-        assertEquals("upstream-subscribe-message-bytes", bucket1.getField());
-        assertEquals("upstream-subscribe-message-bytes_delta", bucket1.getName());
-        assertEquals(List.of(100L, 193L, 121L), bucket1.getValues());
+        // Order-agnostic assertions: pick buckets by field name
+        HistogramAnalytics.MetricBucket downstream = buckets
+            .stream()
+            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+            .map(b -> (HistogramAnalytics.MetricBucket) b)
+            .filter(b -> "downstream-publish-messages-total".equals(b.getField()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Missing downstream-publish-messages-total bucket"));
+
+        HistogramAnalytics.MetricBucket upstream = buckets
+            .stream()
+            .filter(b -> b instanceof HistogramAnalytics.MetricBucket)
+            .map(b -> (HistogramAnalytics.MetricBucket) b)
+            .filter(b -> "upstream-publish-messages-total".equals(b.getField()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Missing upstream-publish-messages-total bucket"));
+        assertEquals("downstream-publish-messages-total", downstream.getField());
+        assertEquals("downstream-publish-messages-total", downstream.getName());
+        assertEquals(List.of(0L, 10L, 10L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 50L, 50L, 0L), downstream.getValues());
+        assertEquals("upstream-publish-messages-total", upstream.getField());
+        assertEquals("upstream-publish-messages-total", upstream.getName());
+        assertEquals(List.of(0L, 10L, 10L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 50L, 50L, 0L), upstream.getValues());
     }
 
     @Test
