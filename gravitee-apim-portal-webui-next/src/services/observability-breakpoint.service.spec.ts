@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
+import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 
@@ -39,10 +39,10 @@ describe('ObservabilityBreakpointService', () => {
   });
 
   describe('isMobile$ observable', () => {
-    it('should emit true when screen width is mobile (max-width: 640px)', () => {
+    it('should emit true when screen matches XSmall breakpoint (max-width: 599.98px)', () => {
       const breakpointState: BreakpointState = {
         matches: true,
-        breakpoints: { '(max-width: 640px)': true },
+        breakpoints: { [Breakpoints.XSmall]: true },
       };
 
       let result: boolean;
@@ -53,13 +53,13 @@ describe('ObservabilityBreakpointService', () => {
       observeSubject.next(breakpointState);
 
       expect(result!).toBe(true);
-      expect(breakpointObserverMock.observe).toHaveBeenCalledWith(['(max-width: 640px)']);
+      expect(breakpointObserverMock.observe).toHaveBeenCalledWith([Breakpoints.XSmall]);
     });
 
-    it('should emit false when screen width is not mobile', () => {
+    it('should emit false when screen does not match XSmall breakpoint (desktop/laptop/tablet)', () => {
       const breakpointState: BreakpointState = {
         matches: false,
-        breakpoints: { '(max-width: 640px)': false },
+        breakpoints: { [Breakpoints.XSmall]: false },
       };
 
       let result: boolean;
@@ -70,7 +70,7 @@ describe('ObservabilityBreakpointService', () => {
       observeSubject.next(breakpointState);
 
       expect(result!).toBe(false);
-      expect(breakpointObserverMock.observe).toHaveBeenCalledWith(['(max-width: 640px)']);
+      expect(breakpointObserverMock.observe).toHaveBeenCalledWith([Breakpoints.XSmall]);
     });
   });
 
@@ -78,7 +78,7 @@ describe('ObservabilityBreakpointService', () => {
     it('should update isMobile signal when isMobile$ emits true', () => {
       const breakpointState: BreakpointState = {
         matches: true,
-        breakpoints: { '(max-width: 640px)': true },
+        breakpoints: { [Breakpoints.XSmall]: true },
       };
 
       observeSubject.next(breakpointState);
@@ -89,7 +89,7 @@ describe('ObservabilityBreakpointService', () => {
     it('should update isMobile signal when isMobile$ emits false', () => {
       const breakpointState: BreakpointState = {
         matches: false,
-        breakpoints: { '(max-width: 640px)': false },
+        breakpoints: { [Breakpoints.XSmall]: false },
       };
 
       observeSubject.next(breakpointState);
@@ -102,7 +102,7 @@ describe('ObservabilityBreakpointService', () => {
     it('should use shareReplay for isMobile$ observable', done => {
       const mobileState: BreakpointState = {
         matches: true,
-        breakpoints: { '(max-width: 640px)': true },
+        breakpoints: { [Breakpoints.XSmall]: true },
       };
 
       let subscriptionCount = 0;
@@ -123,11 +123,11 @@ describe('ObservabilityBreakpointService', () => {
 
   describe('breakpoint state changes', () => {
     it('should handle isMobile signal state changes', () => {
-      const initialState: BreakpointState = { matches: true, breakpoints: { '(max-width: 640px)': true } };
+      const initialState: BreakpointState = { matches: true, breakpoints: { [Breakpoints.XSmall]: true } };
       observeSubject.next(initialState);
       expect(service.isMobile()).toBe(initialState.matches);
 
-      const newState: BreakpointState = { matches: false, breakpoints: { '(max-width: 640px)': false } };
+      const newState: BreakpointState = { matches: false, breakpoints: { [Breakpoints.XSmall]: false } };
       observeSubject.next(newState);
       expect(service.isMobile()).toBe(newState.matches);
     });
@@ -136,10 +136,10 @@ describe('ObservabilityBreakpointService', () => {
   describe('edge cases', () => {
     it('should handle multiple rapid state changes', () => {
       const states = [
-        { matches: true, breakpoints: { '(max-width: 640px)': true } },
-        { matches: false, breakpoints: { '(max-width: 640px)': false } },
-        { matches: true, breakpoints: { '(max-width: 640px)': true } },
-        { matches: false, breakpoints: { '(max-width: 640px)': false } },
+        { matches: true, breakpoints: { [Breakpoints.XSmall]: true } },
+        { matches: false, breakpoints: { [Breakpoints.XSmall]: false } },
+        { matches: true, breakpoints: { [Breakpoints.XSmall]: true } },
+        { matches: false, breakpoints: { [Breakpoints.XSmall]: false } },
       ];
 
       states.forEach(state => {
