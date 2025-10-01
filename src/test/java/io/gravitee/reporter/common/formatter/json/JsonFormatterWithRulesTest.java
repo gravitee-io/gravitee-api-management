@@ -18,6 +18,8 @@ package io.gravitee.reporter.common.formatter.json;
 import static io.gravitee.reporter.common.formatter.Mappers.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.reporter.api.configuration.Rules;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
@@ -25,7 +27,9 @@ import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.common.MetricsType;
 import io.gravitee.reporter.common.formatter.AbstractFormatterTest;
 import io.gravitee.reporter.common.formatter.Type;
+import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -85,5 +89,26 @@ class JsonFormatterWithRulesTest extends AbstractFormatterTest {
     assertThat(JSON.readTree(formatter.format(given).getBytes()))
       .usingRecursiveComparison()
       .isEqualTo(JSON.readTree(expected));
+  }
+
+  @Test
+  void should_not_return_null_when_not_empty_object()
+    throws JsonProcessingException {
+    var emptyMonitor = new Monitor(System.currentTimeMillis());
+    resetFormatter(MetricsType.NODE_MONITOR);
+    var result = formatter.format(emptyMonitor);
+    assertThat(result).isNotNull();
+    assertThat(JSON.readTree(result.toString()).has("date")).isTrue();
+  }
+
+  @Test
+  void should_return_null_when_empty_object() throws JsonProcessingException {
+    Rules rules = new Rules();
+    rules.setExcludeFields(Set.of("*"));
+    JsonFormatter<Monitor> formatter = new JsonFormatter<>(rules);
+
+    Monitor monitor = new Monitor(System.currentTimeMillis());
+    Buffer result = formatter.format(monitor);
+    assertThat(result).isNull();
   }
 }

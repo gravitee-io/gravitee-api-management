@@ -44,7 +44,12 @@ public class JsonFormatter<T extends Reportable> extends AbstractFormatter<T> {
   @Override
   public Buffer format0(T data) {
     try {
-      return Buffer.buffer(mapper.writeValueAsBytes(data));
+      String json = mapper.writeValueAsString(data);
+      if ("{}".equals(json)) {
+        LOG.trace("Excluding data format in reporter: {}", json);
+        return null;
+      }
+      return Buffer.buffer(json);
     } catch (JsonProcessingException e) {
       LOG.error("Unexpected error while formatting data", e);
       return null;
