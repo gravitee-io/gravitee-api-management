@@ -153,6 +153,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
           label: 'To Broker',
         },
       ],
+      minHeight: 'large',
     },
     {
       type: 'line',
@@ -172,6 +173,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
           label: 'To Broker',
         },
       ],
+      minHeight: 'large',
     },
   ];
 
@@ -194,6 +196,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
           label: 'To Clients',
         },
       ],
+      minHeight: 'large',
     },
     {
       type: 'line',
@@ -213,6 +216,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
           label: 'To Clients',
         },
       ],
+      minHeight: 'large',
     },
   ];
 
@@ -245,6 +249,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
           label: 'Upstream Failure',
         },
       ],
+      minHeight: 'large',
     },
   ];
 
