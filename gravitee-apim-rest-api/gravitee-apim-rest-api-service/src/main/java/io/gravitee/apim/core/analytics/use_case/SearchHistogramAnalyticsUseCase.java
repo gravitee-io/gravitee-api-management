@@ -128,16 +128,14 @@ public class SearchHistogramAnalyticsUseCase {
         // Dump analytics data into metric buckets.
         List<HistogramAnalytics.Bucket> buckets = new ArrayList<>();
         Timestamp timestamp = new Timestamp(from, to, Duration.ofMillis(input.interval()));
+
         eventAnalytics.ifPresent(
             (analytics ->
                     analytics
                         .values()
-                        .forEach((aggName, values) -> {
-                            if (!values.isEmpty()) {
-                                String field = values.keySet().iterator().next();
-                                List<Long> valueList = values.get(field);
-                                buckets.add(new HistogramAnalytics.MetricBucket(aggName, field, valueList));
-                            }
+                        .forEach((key, values) -> {
+                            HistogramAnalytics.MetricBucket bucket = new HistogramAnalytics.MetricBucket(key, key, values);
+                            buckets.add(bucket);
                         }))
         );
 
