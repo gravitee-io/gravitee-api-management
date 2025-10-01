@@ -17,7 +17,9 @@
 -->
 <div class="nav-bar__container">
   <app-company-title [title]="siteTitle" [logo]="logo()" />
-  @if (isDesktop()) {
+  @if (isMobile()) {
+    <app-mobile-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />
+  } @else {
     <app-desktop-nav-bar [currentUser]="currentUser()" [customLinks]="customLinks()" />
   }
 </div>
