@@ -23,3 +23,9 @@
   justify-content: space-between;
   overflow-x: hidden;
 }
+
+.footer {
+  &__copyright {
+    text-align: end;
+  }
+}
