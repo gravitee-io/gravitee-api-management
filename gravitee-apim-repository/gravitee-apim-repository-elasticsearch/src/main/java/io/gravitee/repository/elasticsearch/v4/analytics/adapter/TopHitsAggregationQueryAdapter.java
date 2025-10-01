@@ -64,7 +64,19 @@ public class TopHitsAggregationQueryAdapter {
     public static final String EXTENDED_BOUNDS = "extended_bounds";
     public static final String HITS = "hits";
     public static final String DELTA_BUCKET_SUFFIX = "_delta";
-    public static final String LATEST = "_latest";
+    public static final String LATEST = "latest_";
+    public static final String SOURCES = "sources";
+    public static final String COMPOSITE = "composite";
+    public static final String TOP_METRICS = "top_metrics";
+    public static final String METRICS = "metrics";
+    public static final String TRACK_TOTAL_HITS = "track_total_hits";
+    public static final String BOOL = "bool";
+    public static final String QUERY = "query";
+    public static final String MS = "ms";
+    public static final String BY_DIMENSIONS = "by_dimensions";
+    public static final String TOP = "top";
+    public static final String KEY = "key";
+    public static final String DOC_COUNT = "doc_count";
 
     private TopHitsAggregationQueryAdapter() {}
 
@@ -79,11 +91,12 @@ public class TopHitsAggregationQueryAdapter {
         // Create root node
         ObjectNode root = MAPPER.createObjectNode();
         root.put(SIZE, 0);
+        root.put(TRACK_TOTAL_HITS, false);
         ObjectNode aggregations = root.putObject(AGGS);
         // Set aggregations
         switch (aggregationType) {
             case VALUE:
-                applyValueAggregations(query, aggregations);
+                applyLatestValueByDimensionsAggregations(query, aggregations);
                 break;
             case DELTA:
                 applyDeltaAggregations(query, aggregations);
@@ -105,18 +118,46 @@ public class TopHitsAggregationQueryAdapter {
         return root.toString();
     }
 
-    private static void applyValueAggregations(HistogramQuery query, ObjectNode aggregations) {
-        query
-            .aggregations()
-            .forEach(agg -> {
-                String field = agg.getField();
-                String name = field + LATEST;
-                // Create a filter aggregation for "exists"
-                ObjectNode filterAgg = applyExistsFilter(aggregations, name, field);
-                // Nest top_hits aggregation
-                ObjectNode aggsNode = filterAgg.putObject(AGGS);
-                applyTopHitsAggregation(aggsNode, TOP_HITS, DESC, field);
-            });
+    public static void applyLatestValueByDimensionsAggregations(HistogramQuery query, ObjectNode aggregations) {
+        // aggs.by_dimensions.composite
+        ObjectNode byDimensions = aggregations.putObject(BY_DIMENSIONS);
+        ObjectNode composite = byDimensions.putObject(COMPOSITE);
+        composite.put(SIZE, 1000);
+
+        ArrayNode sources = composite.putArray(SOURCES);
+        addCompositeTermsSource(sources, "gw-id");
+        addCompositeTermsSource(sources, "app-id");
+        addCompositeTermsSource(sources, "plan-id");
+        addCompositeTermsSource(sources, "org-id");
+        addCompositeTermsSource(sources, "env-id");
+
+        // Sub-aggregations: one top_metrics per requested metric field, named "latest_" + field
+        ObjectNode dimensionAggs = byDimensions.putObject(AGGS);
+        query.aggregations().forEach(agg -> addLatestTopMetricsAgg(dimensionAggs, agg.getField()));
+    }
+
+    // Helper to append a composite source {"<fieldName>": {"terms": {"field": "<fieldName>"}}}
+    private static void addCompositeTermsSource(ArrayNode sources, String fieldName) {
+        ObjectNode oneSource = MAPPER.createObjectNode();
+        ObjectNode wrapper = MAPPER.createObjectNode();
+        ObjectNode body = MAPPER.createObjectNode();
+        body.put(FIELD, fieldName);
+        wrapper.set(TERMS, body);
+        oneSource.set(fieldName, wrapper);
+        sources.add(oneSource);
+    }
+
+    // Helper to append a "latest_<field>" top_metrics sub-aggregation with sort by @timestamp desc
+    private static void addLatestTopMetricsAgg(ObjectNode aggsNode, String field) {
+        String aggName = LATEST + field;
+        ObjectNode latest = aggsNode.putObject(aggName);
+        ObjectNode topMetrics = latest.putObject(TOP_METRICS);
+        ObjectNode metricsNode = MAPPER.createObjectNode();
+        metricsNode.put(FIELD, field);
+        topMetrics.set(METRICS, metricsNode);
+        ObjectNode sortNode = MAPPER.createObjectNode();
+        sortNode.put(TIMESTAMP, DESC);
+        topMetrics.set(SORT, sortNode);
     }
 
     private static void applyDeltaAggregations(HistogramQuery query, ObjectNode aggregations) {
@@ -138,7 +179,7 @@ public class TopHitsAggregationQueryAdapter {
         String fixedInterval = query
             .timeRange()
             .interval()
-            .map(duration -> duration.toMillis() + "ms")
+            .map(duration -> duration.toMillis() + MS)
             .orElseThrow(() -> new IllegalArgumentException("Time interval is mandatory to calculate the trend analytics"));
 
         ObjectNode intervalAgg = aggregations.putObject(PER_INTERVAL);
@@ -217,8 +258,8 @@ public class TopHitsAggregationQueryAdapter {
         boolNode.set(FILTER, filters);
 
         ObjectNode queryNode = MAPPER.createObjectNode();
-        queryNode.set("bool", boolNode);
+        queryNode.set(BOOL, boolNode);
 
-        root.set("query", queryNode);
+        root.set(QUERY, queryNode);
     }
 }

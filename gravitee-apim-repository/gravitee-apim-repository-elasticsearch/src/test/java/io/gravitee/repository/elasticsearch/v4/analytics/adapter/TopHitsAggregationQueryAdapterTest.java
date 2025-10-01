@@ -20,6 +20,7 @@ import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TimeRang
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TimeRangeAdapter.RANGE;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.AGGS;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.ASC;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.COMPOSITE;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.DATE_HISTOGRAM;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.DESC;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.END_VALUE;
@@ -27,16 +28,21 @@ import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsA
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.FIELD;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.FILTER;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.FIXED_INTERVAL;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.LATEST;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.METRICS;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.ORDER;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.PER_INTERVAL;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SIZE;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SORT;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SOURCE;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SOURCES;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.START_VALUE;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TERM;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TERMS;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TIMESTAMP;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TOP_HITS;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TOP_METRICS;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TRACK_TOTAL_HITS;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.adapt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -56,7 +62,10 @@ import io.gravitee.repository.log.v4.model.analytics.Term;
 import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.StreamSupport;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -82,49 +91,6 @@ class TopHitsAggregationQueryAdapterTest {
         var query = buildHistogramQuery(List.of(agg1, agg2), null);
 
         assertThrows(IllegalArgumentException.class, () -> adapt(query));
-    }
-
-    @Test
-    void should_adapt_top_value_hits_query() throws JsonProcessingException {
-        Aggregation agg1 = new Aggregation("downstream-active-connections", AggregationType.VALUE);
-        Aggregation agg2 = new Aggregation("upstream-active-connections", AggregationType.VALUE);
-        var query = buildHistogramQuery(List.of(agg1, agg2), null);
-
-        String json = adapt(query);
-
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode node = mapper.readTree(json);
-        // Assert aggregations
-        JsonNode aggregations = node.get(AGGS);
-        // Downstream active connections
-        JsonNode downstreamConnections = aggregations.get("downstream-active-connections_latest");
-        assertFalse(downstreamConnections.isNull());
-        // Assert exists filter
-        assertTrue(downstreamConnections.get(FILTER).has(EXISTS));
-        assertEquals("downstream-active-connections", downstreamConnections.get(FILTER).get(EXISTS).get(FIELD).asText());
-        JsonNode downstreamTopHits = downstreamConnections.get(AGGS).get(TOP_HITS).get(TOP_HITS);
-        assertEquals(1, downstreamTopHits.get(SIZE).asInt());
-        assertEquals(DESC, downstreamTopHits.get(SORT).get(0).get(TIMESTAMP).get(ORDER).textValue());
-        assertEquals("downstream-active-connections", downstreamTopHits.get(SOURCE).get(0).textValue());
-
-        // Downstream active connections
-        JsonNode upstreamConnections = aggregations.get("upstream-active-connections_latest");
-        assertFalse(upstreamConnections.isNull());
-        // Assert exists filter
-        assertTrue(upstreamConnections.get(FILTER).has(EXISTS));
-        assertEquals("upstream-active-connections", upstreamConnections.get(FILTER).get(EXISTS).get(FIELD).asText());
-        JsonNode upstreamTopHits = upstreamConnections.get(AGGS).get(TOP_HITS).get(TOP_HITS);
-        assertEquals(1, upstreamTopHits.get(SIZE).asInt());
-        assertEquals(DESC, upstreamTopHits.get(SORT).get(0).get(TIMESTAMP).get(ORDER).textValue());
-        assertEquals("upstream-active-connections", upstreamTopHits.get(SOURCE).get(0).textValue());
-        // Assert query filters
-        JsonNode filters = node.get("query").get("bool").get(FILTER);
-        assertFalse(filters.isEmpty());
-        // Assert term filters
-        assertEquals(API_ID, filters.get(0).get(TERM).get("api-id").asText());
-        // Assert time range filters
-        assertEquals(FROM, filters.get(1).get(RANGE).get(TIMESTAMP).get(GTE).asLong());
-        assertEquals(TO, filters.get(1).get(RANGE).get(TIMESTAMP).get(LTE).asLong());
     }
 
     @Test
@@ -279,6 +245,112 @@ class TopHitsAggregationQueryAdapterTest {
         ArrayNode planTermsArray = (ArrayNode) filters.get(3).get("terms").get("plan-id");
         List<String> planTermValues = StreamSupport.stream(planTermsArray.spliterator(), false).map(JsonNode::asText).toList();
         assertTrue(planTermValues.containsAll(List.of(PLAN_ID, "yyyy-yyyy-yyyy-yyyy")));
+    }
+
+    @Test
+    void should_adapt_composite_latest_by_dimensions_with_filters() throws Exception {
+        // Given
+        String apiId = "0a252b3c-c129-4cce-a52b-3cc129fcced7";
+        Instant to = Instant.now();
+        Instant from = to.minus(Duration.ofHours(14));
+
+        var query = getHistogramQuery(
+            apiId,
+            from,
+            to,
+            List.of(
+                new Aggregation("upstream-active-connections", AggregationType.VALUE),
+                new Aggregation("downstream-active-connections", AggregationType.VALUE)
+            )
+        );
+
+        // When
+        String json = TopHitsAggregationQueryAdapter.adapt(query);
+
+        // Then
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.readTree(json);
+
+        // Root settings
+        assertEquals(0, node.get(SIZE).asInt());
+        assertFalse(node.get(TRACK_TOTAL_HITS).asBoolean());
+
+        // Query filters
+        JsonNode filters = node.at("/query/bool/filter");
+        assertTrue(filters.isArray());
+        assertTrue(filters.size() >= 4);
+
+        // api-id term filter
+        assertEquals(apiId, filters.get(0).get(TERM).get("api-id").asText());
+
+        // time range filter
+        JsonNode range = filters.get(1).get(RANGE).get(TIMESTAMP);
+        assertNotNull(range);
+        assertTrue(range.hasNonNull(GTE));
+        assertTrue(range.hasNonNull(LTE));
+
+        // multi-value terms filters
+        // Order of optional filters is deterministic from insertion; app-id then plan-id
+        JsonNode appTerms = filters.get(2).get(TERMS).get("app-id");
+        assertTrue(appTerms.isArray());
+        assertEquals("1", appTerms.get(0).asText());
+
+        JsonNode planTerms = filters.get(3).get(TERMS).get("plan-id");
+        assertTrue(planTerms.isArray());
+        assertEquals("6d57d1f2-93e7-4240-97d1-f293e7c24052", planTerms.get(0).asText());
+
+        // Aggregations: composite by_dimensions
+        JsonNode byDimensions = node.at("/aggs/by_dimensions");
+        assertFalse(byDimensions.isMissingNode());
+
+        JsonNode composite = byDimensions.get(COMPOSITE);
+        assertNotNull(composite);
+        assertEquals(1000, composite.get(SIZE).asInt());
+
+        JsonNode sources = composite.get(SOURCES);
+        assertTrue(sources.isArray());
+        assertEquals(5, sources.size());
+
+        // Validate each source contains the expected field name (wrapper object key is not asserted)
+        Set<String> expectedFields = Set.of("gw-id", "app-id", "plan-id", "org-id", "env-id");
+        Set<String> actualFields = new HashSet<>();
+        for (JsonNode src : sources) {
+            assertTrue(src.fieldNames().hasNext());
+            String wrapperKey = src.fieldNames().next();
+            JsonNode termsNode = src.get(wrapperKey).get(TERMS);
+            assertNotNull(termsNode);
+            String fieldName = termsNode.get(FIELD).asText();
+            actualFields.add(fieldName);
+        }
+        assertEquals(expectedFields, actualFields);
+
+        // Sub-aggregations: top_metrics per metric, named "latest_" + fieldName
+        JsonNode subAggs = byDimensions.get(AGGS);
+        assertNotNull(subAggs);
+
+        // upstream active connections
+        String upstreamAggName = LATEST + "upstream-active-connections";
+        JsonNode latestUpstream = subAggs.get(upstreamAggName);
+        assertNotNull(latestUpstream);
+        assertEquals("upstream-active-connections", latestUpstream.get(TOP_METRICS).get(METRICS).get(FIELD).asText());
+        assertEquals(DESC, latestUpstream.get(TOP_METRICS).get(SORT).get(TIMESTAMP).asText());
+
+        // downstream active connections
+        String downstreamAggName = LATEST + "downstream-active-connections";
+        JsonNode latestDownstream = subAggs.get(downstreamAggName);
+        assertNotNull(latestDownstream);
+        assertEquals("downstream-active-connections", latestDownstream.get(TOP_METRICS).get(METRICS).get(FIELD).asText());
+        assertEquals(DESC, latestDownstream.get(TOP_METRICS).get(SORT).get(TIMESTAMP).asText());
+    }
+
+    private static @NotNull HistogramQuery getHistogramQuery(String apiId, Instant from, Instant to, List<Aggregation> aggregations) {
+        var searchTermId = new SearchTermId(SearchTermId.SearchTerm.API, apiId);
+        var timeRange = new TimeRange(from, to);
+
+        // Optional filters (multi-value)
+        var terms = List.of(new Term("app-id", "1"), new Term("plan-id", "6d57d1f2-93e7-4240-97d1-f293e7c24052"));
+
+        return new HistogramQuery(searchTermId, timeRange, aggregations, Optional.empty(), terms);
     }
 
     private static @NotNull HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms) {

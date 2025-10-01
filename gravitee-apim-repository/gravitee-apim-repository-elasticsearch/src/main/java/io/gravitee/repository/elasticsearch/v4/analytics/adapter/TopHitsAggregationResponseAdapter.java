@@ -17,11 +17,15 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.DELTA_BUCKET_SUFFIX;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.DOC_COUNT;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.END_VALUE;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.HITS;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.KEY;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.LATEST;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.METRICS;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SOURCE;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.START_VALUE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TOP_HITS;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TOP;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.Aggregation;
@@ -36,22 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Converts Elasticsearch metric aggregation responses to support VALUE, DELTA, TREND aggregations,
- * and maps them to {@link EventAnalyticsAggregate}.
- *
- * <p>Examples:
- * <ul>
- *   <li>VALUE: <pre>
- *   {"downstream-active-connections_latest": {"top_hits": {"hits": {...}}}}
- *   </pre></li>
- *   <li>DELTA counters: <pre>
- *   {"downstream-publish-messages-total_delta": {
- *         "start_value": {"hits": {"hits": [{"_source": {"downstream-publish-messages-total": 0 }}]}},
- *         "end_value": {"hits": {"hits": [{"_source": {"downstream-publish-messages-total": 121}}]}}
- *   }}</pre></li>
- * </ul>
- */
 public class TopHitsAggregationResponseAdapter {
 
     private TopHitsAggregationResponseAdapter() {}
@@ -79,8 +67,7 @@ public class TopHitsAggregationResponseAdapter {
 
             switch (aggregationType) {
                 case VALUE:
-                    subAggs = value.getAggregations();
-                    parseValueAggregations(key, subAggs, result);
+                    parseLatestValuesByKeyBuckets(key, value, result);
                     break;
                 case DELTA:
                     subAggs = value.getAggregations();
@@ -96,6 +83,61 @@ public class TopHitsAggregationResponseAdapter {
         return result.isEmpty() ? Optional.empty() : Optional.of(new EventAnalyticsAggregate(result));
     }
 
+    private static void parseLatestValuesByKeyBuckets(String key, Aggregation value, Map<String, Map<String, List<Long>>> result) {
+        List<JsonNode> buckets = value.getBuckets();
+
+        if (buckets == null || buckets.isEmpty()) {
+            return;
+        }
+
+        Map<String, Long> totalsByField = new HashMap<>();
+
+        buckets.forEach(bucket ->
+            bucket
+                .fieldNames()
+                .forEachRemaining(fieldName -> {
+                    if (KEY.equals(fieldName) || DOC_COUNT.equals(fieldName)) {
+                        return;
+                    }
+                    // Accept any sub-aggregation starting with "latest_"
+                    if (fieldName.startsWith(LATEST)) {
+                        JsonNode subAgg = bucket.get(fieldName);
+                        if (subAgg == null || !subAgg.has(TOP)) {
+                            return;
+                        }
+                        JsonNode topArray = subAgg.get(TOP);
+                        if (topArray == null || !topArray.isArray() || topArray.isEmpty()) {
+                            return;
+                        }
+                        JsonNode firstTop = topArray.get(0);
+                        if (firstTop == null || !firstTop.has(METRICS)) {
+                            return;
+                        }
+                        JsonNode metrics = firstTop.get(METRICS);
+                        if (metrics == null || !metrics.fieldNames().hasNext()) {
+                            return;
+                        }
+                        // Sum every metric present in the metrics object
+                        metrics
+                            .fieldNames()
+                            .forEachRemaining(metricField -> {
+                                JsonNode metricValueNode = metrics.get(metricField);
+                                if (metricValueNode != null && metricValueNode.isNumber()) {
+                                    long v = metricValueNode.asLong();
+                                    totalsByField.merge(metricField, v, Long::sum);
+                                }
+                            });
+                    }
+                })
+        );
+
+        if (!totalsByField.isEmpty()) {
+            Map<String, List<Long>> totalsAsLists = new HashMap<>();
+            totalsByField.forEach((field, total) -> totalsAsLists.put(field, List.of(total)));
+            result.put(key, totalsAsLists);
+        }
+    }
+
     private static AggregationType getAggregationType(HistogramQuery query) {
         return (query == null)
             ? null
@@ -106,26 +148,6 @@ public class TopHitsAggregationResponseAdapter {
                 .distinct()
                 .findFirst()
                 .orElse(null);
-    }
-
-    private static void parseValueAggregations(String key, Map<String, Aggregation> subAggs, Map<String, Map<String, List<Long>>> result) {
-        // VALUE aggregation: expects top_hits sub-aggregations
-        Aggregation topHitsAgg = subAggs.get(TOP_HITS);
-
-        if (
-            topHitsAgg != null &&
-            topHitsAgg.getHits() != null &&
-            topHitsAgg.getHits().getHits() != null &&
-            !topHitsAgg.getHits().getHits().isEmpty()
-        ) {
-            // Extract field and values from the _source of the first hit
-            SearchHit topHit = topHitsAgg.getHits().getHits().getFirst();
-
-            if (topHit != null && topHit.getSource() != null) {
-                JsonNode source = topHit.getSource();
-                source.fieldNames().forEachRemaining(field -> result.put(key, Map.of(field, List.of(source.get(field).asLong()))));
-            }
-        }
     }
 
     private static void parseDeltaAggregations(String key, Map<String, Aggregation> subAggs, Map<String, Map<String, List<Long>>> result) {
