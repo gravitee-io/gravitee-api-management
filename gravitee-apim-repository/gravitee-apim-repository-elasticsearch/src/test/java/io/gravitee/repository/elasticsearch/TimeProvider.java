@@ -59,8 +59,9 @@ public class TimeProvider {
     }
 
     public void setTimestamps(Map<String, Object> data) {
-        data.put("now", now.toEpochMilli());
-        IntStream.rangeClosed(1, 10).forEach(i -> data.putIfAbsent("nowMinus" + i, now.minusSeconds(i * 60L).toEpochMilli()));
-        IntStream.rangeClosed(1, 10).forEach(i -> data.putIfAbsent("nowPlus" + i, now.plusSeconds(i * 60L).toEpochMilli()));
+        Instant timestamp = Instant.now();
+        data.put("now", timestamp.toEpochMilli());
+        IntStream.rangeClosed(1, 15).forEach(i -> data.putIfAbsent("nowMinus" + i, timestamp.minusSeconds(i * 60L).toEpochMilli()));
+        IntStream.rangeClosed(1, 15).forEach(i -> data.putIfAbsent("nowPlus" + i, timestamp.plusSeconds(i * 60L).toEpochMilli()));
     }
 }
