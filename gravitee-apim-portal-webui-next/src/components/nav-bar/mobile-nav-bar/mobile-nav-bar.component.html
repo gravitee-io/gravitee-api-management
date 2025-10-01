@@ -1,0 +1,56 @@
+<!--
+
+    Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="actions">
+  <button class="mobile-menu__button" mat-stroked-button i18n="@@navigationButton" (click)="isMobileMenuOpened = !isMobileMenuOpened">
+    <span class="mobile-menu__icon"
+      ><mat-icon>{{ isMobileMenuOpened ? 'close' : 'menu' }}</mat-icon></span
+    >
+  </button>
+</div>
+@if (isMobileMenuOpened) {
+  <div class="mobile-menu__panel">
+    <a
+      class="mobile-menu__link"
+      i18n="@@homepage"
+      [routerLink]="['/']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      (click)="closeMenu()"
+      >Homepage</a
+    >
+    <a class="mobile-menu__link" i18n="@@catalog" [routerLink]="['catalog']" routerLinkActive="active" (click)="closeMenu()">Catalog</a>
+    <a class="mobile-menu__link" i18n="@@guides" [routerLink]="['guides']" routerLinkActive="active" (click)="closeMenu()">Guides</a>
+    @for (link of customLinks(); track link.id) {
+      <a class="mobile-menu__link" [href]="link.target" [attr.target]="link.type === 'external' ? '_blank' : null" (click)="closeMenu()">
+        {{ link.name }}
+      </a>
+    }
+    <div class="mobile-menu__hr"></div>
+
+    @if (isLoggedIn()) {
+      <a class="mobile-menu__link" i18n="@@applications" [routerLink]="['applications']" routerLinkActive="active" (click)="closeMenu()"
+        >Applications</a
+      >
+      <a class="mobile-menu__link" i18n="@@userAvatarMenuLogOut" [routerLink]="['log-out']" routerLinkActive="active" (click)="closeMenu()"
+        >Log out</a
+      >
+    } @else {
+      <a class="mobile-menu__link" i18n="@@logIn" [routerLink]="['log-in']" routerLinkActive="active" (click)="closeMenu()">Sign in</a>
+    }
+  </div>
+}
