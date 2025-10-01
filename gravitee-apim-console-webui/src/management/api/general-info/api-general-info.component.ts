@@ -332,17 +332,15 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
         switchMap((policies) =>
           this.matDialog
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
-              data: {
-                apiId: this.apiId,
-                policies,
-              },
+              data: { apiId: this.apiId, policies },
               role: 'alertdialog',
               id: 'importApiDialog',
             })
             .afterClosed(),
         ),
-        filter((confirm) => confirm === true),
-        tap(() => this.ngOnInit()),
+        filter((apiId) => !!apiId),
+        switchMap((apiId: string) => this.apiService.get(apiId)),
+        tap((updatedApi) => this.applyApiUpdates(updatedApi)),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
           return EMPTY;
@@ -350,6 +348,27 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private applyApiUpdates(updatedApi: Api) {
+    this.api = updatedApi;
+
+    this.apiDetailsForm.patchValue({
+      name: updatedApi.name,
+      description: updatedApi.description,
+      labels: updatedApi.labels,
+      version: updatedApi.apiVersion,
+      categories: updatedApi.categories,
+      emulateV4Engine: updatedApi.definitionVersion === 'V2' && (updatedApi as ApiV2).executionMode === 'V4_EMULATION_ENGINE',
+    });
+
+    this.apiImagesForm.patchValue({
+      picture: updatedApi._links['pictureUrl'] ? [updatedApi._links['pictureUrl']] : [],
+      background: updatedApi._links['backgroundUrl'] ? [updatedApi._links['backgroundUrl']] : [],
+    });
+
+    this.api._links.pictureUrl = updatedApi._links['pictureUrl'];
+    this.api._links.backgroundUrl = updatedApi._links['backgroundUrl'];
   }
 
   duplicateApi() {
