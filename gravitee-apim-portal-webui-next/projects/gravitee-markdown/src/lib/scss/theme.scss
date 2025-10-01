@@ -13,9 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/scss/theme' as theme-* show theme-overrides;
+@use './token-utils' as token-utils;
 
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/components/grid/public-api';
-@forward './lib/components/card/public-api';
-@forward './lib/components/button/public-api';
+@function tokens() {
+  @return (
+    (
+      namespace: sys,
+      tokens: (
+        container-shape: 4px,
+        primary-color: #275cf6,
+        on-primary-color: #ffffff,
+        outline-color: #cdd7e1,
+        hover-state-layer-opacity: 90%,
+        focus-state-layer-opacity: 80%,
+        text-color: #1d192b,
+      )
+    )
+  );
+}
+
+@mixin overrides($overrides: ()) {
+  @include token-utils.apply-token-overrides(tokens(), $overrides);
+}
