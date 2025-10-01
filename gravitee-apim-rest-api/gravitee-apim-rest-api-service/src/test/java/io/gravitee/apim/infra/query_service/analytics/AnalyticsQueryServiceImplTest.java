@@ -54,6 +54,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -638,12 +639,7 @@ class AnalyticsQueryServiceImplTest {
         @Test
         void should_search_top_value_hits_for_a_given_native_api() {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
-                Map.of(
-                    "downstream-active-connections_latest",
-                    Map.of("downstream-active-connections", List.of(2L)),
-                    "upstream-active-connections_latest",
-                    Map.of("upstream-active-connections", List.of(2L))
-                )
+                Map.of("downstream-active-connections", List.of(2L), "upstream-active-connections", List.of(2L))
             );
             List<Aggregation> aggregations = List.of(
                 new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE),
@@ -655,23 +651,17 @@ class AnalyticsQueryServiceImplTest {
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().containsKey("downstream-active-connections_latest")).isTrue();
-                assertThat(analytics.values().get("downstream-active-connections_latest")).containsValue(List.of(2L));
-                assertThat(analytics.values().containsKey("upstream-active-connections_latest")).isTrue();
-                assertThat(analytics.values().get("upstream-active-connections_latest")).containsValue(List.of(2L));
+                assertThat(analytics.values().get("downstream-active-connections")).isEqualTo(List.of(2L));
+                assertThat(analytics.values().get("upstream-active-connections")).isEqualTo(List.of(2L));
             });
         }
 
         @Test
         void should_search_top_delta_hits_for_a_given_native_api() {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
-                Map.of(
-                    "downstream-publish-messages-total_delta",
-                    Map.of("downstream-publish-messages-total", List.of(82L)),
-                    "upstream-publish-messages-total_delta",
-                    Map.of("upstream-publish-messages-total", List.of(82L))
-                )
+                Map.of("downstream-publish-messages-total", List.of(213L), "upstream-publish-messages-total", List.of(213L))
             );
+
             List<Aggregation> aggregations = List.of(
                 new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.DELTA),
                 new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.DELTA)
@@ -682,23 +672,17 @@ class AnalyticsQueryServiceImplTest {
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().containsKey("downstream-publish-messages-total_delta")).isTrue();
-                assertThat(analytics.values().get("downstream-publish-messages-total_delta")).containsValue(List.of(82L));
-                assertThat(analytics.values().containsKey("upstream-publish-messages-total_delta")).isTrue();
-                assertThat(analytics.values().get("upstream-publish-messages-total_delta")).containsValue(List.of(82L));
+                assertThat(analytics.values().get("downstream-publish-messages-total")).isEqualTo(List.of(213L));
+                assertThat(analytics.values().get("upstream-publish-messages-total")).isEqualTo(List.of(213L));
             });
         }
 
         @Test
         void should_search_top_trends_for_a_given_native_api() {
-            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
-                Map.of(
-                    "downstream-publish-messages-total_delta",
-                    Map.of("downstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L)),
-                    "upstream-publish-messages-total_delta",
-                    Map.of("upstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L))
-                )
-            );
+            Map<String, List<Long>> values = new HashMap<>();
+            values.put("downstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L));
+            values.put("upstream-publish-messages-total", List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L));
+            EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(values);
             List<Aggregation> aggregations = List.of(
                 new Aggregation("downstream-publish-messages-total", Aggregation.AggregationType.TREND),
                 new Aggregation("upstream-publish-messages-total", Aggregation.AggregationType.TREND)
@@ -712,12 +696,10 @@ class AnalyticsQueryServiceImplTest {
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().containsKey("downstream-publish-messages-total_delta")).isTrue();
-                assertThat(analytics.values().get("downstream-publish-messages-total_delta")).containsValue(
+                assertThat(analytics.values().get("downstream-publish-messages-total")).isEqualTo(
                     List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L)
                 );
-                assertThat(analytics.values().containsKey("upstream-publish-messages-total_delta")).isTrue();
-                assertThat(analytics.values().get("upstream-publish-messages-total_delta")).containsValue(
+                assertThat(analytics.values().get("upstream-publish-messages-total")).isEqualTo(
                     List.of(0L, 241L, 301L, 441L, 24L, 1931L, 23L, 239L)
                 );
             });

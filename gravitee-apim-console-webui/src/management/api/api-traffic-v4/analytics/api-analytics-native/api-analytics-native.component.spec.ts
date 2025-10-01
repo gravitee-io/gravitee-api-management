@@ -19,7 +19,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { OwlNativeDateTimeModule } from '@danielmoncada/angular-datetime-picker';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { of } from 'rxjs';
 
@@ -31,8 +31,6 @@ import { fakePagedResult, fakePlanV4, PlanV4 } from '../../../../../entities/man
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
 import { fakeAnalyticsStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
-import { Application } from '../../../../../entities/application/Application';
-import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 
 describe('ApiAnalyticsNativeComponent', () => {
   const API_ID = 'api-id';
@@ -114,8 +112,8 @@ describe('ApiAnalyticsNativeComponent', () => {
       flushAllRequests();
     });
 
-    it('should use and select terms from query params', async () => {
-      await initComponent({ plans: '1', terms: 'plan-id:1,app-id:1' });
+    it('should use and select plans from query params', async () => {
+      await initComponent({ plans: '1' });
 
       expectPlanList([plan1, plan2]);
 
@@ -125,35 +123,6 @@ describe('ApiAnalyticsNativeComponent', () => {
 
       expect(selectedPlans).toEqual(['1']);
       expect(selectedApplications).toEqual(['1']);
-      flushAllRequests();
-    });
-
-    it('should update the URL query params when a terms selected', async () => {
-      await initComponent({});
-      const app1 = fakeApplication({ id: '1', name: 'Application 1' });
-      const app2 = fakeApplication({ id: '2', name: 'Application 2' });
-
-      expectPlanList([plan1, plan2]);
-      expectApplicationList([app1, app2]);
-
-      const router = TestBed.inject(Router);
-      const routerSpy = jest.spyOn(router, 'navigate');
-
-      const filtersBar = await componentHarness.getFiltersBarHarness();
-      await filtersBar.selectPlan('plan 2');
-      await filtersBar.selectApplication('Application 1');
-      const selectedApplications = await filtersBar.getSelectedApplications();
-
-      expect(selectedApplications.length).toEqual(1);
-      expect(routerSpy).toHaveBeenCalledWith([], {
-        queryParams: {
-          period: '1d',
-          plans: '2',
-          applications: '1',
-          terms: 'plan-id:2,app-id:1',
-        },
-        queryParamsHandling: 'replace',
-      });
       flushAllRequests();
     });
   });
@@ -178,7 +147,7 @@ describe('ApiAnalyticsNativeComponent', () => {
     });
 
     it('should make backend calls with custom period from query params', async () => {
-      await initComponent({ period: 'custom', from: '1', to: '2', terms: 'plan-id:1,app-id:1,plan-id:2,app-id:2' });
+      await initComponent({ period: 'custom', from: '1', to: '2', plans: '1,2', applications: '1,2' });
 
       // Verify that backend calls are made with 7d time range
       const requests = httpTestingController.match((req) => req.url.includes('/analytics'));
@@ -187,11 +156,13 @@ describe('ApiAnalyticsNativeComponent', () => {
       // Check that requests include the correct time range
       requests
         .filter((request) => !request.cancelled)
+        // Filter request not available for plans and application query params
+        .filter((request) => !request.request.url.includes('downstream-active-connections'))
         .forEach((req) => {
           expect(req.request.url).toContain('from=1');
           expect(req.request.url).toContain('to=2');
           expect(req.request.url).toContain('interval=0');
-          expect(req.request.url).toContain('terms=plan-id:1,app-id:1,plan-id:2,app-id:2');
+          expect(req.request.url).toContain('terms=plan-id:1,plan-id:2,app-id:1,app-id:2');
         });
 
       flushAllRequests();
@@ -284,16 +255,6 @@ describe('ApiAnalyticsNativeComponent', () => {
         method: 'GET',
       })
       .flush(fakePagedResult(plans));
-    fixture.detectChanges();
-  }
-
-  function expectApplicationList(applications: Application[]) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/api-id/subscribers?page=1&perPage=200`,
-        method: 'GET',
-      })
-      .flush(fakePagedResult(applications));
     fixture.detectChanges();
   }
 });
