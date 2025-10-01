@@ -65,7 +65,7 @@ export class HomepageComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
 
-  private readonly portalHomepage: WritableSignal<PortalPageWithDetails | null> = signal(null);
+  readonly portalHomepage: WritableSignal<PortalPageWithDetails | null> = signal(null);
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-documentation-u']));
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
