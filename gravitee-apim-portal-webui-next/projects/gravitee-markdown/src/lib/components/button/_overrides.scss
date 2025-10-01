@@ -14,41 +14,37 @@
  * limitations under the License.
  */
 @use '../../scss/token-utils' as token-utils;
+@use '../../scss/theme' as theme;
+
+$theme-tokens: theme.tokens();
 
 @function tokens() {
   @return (
     namespace: button,
     tokens: (
       // Filled appearance defaults
-      filled-label-text-weight: 400,
+      filled-label-text-weight: 500,
       filled-label-text-size: 14px,
-      filled-label-text-color: #ffffff,
-      filled-container-color: #275cf6,
-      filled-container-shape: 4px,
-      filled-horizontal-padding: 16px,
-      filled-hover-container-color: #0e42db,
-      filled-active-container-color: #123391,
-      filled-active-outline-color: #64b5f6,
+      filled-label-text-color: token-utils.slot(on-primary-color, $theme-tokens),
+      filled-container-color: token-utils.slot(primary-color, $theme-tokens),
+      filled-container-shape: token-utils.slot(container-shape, $theme-tokens),
+      filled-horizontal-padding: 24px,
 
       // Outlined appearance defaults
-      outlined-label-text-weight: 400,
+      outlined-label-text-weight: 500,
       outlined-label-text-size: 14px,
-      outlined-label-text-color: #1976d2,
+      outlined-label-text-color: token-utils.slot(primary-color, $theme-tokens),
       outlined-outline-width: 1px,
-      outlined-outline-color: #cdd7e1,
-      outlined-container-shape: 4px,
-      outlined-horizontal-padding: 16px,
-      outlined-hover-container-color: #f4f7fd,
-      outlined-active-container-color: #d4eaff,
+      outlined-outline-color: token-utils.slot(outline-color, $theme-tokens),
+      outlined-container-shape: token-utils.slot(container-shape, $theme-tokens),
+      outlined-horizontal-padding: 24px,
 
       // Text appearance defaults
-      text-label-text-weight: 400,
+      text-label-text-weight: 500,
       text-label-text-size: 14px,
-      text-label-text-color: #1976d2,
-      text-container-shape: 4px,
-      text-horizontal-padding: 16px,
-      text-hover-container-color: #f4f7fd,
-      text-active-container-color: #d4eaff,
+      text-label-text-color: token-utils.slot(primary-color, $theme-tokens),
+      text-container-shape: token-utils.slot(container-shape, $theme-tokens),
+      text-horizontal-padding: 24px,
     )
   );
 }
