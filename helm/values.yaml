@@ -564,7 +564,7 @@ api:
       enabled: true
       tcpSocket:
         port: http
-      failureThreshold: 30
+      failureThreshold: 360
       periodSeconds: 10
 
     customStartupProbe: {}
