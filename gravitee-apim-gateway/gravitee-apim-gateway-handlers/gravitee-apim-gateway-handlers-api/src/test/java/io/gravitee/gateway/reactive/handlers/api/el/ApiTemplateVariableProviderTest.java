@@ -25,14 +25,12 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.reactor.AbstractReactableApi;
-import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.expression.spel.SpelEvaluationException;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiTemplateVariableProviderTest {
@@ -106,7 +104,7 @@ class ApiTemplateVariableProviderTest {
                 .assertError(e -> {
                     assertThat(e)
                         .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(SpelEvaluationException.class)
+                        .hasCauseInstanceOf(IllegalArgumentException.class)
                         .hasStackTraceContaining("EL1012E: Cannot index into a null value");
 
                     return true;
@@ -183,7 +181,7 @@ class ApiTemplateVariableProviderTest {
                 .assertError(e -> {
                     assertThat(e)
                         .isInstanceOf(ExpressionEvaluationException.class)
-                        .hasCauseInstanceOf(SpelEvaluationException.class)
+                        .hasCauseInstanceOf(IllegalArgumentException.class)
                         .hasStackTraceContaining("EL1012E: Cannot index into a null value");
 
                     return true;
