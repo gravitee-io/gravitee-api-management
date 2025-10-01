@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 @use '../../scss/token-utils' as token-utils;
+@use '../../scss/theme' as theme;
+
+$theme-tokens: theme.tokens();
 
 @function tokens() {
   @return (
@@ -31,9 +34,9 @@
 
       // Card styling
       container-color: #f4f7fd,
-      outline-color: #c7c7c7,
-      container-shape: 16px,
-      text-color: #1d192b,
+      outline-color: token-utils.slot(outline-color, $theme-tokens),
+      container-shape: token-utils.slot(container-shape, $theme-tokens),
+      text-color: token-utils.slot(text-color, $theme-tokens),
       text-align: left,
     )
   );
