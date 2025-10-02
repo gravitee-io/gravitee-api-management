@@ -35,9 +35,11 @@ $theme-tokens: theme.tokens();
       // Card styling
       container-color: #f4f7fd,
       outline-color: token-utils.slot(outline-color, $theme-tokens),
+      outline-width: 1px,
       container-shape: token-utils.slot(container-shape, $theme-tokens),
       text-color: token-utils.slot(text-color, $theme-tokens),
       text-align: left,
+      elevation-shadow: none,
     )
   );
 }
