@@ -30,6 +30,7 @@ import io.gravitee.gateway.core.logging.LoggableProxyConnectionDecorator;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import org.springframework.core.NestedExceptionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,7 +51,16 @@ public class EndpointInvoker implements Invoker {
         final ProxyEndpoint endpoint = endpointResolver.resolve((String) context.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT));
 
         // Endpoint can be null if none endpoint can be selected or if the selected endpoint is unavailable
-        if (endpoint == null || !endpoint.available()) {
+        if (endpoint == null) {
+            context.request().metrics().setMessage("No endpoint could be resolved for this request");
+            DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+            connectionHandler.handle(statusOnlyConnection);
+            statusOnlyConnection.sendResponse();
+        } else if (!endpoint.available()) {
+            context
+                .request()
+                .metrics()
+                .setMessage("Endpoint '" + endpoint.name() + "' (" + endpoint.target() + ") is currently unavailable");
             DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
             connectionHandler.handle(statusOnlyConnection);
             statusOnlyConnection.sendResponse();
@@ -88,7 +98,7 @@ public class EndpointInvoker implements Invoker {
                         context.request().resume();
                     });
             } catch (Exception ex) {
-                context.request().metrics().setMessage(getStackTraceAsString(ex));
+                context.request().metrics().setMessage(NestedExceptionUtils.getMostSpecificCause(ex).getMessage());
 
                 // Request URI is not correct nor correctly encoded, returning a bad request
                 DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.BAD_REQUEST_400);
@@ -103,11 +113,5 @@ public class EndpointInvoker implements Invoker {
             ExecutionContext.ATTR_REQUEST_METHOD
         );
         return (overrideMethod == null) ? context.request().method() : overrideMethod;
-    }
-
-    private static String getStackTraceAsString(Throwable throwable) {
-        StringWriter stringWriter = new StringWriter();
-        throwable.printStackTrace(new PrintWriter(stringWriter));
-        return stringWriter.toString();
     }
 }
