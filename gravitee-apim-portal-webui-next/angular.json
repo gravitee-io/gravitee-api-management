@@ -181,25 +181,17 @@
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "project": "projects/gravitee-dashboard/ng-package.json"
-          },
           "configurations": {
             "production": {
-              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.prod.json"
+              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.prod.json",
+              "project": "projects/gravitee-dashboard/ng-package.portal-next.json"
             },
             "development": {
-              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.json"
+              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.json",
+              "project": "projects/gravitee-dashboard/ng-package.portal-next.json"
             }
           },
           "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "tsConfig": "projects/gravitee-dashboard/tsconfig.spec.json",
-            "polyfills": ["zone.js", "zone.js/testing"]
-          }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
