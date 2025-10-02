@@ -37,7 +37,7 @@
             [routerLink]="['..', api.id, 'subscribe']"
             [disabled]="!isAuthenticated() || !plans.length"
             i18n="@@logInOrSignUpToSubscribe"
-            mat-flat-button
+            mat-stroked-button
             class="secondary-button">
             {{ isAuthenticated() ? 'Subscribe' : 'Log in to subscribe' }}
           </button>
