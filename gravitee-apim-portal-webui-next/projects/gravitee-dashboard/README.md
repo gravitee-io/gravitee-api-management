@@ -1,63 +1,43 @@
-# GraviteeDashboard
+# @gravitee/gravitee-dashboard
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.0.
+## Overview
 
-## Code scaffolding
+Gravitee-Dashboard is a library that provides a set of Angular components to build dashboards.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Dashboards are composed of several components:
+- Grid: a layout system
+- Widget : a reusable component to display data
+- Chart: a set of charts components
 
-```bash
-ng generate component component-name
+## Dependencies
+
+Gravitee-Dashboard is based on top of two libraries.
+
+- [Gridster2](https://github.com/tiberiuzuld/angular-gridster2): provides a layout system with drag and drop support.
+- [Highcharts](https://api.highcharts.com/highcharts): provides a set of charts components.
+
+### Peer Dependencies
+- @angular/common: 19.2.0
+- @angular/core: 19.2.0
+- tslib: 2.3.1
+- angular-gridster2: 20.2.2
+- highcharts: 9.3.3
+- highcharts-angular: 3.1.2
+
+## Project Structure
+
+```
+src/
+├── lib/                    # Library source code
+│   ├── components/         # Reusable components
+│   ├── directives/         # Custom directives
+│   ├── pipes/             # Custom pipes
+│   ├── services/          # Shared services
+│   └── types/             # TypeScript type definitions
+├── public-api.ts          # Public API exports
+└── index.ts               # Library entry point
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Theming
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the library, run:
-
-```bash
-ng build gravitee-dashboard
-```
-
-This command will compile your project, and the build artifacts will be placed in the `dist/` directory.
-
-### Publishing the Library
-
-Once the project is built, you can publish your library by following these steps:
-
-1. Navigate to the `dist` directory:
-   ```bash
-   cd dist/gravitee-dashboard
-   ```
-
-2. Run the `npm publish` command to publish your library to the npm registry:
-   ```bash
-   npm publish
-   ```
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The library supports theming through CSS variables. You can customize the appearance of the components by overriding the default CSS variables in your application's global styles.
