@@ -6,12 +6,8 @@
     "strict": true,
     "noImplicitOverride": true,
     "paths": {
-      "@gravitee/gravitee-markdown": [
-        "./projects/gravitee-markdown/src/public-api.ts"
-      ],
-      "gravitee-dashboard": [
-        "./dist/gravitee-dashboard"
-      ]
+      "@gravitee/gravitee-markdown": ["./projects/gravitee-markdown/src/public-api.ts"],
+      "gravitee-dashboard": ["./dist/gravitee-dashboard"]
     },
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
