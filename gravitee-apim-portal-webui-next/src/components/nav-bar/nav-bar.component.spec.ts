@@ -17,20 +17,23 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { of } from 'rxjs';
 
 import { NavBarComponent } from './nav-bar.component';
+import { PortalPage } from '../../entities/portal/portal-page';
 import { fakeUser } from '../../entities/user/user.fixtures';
-import { AppTestingModule } from '../../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 import { DivHarness } from '../../testing/div.harness';
 
 describe('NavBarComponent', () => {
   let fixture: ComponentFixture<NavBarComponent>;
   let harnessLoader: HarnessLoader;
   let componentRef: ComponentRef<NavBarComponent>;
+  let httpTestingController: HttpTestingController;
 
   const init = async (isMobile: boolean = false) => {
     const mockBreakpointObserver = {
@@ -45,12 +48,17 @@ describe('NavBarComponent', () => {
     fixture = TestBed.createComponent(NavBarComponent);
     componentRef = fixture.componentRef;
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
   };
 
   describe('using desktop view', () => {
     beforeEach(async () => {
       await init();
+    });
+
+    afterEach(() => {
+      httpTestingController.verify();
     });
 
     it('should show login button if user not connected', async () => {
@@ -92,7 +100,14 @@ describe('NavBarComponent', () => {
       await init(true);
     });
 
+    afterEach(() => {
+      httpTestingController.verify();
+    });
+
     it('should show login button if user not connected', async () => {
+      expectHomePage();
+      fixture.detectChanges();
+
       const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
       await menuButton.click();
 
@@ -102,6 +117,7 @@ describe('NavBarComponent', () => {
     });
 
     it('should show custom links', async () => {
+      expectHomePage([]);
       componentRef.setInput('currentUser', fakeUser());
 
       const customLinks = [
@@ -129,11 +145,14 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Guides', 'link-name-1', 'link-name-2', 'Applications', 'Log out']);
+      expect(linkTexts).toEqual(['Catalog', 'Guides', 'link-name-1', 'link-name-2', 'Applications', 'Log out']);
     });
 
     it('should close menu when clicking outside', async () => {
       componentRef.setInput('currentUser', fakeUser());
+      expectHomePage();
+      fixture.detectChanges();
+
       const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
       await menuButton.click();
       fixture.detectChanges();
@@ -157,4 +176,9 @@ describe('NavBarComponent', () => {
       expect(await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.mobile-menu__panel' }))).toBeNull();
     });
   });
+
+  function expectHomePage(pages: PortalPage[] = [{ id: '1', name: 'Homepage', type: 'HOMEPAGE' }]) {
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-pages?type=HOMEPAGE`);
+    req.flush({ pages });
+  }
 });

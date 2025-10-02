@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 import { Component, computed, ElementRef, HostListener, inject, input, InputSignal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { isEmpty } from 'lodash';
+import { map } from 'rxjs';
 
 import { User } from '../../../entities/user/user';
 import { PortalMenuLink } from '../../../services/portal-menu-links.service';
+import { PortalService } from '../../../services/portal.service';
 
 @Component({
   selector: 'app-mobile-nav-bar',
@@ -31,6 +34,12 @@ import { PortalMenuLink } from '../../../services/portal-menu-links.service';
 export class MobileNavBarComponent {
   currentUser: InputSignal<User> = input({});
   customLinks: InputSignal<PortalMenuLink[]> = input<PortalMenuLink[]>([]);
+  hasHomepage = toSignal(
+    inject(PortalService)
+      .getPortalHomepages()
+      .pipe(map(homepages => homepages?.length > 0)),
+  );
+
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());
   });
