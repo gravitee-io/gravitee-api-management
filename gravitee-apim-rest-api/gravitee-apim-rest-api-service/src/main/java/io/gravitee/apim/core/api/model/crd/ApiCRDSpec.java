@@ -49,9 +49,12 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -252,8 +255,9 @@ public class ApiCRDSpec {
                     plan.setFlows((List<Flow>) planCRD.getFlows());
 
                     return plan;
-                })
+                }, (a, b) -> a, LinkedHashMap::new)
             );
+
     }
 
     public Map<String, NativePlan> toNativePlans(Map<String, PlanCRD> plans) {
@@ -273,7 +277,7 @@ public class ApiCRDSpec {
                     nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
 
                     return nativePlan;
-                })
+                }, (a, b) -> a, LinkedHashMap::new)
             );
     }
 

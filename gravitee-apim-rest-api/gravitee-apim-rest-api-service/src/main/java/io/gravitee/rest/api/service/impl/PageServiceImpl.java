@@ -2393,6 +2393,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
 
         pageEntity.setParentId("".equals(page.getParentId()) ? null : page.getParentId());
+        pageEntity.setParentHrid(page.getParentHrid());
         pageEntity.setMetadata(page.getMetadata());
 
         pageEntity.setParentPath(this.computeParentPath(page, ""));
@@ -2835,6 +2836,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 page.setOrder(pageToUpdate.getOrder());
                 page.setHomepage(pageToUpdate.isHomepage());
                 page.setPublished(pageToUpdate.isPublished());
+                page.setParentId(pageToUpdate.getParentId());
                 page.setParentId(pageToUpdate.getParentId());
                 page.setConfiguration(pageToUpdate.getConfiguration());
                 if (INLINE.equals(swaggerDescriptor.getType())) {
