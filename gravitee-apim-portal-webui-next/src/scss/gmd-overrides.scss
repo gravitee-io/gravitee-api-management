@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use 'gravitee-markdown' as gmd;
+@use './theme' as theme;
+@use 'gravitee-markdown/src/lib/scss/theme' as gmd-theme;
+
+:root {
+  @include gmd.theme-overrides(
+    (
+      container-shape: theme.$container-shape,
+      primary-color: theme.$primary-main-color,
+      on-primary-color: theme.$default-text-contrast-color,
+      outline-color: theme.$border-color,
+    )
+  );
+
+  @include gmd.button-overrides(
+    (
+      text-container-shape: theme.$container-shape,
+      text-label-text-color: theme.$button-text-text-color,
+
+      outlined-container-shape: theme.$container-shape,
+      outlined-outline-color: theme.$button-outlined-border-color,
+      outlined-outline-width: theme.$button-outlined-border-width,
+      outlined-label-text-color: theme.$button-outlined-text-color,
+
+      filled-container-color: theme.$button-filled-container-color,
+      filled-container-shape: theme.$container-shape,
+      filled-label-text-color: theme.$button-filled-text-color,
+    )
+  );
+
+  @include gmd.card-overrides(
+    (
+      container-shape: theme.$card-container-shape,
+      container-color: theme.$card-background-color,
+      outline-width: theme.$card-border-width,
+      outline-color: theme.$card-border-color,
+      elevation-shadow: theme.$card-elevation,
+      text-color: theme.$card-text-color,
+    )
+  );
+}
