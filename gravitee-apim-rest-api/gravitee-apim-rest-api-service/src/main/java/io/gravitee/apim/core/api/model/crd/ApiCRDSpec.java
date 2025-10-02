@@ -243,19 +243,24 @@ public class ApiCRDSpec {
             .entrySet()
             .stream()
             .collect(
-                Collectors.toMap(Map.Entry::getKey, v -> {
-                    PlanCRD planCRD = v.getValue();
-                    Plan plan = new Plan();
-                    plan.setId(planCRD.getId());
-                    plan.setName(planCRD.getName());
-                    plan.setTags(planCRD.getTags());
-                    plan.setSecurity(planCRD.getSecurity());
-                    plan.setSelectionRule(planCRD.getSelectionRule());
-                    plan.setStatus(planCRD.getStatus());
-                    plan.setFlows((List<Flow>) planCRD.getFlows());
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    v -> {
+                        PlanCRD planCRD = v.getValue();
+                        Plan plan = new Plan();
+                        plan.setId(planCRD.getId());
+                        plan.setName(planCRD.getName());
+                        plan.setTags(planCRD.getTags());
+                        plan.setSecurity(planCRD.getSecurity());
+                        plan.setSelectionRule(planCRD.getSelectionRule());
+                        plan.setStatus(planCRD.getStatus());
+                        plan.setFlows((List<Flow>) planCRD.getFlows());
 
-                    return plan;
-                }, (a, b) -> a, LinkedHashMap::new)
+                        return plan;
+                    },
+                    (a, b) -> a,
+                    LinkedHashMap::new
+                )
             );
 
     }
@@ -265,19 +270,24 @@ public class ApiCRDSpec {
             .entrySet()
             .stream()
             .collect(
-                Collectors.toMap(Map.Entry::getKey, v -> {
-                    PlanCRD planCRD = v.getValue();
-                    NativePlan nativePlan = new NativePlan();
-                    nativePlan.setId(planCRD.getId());
-                    nativePlan.setName(planCRD.getName());
-                    nativePlan.setTags(planCRD.getTags());
-                    nativePlan.setSecurity(planCRD.getSecurity());
-                    nativePlan.setSelectionRule(planCRD.getSelectionRule());
-                    nativePlan.setStatus(planCRD.getStatus());
-                    nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    v -> {
+                        PlanCRD planCRD = v.getValue();
+                        NativePlan nativePlan = new NativePlan();
+                        nativePlan.setId(planCRD.getId());
+                        nativePlan.setName(planCRD.getName());
+                        nativePlan.setTags(planCRD.getTags());
+                        nativePlan.setSecurity(planCRD.getSecurity());
+                        nativePlan.setSelectionRule(planCRD.getSelectionRule());
+                        nativePlan.setStatus(planCRD.getStatus());
+                        nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
 
-                    return nativePlan;
-                }, (a, b) -> a, LinkedHashMap::new)
+                        return nativePlan;
+                    },
+                    (a, b) -> a,
+                    LinkedHashMap::new
+                )
             );
     }
 
