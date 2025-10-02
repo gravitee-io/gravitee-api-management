@@ -24,6 +24,7 @@ $theme-tokens: theme.tokens();
   display: inline-flex;
   height: 36px;
   min-height: 36px;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
   border: none;
