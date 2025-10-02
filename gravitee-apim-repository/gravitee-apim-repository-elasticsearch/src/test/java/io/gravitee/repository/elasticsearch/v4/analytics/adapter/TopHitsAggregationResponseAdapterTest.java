@@ -15,14 +15,14 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.BY_DIMENSIONS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.DOC_COUNT;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.END_VALUE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.KEY;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.METRICS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.PER_INTERVAL;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.START_VALUE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TOP;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.DOC_COUNT;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.KEY;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_VALUE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_VALUE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

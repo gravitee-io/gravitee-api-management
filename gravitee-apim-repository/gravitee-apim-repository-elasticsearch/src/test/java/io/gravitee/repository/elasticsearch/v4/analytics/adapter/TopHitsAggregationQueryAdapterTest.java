@@ -15,34 +15,34 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TimeRangeAdapter.GTE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TimeRangeAdapter.LTE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TimeRangeAdapter.RANGE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.AGGS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.ASC;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.COMPOSITE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.DATE_HISTOGRAM;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.DESC;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.END_VALUE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.EXISTS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.FIELD;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.FILTER;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.FIXED_INTERVAL;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.LATEST;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.METRICS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.ORDER;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.PER_INTERVAL;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SIZE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SORT;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SOURCE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SOURCES;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.START_VALUE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TERM;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TERMS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TIMESTAMP;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TOP_HITS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TOP_METRICS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TRACK_TOTAL_HITS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.COMPOSITE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.DATE_HISTOGRAM;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.FIXED_INTERVAL;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SOURCES;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.TOP_HITS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.TOP_METRICS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.AGGS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.FILTER;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SIZE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SOURCE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TIMESTAMP;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_VALUE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_VALUE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.EXISTS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.GTE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LTE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.RANGE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.TERM;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.ASC;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.DESC;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.ORDER;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens.FIELD;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens.TERMS;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.adapt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -329,14 +329,14 @@ class TopHitsAggregationQueryAdapterTest {
         assertNotNull(subAggs);
 
         // upstream active connections
-        String upstreamAggName = LATEST + "upstream-active-connections";
+        String upstreamAggName = LATEST_PREFIX + "upstream-active-connections";
         JsonNode latestUpstream = subAggs.get(upstreamAggName);
         assertNotNull(latestUpstream);
         assertEquals("upstream-active-connections", latestUpstream.get(TOP_METRICS).get(METRICS).get(FIELD).asText());
         assertEquals(DESC, latestUpstream.get(TOP_METRICS).get(SORT).get(TIMESTAMP).asText());
 
         // downstream active connections
-        String downstreamAggName = LATEST + "downstream-active-connections";
+        String downstreamAggName = LATEST_PREFIX + "downstream-active-connections";
         JsonNode latestDownstream = subAggs.get(downstreamAggName);
         assertNotNull(latestDownstream);
         assertEquals("downstream-active-connections", latestDownstream.get(TOP_METRICS).get(METRICS).get(FIELD).asText());

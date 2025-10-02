@@ -16,16 +16,16 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.DELTA_BUCKET_SUFFIX;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.DOC_COUNT;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.END_VALUE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.HITS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.KEY;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.LATEST;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.METRICS;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.SOURCE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.START_VALUE;
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TOP;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.DOC_COUNT;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.HITS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.KEY;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SOURCE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DELTA_BUCKET_SUFFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_VALUE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_VALUE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOP;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.Aggregation;
@@ -100,7 +100,7 @@ public class TopHitsAggregationResponseAdapter {
                         return;
                     }
                     // Accept any sub-aggregation starting with "latest_"
-                    if (fieldName.startsWith(LATEST)) {
+                    if (fieldName.startsWith(LATEST_PREFIX)) {
                         JsonNode subAgg = bucket.get(fieldName);
                         if (subAgg == null || !subAgg.has(TOP)) {
                             return;

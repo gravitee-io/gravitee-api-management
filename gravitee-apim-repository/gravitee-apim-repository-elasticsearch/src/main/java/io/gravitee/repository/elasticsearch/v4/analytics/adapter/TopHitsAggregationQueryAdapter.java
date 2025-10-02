@@ -15,6 +15,41 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.COMPOSITE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.DATE_HISTOGRAM;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.EXTENDED_BOUNDS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.FIXED_INTERVAL;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MAX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MIN;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MIN_DOC_COUNT;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SOURCES;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.TOP_HITS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.TOP_METRICS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.AGGS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.BOOL;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.FILTER;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.QUERY;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SIZE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SOURCE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TIMESTAMP;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DELTA_BUCKET_SUFFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_VALUE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MILLISECONDS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_VALUE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.EXISTS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.TERM;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.ASC;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.DESC;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.ORDER;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens.FIELD;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens.TERMS;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -29,54 +64,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Generates Elasticsearch queries to retrieve values (e.g. with top_hits)
- * for specified metrics, supporting time range and dimension filters.
- * Upcoming:
- * - Terms filtering: enable filters for application, topic, gateway, etc.
- * - query_string: support native Elasticsearch queries
- */
 public class TopHitsAggregationQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    public static final String TOP_HITS = "top_hits";
-    public static final String SORT = "sort";
-    public static final String SOURCE = "_source";
-    public static final String TIMESTAMP = "@timestamp";
-    public static final String AGGS = "aggs";
-    public static final String FILTER = "filter";
-    public static final String ORDER = "order";
-    public static final String SIZE = "size";
-    public static final String FIELD = "field";
-    public static final String EXISTS = "exists";
-    public static final String ASC = "asc";
-    public static final String DESC = "desc";
-    public static final String TERM = "term";
-    public static final String TERMS = "terms";
-    public static final String FIXED_INTERVAL = "fixed_interval";
-    public static final String DATE_HISTOGRAM = "date_histogram";
-    public static final String START_VALUE = "start_value";
-    public static final String END_VALUE = "end_value";
-    public static final String PER_INTERVAL = "per_interval";
-    public static final String MIN_DOC_COUNT = "min_doc_count";
-    public static final String MIN = "min";
-    public static final String MAX = "max";
-    public static final String EXTENDED_BOUNDS = "extended_bounds";
-    public static final String HITS = "hits";
-    public static final String DELTA_BUCKET_SUFFIX = "_delta";
-    public static final String LATEST = "latest_";
-    public static final String SOURCES = "sources";
-    public static final String COMPOSITE = "composite";
-    public static final String TOP_METRICS = "top_metrics";
-    public static final String METRICS = "metrics";
-    public static final String TRACK_TOTAL_HITS = "track_total_hits";
-    public static final String BOOL = "bool";
-    public static final String QUERY = "query";
-    public static final String MS = "ms";
-    public static final String BY_DIMENSIONS = "by_dimensions";
-    public static final String TOP = "top";
-    public static final String KEY = "key";
-    public static final String DOC_COUNT = "doc_count";
 
     private TopHitsAggregationQueryAdapter() {}
 
@@ -149,7 +139,7 @@ public class TopHitsAggregationQueryAdapter {
 
     // Helper to append a "latest_<field>" top_metrics sub-aggregation with sort by @timestamp desc
     private static void addLatestTopMetricsAgg(ObjectNode aggsNode, String field) {
-        String aggName = LATEST + field;
+        String aggName = LATEST_PREFIX + field;
         ObjectNode latest = aggsNode.putObject(aggName);
         ObjectNode topMetrics = latest.putObject(TOP_METRICS);
         ObjectNode metricsNode = MAPPER.createObjectNode();
@@ -179,7 +169,7 @@ public class TopHitsAggregationQueryAdapter {
         String fixedInterval = query
             .timeRange()
             .interval()
-            .map(duration -> duration.toMillis() + MS)
+            .map(duration -> duration.toMillis() + MILLISECONDS)
             .orElseThrow(() -> new IllegalArgumentException("Time interval is mandatory to calculate the trend analytics"));
 
         ObjectNode intervalAgg = aggregations.putObject(PER_INTERVAL);

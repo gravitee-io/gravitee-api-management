@@ -15,7 +15,10 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter.TIMESTAMP;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TIMESTAMP;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.GTE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LTE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.RANGE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -24,9 +27,6 @@ import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 public class TimeRangeAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    public static final String GTE = "gte";
-    public static final String LTE = "lte";
-    public static final String RANGE = "range";
 
     /**
      * Use {@code gte} and {@code lte} for ranges; {@code from}, {@code to}, {@code include_lower}, and {@code include_upper} are deprecated.
