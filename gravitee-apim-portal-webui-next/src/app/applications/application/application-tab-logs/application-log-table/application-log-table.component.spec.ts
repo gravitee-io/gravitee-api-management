@@ -846,7 +846,15 @@ describe('ApplicationLogTableComponent', () => {
 
           await getSearchButton().then(btn => btn.click());
 
-          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, to, new Date('6/10/2016').getTime());
+          const expectedTo = (() => {
+            const d = new Date(to);
+            d.setHours(23, 59, 59, 999);
+            return d.getTime();
+          })();
+
+          const expectedFrom = new Date('6/10/2016').getTime();
+
+          expectGetApplicationLogs(fakeLogsResponse(), 1, undefined, expectedTo, expectedFrom);
         });
       });
 
