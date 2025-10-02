@@ -26,9 +26,17 @@
   &__button {
     min-width: 38px;
     padding: 0;
+
+    @include mat.button-overrides(
+      (
+        outlined-outline-color: app-theme.$user-avatar-border-color,
+        outlined-container-shape: app-theme.$user-avatar-container-shape,
+      )
+    );
   }
 
   &__icon {
+    display: flex;
     color: app-theme.$nav-bar-mobile-menu-icon-color;
   }
 
