@@ -15,6 +15,7 @@
  */
 @use 'sass:map';
 @use '../../scss/theme' as theme;
+@use '@angular/material' as mat;
 
 :host {
   --mat-form-field-subscript-text-line-height: 0;
@@ -25,10 +26,14 @@
   display: flex;
 
   &__form {
-    --mat-form-field-leading-icon-color: #{theme.$search-bar-icon-color};
-    --mdc-outlined-text-field-container-shape: #{theme.$search-bar-container-shape};
-    --mdc-outlined-text-field-outline-color: #{theme.$search-bar-border-color};
-    --mdc-outlined-text-field-input-text-color: #{theme.$search-bar-input-text-color};
+    @include mat.form-field-overrides(
+      (
+        leading-icon-color: theme.$search-bar-icon-color,
+        outlined-outline-color: theme.$search-bar-input-text-color,
+        outlined-container-shape: theme.$search-bar-container-shape,
+        outlined-label-text-color: theme.$search-bar-input-text-color,
+      )
+    );
   }
 }
 
