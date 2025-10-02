@@ -118,7 +118,7 @@ public interface ApiCRDAdapter {
 
     default Map<String, PageCRD> mapPages(ExportApiEntity definition) {
         return definition.getPages() != null
-            ? definition.getPages().stream().map(this::toCRDPage).collect(toMap(this::pageKey, identity()))
+            ? definition.getPages().stream().map(this::toCRDPage).collect(toMap(this::pageKey, identity(), (a, b) -> a, LinkedHashMap::new))
             : null;
     }
 
