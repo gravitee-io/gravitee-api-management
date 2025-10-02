@@ -24,10 +24,7 @@
             "outputPath": "../gravitee-apim-portal-webui/dist/next",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js",
-              "@angular/localize/init"
-            ],
+            "polyfills": ["zone.js", "@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -123,19 +120,14 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         },
         "storybook": {
           "builder": "@storybook/angular:start-storybook",
           "options": {
             "configDir": ".storybook",
-            "styles": [
-              ".storybook/index.scss"
-            ],
+            "styles": [".storybook/index.scss"],
             "browserTarget": "gravitee-apim-portal-webui-next:build",
             "compodoc": false,
             "port": 6006
@@ -179,10 +171,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/gravitee-markdown/**/*.ts",
-              "projects/gravitee-markdown/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/gravitee-markdown/**/*.ts", "projects/gravitee-markdown/**/*.html"]
           }
         }
       }
@@ -195,45 +184,29 @@
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "project": "projects/gravitee-dashboard/ng-package.json"
-          },
           "configurations": {
             "production": {
-              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.prod.json"
+              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.prod.json",
+              "project": "projects/gravitee-dashboard/ng-package.portal-next.json"
             },
             "development": {
-              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.json"
+              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.json",
+              "project": "projects/gravitee-dashboard/ng-package.portal-next.json"
             }
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "tsConfig": "projects/gravitee-dashboard/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
-          }
-        },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/gravitee-dashboard/**/*.ts",
-              "projects/gravitee-dashboard/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/gravitee-dashboard/**/*.ts", "projects/gravitee-dashboard/**/*.html"]
           }
         }
       }
     }
   },
   "cli": {
-    "schematicCollections": [
-      "@angular-eslint/schematics"
-    ],
+    "schematicCollections": ["@angular-eslint/schematics"],
     "analytics": false
   }
 }
