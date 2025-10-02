@@ -26,7 +26,7 @@ export const homepageResolver = ((
   portalService: PortalService = inject(PortalService),
   router: Router = inject(Router),
 ) =>
-  portalService.getPortalHomepages().pipe(
+  portalService.getPortalHomepages('CONTENT').pipe(
     map(homepages => {
       const homepage = (homepages ?? [])[0];
       if (!homepage) {

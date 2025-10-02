@@ -24,15 +24,17 @@
 </div>
 @if (isMobileMenuOpened) {
   <div class="mobile-menu__panel">
-    <a
-      class="mobile-menu__link"
-      i18n="@@homepage"
-      [routerLink]="['/']"
-      routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      (click)="closeMenu()"
-      >Homepage</a
-    >
+    @if (hasHomepage()) {
+      <a
+        class="mobile-menu__link"
+        i18n="@@homepage"
+        [routerLink]="['/']"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="closeMenu()"
+        >Homepage</a
+      >
+    }
     <a class="mobile-menu__link" i18n="@@catalog" [routerLink]="['catalog']" routerLinkActive="active" (click)="closeMenu()">Catalog</a>
     <a class="mobile-menu__link" i18n="@@guides" [routerLink]="['guides']" routerLinkActive="active" (click)="closeMenu()">Guides</a>
     @for (link of customLinks(); track link.id) {
