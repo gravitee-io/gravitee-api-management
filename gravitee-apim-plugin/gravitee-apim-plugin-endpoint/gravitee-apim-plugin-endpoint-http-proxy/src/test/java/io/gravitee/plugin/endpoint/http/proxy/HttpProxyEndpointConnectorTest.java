@@ -112,6 +112,7 @@ class HttpProxyEndpointConnectorTest {
     @BeforeEach
     void init() {
         lenient().when(proxyConnector.connect(ctx)).thenReturn(Completable.complete());
+        lenient().when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
 
         lenient().when(deploymentCtx.getTemplateEngine()).thenReturn(templateEngine);
 
