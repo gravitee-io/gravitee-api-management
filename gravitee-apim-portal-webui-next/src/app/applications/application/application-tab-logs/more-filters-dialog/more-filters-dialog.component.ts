@@ -94,9 +94,17 @@ export class MoreFiltersDialogComponent {
     const formValue = this.moreFiltersForm.getRawValue();
     const httpStatuses = this.httpStatusChoices.filter(x => formValue.httpStatuses?.includes(x.value));
 
+    const startDateMs = formValue.startDate?.getTime();
+    let endDateMs = formValue.endDate?.getTime();
+    if (formValue.endDate) {
+      const end = new Date(formValue.endDate);
+      end.setHours(23, 59, 59, 999);
+      endDateMs = end.getTime();
+    }
+
     this.dialogRef.close({
-      startDate: formValue.startDate?.getTime(),
-      endDate: formValue.endDate?.getTime(),
+      startDate: startDateMs,
+      endDate: endDateMs,
       ...(formValue.requestId?.length ? { requestId: formValue.requestId } : {}),
       ...(formValue.transactionId?.length ? { transactionId: formValue.transactionId } : {}),
       ...(formValue.httpStatuses?.length ? { httpStatuses } : {}),
