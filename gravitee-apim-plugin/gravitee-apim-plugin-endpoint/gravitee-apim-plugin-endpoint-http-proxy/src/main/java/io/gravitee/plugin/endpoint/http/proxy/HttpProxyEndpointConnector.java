@@ -91,10 +91,8 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     public Completable connect(HttpExecutionContext ctx) {
         return Completable.defer(() -> {
             HttpRequest request = ctx.request();
-            return getConnector(request)
-                .connect(ctx)
-                .onErrorResumeNext(throwable -> handleException(throwable, ctx));
-        });
+            return getConnector(request).connect(ctx);
+        }).onErrorResumeNext(throwable -> handleException(throwable, ctx));
     }
 
     @Override
@@ -148,10 +146,9 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
             case ConnectTimeoutException e -> ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
             );
-            case IOException e -> ctx.interruptWith(
+            default -> ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR).cause(throwable)
             );
-            default -> Completable.error(throwable);
         };
     }
 }
