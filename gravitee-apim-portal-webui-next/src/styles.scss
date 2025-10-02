@@ -19,6 +19,7 @@
 @forward './scss/material-design-overrides';
 @forward 'scss/m3-adapter';
 @forward 'scss/helper';
+@forward 'scss/gmd-overrides';
 @use '@angular/material' as mat;
 @use './scss/theme';
 @use 'scss/table-light';
