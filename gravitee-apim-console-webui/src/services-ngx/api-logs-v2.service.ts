@@ -16,9 +16,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { HttpContext } from '@angular/common/http';
 
 import { Constants } from '../entities/Constants';
 import { AggregatedMessageLog, ApiLogsParam, ApiLogsResponse, ConnectionLogDetail, PagedResult } from '../entities/management-api-v2';
+import { ACCEPT_404 } from '../shared/interceptors/http-error.interceptor';
 
 @Injectable({
   providedIn: 'root',
@@ -48,7 +50,9 @@ export class ApiLogsV2Service {
   }
 
   searchConnectionLogDetail(apiId: string, requestId: string): Observable<ConnectionLogDetail> {
-    return this.http.get<ConnectionLogDetail>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs/${requestId}`);
+    // On the details page, a 404 is a valid case (log not found) and should not trigger a snack-bar.
+    const context = new HttpContext().set(ACCEPT_404, true);
+    return this.http.get<ConnectionLogDetail>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs/${requestId}`, { context });
   }
 
   searchMessageLogs(apiId: string, requestId: string, page = 1, perPage = 10): Observable<PagedResult<AggregatedMessageLog>> {
