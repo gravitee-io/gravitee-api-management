@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '@angular/material' as mat;
+@use '../../scss/theme' as theme;
+
 mat-expansion-panel {
-  border-width: var(--mdc-outlined-card-outline-width);
+  border-width: theme.$border-width;
   border-style: solid;
-  border-color: var(--mdc-outlined-card-outline-color);
+  border-color: theme.$border-color;
+
+  @include mat.expansion-overrides(
+    (
+      container-shape: theme.$container-shape,
+    )
+  );
 }
 
 .mcp-tool {
@@ -28,9 +37,10 @@ mat-expansion-panel {
     &__code-block {
       display: flex;
       padding: 10px;
-      border-width: var(--mdc-outlined-card-outline-width);
+      border-width: theme.$border-width;
       border-style: solid;
-      border-color: var(--mdc-outlined-card-outline-color);
+      border-color: theme.$border-color;
+      border-radius: theme.$container-shape;
     }
 
     pre {
