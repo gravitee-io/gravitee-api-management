@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpContext } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpContext } from '@angular/common/http';
 
 import { Constants } from '../entities/Constants';
 import { AggregatedMessageLog, ApiLogsParam, ApiLogsResponse, ConnectionLogDetail, PagedResult } from '../entities/management-api-v2';
