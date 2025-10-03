@@ -20,7 +20,7 @@
     <highcharts-chart
       [Highcharts]="Highcharts"
       [options]="chartOptions"
-      [callbackFunction]="callbackFunction"
+      (chartInstance)="chartInstance($event)"
       class="gio-chart-line__chart"
     />
   } @else {
