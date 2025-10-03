@@ -262,7 +262,6 @@ public class ApiCRDSpec {
                     LinkedHashMap::new
                 )
             );
-
     }
 
     public Map<String, NativePlan> toNativePlans(Map<String, PlanCRD> plans) {
