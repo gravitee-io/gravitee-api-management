@@ -466,7 +466,7 @@ components:
           default: [ ]
         plans:
           type: array
-          description: Available plans for the API to define API security. You must provide a plan if `state` is `STARTED`.
+          description: Available plans for the API to define API security. You must provide a plan if `state` is `STARTED`. Plans are prioritized by their position in the list, with earlier entries having higher priority.
           items:
             $ref: '#/components/schemas/PlanV4'
           default: [ ]
@@ -552,7 +552,7 @@ components:
           writeOnly: true
         pages:
           type: array
-          description: Pages for the API
+          description: Pages for the API. Elements positioned earlier in the list are displayed first, with subsequent elements appearing below.
           items:
             $ref: '#/components/schemas/PageV4'
           default: [ ]
@@ -973,10 +973,6 @@ components:
           type: array
           items:
             type: string
-        order:
-          description: Priority of the plan, lowest number is executed first. By default it respects order of creation.
-          type: integer
-          minimum: 0
         selectionRule:
           type: string
           maxLength: 256
@@ -1637,11 +1633,6 @@ components:
           description: The content of the page, if any.
           examples:
             - My Page content
-        order:
-          type: integer
-          description: The order used to display the page in APIM and on the portal.
-          examples:
-            - 1
         published:
           type: boolean
           description: If true, the page will be accessible from the portal (default is false)
