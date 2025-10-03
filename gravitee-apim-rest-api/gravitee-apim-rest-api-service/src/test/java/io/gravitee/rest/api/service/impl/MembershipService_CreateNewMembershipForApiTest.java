@@ -36,6 +36,7 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.OrganizationPermission;
@@ -150,8 +151,9 @@ public class MembershipService_CreateNewMembershipForApiTest {
             )
         ).thenReturn(Collections.emptySet(), Set.of(newMembership));
 
-        MemberEntity createdMember = membershipService.createNewMembershipForApi(
+        MemberEntity createdMember = membershipService.createNewMembership(
             GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.API,
             API_ID,
             existingUserId,
             null,
@@ -182,7 +184,14 @@ public class MembershipService_CreateNewMembershipForApiTest {
         ).thenReturn(Set.of(existingMembership));
 
         assertThatThrownBy(() ->
-            membershipService.createNewMembershipForApi(GraviteeContext.getExecutionContext(), API_ID, existingUserId, null, "OWNER")
+            membershipService.createNewMembership(
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                API_ID,
+                existingUserId,
+                null,
+                "OWNER"
+            )
         ).isInstanceOf(MembershipAlreadyExistsException.class);
     }
 
@@ -206,8 +215,9 @@ public class MembershipService_CreateNewMembershipForApiTest {
             )
         ).thenReturn(Set.of(newMembership));
 
-        MemberEntity createdMember = membershipService.createNewMembershipForApi(
+        MemberEntity createdMember = membershipService.createNewMembership(
             GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.API,
             API_ID,
             null,
             externalReference,
