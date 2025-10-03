@@ -71,7 +71,7 @@ export class TabsViewComponent implements OnInit {
   onFilterSelection($event: MatTabChangeEvent) {
     const categoryId = this.categories().find(cat => cat.name === $event.tab.textLabel)?.id ?? '';
 
-    this.router.navigate([''], {
+    this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
         filter: categoryId,
@@ -81,7 +81,7 @@ export class TabsViewComponent implements OnInit {
   }
 
   onSearchResults(searchInput: string) {
-    this.router.navigate([''], {
+    this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
         filter: this.filter(),
