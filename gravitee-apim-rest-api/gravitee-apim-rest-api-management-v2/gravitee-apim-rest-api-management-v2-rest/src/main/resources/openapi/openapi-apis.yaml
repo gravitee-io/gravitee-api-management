@@ -3915,6 +3915,7 @@ components:
             description: API's type.
             example: MESSAGE
             enum:
+                - LLM_PROXY
                 - MESSAGE
                 - PROXY
                 - NATIVE

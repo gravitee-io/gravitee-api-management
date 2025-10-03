@@ -57,7 +57,7 @@ public class GenericPlanMapper {
         var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
-                case PROXY, MESSAGE -> planMapper.toEntity(plan, flowService.findByReference(FlowReferenceType.PLAN, plan.getId()));
+                case LLM_PROXY, PROXY, MESSAGE -> planMapper.toEntity(plan, flowService.findByReference(FlowReferenceType.PLAN, plan.getId()));
                 case NATIVE -> planMapper.toNativeEntity(plan, flowCrudService.getNativePlanFlows(plan.getId()));
             };
             case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);

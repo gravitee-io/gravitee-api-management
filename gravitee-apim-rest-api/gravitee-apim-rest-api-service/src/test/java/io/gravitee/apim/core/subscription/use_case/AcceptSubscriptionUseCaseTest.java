@@ -585,6 +585,7 @@ class AcceptSubscriptionUseCaseTest {
         return switch (definitionVersion) {
             case V1, V2 -> ApiFixtures.aProxyApiV2().setId(API_ID);
             case V4 -> switch (apiType) {
+                case LLM_PROXY -> ApiFixtures.aProxyApiV4().setId(API_ID);
                 case PROXY -> ApiFixtures.aProxyApiV4().setId(API_ID);
                 case MESSAGE -> ApiFixtures.aMessageApiV4().setId(API_ID);
                 case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
@@ -609,7 +610,7 @@ class AcceptSubscriptionUseCaseTest {
         return switch (api.getDefinitionVersion()) {
             case V1, V2 -> PlanFixtures.aPlanV2().setPlanStatus(PlanStatus.PUBLISHED);
             case V4 -> switch (api.getType()) {
-                case PROXY -> PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED);
+                case LLM_PROXY, PROXY -> PlanFixtures.HttpV4.anApiKey().setPlanStatus(PlanStatus.PUBLISHED);
                 case MESSAGE -> PlanFixtures.HttpV4.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED);
                 case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
             };
