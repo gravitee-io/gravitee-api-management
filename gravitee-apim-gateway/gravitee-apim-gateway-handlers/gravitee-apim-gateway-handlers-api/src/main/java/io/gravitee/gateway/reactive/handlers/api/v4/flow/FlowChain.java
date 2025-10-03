@@ -97,7 +97,10 @@ public class FlowChain implements Hookable<ChainHook> {
      * The {@link Completable} may complete in error in case of any error occurred during the execution.
      */
     public Completable execute(ExecutionContext ctx, ExecutionPhase phase) {
-        Flowable<Flow> flowable = callResolveFlows(ctx, phase);
+        Flowable<Flow> flowable = callResolveFlows(ctx, phase)
+            // Pre-resolve flows before executing any policy force all flow conditions to be evaluated first.
+            .toList()
+            .flatMapPublisher(Flowable::fromIterable);
 
         return flowable
             .doOnNext(flow -> {
