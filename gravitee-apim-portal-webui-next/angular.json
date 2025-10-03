@@ -175,6 +175,34 @@
           }
         }
       }
+    },
+    "gravitee-dashboard": {
+      "projectType": "library",
+      "root": "projects/gravitee-dashboard",
+      "sourceRoot": "projects/gravitee-dashboard/src",
+      "prefix": "gd",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.prod.json",
+              "project": "projects/gravitee-dashboard/ng-package.portal-next.json"
+            },
+            "development": {
+              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.json",
+              "project": "projects/gravitee-dashboard/ng-package.portal-next.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/gravitee-dashboard/**/*.ts", "projects/gravitee-dashboard/**/*.html"]
+          }
+        }
+      }
     }
   },
   "cli": {
