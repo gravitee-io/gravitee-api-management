@@ -291,14 +291,14 @@ class TopHitsAggregationQueryAdapterTest {
         Instant from = Instant.ofEpochMilli(FROM);
         Instant to = Instant.ofEpochMilli(TO);
         List<Aggregation> aggregations = List.of(
-                new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        "downstream-publish-messages-total",
-                        io.gravitee.repository.log.v4.model.analytics.AggregationType.DELTA
-                ),
-                new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        "upstream-publish-messages-total",
-                        io.gravitee.repository.log.v4.model.analytics.AggregationType.DELTA
-                )
+            new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                "downstream-publish-messages-total",
+                io.gravitee.repository.log.v4.model.analytics.AggregationType.DELTA
+            ),
+            new io.gravitee.repository.log.v4.model.analytics.Aggregation(
+                "upstream-publish-messages-total",
+                io.gravitee.repository.log.v4.model.analytics.AggregationType.DELTA
+            )
         );
         HistogramQuery query = getHistogramQuery(apiId, from, to, aggregations);
 
