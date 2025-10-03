@@ -309,10 +309,10 @@ class TopHitsAggregationQueryAdapterTest {
 
         JsonNode sources = composite.get(SOURCES);
         assertTrue(sources.isArray());
-        assertEquals(5, sources.size());
+        assertEquals(4, sources.size());
 
         // Validate each source contains the expected field name (wrapper object key is not asserted)
-        Set<String> expectedFields = Set.of("gw-id", "app-id", "plan-id", "org-id", "env-id");
+        Set<String> expectedFields = Set.of("gw-id", "api-id", "plan-id", "org-id", "env-id");
         Set<String> actualFields = new HashSet<>();
         for (JsonNode src : sources) {
             assertTrue(src.fieldNames().hasNext());

@@ -116,10 +116,9 @@ public class TopHitsAggregationQueryAdapter {
 
         ArrayNode sources = composite.putArray(SOURCES);
         addCompositeTermsSource(sources, "gw-id");
-        addCompositeTermsSource(sources, "app-id");
-        addCompositeTermsSource(sources, "plan-id");
         addCompositeTermsSource(sources, "org-id");
         addCompositeTermsSource(sources, "env-id");
+        addCompositeTermsSource(sources, "api-id");
 
         // Sub-aggregations: one top_metrics per requested metric field, named "latest_" + field
         ObjectNode dimensionAggs = byDimensions.putObject(AGGS);

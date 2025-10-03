@@ -90,7 +90,7 @@ public class TopHitsAggregationResponseAdapter {
             return;
         }
 
-        Map<String, Long> totalsByField = new HashMap<>();
+        Map<String, Long> latestMetricValueMap = new HashMap<>();
 
         buckets.forEach(bucket ->
             bucket
@@ -123,17 +123,17 @@ public class TopHitsAggregationResponseAdapter {
                             .forEachRemaining(metricField -> {
                                 JsonNode metricValueNode = metrics.get(metricField);
                                 if (metricValueNode != null && metricValueNode.isNumber()) {
-                                    long v = metricValueNode.asLong();
-                                    totalsByField.merge(metricField, v, Long::sum);
+                                    long currentValue = metricValueNode.asLong();
+                                    latestMetricValueMap.merge(metricField, currentValue, Long::sum);
                                 }
                             });
                     }
                 })
         );
 
-        if (!totalsByField.isEmpty()) {
+        if (!latestMetricValueMap.isEmpty()) {
             Map<String, List<Long>> totalsAsLists = new HashMap<>();
-            totalsByField.forEach((field, total) -> totalsAsLists.put(field, List.of(total)));
+            latestMetricValueMap.forEach((field, total) -> totalsAsLists.put(field, List.of(total)));
             result.put(key, totalsAsLists);
         }
     }
