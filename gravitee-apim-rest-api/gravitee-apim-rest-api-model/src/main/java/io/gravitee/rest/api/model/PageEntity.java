@@ -60,6 +60,7 @@ public class PageEntity implements Indexable {
     private Map<String, String> configuration;
     private boolean homepage;
     private String parentId;
+    private String parentHrid;
     private String parentPath;
 
     @JsonProperty("excluded_groups")
@@ -219,6 +220,14 @@ public class PageEntity implements Indexable {
 
     public void setParentId(String parentId) {
         this.parentId = parentId;
+    }
+
+    public void setParentHrid(String parentHrid) {
+        this.parentHrid = parentHrid;
+    }
+
+    public String getParentHrid() {
+        return parentHrid;
     }
 
     public String getParentPath() {
