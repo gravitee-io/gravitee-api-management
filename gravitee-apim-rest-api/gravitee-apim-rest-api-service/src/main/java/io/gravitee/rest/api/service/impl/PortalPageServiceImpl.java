@@ -15,17 +15,15 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PortalPageContextRepository;
-import io.gravitee.repository.management.api.PortalPageRepository;
-import io.gravitee.repository.management.model.PortalPage;
-import io.gravitee.repository.management.model.PortalPageContext;
-import io.gravitee.repository.management.model.PortalPageContextType;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.model.PortalPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageView;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.rest.api.service.PortalPageService;
-import io.gravitee.rest.api.service.common.UuidString;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -36,41 +34,23 @@ public class PortalPageServiceImpl implements PortalPageService {
     private static final String DEFAULT_PORTAL_PAGE_NAME = "Default Portal Page";
 
     private String defaultPortalPageContent;
-    private final PortalPageRepository portalPageRepository;
-    private final PortalPageContextRepository portalPageContextRepository;
+    private final PortalPageCrudService portalPageCrudService;
+    private final PortalPageContextCrudService portalPageContextCrudService;
 
     public PortalPageServiceImpl(
-        @Lazy PortalPageRepository portalPageRepository,
-        @Lazy PortalPageContextRepository portalPageContextRepository
+        @Lazy PortalPageCrudService portalPageCrudService,
+        @Lazy PortalPageContextCrudService portalPageContextCrudService
     ) {
-        this.portalPageRepository = portalPageRepository;
-        this.portalPageContextRepository = portalPageContextRepository;
+        this.portalPageCrudService = portalPageCrudService;
+        this.portalPageContextCrudService = portalPageContextCrudService;
     }
 
     @Override
-    public void createDefaultPortalHomePage(String environmentId) throws TechnicalException {
-        var now = new Date();
-        var homePages = portalPageContextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, environmentId);
-        if (homePages.isEmpty()) {
-            var createPortalPage = portalPageRepository.create(
-                PortalPage.builder()
-                    .id(UuidString.generateRandom())
-                    .environmentId(environmentId)
-                    .name(DEFAULT_PORTAL_PAGE_NAME)
-                    .content(getDefaultPortalPageContent())
-                    .createdAt(now)
-                    .updatedAt(now)
-                    .build()
-            );
-            portalPageContextRepository.create(
-                PortalPageContext.builder()
-                    .id(UuidString.generateRandom())
-                    .pageId(createPortalPage.getId())
-                    .contextType(PortalPageContextType.HOMEPAGE)
-                    .environmentId(environmentId)
-                    .published(true)
-                    .build()
-            );
+    public void createDefaultPortalHomePage(String environmentId) {
+        var homePageIds = portalPageContextCrudService.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, environmentId);
+        if (homePageIds.isEmpty()) {
+            var createdPage = portalPageCrudService.create(PortalPage.create(new GraviteeMarkdown(getDefaultPortalPageContent())));
+            portalPageContextCrudService.create(createdPage.getId(), new PortalPageView(PortalViewContext.HOMEPAGE, true), environmentId);
         }
     }
 

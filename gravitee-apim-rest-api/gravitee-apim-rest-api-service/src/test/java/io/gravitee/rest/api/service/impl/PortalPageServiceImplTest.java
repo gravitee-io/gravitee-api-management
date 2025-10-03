@@ -24,11 +24,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.repository.management.api.PortalPageContextRepository;
-import io.gravitee.repository.management.api.PortalPageRepository;
-import io.gravitee.repository.management.model.PortalPage;
-import io.gravitee.repository.management.model.PortalPageContext;
-import io.gravitee.repository.management.model.PortalPageContextType;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.model.PageId;
+import io.gravitee.apim.core.portal_page.model.PortalPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageView;
+import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import java.util.Collections;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -44,16 +46,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PortalPageServiceImplTest {
 
     @Mock
-    private PortalPageRepository portalPageRepository;
+    private PortalPageCrudService portalPageCrudService;
 
     @Mock
-    private PortalPageContextRepository portalPageContextRepository;
+    private PortalPageContextCrudService portalPageContextCrudService;
 
     private PortalPageServiceImpl cut;
 
     @BeforeEach
     public void before() {
-        cut = new PortalPageServiceImpl(portalPageRepository, portalPageContextRepository);
+        cut = new PortalPageServiceImpl(portalPageCrudService, portalPageContextCrudService);
     }
 
     @Nested
@@ -63,45 +65,39 @@ class PortalPageServiceImplTest {
         @SneakyThrows
         void should_do_nothing_when_default_page_is_already_created() {
             when(
-                portalPageContextRepository.findAllByContextTypeAndEnvironmentId(eq(PortalPageContextType.HOMEPAGE), anyString())
-            ).thenReturn(List.of(PortalPageContext.builder().build()));
+                portalPageContextCrudService.findAllIdsByContextTypeAndEnvironmentId(eq(PortalViewContext.HOMEPAGE), anyString())
+            ).thenReturn(List.of(PageId.of("11111111-1111-1111-1111-111111111111")));
 
             cut.createDefaultPortalHomePage("envId");
 
-            verify(portalPageContextRepository, times(0)).create(any());
-            verifyNoInteractions(portalPageRepository);
+            verify(portalPageContextCrudService, times(0)).create(any(), any(), anyString());
+            verifyNoInteractions(portalPageCrudService);
         }
 
         @Test
         @SneakyThrows
         void should_create_context_and_page_when_no_default_page_is_created() {
             String envId = "envId";
-            String portalPageId = "portalPageId";
-            when(portalPageContextRepository.findAllByContextTypeAndEnvironmentId(PortalPageContextType.HOMEPAGE, envId)).thenReturn(
+            String portalPageId = "22222222-2222-2222-2222-222222222222";
+            when(portalPageContextCrudService.findAllIdsByContextTypeAndEnvironmentId(PortalViewContext.HOMEPAGE, envId)).thenReturn(
                 Collections.emptyList()
             );
-            when(portalPageRepository.create(any(PortalPage.class))).thenReturn(PortalPage.builder().id(portalPageId).build());
+            when(portalPageCrudService.create(any(PortalPage.class))).thenReturn(
+                new PortalPage(PageId.of(portalPageId), new GraviteeMarkdown("content"))
+            );
 
             cut.createDefaultPortalHomePage(envId);
 
-            ArgumentCaptor<PortalPageContext> portalPageContextCaptor = ArgumentCaptor.forClass(PortalPageContext.class);
-            verify(portalPageContextRepository).create(portalPageContextCaptor.capture());
+            ArgumentCaptor<PageId> pageIdCaptor = ArgumentCaptor.forClass(PageId.class);
+            ArgumentCaptor<PortalPageView> viewCaptor = ArgumentCaptor.forClass(PortalPageView.class);
+            verify(portalPageContextCrudService).create(pageIdCaptor.capture(), viewCaptor.capture(), eq(envId));
 
-            ArgumentCaptor<PortalPage> portalPageCaptor = ArgumentCaptor.forClass(PortalPage.class);
-            verify(portalPageRepository).create(portalPageCaptor.capture());
+            assertThat(pageIdCaptor.getValue().toString()).isEqualTo(portalPageId);
+            assertThat(viewCaptor.getValue()).isNotNull();
+            assertThat(viewCaptor.getValue().context()).isEqualTo(PortalViewContext.HOMEPAGE);
+            assertThat(viewCaptor.getValue().published()).isTrue();
 
-            var portalPage = portalPageCaptor.getValue();
-            assertThat(portalPage)
-                .hasFieldOrPropertyWithValue("environmentId", envId)
-                .hasFieldOrPropertyWithValue("name", "Default Portal Page")
-                .hasNoNullFieldsOrProperties();
-
-            assertThat(portalPageContextCaptor.getValue())
-                .hasFieldOrPropertyWithValue("pageId", portalPageId)
-                .hasFieldOrPropertyWithValue("contextType", PortalPageContextType.HOMEPAGE)
-                .hasFieldOrPropertyWithValue("environmentId", envId)
-                .hasFieldOrPropertyWithValue("published", true)
-                .hasNoNullFieldsOrProperties();
+            verify(portalPageCrudService, times(1)).create(any(PortalPage.class));
         }
     }
 }

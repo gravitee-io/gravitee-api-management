@@ -25,6 +25,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -66,6 +67,21 @@ public class PortalPageContextCrudServiceImpl implements PortalPageContextCrudSe
             return pageAdapter.map(portalPageContextRepository.updateByPageId(item));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Something went wrong while trying to update portal page context", e);
+        }
+    }
+
+    @Override
+    public void create(PageId pageId, PortalPageView toCreate, String environmentId) {
+        var ctx = new PortalPageContext();
+        ctx.setId(UuidString.generateRandom());
+        ctx.setPageId(pageId.toString());
+        ctx.setContextType(PortalPageContextType.valueOf(toCreate.context().name()));
+        ctx.setEnvironmentId(environmentId);
+        ctx.setPublished(toCreate.published());
+        try {
+            portalPageContextRepository.create(ctx);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("Something went wrong while trying to create portal page context", e);
         }
     }
 }
