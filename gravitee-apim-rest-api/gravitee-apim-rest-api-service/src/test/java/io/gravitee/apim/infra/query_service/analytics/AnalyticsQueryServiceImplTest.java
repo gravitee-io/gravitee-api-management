@@ -638,12 +638,7 @@ class AnalyticsQueryServiceImplTest {
         @Test
         void should_search_top_value_hits_for_a_given_native_api() {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
-                Map.of(
-                    "downstream-active-connections_latest",
-                    Map.of("downstream-active-connections", List.of(2L)),
-                    "upstream-active-connections_latest",
-                    Map.of("upstream-active-connections", List.of(2L))
-                )
+                Map.of("by_dimensions", Map.of("downstream-active-connections", List.of(2L), "upstream-active-connections", List.of(2L)))
             );
             List<Aggregation> aggregations = List.of(
                 new Aggregation("downstream-active-connections", Aggregation.AggregationType.VALUE),
@@ -655,10 +650,9 @@ class AnalyticsQueryServiceImplTest {
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), params);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().containsKey("downstream-active-connections_latest")).isTrue();
-                assertThat(analytics.values().get("downstream-active-connections_latest")).containsValue(List.of(2L));
-                assertThat(analytics.values().containsKey("upstream-active-connections_latest")).isTrue();
-                assertThat(analytics.values().get("upstream-active-connections_latest")).containsValue(List.of(2L));
+                assertThat(analytics.values().containsKey("by_dimensions")).isTrue();
+                assertThat(analytics.values().get("by_dimensions").get("downstream-active-connections")).isEqualTo(List.of(2L));
+                assertThat(analytics.values().get("by_dimensions").get("upstream-active-connections")).isEqualTo(List.of(2L));
             });
         }
 
@@ -666,10 +660,8 @@ class AnalyticsQueryServiceImplTest {
         void should_search_top_delta_hits_for_a_given_native_api() {
             EventAnalyticsAggregate aggregate = new EventAnalyticsAggregate(
                 Map.of(
-                    "downstream-publish-messages-total_delta",
-                    Map.of("downstream-publish-messages-total", List.of(82L)),
-                    "upstream-publish-messages-total_delta",
-                    Map.of("upstream-publish-messages-total", List.of(82L))
+                    "by_dimensions",
+                    Map.of("downstream-publish-messages-total", List.of(213L), "upstream-publish-messages-total", List.of(213L))
                 )
             );
             List<Aggregation> aggregations = List.of(
@@ -682,10 +674,9 @@ class AnalyticsQueryServiceImplTest {
             Optional<EventAnalytics> stats = cut.searchEventAnalytics(GraviteeContext.getExecutionContext(), query);
 
             assertThat(stats).hasValueSatisfying(analytics -> {
-                assertThat(analytics.values().containsKey("downstream-publish-messages-total_delta")).isTrue();
-                assertThat(analytics.values().get("downstream-publish-messages-total_delta")).containsValue(List.of(82L));
-                assertThat(analytics.values().containsKey("upstream-publish-messages-total_delta")).isTrue();
-                assertThat(analytics.values().get("upstream-publish-messages-total_delta")).containsValue(List.of(82L));
+                assertThat(analytics.values().containsKey("by_dimensions")).isTrue();
+                assertThat(analytics.values().get("by_dimensions").get("downstream-publish-messages-total")).isEqualTo(List.of(213L));
+                assertThat(analytics.values().get("by_dimensions").get("upstream-publish-messages-total")).isEqualTo(List.of(213L));
             });
         }
 
