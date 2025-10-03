@@ -120,34 +120,41 @@ public class SearchMessageLogResponseAdapter {
             .build();
     }
 
-    private static AggregatedMessageLog.Message adaptMessage(JsonNode json) {
+    static AggregatedMessageLog.Message adaptMessage(JsonNode json) {
         var messageJson = json.get("message");
-        var isError = messageJson.get("isError") != null && messageJson.get("isError").asBoolean();
-        var headersJson = messageJson.get("headers");
-        var messageHeaders = null != headersJson
-            ? headersJson
-                .properties()
-                .stream()
-                .collect(
-                    Collectors.toMap(Map.Entry::getKey, entry ->
-                        StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
-                    )
-                )
-            : null;
 
-        var metadataJson = messageJson.get("metadata");
-        var messageMetadata = null != metadataJson
-            ? metadataJson.properties().stream().collect(Collectors.toMap(Map.Entry::getKey, value -> asTextOrNull(value.getValue())))
-            : null;
+        if (messageJson != null) {
+            var isError = messageJson.get("isError") != null && messageJson.get("isError").asBoolean();
+            var headersJson = messageJson.get("headers");
+            var messageHeaders = null != headersJson
+                ? headersJson
+                    .properties()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(Map.Entry::getKey, entry ->
+                            StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
+                        )
+                    )
+                : null;
+
+            var metadataJson = messageJson.get("metadata");
+            var messageMetadata = null != metadataJson
+                ? metadataJson.properties().stream().collect(Collectors.toMap(Map.Entry::getKey, value -> asTextOrNull(value.getValue())))
+                : null;
+            return AggregatedMessageLog.Message.builder()
+                .connectorId(asTextOrNull(json.get("connector-id")))
+                .timestamp(asTextOrNull(json.get("@timestamp")))
+                .id(asTextOrNull(messageJson.get("id")))
+                .isError(isError)
+                .payload(asTextOrNull(messageJson.get("payload")))
+                .headers(messageHeaders)
+                .metadata(messageMetadata)
+                .build();
+        }
 
         return AggregatedMessageLog.Message.builder()
             .connectorId(asTextOrNull(json.get("connector-id")))
             .timestamp(asTextOrNull(json.get("@timestamp")))
-            .id(asTextOrNull(messageJson.get("id")))
-            .isError(isError)
-            .payload(asTextOrNull(messageJson.get("payload")))
-            .headers(messageHeaders)
-            .metadata(messageMetadata)
             .build();
     }
 }
