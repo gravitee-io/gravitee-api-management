@@ -132,11 +132,11 @@ public class SearchHistogramAnalyticsUseCase {
             (analytics ->
                     analytics
                         .values()
-                        .forEach((aggName, values) -> {
-                            if (!values.isEmpty()) {
-                                String field = values.keySet().iterator().next();
-                                List<Long> valueList = values.get(field);
-                                buckets.add(new HistogramAnalytics.MetricBucket(aggName, field, valueList));
+                        .forEach((aggName, aggValues) -> {
+                            if (!aggValues.isEmpty()) {
+                                aggValues.forEach((field, data) ->
+                                    buckets.add(new HistogramAnalytics.MetricBucket(field + "_" + aggName, field, data))
+                                );
                             }
                         }))
         );

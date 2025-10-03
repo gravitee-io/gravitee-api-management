@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.definition.model.DefinitionVersion.V4;
 import static io.gravitee.repository.elasticsearch.TestConfiguration.DEFAULT_SEARCH_TYPE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
@@ -30,7 +31,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
-import io.gravitee.repository.elasticsearch.TimeProvider;
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
@@ -1092,7 +1092,6 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
         private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
-        private static final TimeProvider TIME_PROVIDER = new TimeProvider();
 
         @Value("${search.type:" + DEFAULT_SEARCH_TYPE + "}")
         private String searchType;
@@ -1112,94 +1111,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-active-connections_latest");
-                assertThat(data).containsKey("upstream-active-connections_latest");
-                Map<String, List<Long>> downstreamConnectionsBucket = data.get("downstream-active-connections_latest");
-                assertThat(downstreamConnectionsBucket).containsKey("downstream-active-connections");
-                assertThat(downstreamConnectionsBucket.get("downstream-active-connections").getFirst()).isEqualTo(3L);
-                Map<String, List<Long>> upstreamConnectionsBucket = data.get("upstream-active-connections_latest");
-                assertThat(upstreamConnectionsBucket).containsKey("upstream-active-connections");
-                assertThat(upstreamConnectionsBucket.get("upstream-active-connections").getFirst()).isEqualTo(3L);
-            });
-        }
-
-        @Test
-        void should_search_top_value_hits_for_messages_consumed() {
-            Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.VALUE);
-            Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.VALUE);
-            Aggregation agg3 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.VALUE);
-            Aggregation agg4 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.VALUE);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-subscribe-messages-total_latest");
-                assertThat(data).containsKey("upstream-subscribe-messages-total_latest");
-                assertThat(data).containsKey("downstream-subscribe-message-bytes_latest");
-                assertThat(data).containsKey("upstream-subscribe-message-bytes_latest");
-                Map<String, List<Long>> downstreamMessagesConsumedBucket = data.get("downstream-subscribe-messages-total_latest");
-                assertThat(downstreamMessagesConsumedBucket).containsKey("downstream-subscribe-messages-total");
-                assertThat(downstreamMessagesConsumedBucket.get("downstream-subscribe-messages-total").getFirst()).isEqualTo(4056L);
-                Map<String, List<Long>> downstreamMessageBytesConsumedBucket = data.get("downstream-subscribe-message-bytes_latest");
-                assertThat(downstreamMessageBytesConsumedBucket).containsKey("downstream-subscribe-message-bytes");
-                assertThat(downstreamMessageBytesConsumedBucket.get("downstream-subscribe-message-bytes").getFirst()).isEqualTo(40638L);
-                Map<String, List<Long>> upstreamMessagesConsumedBucket = data.get("upstream-subscribe-messages-total_latest");
-                assertThat(upstreamMessagesConsumedBucket).containsKey("upstream-subscribe-messages-total");
-                assertThat(upstreamMessagesConsumedBucket.get("upstream-subscribe-messages-total").getFirst()).isEqualTo(4056L);
-                Map<String, List<Long>> upstreamMessageBytesConsumedBucket = data.get("upstream-subscribe-message-bytes_latest");
-                assertThat(upstreamMessageBytesConsumedBucket).containsKey("upstream-subscribe-message-bytes");
-                assertThat(upstreamMessageBytesConsumedBucket.get("upstream-subscribe-message-bytes").getFirst()).isEqualTo(40638L);
-            });
-        }
-
-        @Test
-        void should_search_top_value_hits_for_messages_produced() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.VALUE);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.VALUE);
-            Aggregation agg3 = new Aggregation("downstream-publish-message-bytes", AggregationType.VALUE);
-            Aggregation agg4 = new Aggregation("upstream-publish-message-bytes", AggregationType.VALUE);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-messages-total_latest");
-                assertThat(data).containsKey("upstream-publish-messages-total_latest");
-                assertThat(data).containsKey("downstream-publish-message-bytes_latest");
-                assertThat(data).containsKey("upstream-publish-message-bytes_latest");
-                Map<String, List<Long>> downstreamMessagesPublishedBucket = data.get("downstream-publish-messages-total_latest");
-                assertThat(downstreamMessagesPublishedBucket).containsKey("downstream-publish-messages-total");
-                assertThat(downstreamMessagesPublishedBucket.get("downstream-publish-messages-total").getFirst()).isEqualTo(4056L);
-                Map<String, List<Long>> downstreamMessageBytesPublishedBucket = data.get("downstream-publish-message-bytes_latest");
-                assertThat(downstreamMessageBytesPublishedBucket).containsKey("downstream-publish-message-bytes");
-                assertThat(downstreamMessageBytesPublishedBucket.get("downstream-publish-message-bytes").getFirst()).isEqualTo(42749L);
-                Map<String, List<Long>> upstreamMessagesPublishedBucket = data.get("upstream-publish-messages-total_latest");
-                assertThat(upstreamMessagesPublishedBucket).containsKey("upstream-publish-messages-total");
-                assertThat(upstreamMessagesPublishedBucket.get("upstream-publish-messages-total").getFirst()).isEqualTo(4056L);
-                Map<String, List<Long>> upstreamMessageBytesPublishedBucket = data.get("upstream-publish-message-bytes_latest");
-                assertThat(upstreamMessageBytesPublishedBucket).containsKey("upstream-publish-message-bytes");
-                assertThat(upstreamMessageBytesPublishedBucket.get("upstream-publish-message-bytes").getFirst()).isEqualTo(42749L);
-            });
-        }
-
-        @Test
-        void should_search_top_delta_hits_for_messages_produced() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-messages-total_delta");
-                assertThat(data).containsKey("upstream-publish-messages-total_delta");
-                Map<String, List<Long>> downstreamMessagesPublishedBucket = data.get("downstream-publish-messages-total_delta");
-                assertThat(downstreamMessagesPublishedBucket).containsKey("downstream-publish-messages-total");
-                assertThat(downstreamMessagesPublishedBucket.get("downstream-publish-messages-total").getFirst()).isEqualTo(2256L);
-                Map<String, List<Long>> upstreamMessagesPublishedBucket = data.get("upstream-publish-messages-total_delta");
-                assertThat(upstreamMessagesPublishedBucket).containsKey("upstream-publish-messages-total");
-                assertThat(upstreamMessagesPublishedBucket.get("upstream-publish-messages-total").getFirst()).isEqualTo(2256L);
+                assertThat(data).containsKey(BY_DIMENSIONS);
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("downstream-active-connections");
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("upstream-active-connections");
+                assertThat(data.get(BY_DIMENSIONS).get("downstream-active-connections").getFirst()).isEqualTo(6L);
+                assertThat(data.get(BY_DIMENSIONS).get("upstream-active-connections").getFirst()).isEqualTo(6L);
             });
         }
 
@@ -1212,14 +1128,28 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-subscribe-messages-total_delta");
-                assertThat(data).containsKey("upstream-subscribe-messages-total_delta");
-                Map<String, List<Long>> downstreamMessagesConsumedBucket = data.get("downstream-subscribe-messages-total_delta");
-                assertThat(downstreamMessagesConsumedBucket).containsKey("downstream-subscribe-messages-total");
-                assertThat(downstreamMessagesConsumedBucket.get("downstream-subscribe-messages-total").getFirst()).isEqualTo(4044L);
-                Map<String, List<Long>> upstreamMessagesConsumedBucket = data.get("upstream-subscribe-messages-total_delta");
-                assertThat(upstreamMessagesConsumedBucket).containsKey("upstream-subscribe-messages-total");
-                assertThat(upstreamMessagesConsumedBucket.get("upstream-subscribe-messages-total").getFirst()).isEqualTo(4044L);
+                assertThat(data).containsKey(BY_DIMENSIONS);
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("downstream-subscribe-messages-total");
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("upstream-subscribe-messages-total");
+                assertThat(data.get(BY_DIMENSIONS).get("downstream-subscribe-messages-total").getFirst()).isEqualTo(20L);
+                assertThat(data.get(BY_DIMENSIONS).get("upstream-subscribe-messages-total").getFirst()).isEqualTo(20L);
+            });
+        }
+
+        @Test
+        void should_search_top_delta_hits_for_messages_produced() {
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
+
+            assertThat(result).hasValueSatisfying(aggregate -> {
+                Map<String, Map<String, List<Long>>> data = aggregate.values();
+                assertThat(data).containsKey(BY_DIMENSIONS);
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("downstream-publish-messages-total");
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("upstream-publish-messages-total");
+                assertThat(data.get(BY_DIMENSIONS).get("downstream-publish-messages-total").getFirst()).isEqualTo(20L);
+                assertThat(data.get(BY_DIMENSIONS).get("upstream-publish-messages-total").getFirst()).isEqualTo(20L);
             });
         }
 
@@ -1232,14 +1162,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-message-bytes_delta");
-                assertThat(data).containsKey("upstream-publish-message-bytes_delta");
-                Map<String, List<Long>> downstreamMessageBytesPublishedBucket = data.get("downstream-publish-message-bytes_delta");
-                assertThat(downstreamMessageBytesPublishedBucket).containsKey("downstream-publish-message-bytes");
-                assertThat(downstreamMessageBytesPublishedBucket.get("downstream-publish-message-bytes").getFirst()).isEqualTo(24059L);
-                Map<String, List<Long>> upstreamMessageBytesPublishedBucket = data.get("upstream-publish-message-bytes_delta");
-                assertThat(upstreamMessageBytesPublishedBucket).containsKey("upstream-publish-message-bytes");
-                assertThat(upstreamMessageBytesPublishedBucket.get("upstream-publish-message-bytes").getFirst()).isEqualTo(24059L);
+                assertThat(data).containsKey(BY_DIMENSIONS);
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("downstream-publish-message-bytes");
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("upstream-publish-message-bytes");
+                assertThat(data.get(BY_DIMENSIONS).get("downstream-publish-message-bytes").getFirst()).isEqualTo(2000L);
+                assertThat(data.get(BY_DIMENSIONS).get("upstream-publish-message-bytes").getFirst()).isEqualTo(2000L);
             });
         }
 
@@ -1252,14 +1179,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result).hasValueSatisfying(aggregate -> {
                 Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-subscribe-message-bytes_delta");
-                assertThat(data).containsKey("upstream-subscribe-message-bytes_delta");
-                Map<String, List<Long>> downstreamMessageBytesConsumedBucket = data.get("downstream-subscribe-message-bytes_delta");
-                assertThat(downstreamMessageBytesConsumedBucket).containsKey("downstream-subscribe-message-bytes");
-                assertThat(downstreamMessageBytesConsumedBucket.get("downstream-subscribe-message-bytes").getFirst()).isEqualTo(40518L);
-                Map<String, List<Long>> upstreamMessageBytesConsumedBucket = data.get("upstream-subscribe-message-bytes_delta");
-                assertThat(upstreamMessageBytesConsumedBucket).containsKey("upstream-subscribe-message-bytes");
-                assertThat(upstreamMessageBytesConsumedBucket.get("upstream-subscribe-message-bytes").getFirst()).isEqualTo(40518L);
+                assertThat(data).containsKey(BY_DIMENSIONS);
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("downstream-subscribe-message-bytes");
+                assertThat(data.get(BY_DIMENSIONS)).containsKey("upstream-subscribe-message-bytes");
+                assertThat(data.get(BY_DIMENSIONS).get("downstream-subscribe-message-bytes").getFirst()).isEqualTo(2000L);
+                assertThat(data.get(BY_DIMENSIONS).get("upstream-subscribe-message-bytes").getFirst()).isEqualTo(2000L);
             });
         }
 
@@ -1392,13 +1316,13 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         private static @NotNull HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms, String apiId) {
-            var now = TIME_PROVIDER.getNow();
-            var from = now.minusSeconds(4 * 60);
-            var to = now.plusSeconds(6 * 60);
+            var now = Instant.now();
+            var from = now.minusSeconds(360);
+            var to = now.plusSeconds(360);
 
             return new HistogramQuery(
                 new SearchTermId(SearchTermId.SearchTerm.API, apiId),
-                new TimeRange(from, to, Duration.ofMillis(2 * 60 * 1000)),
+                new TimeRange(from, to),
                 aggregations,
                 null,
                 terms
