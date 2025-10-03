@@ -1975,35 +1975,31 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public MemberEntity createNewMembershipForApi(
+    public MemberEntity createNewMembership(
         ExecutionContext executionContext,
-        String apiId,
+        MembershipReferenceType referenceType,
+        String referenceId,
         String userId,
         String externalReference,
         String roleName
     ) {
-        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(MembershipReferenceType.API, apiId);
+        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(referenceType, referenceId);
         MembershipService.MembershipMember member = new MembershipService.MembershipMember(
             userId,
             externalReference,
             MembershipMemberType.USER
         );
-        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.API, roleName);
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.valueOf(referenceType.name()), roleName);
 
         if (member.getMemberId() != null) {
             MemberEntity userMember = getUserMember(
                 GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.API,
-                apiId,
+                referenceType,
+                referenceId,
                 member.getMemberId()
             );
             if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
-                throw new MembershipAlreadyExistsException(
-                    member.getMemberId(),
-                    MembershipMemberType.USER,
-                    apiId,
-                    MembershipReferenceType.API
-                );
+                throw new MembershipAlreadyExistsException(member.getMemberId(), MembershipMemberType.USER, referenceId, referenceType);
             }
         }
         return addRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);

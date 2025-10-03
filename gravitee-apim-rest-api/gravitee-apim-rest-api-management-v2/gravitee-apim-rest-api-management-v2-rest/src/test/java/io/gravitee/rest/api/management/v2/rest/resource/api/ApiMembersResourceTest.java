@@ -91,13 +91,14 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            when(membershipService.createNewMembershipForApi(any(), any(), any(), any(), any())).thenAnswer(invocation ->
-                MemberEntity.builder()
-                    .id(invocation.getArgument(2))
-                    .referenceId(invocation.getArgument(1))
-                    .displayName("John Doe")
-                    .roles(List.of(RoleEntity.builder().name(invocation.getArgument(4)).build()))
-                    .build()
+            when(membershipService.createNewMembership(any(), eq(MembershipReferenceType.API), any(), any(), any(), any())).thenAnswer(
+                invocation ->
+                    MemberEntity.builder()
+                        .id(invocation.getArgument(3))
+                        .referenceId(invocation.getArgument(2))
+                        .displayName("John Doe")
+                        .roles(List.of(RoleEntity.builder().name(invocation.getArgument(5)).build()))
+                        .build()
             );
         }
 
