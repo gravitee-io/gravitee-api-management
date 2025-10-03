@@ -17,6 +17,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import * as Highcharts from 'highcharts';
 
+import { GioChartAbstractComponent } from '../gio-chart-abstract/gio-chart-abstract.component';
+
 const defaultLabelFormatter = function () {
   const name = this.point.name;
   const value = this.point.y;
@@ -62,7 +64,7 @@ export interface GioChartPieInput {
   styleUrls: ['./gio-chart-pie.component.scss'],
   standalone: false,
 })
-export class GioChartPieComponent implements OnInit {
+export class GioChartPieComponent extends GioChartAbstractComponent implements OnInit {
   @Input()
   public input: GioChartPieInput[];
 
@@ -81,15 +83,7 @@ export class GioChartPieComponent implements OnInit {
   @Input()
   public height = '100%';
 
-  Highcharts: typeof Highcharts = Highcharts;
   chartOptions: Highcharts.Options;
-
-  callbackFunction: Highcharts.ChartCallbackFunction = function (chart) {
-    // Redraw the chart after the component is loaded. to fix the issue of the chart display with bad size
-    setTimeout(() => {
-      chart?.reflow();
-    }, 0);
-  };
 
   ngOnInit() {
     const totalInputDescription = this.totalInputDescription;
