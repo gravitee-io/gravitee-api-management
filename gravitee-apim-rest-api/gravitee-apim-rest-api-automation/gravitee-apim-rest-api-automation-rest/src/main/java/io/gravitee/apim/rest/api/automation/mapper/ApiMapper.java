@@ -37,6 +37,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -235,7 +236,13 @@ public interface ApiMapper {
             return Map.of();
         }
 
-        return apiV4Spec.getPages().stream().collect(Collectors.toMap(PageV4::getHrid, this::map));
+        Map<String, PageCRD> pages = new LinkedHashMap<>();
+        for (int i = 0; i < apiV4Spec.getPages().size(); i++) {
+            PageV4 pageV4 = apiV4Spec.getPages().get(i);
+            pageV4.setOrder(i);
+            pages.put(pageV4.getHrid(), map(pageV4));
+        }
+        return pages;
     }
 
     default List<PageV4> mapApiCRDSpecPages(ApiCRDSpec apiCRD) {
