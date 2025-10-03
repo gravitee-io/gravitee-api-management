@@ -17,6 +17,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import * as Highcharts from 'highcharts';
 
+import { GioChartAbstractComponent } from '../gio-chart-abstract/gio-chart-abstract.component';
+
 export interface GioChartLineData {
   name: string;
   values: number[];
@@ -40,22 +42,14 @@ export const defineLineColors = (code: string) => {
   styleUrls: ['./gio-chart-line.component.scss'],
   standalone: false,
 })
-export class GioChartLineComponent implements OnInit {
+export class GioChartLineComponent extends GioChartAbstractComponent implements OnInit {
   @Input()
   public data: GioChartLineData[];
 
   @Input()
   public options: GioChartLineOptions;
 
-  Highcharts: typeof Highcharts = Highcharts;
   chartOptions: Highcharts.Options;
-
-  callbackFunction: Highcharts.ChartCallbackFunction = function (chart) {
-    // Redraw the chart after the component is loaded. to fix the issue of the chart display with bad size
-    setTimeout(() => {
-      chart?.reflow();
-    }, 0);
-  };
 
   ngOnInit() {
     const markersEnabled = this.options?.enableMarkers ?? false;
