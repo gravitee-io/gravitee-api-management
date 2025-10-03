@@ -17,7 +17,7 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, signal } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import {ActivatedRoute, NavigationExtras, Router} from '@angular/router';
+import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { catchError, combineLatestWith, EMPTY, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { LoaderComponent } from '../../components/loader/loader.component';
@@ -72,7 +72,7 @@ export class GuidesComponent implements OnInit {
     const navigationExtras: NavigationExtras = {
       relativeTo: this.activatedRoute,
       queryParams: { page },
-    }
+    };
     if (this.firstLoad) {
       // Replace url when first loading a page to avoid having a back button to an empty page
       navigationExtras.replaceUrl = true;

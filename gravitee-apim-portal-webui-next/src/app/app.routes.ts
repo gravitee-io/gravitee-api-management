@@ -20,7 +20,6 @@ import { GraviteeMarkdownComponent } from '@gravitee/gravitee-markdown';
 import { ApiDetailsComponent } from './api/api-details/api-details.component';
 import { ApiTabDetailsComponent } from './api/api-details/api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api/api-details/api-tab-documentation/api-tab-documentation.component';
-import { ApiDocumentationComponent } from './api/api-details/api-tab-documentation/components/api-documentation/api-documentation.component';
 import { ApiTabSubscriptionsComponent } from './api/api-details/api-tab-subscriptions/api-tab-subscriptions.component';
 import { SubscriptionsDetailsComponent } from './api/api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
 import { SubscriptionsTableComponent } from './api/api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
@@ -82,6 +81,11 @@ const apiRoutes: Routes = [
             path: 'documentation',
             data: { breadcrumb: { label: 'Documentation', disable: true } },
             children: [
+              {
+                path: '',
+                component: ApiTabDocumentationComponent,
+                data: { breadcrumb: { skip: true } },
+              },
               {
                 path: ':pageId',
                 component: ApiTabDocumentationComponent,
