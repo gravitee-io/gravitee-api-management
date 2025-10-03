@@ -22,14 +22,13 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.H
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.KEY;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SOURCE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DELTA_BUCKET_SUFFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_VALUE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_VALUE;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_BUCKET_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOP;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.Aggregation;
-import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
@@ -63,15 +62,12 @@ public class TopHitsAggregationResponseAdapter {
         Map<String, Map<String, List<Long>>> result = new HashMap<>();
 
         aggregations.forEach((key, value) -> {
-            Map<String, Aggregation> subAggs;
-
             switch (aggregationType) {
                 case VALUE:
-                    parseLatestValuesByKeyBuckets(key, value, result);
+                    parseLatestValueBuckets(key, value, result);
                     break;
                 case DELTA:
-                    subAggs = value.getAggregations();
-                    parseDeltaAggregations(key, subAggs, result);
+                    parseStartEndValueBuckets(key, value, result);
                     break;
                 case TREND:
                     List<JsonNode> buckets = value.getBuckets();
@@ -83,7 +79,7 @@ public class TopHitsAggregationResponseAdapter {
         return result.isEmpty() ? Optional.empty() : Optional.of(new EventAnalyticsAggregate(result));
     }
 
-    private static void parseLatestValuesByKeyBuckets(String key, Aggregation value, Map<String, Map<String, List<Long>>> result) {
+    private static void parseLatestValueBuckets(String key, Aggregation value, Map<String, Map<String, List<Long>>> result) {
         List<JsonNode> buckets = value.getBuckets();
 
         if (buckets == null || buckets.isEmpty()) {
@@ -99,43 +95,89 @@ public class TopHitsAggregationResponseAdapter {
                     if (KEY.equals(fieldName) || DOC_COUNT.equals(fieldName)) {
                         return;
                     }
-                    // Accept any sub-aggregation starting with "latest_"
-                    if (fieldName.startsWith(LATEST_PREFIX)) {
-                        JsonNode subAgg = bucket.get(fieldName);
-                        if (subAgg == null || !subAgg.has(TOP)) {
-                            return;
-                        }
-                        JsonNode topArray = subAgg.get(TOP);
-                        if (topArray == null || !topArray.isArray() || topArray.isEmpty()) {
-                            return;
-                        }
-                        JsonNode firstTop = topArray.get(0);
-                        if (firstTop == null || !firstTop.has(METRICS)) {
-                            return;
-                        }
-                        JsonNode metrics = firstTop.get(METRICS);
-                        if (metrics == null || !metrics.fieldNames().hasNext()) {
-                            return;
-                        }
-                        // Sum every metric present in the metrics object
-                        metrics
-                            .fieldNames()
-                            .forEachRemaining(metricField -> {
-                                JsonNode metricValueNode = metrics.get(metricField);
-                                if (metricValueNode != null && metricValueNode.isNumber()) {
-                                    long currentValue = metricValueNode.asLong();
-                                    latestMetricValueMap.merge(metricField, currentValue, Long::sum);
-                                }
-                            });
+                    if (fieldName.startsWith(LATEST_BUCKET_PREFIX)) {
+                        String metricField = fieldName.substring(LATEST_BUCKET_PREFIX.length());
+                        long fieldValue = readTopMetricsValue(bucket.get(fieldName), metricField);
+                        latestMetricValueMap.merge(metricField, fieldValue, Long::sum);
                     }
                 })
         );
 
         if (!latestMetricValueMap.isEmpty()) {
-            Map<String, List<Long>> totalsAsLists = new HashMap<>();
-            latestMetricValueMap.forEach((field, total) -> totalsAsLists.put(field, List.of(total)));
-            result.put(key, totalsAsLists);
+            Map<String, List<Long>> latestValuesAsLists = new HashMap<>();
+            latestMetricValueMap.forEach((field, total) -> latestValuesAsLists.put(field, List.of(total)));
+
+            result.put(key, latestValuesAsLists);
         }
+    }
+
+    private static void parseStartEndValueBuckets(String key, Aggregation value, Map<String, Map<String, List<Long>>> result) {
+        List<JsonNode> buckets = value.getBuckets();
+
+        if (buckets == null || buckets.isEmpty()) {
+            return;
+        }
+
+        Map<String, Long> deltasByField = new HashMap<>();
+
+        for (JsonNode bucket : buckets) {
+            Map<String, Long> starts = new HashMap<>();
+            Map<String, Long> ends = new HashMap<>();
+
+            bucket
+                .fieldNames()
+                .forEachRemaining(fieldName -> {
+                    if (KEY.equals(fieldName) || DOC_COUNT.equals(fieldName)) {
+                        return;
+                    }
+                    if (fieldName.startsWith(START_BUCKET_PREFIX)) {
+                        String metricField = fieldName.substring(START_BUCKET_PREFIX.length());
+                        long fieldValue = readTopMetricsValue(bucket.get(fieldName), metricField);
+                        starts.put(metricField, fieldValue);
+                    } else if (fieldName.startsWith(END_BUCKET_PREFIX)) {
+                        String metricField = fieldName.substring(END_BUCKET_PREFIX.length());
+                        long fieldValue = readTopMetricsValue(bucket.get(fieldName), metricField);
+                        ends.put(metricField, fieldValue);
+                    }
+                });
+
+            starts.forEach((metricField, startVal) -> {
+                Long endVal = ends.get(metricField);
+
+                if (endVal != null) {
+                    deltasByField.merge(metricField, endVal - startVal, Long::sum);
+                }
+            });
+        }
+
+        if (!deltasByField.isEmpty()) {
+            Map<String, List<Long>> deltaValuesAsLists = new HashMap<>();
+            deltasByField.forEach((field, delta) -> deltaValuesAsLists.put(field, List.of(delta)));
+            result.put(key, deltaValuesAsLists);
+        }
+    }
+
+    private static long readTopMetricsValue(JsonNode topMetricsNode, String metricField) {
+        if (topMetricsNode == null || !topMetricsNode.has(TOP)) {
+            return 0L;
+        }
+
+        JsonNode topArray = topMetricsNode.get(TOP);
+
+        if (topArray == null || !topArray.isArray() || topArray.isEmpty()) {
+            return 0L;
+        }
+
+        JsonNode first = topArray.get(0);
+
+        if (first == null || !first.has(METRICS)) {
+            return 0L;
+        }
+
+        JsonNode metrics = first.get(METRICS);
+        JsonNode valueNode = metrics.get(metricField);
+
+        return (valueNode != null && valueNode.isNumber()) ? valueNode.asLong() : 0L;
     }
 
     private static AggregationType getAggregationType(HistogramQuery query) {
@@ -150,37 +192,6 @@ public class TopHitsAggregationResponseAdapter {
                 .orElse(null);
     }
 
-    private static void parseDeltaAggregations(String key, Map<String, Aggregation> subAggs, Map<String, Map<String, List<Long>>> result) {
-        // DELTA aggregation: expects start_value and end_value sub-aggregations
-        Aggregation startAgg = subAggs.get(START_VALUE);
-        Aggregation endAgg = subAggs.get(END_VALUE);
-        Long start = null;
-        Long end = null;
-        String fieldName = null;
-        // Extract field and values from the _source of the first hit in each
-        if (startAgg.getHits() != null && startAgg.getHits().getHits() != null && !startAgg.getHits().getHits().isEmpty()) {
-            SearchHit hit = startAgg.getHits().getHits().getFirst();
-
-            if (hit != null && hit.getSource() != null && hit.getSource().fieldNames().hasNext()) {
-                fieldName = hit.getSource().fieldNames().next();
-                start = hit.getSource().get(fieldName).asLong();
-            }
-        }
-
-        if (endAgg.getHits() != null && endAgg.getHits().getHits() != null && !endAgg.getHits().getHits().isEmpty()) {
-            SearchHit hit = endAgg.getHits().getHits().getFirst();
-
-            if (hit != null && hit.getSource() != null && hit.getSource().fieldNames().hasNext()) {
-                if (fieldName == null) fieldName = hit.getSource().fieldNames().next();
-                end = hit.getSource().get(fieldName).asLong();
-            }
-        }
-
-        if (fieldName != null && start != null && end != null) {
-            result.put(key, Map.of(fieldName, List.of(end - start)));
-        }
-    }
-
     private static void parseDeltaBuckets(List<JsonNode> buckets, Map<String, Map<String, List<Long>>> result) {
         if (buckets == null || buckets.isEmpty()) return;
 
@@ -191,9 +202,9 @@ public class TopHitsAggregationResponseAdapter {
                     // Each bucket with _delta suffix has start_value and end_value sub-aggregations
                     if (bucketName.endsWith(DELTA_BUCKET_SUFFIX)) {
                         // Get the value from the source hit in the start_value node
-                        long startValue = parseValueFromBucketSource(bucket, bucketName, START_VALUE);
+                        long startValue = parseValueFromBucketSource(bucket, bucketName, START_BUCKET_PREFIX);
                         // Get the value from the source hit in the end_value node
-                        long endValue = parseValueFromBucketSource(bucket, bucketName, END_VALUE);
+                        long endValue = parseValueFromBucketSource(bucket, bucketName, END_BUCKET_PREFIX);
                         addTrendValue(result, bucketName, (endValue - startValue));
                     }
                 })

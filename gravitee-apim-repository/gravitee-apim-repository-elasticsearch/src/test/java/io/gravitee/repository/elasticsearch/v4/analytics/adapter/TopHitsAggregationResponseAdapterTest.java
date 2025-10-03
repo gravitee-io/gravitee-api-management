@@ -19,9 +19,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.M
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.DOC_COUNT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.KEY;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_VALUE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_VALUE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -31,8 +29,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.gravitee.elasticsearch.model.SearchHit;
-import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
@@ -96,68 +92,6 @@ class TopHitsAggregationResponseAdapterTest {
         }
 
         @Test
-        void should_adapt_top_delta_hits_response() {
-            List<Aggregation> aggs = getAggregations(
-                AggregationType.DELTA,
-                "downstream-publish-messages-total",
-                "upstream-publish-messages-total"
-            );
-            var response = new SearchResponse();
-            response.setTimedOut(false);
-            Map<String, io.gravitee.elasticsearch.model.Aggregation> aggregations = new HashMap<>();
-
-            // downstream-publish-messages-total_delta
-            io.gravitee.elasticsearch.model.Aggregation agg = new io.gravitee.elasticsearch.model.Aggregation();
-            io.gravitee.elasticsearch.model.Aggregation startValue = new io.gravitee.elasticsearch.model.Aggregation();
-            io.gravitee.elasticsearch.model.Aggregation endValue = new io.gravitee.elasticsearch.model.Aggregation();
-
-            SearchHits startHits = new SearchHits();
-            startHits.setHits(List.of(createHit("downstream-publish-messages-total", 10L)));
-            startValue.setHits(startHits);
-
-            SearchHits endHits = new SearchHits();
-            endHits.setHits(List.of(createHit("downstream-publish-messages-total", 150L)));
-            endValue.setHits(endHits);
-
-            Map<String, io.gravitee.elasticsearch.model.Aggregation> subAggs = new HashMap<>();
-            subAggs.put(START_VALUE, startValue);
-            subAggs.put(END_VALUE, endValue);
-            agg.getAggregations().putAll(subAggs);
-            aggregations.put("downstream-publish-messages-total_delta", agg);
-
-            // upstream-publish-messages-total_delta
-            io.gravitee.elasticsearch.model.Aggregation agg2 = new io.gravitee.elasticsearch.model.Aggregation();
-            io.gravitee.elasticsearch.model.Aggregation startValue2 = new io.gravitee.elasticsearch.model.Aggregation();
-            io.gravitee.elasticsearch.model.Aggregation endValue2 = new io.gravitee.elasticsearch.model.Aggregation();
-
-            SearchHits startHits2 = new SearchHits();
-            startHits2.setHits(List.of(createHit("upstream-publish-messages-total", 10L)));
-            startValue2.setHits(startHits2);
-
-            SearchHits endHits2 = new SearchHits();
-            endHits2.setHits(List.of(createHit("upstream-publish-messages-total", 150L)));
-            endValue2.setHits(endHits2);
-
-            Map<String, io.gravitee.elasticsearch.model.Aggregation> subAggs2 = new HashMap<>();
-            subAggs2.put(START_VALUE, startValue2);
-            subAggs2.put(END_VALUE, endValue2);
-            agg2.getAggregations().putAll(subAggs2);
-            aggregations.put("upstream-publish-messages-total_delta", agg2);
-
-            response.setAggregations(aggregations);
-
-            var result = TopHitsAggregationResponseAdapter.adapt(response, buildHistogramQuery(aggs));
-
-            assertTrue(result.isPresent());
-            Map<String, Map<String, List<Long>>> values = result.get().values();
-            assertFalse(values.isEmpty());
-            assertTrue(values.containsKey("downstream-publish-messages-total_delta"));
-            assertTrue(values.containsKey("upstream-publish-messages-total_delta"));
-            assertEquals(140L, values.get("downstream-publish-messages-total_delta").get("downstream-publish-messages-total").getFirst());
-            assertEquals(140L, values.get("upstream-publish-messages-total_delta").get("upstream-publish-messages-total").getFirst());
-        }
-
-        @Test
         void should_adapt_top_trend_response() throws IOException {
             List<Aggregation> aggs = getAggregations(
                 AggregationType.TREND,
@@ -195,8 +129,20 @@ class TopHitsAggregationResponseAdapterTest {
             // Build two buckets to validate summation across buckets:
             // bucket1: downstream-active-connections=2, upstream-active-connections=3
             // bucket2: downstream-active-connections=5, upstream-active-connections=7
-            ObjectNode bucket1 = getBucket("gw-1", 10, 2, 3);
-            ObjectNode bucket2 = getBucket("gw-2", 12, 5, 7);
+            ObjectNode compositeKeys1 = createCompositeKeysNode("gw-1");
+            ObjectNode bucket1 = MAPPER.createObjectNode();
+            bucket1.set(KEY, compositeKeys1);
+            bucket1.put(DOC_COUNT, 10);
+            bucket1.set("latest_downstream-active-connections", createHitsNode(2, "downstream-active-connections"));
+            bucket1.set("latest_upstream-active-connections", createHitsNode(3, "upstream-active-connections"));
+
+            ObjectNode compositeKeys2 = createCompositeKeysNode("gw-2");
+            ObjectNode bucket2 = MAPPER.createObjectNode();
+            bucket2.set(KEY, compositeKeys2);
+            bucket2.put(DOC_COUNT, 12);
+            bucket2.set("latest_downstream-active-connections", createHitsNode(5, "downstream-active-connections"));
+            bucket2.set("latest_upstream-active-connections", createHitsNode(7, "upstream-active-connections"));
+
             // Set buckets in by_dimensions aggregation
             io.gravitee.elasticsearch.model.Aggregation byDimensions = new io.gravitee.elasticsearch.model.Aggregation();
             byDimensions.setBuckets(List.of(bucket1, bucket2));
@@ -223,70 +169,70 @@ class TopHitsAggregationResponseAdapterTest {
             assertEquals(3L + 7L, totals.get("upstream-active-connections").getFirst());
         }
 
-        private @NotNull ObjectNode getBucket(String gwId, int docCount, int downstreamConnections, int upstreamConnections) {
-            ObjectNode compositeKeys = createCompositeKeysNode(gwId);
+        @Test
+        void should_adapt_composite_delta_buckets_and_sum_deltas() {
+            // Given: DELTA aggregation with composite buckets containing start_/end_ top_metrics
+            List<Aggregation> aggs = getAggregations(
+                AggregationType.DELTA,
+                "downstream-publish-messages-total",
+                "upstream-publish-messages-total"
+            );
+            SearchResponse response = new SearchResponse();
+            response.setTimedOut(false);
 
-            return createBucket(compositeKeys, docCount, downstreamConnections, upstreamConnections);
+            // bucket1: downstream delta = 4056-12 = 4044, upstream delta = 4056-12 = 4044
+            ObjectNode key1 = createCompositeKeysNode("gw-1");
+            applyAdditionalKeys(key1);
+            ObjectNode bucket1 = MAPPER.createObjectNode();
+            bucket1.set(KEY, key1);
+            bucket1.put(DOC_COUNT, 10);
+            bucket1.set("start_downstream-publish-messages-total", createHitsNode(12, "downstream-publish-messages-total"));
+            bucket1.set("end_downstream-publish-messages-total", createHitsNode(4056, "downstream-publish-messages-total"));
+            bucket1.set("start_upstream-publish-messages-total", createHitsNode(12, "upstream-publish-messages-total"));
+            bucket1.set("end_upstream-publish-messages-total", createHitsNode(4056, "upstream-publish-messages-total"));
+
+            // bucket2: downstream delta = 260-100 = 160, upstream delta = 260-100 = 160
+            ObjectNode key2 = createCompositeKeysNode("gw-2");
+            applyAdditionalKeys(key2);
+            ObjectNode bucket2 = MAPPER.createObjectNode();
+            bucket2.set(KEY, key2);
+            bucket2.put(DOC_COUNT, 8);
+            bucket2.set("start_downstream-publish-messages-total", createHitsNode(100, "downstream-publish-messages-total"));
+            bucket2.set("end_downstream-publish-messages-total", createHitsNode(260, "downstream-publish-messages-total"));
+            bucket2.set("start_upstream-publish-messages-total", createHitsNode(100, "upstream-publish-messages-total"));
+            bucket2.set("end_upstream-publish-messages-total", createHitsNode(260, "upstream-publish-messages-total"));
+
+            // Set buckets in by_dimensions aggregation
+            io.gravitee.elasticsearch.model.Aggregation byDimensions = new io.gravitee.elasticsearch.model.Aggregation();
+            byDimensions.setBuckets(List.of(bucket1, bucket2));
+
+            Map<String, io.gravitee.elasticsearch.model.Aggregation> aggregations = new HashMap<>();
+            aggregations.put(BY_DIMENSIONS, byDimensions);
+            response.setAggregations(aggregations);
+
+            // When
+            Optional<EventAnalyticsAggregate> result = TopHitsAggregationResponseAdapter.adapt(response, buildHistogramQuery(aggs));
+
+            // Then
+            assertTrue(result.isPresent());
+            Map<String, Map<String, List<Long>>> values = result.get().values();
+            assertFalse(values.isEmpty());
+            assertTrue(values.containsKey(BY_DIMENSIONS));
+
+            Map<String, List<Long>> totals = values.get(BY_DIMENSIONS);
+            assertEquals(1, totals.get("downstream-publish-messages-total").size());
+            assertEquals(1, totals.get("upstream-publish-messages-total").size());
+
+            // Validate summed deltas across buckets: (4044 + 160) = 4204
+            assertEquals(4044L + 160L, totals.get("downstream-publish-messages-total").getFirst());
+            assertEquals(4044L + 160L, totals.get("upstream-publish-messages-total").getFirst());
         }
+    }
 
-        private ObjectNode createBucket(ObjectNode key, int docCount, int downstreamConnections, int upstreamConnections) {
-            ObjectNode bucket = MAPPER.createObjectNode();
-            bucket.set(KEY, key);
-            bucket.put(DOC_COUNT, docCount);
-
-            ObjectNode latestDownstreamConnectionsNode = createTopHitsNode(downstreamConnections, "downstream-active-connections");
-            ObjectNode latestUpstreamConnectionsNode = createTopHitsNode(upstreamConnections, "upstream-active-connections");
-
-            bucket.set("latest_downstream-active-connections", latestDownstreamConnectionsNode);
-            bucket.set("latest_upstream-active-connections", latestUpstreamConnectionsNode);
-
-            return bucket;
-        }
-
-        private @NotNull ObjectNode createTopHitsNode(int value, String fieldName) {
-            ObjectNode node = MAPPER.createObjectNode();
-            node.put(fieldName, value);
-            ObjectNode metricsNode = MAPPER.createObjectNode();
-            metricsNode.set(METRICS, node);
-            ArrayNode arrayNode = MAPPER.createArrayNode();
-            arrayNode.add(metricsNode);
-            ObjectNode topHitsNode = MAPPER.createObjectNode();
-            topHitsNode.set(TOP, arrayNode);
-
-            return topHitsNode;
-        }
-
-        private @NotNull ObjectNode createCompositeKeysNode(String gwId) {
-            ObjectNode keysNode = MAPPER.createObjectNode();
-            keysNode.put("gw-id", gwId);
-            keysNode.put("app-id", "app-1");
-            keysNode.put("plan-id", "plan-1");
-            keysNode.put("org-id", "DEFAULT");
-            keysNode.put("env-id", "DEFAULT");
-
-            return keysNode;
-        }
-
-        private @NotNull List<JsonNode> getDeltaBuckets() throws IOException {
-            InputStream stream = this.getClass().getResourceAsStream("/buckets/event-metrics-delta-buckets.json");
-            JsonNode node = MAPPER.readTree(stream);
-
-            JsonNode upstream = node.get("upstream-subscribe-messages-total_delta");
-            JsonNode downstream = node.get("downstream-subscribe-messages-total_delta");
-            JsonNode node1 = MAPPER.createObjectNode().set("upstream-subscribe-messages-total_delta", upstream);
-            JsonNode node2 = MAPPER.createObjectNode().set("downstream-subscribe-messages-total_delta", downstream);
-
-            return List.of(node1, node2);
-        }
-
-        private static @NotNull SearchHit createHit(String fieldName, long value) {
-            SearchHit hit = new SearchHit();
-            var source = MAPPER.createObjectNode();
-            source.put(fieldName, value);
-            hit.setSource(source);
-
-            return hit;
-        }
+    private void applyAdditionalKeys(ObjectNode key1) {
+        key1.put("app-id", "app-1");
+        key1.put("plan-id", "plan-1");
+        key1.put("topic", "topic-1");
     }
 
     private static @NotNull List<Aggregation> getAggregations(AggregationType value, String field1, String field2) {
@@ -304,5 +250,41 @@ class TopHitsAggregationResponseAdapterTest {
             null,
             null
         );
+    }
+
+    private @NotNull ObjectNode createHitsNode(int value, String fieldName) {
+        ObjectNode node = MAPPER.createObjectNode();
+        node.put(fieldName, value);
+        ObjectNode metricsNode = MAPPER.createObjectNode();
+        metricsNode.set(METRICS, node);
+        ArrayNode arrayNode = MAPPER.createArrayNode();
+        arrayNode.add(metricsNode);
+        ObjectNode topHitsNode = MAPPER.createObjectNode();
+        topHitsNode.set(TOP, arrayNode);
+
+        return topHitsNode;
+    }
+
+    private @NotNull ObjectNode createCompositeKeysNode(String gwId) {
+        ObjectNode keysNode = MAPPER.createObjectNode();
+        keysNode.put("gw-id", gwId);
+        keysNode.put("app-id", "app-1");
+        keysNode.put("plan-id", "plan-1");
+        keysNode.put("org-id", "DEFAULT");
+        keysNode.put("env-id", "DEFAULT");
+
+        return keysNode;
+    }
+
+    private @NotNull List<JsonNode> getDeltaBuckets() throws IOException {
+        InputStream stream = this.getClass().getResourceAsStream("/buckets/event-metrics-delta-buckets.json");
+        JsonNode node = MAPPER.readTree(stream);
+
+        JsonNode upstream = node.get("upstream-subscribe-messages-total_delta");
+        JsonNode downstream = node.get("downstream-subscribe-messages-total_delta");
+        JsonNode node1 = MAPPER.createObjectNode().set("upstream-subscribe-messages-total_delta", upstream);
+        JsonNode node2 = MAPPER.createObjectNode().set("downstream-subscribe-messages-total_delta", downstream);
+
+        return List.of(node1, node2);
     }
 }

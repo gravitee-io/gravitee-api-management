@@ -75,12 +75,12 @@ public final class ElasticsearchDsl {
     // Stable application names and tokens (prefixes/suffixes chosen by us)
     public static final class Names {
 
-        public static final String LATEST_PREFIX = "latest_";
+        public static final String LATEST_BUCKET_PREFIX = "latest_";
         public static final String DELTA_BUCKET_SUFFIX = "_delta";
         public static final String BY_DIMENSIONS = "by_dimensions";
         public static final String PER_INTERVAL = "per_interval";
-        public static final String START_VALUE = "start_value";
-        public static final String END_VALUE = "end_value";
+        public static final String START_BUCKET_PREFIX = "start_";
+        public static final String END_BUCKET_PREFIX = "end_";
         public static final String MILLISECONDS = "ms";
         public static final String TOP = "top";
 
