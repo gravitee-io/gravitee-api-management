@@ -20,13 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import inmemory.AbstractUseCaseTest;
-import inmemory.MembershipCrudServiceInMemory;
-import inmemory.RoleQueryServiceInMemory;
+import inmemory.MembershipDomainServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.model.AddMember;
-import io.gravitee.apim.core.membership.model.Membership;
-import io.gravitee.apim.core.membership.model.Role;
-import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,13 +35,11 @@ import org.junit.jupiter.api.Test;
 class AddClusterMemberUseCaseTest extends AbstractUseCaseTest {
 
     private AddClusterMemberUseCase addClusterMemberUseCase;
-    private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
-    private final RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
+    private final MembershipDomainServiceInMemory membershipDomainService = new MembershipDomainServiceInMemory();
 
     @BeforeEach
     void setUp() {
-        addClusterMemberUseCase = new AddClusterMemberUseCase(membershipCrudService, roleQueryServiceInMemory);
-        initRoles();
+        addClusterMemberUseCase = new AddClusterMemberUseCase(membershipDomainService);
     }
 
     @Test
@@ -51,21 +49,17 @@ class AddClusterMemberUseCaseTest extends AbstractUseCaseTest {
         // When
         addClusterMemberUseCase.execute(new AddClusterMemberUseCase.Input(audit, addMember, "cluster-1"));
         // Then
-        var membership = membershipCrudService.storage().stream().findFirst().orElseThrow();
+        var membership = membershipDomainService.storage().stream().findFirst().orElseThrow();
         assertAll(() ->
             assertThat(membership)
                 .usingRecursiveComparison()
                 .isEqualTo(
-                    Membership.builder()
-                        .id(GENERATED_UUID)
-                        .memberId("user-1")
-                        .memberType(Membership.Type.USER)
-                        .referenceType(Membership.ReferenceType.CLUSTER)
+                    MemberEntity.builder()
+                        .referenceType(MembershipReferenceType.CLUSTER)
                         .referenceId("cluster-1")
-                        .roleId("role-1")
-                        .source("system")
-                        .createdAt(INSTANT_NOW.atZone(TimeProvider.clock().getZone()))
-                        .updatedAt(INSTANT_NOW.atZone(TimeProvider.clock().getZone()))
+                        .roles(List.of(RoleEntity.builder().name("USER").build()))
+                        .type(MembershipMemberType.USER)
+                        .id("user-1")
                         .build()
                 )
         );
@@ -79,18 +73,5 @@ class AddClusterMemberUseCaseTest extends AbstractUseCaseTest {
         assertThrows(SinglePrimaryOwnerException.class, () ->
             addClusterMemberUseCase.execute(new AddClusterMemberUseCase.Input(audit, addMember, "cluster-1"))
         );
-    }
-
-    private void initRoles() {
-        List<Role> roles = List.of(
-            Role.builder()
-                .id("role-1")
-                .scope(Role.Scope.CLUSTER)
-                .name("USER")
-                .referenceType(Role.ReferenceType.ORGANIZATION)
-                .referenceId("org-1")
-                .build()
-        );
-        roleQueryServiceInMemory.initWith(roles);
     }
 }

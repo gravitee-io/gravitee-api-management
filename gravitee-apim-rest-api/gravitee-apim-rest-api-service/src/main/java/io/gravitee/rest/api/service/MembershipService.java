@@ -239,9 +239,10 @@ public interface MembershipService {
         String source
     );
 
-    MemberEntity createNewMembershipForApi(
+    MemberEntity createNewMembership(
         ExecutionContext executionContext,
-        String apiId,
+        MembershipReferenceType referenceType,
+        String referenceId,
         String userId,
         String externalReference,
         String roleName

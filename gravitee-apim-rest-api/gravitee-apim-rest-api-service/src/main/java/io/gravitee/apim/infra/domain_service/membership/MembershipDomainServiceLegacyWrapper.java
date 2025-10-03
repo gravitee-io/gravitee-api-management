@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.domain_service.membership;
 
 import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
 import io.gravitee.apim.core.membership.model.TransferOwnership;
+import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -38,6 +39,7 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
 
     private final MembershipService legacyService;
     private final RoleService roleService;
+    private final MembershipService membershipService;
 
     @Override
     public Map<String, char[]> getUserMemberPermissions(
@@ -72,6 +74,25 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
             itemId,
             membershipMember,
             newRoles
+        );
+    }
+
+    @Override
+    public MemberEntity createNewMembership(
+        ExecutionContext executionContext,
+        io.gravitee.apim.core.member.model.MembershipReferenceType referenceType,
+        String referenceId,
+        String userId,
+        String externalReference,
+        String roleName
+    ) {
+        return membershipService.createNewMembership(
+            executionContext,
+            MembershipReferenceType.valueOf(referenceType.name()),
+            referenceId,
+            userId,
+            externalReference,
+            roleName
         );
     }
 
