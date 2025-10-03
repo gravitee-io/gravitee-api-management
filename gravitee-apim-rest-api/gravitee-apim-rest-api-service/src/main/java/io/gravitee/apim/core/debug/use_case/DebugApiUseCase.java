@@ -122,8 +122,8 @@ public class DebugApiUseCase {
     private DebugApiProxy validateApiExists(String apiId, HttpRequest debugApiRequest) {
         var api = apiCrudService.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-        return switch (api.getDefinitionVersion()) {
-            case V4: {
+        return switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api v4Api -> {
                 if (api.getType() != ApiType.PROXY) {
                     throw new DebugApiInvalidDefinitionVersionException(apiId);
                 }
@@ -135,9 +135,9 @@ public class DebugApiUseCase {
                     .toList();
 
                 validatePlans(apiId, null, plans);
-                yield new DebugApiV4(api.getApiDefinitionHttpV4().plans(plans).flow(flowCrudService.getApiV4Flows(apiId)), debugApiRequest);
+                yield new DebugApiV4(v4Api.plans(plans).flow(flowCrudService.getApiV4Flows(apiId)), debugApiRequest);
             }
-            case V2: {
+            case io.gravitee.definition.model.Api v2Api -> {
                 var plans = planQueryService
                     .findAllByApiId(apiId)
                     .stream()
@@ -145,10 +145,9 @@ public class DebugApiUseCase {
                     .map(plan -> plan.flows(flowCrudService.getPlanV2Flows(plan.getId())))
                     .toList();
                 validatePlans(apiId, plans, null);
-                yield new DebugApiV2(api.getApiDefinition().plans(plans).flows(flowCrudService.getApiV2Flows(apiId)), debugApiRequest);
+                yield new DebugApiV2(v2Api.plans(plans).flows(flowCrudService.getApiV2Flows(apiId)), debugApiRequest);
             }
-            default:
-                throw new DebugApiInvalidDefinitionVersionException(apiId);
+            default -> throw new DebugApiInvalidDefinitionVersionException(apiId);
         };
     }
 

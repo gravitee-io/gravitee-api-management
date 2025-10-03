@@ -189,14 +189,12 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
     }
 
     private void transformV4Api(Document doc, IndexableApi api) {
-        var apiDefinitionV4 = api.getApi().getType() == ApiType.NATIVE
-            ? api.getApi().getApiDefinitionNativeV4()
-            : api.getApi().getApiDefinitionHttpV4();
+        var apiDefinitionV4 = api.getApi().getApiDefinitionValue();
 
-        if (api.getApi().getType() == ApiType.NATIVE) {
-            transformV4ApiNativeListeners(doc, api.getApi().getApiDefinitionNativeV4());
-        } else {
-            transformV4ApiHttpListeners(doc, api.getApi().getApiDefinitionHttpV4());
+        switch (apiDefinitionV4) {
+            case io.gravitee.definition.model.v4.Api v4Api -> transformV4ApiHttpListeners(doc, v4Api);
+            case io.gravitee.definition.model.v4.nativeapi.NativeApi v4NativeApi -> transformV4ApiNativeListeners(doc, v4NativeApi);
+            default -> {}
         }
 
         // tags
@@ -261,23 +259,22 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         var api = indexableApi.getApi();
 
         // Handle v2 API paths from proxy configuration
-        if (api.getApiDefinition() != null && api.getApiDefinition().getProxy() != null) {
+        if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api apiV2 && apiV2.getProxy() != null) {
             final int[] pathIndex = { 0 };
-            api
-                .getApiDefinition()
+            apiV2
                 .getProxy()
                 .getVirtualHosts()
                 .forEach(virtualHost -> appendPath(doc, pathIndex, virtualHost.getHost(), virtualHost.getPath()));
         }
 
         // Handle v2 API tags
-        if (api.getApiDefinition() != null && api.getApiDefinition().getTags() != null && !api.getApiDefinition().getTags().isEmpty()) {
-            for (String tag : api.getApiDefinition().getTags()) {
+        if (api.getTags() != null && !api.getTags().isEmpty()) {
+            for (String tag : api.getTags()) {
                 doc.add(new StringField(FIELD_TAGS, tag, Field.Store.NO));
                 doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
             }
-            String tagsAsc = api.getApiDefinition().getTags().stream().sorted().collect(Collectors.joining(","));
-            String tagsDesc = api.getApiDefinition().getTags().stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
+            String tagsAsc = api.getTags().stream().sorted().collect(Collectors.joining(","));
+            String tagsDesc = api.getTags().stream().sorted(Comparator.reverseOrder()).collect(Collectors.joining(","));
             doc.add(new SortedDocValuesField(FIELD_TAGS_ASC_SORTED, toSortedValue(tagsAsc)));
             doc.add(new SortedDocValuesField(FIELD_TAGS_DESC_SORTED, toSortedValue(tagsDesc)));
         }
@@ -287,11 +284,12 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
     }
 
     private boolean hasHealthCheckEnabledV2(Api api) {
-        if (api.getApiDefinition() == null) {
+        io.gravitee.definition.model.Api apiDefinition;
+        if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api definition) {
+            apiDefinition = definition;
+        } else {
             return false;
         }
-
-        var apiDefinition = api.getApiDefinition();
 
         // Check for global health check services at API level
         if (apiDefinition.getServices() != null) {

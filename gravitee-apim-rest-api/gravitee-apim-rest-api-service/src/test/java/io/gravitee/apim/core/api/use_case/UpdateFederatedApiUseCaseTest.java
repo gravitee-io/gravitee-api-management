@@ -278,7 +278,7 @@ class UpdateFederatedApiUseCaseTest {
         assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
         assertThat(result.getApiDefinitionHttpV4()).isEqualTo(null);
         assertThat(result.getApiDefinition()).isEqualTo(null);
-        assertThat(result.getFederatedApiDefinition()).isEqualTo(FederatedApi.builder().build());
+        assertThat(result.getApiDefinitionValue()).isEqualTo(FederatedApi.builder().build());
         assertThat(result.getType()).isEqualTo(ApiType.PROXY);
         assertThat(result.getDeployedAt()).isEqualTo(oldDate);
         assertThat(result.getCreatedAt()).isEqualTo(oldDate);

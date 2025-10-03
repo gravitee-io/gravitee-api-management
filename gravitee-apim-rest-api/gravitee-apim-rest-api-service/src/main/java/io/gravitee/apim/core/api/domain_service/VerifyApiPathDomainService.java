@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -211,20 +212,18 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     }
 
     private static List<Path> extractPaths(Api api) {
-        return api.getDefinitionVersion() == DefinitionVersion.V4 ? getHttpV4Paths(api) : getV2Paths(api);
+        return switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api v4Api -> getHttpV4Paths(v4Api);
+            case io.gravitee.definition.model.Api v2Api -> getV2Paths(v2Api);
+            case null, default -> new ArrayList<>();
+        };
     }
 
-    private static List<Path> getHttpV4Paths(Api api) {
-        if (api.getApiDefinitionHttpV4() == null) {
-            return new ArrayList<>();
-        }
-
-        return api
-            .getApiDefinitionHttpV4()
+    private static List<Path> getHttpV4Paths(io.gravitee.definition.model.v4.Api v4Api) {
+        return v4Api
             .getListeners()
             .stream()
-            .filter(HttpListener.class::isInstance)
-            .map(HttpListener.class::cast)
+            .flatMap(listener -> listener instanceof HttpListener httpListener ? Stream.of(httpListener) : Stream.of())
             .flatMap(httpListener ->
                 httpListener
                     .getPaths()
@@ -236,9 +235,8 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
             .toList();
     }
 
-    private static List<Path> getV2Paths(Api api) {
-        return api
-            .getApiDefinition()
+    private static List<Path> getV2Paths(io.gravitee.definition.model.Api apiDefinition) {
+        return apiDefinition
             .getProxy()
             .getVirtualHosts()
             .stream()

@@ -265,7 +265,7 @@ class RollbackApiUseCaseTest {
         // Then
         assertThat(throwable)
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Cannot determine API definition version from event" + event.getId());
+            .hasMessage("Cannot rollback an API that is not a V4 or V2 API (%s)".formatted(event.getId()));
     }
 
     @Test
@@ -283,7 +283,9 @@ class RollbackApiUseCaseTest {
         var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
 
         // Then
-        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback a federated API");
+        assertThat(throwable)
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Cannot rollback an API that is not a V4 or V2 API (%s)".formatted(event.getId()));
     }
 
     @Test
@@ -301,7 +303,9 @@ class RollbackApiUseCaseTest {
         var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
 
         // Then
-        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Cannot rollback an API that is not a V4 API");
+        assertThat(throwable)
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Cannot rollback an API that is not a V4 or V2 API (%s)".formatted(event.getId()));
     }
 
     @Test

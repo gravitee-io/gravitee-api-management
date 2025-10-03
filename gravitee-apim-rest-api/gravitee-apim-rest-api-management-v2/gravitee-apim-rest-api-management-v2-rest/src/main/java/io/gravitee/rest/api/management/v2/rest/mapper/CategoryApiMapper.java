@@ -51,17 +51,15 @@ public interface CategoryApiMapper {
 
         switch (api.getDefinitionVersion()) {
             case V4 -> {
-                if (Objects.nonNull(api.getApiDefinitionHttpV4()) && Objects.nonNull(api.getApiDefinitionHttpV4().getListeners())) {
-                    Stream<String> tcpListenerHostsStream = api
-                        .getApiDefinitionHttpV4()
+                if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4 && Objects.nonNull(v4.getListeners())) {
+                    Stream<String> tcpListenerHostsStream = v4
                         .getListeners()
                         .stream()
                         .filter(listener -> ListenerType.TCP.equals(listener.getType()))
                         .map(TcpListener.class::cast)
                         .flatMap(listener -> listener.getHosts().stream());
 
-                    Stream<String> httpListenerHostsStream = api
-                        .getApiDefinitionHttpV4()
+                    Stream<String> httpListenerHostsStream = v4
                         .getListeners()
                         .stream()
                         .filter(listener -> ListenerType.HTTP.equals(listener.getType()))
@@ -75,11 +73,11 @@ public interface CategoryApiMapper {
             }
             case V2 -> {
                 if (
-                    Objects.nonNull(api.getApiDefinition()) &&
-                    Objects.nonNull(api.getApiDefinition().getProxy()) &&
-                    Objects.nonNull(api.getApiDefinition().getProxy().getVirtualHosts())
+                    api.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api apiV2 &&
+                    Objects.nonNull(apiV2.getProxy()) &&
+                    Objects.nonNull(apiV2.getProxy().getVirtualHosts())
                 ) {
-                    var virtualHosts = api.getApiDefinition().getProxy().getVirtualHosts();
+                    var virtualHosts = apiV2.getProxy().getVirtualHosts();
                     if (Objects.nonNull(virtualHosts)) {
                         return virtualHosts
                             .stream()

@@ -32,7 +32,7 @@ import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookCo
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApplicationHookContext;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collections;
@@ -95,9 +95,13 @@ public class CloseSubscriptionDomainService {
     }
 
     private SubscriptionEntity closeAcceptedOrPausedSubscription(SubscriptionEntity subscriptionEntity, Api api, AuditInfo auditInfo) {
-        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED && api.getOriginContext() instanceof OriginContext.Integration inte) {
-            var federatedApi = api.getFederatedApiDefinition();
-            integrationAgent.unsubscribe(inte.integrationId(), federatedApi, subscriptionEntity).blockingAwait();
+        var definition = api.getApiDefinitionValue();
+        if (
+            definition instanceof FederatedApi federatedApi &&
+            api.getOriginContext() instanceof
+                OriginContext.Integration(Object ignored, String integrationId, Object ignored1, Object ignored2)
+        ) {
+            integrationAgent.unsubscribe(integrationId, federatedApi, subscriptionEntity).blockingAwait();
         }
 
         var closedSubscriptionEntity = subscriptionCrudService.update(subscriptionEntity.close());
