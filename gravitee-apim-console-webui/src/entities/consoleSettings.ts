@@ -16,28 +16,29 @@
 export interface ConsoleSettings {
   email?: ConsoleSettingsEmail;
   metadata?: ConsoleSettingsMetadata;
-  alert?: DisablableFeature;
+  alert?: DisableableFeature;
   authentication?: ConsoleSettingsAuthentication;
   cors?: ConsoleSettingsCors;
   reCaptcha?: ConsoleSettingsReCaptcha;
   scheduler?: ConsoleSettingsScheduler;
   analyticsPendo?: ConsoleSettingsAnalyticsPendo;
   logging?: ConsoleSettingsLogging;
-  maintenance?: DisablableFeature;
+  maintenance?: DisableableFeature;
   management?: ConsoleSettingsManagement;
-  newsletter?: DisablableFeature;
+  newsletter?: DisableableFeature;
   theme?: ConsoleSettingsTheme;
   emulateV4Engine?: ConsoleSettingsV4EmulationEngine;
-  alertEngine?: DisablableFeature;
-  licenseExpirationNotification?: DisablableFeature;
-  trialInstance?: DisablableFeature;
-  federation?: DisablableFeature;
-  cloudHosted?: DisablableFeature;
+  alertEngine?: DisableableFeature;
+  licenseExpirationNotification?: DisableableFeature;
+  trialInstance?: DisableableFeature;
+  federation?: DisableableFeature;
+  cloudHosted?: DisableableFeature;
   userGroup?: ConsoleSettingsUserGroup;
-  elGen?: DisablableFeature;
+  elGen?: DisableableFeature;
+  kafkaConsole?: DisableableFeature;
 }
 
-export interface ConsoleSettingsEmail extends DisablableFeature {
+export interface ConsoleSettingsEmail extends DisableableFeature {
   enabled?: boolean;
   host?: string;
   port?: number;
@@ -65,9 +66,9 @@ export interface ConsoleSettingsAuthentication {
   oauth2?: {
     clientId?: string;
   };
-  localLogin?: DisablableFeature;
-  externalAuth?: DisablableFeature;
-  externalAuthAccountDeletion?: DisablableFeature;
+  localLogin?: DisableableFeature;
+  externalAuth?: DisableableFeature;
+  externalAuthAccountDeletion?: DisableableFeature;
 }
 
 export interface ConsoleSettingsCors {
@@ -78,7 +79,7 @@ export interface ConsoleSettingsCors {
   maxAge?: number;
 }
 
-export interface ConsoleSettingsReCaptcha extends DisablableFeature {
+export interface ConsoleSettingsReCaptcha extends DisableableFeature {
   siteKey?: string;
 }
 
@@ -87,7 +88,7 @@ export interface ConsoleSettingsScheduler {
   notifications?: number;
 }
 
-export interface ConsoleSettingsAnalyticsPendo extends DisablableFeature {
+export interface ConsoleSettingsAnalyticsPendo extends DisableableFeature {
   apiKey?: string;
   accountType?: string;
   accountHrid?: string;
@@ -96,8 +97,8 @@ export interface ConsoleSettingsAnalyticsPendo extends DisablableFeature {
 
 export interface ConsoleSettingsLogging {
   maxDurationMillis?: number;
-  audit?: DisablableFeature & {
-    trail?: DisablableFeature;
+  audit?: DisableableFeature & {
+    trail?: DisableableFeature;
   };
   user?: {
     displayed?: boolean;
@@ -118,18 +119,18 @@ export interface ConsoleSettingsLogging {
   };
 }
 
-interface DisablableFeature {
+interface DisableableFeature {
   enabled?: boolean;
 }
 
 export interface ConsoleSettingsManagement {
-  support?: DisablableFeature;
+  support?: DisableableFeature;
   title?: string;
   url?: string;
   installationType?: 'standalone' | 'multi-tenant';
-  userCreation?: DisablableFeature;
-  automaticValidation?: DisablableFeature;
-  systemRoleEdition?: DisablableFeature;
+  userCreation?: DisableableFeature;
+  automaticValidation?: DisableableFeature;
+  systemRoleEdition?: DisableableFeature;
 }
 
 export interface ConsoleSettingsTheme {
@@ -144,5 +145,5 @@ export interface ConsoleSettingsV4EmulationEngine {
 }
 
 interface ConsoleSettingsUserGroup {
-  required: DisablableFeature;
+  required: DisableableFeature;
 }

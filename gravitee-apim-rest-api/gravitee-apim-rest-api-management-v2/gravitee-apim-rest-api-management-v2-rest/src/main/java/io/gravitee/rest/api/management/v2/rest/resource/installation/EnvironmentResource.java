@@ -28,6 +28,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentN
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentScoringResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.kafka_console.ProxyKafkaConsoleResource;
 import io.gravitee.rest.api.management.v2.rest.resource.portal_pages.PortalPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.PortalMenuLinksResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ThemesResource;
@@ -122,5 +123,10 @@ public class EnvironmentResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Environment getEnvironment(@PathParam("envId") String envId) {
         return EnvironmentMapper.INSTANCE.map(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
+    }
+
+    @Path("/proxy-kafka-console")
+    public ProxyKafkaConsoleResource getProxyKafkaConsoleResource() {
+        return resourceContext.getResource(ProxyKafkaConsoleResource.class);
     }
 }

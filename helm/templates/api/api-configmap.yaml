@@ -167,7 +167,7 @@ data:
           authentication:
             {{- if .Values.api.services.bridge.authentication }}
 {{ toYaml .Values.api.services.bridge.authentication | indent 12 }}
-            {{- else if .Values.api.services.bridge.username}}
+            {{- else if .Values.api.services.bridge.username }}
             type: basic
             users:
               {{ .Values.api.services.bridge.username }}: {{ .Values.api.services.bridge.password }}
@@ -576,6 +576,24 @@ data:
         config-path: "${gravitee.home}/config/hazelcast-cache.xml"
     {{- end }}
     {{- end }}
+<<<<<<< HEAD
+=======
+    {{- if .Values.api.newtai.elgen.enabled }}
+    newtai:
+      elgen:
+        enabled: true
+    {{- end }}
+    {{- if .Values.kafkaConsole.enabled }}
+    kafka:
+      console:
+        enabled: true
+        server:
+          host: {{ template "gravitee.kafkaConsole.fullname" . }}
+          port: {{ .Values.kafkaConsole.service.externalPort }}
+        security:
+          secret: {{ .Values.kafkaConsole.jwt.secret }}
+    {{- end }}
+>>>>>>> 33996c5655 (feat: integrate kafka console with apim)
 
     {{- if .Values.api.federation.enabled }}
   hazelcast-cluster.xml: |-
