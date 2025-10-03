@@ -95,6 +95,16 @@ data:
             {{- end }}
             path: {{ $server.ssl.truststore.path }}
             password: {{ $server.ssl.truststore.password | quote }}
+          {{- if $server.ssl.crl }}
+          crl:
+            {{- if $server.ssl.crl.type }}
+            type: {{ $server.ssl.crl.type }}
+            {{- end }}
+            path: {{ $server.ssl.crl.path }}
+            {{- end }}
+            {{- if hasKey $server.ssl.crl "watch" }}
+            watch: {{ $server.ssl.crl.watch }}
+            {{- end }}
           {{- end }}
           {{- if $server.ssl.sni }}
           sni: true

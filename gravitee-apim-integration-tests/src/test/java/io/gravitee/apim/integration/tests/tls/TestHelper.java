@@ -35,6 +35,8 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
+import java.security.cert.X509CRL;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -205,5 +207,21 @@ public class TestHelper {
     ) {
         record KeyPairLocation(Path certPath, Path keyPath) {}
         record CertGen(Path certPath, String cert) {}
+    }
+
+    /**
+     * Create a CRL file with optional revoked certificates
+     * @param issuer the CA key pair used to sign the CRL
+     * @param revokedCerts optional array of certificates to mark as revoked
+     * @return path to the generated CRL file
+     * @throws Exception when something wrong happened while generating the CRL
+     */
+    static Path createCRLFile(TLSUtils.X509Pair issuer, X509Certificate... revokedCerts) throws Exception {
+        Path crlPath = Files.createTempFile("test", ".crl");
+        X509CRL crl = TLSUtils.generateCRL(issuer, revokedCerts);
+        try (FileOutputStream fos = new FileOutputStream(crlPath.toFile())) {
+            fos.write(crl.getEncoded());
+        }
+        return crlPath;
     }
 }

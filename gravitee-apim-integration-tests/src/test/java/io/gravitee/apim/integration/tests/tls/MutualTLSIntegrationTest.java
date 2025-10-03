@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static io.gravitee.apim.integration.tests.tls.TestHelper.*;
 import static io.gravitee.apim.integration.tests.tls.TestHelper.PASSWORD;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -29,6 +30,7 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayDynamicConfig;
+import io.gravitee.apim.gateway.tests.sdk.utils.TLSUtils;
 import io.gravitee.node.api.certificate.KeyStoreLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -243,6 +245,110 @@ public class MutualTLSIntegrationTest {
                 });
 
             assertHandshakeError(vertx(), httpCert, GATEWAY_HTTP_API_URI, httpConfig.httpPort(), httpClientKeyPair);
+        }
+    }
+
+    @GatewayTest
+    @Nested
+    class CRLValidationTest extends AbstractMTlsTest {
+
+        private Path httpCrlFilePath;
+        private PemGenResult.KeyPairLocation httpClientKeyPair;
+        private TLSUtils.X509Pair httpCA;
+        private TLSUtils.X509Cert httpClientCert;
+
+        @Override
+        @SneakyThrows
+        protected void configureGateway(GatewayConfigurationBuilder config) {
+            super.configureGateway(config);
+
+            // Generate client certificate - this will also be our CA for signing CRL
+            PemGenResult clientCertGen = createNewPEMs(CLIENT_CN);
+            this.httpClientKeyPair = clientCertGen.locations().get(CLIENT_CN);
+
+            // Store the client cert path for truststore AND for revocation
+            Path httpServerTrustPemPath = clientCertGen.certificates().get(CLIENT_CN).certPath();
+            Path httpServerKeyPemPath = clientCertGen.locations().get(CLIENT_CN).keyPath();
+
+            // Load the certificate and private key from PEM files to construct X509Pair for CA
+            // This ensures we use the SAME certificate for both client auth and CRL signing
+            java.security.cert.X509Certificate loadedCert;
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(httpServerTrustPemPath.toFile())) {
+                java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+                loadedCert = (java.security.cert.X509Certificate) cf.generateCertificate(fis);
+            }
+
+            // Load the private key
+            java.security.PrivateKey loadedKey;
+            try (java.io.FileReader keyReader = new java.io.FileReader(httpServerKeyPemPath.toFile())) {
+                org.bouncycastle.openssl.PEMParser pemParser = new org.bouncycastle.openssl.PEMParser(keyReader);
+                Object keyObject = pemParser.readObject();
+                org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter converter = new org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter();
+                if (keyObject instanceof org.bouncycastle.asn1.pkcs.PrivateKeyInfo) {
+                    loadedKey = converter.getPrivateKey((org.bouncycastle.asn1.pkcs.PrivateKeyInfo) keyObject);
+                } else if (keyObject instanceof org.bouncycastle.openssl.PEMKeyPair) {
+                    loadedKey = converter.getPrivateKey(((org.bouncycastle.openssl.PEMKeyPair) keyObject).getPrivateKeyInfo());
+                } else {
+                    throw new IllegalArgumentException("Unsupported key type: " + keyObject.getClass());
+                }
+            }
+
+            // Construct X509Pair from loaded certificate and key - this is our CA for CRL signing
+            this.httpClientCert = new TLSUtils.X509Cert(loadedCert);
+            this.httpCA = new TLSUtils.X509Pair(httpClientCert, new TLSUtils.X509Key(loadedKey));
+
+            // Debug: Print certificate serial number to verify it's the same
+            System.out.println(
+                "DEBUG: Client certificate serial number: " +
+                    loadedCert.getSerialNumber() +
+                    ", Subject: " +
+                    loadedCert.getSubjectX500Principal()
+            );
+
+            // Create empty CRL initially (no revoked certificates)
+            this.httpCrlFilePath = createCRLFile(httpCA);
+
+            // Configure truststore + CRL
+            config.set("http.ssl.truststore.type", KeyStoreLoader.CERTIFICATE_FORMAT_PEM);
+            config.set("http.ssl.truststore.path", httpServerTrustPemPath.toAbsolutePath().toString());
+            config.set("http.ssl.crl.type", "file");
+            config.set("http.ssl.crl.path", httpCrlFilePath.toAbsolutePath().toString());
+        }
+
+        @Test
+        @DeployApi({ "/apis/v4/http/api.json" })
+        void should_accept_valid_certificate_when_crl_is_empty(GatewayDynamicConfig.HttpConfig httpConfig) throws Exception {
+            // Call should succeed with empty CRL (no revoked certificates)
+            var httpClient = createTrustedHttpClient(vertx(), httpCert, httpClientKeyPair);
+            assertApiCall(httpClient, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+        }
+
+        @Test
+        @DeployApi({ "/apis/v4/http/api.json" })
+        void should_reject_revoked_certificate_when_present_in_crl(GatewayDynamicConfig.HttpConfig httpConfig) throws Exception {
+            // 1. Successful call with valid certificate
+            var httpClient = createTrustedHttpClient(vertx(), httpCert, httpClientKeyPair);
+            assertApiCall(httpClient, httpConfig.httpPort(), BRIGHT_SIDE_FQDN, GATEWAY_HTTP_API_URI);
+
+            // 2. Revoke the client certificate by creating CRL with revoked cert
+            System.out.println(
+                "DEBUG: Revoking certificate with serial number: " +
+                    httpClientCert.data().getSerialNumber() +
+                    ", Subject: " +
+                    httpClientCert.data().getSubjectX500Principal()
+            );
+            Path newCrlPath = createCRLFile(httpCA, httpClientCert.data());
+            Files.copy(newCrlPath, httpCrlFilePath, REPLACE_EXISTING);
+            System.out.println("DEBUG: CRL file updated at: " + httpCrlFilePath);
+
+            // 3. Wait for CRL detection and verify handshake fails
+            await()
+                .atMost(10, TimeUnit.SECONDS)
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> {
+                    System.out.println("6435234643 tentative d'assrt");
+                    assertHandshakeError(vertx(), httpCert, BRIGHT_SIDE_FQDN, httpConfig.httpPort(), httpClientKeyPair);
+                });
         }
     }
 

@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.Certificate;
+import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -29,9 +30,12 @@ import java.util.Collections;
 import java.util.Date;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v2CRLBuilder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CRLConverter;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.crypto.util.PrivateKeyFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -211,5 +215,36 @@ public class TLSUtils {
         } else {
             throw new IllegalArgumentException("%s cannot be added to a key store".formatted(data));
         }
+    }
+
+    /**
+     * Generate a Certificate Revocation List (CRL) with optional revoked certificates
+     * @param issuerKeyPair the CA key pair used to sign the CRL
+     * @param revokedCerts optional array of certificates to mark as revoked
+     * @return an X509CRL object
+     * @throws Exception when something wrong happened while generating the CRL
+     */
+    public static X509CRL generateCRL(X509Pair issuerKeyPair, X509Certificate... revokedCerts) throws Exception {
+        X509v2CRLBuilder crlBuilder = new X509v2CRLBuilder(
+            new X500Name(issuerKeyPair.certificate().data().getSubjectX500Principal().getName()),
+            Date.from(Instant.now())
+        );
+
+        crlBuilder.setNextUpdate(Date.from(Instant.now().plus(30, ChronoUnit.DAYS)));
+
+        // Add revoked certificates
+        if (revokedCerts != null) {
+            for (X509Certificate cert : revokedCerts) {
+                crlBuilder.addCRLEntry(cert.getSerialNumber(), Date.from(Instant.now()), CRLReason.unspecified);
+            }
+        }
+
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256WithRSAEncryption");
+        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+        ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(
+            PrivateKeyFactory.createKey(issuerKeyPair.privateKey().data().getEncoded())
+        );
+
+        return new JcaX509CRLConverter().getCRL(crlBuilder.build(signer));
     }
 }
