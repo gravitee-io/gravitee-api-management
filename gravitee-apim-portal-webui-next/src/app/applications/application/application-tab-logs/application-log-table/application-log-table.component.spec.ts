@@ -29,10 +29,8 @@ import { BehaviorSubject } from 'rxjs';
 import { ApplicationLogTableComponent } from './application-log-table.component';
 import { PaginationHarness } from '../../../../../components/pagination/pagination.harness';
 import { fakeApplication } from '../../../../../entities/application/application.fixture';
-import { LogsResponse } from '../../../../../entities/log/log';
-import { fakeLogListItem, fakeLogsResponse } from '../../../../../entities/log/log.fixture';
-import { fakeSubscription, fakeSubscriptionResponse } from '../../../../../entities/subscription/subscription.fixture';
-import { SubscriptionsResponse } from '../../../../../entities/subscription/subscriptions-response';
+import { LogsResponse, fakeLogListItem, fakeLogsResponse } from '../../../../../entities/log';
+import { fakeSubscription, fakeSubscriptionResponse, SubscriptionsResponse } from '../../../../../entities/subscription';
 import { SearchApplicationLogsParameters } from '../../../../../services/application-log.service';
 import { AppTestingModule, TESTING_BASE_URL } from '../../../../../testing/app-testing.module';
 import { MoreFiltersDialogComponent } from '../more-filters-dialog/more-filters-dialog.component';
@@ -763,7 +761,15 @@ describe('ApplicationLogTableComponent', () => {
 
           await getSearchButton().then(btn => btn.click());
 
-          expectGetApplicationLogs(fakeLogsResponse(), { to, from: new Date('6/10/2016').getTime() });
+          const expectedTo = (() => {
+            const d = new Date(to);
+            d.setHours(23, 59, 59, 999);
+            return d.getTime();
+          })();
+
+          const expectedFrom = new Date('6/10/2016').getTime();
+
+          expectGetApplicationLogs(fakeLogsResponse(), { to: expectedTo, from: expectedFrom });
         });
       });
 
