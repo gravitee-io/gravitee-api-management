@@ -20,12 +20,12 @@
     <app-drawer [isOpen]="isSidebarExpanded()" (collapse)="isSidebarExpanded.set($event)">
       <app-page-tree
         class="api-tab-documentation__side-bar__tree"
-        [activePage]="pageId()"
+        [activePage]="pageId"
         [pages]="pageNodes"
         (openFile)="showPage($event)" />
     </app-drawer>
   </div>
-  @if (apiId && pageId(); as pageId) {
+  @if (apiId && pageId) {
     <app-api-documentation [apiId]="apiId" [pages]="pages" [pageId]="pageId" />
   }
 } @else {

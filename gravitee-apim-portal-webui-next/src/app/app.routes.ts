@@ -80,12 +80,11 @@ const apiRoutes: Routes = [
           },
           {
             path: 'documentation',
-            component: ApiTabDocumentationComponent,
             data: { breadcrumb: { label: 'Documentation', disable: true } },
             children: [
               {
                 path: ':pageId',
-                component: ApiDocumentationComponent,
+                component: ApiTabDocumentationComponent,
                 data: { breadcrumb: { alias: 'pageName' } },
               },
             ],
