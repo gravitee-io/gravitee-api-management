@@ -18,7 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { PortalThemeComponent } from './portal-theme.component';
+import { PortalThemeComponent, ThemeVM } from './portal-theme.component';
 import { PortalThemeHarness } from './portal-theme.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
@@ -161,6 +161,81 @@ describe('PortalThemeComponent', () => {
     await componentHarness.setPrimaryColor(currentTheme.definition.color.primary);
     expect(await componentHarness.isSubmitInvalid()).toBeTruthy();
     expect(await componentHarness.getNewPortalBadge()).toBeTruthy();
+  });
+
+  describe('css editor', () => {
+    const baseTheme: ThemeVM = {
+      logo: ['logo.png'],
+      favicon: ['favicon.ico'],
+      font: 'Roboto',
+      primaryColor: '#613CB0',
+      secondaryColor: '#958BA9',
+      tertiaryColor: '#B7818F',
+      errorColor: '#EC6152',
+      pageBackgroundColor: '#F7F8FD',
+      cardBackgroundColor: '#FFFFFF',
+      customCSS: 'body { color: red; }',
+    };
+
+    it('should allow publish when initial form values differ from new form values', async () => {
+      expect(await componentHarness.isSubmitInvalid()).toEqual(true);
+
+      const theme11 = { ...baseTheme, customCSS: 'body { color: blue; }' };
+      const theme22 = { ...baseTheme, customCSS: 'body {\n  color: red;\t}' };
+
+      component['initialFormValue$'].set(theme11);
+      component['portalThemeForm'].reset(theme22);
+
+      fixture.detectChanges();
+
+      expect(await componentHarness.isSubmitInvalid()).toEqual(false);
+    });
+
+    describe('restore default values', () => {
+      it('should reset form fields, including monaco editor, to their default values', async () => {
+        expect(await componentHarness.getPrimaryColor()).toBe(currentTheme.definition.color.primary);
+        expect(await componentHarness.getCustomCSS()).toBe(currentTheme.definition.customCss);
+
+        await componentHarness.setPrimaryColor('#000000');
+        expect(await componentHarness.getPrimaryColor()).toBe('#000000');
+
+        await componentHarness.setCustomCSS('div { border: 1px solid black; }');
+        // check monaco editor in the browser:
+        expect(await componentHarness.getCustomCSS()).toBe('div { border: 1px solid black; }');
+        // check monaco editor in the reactive form object:
+        const cssValue1 = fixture.componentInstance.portalThemeForm.controls.customCSS.value;
+        expect(cssValue1).toBe('div { border: 1px solid black; }');
+
+        expect(await componentHarness.isSubmitInvalid()).toBe(false); // Form is now dirty
+
+        await componentHarness.clickRestoreDefaults();
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        expect(await componentHarness.getPrimaryColor()).toBe(defaultTheme.definition.color.primary);
+
+        // check monaco editor in the browser:
+        expect(await componentHarness.getCustomCSS()).toBe('');
+        // check monaco editor in the reactive form object:
+        const cssValue2 = fixture.componentInstance.portalThemeForm.controls.customCSS.value;
+        expect(cssValue2).toBe('');
+
+        // The form should be dirty, as the new values differ from the initial `currentTheme`
+        expect(await componentHarness.isSubmitInvalid()).toBe(false);
+      });
+
+      it('should reset monaco editor to empty string if default theme has custom CSS set to empty string', async () => {
+        component['defaultValues'].customCSS = '';
+
+        expect(await componentHarness.getCustomCSS()).toBe(currentTheme.definition.customCss);
+
+        await componentHarness.clickRestoreDefaults();
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        expect(await componentHarness.getCustomCSS()).toBe('');
+      });
+    });
   });
 
   function expectDefaultTheme(theme: ThemePortalNext) {
