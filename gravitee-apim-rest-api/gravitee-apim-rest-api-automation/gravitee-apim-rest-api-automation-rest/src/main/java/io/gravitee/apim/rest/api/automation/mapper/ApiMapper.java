@@ -41,7 +41,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -116,8 +115,8 @@ public interface ApiMapper {
     ChannelSelector map(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector selector);
     ConditionSelector map(io.gravitee.rest.api.management.v2.rest.model.ConditionSelector selector);
 
-    PlanCRD map(PlanV4 planV4);
-    PageCRD map(PageV4 pageV4);
+    PlanCRD map(PlanV4 planV4, int order);
+    PageCRD map(PageV4 pageV4, int order);
 
     PlanV4 map(PlanCRD planCRD);
     PageV4 map(PageCRD pageCRD);
@@ -211,7 +210,12 @@ public interface ApiMapper {
             return Map.of();
         }
 
-        return apiV4Spec.getPlans().stream().collect(Collectors.toMap(PlanV4::getHrid, this::map));
+        Map<String, PlanCRD> plans = new LinkedHashMap<>();
+        for (int i = 0; i < apiV4Spec.getPlans().size(); i++) {
+            PlanV4 planV4 = apiV4Spec.getPlans().get(i);
+            plans.put(planV4.getHrid(), map(planV4, i));
+        }
+        return plans;
     }
 
     default List<PlanV4> mapApiCRDSpecPlans(ApiCRDSpec apiCRD) {
@@ -239,8 +243,7 @@ public interface ApiMapper {
         Map<String, PageCRD> pages = new LinkedHashMap<>();
         for (int i = 0; i < apiV4Spec.getPages().size(); i++) {
             PageV4 pageV4 = apiV4Spec.getPages().get(i);
-            pageV4.setOrder(i);
-            pages.put(pageV4.getHrid(), map(pageV4));
+            pages.put(pageV4.getHrid(), map(pageV4, i));
         }
         return pages;
     }
