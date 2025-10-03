@@ -1074,6 +1074,7 @@ components:
       examples:
         - MESSAGE
       enum:
+        - LLM_PROXY
         - MESSAGE
         - PROXY
         - NATIVE
