@@ -144,25 +144,29 @@ public class MongoUserRepository implements UserRepository {
     @Override
     public User create(User user) throws TechnicalException {
         logger.debug("Create user [{}]", user.getId());
+        try {
+            UserMongo userMongo = mapper.map(user);
 
-        UserMongo userMongo = mapper.map(user);
+            if (isEncryptionEnabled) {
+                if (userMongo.getSourceId() != null) {
+                    userMongo.setSourceId(userMongo.getSourceId().toLowerCase());
+                }
+                if (userMongo.getEmail() != null) {
+                    userMongo.setEmail(userMongo.getEmail().toLowerCase());
+                }
+            }
 
-        if (isEncryptionEnabled) {
-            if (userMongo.getSourceId() != null) {
-                userMongo.setSourceId(userMongo.getSourceId().toLowerCase());
-            }
-            if (userMongo.getEmail() != null) {
-                userMongo.setEmail(userMongo.getEmail().toLowerCase());
-            }
+            UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
+
+            User res = mapper.map(createdUserMongo);
+
+            logger.debug("Create user [{}] - Done", user.getId());
+
+            return res;
+        } catch (Exception ex) {
+            logger.error("Failed to create user with id: {}", user.getId(), ex);
+            throw new TechnicalException("Failed to create user");
         }
-
-        UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
-
-        User res = mapper.map(createdUserMongo);
-
-        logger.debug("Create user [{}] - Done", user.getId());
-
-        return res;
     }
 
     @Override
