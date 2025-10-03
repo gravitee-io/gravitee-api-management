@@ -21,7 +21,13 @@
       <div class="application-general-access-groups__body">
         <mat-form-field>
           <mat-label>Groups</mat-label>
-          <mat-select formControlName="selectedGroups" multiple>
+          <mat-select
+            formControlName="selectedGroups"
+            (openedChange)="onSelectToggle($event)"
+            role="listbox"
+            aria-multiselectable="true"
+            multiple
+          >
             <mat-option *ngFor="let availableGroup of groups" [value]="availableGroup.id">{{ availableGroup.name }}</mat-option>
           </mat-select>
         </mat-form-field>
