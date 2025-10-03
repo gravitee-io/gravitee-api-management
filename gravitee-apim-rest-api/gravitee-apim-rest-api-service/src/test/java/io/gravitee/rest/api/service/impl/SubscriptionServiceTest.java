@@ -96,6 +96,7 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
@@ -2472,6 +2473,51 @@ public class SubscriptionServiceTest {
             .hasMessageStartingWith("An error occurs while trying to fail subscription ")
             .hasMessageEndingWith(SUBSCRIPTION_ID)
             .hasCause(exceptionThrown);
+    }
+
+    @Test
+    public void should_clean_subscription_request_on_notifier_trigger() throws TechnicalException {
+        when(planSearchService.findById(any(), any())).thenReturn(
+            BasePlanEntity.builder().status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED).build()
+        );
+        when(applicationService.findById(any(), any())).thenReturn(
+            ApplicationEntity.builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()
+        );
+        // We return the same object passed to the method
+        when(subscriptionRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+        when(apiTemplateService.findByIdForTemplates(any(), any())).thenReturn(new ApiModel());
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
+        newSubscriptionEntity.setRequest(
+            """
+            <p>Hello</p>
+
+            <a href="dangerous-link.com">click me</a>
+            """
+        );
+        SubscriptionEntity subscriptionEntity = subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            newSubscriptionEntity,
+            "customApiKey",
+            "customId"
+        );
+
+        verify(notifierService, times(1)).trigger(
+            any(),
+            eq(ApiHook.SUBSCRIPTION_NEW),
+            any(),
+            argThat(params -> ((SubscriptionEntity) params.get("subscription")).getRequest().equals("Hello click me"))
+        );
+        verify(notifierService, times(1)).trigger(
+            any(),
+            eq(ApplicationHook.SUBSCRIPTION_NEW),
+            any(),
+            argThat(params -> ((SubscriptionEntity) params.get("subscription")).getRequest().equals("Hello click me"))
+        );
+
+        // The original request should not be changed
+        assertThat(subscriptionEntity.getRequest()).isEqualTo(newSubscriptionEntity.getRequest());
     }
 
     private Map<String, Map<String, Object>> prepareMetadata() {

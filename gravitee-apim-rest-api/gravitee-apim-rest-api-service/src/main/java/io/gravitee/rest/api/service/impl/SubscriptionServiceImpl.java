@@ -148,6 +148,8 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -571,15 +573,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription.getId();
             }
 
-            final Map<String, Object> params = new NotificationParamsBuilder()
-                .api(api)
-                .plan(genericPlanEntity)
-                .application(applicationEntity)
-                .owner(apiOwner)
-                .subscription(convert(subscription))
-                .subscriptionsUrl(subscriptionsUrl)
-                .build();
-
             if (PlanValidationType.AUTO == genericPlanEntity.getPlanValidation()) {
                 ProcessSubscriptionEntity process = new ProcessSubscriptionEntity();
                 process.setId(subscription.getId());
@@ -589,6 +582,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 // Do process
                 return process(executionContext, process, SUBSCRIPTION_SYSTEM_VALIDATOR);
             } else {
+                SubscriptionEntity paramSubscription = convert(subscription);
+                // If the request contains html elements, we remove them
+                if (subscription.getRequest() != null) {
+                    paramSubscription.setRequest(Jsoup.clean(subscription.getRequest(), Safelist.none()));
+                }
+                final Map<String, Object> params = new NotificationParamsBuilder()
+                    .api(api)
+                    .plan(genericPlanEntity)
+                    .application(applicationEntity)
+                    .owner(apiOwner)
+                    .subscription(paramSubscription)
+                    .subscriptionsUrl(subscriptionsUrl)
+                    .build();
+
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_NEW, apiId, params);
                 notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_NEW, application, params);
                 return convert(subscription);
