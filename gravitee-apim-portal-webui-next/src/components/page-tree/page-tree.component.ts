@@ -82,7 +82,8 @@ export class PageTreeComponent implements OnInit, OnChanges {
       if (activePage) {
         this.selectedNode = activePage;
       } else if (!isEmpty(this.pages)) {
-        this.fileSelected(this.getFirstAvailablePage(this.pages[0]).id);
+        const firstPage = this.getFirstAvailablePage(this.pages[0]);
+        this.selectedNode = firstPage.id;
       }
     }
   }
