@@ -4206,6 +4206,7 @@ components:
             type: string
             example: PROXY
             enum:
+                - LLM_PROXY
                 - PROXY
                 - MESSAGE
                 - NATIVE
@@ -5445,6 +5446,7 @@ components:
                     description: ApiType supported by the connector.
                     type: string
                     enum:
+                        - llm_proxy
                         - proxy
                         - message
                         - native

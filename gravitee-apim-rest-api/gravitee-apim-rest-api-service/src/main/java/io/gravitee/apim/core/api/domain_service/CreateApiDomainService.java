@@ -161,7 +161,7 @@ public class CreateApiDomainService {
     private List<? extends AbstractFlow> saveApiFlows(Api api) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> switch (api.getType()) {
-                case PROXY, MESSAGE -> flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionHttpV4().getFlows());
+                case LLM_PROXY, PROXY, MESSAGE -> flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionHttpV4().getFlows());
                 case NATIVE -> flowCrudService.saveNativeApiFlows(api.getId(), api.getApiDefinitionNativeV4().getFlows());
             };
             case V1, V2, FEDERATED, FEDERATED_AGENT -> null;

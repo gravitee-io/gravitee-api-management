@@ -29,9 +29,10 @@ import lombok.RequiredArgsConstructor;
 public enum ApiType {
     PROXY("proxy"),
     MESSAGE("message"),
+    LLM_PROXY("llm-proxy"),
     NATIVE("native");
 
-    private static final Map<String, ApiType> LABELS_MAP = Map.of(PROXY.label, PROXY, MESSAGE.label, MESSAGE, NATIVE.label, NATIVE);
+    private static final Map<String, ApiType> LABELS_MAP = Map.of(PROXY.label, PROXY, LLM_PROXY.label, LLM_PROXY, MESSAGE.label, MESSAGE, NATIVE.label, NATIVE);
 
     @JsonValue
     private final String label;

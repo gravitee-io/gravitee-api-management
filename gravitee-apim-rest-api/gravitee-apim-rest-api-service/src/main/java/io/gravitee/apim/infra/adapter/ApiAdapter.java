@@ -190,7 +190,7 @@ public interface ApiAdapter {
             case V1, V2 -> serialize(api.getApiDefinition(), "V2 API");
             case V4 -> switch (api.getType()) {
                 case NATIVE -> serialize(api.getApiDefinitionNativeV4(), "V4 Native API");
-                case PROXY, MESSAGE -> serialize(api.getApiDefinitionHttpV4(), "V4 API");
+                case LLM_PROXY, PROXY, MESSAGE -> serialize(api.getApiDefinitionHttpV4(), "V4 API");
             };
             case FEDERATED -> serialize(api.getFederatedApiDefinition(), "Federated API");
             case FEDERATED_AGENT -> serialize(api.getFederatedAgent(), "Federated Agent");
