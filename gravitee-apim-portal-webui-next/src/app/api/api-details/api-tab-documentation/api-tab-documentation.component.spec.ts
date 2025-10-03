@@ -45,14 +45,8 @@ describe('ApiTabDocumentationComponent', () => {
     const pageTree = await harnessLoader.getHarnessOrNull(PageTreeHarness);
     expect(pageTree).toBeTruthy();
     expect(await pageTree?.getActivePageName()).toEqual('Page 1');
-    component.selectedPageData$.subscribe(data => {
-      expect(data.result?.id).toEqual('page-1');
-    });
 
     await pageTree?.clickPage('Page 2');
     expect(await pageTree?.getActivePageName()).toEqual('Page 2');
-    component.selectedPageData$.subscribe(data => {
-      expect(data.result?.id).toEqual('page-2');
-    });
   });
 });

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Directive, ElementRef, HostListener} from '@angular/core';
+import { Directive, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Directive({
@@ -21,7 +21,10 @@ import { Router } from '@angular/router';
   standalone: true,
 })
 export class InnerLinkDirective {
-  constructor(private router: Router, private el: ElementRef<HTMLAnchorElement>) {}
+  constructor(
+    private router: Router,
+    private el: ElementRef<HTMLAnchorElement>,
+  ) {}
 
   @HostListener('click', ['$event'])
   public onClick(e: PointerEvent) {
@@ -30,7 +33,6 @@ export class InnerLinkDirective {
 
     // 1. Check for valid local link (no external protocols)
     if (href && !href.startsWith('https:') && !href.startsWith('http:')) {
-
       e.preventDefault();
 
       // 2. Use navigateByUrl.

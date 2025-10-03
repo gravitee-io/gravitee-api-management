@@ -56,7 +56,11 @@ function initApp(
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always', onSameUrlNavigation: 'reload' })),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withRouterConfig({ paramsInheritanceStrategy: 'always', onSameUrlNavigation: 'reload' }),
+    ),
     provideHttpClient(withInterceptors([httpRequestInterceptor, csrfInterceptor])),
     provideAnimations(),
     provideAppInitializer(() => {

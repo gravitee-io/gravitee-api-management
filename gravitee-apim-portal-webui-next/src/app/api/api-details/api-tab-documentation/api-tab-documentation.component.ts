@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 import { NgClass } from '@angular/common';
-import {Component, input, Input, OnInit, signal, WritableSignal} from '@angular/core';
+import { Component, inject, Input, OnInit, signal, WritableSignal } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Observable, of } from 'rxjs';
 
 import { ApiDocumentationComponent } from './components/api-documentation/api-documentation.component';
 import { DrawerComponent } from '../../../../components/drawer/drawer.component';
 import { PageTreeComponent, PageTreeNode } from '../../../../components/page-tree/page-tree.component';
 import { Page } from '../../../../entities/page/page';
 import { PageService } from '../../../../services/page.service';
-
-interface SelectedPageData {
-  result?: Page;
-  error?: unknown;
-}
 
 @Component({
   selector: 'app-api-tab-documentation',
@@ -47,21 +41,24 @@ export class ApiTabDocumentationComponent implements OnInit {
   pageNodes: PageTreeNode[] = [];
   isSidebarExpanded: WritableSignal<boolean> = signal(true);
 
-  constructor(
-    private readonly pageService: PageService,
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-  ) {}
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly pageService = inject(PageService);
 
   ngOnInit() {
     this.pageNodes = this.pageService.mapToPageTreeNode(undefined, this.pages);
     if (this.pageNodes.length == 1) {
       this.isSidebarExpanded.set(false);
     }
+
+    // If no pageId is provided and we have pages, redirect to the first page
+    if (!this.pageId && this.pages && this.pages.length > 0) {
+      const firstPage = this.pages[0];
+      this.router.navigate(['.', firstPage.id], { relativeTo: this.activatedRoute, replaceUrl: true });
+    }
   }
 
   showPage(pageId: string) {
-    // this.pageId.set(pageId);
     this.router.navigate(['..', pageId], { relativeTo: this.activatedRoute });
   }
 }
