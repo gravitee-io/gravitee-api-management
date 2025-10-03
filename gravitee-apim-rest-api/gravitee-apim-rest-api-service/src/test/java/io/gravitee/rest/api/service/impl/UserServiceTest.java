@@ -1421,13 +1421,14 @@ public class UserServiceTest {
     @Test
     public void shouldDeleteUnanonymize() throws TechnicalException {
         String userId = "userId";
+        String sourceId = "sourceId";
         String firstName = "first";
         String lastName = "last";
         String email = "email";
 
         User user = new User();
         user.setId(userId);
-        user.setSourceId("sourceId");
+        user.setSourceId(sourceId);
         Date updatedAt = new Date(1234567890L);
         user.setUpdatedAt(updatedAt);
         user.setFirstname(firstName);
@@ -1484,7 +1485,7 @@ public class UserServiceTest {
                         return (
                             userId.equals(user.getId()) &&
                             UserStatus.ARCHIVED.equals(user.getStatus()) &&
-                            "deleted-sourceId".equals(user.getSourceId()) &&
+                            ("deleted-" + userId + "-" + sourceId).equals(user.getSourceId()) &&
                             !updatedAt.equals(user.getUpdatedAt()) &&
                             firstName.equals(user.getFirstname()) &&
                             lastName.equals(user.getLastname()) &&
@@ -1506,6 +1507,7 @@ public class UserServiceTest {
         setField(userService, "anonymizeOnDelete", true);
 
         String userId = "userId";
+        String sourceId = "sourceId";
         String organizationId = ORGANIZATION;
         String firstName = "first";
         String lastName = "last";
@@ -1514,7 +1516,7 @@ public class UserServiceTest {
         User user = new User();
         user.setId(userId);
         user.setOrganizationId(organizationId);
-        user.setSourceId("sourceId");
+        user.setSourceId(sourceId);
         Date updatedAt = new Date(1234567890L);
         user.setUpdatedAt(updatedAt);
         user.setFirstname(firstName);
@@ -1572,7 +1574,7 @@ public class UserServiceTest {
                             userId.equals(user.getId()) &&
                             organizationId.equals(user.getOrganizationId()) &&
                             UserStatus.ARCHIVED.equals(user.getStatus()) &&
-                            ("deleted-" + userId).equals(user.getSourceId()) &&
+                            ("deleted-" + userId + "-" + sourceId).equals(user.getSourceId()) &&
                             !updatedAt.equals(user.getUpdatedAt()) &&
                             "Unknown".equals(user.getFirstname()) &&
                             user.getLastname().isEmpty() &&
