@@ -17,7 +17,7 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, signal } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { ActivatedRoute, Router } from '@angular/router';
+import {ActivatedRoute, NavigationExtras, Router} from '@angular/router';
 import { catchError, combineLatestWith, EMPTY, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { LoaderComponent } from '../../components/loader/loader.component';
@@ -37,6 +37,7 @@ export class GuidesComponent implements OnInit {
   selectedPageData$: Observable<{ result?: Page; error?: string }> = of();
   selectedPageId = signal<string | undefined>(undefined);
   loadingPage = signal<boolean>(true);
+  private firstLoad = true;
 
   constructor(
     private pageService: PageService,
@@ -68,11 +69,16 @@ export class GuidesComponent implements OnInit {
   }
 
   showPage(page: string) {
-    this.router.navigate(['.'], {
+    const navigationExtras: NavigationExtras = {
       relativeTo: this.activatedRoute,
-      queryParams: {
-        page,
-      },
-    });
+      queryParams: { page },
+    }
+    if (this.firstLoad) {
+      // Replace url when first loading a page to avoid having a back button to an empty page
+      navigationExtras.replaceUrl = true;
+      this.firstLoad = false;
+    }
+
+    this.router.navigate(['.'], navigationExtras);
   }
 }

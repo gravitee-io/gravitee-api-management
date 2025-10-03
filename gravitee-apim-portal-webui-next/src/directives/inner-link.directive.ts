@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive, HostListener } from '@angular/core';
+import {Directive, ElementRef, HostListener} from '@angular/core';
 import { Router } from '@angular/router';
 
 @Directive({
@@ -21,20 +21,22 @@ import { Router } from '@angular/router';
   standalone: true,
 })
 export class InnerLinkDirective {
-  constructor(private router: Router) {}
+  constructor(private router: Router, private el: ElementRef<HTMLAnchorElement>) {}
 
   @HostListener('click', ['$event'])
   public onClick(e: PointerEvent) {
-    if (e.target) {
-      const target: HTMLLinkElement = e.target as HTMLLinkElement;
+    const target = this.el.nativeElement;
+    const href = target.getAttribute('href');
 
-      const href = target.getAttribute('href');
-      if (target.tagName === 'A' && href) {
-        if (href && !href.startsWith('https:') && !href.startsWith('http:')) {
-          e.preventDefault();
-          this.router.navigateByUrl(href);
-        }
-      }
+    // 1. Check for valid local link (no external protocols)
+    if (href && !href.startsWith('https:') && !href.startsWith('http:')) {
+
+      e.preventDefault();
+
+      // 2. Use navigateByUrl.
+      // We pass skipLocationChange: false (default), which ensures a new
+      // state is pushed onto the history stack, which the back button relies on.
+      this.router.navigateByUrl(href);
     }
   }
 }

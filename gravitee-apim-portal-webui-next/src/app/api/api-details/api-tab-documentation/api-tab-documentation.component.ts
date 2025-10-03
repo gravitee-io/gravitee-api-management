@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { NgClass } from '@angular/common';
-import { Component, Input, OnInit, signal, WritableSignal } from '@angular/core';
+import {Component, input, Input, OnInit, signal, WritableSignal} from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable, of } from 'rxjs';
@@ -41,9 +41,10 @@ export class ApiTabDocumentationComponent implements OnInit {
   apiId!: string;
   @Input()
   pages!: Page[];
+  @Input()
+  pageId!: string;
+
   pageNodes: PageTreeNode[] = [];
-  selectedPageData$: Observable<SelectedPageData> = of();
-  pageId = signal<string | undefined>(undefined);
   isSidebarExpanded: WritableSignal<boolean> = signal(true);
 
   constructor(
@@ -60,7 +61,7 @@ export class ApiTabDocumentationComponent implements OnInit {
   }
 
   showPage(pageId: string) {
-    this.pageId.set(pageId);
-    this.router.navigate(['.', pageId], { relativeTo: this.activatedRoute });
+    // this.pageId.set(pageId);
+    this.router.navigate(['..', pageId], { relativeTo: this.activatedRoute });
   }
 }
