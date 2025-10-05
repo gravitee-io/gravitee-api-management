@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.29_increase_length_keys_table_key_column
+      author: GraviteeSource Team
+      changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}keys
+            columnName: key
+            newDataType: nvarchar(128)
