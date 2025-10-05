@@ -222,6 +222,8 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_5_28/00_change_api_description_datatype.yml
     - include:
+          - file: liquibase/changelogs/v4_5_29/00_increase_key_length.yml
+    - include:
           - file: liquibase/changelogs/v4_6_0/00_migrate_spg_phase.yml
     - include:
           - file: liquibase/changelogs/v4_6_0/01_add_api_type_to_plans_table.yml
