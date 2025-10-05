@@ -86,7 +86,7 @@ describe('ApiKeyValidationComponent', () => {
     expect(await harness.isValid()).toEqual(false);
     expect(fixture.componentInstance.apiKey.touched).toEqual(true);
   });
-  it('should be invalid if more than 64 characters', async () => {
+  it('should be invalid if more than 128 characters', async () => {
     const harness = await loader.getHarness(ApiKeyValidationHarness);
     await harness.setInputValue(
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
