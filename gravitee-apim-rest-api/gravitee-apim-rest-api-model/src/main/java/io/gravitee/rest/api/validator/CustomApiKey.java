@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Size(min = 8, max = 64, message = "Should have length between 8 and 64 characters")
+@Size(min = 8, max = 128, message = "Should have length between 8 and 128 characters")
 @Pattern(regexp = "[^#%@/;=?|^~, \\\\]*", message = "Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)")
 @Target({ ElementType.PARAMETER, ElementType.FIELD })
 @Retention(RUNTIME)
