@@ -21,7 +21,6 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
-import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
 import java.util.Arrays;
 import java.util.Map;
@@ -50,8 +49,8 @@ public class OrganizationIdSourceSourceIdUniqueIndexUpgrader extends MongoUpgrad
     }
 
     @Override
-    public boolean upgrade() throws UpgraderException {
-        return this.wrapException(this::createOrReplaceIndex);
+    public boolean upgrade() {
+        return createOrReplaceIndex();
     }
 
     private boolean createOrReplaceIndex() {
