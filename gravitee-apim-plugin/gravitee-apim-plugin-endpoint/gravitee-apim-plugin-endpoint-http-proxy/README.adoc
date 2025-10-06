@@ -84,6 +84,10 @@ The http proxy connector comes with default values regarding the connection pool
 |clearTextUpgrade | true     | No | No | No | Allows h2c Clear Text Upgrade. If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly (with prior knowledge).
 |pipelining | false     | No | No | No | Enable HTTP pipelining. When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
 |connectTimeout | 3000     | Yes | No | No | Maximum time to connect to the backend in milliseconds.
+|http2MultiplexingLimit | -1     | No | No | No | The maximum number of concurrent streams allowed for each HTTP/2 connection. The actual number of streams per connection is the minimum of this value and the server's initial settings. For example, if set to 10 and the server's initial setting is 1000, the max number of streams will be 10. If set to -1, the server's initial settings will be used. -1 is the default.
+|http2ConnectionWindowSize | -1     | No | No | No | Connection Window Size in bytes can be increased to a larger value such as 1MB (1048576 bytes) to improve throughput. If set to -1, the default HTTP/2 spec value is use (e.g., 65535 bytes). -1 is the default.
+|http2StreamWindowSize | -1     | No | No | No | Stream Window Size in bytes can be increased to a larger value such as 256KB (262144 bytes) to improve throughput (initial settings). If set to -1, the default HTTP/2 spec value is used (65535 bytes). -1 is the default.
+|http2MaxFrameSize | 16384     | No | No | No | Max frame size in bytes (initial settings). Default is the HTTP/2 spec default value (16384 bytes). Max value is 16777215.
 
 |===
 
