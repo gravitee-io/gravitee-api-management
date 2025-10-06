@@ -376,6 +376,7 @@ public class ImportApiCRDUseCase {
             .crossId(planCRD.getCrossId())
             .excludedGroups(planCRD.getExcludedGroups())
             .generalConditions(planCRD.getGeneralConditions())
+            .generalConditionsHrid(planCRD.getGeneralConditionsHrid())
             .order(planCRD.getOrder())
             .type(planCRD.getType())
             .validation(planCRD.getValidation())
@@ -436,7 +437,7 @@ public class ImportApiCRDUseCase {
             .entrySet()
             .stream()
             .map(entry -> PageModelFactory.fromCRDSpec(entry.getKey(), entry.getValue()))
-            .collect(toList());
+            .toList();
 
         pages.forEach(page -> {
             page.setReferenceId(apiId);
