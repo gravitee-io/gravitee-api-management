@@ -218,11 +218,11 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_5_0/07_add_scoring_ruleset_table.yml
     - include:
-          - file: liquibase/changelogs/v4_5_28/01_add_users_unique_constraint_organizationid_source_sourceid.yml
-    - include:
           - file: liquibase/changelogs/v4_5_27/00_increase_entrypoints_value_length.yml
     - include:
           - file: liquibase/changelogs/v4_5_28/00_change_api_description_datatype.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_28/01_add_users_unique_constraint_organizationid_source_sourceid.yml
     - include:
           - file: liquibase/changelogs/v4_6_0/00_migrate_spg_phase.yml
     - include:
