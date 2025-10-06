@@ -71,7 +71,11 @@ public class ApiMapper {
 
                         // Update definition with required information for deployment phase
                         reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.NativeApi(eventApiDefinition);
-                    } else if (api.getType() == ApiType.PROXY || api.getType() == ApiType.LLM_PROXY || api.getType() == ApiType.MESSAGE) {
+                    } else if (
+                        api.getType() == ApiType.PROXY ||
+                        api.getType() == ApiType.LLM_PROXY ||
+                        api.getType() == ApiType.MESSAGE
+                    ) {
                         var eventApiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
 
                         // Update definition with required information for deployment phase

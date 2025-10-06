@@ -32,7 +32,16 @@ public enum ApiType {
     LLM_PROXY("llm-proxy"),
     NATIVE("native");
 
-    private static final Map<String, ApiType> LABELS_MAP = Map.of(PROXY.label, PROXY, LLM_PROXY.label, LLM_PROXY, MESSAGE.label, MESSAGE, NATIVE.label, NATIVE);
+    private static final Map<String, ApiType> LABELS_MAP = Map.of(
+        PROXY.label,
+        PROXY,
+        LLM_PROXY.label,
+        LLM_PROXY,
+        MESSAGE.label,
+        MESSAGE,
+        NATIVE.label,
+        NATIVE
+    );
 
     @JsonValue
     private final String label;

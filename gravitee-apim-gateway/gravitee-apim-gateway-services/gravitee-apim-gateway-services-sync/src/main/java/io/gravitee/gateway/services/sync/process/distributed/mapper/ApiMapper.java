@@ -63,6 +63,7 @@ public class ApiMapper {
                     reactableApi ->
                         reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
                         (((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.PROXY ||
+                            ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.LLM_PROXY ||
                             ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.MESSAGE)
                 ),
             payload ->
