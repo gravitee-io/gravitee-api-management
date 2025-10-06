@@ -66,6 +66,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -256,7 +257,7 @@ class HttpProxyEndpointConnectorTest {
 
         @Test
         void should_use_grpc_client_factory_with_grpc() {
-            // we nee to create a dedicated endpoint here as the evaluation of the configuration target
+            // we need to create a dedicated endpoint here as the evaluation of the configuration target
             // to detect if the URL start by grpc is done once in the constructor
             configuration.setTarget("grpc://target");
             var cut = new HttpProxyEndpointConnector(configuration, sharedConfiguration);
@@ -264,13 +265,53 @@ class HttpProxyEndpointConnectorTest {
 
             // We don't want to test the request itself just that the correct factory is used
             when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
-            cut
-                .connect(ctx)
-                .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
-                .test()
-                .assertComplete();
-            verify(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
+            cut.connect(ctx).onErrorComplete(IllegalStateException.class::isInstance).test().assertComplete();
+
+            ArgumentCaptor<HttpProxyEndpointConnectorSharedConfiguration> sharedConfigurationCaptor = ArgumentCaptor.forClass(
+                HttpProxyEndpointConnectorSharedConfiguration.class
+            );
+            verify(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), sharedConfigurationCaptor.capture());
             verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
+
+            HttpProxyEndpointConnectorSharedConfiguration config = sharedConfigurationCaptor.getValue();
+
+            // Check HTTP/2 default values.
+            assertThat(config.getHttpOptions().getHttp2MultiplexingLimit()).isEqualTo(-1);
+            assertThat(config.getHttpOptions().getHttp2ConnectionWindowSize()).isEqualTo(-1);
+            assertThat(config.getHttpOptions().getHttp2StreamWindowSize()).isEqualTo(-1);
+            assertThat(config.getHttpOptions().getHttp2MaxFrameSize()).isEqualTo(16384);
+        }
+
+        @Test
+        void should_use_grpc_client_factory_with_grpc_and_customize_http2_settings() {
+            // we nee to create a dedicated endpoint here as the evaluation of the configuration target
+            // to detect if the URL start by grpc is done once in the constructor
+            configuration.setTarget("grpc://target");
+            sharedConfiguration.getHttpOptions().setHttp2MultiplexingLimit(13);
+            sharedConfiguration.getHttpOptions().setHttp2ConnectionWindowSize(128000);
+            sharedConfiguration.getHttpOptions().setHttp2StreamWindowSize(72000);
+            sharedConfiguration.getHttpOptions().setHttp2MaxFrameSize(32000);
+
+            var cut = new HttpProxyEndpointConnector(configuration, sharedConfiguration);
+            injectSpyIntoEndpointConnector(cut);
+
+            // We don't want to test the request itself just that the correct factory is used
+            when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
+            cut.connect(ctx).onErrorComplete(IllegalStateException.class::isInstance).test().assertComplete();
+
+            ArgumentCaptor<HttpProxyEndpointConnectorSharedConfiguration> sharedConfigurationCaptor = ArgumentCaptor.forClass(
+                HttpProxyEndpointConnectorSharedConfiguration.class
+            );
+            verify(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), sharedConfigurationCaptor.capture());
+            verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
+
+            HttpProxyEndpointConnectorSharedConfiguration config = sharedConfigurationCaptor.getValue();
+
+            // Check HTTP/2 values have been taken into account when creating the client.
+            assertThat(config.getHttpOptions().getHttp2MultiplexingLimit()).isEqualTo(13);
+            assertThat(config.getHttpOptions().getHttp2ConnectionWindowSize()).isEqualTo(128000);
+            assertThat(config.getHttpOptions().getHttp2StreamWindowSize()).isEqualTo(72000);
+            assertThat(config.getHttpOptions().getHttp2MaxFrameSize()).isEqualTo(32000);
         }
 
         @Test
