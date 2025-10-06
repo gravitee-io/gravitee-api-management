@@ -32,4 +32,7 @@ public interface ServiceMapper {
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
     Service map(ServiceV4 serviceV4);
+
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    ServiceV4 map(Service service);
 }
