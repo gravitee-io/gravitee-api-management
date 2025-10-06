@@ -30,6 +30,10 @@
   gap: 32px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 
+  &--mobile {
+    grid-template-columns: 1fr !important;
+  }
+
   > * {
     height: 256px;
   }

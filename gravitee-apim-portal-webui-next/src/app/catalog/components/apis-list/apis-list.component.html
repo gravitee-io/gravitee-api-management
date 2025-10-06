@@ -34,7 +34,7 @@
 
 @if (apiPaginator$ | async; as apis) {
   @if (apis.data.length > 0) {
-    <div class="api-list__container" infiniteScroll (scrolled)="loadMoreApis(apis)">
+    <div class="api-list__container" [ngClass]="apiListContainerClasses()" infiniteScroll (scrolled)="loadMoreApis(apis)">
       @for (api of apis.data; track api.id) {
         <app-api-card
           [id]="api.id"

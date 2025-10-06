@@ -22,7 +22,10 @@
 .api-list {
   &__header {
     display: flex;
-    place-content: center space-between;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
 
     &__category-info {
       display: flex;
@@ -36,5 +39,9 @@
     display: grid;
     gap: 32px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    &--mobile {
+      grid-template-columns: 1fr !important;
+    }
   }
 }
