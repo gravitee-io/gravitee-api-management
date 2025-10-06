@@ -161,7 +161,7 @@ public class CreateApiDomainService {
     private List<? extends AbstractFlow> saveApiFlows(Api api) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> switch (api.getType()) {
-                case LLM_PROXY, PROXY, MESSAGE -> flowCrudService.saveApiFlows(
+                case LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> flowCrudService.saveApiFlows(
                     api.getId(),
                     api.getApiDefinitionHttpV4().getFlows()
                 );

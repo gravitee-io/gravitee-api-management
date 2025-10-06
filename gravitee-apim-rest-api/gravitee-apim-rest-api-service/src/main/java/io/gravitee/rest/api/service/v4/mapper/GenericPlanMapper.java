@@ -57,7 +57,7 @@ public class GenericPlanMapper {
         var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
-                case LLM_PROXY, PROXY, MESSAGE -> planMapper.toEntity(
+                case LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> planMapper.toEntity(
                     plan,
                     flowService.findByReference(FlowReferenceType.PLAN, plan.getId())
                 );

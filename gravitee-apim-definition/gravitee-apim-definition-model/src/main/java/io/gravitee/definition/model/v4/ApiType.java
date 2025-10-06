@@ -30,6 +30,7 @@ public enum ApiType {
     PROXY("proxy"),
     MESSAGE("message"),
     LLM_PROXY("llm-proxy"),
+    MCP_PROXY("mcp-proxy"),
     NATIVE("native");
 
     private static final Map<String, ApiType> LABELS_MAP = Map.of(
@@ -37,6 +38,8 @@ public enum ApiType {
         PROXY,
         LLM_PROXY.label,
         LLM_PROXY,
+        MCP_PROXY.label,
+        MCP_PROXY,
         MESSAGE.label,
         MESSAGE,
         NATIVE.label,

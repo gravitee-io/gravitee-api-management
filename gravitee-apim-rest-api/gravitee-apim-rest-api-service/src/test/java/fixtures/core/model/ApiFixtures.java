@@ -123,6 +123,54 @@ public class ApiFixtures {
             .build();
     }
 
+    public static Api aMCPProxyApiV4() {
+        return BASE.get()
+            .type(ApiType.MCP_PROXY)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionValue(
+                io.gravitee.definition.model.v4.Api.builder()
+                    .id(MY_API)
+                    .name(MY_API_NAME)
+                    .apiVersion("1.0.0")
+                    .analytics(Analytics.builder().enabled(false).build())
+                    .failover(Failover.builder().enabled(false).build())
+                    .definitionVersion(DefinitionVersion.V4)
+                    .type(ApiType.MCP_PROXY)
+                    .tags(Set.of("tag1"))
+                    .listeners(
+                        List.of(
+                            HttpListener.builder()
+                                .paths(List.of(Path.builder().path("/mcp_proxy").build()))
+                                .entrypoints(List.of(Entrypoint.builder().type("mcp-proxy").configuration("{}").build()))
+                                .build()
+                        )
+                    )
+                    .endpointGroups(
+                        List.of(
+                            EndpointGroup.builder()
+                                .name("default-group")
+                                .type("mcp-proxy")
+                                .sharedConfiguration("{}")
+                                .endpoints(
+                                    List.of(
+                                        Endpoint.builder()
+                                            .name("default-endpoint")
+                                            .type("mcp-proxy")
+                                            .inheritConfiguration(true)
+                                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .flows(List.of())
+                    .flowExecution(new FlowExecution())
+                    .build()
+            )
+            .build();
+    }
+
     public static Api aProxyApiV4() {
         return BASE.get()
             .type(ApiType.PROXY)
