@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { AsyncPipe, NgClass } from '@angular/common';
+import { Component, computed, inject } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { BehaviorSubject, EMPTY, map, Observable, scan, switchMap, tap } from 'rxjs';
@@ -24,6 +24,7 @@ import { ApplicationCardComponent } from '../../components/application-card/appl
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { Application } from '../../entities/application/application';
 import { ApplicationService } from '../../services/application.service';
+import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 
 export interface ApplicationPaginatorVM {
   data: Application[];
@@ -33,7 +34,7 @@ export interface ApplicationPaginatorVM {
 
 @Component({
   selector: 'app-applications',
-  imports: [AsyncPipe, InfiniteScrollModule, LoaderComponent, MatCard, MatCardContent, ApplicationCardComponent],
+  imports: [AsyncPipe, InfiniteScrollModule, LoaderComponent, MatCard, MatCardContent, ApplicationCardComponent, NgClass],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })
@@ -41,6 +42,10 @@ export class ApplicationsComponent {
   applicationPaginator$: Observable<ApplicationPaginatorVM>;
   loadingPage$ = new BehaviorSubject(true);
 
+  appListContainerClasses = computed(() => ({
+    'app-list__container--mobile': this.isMobile(),
+  }));
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
   private applicationService = inject(ApplicationService);
   private page$ = new BehaviorSubject(1);
 
