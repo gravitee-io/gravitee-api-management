@@ -90,7 +90,7 @@ export class MarkdownService {
         }
 
         if (pageBaseUrl && pageId) {
-          return `<a class="${INTERNAL_LINK_CLASSNAME}" href="${pageBaseUrl}?page=${pageId}">${text}</a>`;
+          return `<a class="${INTERNAL_LINK_CLASSNAME}" href="${pageBaseUrl}/${pageId}">${text}</a>`;
         }
 
         if (href.startsWith('#')) {

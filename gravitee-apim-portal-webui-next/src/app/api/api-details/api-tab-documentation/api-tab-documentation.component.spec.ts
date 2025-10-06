@@ -16,6 +16,8 @@
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { BehaviorSubject, of } from 'rxjs';
 
 import { ApiTabDocumentationComponent } from './api-tab-documentation.component';
 import { PageTreeHarness } from '../../../../components/page-tree/page-tree.harness';
@@ -26,10 +28,31 @@ describe('ApiTabDocumentationComponent', () => {
   let component: ApiTabDocumentationComponent;
   let fixture: ComponentFixture<ApiTabDocumentationComponent>;
   let harnessLoader: HarnessLoader;
+  let paramMapSubject: BehaviorSubject<Map<string, string>>;
 
   beforeEach(async () => {
+    paramMapSubject = new BehaviorSubject(new Map());
+
+    const activatedRouteStub = {
+      url: of([]),
+      routeConfig: {},
+      snapshot: { paramMap: new Map() },
+      firstChild: {
+        paramMap: paramMapSubject.asObservable(),
+        routeConfig: {},
+        snapshot: { paramMap: new Map() },
+      },
+    };
+
     await TestBed.configureTestingModule({
       imports: [ApiTabDocumentationComponent, AppTestingModule],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: activatedRouteStub,
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiTabDocumentationComponent);
@@ -54,5 +77,25 @@ describe('ApiTabDocumentationComponent', () => {
     component.selectedPageData$.subscribe(data => {
       expect(data.result?.id).toEqual('page-2');
     });
+  });
+
+  it('should listen to route parameter changes', () => {
+    component.pages = [fakePage({ id: 'page-1', name: 'Page 1' }), fakePage({ id: 'page-2', name: 'Page 2' })];
+    fixture.detectChanges();
+    expect(component.pageId()).toBe('page-1');
+
+    paramMapSubject.next(new Map([['pageId', 'page-2']]));
+    fixture.detectChanges();
+    expect(component.pageId()).toBe('page-2');
+  });
+
+  it('should set default pageId when no pageId in route parameters', () => {
+    component.pages = [fakePage({ id: 'page-1', name: 'Page 1' }), fakePage({ id: 'page-2', name: 'Page 2' })];
+
+    const emptyParamMap = new Map();
+    paramMapSubject.next(emptyParamMap);
+    fixture.detectChanges();
+
+    expect(component.pageId()).toBe('page-1');
   });
 });
