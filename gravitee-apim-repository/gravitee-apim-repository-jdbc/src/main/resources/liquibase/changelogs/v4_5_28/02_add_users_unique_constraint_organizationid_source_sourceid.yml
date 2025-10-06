@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.5.28_01_add_users_unique_constraint_organizationid_source_sourceid
+      id: 4.5.28_02_add_users_unique_constraint_organizationid_source_sourceid
       author: GraviteeSource Team
       preConditions:
         - onFail: CONTINUE
