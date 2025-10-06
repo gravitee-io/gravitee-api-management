@@ -585,7 +585,7 @@ class AcceptSubscriptionUseCaseTest {
         return switch (definitionVersion) {
             case V1, V2 -> ApiFixtures.aProxyApiV2().setId(API_ID);
             case V4 -> switch (apiType) {
-                case LLM_PROXY -> ApiFixtures.aProxyApiV4().setId(API_ID);
+                case LLM_PROXY -> ApiFixtures.aLLMProxyApiV4().setId(API_ID);
                 case PROXY -> ApiFixtures.aProxyApiV4().setId(API_ID);
                 case MESSAGE -> ApiFixtures.aMessageApiV4().setId(API_ID);
                 case NATIVE -> throw new IllegalStateException("NATIVE API not supported");
