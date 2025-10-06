@@ -17,17 +17,13 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
-<<<<<<< HEAD
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
-=======
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
->>>>>>> 27314b3f2e (fix: prevent creation of multiple users with same email.)
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
