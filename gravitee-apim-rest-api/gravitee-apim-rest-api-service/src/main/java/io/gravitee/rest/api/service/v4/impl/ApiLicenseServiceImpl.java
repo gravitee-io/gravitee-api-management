@@ -70,7 +70,7 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
                     case NATIVE -> objectMapper
                         .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.nativeapi.NativeApi.class)
                         .getPlugins();
-                    case LLM_PROXY, PROXY, MESSAGE -> objectMapper
+                    case LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> objectMapper
                         .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class)
                         .getPlugins();
                 };

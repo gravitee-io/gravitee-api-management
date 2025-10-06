@@ -4207,6 +4207,7 @@ components:
             example: PROXY
             enum:
                 - LLM_PROXY
+                - MCP_PROXY
                 - PROXY
                 - MESSAGE
                 - NATIVE
@@ -5447,6 +5448,7 @@ components:
                     type: string
                     enum:
                         - llm_proxy
+                        - mcp_proxy
                         - proxy
                         - message
                         - native
