@@ -51,6 +51,8 @@ public class PlanCRD {
 
     private String generalConditions;
 
+    private String generalConditionsHrid;
+
     private int order;
 
     private String selectionRule;

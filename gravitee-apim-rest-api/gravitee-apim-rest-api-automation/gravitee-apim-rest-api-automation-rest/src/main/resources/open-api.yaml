@@ -997,13 +997,16 @@ components:
         flows:
           type: array
           description: |
-            Flows like API flows, composed of step running plolicies. 
+            Flows like API flows, composed of step running policies. 
             All steps are executed before the next plan flow or before the API flows,
             same on the reponse, which means API reponse flows will always run last.
           items:
             $ref: '#/components/schemas/FlowV4'
         mode:
           $ref: '#/components/schemas/PlanMode'
+        generalConditionsHrid:
+          type: string
+          description: API page `hrid` that serves as general conditions documentation of this plan
       required:
         - hrid
         - name
