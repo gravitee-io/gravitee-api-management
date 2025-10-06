@@ -32,11 +32,21 @@
       --mdc-elevated-card-container-color: #{m3-adapter.$surface-variant};
 
       display: flex;
-      width: 324px;
+      min-width: 324px;
       flex-direction: column;
       padding: 32px;
       gap: 32px;
     }
+  }
+}
+
+// MOBILE
+.api-details__tab--mobile {
+  flex-wrap: wrap-reverse;
+
+  .api-details__tab-details-info__card {
+    width: 100%;
+    min-width: 0;
   }
 }
 
