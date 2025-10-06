@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div class="api-details__tab">
+<div class="api-details__tab" [ngClass]="apiDetailsTabClasses()">
   <div class="api-details__tab-details-content">
     @if (homepageData$ | async; as homepageData) {
       @if (homepageData.result) {
@@ -31,23 +31,20 @@
       <app-loader />
     }
   </div>
-
-  <div>
-    <mat-card appearance="outlined" class="api-details__tab-details-info__card">
-      @if (apiInformation$ | async; as apiInformationList) {
-        @for (apiInformation of apiInformationList; track apiInformation.name) {
-          <div>
-            <div class="m3-body-large">{{ apiInformation.name }}</div>
-            <div class="m3-body-medium api-info-value">{{ apiInformation.value }}</div>
-          </div>
-        }
-      }
-      @if (categories$ | async; as categories) {
+  <mat-card appearance="outlined" class="api-details__tab-details-info__card">
+    @if (apiInformation$ | async; as apiInformationList) {
+      @for (apiInformation of apiInformationList; track apiInformation.name) {
         <div>
-          <div i18n="@@apiDetailsCategories" class="m3-body-large">Categories</div>
-          <div class="m3-body-medium">{{ categories }}</div>
+          <div class="m3-body-large">{{ apiInformation.name }}</div>
+          <div class="m3-body-medium api-info-value">{{ apiInformation.value }}</div>
         </div>
       }
-    </mat-card>
-  </div>
+    }
+    @if (categories$ | async; as categories) {
+      <div>
+        <div i18n="@@apiDetailsCategories" class="m3-body-large">Categories</div>
+        <div class="m3-body-medium">{{ categories }}</div>
+      </div>
+    }
+  </mat-card>
 </div>

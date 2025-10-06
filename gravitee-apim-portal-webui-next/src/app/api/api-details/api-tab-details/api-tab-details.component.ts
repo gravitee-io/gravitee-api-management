@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { AsyncPipe, NgClass } from '@angular/common';
+import { Component, computed, inject, Input, OnInit } from '@angular/core';
 import { MatCard } from '@angular/material/card';
 import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 
@@ -24,6 +24,7 @@ import { Api } from '../../../../entities/api/api';
 import { ApiInformation } from '../../../../entities/api/api-information';
 import { Page } from '../../../../entities/page/page';
 import { CategoriesService } from '../../../../services/categories.service';
+import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
 import { PageService } from '../../../../services/page.service';
 import { PortalService } from '../../../../services/portal.service';
 
@@ -34,7 +35,7 @@ interface HomepageData {
 
 @Component({
   selector: 'app-api-tab-details',
-  imports: [AsyncPipe, PageComponent, LoaderComponent, MatCard],
+  imports: [AsyncPipe, PageComponent, LoaderComponent, MatCard, NgClass],
   templateUrl: './api-tab-details.component.html',
   styleUrl: './api-tab-details.component.scss',
 })
@@ -46,6 +47,11 @@ export class ApiTabDetailsComponent implements OnInit {
   homepageData$: Observable<HomepageData> = of();
   categories$: Observable<string> = of('');
   apiInformation$: Observable<ApiInformation[]> = of([]);
+
+  apiDetailsTabClasses = computed(() => ({
+    'api-details__tab--mobile': this.isMobile(),
+  }));
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
   constructor(
     private pageService: PageService,
