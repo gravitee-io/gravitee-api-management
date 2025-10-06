@@ -65,4 +65,8 @@
   margin-top: 30px;
   gap: 32px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  @media (width <= 768px) {
+    grid-template-columns: 1fr;
+  }
 }
