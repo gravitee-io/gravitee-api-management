@@ -277,3 +277,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_9_0/06_add_portal_page_contexts_table.yml
     - include:
         - file: liquibase/changelogs/v4_9_0/07_add_parent_hrid_to_page_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/08_add_general_conditions_hrid_to_plan_table.yml
