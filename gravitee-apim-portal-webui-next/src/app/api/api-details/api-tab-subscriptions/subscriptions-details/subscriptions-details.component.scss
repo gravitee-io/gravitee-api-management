@@ -38,6 +38,10 @@
     padding-top: 32px;
     margin-bottom: 20px;
     gap: 32px;
+
+    @media (width <= 768px) {
+      flex-direction: column;
+    }
   }
 
   &__subscription-info {
