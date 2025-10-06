@@ -19,11 +19,18 @@
   &__header {
     display: flex;
     width: 100%;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
 
     &__title {
       padding: 8px 0 24px;
+    }
+
+    &__button {
+      @media (width <= 768px) {
+        margin-bottom: 16px;
+      }
     }
   }
 
