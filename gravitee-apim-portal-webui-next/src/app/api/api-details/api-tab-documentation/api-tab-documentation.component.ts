@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { NgClass } from '@angular/common';
-import { Component, Input, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal, WritableSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable, of } from 'rxjs';
@@ -45,6 +46,7 @@ export class ApiTabDocumentationComponent implements OnInit {
   selectedPageData$: Observable<SelectedPageData> = of();
   pageId = signal<string | undefined>(undefined);
   isSidebarExpanded: WritableSignal<boolean> = signal(true);
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private readonly pageService: PageService,
@@ -57,6 +59,15 @@ export class ApiTabDocumentationComponent implements OnInit {
     if (this.pageNodes.length == 1) {
       this.isSidebarExpanded.set(false);
     }
+
+    this.activatedRoute.firstChild?.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(paramMap => {
+      const pageId = paramMap.get('pageId');
+      if (pageId) {
+        this.pageId.set(pageId);
+      } else if (this.pageNodes.length > 0) {
+        this.pageId.set(this.pageNodes[0].id);
+      }
+    });
   }
 
   showPage(pageId: string) {
