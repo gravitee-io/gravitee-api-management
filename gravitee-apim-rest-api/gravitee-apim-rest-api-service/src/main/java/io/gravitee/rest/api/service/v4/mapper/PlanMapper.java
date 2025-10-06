@@ -101,6 +101,7 @@ public class PlanMapper {
         entity.setTags(plan.getTags());
         entity.setSelectionRule(plan.getSelectionRule());
         entity.setGeneralConditions(plan.getGeneralConditions());
+        entity.setGeneralConditionsHrid(plan.getGeneralConditionsHrid());
         return entity;
     }
 
@@ -130,6 +131,7 @@ public class PlanMapper {
         plan.setTags(newPlanEntity.getTags());
         plan.setSelectionRule(newPlanEntity.getSelectionRule());
         plan.setGeneralConditions(newPlanEntity.getGeneralConditions());
+        plan.setGeneralConditionsHrid(newPlanEntity.getGeneralConditionsHrid());
         plan.setOrder(newPlanEntity.getOrder());
         plan.setApiType(api.getType());
 
@@ -149,7 +151,7 @@ public class PlanMapper {
     }
 
     public List<io.gravitee.definition.model.v4.plan.Plan> toDefinitions(final Set<PlanEntity> planEntities) {
-        return planEntities.stream().map(this::toDefinition).collect(Collectors.toList());
+        return planEntities.stream().map(this::toDefinition).toList();
     }
 
     public io.gravitee.definition.model.v4.plan.Plan toDefinition(final PlanEntity planEntity) {
@@ -159,7 +161,7 @@ public class PlanMapper {
     }
 
     public List<NativePlan> toNativeDefinitions(final Set<NativePlanEntity> planEntities) {
-        return planEntities.stream().map(this::toNativeDefinition).collect(Collectors.toList());
+        return planEntities.stream().map(this::toNativeDefinition).toList();
     }
 
     public NativePlan toNativeDefinition(final NativePlanEntity planEntity) {
@@ -194,6 +196,7 @@ public class PlanMapper {
         updatePlanEntity.setCommentRequired(planEntity.isCommentRequired());
         updatePlanEntity.setCommentMessage(planEntity.getCommentMessage());
         updatePlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
+        updatePlanEntity.setGeneralConditionsHrid(planEntity.getGeneralConditionsHrid());
         updatePlanEntity.setTags(planEntity.getTags());
         updatePlanEntity.setSelectionRule(planEntity.getSelectionRule());
         updatePlanEntity.setFlows(planEntity.getFlows());
@@ -240,6 +243,7 @@ public class PlanMapper {
         newPlanEntity.setCommentRequired(planEntity.isCommentRequired());
         newPlanEntity.setCommentMessage(planEntity.getCommentMessage());
         newPlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
+        newPlanEntity.setGeneralConditionsHrid(planEntity.getGeneralConditionsHrid());
         newPlanEntity.setTags(planEntity.getTags());
         newPlanEntity.setSelectionRule(planEntity.getSelectionRule());
         return newPlanEntity;

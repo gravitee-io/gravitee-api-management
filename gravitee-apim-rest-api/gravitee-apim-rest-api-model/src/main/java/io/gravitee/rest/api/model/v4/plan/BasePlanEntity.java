@@ -94,6 +94,7 @@ public class BasePlanEntity implements GenericPlanEntity {
     private boolean commentRequired;
     private String commentMessage;
     private String generalConditions;
+    private String generalConditionsHrid;
     private ApiType apiType;
 
     @Override

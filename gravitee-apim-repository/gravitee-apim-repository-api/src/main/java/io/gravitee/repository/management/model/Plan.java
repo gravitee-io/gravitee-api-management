@@ -142,6 +142,8 @@ public class Plan {
 
     private String generalConditions;
 
+    private String generalConditionsHrid;
+
     @Builder.Default
     private Set<String> tags = new HashSet<>();
 

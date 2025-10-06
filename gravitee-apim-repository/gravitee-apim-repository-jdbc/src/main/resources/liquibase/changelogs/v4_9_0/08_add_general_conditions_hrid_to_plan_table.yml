@@ -1,13 +1,13 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.9.0_07-add_parent_hrid_page_table
+      id: 4.9.0_08_add_general_conditions_hrid_to_plan_table
       author: GraviteeSource Team
       changes:
         - addColumn:
-            tableName: ${gravitee_prefix}pages
+            tableName: ${gravitee_prefix}plans
             columns:
               - column:
-                  name: parent_hrid
+                  name: general_conditions_hrid
                   type: nvarchar(256)
                   constraints:
                     nullable: true
