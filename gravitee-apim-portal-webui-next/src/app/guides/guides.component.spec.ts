@@ -19,13 +19,11 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
 import { GuidesComponent } from './guides.component';
-import { PageMarkdownHarness } from '../../components/page/page-markdown/page-markdown.harness';
 import { PageTreeHarness } from '../../components/page-tree/page-tree.harness';
-import { Page } from '../../entities/page/page';
 import { fakePage, fakePagesResponse } from '../../entities/page/page.fixtures';
 import { PagesResponse } from '../../entities/page/pages-response';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
@@ -34,16 +32,22 @@ describe('GuidesComponent', () => {
   let fixture: ComponentFixture<GuidesComponent>;
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
-  let router: Router;
 
   beforeEach(async () => {
-    const queryParams = new BehaviorSubject<Params>({});
+    const paramMap = new BehaviorSubject(new Map());
+    const url = new BehaviorSubject([]);
+
     await TestBed.configureTestingModule({
       imports: [GuidesComponent, AppTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: { queryParams },
+          useValue: {
+            url: url.asObservable(),
+            firstChild: {
+              paramMap: paramMap.asObservable(),
+            },
+          },
         },
       ],
     }).compileComponents();
@@ -51,13 +55,6 @@ describe('GuidesComponent', () => {
     fixture = TestBed.createComponent(GuidesComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
-
-    router = TestBed.inject(Router);
-    jest.spyOn(router, 'navigate').mockImplementation((_, navigationExtras) => {
-      queryParams.next(navigationExtras?.queryParams ?? {});
-      return Promise.resolve(true);
-    });
-
     fixture.detectChanges();
   });
 
@@ -86,13 +83,12 @@ describe('GuidesComponent', () => {
         }),
       );
 
-      expectGetPageContent(fakePage({ id: 'valid-page', type: 'MARKDOWN' }));
-
       const tree = await harnessLoader.getHarness(PageTreeHarness);
       const displayedItems = await tree.displayedItems();
       expect(displayedItems).toHaveLength(1);
       expect(displayedItems).toEqual(['valid page']);
     });
+
     it('should not show empty folder', async () => {
       expectGetPages(
         fakePagesResponse({
@@ -104,13 +100,12 @@ describe('GuidesComponent', () => {
         }),
       );
 
-      expectGetPageContent(fakePage({ id: 'valid-page', type: 'MARKDOWN' }));
-
       const tree = await harnessLoader.getHarness(PageTreeHarness);
       const displayedItems = await tree.displayedItems();
       expect(displayedItems).toHaveLength(1);
       expect(displayedItems).toEqual(['a valid folder']);
     });
+
     it('should not show page with parentId defined but invalid', async () => {
       expectGetPages(
         fakePagesResponse({
@@ -122,21 +117,21 @@ describe('GuidesComponent', () => {
         }),
       );
 
-      expectGetPageContent(fakePage({ id: 'valid-page', type: 'MARKDOWN' }));
+      const tree = await harnessLoader.getHarness(PageTreeHarness);
+      const displayedItems = await tree.displayedItems();
+      expect(displayedItems).toHaveLength(1);
+      expect(displayedItems).toEqual(['valid page']);
+    });
+
+    it('should show page', async () => {
+      expectGetPages(fakePagesResponse({ data: [fakePage({ id: 'valid-page', name: 'valid page', type: 'MARKDOWN' })] }));
 
       const tree = await harnessLoader.getHarness(PageTreeHarness);
       const displayedItems = await tree.displayedItems();
       expect(displayedItems).toHaveLength(1);
       expect(displayedItems).toEqual(['valid page']);
     });
-    it('should show page', async () => {
-      expectGetPages(fakePagesResponse({ data: [fakePage({ id: 'valid-page', name: 'valid page', type: 'MARKDOWN' })] }));
 
-      expectGetPageContent(fakePage({ id: 'valid-page', type: 'MARKDOWN', content: 'content' }));
-
-      const markdown = await harnessLoader.getHarnessOrNull(PageMarkdownHarness);
-      expect(markdown).toBeTruthy();
-    });
     it('should not show folder + inner page', async () => {
       expectGetPages(
         fakePagesResponse({
@@ -147,25 +142,15 @@ describe('GuidesComponent', () => {
         }),
       );
 
-      expectGetPageContent(fakePage({ id: 'valid-page', type: 'MARKDOWN' }));
-
       const tree = await harnessLoader.getHarness(PageTreeHarness);
       const displayedItems = await tree.displayedItems();
       expect(displayedItems).toHaveLength(1);
       expect(displayedItems).toEqual(['valid folder']);
-
-      const markdown = await harnessLoader.getHarnessOrNull(PageMarkdownHarness);
-      expect(markdown).toBeTruthy();
     });
   });
 
   function expectGetPages(pagesResponse: PagesResponse) {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/pages?page=1&size=-1`).flush(pagesResponse);
-    fixture.detectChanges();
-  }
-
-  function expectGetPageContent(page: Page) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/pages/${page.id}?include=content`).flush(page);
     fixture.detectChanges();
   }
 });

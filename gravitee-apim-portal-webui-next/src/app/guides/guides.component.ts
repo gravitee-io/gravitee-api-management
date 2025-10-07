@@ -13,67 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCard, MatCardContent } from '@angular/material/card';
-import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, combineLatestWith, EMPTY, map, Observable, of, switchMap, tap } from 'rxjs';
+import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
+import { map, startWith, switchMap } from 'rxjs';
 
 import { LoaderComponent } from '../../components/loader/loader.component';
-import { PageComponent } from '../../components/page/page.component';
-import { PageTreeComponent, PageTreeNode } from '../../components/page-tree/page-tree.component';
-import { Page } from '../../entities/page/page';
+import { PageTreeComponent } from '../../components/page-tree/page-tree.component';
 import { PageService } from '../../services/page.service';
 
 @Component({
   selector: 'app-guides',
   standalone: true,
-  imports: [AsyncPipe, LoaderComponent, PageComponent, PageTreeComponent, MatCard, MatCardContent],
+  imports: [LoaderComponent, PageTreeComponent, MatCard, MatCardContent, RouterOutlet],
   templateUrl: './guides.component.html',
-  styleUrl: './guides.component.scss',
+  styleUrls: ['./guides.component.scss'],
 })
-export class GuidesComponent implements OnInit {
-  pagesData$: Observable<{ nodes: PageTreeNode[]; pages: Page[] }> = of();
-  selectedPageData$: Observable<{ result?: Page; error?: string }> = of();
-  selectedPageId = signal<string | undefined>(undefined);
-  loadingPage = signal<boolean>(true);
-
-  constructor(
-    private pageService: PageService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-  ) {}
-
-  ngOnInit() {
-    this.pagesData$ = this.pageService.listByEnvironment().pipe(
-      combineLatestWith(this.activatedRoute.queryParams),
-      map(([pagesResponse, queryParams]) => {
-        this.selectedPageId.set(queryParams['page']);
+export class GuidesComponent {
+  protected pagesData = toSignal(
+    this.pageService.listByEnvironment().pipe(
+      map(pagesResponse => {
         const pages = (pagesResponse.data ?? []).filter(p => p.type !== 'LINK');
         const nodes = this.pageService.mapToPageTreeNode(undefined, pages);
         return { pages, nodes };
       }),
-    );
+    ),
+  );
+  protected pageId = toSignal(
+    this.activatedRoute.url.pipe(
+      startWith(null),
+      switchMap(() => this.activatedRoute.firstChild?.paramMap ?? []),
+      map(params => params.get('pageId')),
+    ),
+    { initialValue: null },
+  );
 
-    this.selectedPageData$ = this.activatedRoute.queryParams.pipe(
-      tap(({ page }) => {
-        this.loadingPage.set(true);
-        this.selectedPageId.set(page);
-      }),
-      switchMap(({ page }) => (page ? this.pageService.getById(page) : EMPTY)),
-      map(result => ({ result })),
-      catchError((error: HttpErrorResponse) => of({ error: error.message })),
-      tap(_ => this.loadingPage.set(false)),
-    );
-  }
+  constructor(
+    private readonly pageService: PageService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
-  showPage(page: string) {
-    this.router.navigate(['.'], {
-      relativeTo: this.activatedRoute,
-      queryParams: {
-        page,
-      },
-    });
+  showPage(pageId: string): void {
+    this.router.navigate(['.', pageId], { relativeTo: this.activatedRoute });
   }
 }
