@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.size;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -249,8 +250,10 @@ public class RollbackApiUseCase {
                 })
             );
         if (
-            existingPlansMustBeRollbackOrClose.get(ROLLBACK) != null &&
-            existingPlansMustBeRollbackOrClose.get(ROLLBACK).size() < apiDefinitionPlans.size()
+            Stream.of(ROLLBACK, REOPEN)
+                .mapToInt(c -> size(existingPlansMustBeRollbackOrClose.get(c)))
+                .sum() <
+            apiDefinitionPlans.size()
         ) {
             throw new IllegalStateException("Cannot rollback plans because some plans have been removed");
         }
