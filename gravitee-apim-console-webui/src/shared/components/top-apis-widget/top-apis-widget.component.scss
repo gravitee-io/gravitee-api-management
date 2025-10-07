@@ -10,15 +10,13 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .title {
-  @include mat.m2-typography-level($typography, 'body-1');
-  padding: 16px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 
   &__tooltip {
-    height: 16px;
-    width: 16px;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -26,8 +24,14 @@ tr.mat-mdc-row {
   height: 28px;
 }
 
+mat-card-header {
+  padding-bottom: 12px;
+  border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+}
+
 .top-apis-table {
   margin-top: 0 !important;
+  border-top: none;
 }
 
 gio-loader {

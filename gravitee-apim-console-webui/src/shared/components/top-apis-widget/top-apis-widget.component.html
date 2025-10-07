@@ -17,10 +17,16 @@
 -->
 
 <mat-card class="top-apis-card">
-  <div class="title">
-    Top APIs
-    <mat-icon class="title__tooltip" svgIcon="gio:info" matTooltip="Ordered by API calls"></mat-icon>
-  </div>
+  <mat-card-header>
+    <mat-card-title class="title">
+      Top APIs
+      <mat-icon
+        class="title__tooltip"
+        svgIcon="gio:info"
+        matTooltip="This table shows the top APIs based on the number of hits they have received. It provides insights into which APIs are most frequently accessed, helping you understand usage patterns and prioritize API management efforts."
+      ></mat-icon>
+    </mat-card-title>
+  </mat-card-header>
 
   @if (data) {
     <gio-table-wrapper
