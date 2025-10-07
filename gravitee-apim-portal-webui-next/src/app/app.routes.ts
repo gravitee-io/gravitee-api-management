@@ -33,7 +33,9 @@ import { ApplicationsComponent } from './applications/applications.component';
 import { CategoriesViewComponent } from './catalog/categories-view/categories-view.component';
 import { CategoryApisComponent } from './catalog/categories-view/category-apis/category-apis.component';
 import { TabsViewComponent } from './catalog/tabs-view/tabs-view.component';
+import { GuidesPageComponent } from './guides/components/guides-page.component';
 import { GuidesComponent } from './guides/guides.component';
+import { environmentPagesResolver } from './guides/resolvers/environment-pages.resolver';
 import { LogInComponent } from './log-in/log-in.component';
 import { ResetPasswordConfirmationComponent } from './log-in/reset-password/reset-password-confirmation/reset-password-confirmation.component';
 import { ResetPasswordComponent } from './log-in/reset-password/reset-password.component';
@@ -210,6 +212,15 @@ export const routes: Routes = [
   {
     path: 'guides',
     component: GuidesComponent,
+    data: { breadcrumb: { label: 'Documentation', disable: true } },
+    resolve: { pages: environmentPagesResolver },
+    children: [
+      {
+        path: ':pageId',
+        component: GuidesPageComponent,
+        data: { breadcrumb: { alias: 'pageName' } },
+      },
+    ],
   },
   {
     path: 'log-in',
