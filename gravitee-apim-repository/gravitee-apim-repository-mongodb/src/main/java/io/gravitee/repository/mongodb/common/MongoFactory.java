@@ -341,25 +341,29 @@ public class MongoFactory implements FactoryBean<MongoClient> {
         // According to https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/beans/factory/FactoryBean.html#isSingleton--
         // It is the responsibility of the bean factory to ensure singleton instance.
         if (mongoClient == null) {
-            mongoClient = MongoClients.create(buildMongoClientSettings(false));
+            // Trying to get the MongoClientURI if uri property is defined
+            String uri = readPropertyValue(propertyPrefix + "uri");
+
+            if (uri != null && !uri.isEmpty()) {
+                // The builder can be configured with default options, which may be overridden by options specified in the URI string.
+                mongoClient = MongoClients.create(buildClientSettingsFromURI(uri, false));
+            } else {
+                mongoClient = MongoClients.create(buildClientSettingsFromProperties(false));
+            }
         }
 
         return mongoClient;
     }
 
-    public MongoClientSettings buildMongoClientSettings(boolean isReactive) {
+    public com.mongodb.reactivestreams.client.MongoClient getReactiveClient() {
         // Trying to get the MongoClientURI if uri property is defined
         String uri = readPropertyValue(propertyPrefix + "uri");
 
         if (uri != null && !uri.isEmpty()) {
-            return buildClientSettingsFromURI(uri, isReactive);
+            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettingsFromURI(uri, true));
         } else {
-            return buildClientSettingsFromProperties(isReactive);
+            return com.mongodb.reactivestreams.client.MongoClients.create(buildClientSettingsFromProperties(true));
         }
-    }
-
-    public com.mongodb.reactivestreams.client.MongoClient getReactiveClient() {
-        return com.mongodb.reactivestreams.client.MongoClients.create(buildMongoClientSettings(true));
     }
 
     private int getServersCount() {

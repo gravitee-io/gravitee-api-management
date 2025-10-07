@@ -17,10 +17,7 @@ package io.gravitee.repository.mongodb;
 
 import com.mongodb.client.MongoClient;
 import io.gravitee.repository.config.TestRepositoryInitializer;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.IndexMongoUpgrader;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
-import java.util.concurrent.TimeUnit;
 import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +44,7 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
         LOG.debug("Constructed");
         this.mongoClient = mongoClient;
         LOG.info("Running MongoDB upgraders");
-
         applicationContext.getBeansOfType(MongoUpgrader.class).values().forEach(MongoUpgrader::upgrade);
-        applicationContext.getBeansOfType(IndexMongoUpgrader.class).values().forEach(IndexMongoUpgrader::upgrade);
     }
 
     @Override

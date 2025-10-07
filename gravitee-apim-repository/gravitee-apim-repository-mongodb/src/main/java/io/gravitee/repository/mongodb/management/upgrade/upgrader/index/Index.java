@@ -20,12 +20,9 @@ import com.mongodb.client.model.IndexOptions;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Singular;
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
-import org.bson.Document;
-import org.springframework.data.mongodb.core.index.IndexDefinition;
 
 /**
  * @author GraviteeSource Team
@@ -55,34 +52,5 @@ public class Index {
 
     public IndexOptions options() {
         return new IndexOptions().name(name).unique(unique).collation(collation);
-    }
-
-    public IndexDefinition toIndexDefinition() {
-        return new IndexDefinition() {
-            @NonNull
-            @Override
-            public Document getIndexKeys() {
-                return Document.parse(bson().asDocument().toJson());
-            }
-
-            @NonNull
-            @Override
-            public Document getIndexOptions() {
-                Document doc = new Document();
-                if (name != null) {
-                    doc.append("name", name);
-                }
-                if (unique) {
-                    doc.append("unique", true);
-                }
-                if (collation != null) {
-                    doc.append(
-                        "collation",
-                        Document.parse(collation.asDocument().toJson())
-                    );
-                }
-                return doc;
-            }
-        };
     }
 }

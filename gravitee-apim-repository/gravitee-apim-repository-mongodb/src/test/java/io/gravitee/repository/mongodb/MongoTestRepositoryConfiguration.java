@@ -22,8 +22,6 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.config.MongoUp
 import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,8 +29,6 @@ import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.ClassPathResource;
@@ -97,23 +93,10 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         return com.mongodb.reactivestreams.client.MongoClients.create(mongoDBContainer.getReplicaSetUrl());
     }
 
-    @Primary
     @Bean(name = "managementMongoTemplate")
     public MongoOperations mongoOperations(MongoClient mongoClient) {
         try {
             return new MongoTemplate(mongoClient, getDatabaseName());
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    @Bean(name = "indexManagementReactiveMongoTemplate")
-    public ReactiveMongoOperations indexReactiveMongoOperations() {
-        try {
-            return new ReactiveMongoTemplate(
-                com.mongodb.reactivestreams.client.MongoClients.create(mongoDBContainer.getReplicaSetUrl()),
-                getDatabaseName()
-            );
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
