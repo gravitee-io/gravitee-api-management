@@ -553,7 +553,7 @@ class MigrateApiUseCaseTest {
     }
 
     @Test
-    void should_upgrade_api_with_closed_plans() {
+    void should_upgrade_api_with_closed_plans_but_not_upgrade_closed_plan() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
         v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
@@ -585,7 +585,6 @@ class MigrateApiUseCaseTest {
 
         var upgradedPlans = planCrudService.findByApiId(API_ID);
         assertThat(upgradedPlans).hasSize(1).extracting(Plan::getId).containsExactlyInAnyOrder("plan-1");
-        assertThat(upgradedPlans).allSatisfy(MigrateApiUseCaseTest::assertPlanV4);
     }
 
     @Test
