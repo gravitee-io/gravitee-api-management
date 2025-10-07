@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { MatCard } from '@angular/material/card';
+import { MatCard, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { GioChartPieModule } from '../gio-chart-pie/gio-chart-pie.module';
@@ -27,7 +27,7 @@ export type ApiAnalyticsResponseStatusRanges = {
 
 @Component({
   selector: 'api-analytics-response-status-ranges',
-  imports: [MatCard, GioChartPieModule, GioLoaderModule],
+  imports: [MatCard, GioChartPieModule, GioLoaderModule, MatCardTitle, MatCardHeader],
   templateUrl: './api-analytics-response-status-ranges.component.html',
   styleUrl: './api-analytics-response-status-ranges.component.scss',
 })

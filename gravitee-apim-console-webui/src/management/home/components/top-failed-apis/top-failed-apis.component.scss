@@ -1,9 +1,19 @@
+@use '@gravitee/ui-particles-angular' as gio;
+@use 'sass:map';
+@use '@angular/material' as mat;
+
 .top-failed-apis-card {
   height: 100%;
 }
 
-.card-title {
-  margin: 0;
+mat-card-header {
+  padding-bottom: 12px;
+  border-bottom: 1px mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+}
+
+gio-table-wrapper {
+  margin-top: 0;
+  border-top: none;
 }
 
 tr.mat-mdc-row {
