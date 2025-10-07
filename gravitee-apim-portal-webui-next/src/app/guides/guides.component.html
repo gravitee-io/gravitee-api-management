@@ -17,28 +17,14 @@
 -->
 <mat-card appearance="outlined">
   <mat-card-content class="guides">
-    @if (pagesData$ | async; as pagesData) {
+    @if (pagesData(); as pagesData) {
       @if (pagesData.nodes.length) {
         <div class="guides__side-bar">
-          <app-page-tree
-            class="guides__side-bar__tree"
-            [activePage]="selectedPageId()"
-            [pages]="pagesData.nodes"
-            (openFile)="showPage($event)" />
+          <app-page-tree class="guides__side-bar__tree" [activePage]="pageId()!" [pages]="pagesData.nodes" (openFile)="showPage($event)" />
         </div>
 
         <div class="guides__page-content">
-          @if (selectedPageData$ | async; as selectedPageData) {
-            @if (loadingPage()) {
-              <app-loader />
-            } @else if (selectedPageData.result) {
-              <app-page class="guides__page-content__container" [page]="selectedPageData.result" [pages]="pagesData.pages" />
-            } @else if (selectedPageData.error) {
-              <div i18n="@@apiDocumentationError">An error has occurred.</div>
-            }
-          } @else {
-            <app-loader />
-          }
+          <router-outlet />
         </div>
       } @else {
         <div class="guides__empty">
