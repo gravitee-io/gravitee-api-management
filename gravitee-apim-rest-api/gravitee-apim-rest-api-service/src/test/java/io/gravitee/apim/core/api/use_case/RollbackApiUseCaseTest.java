@@ -702,7 +702,7 @@ class RollbackApiUseCaseTest {
         }
 
         @Test
-        void should_rollback_api_v4_plan_should_be_closed() throws JsonProcessingException {
+        void should_rollback_api_v4_plan_should_be_reopened() throws JsonProcessingException {
             // Given
             var existingV4Api = apiV4().build();
             apiCrudService.update(ApiAdapter.INSTANCE.toCoreModel(existingV4Api));
@@ -740,7 +740,7 @@ class RollbackApiUseCaseTest {
                     Map.of(
                         "plan-to-rollback",
                         io.gravitee.definition.model.Plan.builder()
-                            .id("plan-to-rollback-old")
+                            .id("plan-to-rollback")
                             .name("plan-previous-name")
                             .status("PUBLISHED")
                             .security("KEY_LESS")
@@ -791,10 +791,10 @@ class RollbackApiUseCaseTest {
 
             var rolledBackPlan = planCrudService.getById("plan-to-rollback");
             assertSoftly(softly -> {
-                softly.assertThat(rolledBackPlan.getName()).isEqualTo("plan-current-name");
-                softly.assertThat(rolledBackPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+                softly.assertThat(rolledBackPlan.getName()).isEqualTo("plan-previous-name");
+                softly.assertThat(rolledBackPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 softly.assertThat(rolledBackPlan.getUpdatedAt()).isEqualTo(ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()));
-                softly.assertThat(rolledBackPlan.getPlanStatus()).isEqualTo(PlanStatus.CLOSED);
+                softly.assertThat(rolledBackPlan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
             });
             assertThat(planCrudService.storage()).containsOnly(rolledBackPlan);
 
