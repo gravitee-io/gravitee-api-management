@@ -22,7 +22,6 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
-import io.gravitee.apim.core.category.domain_service.UpdateCategoryApiDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
@@ -31,6 +30,7 @@ import io.gravitee.apim.core.notification.model.hook.ApiUpdatedApiHookContext;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.Collections;
 import java.util.function.BinaryOperator;
@@ -70,9 +70,13 @@ public class UpdateNativeApiDomainService {
         }
 
         var updatedApi = apiCrudService.update(api);
+        var flows = switch (updatedApi.getApiDefinitionValue()) {
+            case NativeApi definition -> definition.getFlows();
+            default -> throw new IllegalStateException("Update native API produce a non native API");
+        };
 
         // update api flows
-        flowCrudService.saveNativeApiFlows(updatedApi.getId(), updatedApi.getApiDefinitionNativeV4().getFlows());
+        flowCrudService.saveNativeApiFlows(updatedApi.getId(), flows);
 
         // update api categories
         categoryDomainService.updateOrderCategoriesOfApi(updatedApi.getId(), updatedApi.getCategories());

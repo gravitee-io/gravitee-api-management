@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.plan.domain_service;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.ApiDeprecatedException;
 import io.gravitee.apim.core.api.model.Api;
@@ -36,6 +38,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -43,7 +46,6 @@ import java.sql.Date;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @DomainService
 public class CreatePlanDomainService {
@@ -101,11 +103,17 @@ public class CreatePlanDomainService {
         planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 
-        if (api.isNative()) {
-            return createNativeV4ApiPlan(plan, (List<NativeFlow>) flows, api, auditInfo);
-        }
-
-        return createHttpV4ApiPlan(plan, (List<Flow>) flows, api, auditInfo);
+        return switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api apiDefinitionV4 -> createHttpV4ApiPlan(
+                plan,
+                (List<Flow>) flows,
+                api,
+                apiDefinitionV4,
+                auditInfo
+            );
+            case NativeApi ignore -> createNativeV4ApiPlan(plan, (List<NativeFlow>) flows, api, auditInfo);
+            default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
+        };
     }
 
     private PlanWithFlows createNativeV4ApiPlan(Plan plan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
@@ -137,13 +145,15 @@ public class CreatePlanDomainService {
         return new PlanWithFlows(createdPlan, createdFlows);
     }
 
-    private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
+    private PlanWithFlows createHttpV4ApiPlan(
+        Plan plan,
+        List<Flow> flows,
+        Api api,
+        io.gravitee.definition.model.v4.Api apiDefinitionV4,
+        AuditInfo auditInfo
+    ) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
-        flowValidationDomainService.validatePathParameters(
-            api.getType(),
-            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
-            sanitizedFlows.stream()
-        );
+        flowValidationDomainService.validatePathParameters(api.getType(), stream(apiDefinitionV4.getFlows()), sanitizedFlows.stream());
 
         var createdPlan = planCrudService.create(
             plan

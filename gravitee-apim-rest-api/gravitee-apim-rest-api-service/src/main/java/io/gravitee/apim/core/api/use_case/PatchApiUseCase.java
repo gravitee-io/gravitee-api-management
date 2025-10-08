@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
@@ -192,11 +191,12 @@ public class PatchApiUseCase {
         }
 
         var persisted = updateApiDomainService.updateV4(updatedApi, input.auditInfo());
-        var httpV4 = persisted.getApiDefinitionHttpV4();
-        if (httpV4 != null && httpV4.getFlows() != null) {
+        if (
+            persisted.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Definition && v4Definition.getFlows() != null
+        ) {
             var flows = flowCrudService.getApiV4Flows(persisted.getId());
             return new Output(
-                persisted.toBuilder().apiDefinitionValue(httpV4.toBuilder().flows(flows).build()).build(),
+                persisted.toBuilder().apiDefinitionValue(v4Definition.toBuilder().flows(flows).build()).build(),
                 primaryOwner,
                 workflowState
             );

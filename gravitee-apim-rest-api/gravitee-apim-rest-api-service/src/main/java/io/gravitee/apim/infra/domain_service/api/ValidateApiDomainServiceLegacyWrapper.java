@@ -61,10 +61,10 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
             throw new ValidationDomainException("Definition not supported, should be V4");
         }
 
-        if (api.getType() == ApiType.NATIVE) {
-            this.validateAndSanitizeNativeV4ForCreation(api, primaryOwner, environmentId, organizationId);
+        if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api apiDefinitionV4) {
+            this.validateAndSanitizeHttpV4ForCreation(api, apiDefinitionV4, primaryOwner, environmentId, organizationId);
         } else {
-            this.validateAndSanitizeHttpV4ForCreation(api, primaryOwner, environmentId, organizationId);
+            this.validateAndSanitizeNativeV4ForCreation(api, primaryOwner, environmentId, organizationId);
         }
 
         api.setCategories(categoryDomainService.toCategoryId(api, environmentId));
@@ -102,11 +102,12 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
 
     private void validateAndSanitizeHttpV4ForCreation(
         final Api api,
+        io.gravitee.definition.model.v4.Api apiDefinition,
         PrimaryOwnerEntity primaryOwner,
         String environmentId,
         String organizationId
     ) {
-        var newApiEntity = ApiAdapter.INSTANCE.toNewApiEntity(api);
+        var newApiEntity = ApiAdapter.INSTANCE.toNewApiEntity(api, apiDefinition);
 
         apiValidationService.validateAndSanitizeNewApi(
             new ExecutionContext(organizationId, environmentId),
@@ -121,19 +122,19 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
         api.setGroups(newApiEntity.getGroups());
         api.setTags(newApiEntity.getTags());
 
-        api.getApiDefinitionHttpV4().setListeners(newApiEntity.getListeners());
-        api.getApiDefinitionHttpV4().setEndpointGroups(newApiEntity.getEndpointGroups());
-        api.getApiDefinitionHttpV4().setAnalytics(newApiEntity.getAnalytics());
-        api.getApiDefinitionHttpV4().setFlowExecution(newApiEntity.getFlowExecution());
-        api.getApiDefinitionHttpV4().setFailover(newApiEntity.getFailover());
+        apiDefinition.setListeners(newApiEntity.getListeners());
+        apiDefinition.setEndpointGroups(newApiEntity.getEndpointGroups());
+        apiDefinition.setAnalytics(newApiEntity.getAnalytics());
+        apiDefinition.setFlowExecution(newApiEntity.getFlowExecution());
+        apiDefinition.setFailover(newApiEntity.getFailover());
 
-        api.getApiDefinitionHttpV4().setResources(apiValidationService.validateAndSanitize(api.getApiDefinitionHttpV4().getResources()));
+        apiDefinition.setResources(apiValidationService.validateAndSanitize(apiDefinition.getResources()));
 
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), newApiEntity.getFlows());
-        api.getApiDefinitionHttpV4().setFlows(sanitizedFlows);
+        apiDefinition.setFlows(sanitizedFlows);
 
         apiValidationService.validateDynamicProperties(
-            api.getApiDefinitionHttpV4().getServices() != null ? api.getApiDefinitionHttpV4().getServices().getDynamicProperty() : null
+            apiDefinition.getServices() != null ? apiDefinition.getServices().getDynamicProperty() : null
         );
     }
 

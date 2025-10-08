@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
@@ -36,7 +38,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import lombok.CustomLog;
 
 /**
@@ -107,25 +108,26 @@ public class UpdateDynamicPropertiesUseCase {
         // We can force a redeployment only if:
         // - the API was synchronized before the properties are updated (i.e. no manual changes have been done by a user)
         // - and the properties have changed
-        if (isApiSynchronized && needRedployment(api.getApiDefinitionHttpV4().getProperties(), previousProperties)) {
+        var apiDefinition = (io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue();
+        if (isApiSynchronized && needRedployment(apiDefinition.getProperties(), previousProperties)) {
             // Get the api from latest deployment event of the api to deploy the api with the same dynamic properties configuration
             // It avoids to deploy changes on the configuration that has not been explicitly deployed by the user
             apiEventQueryService
                 .findLastPublishedApi(auditInfo.organizationId(), auditInfo.environmentId(), api.getId())
                 .ifPresent(deployedApi -> {
+                    var deployedDefinitionValue = (io.gravitee.definition.model.v4.Api) deployedApi.getApiDefinitionValue();
                     if (
-                        deployedApi.getApiDefinitionHttpV4().getServices() == null ||
-                        deployedApi.getApiDefinitionHttpV4().getServices().getDynamicProperty() == null
+                        deployedDefinitionValue.getServices() == null || deployedDefinitionValue.getServices().getDynamicProperty() == null
                     ) {
                         return;
                     }
-                    final Service deployedDynamicPropertiesService = deployedApi
-                        .getApiDefinitionHttpV4()
-                        .getServices()
-                        .getDynamicProperty();
+                    final Service deployedDynamicPropertiesService = deployedDefinitionValue.getServices().getDynamicProperty();
                     // If the deployed api has the service enabled, then redeploy with the service enabled.
-                    if (deployedDynamicPropertiesService.isEnabled()) {
-                        updated.getApiDefinitionHttpV4().getServices().setDynamicProperty(deployedDynamicPropertiesService);
+                    if (
+                        deployedDynamicPropertiesService.isEnabled() &&
+                        updated.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api apiDefinitionV4
+                    ) {
+                        apiDefinitionV4.getServices().setDynamicProperty(deployedDynamicPropertiesService);
                     }
                 });
             apiStateDomainService.deploy(updated, String.format("%s sync", input.pluginId()), auditInfo);
@@ -150,7 +152,9 @@ public class UpdateDynamicPropertiesUseCase {
      * @return the copy of the list of properties
      */
     private static List<Property> getCurrentProperties(Api api) {
-        return Optional.ofNullable(api.getApiDefinitionHttpV4().getProperties()).orElse(Collections.emptyList()).stream().toList();
+        return api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api apiDefinitionV4
+            ? stream(apiDefinitionV4.getProperties()).toList()
+            : Collections.emptyList();
     }
 
     private AuditInfo buildAuditInfo(Input input, Api apiForUpdate) {

@@ -74,10 +74,17 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Failover;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingContent;
+import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.LoggingScope;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.definition.model.ProtocolVersion;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
@@ -85,14 +92,17 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckResponse;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckStep;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -269,9 +279,9 @@ class MigrateApiUseCaseTest {
         // Given
         when(apiService.isSynchronized(any(), any())).thenReturn(false);
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        var apiDefinition = ((io.gravitee.definition.model.Api) api.getApiDefinitionValue());
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -292,9 +302,7 @@ class MigrateApiUseCaseTest {
     void should_return_fail_when_api_dont_use_v4_emulation_engine() {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        api
-            .getApiDefinition()
-            .getProxy()
+        ((io.gravitee.definition.model.Api) api.getApiDefinitionValue()).getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
         apiCrudService.initWith(List.of(api));
@@ -315,9 +323,9 @@ class MigrateApiUseCaseTest {
     void should_migrate_when_api_has_documentation_page(Page.Type type) {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        var apiDefinition = ((io.gravitee.definition.model.Api) api.getApiDefinitionValue());
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -344,9 +352,9 @@ class MigrateApiUseCaseTest {
     void should_return_fail_when_api_has_doc_with_translations() {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        var apiDefinition = ((io.gravitee.definition.model.Api) api.getApiDefinitionValue());
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -381,9 +389,9 @@ class MigrateApiUseCaseTest {
     void should_return_fail_when_api_has_doc_with_AccessControls() {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        var apiDefinition = ((io.gravitee.definition.model.Api) api.getApiDefinitionValue());
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -417,9 +425,9 @@ class MigrateApiUseCaseTest {
     void should_return_fail_when_api_has_doc_with_AttachedResources() {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -458,9 +466,9 @@ class MigrateApiUseCaseTest {
     void should_not_upgrade_api_in_dry_run_mode() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -494,9 +502,9 @@ class MigrateApiUseCaseTest {
     void should_upgrade_api_definition() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -538,9 +546,9 @@ class MigrateApiUseCaseTest {
     void should_upgrade_api_with_multiple_plans() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -587,9 +595,9 @@ class MigrateApiUseCaseTest {
     void should_upgrade_api_with_closed_plans_but_not_upgrade_closed_plan() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -628,9 +636,9 @@ class MigrateApiUseCaseTest {
     void should_upgrade_api_with_no_plans() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -658,9 +666,9 @@ class MigrateApiUseCaseTest {
     void should_migrate_api_and_plan_flows() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -700,16 +708,16 @@ class MigrateApiUseCaseTest {
     void should_return_issue_when_migrating_flow_with_incompatible_policy() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
         apiCrudService.initWith(List.of(v2Api));
 
-        var step = new io.gravitee.definition.model.flow.Step();
+        var step = new Step();
         step.setPolicy("cloud-events");
         var apiFlow = new io.gravitee.definition.model.flow.Flow();
         apiFlow.setPre(List.of(step));
@@ -729,16 +737,16 @@ class MigrateApiUseCaseTest {
     void should_return_issue_when_migrating_flow_with_unknown_policy() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
         apiCrudService.initWith(List.of(v2Api));
 
         var apiFlow = new io.gravitee.definition.model.flow.Flow();
-        var step = new io.gravitee.definition.model.flow.Step();
+        var step = new Step();
         step.setPolicy("unknown-policy");
         apiFlow.setPre(List.of(step));
         flowCrudService.saveApiFlowsV2(API_ID, List.of(apiFlow));
@@ -757,7 +765,8 @@ class MigrateApiUseCaseTest {
     void should_migrate_api_with_properties() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        var apiDefinition = ((io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue());
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
 
         var properties = new Properties(
             List.of(
@@ -766,9 +775,8 @@ class MigrateApiUseCaseTest {
                 new Property("key3", "value3", false, true)
             )
         );
-        v2Api.getApiDefinition().setProperties(properties);
-        v2Api
-            .getApiDefinition()
+        apiDefinition.setProperties(properties);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -792,9 +800,9 @@ class MigrateApiUseCaseTest {
 
         var upgradedApiOpt = apiCrudService.findById(API_ID);
         assertThat(upgradedApiOpt).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            io.gravitee.definition.model.v4.Api upgradedApiDefinition = assertApiV4(api);
 
-            var migratedProperties = api.getApiDefinitionHttpV4().getProperties();
+            var migratedProperties = upgradedApiDefinition.getProperties();
 
             assertThat(migratedProperties).containsExactlyInAnyOrder(
                 new io.gravitee.definition.model.v4.property.Property("key1", "value1", false, false),
@@ -807,16 +815,16 @@ class MigrateApiUseCaseTest {
     @Test
     void should_migrate_api_with_null_dp_and_disable_dynamicProps() {
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        var apiDefinition = ((io.gravitee.definition.model.Api) v2api.getApiDefinitionValue());
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         Services services = new Services();
-        v2api.getApiDefinition().setServices(services);
-        v2api
-            .getApiDefinition()
+        apiDefinition.setServices(services);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiCrudService.initWith(List.of(v2api));
         // When
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
 
@@ -827,12 +835,10 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
-
-            var migratedServices = api.getApiDefinitionHttpV4().getServices();
+            var migratedServices = assertApiV4(api);
 
             assertSoftly(softly -> {
-                softly.assertThat(api.getApiDefinitionHttpV4().getServices().getDynamicProperty()).isNull();
+                softly.assertThat(migratedServices.getServices().getDynamicProperty()).isNull();
             });
         });
     }
@@ -840,9 +846,9 @@ class MigrateApiUseCaseTest {
     @Test
     void should_migrate_api_with_valid_dynamicprops_and_enable_dynamicprops() {
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -860,8 +866,8 @@ class MigrateApiUseCaseTest {
         dynamicPropertyService.setConfiguration(httpDynamicPropertyProviderConfiguration);
         Services services = new Services();
         services.setDynamicPropertyService(dynamicPropertyService);
-        v2api.getApiDefinition().setServices(services);
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiDefinition.setServices(services);
+        apiCrudService.initWith(List.of(v2api));
         // When
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
 
@@ -872,12 +878,12 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            var upgradedDefinition = assertApiV4(api);
 
-            var migratedDP = api.getApiDefinitionHttpV4().getServices().getDynamicProperty();
+            var migratedDP = upgradedDefinition.getServices().getDynamicProperty();
             assertSoftly(softly -> {
-                softly.assertThat(api.getApiDefinitionHttpV4().getServices().getDynamicProperty()).isNotNull();
-                softly.assertThat(api.getApiDefinitionHttpV4().getServices().getDynamicProperty().isEnabled()).isTrue();
+                softly.assertThat(upgradedDefinition.getServices().getDynamicProperty()).isNotNull();
+                softly.assertThat(upgradedDefinition.getServices().getDynamicProperty().isEnabled()).isTrue();
                 softly.assertThat(migratedDP).isNotNull();
                 softly.assertThat(migratedDP.isEnabled()).isTrue();
                 softly
@@ -892,15 +898,15 @@ class MigrateApiUseCaseTest {
     @Test
     void should_migrate_api_with_null_failover_and_disable_failover() {
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2api.getApiDefinition().getProxy().setFailover(null);
-        v2api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition.getProxy().setFailover(null);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiCrudService.initWith(List.of(v2api));
         // When
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
 
@@ -911,12 +917,12 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            var upgradedDefinition = assertApiV4(api);
 
-            var migratedFailOver = api.getApiDefinitionHttpV4().getFailover();
+            var migratedFailOver = upgradedDefinition.getFailover();
 
             assertSoftly(softly -> {
-                softly.assertThat(api.getApiDefinitionHttpV4().failoverEnabled()).isFalse();
+                softly.assertThat(upgradedDefinition.failoverEnabled()).isFalse();
                 softly.assertThat(migratedFailOver).isNull();
             });
         });
@@ -925,9 +931,9 @@ class MigrateApiUseCaseTest {
     @Test
     void should_migrate_api_with_valid_failover_and_enable_failover() {
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -936,8 +942,8 @@ class MigrateApiUseCaseTest {
         failover.setMaxAttempts(5);
         failover.setRetryTimeout(1000L);
 
-        v2api.getApiDefinition().getProxy().setFailover(failover);
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiDefinition.getProxy().setFailover(failover);
+        apiCrudService.initWith(List.of(v2api));
         // When
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
 
@@ -948,12 +954,12 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            var upgradedDefinition = assertApiV4(api);
 
-            var migratedFailOver = api.getApiDefinitionHttpV4().getFailover();
+            var migratedFailOver = upgradedDefinition.getFailover();
 
             assertSoftly(softly -> {
-                softly.assertThat(api.getApiDefinitionHttpV4().failoverEnabled()).isTrue();
+                softly.assertThat(upgradedDefinition.failoverEnabled()).isTrue();
                 softly.assertThat(migratedFailOver).isNotNull();
                 softly.assertThat(migratedFailOver.isEnabled()).isTrue();
                 softly.assertThat(migratedFailOver.getMaxFailures()).isEqualTo(5);
@@ -968,9 +974,9 @@ class MigrateApiUseCaseTest {
     void should_migrate_api_with_hc_in_endpointgroups() {
         // Given
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -984,7 +990,7 @@ class MigrateApiUseCaseTest {
         step.setRequest(request);
         // Configure the expected response
         HealthCheckResponse response = new HealthCheckResponse();
-        response.setAssertions(java.util.List.of("#status == 200"));
+        response.setAssertions(List.of("#status == 200"));
         step.setResponse(response);
         HealthCheckService healthCheckService = HealthCheckService.builder()
             .enabled(true) // comes from ScheduledService (superclass)
@@ -993,9 +999,9 @@ class MigrateApiUseCaseTest {
             .build();
         Services services = new Services();
         services.setHealthCheckService(healthCheckService);
-        v2api.getApiDefinition().setServices(services);
+        apiDefinition.setServices(services);
 
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiCrudService.initWith(List.of(v2api));
 
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
 
@@ -1006,11 +1012,11 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            var upgradedDefinition = assertApiV4(api);
 
-            var migratedEndpointGroup = api.getApiDefinitionHttpV4().getEndpointGroups();
+            var migratedEndpointGroup = upgradedDefinition.getEndpointGroups();
             assertSoftly(softly -> {
-                softly.assertThat(api.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                softly.assertThat(upgradedDefinition.getEndpointGroups()).hasSize(1);
                 softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck()).isNotNull();
                 softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck().isEnabled()).isTrue();
                 softly
@@ -1026,9 +1032,9 @@ class MigrateApiUseCaseTest {
     void should_not_migrate_api_with_hc_more_than_one_Assertion_in_endpointgroups() {
         // Given
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -1042,7 +1048,7 @@ class MigrateApiUseCaseTest {
         step.setRequest(request);
         // Configure the expected response
         HealthCheckResponse response = new HealthCheckResponse();
-        response.setAssertions(java.util.List.of("status == 200", "status == 201"));
+        response.setAssertions(List.of("status == 200", "status == 201"));
         step.setResponse(response);
         HealthCheckService healthCheckService = HealthCheckService.builder()
             .enabled(true) // comes from ScheduledService (superclass)
@@ -1051,9 +1057,9 @@ class MigrateApiUseCaseTest {
             .build();
         Services services = new Services();
         services.setHealthCheckService(healthCheckService);
-        v2api.getApiDefinition().setServices(services);
+        apiDefinition.setServices(services);
 
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiCrudService.initWith(List.of(v2api));
 
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
 
@@ -1065,9 +1071,9 @@ class MigrateApiUseCaseTest {
     void should_migrate_endpoints_api_with_hc_in_endpointgroups() {
         // Given
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2api
-            .getApiDefinition()
+        io.gravitee.definition.model.Api apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -1081,7 +1087,7 @@ class MigrateApiUseCaseTest {
         step.setRequest(request);
         // Configure the expected response
         HealthCheckResponse response = new HealthCheckResponse();
-        response.setAssertions(java.util.List.of("status == 200"));
+        response.setAssertions(List.of("status == 200"));
         step.setResponse(response);
         HealthCheckService healthCheckService = EndpointHealthCheckService.builder()
             .enabled(true) // comes from ScheduledService (superclass)
@@ -1090,9 +1096,8 @@ class MigrateApiUseCaseTest {
             .build();
         Services services = new Services();
         services.setHealthCheckService(healthCheckService);
-        v2api.getApiDefinition().setServices(services);
-        v2api
-            .getApiDefinition()
+        apiDefinition.setServices(services);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group ->
@@ -1108,7 +1113,7 @@ class MigrateApiUseCaseTest {
                     })
             );
 
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiCrudService.initWith(List.of(v2api));
 
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
 
@@ -1119,12 +1124,12 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            var migratedApi = assertApiV4(api);
 
-            var migratedEndpointGroup = api.getApiDefinitionHttpV4().getEndpointGroups();
+            var migratedEndpointGroup = migratedApi.getEndpointGroups();
             var migratedEndpoint = migratedEndpointGroup.getFirst().getEndpoints().getFirst();
             assertSoftly(softly -> {
-                softly.assertThat(api.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                softly.assertThat(migratedApi.getEndpointGroups()).hasSize(1);
                 softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck()).isNotNull();
                 softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck().isEnabled()).isTrue();
                 softly
@@ -1145,7 +1150,8 @@ class MigrateApiUseCaseTest {
     void should_migrate_endpoints_with_different_hc_than_in_endpointgroups() {
         // Given
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        var apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
 
         HealthCheckStep step1 = new HealthCheckStep();
         step1.setName("hc-step");
@@ -1155,7 +1161,7 @@ class MigrateApiUseCaseTest {
         request1.setMethod(HttpMethod.POST);
         step1.setRequest(request1);
         HealthCheckResponse response1 = new HealthCheckResponse();
-        response1.setAssertions(java.util.List.of("{#status == 200}"));
+        response1.setAssertions(List.of("{#status == 200}"));
         step1.setResponse(response1);
 
         HealthCheckStep step2 = new HealthCheckStep();
@@ -1168,7 +1174,7 @@ class MigrateApiUseCaseTest {
         // Configure the expected response
 
         HealthCheckResponse response2 = new HealthCheckResponse();
-        response2.setAssertions(java.util.List.of("{#status == 202}"));
+        response2.setAssertions(List.of("{#status == 202}"));
         step2.setResponse(response2);
         HealthCheckService healthCheckService = HealthCheckService.builder()
             .enabled(true) // comes from ScheduledService (superclass)
@@ -1178,9 +1184,8 @@ class MigrateApiUseCaseTest {
 
         Services services1 = new Services();
         services1.setHealthCheckService(healthCheckService);
-        v2api.getApiDefinition().setServices(services1);
-        v2api
-            .getApiDefinition()
+        apiDefinition.setServices(services1);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> {
@@ -1202,7 +1207,7 @@ class MigrateApiUseCaseTest {
                     });
             });
 
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiCrudService.initWith(List.of(v2api));
 
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
 
@@ -1213,12 +1218,12 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            var migratedDefinition = assertApiV4(api);
 
-            var migratedEndpointGroup = api.getApiDefinitionHttpV4().getEndpointGroups();
+            var migratedEndpointGroup = migratedDefinition.getEndpointGroups();
             var migratedEndpoint = migratedEndpointGroup.getFirst().getEndpoints().getFirst();
             assertSoftly(softly -> {
-                softly.assertThat(api.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                softly.assertThat(migratedDefinition.getEndpointGroups()).hasSize(1);
                 softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck()).isNotNull();
                 softly.assertThat(migratedEndpointGroup.getFirst().getServices().getHealthCheck().isEnabled()).isTrue();
                 softly
@@ -1238,22 +1243,22 @@ class MigrateApiUseCaseTest {
     @Test
     void should_migrate_api_with_logging_configuration() {
         // Given
-        var logging = new io.gravitee.definition.model.Logging();
-        logging.setMode(io.gravitee.definition.model.LoggingMode.CLIENT_PROXY);
-        logging.setContent(io.gravitee.definition.model.LoggingContent.HEADERS_PAYLOADS);
-        logging.setScope(io.gravitee.definition.model.LoggingScope.REQUEST_RESPONSE);
+        var logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setContent(LoggingContent.HEADERS_PAYLOADS);
+        logging.setScope(LoggingScope.REQUEST_RESPONSE);
         logging.setCondition("my-condition");
 
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2api.getApiDefinition().getProxy().setLogging(logging);
-        v2api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition.getProxy().setLogging(logging);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
 
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiCrudService.initWith(List.of(v2api));
 
         // When
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
@@ -1265,9 +1270,9 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            var migratedApi = assertApiV4(api);
 
-            var migratedAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
+            var migratedAnalytics = migratedApi.getAnalytics();
 
             assertSoftly(softly -> {
                 softly.assertThat(migratedAnalytics.isEnabled()).isTrue();
@@ -1289,18 +1294,18 @@ class MigrateApiUseCaseTest {
     @Test
     void should_enable_analytics_and_null_logging_when_v2_logging_is_never_set() {
         // Given
-        var logging = new io.gravitee.definition.model.Logging();
-        logging.setMode(io.gravitee.definition.model.LoggingMode.NONE);
+        var logging = new Logging();
+        logging.setMode(LoggingMode.NONE);
 
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2api.getApiDefinition().getProxy().setLogging(logging);
-        v2api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition.getProxy().setLogging(logging);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiCrudService.initWith(List.of(v2api));
 
         // When
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
@@ -1312,9 +1317,9 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            var migratedApi = assertApiV4(api);
 
-            var migratedAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
+            var migratedAnalytics = migratedApi.getAnalytics();
             assertThat(migratedAnalytics.isEnabled()).isTrue();
             assertThat(migratedAnalytics.getLogging()).isNull();
         });
@@ -1324,14 +1329,14 @@ class MigrateApiUseCaseTest {
     void should_enable_analytics_and_null_logging_when_v2_logging_disabled() {
         // Given
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
-        v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2api.getApiDefinition().getProxy().setLogging(null);
-        v2api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition.getProxy().setLogging(null);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
-        apiCrudService.initWith(java.util.List.of(v2api));
+        apiCrudService.initWith(List.of(v2api));
 
         // When
         var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, FORCE, AUDIT_INFO));
@@ -1343,9 +1348,9 @@ class MigrateApiUseCaseTest {
         var migrated = apiCrudService.findById(API_ID);
 
         assertThat(migrated).hasValueSatisfying(api -> {
-            assertApiV4(api);
+            var migratedApi = assertApiV4(api);
 
-            var migratedAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
+            var migratedAnalytics = migratedApi.getAnalytics();
             assertThat(migratedAnalytics.isEnabled()).isTrue();
             assertThat(migratedAnalytics.getLogging()).isNull();
         });
@@ -1355,10 +1360,10 @@ class MigrateApiUseCaseTest {
     void should_migrate_api_with_best_match_flow_mode() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api.getApiDefinition().setFlowMode(io.gravitee.definition.model.FlowMode.BEST_MATCH);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition.setFlowMode(io.gravitee.definition.model.FlowMode.BEST_MATCH);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -1379,8 +1384,7 @@ class MigrateApiUseCaseTest {
         var migratedApi = apiCrudService.findById(API_ID);
 
         assertThat(migratedApi).hasValueSatisfying(api -> {
-            assertApiV4(api);
-            var migratedDefinition = api.getApiDefinitionHttpV4().getFlowExecution().getMode();
+            var migratedDefinition = assertApiV4(api).getFlowExecution().getMode();
             assertThat(migratedDefinition).isEqualTo(FlowMode.BEST_MATCH);
         });
     }
@@ -1395,10 +1399,10 @@ class MigrateApiUseCaseTest {
         resource.setEnabled(true);
 
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api.getApiDefinition().setResources(List.of(resource));
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition.setResources(List.of(resource));
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -1419,8 +1423,7 @@ class MigrateApiUseCaseTest {
         var migratedApi = apiCrudService.findById(API_ID);
 
         assertThat(migratedApi).hasValueSatisfying(api -> {
-            assertApiV4(api);
-            var migratedResources = api.getApiDefinitionHttpV4().getResources();
+            var migratedResources = assertApiV4(api).getResources();
             assertThat(migratedResources).map(Resource::getName).containsExactly("cache-resource");
         });
     }
@@ -1429,10 +1432,10 @@ class MigrateApiUseCaseTest {
     void should_migrate_api_with_empty_resources() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api.getApiDefinition().setResources(List.of());
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition.setResources(List.of());
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -1453,8 +1456,7 @@ class MigrateApiUseCaseTest {
         var migratedApi = apiCrudService.findById(API_ID);
 
         assertThat(migratedApi).hasValueSatisfying(api -> {
-            assertApiV4(api);
-            var migratedResources = api.getApiDefinitionHttpV4().getResources();
+            var migratedResources = assertApiV4(api).getResources();
             assertThat(migratedResources).isEmpty();
         });
     }
@@ -1463,10 +1465,10 @@ class MigrateApiUseCaseTest {
     void should_migrate_api_with_null_resources() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api.getApiDefinition().setResources(null);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition.setResources(null);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -1487,8 +1489,7 @@ class MigrateApiUseCaseTest {
         var migratedApi = apiCrudService.findById(API_ID);
 
         assertThat(migratedApi).hasValueSatisfying(api -> {
-            assertApiV4(api);
-            var migratedResources = api.getApiDefinitionHttpV4().getResources();
+            var migratedResources = assertApiV4(api).getResources();
             assertThat(migratedResources).isEmpty();
         });
     }
@@ -1497,9 +1498,9 @@ class MigrateApiUseCaseTest {
     void should_migrate_api_without_discovery_service() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -1520,8 +1521,7 @@ class MigrateApiUseCaseTest {
         var migratedApi = apiCrudService.findById(API_ID);
 
         assertThat(migratedApi).hasValueSatisfying(api -> {
-            assertApiV4(api);
-            var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
+            var endpointGroups = assertApiV4(api).getEndpointGroups();
             assertThat(endpointGroups).map(EndpointGroup::getServices).map(EndpointGroupServices::getDiscovery).singleElement().isNull();
         });
     }
@@ -1529,18 +1529,18 @@ class MigrateApiUseCaseTest {
     @Test
     void should_warn_about_migration_with_consul_discovery_service_on_dry_run() {
         // Given
-        var consulDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
+        var consulDiscoveryService = new EndpointDiscoveryService();
         consulDiscoveryService.setEnabled(true);
         consulDiscoveryService.setProvider("consul-service-discovery");
         consulDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
 
-        var services = new io.gravitee.definition.model.services.Services();
+        var services = new Services();
         services.setDiscoveryService(consulDiscoveryService);
 
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> {
@@ -1566,18 +1566,18 @@ class MigrateApiUseCaseTest {
     @Test
     void should_forced_migrate_api_with_consul_discovery_service() {
         // Given
-        var consulDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
+        var consulDiscoveryService = new EndpointDiscoveryService();
         consulDiscoveryService.setEnabled(true);
         consulDiscoveryService.setProvider("consul-service-discovery");
         consulDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
 
-        var services = new io.gravitee.definition.model.services.Services();
+        var services = new Services();
         services.setDiscoveryService(consulDiscoveryService);
 
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> {
@@ -1601,8 +1601,7 @@ class MigrateApiUseCaseTest {
         var migratedApi = apiCrudService.findById(API_ID);
 
         assertThat(migratedApi).hasValueSatisfying(api -> {
-            assertApiV4(api);
-            var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
+            var endpointGroups = assertApiV4(api).getEndpointGroups();
             assertThat(endpointGroups).hasSize(1);
             var migratedServices = endpointGroups.getFirst().getServices();
             assertThat(migratedServices.getDiscovery().getType()).isEqualTo("consul-service-discovery");
@@ -1616,18 +1615,18 @@ class MigrateApiUseCaseTest {
     @Test
     void should_fail_migration_with_forbidden_discovery_service() {
         // Given
-        var forbiddenDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
+        var forbiddenDiscoveryService = new EndpointDiscoveryService();
         forbiddenDiscoveryService.setEnabled(true);
         forbiddenDiscoveryService.setProvider("kubernetes-service-discovery");
         forbiddenDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8080\",\"service\":\"my-service\"}");
 
-        var services = new io.gravitee.definition.model.services.Services();
+        var services = new Services();
         services.setDiscoveryService(forbiddenDiscoveryService);
 
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> {
@@ -1657,8 +1656,8 @@ class MigrateApiUseCaseTest {
     @Test
     void should_migrate_api_with_http11_endpoint_configuration() {
         // Given
-        var httpClientOptions = new io.gravitee.definition.model.HttpClientOptions();
-        httpClientOptions.setVersion(io.gravitee.definition.model.ProtocolVersion.HTTP_1_1);
+        var httpClientOptions = new HttpClientOptions();
+        httpClientOptions.setVersion(ProtocolVersion.HTTP_1_1);
         httpClientOptions.setKeepAlive(true);
         httpClientOptions.setKeepAliveTimeout(30000);
         httpClientOptions.setConnectTimeout(5000);
@@ -1672,9 +1671,9 @@ class MigrateApiUseCaseTest {
         httpClientOptions.setMaxConcurrentConnections(100);
 
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group -> {
@@ -1701,8 +1700,7 @@ class MigrateApiUseCaseTest {
 
         var migratedApi = apiCrudService.findById(API_ID);
         assertThat(migratedApi).hasValueSatisfying(api -> {
-            assertApiV4(api);
-            var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
+            var endpointGroups = assertApiV4(api).getEndpointGroups();
 
             assertThat(endpointGroups)
                 .map(AbstractEndpointGroup::getSharedConfiguration)
@@ -1729,8 +1727,8 @@ class MigrateApiUseCaseTest {
     @Test
     void should_migrate_api_with_http2_endpoint_configuration() {
         // Given
-        var httpClientOptions = new io.gravitee.definition.model.HttpClientOptions();
-        httpClientOptions.setVersion(io.gravitee.definition.model.ProtocolVersion.HTTP_2);
+        var httpClientOptions = new HttpClientOptions();
+        httpClientOptions.setVersion(ProtocolVersion.HTTP_2);
         httpClientOptions.setKeepAlive(true);
         httpClientOptions.setKeepAliveTimeout(30000);
         httpClientOptions.setConnectTimeout(5000);
@@ -1745,10 +1743,8 @@ class MigrateApiUseCaseTest {
         httpClientOptions.setClearTextUpgrade(true);
 
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
-            .getProxy()
+        ((io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue()).setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        ((io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue()).getProxy()
             .getGroups()
             .forEach(group -> {
                 group.setHttpClientOptions(httpClientOptions);
@@ -1774,8 +1770,7 @@ class MigrateApiUseCaseTest {
 
         var migratedApi = apiCrudService.findById(API_ID);
         assertThat(migratedApi).hasValueSatisfying(api -> {
-            assertApiV4(api);
-            var endpointGroups = api.getApiDefinitionHttpV4().getEndpointGroups();
+            var endpointGroups = assertApiV4(api).getEndpointGroups();
 
             // Verify HTTP 2 configuration contains all required fields
             assertThat(endpointGroups)
@@ -1804,9 +1799,9 @@ class MigrateApiUseCaseTest {
     void should_migrate_endpoint_shared_configuration_override_filtering_extraneous_http_fields() {
         // Given
         var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        v2Api
-            .getApiDefinition()
+        var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+        apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        apiDefinition
             .getProxy()
             .getGroups()
             .forEach(group ->
@@ -1840,8 +1835,8 @@ class MigrateApiUseCaseTest {
 
         var migratedApi = apiCrudService.findById(API_ID);
         assertThat(migratedApi).hasValueSatisfying(api -> {
-            var endpoints = api
-                .getApiDefinitionHttpV4()
+            var migratedDefinition = (io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue();
+            var endpoints = migratedDefinition
                 .getEndpointGroups()
                 .stream()
                 .flatMap(g -> g.getEndpoints().stream())
@@ -1877,9 +1872,9 @@ class MigrateApiUseCaseTest {
             @BeforeEach
             void setUp() {
                 var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-                v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-                v2Api
-                    .getApiDefinition()
+                var apiDefinition = (io.gravitee.definition.model.Api) v2Api.getApiDefinitionValue();
+                apiDefinition.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+                apiDefinition
                     .getProxy()
                     .getGroups()
                     .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -2013,7 +2008,7 @@ class MigrateApiUseCaseTest {
         }
     }
 
-    private static void assertApiV4(Api upgradedApi) {
+    private static io.gravitee.definition.model.v4.Api assertApiV4(Api upgradedApi) {
         assertSoftly(softly -> {
             softly.assertThat(upgradedApi.getId()).as("id").isEqualTo(API_ID);
             softly.assertThat(upgradedApi.getName()).as("name").isEqualTo("My Api");
@@ -2021,12 +2016,9 @@ class MigrateApiUseCaseTest {
             softly.assertThat(upgradedApi.getCrossId()).as("cross id").isEqualTo("my-api-crossId");
             softly.assertThat(upgradedApi.getDescription()).as("description").isEqualTo("api-description");
             softly.assertThat(upgradedApi.getVersion()).as("version").isEqualTo("1.0.0");
-            softly
-                .assertThat(upgradedApi.getOriginContext())
-                .as("origin context")
-                .isEqualTo(new io.gravitee.rest.api.model.context.OriginContext.Management());
+            softly.assertThat(upgradedApi.getOriginContext()).as("origin context").isEqualTo(new OriginContext.Management());
             softly.assertThat(upgradedApi.getDefinitionVersion()).as("definition version").isEqualTo(DefinitionVersion.V4);
-            softly.assertThat(upgradedApi.getType()).as("type").isEqualTo(io.gravitee.definition.model.v4.ApiType.PROXY);
+            softly.assertThat(upgradedApi.getType()).as("type").isEqualTo(ApiType.PROXY);
             softly.assertThat(upgradedApi.getVisibility()).as("visibility").isEqualTo(Api.Visibility.PUBLIC);
             softly.assertThat(upgradedApi.getApiLifecycleState()).as("api lifecycle state").isEqualTo(Api.ApiLifecycleState.PUBLISHED);
             softly.assertThat(upgradedApi.getPicture()).as("picture").isEqualTo("api-picture");
@@ -2036,6 +2028,7 @@ class MigrateApiUseCaseTest {
             softly.assertThat(upgradedApi.getLabels()).as("labels").containsOnly("label-1");
             softly.assertThat(upgradedApi.isDisableMembershipNotifications()).as("disable membership notifications").isTrue();
         });
+        return ((io.gravitee.definition.model.v4.Api) upgradedApi.getApiDefinitionValue());
     }
 
     private static void assertPlanV4(Plan upgradedPlan) {
@@ -2045,18 +2038,15 @@ class MigrateApiUseCaseTest {
             softly.assertThat(upgradedPlan.getApiId()).as("plan api id").isEqualTo(API_ID);
             softly.assertThat(upgradedPlan.getCrossId()).as("plan cross id").isNotBlank();
             softly.assertThat(upgradedPlan.getOrder()).as("plan order").isEqualTo(1);
-            softly.assertThat(upgradedPlan.getType()).as("plan type").isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
-            softly
-                .assertThat(upgradedPlan.getValidation())
-                .as("plan validation")
-                .isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.AUTO);
+            softly.assertThat(upgradedPlan.getType()).as("plan type").isEqualTo(Plan.PlanType.API);
+            softly.assertThat(upgradedPlan.getValidation()).as("plan validation").isEqualTo(Plan.PlanValidationType.AUTO);
             softly.assertThat(upgradedPlan.getDefinitionVersion()).as("plan definition version").isEqualTo(DefinitionVersion.V4);
-            softly.assertThat(upgradedPlan.getApiType()).as("plan api type").isEqualTo(io.gravitee.definition.model.v4.ApiType.PROXY);
+            softly.assertThat(upgradedPlan.getApiType()).as("plan api type").isEqualTo(ApiType.PROXY);
             softly.assertThat(upgradedPlan.getPlanDefinitionV2()).as("plan v2 definition").isNull();
             softly.assertThat(upgradedPlan.getPlanDefinitionHttpV4()).as("plan v4 definition").isNotNull();
             softly.assertThat(upgradedPlan.getPlanDefinitionHttpV4().getSecurity()).as("plan v4 security").isNotNull();
             softly.assertThat(upgradedPlan.getPlanDefinitionHttpV4().getStatus()).as("plan v4 status").isNotNull();
-            softly.assertThat(upgradedPlan.getPlanMode()).as("plan mode").isEqualTo(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
+            softly.assertThat(upgradedPlan.getPlanMode()).as("plan mode").isEqualTo(PlanMode.STANDARD);
         });
     }
 }

@@ -204,7 +204,7 @@ public class ApiCrudServiceImplTest {
                         .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
                         .definitionVersion(DefinitionVersion.V4)
                         .definition(
-                            GraviteeJacksonMapper.getInstance().writeValueAsString(ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4())
+                            GraviteeJacksonMapper.getInstance().writeValueAsString(ApiFixtures.aProxyApiV4().getApiDefinitionValue())
                         )
                         .build()
                 );
@@ -367,7 +367,7 @@ public class ApiCrudServiceImplTest {
                         .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
                         .definitionVersion(DefinitionVersion.V4)
                         .definition(
-                            GraviteeJacksonMapper.getInstance().writeValueAsString(ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4())
+                            GraviteeJacksonMapper.getInstance().writeValueAsString(ApiFixtures.aProxyApiV4().getApiDefinitionValue())
                         )
                         .build()
                 );

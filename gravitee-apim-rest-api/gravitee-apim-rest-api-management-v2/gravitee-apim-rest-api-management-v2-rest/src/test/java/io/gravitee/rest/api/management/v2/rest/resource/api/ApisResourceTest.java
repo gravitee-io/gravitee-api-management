@@ -44,6 +44,7 @@ import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
@@ -84,10 +85,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -374,7 +373,10 @@ class ApisResourceTest extends AbstractResourceTest {
 
             when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
                 Api api = invocation.getArgument(0);
-                return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionHttpV4().getFlows());
+                return new ApiWithFlows(
+                    api.toBuilder().id("api-id").build(),
+                    ((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue()).getFlows()
+                );
             });
 
             var newApi = aValidV4Api();
@@ -418,7 +420,7 @@ class ApisResourceTest extends AbstractResourceTest {
                 Api apiWithId = api.toBuilder().id("api-id").build();
                 return new ApiWithFlows(
                     apiWithId,
-                    api.getApiDefinitionNativeV4() != null ? api.getApiDefinitionNativeV4().getFlows() : List.of()
+                    api.getApiDefinitionValue() instanceof NativeApi definition ? definition.getFlows() : List.of()
                 );
             });
 
@@ -471,7 +473,9 @@ class ApisResourceTest extends AbstractResourceTest {
                 Api apiWithId = api.toBuilder().id("api-id").build();
                 return new ApiWithFlows(
                     apiWithId,
-                    api.getApiDefinitionNativeV4() != null ? api.getApiDefinitionNativeV4().getFlows() : List.of()
+                    api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api definition
+                        ? definition.getFlows()
+                        : List.of()
                 );
             });
 
@@ -807,7 +811,7 @@ class ApisResourceTest extends AbstractResourceTest {
 
         private ApiCRDStatus doImport(String crdResource, boolean dryRun) {
             try (var response = target.queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(crdResource)))) {
-                Assertions.assertThat(response.getStatus()).isEqualTo(200);
+                assertThat(response.getStatus()).isEqualTo(200);
                 return response.readEntity(ApiCRDStatus.class);
             }
         }

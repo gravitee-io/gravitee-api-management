@@ -23,7 +23,6 @@ import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
-import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
@@ -193,33 +192,6 @@ public class Api {
             apiDefinitionValue.setId(id);
         }
         return this;
-    }
-
-    /**
-     * @deprecated use {@link #getApiDefinitionValue()} instead.
-     * @return the api definition value or null.
-     */
-    @Deprecated
-    public io.gravitee.definition.model.v4.Api getApiDefinitionHttpV4() {
-        return apiDefinitionValue instanceof io.gravitee.definition.model.v4.Api api ? api : null;
-    }
-
-    /**
-     * @deprecated use {@link #getApiDefinitionValue()} instead.
-     * @return the api definition value or null.
-     */
-    @Deprecated
-    public NativeApi getApiDefinitionNativeV4() {
-        return apiDefinitionValue instanceof NativeApi api ? api : null;
-    }
-
-    /**
-     * @deprecated use {@link #getApiDefinitionValue()} instead.
-     * @return the api definition value or null.
-     */
-    @Deprecated
-    public io.gravitee.definition.model.Api getApiDefinition() {
-        return apiDefinitionValue instanceof io.gravitee.definition.model.Api api ? api : null;
     }
 
     public Api setApiDefinitionValue(ApiDefinition apiDefinition) {

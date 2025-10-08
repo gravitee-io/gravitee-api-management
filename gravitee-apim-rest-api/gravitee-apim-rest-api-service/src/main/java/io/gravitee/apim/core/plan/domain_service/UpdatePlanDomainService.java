@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.plan.domain_service;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.DomainService;
@@ -37,6 +38,7 @@ import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -166,11 +168,26 @@ public class UpdatePlanDomainService {
         Plan existingPlan = planCrudService.getById(planToUpdate.getId());
         Plan updatePlan = existingPlan.update(planToUpdate);
 
-        if (api.isNative()) {
-            return updateNativeV4ApiPlan(existingPlan, updatePlan, (List<NativeFlow>) flows, api, auditInfo, updateFunction);
-        }
-
-        return updateHttpV4ApiPlan(existingPlan, updatePlan, (List<Flow>) flows, api, auditInfo, updateFunction);
+        return switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api apiDefinitionV4 -> updateHttpV4ApiPlan(
+                existingPlan,
+                updatePlan,
+                (List<Flow>) flows,
+                api,
+                apiDefinitionV4,
+                auditInfo,
+                updateFunction
+            );
+            case NativeApi ignore -> updateNativeV4ApiPlan(
+                existingPlan,
+                updatePlan,
+                (List<NativeFlow>) flows,
+                api,
+                auditInfo,
+                updateFunction
+            );
+            default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
+        };
     }
 
     private Plan updateV2ApiPlan(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, Api api, AuditInfo auditInfo) {
@@ -196,6 +213,7 @@ public class UpdatePlanDomainService {
         Plan updatePlan,
         List<Flow> flows,
         Api api,
+        io.gravitee.definition.model.v4.Api apiDefinitionV4,
         AuditInfo auditInfo,
         BinaryOperator<Plan> updateFunction
     ) {
@@ -216,11 +234,10 @@ public class UpdatePlanDomainService {
 
     private List<Flow> validateAndSanitizeHttpV4Flows(List<Flow> flows, Api api) {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
-        flowValidationDomainService.validatePathParameters(
-            api.getType(),
-            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
-            sanitizedFlows.stream()
-        );
+        var flows2 = api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api apiDefinitionV4
+            ? stream(apiDefinitionV4.getFlows())
+            : Stream.<Flow>empty();
+        flowValidationDomainService.validatePathParameters(api.getType(), flows2, sanitizedFlows.stream());
         return sanitizedFlows;
     }
 

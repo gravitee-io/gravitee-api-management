@@ -47,14 +47,12 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.ThrowableAssert.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.common.component.Lifecycle;
@@ -701,7 +699,7 @@ public class IndexableApiDocumentTransformerTest {
 
                 @Override
                 public java.util.Set<String> getTags() {
-                    return api.getApiDefinition() != null ? api.getApiDefinition().getTags() : Set.of();
+                    return api.getTags() != null ? api.getTags() : Set.of();
                 }
 
                 @Override
@@ -736,7 +734,9 @@ public class IndexableApiDocumentTransformerTest {
 
                 @Override
                 public io.gravitee.definition.model.Proxy getProxy() {
-                    return api.getApiDefinition() != null ? api.getApiDefinition().getProxy() : null;
+                    return api.getApiDefinitionValue() instanceof io.gravitee.definition.model.Api definition
+                        ? definition.getProxy()
+                        : null;
                 }
             };
         }

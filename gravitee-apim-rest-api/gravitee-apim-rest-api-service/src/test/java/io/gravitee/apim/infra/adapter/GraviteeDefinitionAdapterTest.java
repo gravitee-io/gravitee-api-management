@@ -32,6 +32,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.WorkflowState;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
@@ -67,15 +68,16 @@ class GraviteeDefinitionAdapterTest {
             .displayName("PO")
             .type(PrimaryOwnerEntity.Type.USER)
             .build();
-        var metadata = java.util.Collections.<NewApiMetadata>emptyList();
+        var metadata = Collections.<NewApiMetadata>emptyList();
 
         // When
         ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
             coreApi,
+            ((io.gravitee.definition.model.v4.Api) coreApi.getApiDefinitionValue()),
             primaryOwner,
             WorkflowState.REVIEW_OK,
             Set.of("group-1"),
-            (java.util.Collection<NewApiMetadata>) metadata,
+            metadata,
             List.of(new Flow()),
             false
         );
@@ -108,14 +110,15 @@ class GraviteeDefinitionAdapterTest {
             .displayName("PO")
             .type(PrimaryOwnerEntity.Type.USER)
             .build();
-        var metadata = java.util.Collections.<NewApiMetadata>emptyList();
+        var metadata = Collections.<NewApiMetadata>emptyList();
 
         ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
             coreApi,
+            ((io.gravitee.definition.model.v4.Api) coreApi.getApiDefinitionValue()),
             primaryOwner,
             WorkflowState.REVIEW_OK,
             Set.of("group-1"),
-            (java.util.Collection<NewApiMetadata>) metadata,
+            metadata,
             List.of(new Flow()),
             false
         );

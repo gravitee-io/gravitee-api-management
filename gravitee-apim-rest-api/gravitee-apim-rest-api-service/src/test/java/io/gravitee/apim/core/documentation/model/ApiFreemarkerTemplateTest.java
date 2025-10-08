@@ -17,6 +17,7 @@ package io.gravitee.apim.core.documentation.model;
 
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -77,7 +78,7 @@ public class ApiFreemarkerTemplateTest {
             soft.assertThat(api.getName()).isEqualTo("My Api");
             soft.assertThat(api.getPicture()).isEqualTo("api-picture");
             soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
-            soft.assertThat(api.getProxy()).isEqualTo(model.getApiDefinition().getProxy());
+            soft.assertThat(api.getProxy()).isEqualTo(((Api) model.getApiDefinitionValue()).getProxy());
             soft.assertThat(api.getUpdatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
             soft.assertThat(api.getDeployedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
             soft.assertThat(api.getVisibility().toString()).isEqualTo(Visibility.PUBLIC.toString());
