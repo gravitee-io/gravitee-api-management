@@ -22,20 +22,18 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.util.LinkedCaseInsensitiveSet;
 import io.gravitee.definition.model.Cors;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class CorsDeserializer extends StdScalarDeserializer<Cors> {
-
-    private final Logger logger = LoggerFactory.getLogger(CorsDeserializer.class);
 
     public CorsDeserializer(Class<Cors> vc) {
         super(vc);
@@ -54,69 +52,12 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
         }
 
         if (cors.isEnabled()) {
-            JsonNode allowCredentialsNode = node.get("allowCredentials");
-            if (allowCredentialsNode != null) {
-                boolean allowCredentials = allowCredentialsNode.asBoolean(false);
-                cors.setAccessControlAllowCredentials(allowCredentials);
-            } else {
-                cors.setAccessControlAllowCredentials(false);
-            }
+            handleCredentials(node, cors);
 
-            JsonNode allowOriginNode = node.get("allowOrigin");
-            Set<String> allowOrigin = new LinkedCaseInsensitiveSet();
-            Set<Pattern> allowOriginRegex = new HashSet<>();
-            cors.setAccessControlAllowOrigin(allowOrigin);
-            cors.setAccessControlAllowOriginRegex(allowOriginRegex);
-            if (allowOriginNode != null) {
-                allowOriginNode
-                    .elements()
-                    .forEachRemaining(jsonNode -> {
-                        allowOrigin.add(jsonNode.asText());
-                        if (
-                            !"*".equals(jsonNode.asText()) &&
-                            (jsonNode.asText().contains("(") || jsonNode.asText().contains("[") || jsonNode.asText().contains("*"))
-                        ) {
-                            try {
-                                allowOriginRegex.add(Pattern.compile(jsonNode.asText()));
-                            } catch (PatternSyntaxException pse) {
-                                logger.error("Allow origin regex invalid: " + jsonNode.asText(), pse.getMessage());
-                            }
-                        }
-                    });
-            }
-
-            JsonNode allowHeadersNode = node.get("allowHeaders");
-            Set<String> allowHeaders = new LinkedCaseInsensitiveSet();
-            cors.setAccessControlAllowHeaders(allowHeaders);
-            if (allowHeadersNode != null) {
-                allowHeadersNode
-                    .elements()
-                    .forEachRemaining(jsonNode -> {
-                        allowHeaders.add(jsonNode.asText());
-                    });
-            }
-
-            JsonNode allowMethodsNode = node.get("allowMethods");
-            Set<String> allowMethods = new HashSet<>();
-            cors.setAccessControlAllowMethods(allowMethods);
-            if (allowMethodsNode != null) {
-                allowMethodsNode
-                    .elements()
-                    .forEachRemaining(jsonNode -> {
-                        allowMethods.add(jsonNode.asText());
-                    });
-            }
-
-            JsonNode exposeHeadersNode = node.get("exposeHeaders");
-            Set<String> exposeHeaders = new LinkedCaseInsensitiveSet();
-            cors.setAccessControlExposeHeaders(exposeHeaders);
-            if (exposeHeadersNode != null) {
-                exposeHeadersNode
-                    .elements()
-                    .forEachRemaining(jsonNode -> {
-                        exposeHeaders.add(jsonNode.asText());
-                    });
-            }
+            handleOrigin(node, cors);
+            handleHeaders(node, cors);
+            handleMethods(node, cors);
+            handleExposeHeaders(node, cors);
 
             JsonNode maxAgeNode = node.get("maxAge");
             if (maxAgeNode != null) {
@@ -128,5 +69,67 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
         }
 
         return cors;
+    }
+
+    private static void handleCredentials(JsonNode node, Cors cors) {
+        JsonNode allowCredentialsNode = node.get("allowCredentials");
+        if (allowCredentialsNode != null) {
+            boolean allowCredentials = allowCredentialsNode.asBoolean(false);
+            cors.setAccessControlAllowCredentials(allowCredentials);
+        } else {
+            cors.setAccessControlAllowCredentials(false);
+        }
+    }
+
+    private static void handleOrigin(JsonNode node, Cors cors) {
+        JsonNode allowOriginNode = node.get("allowOrigin");
+        Set<String> allowOrigin = new LinkedCaseInsensitiveSet();
+        Set<Pattern> allowOriginRegex = new LinkedHashSet<>();
+        cors.setAccessControlAllowOrigin(allowOrigin);
+        cors.setAccessControlAllowOriginRegex(allowOriginRegex);
+        if (allowOriginNode != null) {
+            allowOriginNode
+                .elements()
+                .forEachRemaining(jsonNode -> {
+                    allowOrigin.add(jsonNode.asText());
+                    if (
+                        !"*".equals(jsonNode.asText()) &&
+                        (jsonNode.asText().contains("(") || jsonNode.asText().contains("[") || jsonNode.asText().contains("*"))
+                    ) {
+                        try {
+                            allowOriginRegex.add(Pattern.compile(jsonNode.asText()));
+                        } catch (PatternSyntaxException pse) {
+                            log.error("Allow origin regex invalid: {} {}", jsonNode.asText(), pse.getMessage());
+                        }
+                    }
+                });
+        }
+    }
+
+    private static void handleHeaders(JsonNode node, Cors cors) {
+        JsonNode allowHeadersNode = node.get("allowHeaders");
+        Set<String> allowHeaders = new LinkedCaseInsensitiveSet();
+        cors.setAccessControlAllowHeaders(allowHeaders);
+        if (allowHeadersNode != null) {
+            allowHeadersNode.elements().forEachRemaining(jsonNode -> allowHeaders.add(jsonNode.asText()));
+        }
+    }
+
+    private static void handleMethods(JsonNode node, Cors cors) {
+        JsonNode allowMethodsNode = node.get("allowMethods");
+        Set<String> allowMethods = new LinkedHashSet<>();
+        cors.setAccessControlAllowMethods(allowMethods);
+        if (allowMethodsNode != null) {
+            allowMethodsNode.elements().forEachRemaining(jsonNode -> allowMethods.add(jsonNode.asText()));
+        }
+    }
+
+    private static void handleExposeHeaders(JsonNode node, Cors cors) {
+        JsonNode exposeHeadersNode = node.get("exposeHeaders");
+        Set<String> exposeHeaders = new LinkedCaseInsensitiveSet();
+        cors.setAccessControlExposeHeaders(exposeHeaders);
+        if (exposeHeadersNode != null) {
+            exposeHeadersNode.elements().forEachRemaining(jsonNode -> exposeHeaders.add(jsonNode.asText()));
+        }
     }
 }

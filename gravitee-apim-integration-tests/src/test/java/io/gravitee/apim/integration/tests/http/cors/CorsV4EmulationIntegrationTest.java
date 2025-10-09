@@ -64,7 +64,7 @@ public class CorsV4EmulationIntegrationTest {
                     assertThat(response.statusCode()).isEqualTo(200);
                     assertThat(extractHeaders(response)).contains(
                         Map.entry("Access-Control-Allow-Origin", "https://mydomain.com"),
-                        Map.entry("Access-Control-Allow-Methods", "POST, GET"),
+                        Map.entry("Access-Control-Allow-Methods", "GET, POST"),
                         Map.entry("Access-Control-Allow-Headers", "x-gravitee-test")
                     );
                     return response.toFlowable();
