@@ -207,6 +207,15 @@ public class UserResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void shouldNotUpdateCurrentUser() {
+        UserInput user = new UserInput().firstName("any").lastName("name");
+
+        target().request().put(Entity.json(user));
+
+        verify(userService, never()).update(eq(GraviteeContext.getExecutionContext()), any(), any());
+    }
+
+    @Test
     public void shouldGetUserAvatar() throws IOException {
         doReturn(new UserEntity()).when(userService).findById(eq(GraviteeContext.getExecutionContext()), any());
         final Response response = target().path("avatar").request().get();
