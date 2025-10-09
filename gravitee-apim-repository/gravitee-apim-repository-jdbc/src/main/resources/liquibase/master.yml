@@ -222,4 +222,6 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_5_28/00_change_api_description_datatype.yml
     - include:
-          - file: liquibase/changelogs/v4_5_29/00_increase_key_length.yml
+          - file: liquibase/changelogs/v4_5_28/01_increase_key_length.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_28/02_add_users_unique_constraint_organizationid_source_sourceid.yml

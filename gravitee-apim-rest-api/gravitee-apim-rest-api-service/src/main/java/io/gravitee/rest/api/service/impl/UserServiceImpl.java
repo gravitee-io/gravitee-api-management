@@ -1414,7 +1414,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             tokenService.revokeByUser(executionContext, user.getId());
 
             // change user datas
-            user.setSourceId("deleted-" + user.getSourceId());
+            user.setSourceId(formatDeletedSourceId(user.getId(), user.getSourceId()));
             user.setStatus(UserStatus.ARCHIVED);
             user.setUpdatedAt(new Date());
 
@@ -1427,7 +1427,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 anonym.setStatus(user.getStatus());
                 anonym.setSource(user.getSource());
                 anonym.setLastConnectionAt(user.getLastConnectionAt());
-                anonym.setSourceId("deleted-" + user.getId());
+                anonym.setSourceId(user.getSourceId());
                 anonym.setFirstname("Unknown");
                 anonym.setLastname("");
                 anonym.setLoginCount(user.getLoginCount());
@@ -1441,6 +1441,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(String.format("An error occurs while trying to delete user %s", id), ex);
         }
+    }
+
+    private String formatDeletedSourceId(String userId, String sourceId) {
+        final var deletedSourceId = String.format("deleted-%s-%s", userId, sourceId);
+        // crop to 128 chars for compliance with JDBC sourceId size
+        return deletedSourceId.substring(0, Math.min(deletedSourceId.length(), 128));
     }
 
     @Override
