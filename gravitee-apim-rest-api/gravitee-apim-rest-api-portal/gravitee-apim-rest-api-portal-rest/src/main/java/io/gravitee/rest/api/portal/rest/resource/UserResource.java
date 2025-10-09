@@ -101,6 +101,10 @@ public class UserResource extends AbstractResource {
             throw new UnauthorizedAccessException();
         }
         UserEntity existingUser = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
+        //if source is not gravitee user is connected from an OIDC provider and should not be updated
+        if (!"gravitee".equals(existingUser.getSource())) {
+            return Response.ok(userMapper.convert(existingUser)).build();
+        }
 
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
         // if avatar starts with "http" ignore it because it is not the right format
