@@ -59,11 +59,13 @@ import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -273,55 +275,23 @@ public class ImportApiCRDUseCase {
                     .build()
             );
 
-            List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
-            Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
+            // Plans
+            Map<String, String> planKeyIdMapping = handlePlanUpdate(input, api);
 
-            var planKeyIdMapping = input
-                .spec()
-                .getPlans()
-                .entrySet()
-                .stream()
-                .map(entry -> {
-                    var key = entry.getKey();
-                    var plan = entry.getValue();
+            // Deploy ?
+            handleLifeCycle(input, existingApi, api);
 
-                    if (existingPlanStatuses.containsKey(plan.getId())) {
-                        return Map.entry(
-                            key,
-                            updatePlanDomainService
-                                .update(initPlanFromCRD(key, plan, api), plan.getFlows(), existingPlanStatuses, api, input.auditInfo)
-                                .getId()
-                        );
-                    }
-
-                    return Map.entry(
-                        key,
-                        createPlanDomainService.create(initPlanFromCRD(key, plan, api), plan.getFlows(), api, input.auditInfo).getId()
-                    );
-                })
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            deletePlans(api, existingPlans, planKeyIdMapping, input);
-
-            if (shouldDeploy(input.spec())) {
-                apiStateDomainService.deploy(api, "Updated by GKO", input.auditInfo);
-            }
-
-            if (api.getLifecycleState() != existingApi.getLifecycleState()) {
-                if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
-                    apiStateDomainService.stop(api, input.auditInfo);
-                } else {
-                    apiStateDomainService.start(api, input.auditInfo);
-                }
-            }
-
+            // Members
             membersDomainService.updateApiMembers(input.auditInfo, updatedApi.getId(), input.spec().getMembers());
 
+            // Pages
             createOrUpdatePages(input.spec.getPages(), updatedApi.getId(), input.auditInfo);
             deleteRemovedPages(input.spec.getPages(), updatedApi.getId());
 
+            // Metadata
             apiMetadataDomainService.importApiMetadata(api.getId(), input.spec.getMetadata(), input.auditInfo);
 
+            // Notifications
             notificationCRDService.syncApiPortalNotifications(
                 api.getId(),
                 input.auditInfo.actor().userId(),
@@ -341,24 +311,75 @@ public class ImportApiCRDUseCase {
         }
     }
 
-    private void deletePlans(Api api, List<Plan> existingPlans, Map<String, String> planKeyIdMapping, Input input) {
+    private void handleLifeCycle(Input input, Api existingApi, Api api) {
+        if (shouldDeploy(input.spec())) {
+            apiStateDomainService.deploy(api, "Updated by GKO", input.auditInfo);
+        }
+
+        if (api.getLifecycleState() != existingApi.getLifecycleState()) {
+            if (api.getLifecycleState() == Api.LifecycleState.STOPPED) {
+                apiStateDomainService.stop(api, input.auditInfo);
+            } else {
+                apiStateDomainService.start(api, input.auditInfo);
+            }
+        }
+    }
+
+    private Map<String, String> handlePlanUpdate(Input input, Api api) {
+        List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
+        Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
+        Map<String, String> keyToIdMapping = new HashMap<>();
+
+        Map<String, List<? extends AbstractFlow>> updateFlows = new HashMap<>();
+        var plansToUpdate = input
+            .spec()
+            .getPlans()
+            .entrySet()
+            .stream()
+            .filter(e -> existingPlanStatuses.containsKey(e.getValue().getId()))
+            .map(e -> {
+                updateFlows.put(e.getValue().getId(), e.getValue().getFlows());
+                keyToIdMapping.put(e.getKey(), e.getValue().getId());
+                return initPlanFromCRD(e.getKey(), e.getValue(), api);
+            })
+            .toList();
+        updatePlanDomainService.bulkUpdate(plansToUpdate, existingPlanStatuses, updateFlows, api, input.auditInfo);
+
+        input
+            .spec()
+            .getPlans()
+            .entrySet()
+            .stream()
+            .filter(e -> !existingPlanStatuses.containsKey(e.getValue().getId()))
+            .forEach(e -> {
+                var plan = initPlanFromCRD(e.getKey(), e.getValue(), api);
+                var created = createPlanDomainService.create(plan, e.getValue().getFlows(), api, input.auditInfo);
+                keyToIdMapping.put(e.getKey(), created.getId());
+            });
+
         var plansToDelete = existingPlans
             .stream()
+            // retain plans that cannot be found in the CRD spec
             .filter(plan ->
-                // Ignore already processed plans
-                !planKeyIdMapping.containsValue(plan.getId())
-            )
-            .filter(plan ->
-                // Keep existing plans that are not in the CRD
-                !input.spec.getPlans().containsKey(plan.getId())
+                input.spec
+                    .getPlans()
+                    .values()
+                    .stream()
+                    .noneMatch(p -> p.getId().equals(plan.getId()))
             )
             .toList();
+        deletePlans(plansToDelete, api, input.auditInfo);
+
+        return keyToIdMapping;
+    }
+
+    private void deletePlans(List<Plan> plansToDelete, Api api, AuditInfo auditInfo) {
         plansToDelete.forEach(plan -> {
             subscriptionQueryService
                 .findActiveSubscriptionsByPlan(plan.getId())
-                .forEach(subscription -> closeSubscriptionDomainService.closeSubscription(subscription.getId(), input.auditInfo));
+                .forEach(subscription -> closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo));
 
-            deletePlanDomainService.delete(plan, input.auditInfo);
+            deletePlanDomainService.delete(plan, auditInfo);
         });
 
         reorderPlanDomainService.refreshOrderAfterDelete(api.getId());
