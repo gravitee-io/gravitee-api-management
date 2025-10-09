@@ -1,0 +1,410 @@
+kind: MetricsReference
+group: analytics.gravitee.io
+spec:
+    http_proxy:
+      with: 
+        - id: request_count
+          label: "Request count"
+        - id: request_content_length
+          label: "Request content length"
+        - id: response_content_length
+          label: "Response content length"
+        - id: endpoint_response_time
+          label: "Endpoint response time"
+        - id: gateway_response_time
+          label: "Gateway response time"
+        - id: latency
+          label: "Latency"
+      by:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+        - id: tenant
+          label: "Tenant"
+        - id: zone
+          label: "Zone"
+        - id: method
+          label: "HTTP Method"
+        - id: status_code
+          label: "Status Code"
+        - id: status_code_group
+          label: "Status Code Group"
+        - id: http_path
+          label: "HTTP Path"
+        - id: path_mapping
+          label: "Path Mapping"
+        - id: host
+          label: "Host"
+        - id: geo_ip_country
+          label: "Country"
+        - id: geo_ip_region
+          label: "Region"
+        - id: geo_ip_city
+          label: "City"
+        - id: geo_ip_continent
+          label: "Continent"
+        - id: consumer_ip
+          label: "Consumer IP"
+        - id: user_agent_os_name
+          label: "User Agent OS"
+        - id: user_agent_device
+          label: "User Agent Device"
+      filter:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+        - id: tenant
+          label: "Tenant"
+        - id: zone
+          label: "Zone"
+        - id: method
+          label: "HTTP Method"
+        - id: status_code
+          label: "Status Code"
+        - id: status_code_group
+          label: "Status Code Group"
+        - id: http_path
+          label: "HTTP Path"
+        - id: path_mapping
+          label: "Path Mapping"
+        - id: host
+          label: "Host"
+        - id: geo_ip_country
+          label: "Country"
+        - id: geo_ip_region
+          label: "Region"
+        - id: geo_ip_city
+          label: "City"
+        - id: geo_ip_continent
+          label: "Continent"
+        - id: endpoint_response_time
+          label: "Endpoint Response Time"
+        - id: latency
+          label: "Latency"
+        - id: gateway_response_time
+          label: "Gateway Response Time"
+        - id: request_content_length
+          label: "Request Content Length"
+        - id: response_content_length
+          label: "Response Content Length"
+        - id: consumer_ip
+          label: "Consumer IP"
+        - id: user_agent_os_name
+          label: "User Agent OS"
+        - id: user_agent_device
+          label: "User Agent Device"
+
+    llm:
+      with:
+        - id: additional-metrics.long_ai-prompt-token-sent
+          label: "Sent token count"
+        - id:  additional-metrics.long_ai-prompt-token-receive
+          label: "Received token count"
+        - id: additional-metrics.double_ai-prompt-token-sent-cost
+          label: "Sent token cost"
+        - id: additional-metrics.double_ai-prompt-token-receive-cost
+          label: "Received token cost"
+        - id: request_count
+          label: "Request count"
+        - id: request_content_length
+          label: "Request content length"
+        - id: response_content_length
+          label: "Response content length"
+        - id: endpoint_response_time
+          label: "Endpoint response time"
+        - id: gateway_response_time
+          label: "Gateway response time"
+        - id: latency
+          label: "Latency"
+      by:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+        - id: tenant
+          label: "Tenant"
+        - id: zone
+          label: "Zone"
+        - id: method
+          label: "HTTP Method"
+        - id: status_code
+          label: "Status Code"
+        - id: status_code_group
+          label: "Status Code Group"
+        - id: http_path
+          label: "HTTP Path"
+        - id: path_mapping
+          label: "Path Mapping"
+        - id: host
+          label: "Host"
+        - id: geo_ip_country
+          label: "Country"
+        - id: geo_ip_region
+          label: "Region"
+        - id: geo_ip_city
+          label: "City"
+        - id: geo_ip_continent
+          label: "Continent"
+        - id: consumer_ip
+          label: "Consumer IP"
+        - id: user_agent_os_name
+          label: "User Agent OS"
+        - id: user_agent_device
+          label: "User Agent Device"
+      filter:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+        - id: tenant
+          label: "Tenant"
+        - id: zone
+          label: "Zone"
+        - id: method
+          label: "HTTP Method"
+        - id: status_code
+          label: "Status Code"
+        - id: status_code_group
+          label: "Status Code Group"
+        - id: http_path
+          label: "HTTP Path"
+        - id: path_mapping
+          label: "Path Mapping"
+        - id: host
+          label: "Host"
+        - id: geo_ip_country
+          label: "Country"
+        - id: geo_ip_region
+          label: "Region"
+        - id: geo_ip_city
+          label: "City"
+        - id: geo_ip_continent
+          label: "Continent"
+        - id: endpoint_response_time
+          label: "Endpoint Response Time"
+        - id: latency
+          label: "Latency"
+        - id: gateway_response_time
+          label: "Gateway Response Time"
+        - id: request_content_length
+          label: "Request Content Length"
+        - id: response_content_length
+          label: "Response Content Length"
+        - id: consumer_ip
+          label: "Consumer IP"
+        - id: user_agent_os_name
+          label: "User Agent OS"
+        - id: user_agent_device
+          label: "User Agent Device"
+
+    mcp:
+      with:
+        - id: additional_long_metrics_consumed_token
+          label: "Consumed token"
+        # [...]
+
+    message:
+      with:
+        - id: content_length
+          label: "Content length"
+        - id: message_count
+          label: "Message count"
+        - id: error_count
+          label: "Error count"
+        - id: gateway_latency_ms
+          label: "Gateway latency (ms)"
+      by:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+        - id: tenant
+          label: "Tenant"
+        - id: zone
+          label: "Zone"
+        - id: method
+          label: "HTTP Method"
+        - id: status_code
+          label: "Status Code"
+        - id: status_code_group
+          label: "Status Code Group"
+        - id: http_path
+          label: "HTTP Path"
+        - id: path_mapping
+          label: "Path Mapping"
+        - id: host
+          label: "Host"
+        - id: geo_ip_country
+          label: "Country"
+        - id: geo_ip_region
+          label: "Region"
+        - id: consumer_ip
+          label: "Consumer IP"
+        - id: user_agent
+          label: "User Agent"
+        - id: connector_type
+          label: "Connector Type"
+        - id: connector_id
+          label: "Connector ID"
+        - id: operation
+          label: "Operation"
+      filter:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+        - id: tenant
+          label: "Tenant"
+        - id: zone
+          label: "Zone"
+        - id: method
+          label: "HTTP Method"
+        - id: status_code
+          label: "Status Code"
+        - id: status_code_group
+          label: "Status Code Group"
+        - id: http_path
+          label: "HTTP Path"
+        - id: path_mapping
+          label: "Path Mapping"
+        - id: host
+          label: "Host"
+        - id: geo_ip_country
+          label: "Country"
+        - id: geo_ip_region
+          label: "Region"
+        - id: consumer_ip
+          label: "Consumer IP"
+        - id: user_agent
+          label: "User Agent"
+        - id: connector_type
+          label: "Connector Type"
+        - id: connector_id
+          label: "Connector ID"
+        - id: content_length
+          label: "Content Length"
+        - id: message_count
+          label: "Message Count"
+        - id: error_count
+          label: "Error Count"
+        - id: gateway_latency_ms
+          label: "Gateway Latency (ms)"
+        - id: operation
+          label: "Operation"
+
+    kafka_messages:
+      with:
+        - id: downstream_publish_message_total
+          label: "Downstream publish message total"
+        - id: downstream_subscribe_message_total
+          label: "Downstream subscribe message total"
+        - id: downstream_publish_message_total_bytes
+          label: "Downstream publish message total bytes"
+        - id: downstream_subscribe_message_total_bytes
+          label: "Downstream subscribe message total bytes"
+        - id: upstream_publish_message_total
+          label: "Upstream publish message total"
+        - id: upstream_subscribe_message_total
+          label: "Upstream subscribe message total"
+        - id: upstream_publish_message_total_bytes
+          label: "Upstream publish message total bytes"
+        - id: upstream_subscribe_message_total_bytes
+          label: "Upstream subscribe message total bytes"
+      by:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+        - id: topic
+          label: "Topic"
+      filter:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+        - id: topic
+          label: "Topic"
+
+    kafka_authenticated:
+      with:
+        - id: downstream_authentication_successes
+          label: "Downstream authentication successes"
+        - id: downstream_authenticated_connections
+          label: "Downstream authenticated connections"
+        - id: upstream_authentication_successes
+          label: "Upstream authentication successes"
+        - id: upstream_authenticated_connections
+          label: "Upstream authenticated connections"
+        - id: upstream_authentication_errors
+          label: "Upstream authentication errors"
+      by:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+      filter:
+        - id: api
+          label: "API"
+        - id: application
+          label: "Application"
+        - id: plan
+          label: "Plan"
+        - id: gateway
+          label: "Gateway"
+
+    kafka_active_connections:
+      with:
+        - id: downstream_authentication_errors
+          label: "Downstream authentication errors"
+        - id: downstream_active_connections
+          label: "Downstream active connections"
+        - id: upstream_active_connections
+          label: "Upstream active connections"
+      by:
+        - id: api
+          label: "API"
+        - id: gateway
+          label: "Gateway"
+      filter:
+        - id: api
+          label: "API"
+        - id: gateway
+          label: "Gateway"
