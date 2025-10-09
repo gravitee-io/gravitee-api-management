@@ -222,7 +222,9 @@ databaseChangeLog:
     - include:
           - file: liquibase/changelogs/v4_5_28/00_change_api_description_datatype.yml
     - include:
-          - file: liquibase/changelogs/v4_5_29/00_increase_key_length.yml
+          - file: liquibase/changelogs/v4_5_28/01_increase_key_length.yml
+    - include:
+          - file: liquibase/changelogs/v4_5_28/02_add_users_unique_constraint_organizationid_source_sourceid.yml
     - include:
           - file: liquibase/changelogs/v4_6_0/00_migrate_spg_phase.yml
     - include:
@@ -279,3 +281,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_9_0/06_add_portal_page_contexts_table.yml
     - include:
         - file: liquibase/changelogs/v4_9_0/07_add_parent_hrid_to_page_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_9_0/08_add_general_conditions_hrid_to_plan_table.yml

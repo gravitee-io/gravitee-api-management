@@ -20,10 +20,12 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.User;
@@ -32,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -294,5 +297,36 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(usersBeforeDelete.getContent().size(), deleted.size());
         assertTrue(usersBeforeDelete.getContent().stream().map(User::getId).toList().containsAll(deleted));
         assertEquals(0, nbUsersAfterDelete);
+    }
+
+    @Test
+    public void shouldFailUniqueConstraintOrgIdSourceSourceId() throws Exception {
+        final Callable<User> createUser = () -> {
+            final var user = new User();
+
+            // this triplet must be unique
+            user.setOrganizationId("DEFAULT");
+            user.setSource("gravitee");
+            user.setSourceId("user@mail.com");
+
+            user.setId(String.valueOf(new java.util.Random().nextInt()));
+            user.setCreatedAt(new Date());
+            user.setUpdatedAt(user.getCreatedAt());
+            user.setEmail("user@mail.com");
+            user.setStatus(UserStatus.ACTIVE);
+            user.setLoginCount(123);
+            user.setFirstConnectionAt(new Date(1439052010883L));
+            user.setNewsletterSubscribed(false);
+
+            return userRepository.create(user);
+        };
+
+        final var initialSize = userRepository.findAll().size();
+        // first creation succeeds
+        assertNotNull(createUser.call());
+        // second creation fails
+        assertThrows(TechnicalException.class, createUser::call);
+        // only one user was created
+        assertEquals(initialSize + 1, userRepository.findAll().size());
     }
 }
