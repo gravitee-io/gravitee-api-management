@@ -65,7 +65,7 @@ export class OrgSettingsPlatformPoliciesService {
   }
 
   getDocumentation(policyId: string): Observable<PolicyDocumentation> {
-    return this.http.get<PolicyDocumentation>(`${this.constants.env.baseURL}/policies/${policyId}/documentation-ext`);
+    return this.http.get<PolicyDocumentation>(`${this.constants.org.v2BaseURL}/plugins/policies/${policyId}/documentation-ext`);
   }
 
   getFlowSchemaForm(): Observable<FlowSchema> {
