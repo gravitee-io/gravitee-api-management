@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.NewNativeApi;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -64,6 +65,7 @@ import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import jakarta.annotation.Nullable;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -334,11 +336,11 @@ public interface ApiMapper {
             .entrySet()
             .stream()
             .map(entry -> {
-                var key = entry.getKey();
+                String key = entry.getKey();
                 var plan = entry.getValue();
                 return Map.entry(key, PlanMapper.INSTANCE.fromPlanCRD(plan, spec.getType().name()));
             })
-            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, LinkedHashMap::new));
     }
 
     default List<? extends AbstractFlow> mapApiCRDFlows(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec spec) {
