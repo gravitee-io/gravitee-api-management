@@ -121,15 +121,19 @@ public class MongoUserRepository implements UserRepository {
     @Override
     public User create(User user) throws TechnicalException {
         logger.debug("Create user [{}]", user.getId());
+        try {
+            UserMongo userMongo = mapper.map(user);
+            UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
 
-        UserMongo userMongo = mapper.map(user);
-        UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
+            User res = mapper.map(createdUserMongo);
 
-        User res = mapper.map(createdUserMongo);
+            logger.debug("Create user [{}] - Done", user.getId());
 
-        logger.debug("Create user [{}] - Done", user.getId());
-
-        return res;
+            return res;
+        } catch (Exception ex) {
+            logger.error("Failed to create user with id: {}", user.getId(), ex);
+            throw new TechnicalException("Failed to create user");
+        }
     }
 
     @Override
