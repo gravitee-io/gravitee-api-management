@@ -453,6 +453,69 @@ describe('ApiGeneralInfoComponent', () => {
         const apiQualityInfo = await loader.getHarness(ApiGeneralInfoQualityHarness);
         expect(apiQualityInfo).toBeTruthy();
       });
+
+      it('should update form values after applyApiUpdates for V2', async () => {
+        const api = fakeApiV2({
+          id: API_ID,
+          name: 'Old API',
+          apiVersion: '1.0.0',
+          labels: ['old'],
+          categories: ['category1'],
+        });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest([
+          { id: 'category1', name: 'Category 1', key: 'category1' },
+          { id: 'category2', name: 'Category 2', key: 'category2' },
+        ]);
+
+        await waitImageCheck();
+
+        const updatedApi = fakeApiV2({
+          id: API_ID,
+          name: 'Imported API',
+          apiVersion: '9.9.9',
+          description: 'imported description',
+          labels: ['new1', 'new2'],
+          categories: ['category2'],
+          executionMode: 'V4_EMULATION_ENGINE',
+          _links: {
+            ...api._links,
+            pictureUrl: 'https://gravitee.io/new-picture.png',
+            backgroundUrl: 'https://gravitee.io/new-background.png',
+          },
+        } as any);
+
+        (fixture.componentInstance as any).applyApiUpdates(updatedApi);
+        fixture.detectChanges();
+
+        const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+        expect(await nameInput.getValue()).toEqual('Imported API');
+
+        const versionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
+        expect(await versionInput.getValue()).toEqual('9.9.9');
+
+        const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+        expect(await descriptionInput.getValue()).toEqual('imported description');
+
+        const labelsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="labels"]' }));
+        expect(await labelsInput.getTags()).toEqual(['new1', 'new2']);
+
+        const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
+        expect(await categoriesInput.getValueText()).toEqual('Category 2');
+
+        const emulateV4EngineInput = await loader.getHarness(
+          MatSlideToggleHarness.with({ selector: '[formControlName="emulateV4Engine"]' }),
+        );
+        expect(await emulateV4EngineInput.isChecked()).toBe(true);
+
+        const picturePicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="picture"]' }));
+        expect((await picturePicker.getPreviews())[0]).toContain('new-picture');
+
+        const backgroundPicker = await loader.getHarness(
+          GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }),
+        );
+        expect((await backgroundPicker.getPreviews())[0]).toContain('new-background');
+      });
     });
   });
 
