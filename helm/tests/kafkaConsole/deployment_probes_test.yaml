@@ -1,0 +1,71 @@
+suite: Test APIM Kafka console default deployment
+templates:
+  - "kafkaConsole/kafkaConsole-deployment.yaml"
+set:
+  kafkaConsole:
+    enabled: true
+tests:
+  - it: Check default readinessProbe
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: http
+
+  - it: Check default livenessProbe
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: http
+
+  - it: Check custom readinessProbe
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      kafkaConsole:
+        deployment:
+          readinessProbe:
+            enabled: false
+          customReadinessProbe:
+            httpGet:
+              path: /_node/health?probes=sync-process
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=sync-process
+      - notExists:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket
+
+  - it: Check custom livenessProbe
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      kafkaConsole:
+        deployment:
+          livenessProbe:
+            enabled: false
+          customLivenessProbe:
+            httpGet:
+              path: /_node/health?probes=sync-process
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /_node/health?probes=sync-process
+      - notExists:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket
+
+  - it: Check custom startupProbe
+    template: kafkaConsole/kafkaConsole-deployment.yaml
+    set:
+      kafkaConsole:
+        deployment:
+          startupProbe:
+            enabled: false
+          customStartupProbe:
+            httpGet:
+              path: /_node/health?probes=sync-process
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /_node/health?probes=sync-process
+      - notExists:
+          path: spec.template.spec.containers[0].startupProbe.tcpSocket

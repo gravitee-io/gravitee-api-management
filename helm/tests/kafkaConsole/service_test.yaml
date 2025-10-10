@@ -1,0 +1,121 @@
+suite: Test APIM Kafka Console default Service
+templates:
+  - "kafkaConsole/kafkaConsole-service.yaml"
+set:
+  kafkaConsole:
+    enabled: true
+tests:
+  - it: Check default service
+    template: kafkaConsole/kafkaConsole-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - isNull:
+          path: spec.externalTrafficPolicy
+      - contains:
+          path: spec.ports
+          content:
+            port: 8004
+            targetPort: 8080
+            protocol: TCP
+            name: kafkaConsole
+            appProtocol: http
+
+  - it: Check service with custom appProtocol
+    template: kafkaConsole/kafkaConsole-service.yaml
+    set:
+      kafkaConsole:
+        service:
+          appProtocol: http
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 8004
+            targetPort: 8080
+            protocol: TCP
+            name: kafkaConsole
+            appProtocol: http
+
+  - it: Deploy with long kafkaConsole name
+    template: kafkaConsole/kafkaConsole-service.yaml
+    set:
+      kafkaConsole:
+        name: "I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolorem-ipsum-quia-dolor-sit"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.ports
+          value: 
+            - appProtocol: http
+              name: I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolorem-ipsu
+              port: 8004
+              protocol: TCP
+              targetPort: 8080
+
+  - it: Deploy with NodePort and externalTrafficPolicy
+    template: kafkaConsole/kafkaConsole-service.yaml
+    set:
+      kafkaConsole:
+        service:
+          type: NodePort
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
+
+  - it: Deploy with NodePort and fixed port
+    template: kafkaConsole/kafkaConsole-service.yaml
+    set:
+      kafkaConsole:
+        service:
+          type: NodePort
+          nodePort: 30002
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.ports
+          content:
+            port: 8004
+            targetPort: 8080
+            nodePort: 30002
+            protocol: TCP
+            name: kafkaConsole
+            appProtocol: http
+
+  - it: Deploy with LoadBalancer and externalTrafficPolicy
+    template: kafkaConsole/kafkaConsole-service.yaml
+    set:
+      kafkaConsole:
+        service:
+          type: LoadBalancer
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local

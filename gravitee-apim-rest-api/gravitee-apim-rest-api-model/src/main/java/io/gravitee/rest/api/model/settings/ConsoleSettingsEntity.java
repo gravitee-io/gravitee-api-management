@@ -51,6 +51,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private CloudHosted cloudHosted;
     private UserGroup userGroup;
     private NewtAIELGen elGen;
+    private KafkaConsole kafkaConsole;
 
     public ConsoleSettingsEntity() {
         super();
@@ -72,6 +73,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         cloudHosted = new CloudHosted();
         userGroup = new UserGroup();
         elGen = new NewtAIELGen();
+        kafkaConsole = new KafkaConsole();
     }
 
     //Classes

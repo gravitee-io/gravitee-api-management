@@ -1,0 +1,171 @@
+{{- if .Values.kafkaConsole.enabled -}}
+{{- $serviceAccount := include "apim.serviceAccount" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "gravitee.kafkaConsole.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.kafkaConsole.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.kafkaConsole.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.kafkaConsole.deployment.labels }}
+    {{- range $key, $value := .Values.kafkaConsole.deployment.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- else }}
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.kafkaConsole.deployment.annotations}}
+    {{- range $key, $value := .Values.kafkaConsole.deployment.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if .Values.kafkaConsole.deployment.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.kafkaConsole.deployment.revisionHistoryLimit }}
+  {{- end }}
+  {{- if not .Values.kafkaConsole.autoscaling.enabled }}
+  replicas: {{ .Values.kafkaConsole.replicaCount }}
+  {{- end }}
+  strategy: {{ toYaml .Values.kafkaConsole.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "gravitee.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: "{{ .Values.kafkaConsole.name }}"
+  template:
+    metadata:
+      annotations:
+        chaos.alpha.kubernetes.io/enabled: "{{ .Values.chaos.enabled }}"
+        {{- range $key, $value := .Values.kafkaConsole.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- if and .Values.common .Values.common.annotations }}
+        {{- range $key, $value := .Values.common.annotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ template "gravitee.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ default .Chart.AppVersion .Values.kafkaConsole.image.tag  | quote }}
+        app.kubernetes.io/component: "{{ .Values.kafkaConsole.name }}"
+        {{- if .Values.kafkaConsole.deployment.labels }}
+        {{- range $key, $value := .Values.kafkaConsole.deployment.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- else }}
+        {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+    spec:
+      securityContext: {{ toYaml .Values.kafkaConsole.deployment.podSecurityContext | nindent 8 }}
+      {{- if not (eq .Values.kafkaConsole.deployment.serviceAccount "") }}
+      serviceAccountName: {{ .Values.kafkaConsole.deployment.serviceAccount }}
+      {{- else if $serviceAccount }}
+      serviceAccountName: {{ $serviceAccount }}
+      {{- end }}
+      affinity: {{ toYaml .Values.kafkaConsole.deployment.affinity | nindent 8 }}
+      nodeSelector: {{ toYaml .Values.kafkaConsole.deployment.nodeSelector | nindent 8 }}
+      topologySpreadConstraints: {{ toYaml .Values.kafkaConsole.deployment.topologySpreadConstraints | nindent 8 }}
+      tolerations: {{ toYaml .Values.kafkaConsole.deployment.tolerations | nindent 8 }}
+      {{- if .Values.kafkaConsole.priorityClassName }}
+      priorityClassName: {{ .Values.kafkaConsole.priorityClassName  }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.kafkaConsole.terminationGracePeriod }}
+      {{- if .Values.kafkaConsole.deployment.hostAliases }}
+      hostAliases: {{ toYaml .Values.kafkaConsole.deployment.hostAliases | nindent 6 }}
+      {{- end }}
+
+    {{- if or .Values.kafkaConsole.extraInitContainers }}
+      initContainers:
+      {{- with .Values.kafkaConsole.extraInitContainers }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
+    {{- end }}
+      containers:
+        - name: {{ template "gravitee.kafkaConsole.fullname" . }}
+          image: "{{ .Values.kafkaConsole.image.repository }}:{{ default .Chart.AppVersion .Values.kafkaConsole.image.tag }}"
+          imagePullPolicy: {{ .Values.kafkaConsole.image.pullPolicy }}
+          securityContext: {{ toYaml .Values.kafkaConsole.deployment.securityContext | nindent 12 }}
+          env:
+            - name: AUTH_JWT_SECRET
+              value: {{ .Values.kafkaConsole.jwt.secret }}
+            - name: KAFKA_GRAVITEE_MANAGEMENTAPIURL
+              value: http://{{ template "gravitee.api.fullname" . }}:{{ .Values.api.service.externalPort }}/management/v2/organizations/{{ .Values.kafkaConsole.apim.organization }}/environments/{{ .Values.kafkaConsole.apim.environment }}
+    {{- if .Values.kafkaConsole.apim.security.token }}
+            - name: KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINTOKEN
+              value: {{ .Values.kafkaConsole.apim.security.token }}
+    {{- else }}
+            - name: KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINUSERNAME
+              value: {{ .Values.kafkaConsole.apim.security.username }}
+            - name: KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINPASSWORD
+              value: {{ .Values.kafkaConsole.apim.security.password }}
+    {{- end }}
+
+  {{- if .Values.kafkaConsole.env | default .Values.kafkaConsole.deployment.extraEnvs }}
+{{ toYaml ( .Values.kafkaConsole.env | default .Values.kafkaConsole.deployment.extraEnvs ) | indent 12 }}
+{{- end }}
+          envFrom: {{ toYaml .Values.kafkaConsole.deployment.envFrom | nindent 12 }}
+          ports:
+            - name: {{ .Values.kafkaConsole.service.internalPortName }}
+              containerPort: {{ .Values.kafkaConsole.service.internalPort }}
+          {{- if .Values.kafkaConsole.lifecycle }}
+          lifecycle:
+            {{- if .Values.kafkaConsole.lifecycle.postStart }}
+            postStart:
+              exec:
+                command: {{ .Values.kafkaConsole.lifecycle.postStart }}
+            {{- end }}
+            {{- if .Values.kafkaConsole.lifecycle.preStop }}
+            preStop:
+              exec:
+                command: {{ .Values.kafkaConsole.lifecycle.preStop }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.kafkaConsole.deployment.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.kafkaConsole.deployment.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.kafkaConsole.deployment.customLivenessProbe }}
+          livenessProbe: {{ toYaml .Values.kafkaConsole.deployment.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.kafkaConsole.deployment.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.kafkaConsole.deployment.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.kafkaConsole.deployment.customReadinessProbe }}
+          readinessProbe: {{ toYaml .Values.kafkaConsole.deployment.customReadinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if and (.Values.kafkaConsole.deployment.startupProbe.enabled) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+          startupProbe: {{- omit .Values.kafkaConsole.deployment.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if and (.Values.kafkaConsole.deployment.customStartupProbe) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+          startupProbe: {{ toYaml .Values.kafkaConsole.deployment.customStartupProbe | nindent 12 }}
+          {{- end }}
+          resources: {{ toYaml .Values.kafkaConsole.resources | nindent 12 }}
+        {{- if .Values.kafkaConsole.extraContainers }}
+        {{- with .Values.kafkaConsole.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.kafkaConsole.image.pullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.kafkaConsole.image.pullSecrets }}
+      {{- end }}
+      {{- with .Values.kafkaConsole.extraVolumes }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
+{{- end -}}

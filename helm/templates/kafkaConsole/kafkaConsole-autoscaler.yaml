@@ -1,0 +1,69 @@
+{{- if and (.Values.kafkaConsole.enabled) (.Values.kafkaConsole.autoscaling.enabled) -}}
+{{- $apiVersion := include "common.capabilities.autoscaling.apiVersion" . -}}
+apiVersion: {{ $apiVersion }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ template "gravitee.kafkaConsole.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.kafkaConsole.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.kafkaConsole.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if and .Values.common .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if and .Values.common .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.kafkaConsole.autoscaling.annotations }}
+    {{- range $key, $value := .Values.kafkaConsole.autoscaling.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "gravitee.kafkaConsole.fullname" . }}
+  minReplicas: {{ .Values.kafkaConsole.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.kafkaConsole.autoscaling.maxReplicas }}
+{{- if not .Values.kafkaConsole.autoscaling.metrics }}
+  metrics:
+{{- if .Values.kafkaConsole.autoscaling.targetMemoryAverageUtilization }}
+  - type: Resource
+    resource:
+      name: memory
+      {{- if (ne $apiVersion "autoscaling/v2beta1") }}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.kafkaConsole.autoscaling.targetMemoryAverageUtilization }}
+      {{ else }}
+      targetAverageUtilization: {{ .Values.kafkaConsole.autoscaling.targetMemoryAverageUtilization }}
+      {{- end -}}
+{{- end }}
+  - type: Resource
+    resource:
+      name: cpu
+      {{- if (ne $apiVersion "autoscaling/v2beta1") }}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.kafkaConsole.autoscaling.targetAverageUtilization }}
+      {{ else }}
+      targetAverageUtilization: {{ .Values.kafkaConsole.autoscaling.targetAverageUtilization }}
+      {{- end -}}
+{{ else }}
+  metrics:
+    {{ toYaml .Values.kafkaConsole.autoscaling.metrics | indent 4 | trim }}
+{{- end -}}
+{{- if .Values.kafkaConsole.autoscaling.behavior }}
+  behavior:
+    {{ toYaml .Values.kafkaConsole.autoscaling.behavior | indent 4 | trim }}
+{{- end -}}
+{{- end -}}
