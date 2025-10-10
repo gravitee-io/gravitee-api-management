@@ -101,6 +101,10 @@ public class UserResource extends AbstractResource {
             throw new UnauthorizedAccessException();
         }
         UserEntity existingUser = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
+        // Prevent profile updates for users from external identity providers.
+        if (!"gravitee".equals(existingUser.getSource())) {
+            return Response.ok(userMapper.convert(existingUser)).build();
+        }
 
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
         // if avatar starts with "http" ignore it because it is not the right format

@@ -22,8 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -188,6 +187,7 @@ public class UserResourceTest extends AbstractResourceTest {
 
         UserEntity existingUser = new UserEntity();
         existingUser.setEmail(userEmail);
+        existingUser.setSource("gravitee");
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingUser);
 
         final Response response = target().request().put(Entity.json(userInput));
@@ -204,6 +204,15 @@ public class UserResourceTest extends AbstractResourceTest {
 
         User updateUser = response.readEntity(User.class);
         assertNotNull(updateUser);
+    }
+
+    @Test
+    void shouldNotUpdateCurrentUser() {
+        UserInput user = new UserInput().firstName("any").lastName("name");
+
+        target().request().put(Entity.json(user));
+
+        verify(userService, never()).update(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
