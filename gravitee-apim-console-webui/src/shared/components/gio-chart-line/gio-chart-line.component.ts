@@ -54,8 +54,6 @@ export class GioChartLineComponent extends GioChartAbstractComponent implements 
   ngOnInit() {
     const markersEnabled = this.options?.enableMarkers ?? false;
 
-    console.log(this.data);
-
     this.chartOptions = {
       credits: { enabled: false },
       time: { useUTC: false },
@@ -113,14 +111,14 @@ export class GioChartLineComponent extends GioChartAbstractComponent implements 
 
       series: this.data?.map((item) => ({
         name: item.name,
-        data: item.values.map((t) => (t === 0 ? null : t)),
+        data: item.values,
         type: this.options?.useSharpCorners ? 'line' : 'spline',
-        // color: defineLineColors(item.name),
-        // marker: {
-        //   enabled: markersEnabled,
-        //   radius: markersEnabled ? 4 : 0,
-        //   symbol: 'circle',
-        // },
+        color: defineLineColors(item.name),
+        marker: {
+          enabled: markersEnabled,
+          radius: markersEnabled ? 4 : 0,
+          symbol: 'circle',
+        },
       })),
     };
   }
