@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.rest.api.automation.mapper;
 
+import static java.util.Comparator.comparingInt;
+
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
@@ -37,10 +39,10 @@ import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.PageCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -98,27 +100,39 @@ public interface ApiMapper {
     Map<String, ResponseTemplate> mapToAutomationResponseTemplate(Map<String, io.gravitee.definition.model.ResponseTemplate> value);
 
     io.gravitee.rest.api.management.v2.rest.model.HttpListener map(HttpListener listener);
+
     io.gravitee.rest.api.management.v2.rest.model.TcpListener map(TcpListener listener);
+
     io.gravitee.rest.api.management.v2.rest.model.KafkaListener map(KafkaListener listener);
+
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener map(SubscriptionListener listener);
 
     HttpListener map(io.gravitee.rest.api.management.v2.rest.model.HttpListener listener);
+
     TcpListener map(io.gravitee.rest.api.management.v2.rest.model.TcpListener listener);
+
     KafkaListener map(io.gravitee.rest.api.management.v2.rest.model.KafkaListener listener);
+
     SubscriptionListener map(io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener listener);
 
     io.gravitee.rest.api.management.v2.rest.model.HttpSelector map(HttpSelector selector);
+
     io.gravitee.rest.api.management.v2.rest.model.ChannelSelector map(ChannelSelector selector);
+
     io.gravitee.rest.api.management.v2.rest.model.ConditionSelector map(ConditionSelector selector);
 
     HttpSelector map(io.gravitee.rest.api.management.v2.rest.model.HttpSelector selector);
+
     ChannelSelector map(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector selector);
+
     ConditionSelector map(io.gravitee.rest.api.management.v2.rest.model.ConditionSelector selector);
 
-    PlanCRD map(PlanV4 planV4);
-    PageCRD map(PageV4 pageV4);
+    PlanCRD map(PlanV4 planV4, int order);
+
+    PageCRD map(PageV4 pageV4, int order);
 
     PlanV4 map(PlanCRD planCRD);
+
     PageV4 map(PageCRD pageCRD);
 
     default io.gravitee.apim.rest.api.automation.model.PlanSecurityType map(
@@ -210,7 +224,12 @@ public interface ApiMapper {
             return Map.of();
         }
 
-        return apiV4Spec.getPlans().stream().collect(Collectors.toMap(PlanV4::getHrid, this::map));
+        Map<String, PlanCRD> plans = new LinkedHashMap<>();
+        for (int i = 0; i < apiV4Spec.getPlans().size(); i++) {
+            PlanV4 planV4 = apiV4Spec.getPlans().get(i);
+            plans.put(planV4.getHrid(), map(planV4, i));
+        }
+        return plans;
     }
 
     default List<PlanV4> mapApiCRDSpecPlans(ApiCRDSpec apiCRD) {
@@ -222,6 +241,7 @@ public interface ApiMapper {
             .getPlans()
             .entrySet()
             .stream()
+            .sorted(comparingInt(p -> p.getValue().getOrder()))
             .map(entry -> {
                 PlanV4 planV4 = map(entry.getValue());
                 planV4.setHrid(entry.getKey());
@@ -235,7 +255,12 @@ public interface ApiMapper {
             return Map.of();
         }
 
-        return apiV4Spec.getPages().stream().collect(Collectors.toMap(PageV4::getHrid, this::map));
+        Map<String, PageCRD> pages = new LinkedHashMap<>();
+        for (int i = 0; i < apiV4Spec.getPages().size(); i++) {
+            PageV4 pageV4 = apiV4Spec.getPages().get(i);
+            pages.put(pageV4.getHrid(), map(pageV4, i));
+        }
+        return pages;
     }
 
     default List<PageV4> mapApiCRDSpecPages(ApiCRDSpec apiCRD) {

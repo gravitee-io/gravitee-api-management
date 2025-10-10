@@ -49,9 +49,12 @@ import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -240,19 +243,24 @@ public class ApiCRDSpec {
             .entrySet()
             .stream()
             .collect(
-                Collectors.toMap(Map.Entry::getKey, v -> {
-                    PlanCRD planCRD = v.getValue();
-                    Plan plan = new Plan();
-                    plan.setId(planCRD.getId());
-                    plan.setName(planCRD.getName());
-                    plan.setTags(planCRD.getTags());
-                    plan.setSecurity(planCRD.getSecurity());
-                    plan.setSelectionRule(planCRD.getSelectionRule());
-                    plan.setStatus(planCRD.getStatus());
-                    plan.setFlows((List<Flow>) planCRD.getFlows());
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    v -> {
+                        PlanCRD planCRD = v.getValue();
+                        Plan plan = new Plan();
+                        plan.setId(planCRD.getId());
+                        plan.setName(planCRD.getName());
+                        plan.setTags(planCRD.getTags());
+                        plan.setSecurity(planCRD.getSecurity());
+                        plan.setSelectionRule(planCRD.getSelectionRule());
+                        plan.setStatus(planCRD.getStatus());
+                        plan.setFlows((List<Flow>) planCRD.getFlows());
 
-                    return plan;
-                })
+                        return plan;
+                    },
+                    (a, b) -> a,
+                    LinkedHashMap::new
+                )
             );
     }
 
@@ -261,19 +269,24 @@ public class ApiCRDSpec {
             .entrySet()
             .stream()
             .collect(
-                Collectors.toMap(Map.Entry::getKey, v -> {
-                    PlanCRD planCRD = v.getValue();
-                    NativePlan nativePlan = new NativePlan();
-                    nativePlan.setId(planCRD.getId());
-                    nativePlan.setName(planCRD.getName());
-                    nativePlan.setTags(planCRD.getTags());
-                    nativePlan.setSecurity(planCRD.getSecurity());
-                    nativePlan.setSelectionRule(planCRD.getSelectionRule());
-                    nativePlan.setStatus(planCRD.getStatus());
-                    nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    v -> {
+                        PlanCRD planCRD = v.getValue();
+                        NativePlan nativePlan = new NativePlan();
+                        nativePlan.setId(planCRD.getId());
+                        nativePlan.setName(planCRD.getName());
+                        nativePlan.setTags(planCRD.getTags());
+                        nativePlan.setSecurity(planCRD.getSecurity());
+                        nativePlan.setSelectionRule(planCRD.getSelectionRule());
+                        nativePlan.setStatus(planCRD.getStatus());
+                        nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
 
-                    return nativePlan;
-                })
+                        return nativePlan;
+                    },
+                    (a, b) -> a,
+                    LinkedHashMap::new
+                )
             );
     }
 
