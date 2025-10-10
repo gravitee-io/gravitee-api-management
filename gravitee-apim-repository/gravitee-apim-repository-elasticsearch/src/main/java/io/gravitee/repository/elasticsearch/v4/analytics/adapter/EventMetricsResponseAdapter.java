@@ -23,6 +23,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.K
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DERIVATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.NON_NEGATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_BUCKET_PREFIX;
@@ -37,6 +38,7 @@ import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,7 +78,7 @@ public class EventMetricsResponseAdapter {
                     parseStartAndEndValueBuckets(value, result);
                     break;
                 case TREND:
-                    parseDerivativeTrendBuckets(value, result);
+                    parseTrendQueryResponse(value, result);
                     break;
             }
         });
@@ -204,72 +206,219 @@ public class EventMetricsResponseAdapter {
         metricValueMap.forEach((field, delta) -> result.put(field, List.of(delta)));
     }
 
-    // TREND: build per-interval list per field aligned to the full histogram timeline (including empty buckets)
-    // Rules:
-    // - Prefer non_negative_* over derivative_* (never emit negative values)
-    // - Include every date_histogram bucket timestamp
-    // - Sum values across dimension buckets at the same timestamp
-    private static void parseDerivativeTrendBuckets(Aggregation agg, Map<String, List<Long>> result) {
-        if (agg == null || agg.getBuckets() == null || agg.getBuckets().isEmpty()) {
+    // TREND: Reset-aware deltas from max_<field> per interval; align timeline; sum across dimensions
+    private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Long>> result) {
+        List<JsonNode> buckets = aggregation.getBuckets();
+
+        if (buckets == null || buckets.isEmpty()) {
             return;
         }
 
-        List<JsonNode> buckets = agg.getBuckets();
-        boolean compositeMode = buckets.getFirst().has(PER_INTERVAL);
+        boolean hasComposite = buckets.getFirst().has(PER_INTERVAL);
+        // Global timeline across all dimensions/intervals
+        Set<Long> timelineValues = new LinkedHashSet<>();
+        // field -> (timestamp -> summed delta)
+        Map<String, Map<Long, Long>> fieldDeltaByTimeStampMap = new HashMap<>();
 
-        // 1) Collect ordered timeline (all timestamps)
-        List<Long> timeline = new ArrayList<>();
-        if (compositeMode) {
-            var ts = new java.util.LinkedHashSet<Long>();
+        if (hasComposite) {
+            // Composite: each outer bucket contains PER_INTERVAL aggregation
+            for (JsonNode dimensionBucket : buckets) {
+                JsonNode perInterval = dimensionBucket.get(PER_INTERVAL);
+                JsonNode intervals = (perInterval == null) ? null : perInterval.get(BUCKETS);
 
-            buckets
-                .stream()
-                .map(bucket -> bucket.get(PER_INTERVAL))
-                .filter(Objects::nonNull)
-                .map(perInterval -> perInterval.get(BUCKETS))
-                .filter(node -> node != null && node.isArray())
-                .forEachOrdered(arrayNode ->
-                    arrayNode.forEach(bucket -> {
-                        if (bucket != null && bucket.hasNonNull(KEY) && bucket.get(KEY).isNumber()) ts.add(bucket.get(KEY).asLong());
-                    })
+                if (intervals == null || !intervals.isArray()) {
+                    continue;
+                }
+                // Last observed max per field for applied composite keys
+                final Map<String, Long> latestMaxByFieldMap = new HashMap<>();
+                intervals.forEach(interval ->
+                    processPerIntervalBucket(interval, latestMaxByFieldMap, timelineValues, fieldDeltaByTimeStampMap)
                 );
-
-            timeline.addAll(ts);
+            }
         } else {
-            for (JsonNode bucket : buckets) {
-                if (bucket != null && bucket.hasNonNull(KEY) && bucket.get(KEY).isNumber()) {
-                    timeline.add(bucket.get(KEY).asLong());
+            // Flat histogram (no composite): treat top-level buckets as intervals
+            Map<String, Long> latestMaxByFieldMap = new HashMap<>();
+
+            for (JsonNode interval : buckets) {
+                processPerIntervalBucket(interval, latestMaxByFieldMap, timelineValues, fieldDeltaByTimeStampMap);
+            }
+        }
+
+        if (timelineValues.isEmpty() || fieldDeltaByTimeStampMap.isEmpty()) {
+            return;
+        }
+
+        // Build a sorted timeline and project each field's sparse deltas onto it
+        List<Long> sortedTimeline = new ArrayList<>(timelineValues);
+        // Sort timestamps
+        sortedTimeline.sort(Long::compare);
+
+        Map<String, List<Long>> aa = new HashMap<>();
+
+        fieldDeltaByTimeStampMap.forEach((field, deltaByTimestamp) -> {
+            List<Long> series = new ArrayList<>(sortedTimeline.size());
+            // Get value of field at each timestamp and add to trend
+            for (Long ts : sortedTimeline) {
+                series.add(deltaByTimestamp.getOrDefault(ts, null));
+            }
+
+            aa.put(field, series);
+        });
+
+        aa.forEach((field, maxSeries) -> {
+            List<Long> series = new ArrayList<>();
+
+            Long previousValue = maxSeries.stream().filter(Objects::nonNull).findFirst().orElse(null);
+
+            for (Long maxSeriesValue : maxSeries) {
+
+                if (maxSeriesValue == null) {
+                    series.add(null);
+                } else {
+
+                    if(previousValue > maxSeriesValue) {
+                        series.add(maxSeriesValue);
+                    } else {
+                        series.add(maxSeriesValue - previousValue);
+                    }
+
+                    previousValue = maxSeriesValue;
                 }
             }
-        }
 
-        if (timeline.isEmpty()) return;
-
-        // 2) Collect contributions: field -> (timestamp -> sum)
-        Map<String, Map<Long, Long>> valueByTimestampPerFiled = new HashMap<>();
-        if (compositeMode) {
-            buckets
-                .stream()
-                .map(b -> b.get(PER_INTERVAL))
-                .filter(Objects::nonNull)
-                .map(p -> p.get(BUCKETS))
-                .filter(n -> n != null && n.isArray())
-                .forEachOrdered(arr -> collectTrendValues(arr, valueByTimestampPerFiled));
-        } else {
-            collectTrendValues(buckets, valueByTimestampPerFiled);
-        }
-
-        if (valueByTimestampPerFiled.isEmpty()) return;
-
-        // 3) Build aligned series over the full timeline, defaulting to 0
-        valueByTimestampPerFiled.forEach((field, valuesByTs) -> {
-            List<Long> sortedValues = new ArrayList<>(timeline.size());
-
-            for (Long ts : timeline) {
-                sortedValues.add(valuesByTs.get(ts));
-            }
-            result.put(field, sortedValues);
+            result.put(field, series);
         });
+
+
+
+    }
+
+    private static void processPerIntervalBucket(
+        JsonNode interval,
+        Map<String, Long> lastestMaxByFieldMap,
+        Set<Long> timelineValues,
+        Map<String, Map<Long, Long>> fieldDeltaByTimeStampMap
+    ) {
+        Long timestamp = parseBucketTimestamp(interval);
+
+        if (timestamp == null) {
+            return;
+        }
+
+        timelineValues.add(timestamp);
+
+        interval
+            .fieldNames()
+            .forEachRemaining(fieldName -> {
+                // Skip meta fields and keep only max_<field> metrics
+                if (isMetaField(fieldName) || !fieldName.startsWith(MAX_PREFIX)) {
+                    return;
+                }
+
+                String metricName = fieldName.substring(MAX_PREFIX.length());
+                Long currentMax = parseMaxFieldValue(interval.get(fieldName));
+                // No observation for this field at this interval -> no delta written
+
+                // prevuiysValue 0 0 0 0 1 1 0 0 0 0
+                // 0 null null null 1 null 0 null  null 0
+
+//                Long previousMax = lastestMaxByFieldMap.get(metricName);
+//                long delta;
+                if (currentMax == null) {
+//                    fieldDeltaByTimeStampMap.computeIfAbsent(metricName, __ -> new HashMap<>()).getOrDefault(timestamp, null);
+                    return;
+                }
+//
+//                if (previousMax == null) {
+//                    // First observation for this field in this dimension: delta = 0 (not a gap)
+//                    delta = 0L;
+//                } else if (currentMax >= previousMax) {
+//                    // Normal monotonic increase
+//                    delta = currentMax - previousMax;
+//                } else {
+//                    // Counter reset detected: use current value as the delta
+//                    delta = currentMax;
+//                }
+
+//                lastestMaxByFieldMap.put(metricName, currentMax);
+
+
+
+                fieldDeltaByTimeStampMap.computeIfAbsent(metricName, __ -> new HashMap<>()).merge(timestamp, currentMax, Long::sum);
+            });
+    }
+
+    private static boolean isMetaField(final String name) {
+        return KEY.equals(name) || DOC_COUNT.equals(name);
+    }
+
+    private static Long parseTopMetricsResponse(final JsonNode topMetricsNode, final String fieldName) {
+        if (topMetricsNode == null) {
+            return null;
+        }
+
+        JsonNode top = topMetricsNode.get(TOP);
+
+        if (top == null || !top.isArray() || top.isEmpty()) {
+            return null;
+        }
+
+        JsonNode first = top.get(0);
+
+        if (first == null) {
+            return null;
+        }
+
+        JsonNode metrics = first.get(METRICS);
+
+        if (metrics == null) {
+            return null;
+        }
+
+        final JsonNode value = metrics.get(fieldName);
+
+        return (value != null && value.isNumber()) ? value.asLong() : null;
+    }
+
+    private static void mergeTopMetricsResponse(Map<String, Long> result, JsonNode node, String bucketPrefix) {
+        if (node == null) {
+            return;
+        }
+
+        node
+            .fieldNames()
+            .forEachRemaining(fieldName -> {
+                if (isMetaField(fieldName) || !fieldName.startsWith(bucketPrefix)) {
+                    return;
+                }
+
+                String metricField = fieldName.substring(bucketPrefix.length());
+                Long value = parseTopMetricsResponse(node.get(fieldName), metricField);
+
+                if (value != null) {
+                    result.merge(metricField, value, Long::sum);
+                }
+            });
+    }
+
+    private static Long parseBucketTimestamp(JsonNode node) {
+        if (node == null) {
+            return null;
+        }
+
+        JsonNode keyNode = node.get(KEY);
+
+        return (keyNode != null && keyNode.isNumber()) ? keyNode.asLong() : null;
+    }
+
+    private static Long parseMaxFieldValue(final JsonNode node) {
+        if (node == null) {
+            return null;
+        }
+
+        JsonNode valueNode = node.get("value");
+
+        return (valueNode == null || !valueNode.isNumber()) ? null : valueNode.asLong();
     }
 
     // Collector that sums values per timestamp across dimension buckets (no doc_count filtering)
@@ -290,26 +439,49 @@ public class EventMetricsResponseAdapter {
         intervalBucket
             .fieldNames()
             .forEachRemaining(fieldName -> {
-                if (KEY.equals(fieldName) || DOC_COUNT.equals(fieldName)) return;
 
-                boolean isNonNeg = fieldName.startsWith(NON_NEGATIVE_PREFIX);
-                boolean isDerivative = !isNonNeg && fieldName.startsWith(DERIVATIVE_PREFIX);
+                if(fieldName == null) return;
 
-                if (!isNonNeg && !isDerivative) return;
-
-                String metricName = isNonNeg
-                    ? fieldName.substring(NON_NEGATIVE_PREFIX.length())
-                    : fieldName.substring(DERIVATIVE_PREFIX.length());
+                if(fieldName.startsWith("max_")) {
 
                 Long value = extractNonNegativeValue(intervalBucket.get(fieldName));
 
-                if (value == null) return;
-
-                if (isNonNeg) {
-                    contributions.put(metricName, value); // prefer non_negative
-                } else {
-                    contributions.putIfAbsent(metricName, value); // fallback to derivative if no non_negative
+                if(value == null) {
+                    contributions.put(fieldName, null);
                 }
+
+
+
+                }
+
+                // get max_downstream-publish-messages-total
+                // if null return null to diff
+                // if not null
+                // add diff = value - previous value to contributions for this timestamp
+                //
+
+
+
+//                if (KEY.equals(fieldName) || DOC_COUNT.equals(fieldName)) return;
+//
+//                boolean isNonNeg = fieldName.startsWith(NON_NEGATIVE_PREFIX);
+//                boolean isDerivative = !isNonNeg && fieldName.startsWith(DERIVATIVE_PREFIX);
+//
+//                if (!isNonNeg && !isDerivative) return;
+//
+//                String metricName = isNonNeg
+//                    ? fieldName.substring(NON_NEGATIVE_PREFIX.length())
+//                    : fieldName.substring(DERIVATIVE_PREFIX.length());
+//
+//                Long value = extractNonNegativeValue(intervalBucket.get(fieldName));
+//
+//                if (value == null) return;
+//
+//                if (isNonNeg) {
+//                    contributions.put(metricName, value); // prefer non_negative
+//                } else {
+//                    contributions.putIfAbsent(metricName, value); // fallback to derivative if no non_negative
+//                }
             });
 
         if (!contributions.isEmpty()) {

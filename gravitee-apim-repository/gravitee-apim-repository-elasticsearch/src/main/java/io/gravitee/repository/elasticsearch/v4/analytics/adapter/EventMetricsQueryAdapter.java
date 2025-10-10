@@ -224,6 +224,7 @@ public final class EventMetricsQueryAdapter {
         ObjectNode termsNode = MAPPER.createObjectNode();
         ObjectNode fieldNode = MAPPER.createObjectNode();
         fieldNode.put(FIELD, fieldName);
+        fieldNode.put("missing_bucket", true);
         termsNode.set(TERMS, fieldNode);
         sourceNode.set(fieldName, termsNode);
         node.add(sourceNode);

@@ -473,6 +473,7 @@ export class ApiAnalyticsWidgetService {
     if (widgetConfig.type === 'bar') {
       const hasMultipleAggregations = widgetConfig.aggregations && widgetConfig.aggregations.length > 1;
 
+      // TODO: Improve it to move this logic to native-analytics component side
       const isAuthenticationChart = widgetConfig.aggregations?.some(
         (agg) => agg.field.includes('authentication-successes') || agg.field.includes('authentication-failures'),
       );
@@ -480,10 +481,14 @@ export class ApiAnalyticsWidgetService {
       let barData: GioChartBarData[];
 
       if (isAuthenticationChart && widgetConfig.aggregations?.length === 4) {
-        const downstreamFailure = histogramResponse.values[0]?.buckets[0]?.data || [];
-        const upstreamFailure = histogramResponse.values[1]?.buckets[0]?.data || [];
-        const upstreamSuccess = histogramResponse.values[2]?.buckets[0]?.data || [];
-        const downstreamSuccess = histogramResponse.values[3]?.buckets[0]?.data || [];
+        const downstreamFailure =
+          histogramResponse.values.find((v) => v.field === 'downstream-authentication-failures-total')?.buckets[0]?.data || [];
+        const upstreamFailure =
+          histogramResponse.values.find((v) => v.field === 'upstream-authentication-failures-total')?.buckets[0]?.data || [];
+        const upstreamSuccess =
+          histogramResponse.values.find((v) => v.field === 'upstream-authentication-successes-total')?.buckets[0]?.data || [];
+        const downstreamSuccess =
+          histogramResponse.values.find((v) => v.field === 'downstream-authentication-successes-total')?.buckets[0]?.data || [];
 
         // Sum downstream + upstream for success and failure for each time point
         const totalSuccess = downstreamSuccess.map((value, index) => value + (upstreamSuccess[index] || 0));
