@@ -24,12 +24,12 @@
           <div class="m3-headline-small">{{ api.name }}</div>
           <div class="m3-body-medium">{{ api.version }}</div>
         </div>
+        @if (!!api.mcp) {
+          <mat-chip i18n="@@apiCardMcpEnabled" i18n-matTooltip matTooltip="MCP available for this API">
+            <img matChipAvatar alt="" [src]="'assets/images/mcp.svg'" />MCP</mat-chip
+          >
+        }
       </div>
-      @if (!!api.mcp) {
-        <mat-chip i18n="@@apiCardMcpEnabled" i18n-matTooltip matTooltip="MCP available for this API">
-          <img matChipAvatar alt="" [src]="'assets/images/mcp.svg'" />MCP</mat-chip
-        >
-      }
       @if (plans$ | async; as plans) {
         <div class="api-details__header-button">
           @if (!plans.length && isAuthenticated()) {
