@@ -84,11 +84,11 @@ services:
       - ./.license:/opt/graviteeio-gateway/license
     environment:
       - gravitee_management_type=jdbc
-      - gravitee_management_jdbc_url=jdbc:sqlserver://mssql:1433;databaseName=gravitee;encrypt=false;
+      - gravitee_management_jdbc_url=jdbc:sqlserver://mssql:1433;databaseName=master;encrypt=false;
       - gravitee_management_jdbc_username=SA
       - gravitee_management_jdbc_password=Sql@2024Pass
       - gravitee_ratelimit_type=jdbc
-      - gravitee_ratelimit_jdbc_uri=jdbc:sqlserver://mssql:1433;databaseName=gravitee;encrypt=false;
+      - gravitee_ratelimit_jdbc_uri=jdbc:sqlserver://mssql:1433;databaseName=master;encrypt=false;
       - gravitee_ratelimit_jdbc_username=SA
       - gravitee_ratelimit_jdbc_password=Sql@2024Pass
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
@@ -116,7 +116,7 @@ services:
       - ./.license:/opt/graviteeio-management-api/license
     environment:
       - gravitee_management_type=jdbc
-      - gravitee_management_jdbc_url=jdbc:sqlserver://mssql:1433;databaseName=gravitee;encrypt=false;
+      - gravitee_management_jdbc_url=jdbc:sqlserver://mssql:1433;databaseName=master;encrypt=false;
       - gravitee_management_jdbc_username=SA
       - gravitee_management_jdbc_password=Sql@2024Pass
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
