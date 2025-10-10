@@ -1281,7 +1281,7 @@
                 <plugin>
                     <groupId>io.gravitee.apim.maven.plugin</groupId>
                     <artifactId>gravitee-apim-release-manifest-maven-plugin</artifactId>
-                    <version>${gravitee-apim-release-manifest-maven-plugin.version}</version>
+                    <version>1.1.0-allow-to-override-profiles-when-looking-for-dependencies-SNAPSHOT</version>
                     <executions>
                         <execution>
                             <goals>
@@ -1291,6 +1291,10 @@
                     </executions>
                     <configuration>
                         <targetFolder>${project.build.directory}/distribution/util</targetFolder>
+                        <profiles>
+                            <profile>bundle-default</profile>
+                            <profile>bundle-dev</profile>
+                        </profiles>
                     </configuration>
                 </plugin>
             </plugins>
