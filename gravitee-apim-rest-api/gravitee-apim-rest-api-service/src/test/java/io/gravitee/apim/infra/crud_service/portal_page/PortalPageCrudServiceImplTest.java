@@ -142,4 +142,30 @@ class PortalPageCrudServiceImplTest {
 
         org.junit.jupiter.api.Assertions.assertThrows(TechnicalDomainException.class, () -> service.findById(pageId));
     }
+
+    @Test
+    void should_create_page_successfully() throws TechnicalException {
+        PageId pageId = PageId.random();
+        var page = new PortalPage(pageId, new GraviteeMarkdown("content-create"));
+
+        var repoPage = io.gravitee.repository.management.model.PortalPage.builder()
+            .id(pageId.toString())
+            .content(page.getPageContent().content())
+            .build();
+
+        doReturn(repoPage).when(pageRepository).create(any());
+
+        var created = service.create(page);
+        assertThat(created).isEqualTo(page);
+    }
+
+    @Test
+    void should_throw_technical_domain_exception_when_create_fails() throws TechnicalException {
+        PageId pageId = PageId.random();
+        var page = new PortalPage(pageId, new GraviteeMarkdown("content-error"));
+
+        doThrow(new TechnicalException("boom")).when(pageRepository).create(any());
+
+        org.junit.jupiter.api.Assertions.assertThrows(TechnicalDomainException.class, () -> service.create(page));
+    }
 }
