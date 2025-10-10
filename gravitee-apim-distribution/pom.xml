@@ -1278,6 +1278,21 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>io.gravitee.apim.maven.plugin</groupId>
+                    <artifactId>gravitee-apim-release-manifest-maven-plugin</artifactId>
+                    <version>${gravitee-apim-release-manifest-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>release-manifest-writer</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <targetFolder>${project.build.directory}/distribution/util</targetFolder>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>

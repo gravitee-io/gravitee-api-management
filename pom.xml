@@ -150,6 +150,7 @@
         <xmlbeans.version>5.3.0</xmlbeans.version>
 
         <!-- Plugins version -->
+        <gravitee-apim-release-manifest-maven-plugin.version>1.0.0</gravitee-apim-release-manifest-maven-plugin.version>
         <maven-clean-plugin.version>3.4.1</maven-clean-plugin.version>
         <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
         <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>

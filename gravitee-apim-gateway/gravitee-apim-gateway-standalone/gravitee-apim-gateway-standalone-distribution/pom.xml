@@ -240,6 +240,10 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>io.gravitee.apim.maven.plugin</groupId>
+                <artifactId>gravitee-apim-release-manifest-maven-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
 
