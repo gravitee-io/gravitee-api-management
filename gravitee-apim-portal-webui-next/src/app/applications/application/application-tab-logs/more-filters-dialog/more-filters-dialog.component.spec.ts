@@ -122,4 +122,29 @@ describe('MoreFiltersDialogComponent', () => {
     await endDateCalendar.selectCell({ text: '16' });
     expect(await endDatePicker.getValue()).toEqual('6/16/2016');
   });
+
+  it('should set endDate to end of day when applying the dialog', async () => {
+    const dialog = await rootHarnessLoader.getHarness(MoreFiltersDialogHarness);
+    const endDatePicker = await dialog.getEndDatePicker();
+
+    // Open calendar and select the 15th (which other tests use and maps to 6/15/2016)
+    await endDatePicker.openCalendar();
+    const calendar = await endDatePicker.getCalendar();
+    await calendar.selectCell({ text: '15' });
+
+    // Apply filters
+    await dialog.applyFilters();
+
+    // Wait for the dialog to close and the host component to receive the result
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const result = fixture.componentInstance.result;
+    expect(result).toBeTruthy();
+    expect(result.endDate).toBeDefined();
+
+    // Build expected end-of-day timestamp for 2016-06-15 in local timezone
+    const expectedEnd = new Date(2016, 5, 15, 23, 59, 59, 999).getTime();
+    expect(result.endDate).toEqual(expectedEnd);
+  });
 });
