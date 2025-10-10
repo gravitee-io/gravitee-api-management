@@ -23,6 +23,8 @@ import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.AggregateValueCountByFieldAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.EventMetricsQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.EventMetricsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.FindApiMetricsDetailQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.FindApiMetricsDetailResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.GroupByQueryAdapter;
@@ -40,8 +42,6 @@ import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseS
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchTopFailedApisAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.StatsQueryAdapter;
-import io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationQueryAdapter;
-import io.gravitee.repository.elasticsearch.v4.analytics.adapter.TopHitsAggregationResponseAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetail;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
@@ -264,13 +264,13 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, HistogramQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
-        var esQuery = TopHitsAggregationQueryAdapter.adapt(query);
+        var esQuery = EventMetricsQueryAdapter.toESQuery(query);
 
         log.debug("Search native stats query: {}", esQuery);
 
         return client
             .search(index, null, esQuery)
-            .map(response -> TopHitsAggregationResponseAdapter.adapt(response, query))
+            .map(response -> EventMetricsResponseAdapter.adapt(response, query))
             .blockingGet();
     }
 

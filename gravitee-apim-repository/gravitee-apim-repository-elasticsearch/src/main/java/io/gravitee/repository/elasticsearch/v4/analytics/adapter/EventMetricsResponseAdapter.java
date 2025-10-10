@@ -22,7 +22,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.D
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.KEY;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DERIVATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_BUCKET_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.NON_NEGATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_BUCKET_PREFIX;
@@ -43,9 +43,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public class TopHitsAggregationResponseAdapter {
+public class EventMetricsResponseAdapter {
 
-    private TopHitsAggregationResponseAdapter() {}
+    private EventMetricsResponseAdapter() {}
 
     public static Optional<EventAnalyticsAggregate> adapt(SearchResponse response, HistogramQuery query) {
         if (response == null || response.getTimedOut()) {
@@ -73,7 +73,7 @@ public class TopHitsAggregationResponseAdapter {
                     parseLatestValueBuckets(value, result);
                     break;
                 case DELTA:
-                    parseStartEndValueBuckets(value, result);
+                    parseStartAndEndValueBuckets(value, result);
                     break;
                 case TREND:
                     parseDerivativeTrendBuckets(value, result);
@@ -104,10 +104,10 @@ public class TopHitsAggregationResponseAdapter {
                         // Ignore non-top_metrics fields
                         if (KEY.equals(fieldName) || DOC_COUNT.equals(fieldName)) return;
 
-                        if (!fieldName.startsWith(LATEST_BUCKET_PREFIX)) return;
+                        if (!fieldName.startsWith(LATEST_VALUE_PREFIX)) return;
 
                         // Derive the original metric field from "latest_<field>"
-                        final String metricField = fieldName.substring(LATEST_BUCKET_PREFIX.length());
+                        final String metricField = fieldName.substring(LATEST_VALUE_PREFIX.length());
                         final JsonNode topMetricsNode = bucket.get(fieldName);
 
                         // Require a top hit AND the metric value to be present and numeric
@@ -155,12 +155,11 @@ public class TopHitsAggregationResponseAdapter {
         return valueNode.asLong();
     }
 
-    // DELTA: compute (end - start) per field across buckets, write as singleton list
-    // Backward/forward compatibility:
-    // - Prefer END_IN_RANGE (query-time end window), but also support BEFORE_END for legacy/test fixtures.
+    // DELTA:
+    // - Compute (end - start) per field across buckets, write as singleton list
+    // - Prefer END_IN_RANGE (query-time end window)
     // - If start is missing but end exists, baseline is 0.
-    // - Clamp negative deltas to 0 (counter resets/out-of-order).
-    private static void parseStartEndValueBuckets(Aggregation agg, Map<String, List<Long>> result) {
+    private static void parseStartAndEndValueBuckets(Aggregation agg, Map<String, List<Long>> result) {
         List<JsonNode> buckets = agg.getBuckets();
 
         if (buckets == null || buckets.isEmpty()) return;
@@ -168,26 +167,26 @@ public class TopHitsAggregationResponseAdapter {
         Map<String, Long> metricValueMap = new HashMap<>();
 
         for (JsonNode bucket : buckets) {
-            JsonNode beforeStart = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START);
+            JsonNode startValueNode = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START);
             // Prefer end_in_range, but fall back to before_end_time if present (legacy/fixtures).
-            JsonNode endWindow = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE);
+            JsonNode endValueNode = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE);
 
-            if (endWindow == null) {
-                endWindow = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_END);
+            if (endValueNode == null) {
+                endValueNode = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_END);
             }
 
-            Map<String, Long> starts = collectTopMetrics(beforeStart, START_BUCKET_PREFIX);
-            Map<String, Long> ends = collectTopMetrics(endWindow, END_BUCKET_PREFIX);
+            Map<String, Long> startValuesMap = collectTopMetrics(startValueNode, START_BUCKET_PREFIX);
+            Map<String, Long> endValuesMap = collectTopMetrics(endValueNode, END_BUCKET_PREFIX);
 
-            Set<String> fields = new HashSet<>(starts.keySet());
-            fields.addAll(ends.keySet());
+            Set<String> fields = new HashSet<>(startValuesMap.keySet());
+            fields.addAll(endValuesMap.keySet());
 
             for (String field : fields) {
-                Long endVal = ends.get(field);
+                Long endVal = endValuesMap.get(field);
 
                 if (endVal == null) continue;
 
-                Long startVal = starts.get(field);
+                Long startVal = startValuesMap.get(field);
 
                 if (startVal == null) {
                     startVal = 0L; // baseline 0 when no start value
@@ -208,7 +207,7 @@ public class TopHitsAggregationResponseAdapter {
     // TREND: build per-interval list per field aligned to the full histogram timeline (including empty buckets)
     // Rules:
     // - Prefer non_negative_* over derivative_* (never emit negative values)
-    // - Include every date_histogram bucket timestamp; default missing values to 0
+    // - Include every date_histogram bucket timestamp
     // - Sum values across dimension buckets at the same timestamp
     private static void parseDerivativeTrendBuckets(Aggregation agg, Map<String, List<Long>> result) {
         if (agg == null || agg.getBuckets() == null || agg.getBuckets().isEmpty()) {
@@ -222,29 +221,32 @@ public class TopHitsAggregationResponseAdapter {
         List<Long> timeline = new ArrayList<>();
         if (compositeMode) {
             var ts = new java.util.LinkedHashSet<Long>();
+
             buckets
                 .stream()
-                .map(b -> b.get(PER_INTERVAL))
+                .map(bucket -> bucket.get(PER_INTERVAL))
                 .filter(Objects::nonNull)
-                .map(p -> p.get(BUCKETS))
-                .filter(n -> n != null && n.isArray())
-                .forEachOrdered(arr ->
-                    arr.forEach(b -> {
-                        if (b != null && b.hasNonNull(KEY) && b.get(KEY).isNumber()) ts.add(b.get(KEY).asLong());
+                .map(perInterval -> perInterval.get(BUCKETS))
+                .filter(node -> node != null && node.isArray())
+                .forEachOrdered(arrayNode ->
+                    arrayNode.forEach(bucket -> {
+                        if (bucket != null && bucket.hasNonNull(KEY) && bucket.get(KEY).isNumber()) ts.add(bucket.get(KEY).asLong());
                     })
                 );
+
             timeline.addAll(ts);
         } else {
-            for (JsonNode b : buckets) {
-                if (b != null && b.hasNonNull(KEY) && b.get(KEY).isNumber()) {
-                    timeline.add(b.get(KEY).asLong());
+            for (JsonNode bucket : buckets) {
+                if (bucket != null && bucket.hasNonNull(KEY) && bucket.get(KEY).isNumber()) {
+                    timeline.add(bucket.get(KEY).asLong());
                 }
             }
         }
+
         if (timeline.isEmpty()) return;
 
         // 2) Collect contributions: field -> (timestamp -> sum)
-        Map<String, Map<Long, Long>> seriesByFieldAndTs = new HashMap<>();
+        Map<String, Map<Long, Long>> valueByTimestampPerFiled = new HashMap<>();
         if (compositeMode) {
             buckets
                 .stream()
@@ -252,35 +254,39 @@ public class TopHitsAggregationResponseAdapter {
                 .filter(Objects::nonNull)
                 .map(p -> p.get(BUCKETS))
                 .filter(n -> n != null && n.isArray())
-                .forEachOrdered(arr -> collectTrendValues(arr, seriesByFieldAndTs));
+                .forEachOrdered(arr -> collectTrendValues(arr, valueByTimestampPerFiled));
         } else {
-            collectTrendValues(buckets, seriesByFieldAndTs);
+            collectTrendValues(buckets, valueByTimestampPerFiled);
         }
-        if (seriesByFieldAndTs.isEmpty()) return;
+
+        if (valueByTimestampPerFiled.isEmpty()) return;
 
         // 3) Build aligned series over the full timeline, defaulting to 0
-        seriesByFieldAndTs.forEach((field, valuesByTs) -> {
-            List<Long> aligned = new ArrayList<>(timeline.size());
+        valueByTimestampPerFiled.forEach((field, valuesByTs) -> {
+            List<Long> sortedValues = new ArrayList<>(timeline.size());
+
             for (Long ts : timeline) {
-                aligned.add(valuesByTs.get(ts));
+                sortedValues.add(valuesByTs.get(ts));
             }
-            result.put(field, aligned);
+            result.put(field, sortedValues);
         });
     }
 
     // Collector that sums values per timestamp across dimension buckets (no doc_count filtering)
-    private static void collectTrendValues(Iterable<JsonNode> intervalBuckets, Map<String, Map<Long, Long>> seriesByFieldAndTs) {
+    private static void collectTrendValues(Iterable<JsonNode> intervalBuckets, Map<String, Map<Long, Long>> valueByTimestampPerFiled) {
         if (intervalBuckets == null) return;
-        intervalBuckets.forEach(b -> processTrendBucket(b, seriesByFieldAndTs));
+
+        intervalBuckets.forEach(b -> parseIntervalBucket(b, valueByTimestampPerFiled));
     }
 
-    private static void processTrendBucket(JsonNode intervalBucket, Map<String, Map<Long, Long>> seriesByFieldAndTs) {
+    private static void parseIntervalBucket(JsonNode intervalBucket, Map<String, Map<Long, Long>> valueByTimestampPerFiled) {
         if (intervalBucket == null || !intervalBucket.hasNonNull(KEY) || !intervalBucket.get(KEY).isNumber()) {
             return;
         }
-        final long ts = intervalBucket.get(KEY).asLong();
 
+        long timestamp = intervalBucket.get(KEY).asLong();
         Map<String, Long> contributions = new HashMap<>();
+
         intervalBucket
             .fieldNames()
             .forEachRemaining(fieldName -> {
@@ -288,32 +294,34 @@ public class TopHitsAggregationResponseAdapter {
 
                 boolean isNonNeg = fieldName.startsWith(NON_NEGATIVE_PREFIX);
                 boolean isDerivative = !isNonNeg && fieldName.startsWith(DERIVATIVE_PREFIX);
+
                 if (!isNonNeg && !isDerivative) return;
 
-                String base = isNonNeg
+                String metricName = isNonNeg
                     ? fieldName.substring(NON_NEGATIVE_PREFIX.length())
                     : fieldName.substring(DERIVATIVE_PREFIX.length());
 
-                Long value = readNonNegativeRounded(intervalBucket.get(fieldName));
+                Long value = extractNonNegativeValue(intervalBucket.get(fieldName));
+
                 if (value == null) return;
 
                 if (isNonNeg) {
-                    contributions.put(base, value); // prefer non_negative
+                    contributions.put(metricName, value); // prefer non_negative
                 } else {
-                    contributions.putIfAbsent(base, value); // fallback to derivative if no non_negative
+                    contributions.putIfAbsent(metricName, value); // fallback to derivative if no non_negative
                 }
             });
 
         if (!contributions.isEmpty()) {
             contributions.forEach((field, value) ->
-                seriesByFieldAndTs.computeIfAbsent(field, k -> new HashMap<>()).merge(ts, value, Long::sum)
+                valueByTimestampPerFiled.computeIfAbsent(field, k -> new HashMap<>()).merge(timestamp, value, Long::sum)
             );
         }
     }
 
     // Read a pipeline agg node like { "value": number } as non-negative rounded long.
     // Returns null if "value" is missing or non-numeric.
-    private static Long readNonNegativeRounded(JsonNode aggNode) {
+    private static Long extractNonNegativeValue(JsonNode aggNode) {
         if (aggNode == null) return null;
 
         JsonNode valueNode = aggNode.get("value");
@@ -365,7 +373,9 @@ public class TopHitsAggregationResponseAdapter {
     // Helper to know if a top_metrics agg actually returned a hit even if the value is 0
     private static boolean isTopHitMissing(JsonNode topMetricsNode) {
         if (topMetricsNode == null) return true;
+
         JsonNode topArray = topMetricsNode.get(TOP);
+
         return topArray == null || !topArray.isArray() || topArray.isEmpty();
     }
 

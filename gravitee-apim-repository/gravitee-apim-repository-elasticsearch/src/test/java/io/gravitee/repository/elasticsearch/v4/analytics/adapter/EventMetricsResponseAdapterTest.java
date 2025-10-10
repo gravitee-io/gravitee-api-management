@@ -24,7 +24,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DERIVATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_BUCKET_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.NON_NEGATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_BUCKET_PREFIX;
@@ -41,9 +41,7 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
-import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import io.gravitee.repository.log.v4.model.analytics.Term;
-import io.gravitee.repository.log.v4.model.analytics.TimeRange;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,11 +50,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class TopHitsAggregationResponseAdapterTest {
+class EventMetricsResponseAdapterTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    // Common field names used across tests
     private static final String FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS = "downstream-active-connections";
     private static final String FIELD_UPSTREAM_ACTIVE_CONNECTIONS = "upstream-active-connections";
     private static final String FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL = "downstream-publish-messages-total";
@@ -67,26 +63,29 @@ class TopHitsAggregationResponseAdapterTest {
 
         @Test
         void should_return_empty_when_response_is_null() {
-            var result = TopHitsAggregationResponseAdapter.adapt(null, null);
+            var result = EventMetricsResponseAdapter.adapt(null, null);
+
             assertTrue(result.isEmpty());
         }
 
         @Test
         void should_return_empty_when_no_aggs_or_type_unknown() {
-            SearchResponse sr = new SearchResponse();
-            sr.setTimedOut(false);
-            sr.setAggregations(Collections.emptyMap());
+            SearchResponse response = new SearchResponse();
+            response.setTimedOut(false);
+            response.setAggregations(Collections.emptyMap());
 
-            var result = TopHitsAggregationResponseAdapter.adapt(sr, buildHistogramQuery(Collections.emptyList()));
-            assertTrue(result.isEmpty(), "Empty aggs should yield empty Optional");
+            var result1 = EventMetricsResponseAdapter.adapt(response, buildHistogramQuery(Collections.emptyList()));
 
-            // Unknown type (mixed) -> adapter returns empty
-            var mixedAggs = List.of(
+            assertTrue(result1.isEmpty());
+
+            var mixed = List.of(
                 new io.gravitee.repository.log.v4.model.analytics.Aggregation(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, AggregationType.VALUE),
                 new io.gravitee.repository.log.v4.model.analytics.Aggregation(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, AggregationType.DELTA)
             );
-            var result2 = TopHitsAggregationResponseAdapter.adapt(sr, buildHistogramQuery(mixedAggs));
-            assertTrue(result2.isEmpty(), "Mixed aggregation types should yield empty Optional");
+
+            var result2 = EventMetricsResponseAdapter.adapt(response, buildHistogramQuery(mixed));
+
+            assertTrue(result2.isEmpty());
         }
     }
 
@@ -94,37 +93,37 @@ class TopHitsAggregationResponseAdapterTest {
     class ValueTests {
 
         @Test
-        void should_sum_latest_values_across_buckets_and_ignore_non_numeric() {
+        void should_sum_latest_values_across_buckets() {
             // Bucket #1: downstream=2, upstream=3
-            ObjectNode b1 = MAPPER.createObjectNode();
-            b1.put(KEY, 1);
-            b1.put(DOC_COUNT, 1);
-            b1.set(
-                LATEST_BUCKET_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
+            ObjectNode bucket1 = MAPPER.createObjectNode();
+            bucket1.put(KEY, 1);
+            bucket1.put(DOC_COUNT, 1);
+            bucket1.set(
+                LATEST_VALUE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
                 topMetricsHit(metric(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 2))
             );
-            b1.set(LATEST_BUCKET_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS, topMetricsHit(metric(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, 3)));
+            bucket1.set(
+                LATEST_VALUE_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS,
+                topMetricsHit(metric(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, 3))
+            );
 
             // Bucket #2: downstream=5, upstream non-numeric -> ignored
-            ObjectNode b2 = MAPPER.createObjectNode();
-            b2.put(KEY, 2);
-            b2.put(DOC_COUNT, 1);
-            b2.set(
-                LATEST_BUCKET_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
+            ObjectNode bucket2 = MAPPER.createObjectNode();
+            bucket2.put(KEY, 2);
+            bucket2.put(DOC_COUNT, 1);
+            bucket2.set(
+                LATEST_VALUE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
                 topMetricsHit(metric(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 5))
             );
-            b2.set(
-                LATEST_BUCKET_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS,
-                topMetricsHit(textMetric(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, "NaN"))
-            );
+            bucket2.set(LATEST_VALUE_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS, emptyTop());
 
             // Bucket #3: missing top hit for downstream -> ignored for downstream
-            ObjectNode b3 = MAPPER.createObjectNode();
-            b3.put(KEY, 3);
-            b3.put(DOC_COUNT, 1);
-            b3.set(LATEST_BUCKET_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, emptyTop());
+            ObjectNode bucket3 = MAPPER.createObjectNode();
+            bucket3.put(KEY, 3);
+            bucket3.put(DOC_COUNT, 1);
+            bucket3.set(LATEST_VALUE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, emptyTop());
 
-            SearchResponse sr = responseWithAgg(BY_DIMENSIONS, List.of(b1, b2, b3));
+            SearchResponse response = buildResponse(List.of(bucket1, bucket2, bucket3));
             HistogramQuery query = buildHistogramQuery(
                 List.of(
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
@@ -135,12 +134,12 @@ class TopHitsAggregationResponseAdapterTest {
                 )
             );
 
-            Optional<EventAnalyticsAggregate> result = TopHitsAggregationResponseAdapter.adapt(sr, query);
-            assertTrue(result.isPresent());
+            Optional<EventAnalyticsAggregate> result = EventMetricsResponseAdapter.adapt(response, query);
 
+            assertTrue(result.isPresent());
             Map<String, List<Long>> values = result.get().values();
-            assertEquals(List.of(7L), values.get(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS), "downstream should be 2 + 5");
-            assertEquals(List.of(3L), values.get(FIELD_UPSTREAM_ACTIVE_CONNECTIONS), "upstream should ignore non-numeric and sum only 3");
+            assertEquals(List.of(7L), values.get(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS));
+            assertEquals(List.of(3L), values.get(FIELD_UPSTREAM_ACTIVE_CONNECTIONS));
         }
     }
 
@@ -148,12 +147,12 @@ class TopHitsAggregationResponseAdapterTest {
     class DeltaTests {
 
         @Test
-        void should_compute_delta_and_sum_across_buckets_with_zero_baseline_and_clamp_negative() {
+        void should_compute_delta_and_sum_across_buckets() {
             // Bucket #1: start downstream=10, end downstream=25 -> delta 15
-            ObjectNode b1 = MAPPER.createObjectNode();
-            b1.put(KEY, 1);
-            b1.put(DOC_COUNT, 1);
-            b1.set(
+            ObjectNode bucket1 = MAPPER.createObjectNode();
+            bucket1.put(KEY, 1);
+            bucket1.put(DOC_COUNT, 1);
+            bucket1.set(
                 BEFORE_START,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
@@ -162,7 +161,7 @@ class TopHitsAggregationResponseAdapterTest {
                     )
                 )
             );
-            b1.set(
+            bucket1.set(
                 END_IN_RANGE,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
@@ -173,11 +172,11 @@ class TopHitsAggregationResponseAdapterTest {
             );
 
             // Bucket #2: start downstream missing, end downstream=5 -> baseline 0 -> delta 5
-            ObjectNode b2 = MAPPER.createObjectNode();
-            b2.put(KEY, 2);
-            b2.put(DOC_COUNT, 1);
-            b2.set(BEFORE_START, MAPPER.createObjectNode()); // no start
-            b2.set(
+            ObjectNode bucket2 = MAPPER.createObjectNode();
+            bucket2.put(KEY, 2);
+            bucket2.put(DOC_COUNT, 1);
+            bucket2.set(BEFORE_START, MAPPER.createObjectNode()); // no start
+            bucket2.set(
                 END_IN_RANGE,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
@@ -188,10 +187,10 @@ class TopHitsAggregationResponseAdapterTest {
             );
 
             // Bucket #3: start upstream=40, end upstream=35 -> negative -> clamp to 0
-            ObjectNode b3 = MAPPER.createObjectNode();
-            b3.put(KEY, 3);
-            b3.put(DOC_COUNT, 1);
-            b3.set(
+            ObjectNode bucket3 = MAPPER.createObjectNode();
+            bucket3.put(KEY, 3);
+            bucket3.put(DOC_COUNT, 1);
+            bucket3.set(
                 BEFORE_START,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
@@ -200,7 +199,7 @@ class TopHitsAggregationResponseAdapterTest {
                     )
                 )
             );
-            b3.set(
+            bucket3.set(
                 END_IN_RANGE,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
@@ -210,7 +209,7 @@ class TopHitsAggregationResponseAdapterTest {
                 )
             );
 
-            SearchResponse sr = responseWithAgg(BY_DIMENSIONS, List.of(b1, b2, b3));
+            SearchResponse response = buildResponse(List.of(bucket1, bucket2, bucket3));
             HistogramQuery query = buildHistogramQuery(
                 List.of(
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
@@ -224,12 +223,12 @@ class TopHitsAggregationResponseAdapterTest {
                 )
             );
 
-            Optional<EventAnalyticsAggregate> result = TopHitsAggregationResponseAdapter.adapt(sr, query);
+            Optional<EventAnalyticsAggregate> result = EventMetricsResponseAdapter.adapt(response, query);
+
             assertTrue(result.isPresent());
             Map<String, List<Long>> values = result.get().values();
-
-            assertEquals(List.of(20L), values.get(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL), "downstream should be 15 + 5");
-            assertEquals(List.of(0L), values.get(FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL), "upstream negative delta should clamp to 0");
+            assertEquals(List.of(20L), values.get(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL));
+            assertEquals(List.of(0L), values.get(FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL));
         }
     }
 
@@ -246,7 +245,6 @@ class TopHitsAggregationResponseAdapterTest {
             downstreamIntervalsA.add(
                 intervalBucket(
                     timestamp1,
-                    1,
                     Map.of(
                         NON_NEGATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
                         2.4,
@@ -255,7 +253,7 @@ class TopHitsAggregationResponseAdapterTest {
                     )
                 )
             );
-            downstreamIntervalsA.add(intervalBucket(timestamp2, 1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 3.6)));
+            downstreamIntervalsA.add(intervalBucket(timestamp2, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 3.6)));
 
             ObjectNode dimensionABucket = MAPPER.createObjectNode();
             dimensionABucket.put(DOC_COUNT, 2);
@@ -263,16 +261,14 @@ class TopHitsAggregationResponseAdapterTest {
 
             // Dimension B intervals:
             ArrayNode downstreamIntervalsB = MAPPER.createArrayNode();
-            downstreamIntervalsB.add(intervalBucket(timestamp1, 1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 7.0)));
-            downstreamIntervalsB.add(
-                intervalBucket(timestamp2, 1, Map.of(NON_NEGATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 1.49))
-            );
+            downstreamIntervalsB.add(intervalBucket(timestamp1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 7.0)));
+            downstreamIntervalsB.add(intervalBucket(timestamp2, Map.of(NON_NEGATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 1.49)));
 
             ObjectNode dimensionBBucket = MAPPER.createObjectNode();
             dimensionBBucket.put(DOC_COUNT, 2);
             dimensionBBucket.set(PER_INTERVAL, MAPPER.createObjectNode().set(BUCKETS, downstreamIntervalsB));
 
-            SearchResponse response = responseWithAgg(BY_DIMENSIONS, List.of(dimensionABucket, dimensionBBucket));
+            SearchResponse response = buildResponse(List.of(dimensionABucket, dimensionBBucket));
             HistogramQuery query = buildHistogramQuery(
                 List.of(
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
@@ -282,9 +278,9 @@ class TopHitsAggregationResponseAdapterTest {
                 )
             );
 
-            Optional<EventAnalyticsAggregate> aggregate = TopHitsAggregationResponseAdapter.adapt(response, query);
-            assertTrue(aggregate.isPresent());
+            Optional<EventAnalyticsAggregate> aggregate = EventMetricsResponseAdapter.adapt(response, query);
 
+            assertTrue(aggregate.isPresent());
             Map<String, List<Long>> valuesByField = aggregate.get().values();
             assertEquals(List.of(9L, 5L), valuesByField.get(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS));
         }
@@ -297,17 +293,17 @@ class TopHitsAggregationResponseAdapterTest {
 
             ArrayNode intervals = MAPPER.createArrayNode();
             // 0.49 -> round to 0
-            intervals.add(intervalBucket(t1, 1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 0.49)));
+            intervals.add(intervalBucket(t1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 0.49)));
             // 0.5 -> round to 1
-            intervals.add(intervalBucket(t2, 1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 0.5)));
+            intervals.add(intervalBucket(t2, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 0.5)));
             // -0.4 -> round to 0 then clamp to 0
-            intervals.add(intervalBucket(t3, 1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, -0.4)));
+            intervals.add(intervalBucket(t3, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, -0.4)));
 
-            ObjectNode dim = MAPPER.createObjectNode();
-            dim.put(DOC_COUNT, 3);
-            dim.set(PER_INTERVAL, MAPPER.createObjectNode().set(BUCKETS, intervals));
+            ObjectNode dimension = MAPPER.createObjectNode();
+            dimension.put(DOC_COUNT, 3);
+            dimension.set(PER_INTERVAL, MAPPER.createObjectNode().set(BUCKETS, intervals));
 
-            SearchResponse sr = responseWithAgg(BY_DIMENSIONS, List.of(dim));
+            SearchResponse response = buildResponse(List.of(dimension));
             HistogramQuery query = buildHistogramQuery(
                 List.of(
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
@@ -317,59 +313,28 @@ class TopHitsAggregationResponseAdapterTest {
                 )
             );
 
-            var result = TopHitsAggregationResponseAdapter.adapt(sr, query);
-            assertTrue(result.isPresent());
+            var result = EventMetricsResponseAdapter.adapt(response, query);
 
+            assertTrue(result.isPresent());
             // Expect [0, 1, 0]
             assertEquals(List.of(0L, 1L, 0L), result.get().values().get(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS));
-        }
-
-        @Test
-        void should_exclude_zero_doc_intervals_from_timeline() {
-            long t1 = 1_000L;
-            long t3 = 3_000L;
-
-            // Only t1 and t3 present, t2 omitted
-            ArrayNode intervals = MAPPER.createArrayNode();
-            intervals.add(intervalBucket(t1, 1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 1.0)));
-            intervals.add(intervalBucket(t3, 1, Map.of(NON_NEGATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 2.0)));
-
-            ObjectNode dim = MAPPER.createObjectNode();
-            dim.put(DOC_COUNT, 2);
-            dim.set(PER_INTERVAL, MAPPER.createObjectNode().set(BUCKETS, intervals));
-
-            SearchResponse sr = responseWithAgg(BY_DIMENSIONS, List.of(dim));
-            HistogramQuery query = buildHistogramQuery(
-                List.of(
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
-                        AggregationType.TREND
-                    )
-                )
-            );
-
-            var result = TopHitsAggregationResponseAdapter.adapt(sr, query);
-            assertTrue(result.isPresent());
-
-            // Expect timeline [t1, t3] only, so series has length 2 with values [1, 2]
-            assertEquals(List.of(1L, 2L), result.get().values().get(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS));
         }
     }
 
     // ---------------- Builders / Helpers ----------------
 
-    private static SearchResponse responseWithAgg(String aggName, List<JsonNode> buckets) {
+    private static SearchResponse buildResponse(List<JsonNode> buckets) {
         Aggregation agg = new Aggregation();
         agg.setBuckets(buckets);
 
         Map<String, Aggregation> aggs = new HashMap<>();
-        aggs.put(aggName, agg);
+        aggs.put(BY_DIMENSIONS, agg);
 
-        SearchResponse sr = new SearchResponse();
-        sr.setTimedOut(false);
-        sr.setAggregations(aggs);
+        SearchResponse response = new SearchResponse();
+        response.setTimedOut(false);
+        response.setAggregations(aggs);
 
-        return sr;
+        return response;
     }
 
     private static ObjectNode topMetricsHit(ObjectNode metrics) {
@@ -398,17 +363,10 @@ class TopHitsAggregationResponseAdapterTest {
         return metrics;
     }
 
-    private static ObjectNode textMetric(String field, String text) {
-        ObjectNode metrics = MAPPER.createObjectNode();
-        metrics.put(field, text);
-
-        return metrics;
-    }
-
-    private static ObjectNode intervalBucket(long ts, long docCount, Map<String, Double> series) {
+    private static ObjectNode intervalBucket(long ts, Map<String, Double> series) {
         ObjectNode bucket = MAPPER.createObjectNode();
         bucket.put(KEY, ts);
-        bucket.put(DOC_COUNT, docCount);
+        bucket.put(DOC_COUNT, (long) 1);
 
         series.forEach((name, v) -> {
             ObjectNode node = MAPPER.createObjectNode();
@@ -420,12 +378,9 @@ class TopHitsAggregationResponseAdapterTest {
     }
 
     private static HistogramQuery buildHistogramQuery(List<io.gravitee.repository.log.v4.model.analytics.Aggregation> aggregations) {
-        // Only the aggregation types are used by the adapter; other fields can be null
-        SearchTermId searchTermId = null;
-        TimeRange timeRange = null;
         Optional<String> query = Optional.empty();
         List<Term> terms = List.of();
 
-        return new HistogramQuery(searchTermId, timeRange, aggregations, query, terms);
+        return new HistogramQuery(null, null, aggregations, query, terms);
     }
 }

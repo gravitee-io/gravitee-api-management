@@ -94,7 +94,7 @@ public final class ElasticsearchDsl {
     // Stable application names (prefixes/suffixes chosen by us)
     public static final class Names {
 
-        public static final String LATEST_BUCKET_PREFIX = "latest_";
+        public static final String LATEST_VALUE_PREFIX = "latest_";
         public static final String BY_DIMENSIONS = "by_dimensions";
         public static final String PER_INTERVAL = "per_interval";
         public static final String START_BUCKET_PREFIX = "start_";

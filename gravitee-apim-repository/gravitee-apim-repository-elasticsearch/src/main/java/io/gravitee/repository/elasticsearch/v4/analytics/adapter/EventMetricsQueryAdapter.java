@@ -44,7 +44,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DERIVATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_BUCKET_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MILLISECONDS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.NON_NEGATIVE_PREFIX;
@@ -80,22 +80,21 @@ import java.util.stream.Collectors;
  * - VALUE: latest value per composite bucket (top_metrics), summed during response parsing.
  * - DELTA: end - start per composite bucket via two time windows, summed during response parsing.
  * - TREND: per-interval derivative with non-negative clamping; summed and aligned during response parsing.
- *
  * Strict rules:
  * - No pagination (composite size capped, handled elsewhere if needed).
  * - Exists filters are ANDed (one exists per requested metric).
  * - Root time range is applied only for VALUE and TREND (not for DELTA).
  * - Composite keys:
  *   - VALUE: gw-id, api-id, org-id, env-id
- *   - DELTA/TREND: VALUE keys + app-id, plan-id, topic
+ *   - DELTA/TREND: gw-id, api-id, org-id, env-id, app-id, plan-id, topic
  */
-public final class TopHitsAggregationQueryAdapter {
+public final class EventMetricsQueryAdapter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private TopHitsAggregationQueryAdapter() {}
+    private EventMetricsQueryAdapter() {}
 
-    public static String adapt(HistogramQuery query) {
+    public static String toESQuery(HistogramQuery query) {
         Set<AggregationType> types = query.aggregations().stream().map(Aggregation::getType).collect(Collectors.toSet());
 
         if (types.size() != 1) {
@@ -107,12 +106,12 @@ public final class TopHitsAggregationQueryAdapter {
         ObjectNode root = MAPPER.createObjectNode();
         root.put(SIZE, 0);
         root.put(TRACK_TOTAL_HITS, false);
-        ObjectNode aggsRoot = root.putObject(AGGS);
+        ObjectNode aggregationsNode = root.putObject(AGGS);
 
         switch (type) {
-            case VALUE -> buildValueAggs(query, aggsRoot);
-            case DELTA -> buildDeltaAggs(query, aggsRoot);
-            case TREND -> buildTrendAggs(query, aggsRoot);
+            case VALUE -> applyLatestValueAggregations(query, aggregationsNode);
+            case DELTA -> applyDeltaAggregations(query, aggregationsNode);
+            case TREND -> applyTrendAggregations(query, aggregationsNode);
         }
 
         ArrayNode filters = MAPPER.createArrayNode();
@@ -126,138 +125,136 @@ public final class TopHitsAggregationQueryAdapter {
 
     // ---------------- VALUE ----------------
 
-    private static void buildValueAggs(HistogramQuery query, ObjectNode aggsRoot) {
-        ObjectNode byDimensions = aggsRoot.putObject(BY_DIMENSIONS);
-        ObjectNode composite = byDimensions.putObject(COMPOSITE);
-        composite.put(SIZE, 1000);
-        ArrayNode sources = composite.putArray(SOURCES);
-        addDefaultCompositeKeys(sources);
+    private static void applyLatestValueAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
+        ObjectNode dimensionsNode = aggregationsNode.putObject(BY_DIMENSIONS);
+        ObjectNode compositeNode = dimensionsNode.putObject(COMPOSITE);
+        compositeNode.put(SIZE, 1000);
+        ArrayNode sourcesNode = compositeNode.putArray(SOURCES);
+        addDefaultCompositeKeys(sourcesNode);
 
-        ObjectNode perBucketAggs = byDimensions.putObject(AGGS);
+        ObjectNode bucketAggregationNode = dimensionsNode.putObject(AGGS);
         query
             .aggregations()
             .forEach(agg -> {
                 String field = agg.getField();
-                ObjectNode latest = perBucketAggs.putObject(LATEST_BUCKET_PREFIX + field);
-                applyTopMetrics(latest, field);
+                ObjectNode latestValueNode = bucketAggregationNode.putObject(LATEST_VALUE_PREFIX + field);
+                applyTopMetricsAggregation(latestValueNode, field);
             });
     }
 
     // ---------------- DELTA ----------------
 
-    private static void buildDeltaAggs(HistogramQuery query, ObjectNode aggsRoot) {
-        ObjectNode perBucketAggs = createCompositeWithExtras(aggsRoot, "app-id", "plan-id", "topic");
-
+    private static void applyDeltaAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
+        ObjectNode bucketAggregations = applyCompositeWithExtras(aggregationsNode, "app-id", "plan-id", "topic");
         long start = query.timeRange().from().toEpochMilli();
         long end = query.timeRange().to().toEpochMilli();
-
-        // before_start_time: last doc strictly before 'start'
-        ObjectNode beforeStart = perBucketAggs.putObject(BEFORE_START);
-        ObjectNode beforeStartTs = beforeStart.putObject(FILTER).putObject(RANGE).putObject(TIMESTAMP);
-        beforeStartTs.put(LT, start);
-        ObjectNode beforeStartAggs = beforeStart.putObject(AGGS);
-
-        // end_in_range: last doc in [start, end)
-        ObjectNode endInRange = perBucketAggs.putObject(END_IN_RANGE);
-        ObjectNode endInRangeTs = endInRange.putObject(FILTER).putObject(RANGE).putObject(TIMESTAMP);
-        endInRangeTs.put(GTE, start);
-        endInRangeTs.put(LT, end);
-        ObjectNode endInRangeAggs = endInRange.putObject(AGGS);
+        // before_start_time: gets the lastest doc strictly before 'start'
+        ObjectNode startValueNode = bucketAggregations.putObject(BEFORE_START);
+        ObjectNode startValueTimeRangeNode = startValueNode.putObject(FILTER).putObject(RANGE).putObject(TIMESTAMP);
+        startValueTimeRangeNode.put(LT, start);
+        ObjectNode startValueAggregations = startValueNode.putObject(AGGS);
+        // end_in_range: gets the lastest doc in [start, end)
+        ObjectNode endValueNode = bucketAggregations.putObject(END_IN_RANGE);
+        ObjectNode endValueTimeRangeNode = endValueNode.putObject(FILTER).putObject(RANGE).putObject(TIMESTAMP);
+        endValueTimeRangeNode.put(GTE, start);
+        endValueTimeRangeNode.put(LT, end);
+        ObjectNode endValueAggregations = endValueNode.putObject(AGGS);
 
         query
             .aggregations()
             .forEach(agg -> {
                 String field = agg.getField();
-
-                ObjectNode startAgg = beforeStartAggs.putObject(START_BUCKET_PREFIX + field);
-                applyTopMetrics(startAgg, field);
-
-                ObjectNode endAgg = endInRangeAggs.putObject(END_BUCKET_PREFIX + field);
-                applyTopMetrics(endAgg, field);
+                ObjectNode startAgg = startValueAggregations.putObject(START_BUCKET_PREFIX + field);
+                applyTopMetricsAggregation(startAgg, field);
+                ObjectNode endAgg = endValueAggregations.putObject(END_BUCKET_PREFIX + field);
+                applyTopMetricsAggregation(endAgg, field);
             });
     }
 
     // ---------------- TREND ----------------
 
-    private static void buildTrendAggs(HistogramQuery query, ObjectNode aggsRoot) {
-        ObjectNode perBucketAggs = createCompositeWithExtras(aggsRoot, "app-id", "plan-id", "topic");
-        ObjectNode perIntervalAggs = applyFixedIntervalHistogram(query, perBucketAggs);
-        query.aggregations().forEach(agg -> addTrendSeries(perIntervalAggs, agg.getField()));
+    private static void applyTrendAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
+        ObjectNode bucketAggregations = applyCompositeWithExtras(aggregationsNode, "app-id", "plan-id", "topic");
+        ObjectNode intervalAggregations = applyFixedIntervalAggregations(query, bucketAggregations);
+        query.aggregations().forEach(agg -> applyDerivativeAggregations(intervalAggregations, agg.getField()));
     }
 
-    private static void addTrendSeries(ObjectNode perIntervalAggs, String field) {
-        String maxName = MAX_PREFIX + field;
-        String derivativeName = DERIVATIVE_PREFIX + field;
-        String nonNegativeName = NON_NEGATIVE_PREFIX + field;
+    private static void applyDerivativeAggregations(ObjectNode aggregationsNode, String field) {
+        String max = MAX_PREFIX + field;
+        String derivative = DERIVATIVE_PREFIX + field;
+        String nonNegative = NON_NEGATIVE_PREFIX + field;
 
-        perIntervalAggs.putObject(maxName).putObject(MAX).put(FIELD, field);
+        aggregationsNode.putObject(max).putObject(MAX).put(FIELD, field);
 
-        ObjectNode derivative = perIntervalAggs.putObject(derivativeName).putObject(DERIVATIVE);
-        derivative.put(BUCKETS_PATH, maxName);
-        derivative.put(GAP_POLICY, INSERT_ZEROS);
+        ObjectNode derivativeNode = aggregationsNode.putObject(derivative).putObject(DERIVATIVE);
+        derivativeNode.put(BUCKETS_PATH, max);
+        derivativeNode.put(GAP_POLICY, INSERT_ZEROS);
 
-        ObjectNode script = perIntervalAggs.putObject(nonNegativeName).putObject(BUCKET_SCRIPT);
-        ObjectNode path = script.putObject(BUCKETS_PATH);
-        path.put("d", derivativeName);
-        script.put(SCRIPT, "params.d != null ? Math.max(params.d, 0) : 0");
+        ObjectNode scriptNode = aggregationsNode.putObject(nonNegative).putObject(BUCKET_SCRIPT);
+        ObjectNode path = scriptNode.putObject(BUCKETS_PATH);
+        path.put("d", derivative);
+        scriptNode.put(SCRIPT, "params.d != null ? Math.max(params.d, 0) : 0");
     }
 
     // ---------------- Composite helpers ----------------
 
-    private static ObjectNode createCompositeWithExtras(ObjectNode aggsRoot, String... extras) {
-        ObjectNode byDimensions = aggsRoot.putObject(BY_DIMENSIONS);
-        ObjectNode composite = byDimensions.putObject(COMPOSITE);
-        composite.put(SIZE, 1000);
-        ArrayNode sources = composite.putArray(SOURCES);
+    private static ObjectNode applyCompositeWithExtras(ObjectNode aggregationsNode, String... additionalKeys) {
+        ObjectNode dimensionsNode = aggregationsNode.putObject(BY_DIMENSIONS);
+        ObjectNode compositeNode = dimensionsNode.putObject(COMPOSITE);
+        compositeNode.put(SIZE, 1000);
+        ArrayNode sourcesNode = compositeNode.putArray(SOURCES);
+        addDefaultCompositeKeys(sourcesNode);
 
-        addDefaultCompositeKeys(sources);
-        if (extras != null) {
-            Arrays.stream(extras).forEach(field -> addCompositeKey(sources, field));
+        if (additionalKeys != null) {
+            Arrays.stream(additionalKeys).forEach(field -> addCompositeKey(sourcesNode, field));
         }
 
-        return byDimensions.putObject(AGGS);
+        return dimensionsNode.putObject(AGGS);
     }
 
-    private static void addDefaultCompositeKeys(ArrayNode sources) {
-        addCompositeKey(sources, "gw-id");
-        addCompositeKey(sources, "api-id");
-        addCompositeKey(sources, "org-id");
-        addCompositeKey(sources, "env-id");
+    private static void addDefaultCompositeKeys(ArrayNode node) {
+        addCompositeKey(node, "gw-id");
+        addCompositeKey(node, "api-id");
+        addCompositeKey(node, "org-id");
+        addCompositeKey(node, "env-id");
     }
 
-    private static void addCompositeKey(ArrayNode sources, String fieldName) {
-        ObjectNode sourceWrapper = MAPPER.createObjectNode();
-        ObjectNode inner = MAPPER.createObjectNode();
-        ObjectNode termsBody = MAPPER.createObjectNode();
-        termsBody.put(FIELD, fieldName);
-        inner.set(TERMS, termsBody);
-        sourceWrapper.set(fieldName, inner);
-        sources.add(sourceWrapper);
+    private static void addCompositeKey(ArrayNode node, String fieldName) {
+        ObjectNode sourceNode = MAPPER.createObjectNode();
+        ObjectNode termsNode = MAPPER.createObjectNode();
+        ObjectNode fieldNode = MAPPER.createObjectNode();
+        fieldNode.put(FIELD, fieldName);
+        termsNode.set(TERMS, fieldNode);
+        sourceNode.set(fieldName, termsNode);
+        node.add(sourceNode);
     }
 
-    // ---------------- top_metrics and histogram ----------------
+    // ---------------- top_metrics and fixed interval histogram ----------------
 
-    private static void applyTopMetrics(ObjectNode container, String field) {
+    private static void applyTopMetricsAggregation(ObjectNode container, String field) {
         ObjectNode tm = container.putObject(TOP_METRICS);
         tm.putObject(METRICS).put(FIELD, field);
         tm.putObject(SORT).put(TIMESTAMP, io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Sort.DESC);
     }
 
-    private static ObjectNode applyFixedIntervalHistogram(HistogramQuery query, ObjectNode aggsRoot) {
-        TimeRange tr = query.timeRange();
-        Duration iv = tr.interval().orElseThrow(() -> new IllegalArgumentException("Interval is required for TREND aggregations"));
-        long from = tr.from().toEpochMilli();
-        long to = tr.to().toEpochMilli();
+    private static ObjectNode applyFixedIntervalAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
+        TimeRange timeRange = query.timeRange();
+        Duration duration = timeRange
+            .interval()
+            .orElseThrow(() -> new IllegalArgumentException("Interval is required for TREND aggregations"));
+        long from = timeRange.from().toEpochMilli();
+        long to = timeRange.to().toEpochMilli();
 
-        ObjectNode perInterval = aggsRoot.putObject(PER_INTERVAL);
-        ObjectNode dh = perInterval.putObject(DATE_HISTOGRAM);
-        dh.put(FIELD, TIMESTAMP);
-        dh.put(FIXED_INTERVAL, iv.toMillis() + MILLISECONDS);
-        dh.put(MIN_DOC_COUNT, 0);
-        ObjectNode bounds = dh.putObject(EXTENDED_BOUNDS);
-        bounds.put(MIN, from);
-        bounds.put(MAX, to);
-        return perInterval.putObject(AGGS);
+        ObjectNode intervalNode = aggregationsNode.putObject(PER_INTERVAL);
+        ObjectNode histogramNode = intervalNode.putObject(DATE_HISTOGRAM);
+        histogramNode.put(FIELD, TIMESTAMP);
+        histogramNode.put(FIXED_INTERVAL, duration.toMillis() + MILLISECONDS);
+        histogramNode.put(MIN_DOC_COUNT, 0);
+        ObjectNode timeBoundsNode = histogramNode.putObject(EXTENDED_BOUNDS);
+        timeBoundsNode.put(MIN, from);
+        timeBoundsNode.put(MAX, to);
+
+        return intervalNode.putObject(AGGS);
     }
 
     // ---------------- Filters ----------------
@@ -275,19 +272,21 @@ public final class TopHitsAggregationQueryAdapter {
     private static void applyExistsFilters(HistogramQuery query, ArrayNode filters) {
         // OR semantics: group all exists clauses under a bool.should with minimum_should_match=1
         List<String> fields = query.aggregations().stream().map(Aggregation::getField).toList();
+
         if (fields.isEmpty()) {
             return;
         }
 
-        ArrayNode should = MAPPER.createArrayNode();
+        ArrayNode shouldNode = MAPPER.createArrayNode();
+
         for (String field : fields) {
             ObjectNode existsNode = MAPPER.createObjectNode();
             existsNode.putObject(EXISTS).put(FIELD, field);
-            should.add(existsNode);
+            shouldNode.add(existsNode);
         }
 
         ObjectNode boolNode = MAPPER.createObjectNode();
-        boolNode.set("should", should);
+        boolNode.set("should", shouldNode);
         boolNode.put("minimum_should_match", 1);
 
         ObjectNode wrapper = MAPPER.createObjectNode();
@@ -325,9 +324,9 @@ public final class TopHitsAggregationQueryAdapter {
         long to = timeRange.to().toEpochMilli();
 
         ObjectNode node = MAPPER.createObjectNode();
-        ObjectNode ts = node.putObject(RANGE).putObject(TIMESTAMP);
-        ts.put(GTE, from);
-        ts.put(LTE, to);
+        ObjectNode rangeNode = node.putObject(RANGE).putObject(TIMESTAMP);
+        rangeNode.put(GTE, from);
+        rangeNode.put(LTE, to);
         filters.add(node);
     }
 
