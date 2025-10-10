@@ -65,11 +65,31 @@ describe('PortalService', () => {
       } as PortalPage,
     ];
 
-    service.getPortalHomepages().subscribe(data => {
+    service.getPortalHomepages('CONTENT').subscribe(data => {
       expect(data).toEqual(mockPages);
     });
 
     const req = httpMock.expectOne(`${baseURL}/portal-pages?type=HOMEPAGE&expands=CONTENT`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ pages: mockPages });
+  });
+
+  it('should GET portal homepage without expands=CONTENT by default', () => {
+    const mockPages: PortalPage[] = [
+      {
+        id: 'home-1',
+        type: 'GRAVITEE_MARKDOWN',
+        content: 'Hello',
+        context: 'HOME',
+        published: true,
+      } as PortalPage,
+    ];
+
+    service.getPortalHomepages().subscribe(data => {
+      expect(data).toEqual(mockPages);
+    });
+
+    const req = httpMock.expectOne(`${baseURL}/portal-pages?type=HOMEPAGE`);
     expect(req.request.method).toBe('GET');
     req.flush({ pages: mockPages });
   });

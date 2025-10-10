@@ -122,6 +122,32 @@ public class PortalNotificationConfigService_FindByIdTest {
     }
 
     @Test
+    public void shouldNotAddGroupHooks() throws TechnicalException {
+        var cfg = PortalNotificationConfig.builder()
+            .referenceType(NotificationReferenceType.APPLICATION)
+            .referenceId("123")
+            .user("user")
+            .groups(Set.of())
+            .build();
+
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.APPLICATION, "123")).thenReturn(of(cfg));
+
+        var entity = underTest.findById("user", NotificationReferenceType.APPLICATION, "123");
+
+        assertNotNull(entity);
+        assertEquals("referenceId", cfg.getReferenceId(), entity.getReferenceId());
+        assertEquals("referenceType", cfg.getReferenceType().name(), entity.getReferenceType());
+        assertEquals("user", cfg.getUser(), entity.getUser());
+        assertEquals("hooks", cfg.getHooks(), entity.getHooks());
+        assertNotNull("groupHooks", entity.getGroupHooks());
+        assertEquals("groupHooks", Set.of(), entity.getGroupHooks());
+
+        verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.APPLICATION, "123");
+        verify(membershipService, never()).getPrimaryOwnerUserId(anyString(), any(MembershipReferenceType.class), anyString());
+        verify(groupService, never()).findByUser(anyString());
+    }
+
+    @Test
     public void shouldNotFindConfig() throws TechnicalException {
         when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(empty());
 

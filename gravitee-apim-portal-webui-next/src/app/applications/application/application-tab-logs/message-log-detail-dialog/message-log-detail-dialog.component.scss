@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use '../../../../../scss/theme' as theme;
 
 mat-dialog-content {
   display: flex;
@@ -34,9 +35,9 @@ mat-card-content {
 }
 
 mat-expansion-panel {
-  border-width: var(--mdc-outlined-card-outline-width);
+  border-width: theme.$border-width;
   border-style: solid;
-  border-color: var(--mdc-outlined-card-outline-color);
+  border-color: theme.$border-color;
 }
 
 .message-log-detail {

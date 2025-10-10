@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.9.0_08_add_general_conditions_hrid_to_plan_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}plans
+            columns:
+              - column:
+                  name: general_conditions_hrid
+                  type: nvarchar(256)
+                  constraints:
+                    nullable: true

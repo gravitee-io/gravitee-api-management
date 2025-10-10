@@ -396,6 +396,7 @@ public class ImportApiCRDUseCase {
             .crossId(planCRD.getCrossId())
             .excludedGroups(planCRD.getExcludedGroups())
             .generalConditions(planCRD.getGeneralConditions())
+            .generalConditionsHrid(planCRD.getGeneralConditionsHrid())
             .order(planCRD.getOrder())
             .type(planCRD.getType())
             .validation(planCRD.getValidation())

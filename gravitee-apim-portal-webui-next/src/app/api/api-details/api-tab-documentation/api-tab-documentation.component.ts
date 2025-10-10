@@ -17,7 +17,7 @@ import { NgClass } from '@angular/common';
 import { Component, Input, OnInit, signal, WritableSignal } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, of, switchMap, tap } from 'rxjs';
 
 import { ApiDocumentationComponent } from './components/api-documentation/api-documentation.component';
 import { DrawerComponent } from '../../../../components/drawer/drawer.component';
@@ -57,6 +57,20 @@ export class ApiTabDocumentationComponent implements OnInit {
     if (this.pageNodes.length == 1) {
       this.isSidebarExpanded.set(false);
     }
+
+    this.activatedRoute.url
+      .pipe(
+        switchMap(() => this.activatedRoute.firstChild?.paramMap ?? []),
+        tap(params => {
+          const pageId = params.get('pageId');
+          if (pageId) {
+            this.pageId.set(pageId);
+          } else if (this.pageNodes.length > 0) {
+            this.pageId.set(this.pageNodes[0].id);
+          }
+        }),
+      )
+      .subscribe();
   }
 
   showPage(pageId: string) {

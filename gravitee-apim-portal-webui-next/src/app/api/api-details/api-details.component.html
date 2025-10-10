@@ -18,16 +18,18 @@
 <mat-card class="api-details" appearance="outlined">
   <mat-card-content>
     <div class="api-details__header">
-      <app-picture [picture]="api._links?.picture" [hashValue]="api.name + ' ' + api.version" [size]="40" />
-      <div class="api-details__header__content">
-        <div class="m3-headline-small">{{ api.name }}</div>
-        <div class="m3-body-medium">{{ api.version }}</div>
+      <div class="api-details__header__api-info">
+        <app-picture [picture]="api._links?.picture" [hashValue]="api.name + ' ' + api.version" [size]="40" />
+        <div class="api-details__header__content">
+          <div class="m3-headline-small">{{ api.name }}</div>
+          <div class="m3-body-medium">{{ api.version }}</div>
+        </div>
+        @if (!!api.mcp) {
+          <mat-chip i18n="@@apiCardMcpEnabled" i18n-matTooltip matTooltip="MCP available for this API">
+            <img matChipAvatar alt="" [src]="'assets/images/mcp.svg'" />MCP</mat-chip
+          >
+        }
       </div>
-      @if (!!api.mcp) {
-        <mat-chip i18n="@@apiCardMcpEnabled" i18n-matTooltip matTooltip="MCP available for this API">
-          <img matChipAvatar alt="" [src]="'assets/images/mcp.svg'" />MCP</mat-chip
-        >
-      }
       @if (plans$ | async; as plans) {
         <div class="api-details__header-button">
           @if (!plans.length && isAuthenticated()) {
@@ -37,7 +39,7 @@
             [routerLink]="['..', api.id, 'subscribe']"
             [disabled]="!isAuthenticated() || !plans.length"
             i18n="@@logInOrSignUpToSubscribe"
-            mat-flat-button
+            mat-stroked-button
             class="secondary-button">
             {{ isAuthenticated() ? 'Subscribe' : 'Log in to subscribe' }}
           </button>

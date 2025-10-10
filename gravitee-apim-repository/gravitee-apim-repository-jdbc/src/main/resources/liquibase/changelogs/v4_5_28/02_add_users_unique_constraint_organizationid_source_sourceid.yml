@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.5.28_02_add_users_unique_constraint_organizationid_source_sourceid
+      author: GraviteeSource Team
+      preConditions:
+        - onFail: CONTINUE
+        - sqlCheck:
+            expectedResult: 0
+            sql: |
+              SELECT COUNT(*) FROM (
+                SELECT organization_id, source, source_id
+                FROM ${gravitee_prefix}users
+                GROUP BY organization_id, source, source_id
+                HAVING COUNT(*) > 1
+              ) duplicates;
+      changes:
+      # ################
+      # Users Table unique email constraint
+      # ################
+        - addUniqueConstraint:
+            tableName: ${gravitee_prefix}users
+            columnNames: organization_id, source, source_id
+            constraintName: uk_${gravitee_prefix}user_organizationid_source_sourceid

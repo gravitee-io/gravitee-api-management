@@ -20,7 +20,6 @@
 
 .log-in {
   display: flex;
-  width: 500px;
   flex-flow: column;
   gap: 32px;
 
@@ -28,6 +27,11 @@
     display: flex;
     flex-flow: column;
     gap: 12px;
+
+    &__container {
+      width: 100%;
+      max-width: 500px;
+    }
 
     &__fields {
       display: flex;

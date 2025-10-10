@@ -38,4 +38,6 @@ public interface PortalPageContextRepository extends CrudRepository<PortalPageCo
     PortalPageContext findByPageId(String string);
 
     PortalPageContext updateByPageId(PortalPageContext item) throws TechnicalException;
+
+    void deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

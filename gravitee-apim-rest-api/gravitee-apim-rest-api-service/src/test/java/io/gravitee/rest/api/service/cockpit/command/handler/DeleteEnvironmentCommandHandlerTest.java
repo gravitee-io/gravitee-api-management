@@ -39,6 +39,7 @@ import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
+import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
@@ -57,6 +58,8 @@ import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.api.PortalPageContextRepository;
+import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
@@ -270,6 +273,12 @@ public class DeleteEnvironmentCommandHandlerTest {
     private PortalMenuLinkRepository portalMenuLinkRepository;
 
     @Mock
+    private PortalPageRepository portalPageRepository;
+
+    @Mock
+    private PortalPageContextRepository portalPageContextRepository;
+
+    @Mock
     private PromotionRepository promotionRepository;
 
     @Mock
@@ -295,6 +304,9 @@ public class DeleteEnvironmentCommandHandlerTest {
 
     @Mock
     private TicketRepository ticketRepository;
+
+    @Mock
+    private ClusterRepository clusterRepository;
 
     private DeleteEnvironmentCommandHandler cut;
 
@@ -382,6 +394,8 @@ public class DeleteEnvironmentCommandHandlerTest {
             planRepository,
             portalMenuLinkRepository,
             portalNotificationConfigRepository,
+            portalPageRepository,
+            portalPageContextRepository,
             promotionRepository,
             qualityRuleRepository,
             ratingAnswerRepository,
@@ -396,6 +410,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             themeRepository,
             ticketRepository,
             workflowRepository,
+            clusterRepository,
             accessPointService,
             alertService,
             apiStateService,
@@ -483,11 +498,14 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(commandRepository).deleteByEnvironmentId(ENV_ID);
         verify(mediaRepository).deleteByEnvironment(ENV_ID);
         verify(portalMenuLinkRepository).deleteByEnvironmentId(ENV_ID);
+        verify(portalPageRepository).deleteByEnvironmentId(ENV_ID);
+        verify(portalPageContextRepository).deleteByEnvironmentId(ENV_ID);
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(ENV_ID, MetadataReferenceType.ENVIRONMENT);
         verify(scoringRulesetRepository).deleteByReferenceId(ENV_ID, "ENVIRONMENT");
         verify(environmentService).delete(ENV_ID);
         verify(clientRegistrationProviderRepository).deleteByEnvironmentId(ENV_ID);
         verify(qualityRuleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, QualityRule.ReferenceType.ENVIRONMENT);
+        verify(clusterRepository).deleteByEnvironmentId(ENV_ID);
     }
 
     private void verifyDeleteApplications(ExecutionContext executionContext) throws TechnicalException {

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AsyncPipe } from '@angular/common';
-import { Component, computed, effect, input, InputSignal, output } from '@angular/core';
+import { AsyncPipe, NgClass } from '@angular/common';
+import { Component, computed, effect, inject, input, InputSignal, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { isEqual } from 'lodash';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
@@ -27,6 +27,7 @@ import { SearchBarComponent } from '../../../../components/search-bar/search-bar
 import { ApisResponse } from '../../../../entities/api/apis-response';
 import { Category } from '../../../../entities/categories/categories';
 import { ApiService } from '../../../../services/api.service';
+import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
 
 interface ApiVM {
   id: string;
@@ -46,7 +47,7 @@ interface ApiPaginatorVM {
 @Component({
   selector: 'app-apis-list',
   standalone: true,
-  imports: [AsyncPipe, MatCardModule, ApiCardComponent, InfiniteScrollDirective, LoaderComponent, SearchBarComponent],
+  imports: [AsyncPipe, MatCardModule, ApiCardComponent, InfiniteScrollDirective, LoaderComponent, SearchBarComponent, NgClass],
   templateUrl: './apis-list.component.html',
   styleUrl: './apis-list.component.scss',
 })
@@ -59,6 +60,11 @@ export class ApisListComponent {
 
   apiPaginator$: Observable<ApiPaginatorVM> = of();
   loadingPage: boolean = true;
+
+  apiListContainerClasses = computed(() => ({
+    'api-list__container--mobile': this.isMobile(),
+  }));
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
   private readonly page$ = new BehaviorSubject<number>(1);
 

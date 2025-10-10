@@ -199,6 +199,55 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
         }
     }
 
+    @Override
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("JdbcClusterRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            List<String> clusterIds = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+
+            if (!clusterIds.isEmpty()) {
+                deleteClusterGroups(clusterIds);
+
+                jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
+            }
+        } catch (final Exception ex) {
+            final String error = "Failed to delete clusters by environment id: " + environmentId;
+            log.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public void deleteByOrganizationId(String organizationId) throws TechnicalException {
+        log.debug("JdbcClusterRepository.deleteByOrganizationId({})", organizationId);
+        try {
+            List<String> clusterIds = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where organization_id = ?",
+                String.class,
+                organizationId
+            );
+
+            if (!clusterIds.isEmpty()) {
+                deleteClusterGroups(clusterIds);
+
+                jdbcTemplate.update("delete from " + this.tableName + " where organization_id = ?", organizationId);
+            }
+        } catch (final Exception ex) {
+            final String error = "Failed to delete clusters by organization id: " + organizationId;
+            log.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    private void deleteClusterGroups(List<String> clusterIds) {
+        String inClause = getOrm().buildInClause(clusterIds);
+        jdbcTemplate.update("delete from " + CLUSTER_GROUPS + " where cluster_id in (" + inClause + ")", clusterIds.toArray());
+    }
+
     private void storeGroups(Cluster cluster, boolean deleteFirst) {
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + CLUSTER_GROUPS + " where cluster_id = ?", cluster.getId());

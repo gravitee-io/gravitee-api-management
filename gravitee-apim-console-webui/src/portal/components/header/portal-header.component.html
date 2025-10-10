@@ -18,7 +18,12 @@
 <div class="portal-header">
   <div class="portal-header__content">
     <div>
-      <div class="mat-h2">{{ title() }}</div>
+      <div class="portal-header__title-row">
+        <div class="mat-h2">
+          {{ title() }}
+          <ng-content select="[badge]" />
+        </div>
+      </div>
       @if (subtitle()) {
         <div class="portal-header__subtitle mat-body-2">{{ subtitle() }}</div>
       }

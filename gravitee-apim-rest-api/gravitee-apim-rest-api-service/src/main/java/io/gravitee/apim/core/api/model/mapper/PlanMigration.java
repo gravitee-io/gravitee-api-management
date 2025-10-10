@@ -28,6 +28,9 @@ import java.util.Date;
 class PlanMigration {
 
     MigrationResult<io.gravitee.apim.core.plan.model.Plan> mapPlan(io.gravitee.apim.core.plan.model.Plan plan) {
+        if (plan.getDefinitionVersion() == DefinitionVersion.V4) {
+            return MigrationResult.value(plan);
+        }
         return MigrationResult.value(
             plan
                 .toBuilder()

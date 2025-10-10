@@ -15,7 +15,6 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.member.domain_service.MemberDomainService;
 import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
 import io.gravitee.apim.core.membership.model.TransferOwnership;
 import io.gravitee.rest.api.model.MemberEntity;
@@ -92,5 +91,25 @@ public class MembershipDomainServiceInMemory extends AbstractServiceInMemory<Mem
             newPrimaryOwner.setRoles(List.of(RoleEntity.builder().name("PRIMARY_OWNER").build()));
             storage.add(newPrimaryOwner);
         }
+    }
+
+    @Override
+    public MemberEntity createNewMembership(
+        ExecutionContext executionContext,
+        io.gravitee.apim.core.member.model.MembershipReferenceType referenceType,
+        String referenceId,
+        String userId,
+        String externalReference,
+        String roleName
+    ) {
+        MemberEntity newMembership = MemberEntity.builder()
+            .referenceType(MembershipReferenceType.valueOf(referenceType.name()))
+            .referenceId(referenceId)
+            .roles(List.of(RoleEntity.builder().name(roleName).build()))
+            .type(MembershipMemberType.USER)
+            .id(userId)
+            .build();
+        storage.add(newMembership);
+        return newMembership;
     }
 }

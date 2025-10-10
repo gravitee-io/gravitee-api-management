@@ -74,13 +74,7 @@ export class ApiRuntimeLogsProxyComponent {
 
   public connectionLog = toSignal(
     this.apiLogsService.searchConnectionLogDetail(this.apiId, this.requestId).pipe(
-      catchError((err) => {
-        // normally 404 is intercepted by the HttpErrorInterceptor and displayed as a snack error, but on this page, it should be dismissed.
-        if (err.status === 404) {
-          this.matSnackBar.dismiss();
-        }
-        return of(undefined);
-      }),
+      catchError(() => of(undefined)),
       takeUntilDestroyed(this.destroyRef),
     ),
   );

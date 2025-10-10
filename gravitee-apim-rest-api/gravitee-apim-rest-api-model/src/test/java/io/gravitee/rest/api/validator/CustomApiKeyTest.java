@@ -43,11 +43,11 @@ public class CustomApiKeyTest {
         return Arrays.asList(
             new Object[][] {
                 { "Contains_at_least_8_chars", 0, null },
-                { "less8", 1, "Should have length between 8 and 64 characters" },
+                { "less8", 1, "Should have length between 8 and 128 characters" },
                 {
-                    "VeryLongLengthTOHaveMoreThan64charsVeryLongLengthTOHaveMoreThan64chars",
+                    "VeryLongLengthTOHaveMoreThan128charsVeryLongLengthTOHaveMoreThan128charsVeryLongLengthTOHaveMoreThan128charsVeryLongLengthTOHaveMoreThan128chars",
                     1,
-                    "Should have length between 8 and 64 characters",
+                    "Should have length between 8 and 128 characters",
                 },
                 { "No pattern compliant", 1, "Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)" },
             }
@@ -69,8 +69,8 @@ public class CustomApiKeyTest {
     }
 
     @Test
-    public void shoultTestCustomApiKeyValidation() {
-        LOGGER.info("Exectute custom API Key validation test for: " + this.customApiKeyParam);
+    public void shouldTestCustomApiKeyValidation() {
+        LOGGER.info("Execute custom API Key validation test for: " + this.customApiKeyParam);
 
         CustomApiKeyObject customApiKeyObject = new CustomApiKeyObject(this.customApiKeyParam);
         Set<ConstraintViolation<CustomApiKeyObject>> violations = validator.validate(customApiKeyObject);

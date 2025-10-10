@@ -122,6 +122,18 @@ public class MongoPortalPageContextRepository implements PortalPageContextReposi
         return portalPageContexts;
     }
 
+    @Override
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Delete PortalPageContext by environmentId [{}]", environmentId);
+        try {
+            internalRepo.deleteByEnvironmentId(environmentId);
+        } catch (Exception ex) {
+            final String error = "Failed to delete PortalPageContext by environmentId " + environmentId;
+            log.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
     private PortalPageContextMongo map(PortalPageContext portalPageContext) {
         PortalPageContextMongo portalPageContextMongo = new PortalPageContextMongo();
 

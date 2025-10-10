@@ -26,5 +26,7 @@
 button[mat-flat-button],
 button[mat-button],
 button[mat-icon-button] {
+  width: 44px;
   min-width: auto;
+  border-radius: 50%;
 }

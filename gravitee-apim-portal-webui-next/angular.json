@@ -58,6 +58,9 @@
               }
             ],
             "styles": ["src/styles.scss", "node_modules/swagger-ui/dist/swagger-ui.css"],
+            "stylePreprocessorOptions": {
+              "includePaths": ["projects"]
+            },
             "i18nMissingTranslation": "warning"
           },
           "configurations": {

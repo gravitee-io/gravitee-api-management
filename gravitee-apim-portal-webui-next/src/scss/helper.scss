@@ -22,9 +22,7 @@ a.external-link {
 
 code {
   padding: 0.2em 0.4em;
-  border-radius: 6px;
   margin: 0;
-  background-color: m3-adapter.$surface-variant;
   font-size: 85%;
   white-space: break-spaces !important; // Overrides Swagger-UI inline styling of bash language
 }

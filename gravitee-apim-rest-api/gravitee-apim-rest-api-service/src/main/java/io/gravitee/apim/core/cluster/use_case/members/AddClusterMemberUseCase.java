@@ -20,23 +20,18 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
+import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
 import io.gravitee.apim.core.membership.model.AddMember;
-import io.gravitee.apim.core.membership.model.Membership;
-import io.gravitee.apim.core.membership.model.Role;
-import io.gravitee.apim.core.membership.query_service.RoleQueryService;
-import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
-import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 
 @UseCase
 @AllArgsConstructor
 public class AddClusterMemberUseCase {
 
-    private final MembershipCrudService membershipCrudService;
-    private final RoleQueryService roleQueryService;
+    private final MembershipDomainService membershipDomainService;
 
     public record Input(AuditInfo audit, AddMember addMember, String clusterId) {}
 
@@ -45,21 +40,14 @@ public class AddClusterMemberUseCase {
     public Output execute(Input input) {
         validateMembership(input.addMember);
 
-        Role role = roleQueryService
-            .findByScopeAndName(Role.Scope.CLUSTER, input.addMember.getRoleName(), input.audit.organizationId())
-            .orElseThrow();
-        ZonedDateTime now = TimeProvider.now();
-        Membership membership = Membership.builder()
-            .id(UuidString.generateRandom())
-            .referenceType(Membership.ReferenceType.CLUSTER)
-            .referenceId(input.clusterId)
-            .memberType(Membership.Type.USER)
-            .memberId(input.addMember.getUserId())
-            .roleId(role.getId())
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
-        membershipCrudService.create(membership);
+        membershipDomainService.createNewMembership(
+            GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.CLUSTER,
+            input.clusterId,
+            input.addMember.getUserId(),
+            input.addMember.getExternalReference(),
+            input.addMember.getRoleName()
+        );
 
         return new Output();
     }

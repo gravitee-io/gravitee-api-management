@@ -108,7 +108,7 @@ describe('TabsViewComponent', () => {
         const category1Tab = await harnessLoader.getHarness(MatTabHarness.with({ label: CATEGORY_1.name }));
         await category1Tab.select();
 
-        expect(routerNavigateSpy).toHaveBeenCalledWith([''], {
+        expect(routerNavigateSpy).toHaveBeenCalledWith([], {
           queryParams: { filter: CATEGORY_1.id, query: '' },
           relativeTo: expect.anything(),
         });
@@ -124,7 +124,7 @@ describe('TabsViewComponent', () => {
         const allTab = await harnessLoader.getHarness(MatTabHarness.with({ label: 'All' }));
         await allTab.select();
 
-        expect(routerNavigateSpy).toHaveBeenCalledWith([''], {
+        expect(routerNavigateSpy).toHaveBeenCalledWith([], {
           queryParams: { filter: '', query: '' },
           relativeTo: expect.anything(),
         });
@@ -132,6 +132,36 @@ describe('TabsViewComponent', () => {
       it('should have category selected if query defined', async () => {
         const category2Tab = await harnessLoader.getHarness(MatTabHarness.with({ label: CATEGORY_2.name }));
         expect(await category2Tab.isSelected()).toEqual(true);
+      });
+    });
+
+    describe('when clicking on a category tab', () => {
+      const CATEGORY_1 = fakeCategory({ id: 'category-1', name: 'Category 1' });
+      const CATEGORY_2 = fakeCategory({ id: 'category-2', name: 'Category 2' });
+
+      it('should navigate to the new category when switching from another category', async () => {
+        await init({
+          categoryId: CATEGORY_1.id,
+          categories: [CATEGORY_1, CATEGORY_2],
+          query: '',
+        });
+        routerNavigateSpy.mockClear();
+
+        const matTabGroup = await harnessLoader.getHarness(MatTabGroupHarness);
+        const selectedTab = await matTabGroup.getSelectedTab();
+        expect(await selectedTab.getLabel()).toBe(CATEGORY_1.name);
+
+        const category2Tab = await harnessLoader.getHarness(MatTabHarness.with({ label: CATEGORY_2.name }));
+        await category2Tab.select();
+
+        expect(routerNavigateSpy).toHaveBeenCalledTimes(1);
+        expect(routerNavigateSpy).toHaveBeenCalledWith([], {
+          relativeTo: expect.anything(),
+          queryParams: {
+            filter: CATEGORY_2.id,
+            query: '',
+          },
+        });
       });
     });
   });

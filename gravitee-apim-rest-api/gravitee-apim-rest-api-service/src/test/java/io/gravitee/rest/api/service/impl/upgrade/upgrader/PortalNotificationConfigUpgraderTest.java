@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.definition.model.Origin;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -141,5 +142,36 @@ public class PortalNotificationConfigUpgraderTest {
     @Test
     public void test_order() {
         Assert.assertEquals(UpgraderOrder.PORTAL_NOTIFICATION_CONFIG_UPGRADER, upgrader.getOrder());
+    }
+
+    @Test
+    public void should_set_origin_to_management_when_missing() throws TechnicalException, UpgraderException {
+        when(environmentRepository.findAll()).thenReturn(Set.of(Environment.builder().id("env#1").build()));
+        PortalNotificationConfig source = aPortalNotificationConfig("DEFAULT", NotificationReferenceType.PORTAL, "user#1");
+        source.setOrigin(null);
+        when(portalNotificationConfigRepository.findAll()).thenReturn(Set.of(source));
+        assertTrue(upgrader.upgrade());
+
+        verify(portalNotificationConfigRepository).create(
+            argThat(
+                cfg ->
+                    cfg.getReferenceType() == NotificationReferenceType.ENVIRONMENT &&
+                    "env#1".equals(cfg.getReferenceId()) &&
+                    "user#1".equals(cfg.getUser()) &&
+                    cfg.getOrigin() == Origin.MANAGEMENT
+            )
+        );
+    }
+
+    @Test
+    public void should_preserve_origin_when_present() throws TechnicalException, UpgraderException {
+        when(environmentRepository.findAll()).thenReturn(Set.of(Environment.builder().id("env#1").build()));
+        PortalNotificationConfig source = aPortalNotificationConfig("DEFAULT", NotificationReferenceType.PORTAL, "user#2");
+        source.setOrigin(Origin.KUBERNETES);
+        when(portalNotificationConfigRepository.findAll()).thenReturn(Set.of(source));
+        assertTrue(upgrader.upgrade());
+        verify(portalNotificationConfigRepository).create(
+            argThat(cfg -> "env#1".equals(cfg.getReferenceId()) && cfg.getOrigin() == Origin.KUBERNETES)
+        );
     }
 }

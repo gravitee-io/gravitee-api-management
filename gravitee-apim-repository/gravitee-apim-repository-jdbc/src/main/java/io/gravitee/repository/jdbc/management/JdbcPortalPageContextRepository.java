@@ -132,6 +132,18 @@ public class JdbcPortalPageContextRepository
     }
 
     @Override
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("JdbcPortalPageContextRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
+        } catch (final Exception ex) {
+            final String error = "Failed to delete portal page context by environmentId " + environmentId;
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
     protected String getId(PortalPageContext item) {
         return item.getId();
     }

@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.users;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.portalpagecontexts;
 
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
 import org.springframework.stereotype.Component;
 
-/**
- * @author GraviteeSource Team
- */
-@Component("UsersOrganizationIdSourceSourceIdIndexUpgrader")
-public class OrganizationIdSourceSourceIdIndexUpgrader extends IndexUpgrader {
+@Component("PortalPageContextsEnvironmentIdIndexUpgrader")
+public class EnvironmentIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
         return Index.builder()
-            .collection("users")
-            .name("oi1s1si1")
-            .key("organizationId", ascending())
-            .key("source", ascending())
-            .key("sourceId", ascending())
+            .collection("portal_page_contexts")
+            .name("ei1")
+            .key("environmentId", ascending())
             .build();
     }
 }

@@ -226,6 +226,9 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         String referenceId
     ) {
         try {
+            if (referenceType != NotificationReferenceType.API) {
+                return Set.of();
+            }
             var primaryOwnerUserId = membershipService.getPrimaryOwnerUserId(
                 executionContext.getOrganizationId(),
                 MembershipReferenceType.API,

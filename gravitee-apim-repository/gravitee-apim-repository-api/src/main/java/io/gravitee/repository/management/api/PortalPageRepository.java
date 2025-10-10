@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ExpandsViewContext;
 import io.gravitee.repository.management.model.PortalPage;
 import java.util.List;
@@ -29,4 +30,6 @@ public interface PortalPageRepository extends CrudRepository<PortalPage, String>
      * Returns pages with the expand field for the given ids.
      */
     List<PortalPage> findByIdsWithExpand(List<String> ids, List<ExpandsViewContext> expands);
+
+    void deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

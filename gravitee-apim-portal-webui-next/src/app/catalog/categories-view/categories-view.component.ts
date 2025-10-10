@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, InputSignal } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { Component, computed, inject, input, InputSignal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
@@ -21,18 +22,24 @@ import { RouterLink } from '@angular/router';
 import { CategoryCardComponent } from '../../../components/category-card/category-card.component';
 import { Category } from '../../../entities/categories/categories';
 import { ConfigService } from '../../../services/config.service';
+import { ObservabilityBreakpointService } from '../../../services/observability-breakpoint.service';
 import { CatalogBannerComponent } from '../components/catalog-banner/catalog-banner.component';
 
 @Component({
   selector: 'app-categories-view',
   standalone: true,
-  imports: [CatalogBannerComponent, MatCardModule, CategoryCardComponent, MatButton, RouterLink],
+  imports: [CatalogBannerComponent, MatCardModule, CategoryCardComponent, MatButton, RouterLink, NgClass],
   templateUrl: './categories-view.component.html',
   styleUrl: './categories-view.component.scss',
 })
 export class CategoriesViewComponent {
   showBanner: boolean;
   categories: InputSignal<Category[]> = input<Category[]>([]);
+
+  categoriesViewContainerClasses = computed(() => ({
+    'categories-view__container--mobile': this.isMobile(),
+  }));
+  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
   constructor(private readonly configService: ConfigService) {
     this.showBanner = !!this.configService.configuration?.portalNext?.banner?.enabled;

@@ -25,7 +25,7 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
@@ -46,14 +46,15 @@ export class PortalService {
     return this.http.get<ApiInformation[]>(`${this.configService.baseURL}/apis/${apiId}/informations`);
   }
 
-  public getPortalHomepages(): Observable<PortalPage[]> {
+  public getPortalHomepages(expands?: string): Observable<PortalPage[]> {
+    let params = new HttpParams().set('type', 'HOMEPAGE');
+
+    if (expands) {
+      params = params.set('expands', expands);
+    }
+
     return this.http
-      .get<{ pages: PortalPage[] }>(`${this.configService.baseURL}/portal-pages`, {
-        params: {
-          type: 'HOMEPAGE',
-          expands: 'CONTENT',
-        },
-      })
+      .get<{ pages: PortalPage[] }>(`${this.configService.baseURL}/portal-pages`, { params })
       .pipe(map(resp => resp?.pages ?? []));
   }
 }

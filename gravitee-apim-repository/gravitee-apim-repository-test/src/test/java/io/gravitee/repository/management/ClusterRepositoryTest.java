@@ -215,4 +215,56 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
         Cluster updatedCluster = clusterRepository.findById(clusterId).orElseThrow();
         assertThat(updatedCluster.getGroups()).isEqualTo(Set.of("group-3", "group-4"));
     }
+
+    @Test
+    public void should_delete_by_environment_id() throws Exception {
+        String environmentIdToDelete = "env-1";
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        // Given
+        ClusterCriteria criteriaDelete = ClusterCriteria.builder().environmentId("env-1").build();
+        Page<Cluster> toBeDeleted = clusterRepository.search(criteriaDelete, pageable, Optional.empty());
+        assertThat(toBeDeleted.getTotalElements()).isEqualTo(4);
+        assertThat(toBeDeleted.getContent()).allMatch(cluster -> environmentIdToDelete.equals(cluster.getEnvironmentId()));
+
+        ClusterCriteria criteriaNotDelete = ClusterCriteria.builder().environmentId("env-2").build();
+        Page<Cluster> notToBeDeleted = clusterRepository.search(criteriaNotDelete, pageable, Optional.empty());
+        assertThat(notToBeDeleted.getTotalElements()).isEqualTo(4);
+        assertThat(notToBeDeleted.getContent()).noneMatch(cluster -> environmentIdToDelete.equals(cluster.getEnvironmentId()));
+
+        // When
+        clusterRepository.deleteByEnvironmentId(environmentIdToDelete);
+
+        // Then
+        Page<Cluster> afterDeleted = clusterRepository.search(criteriaDelete, pageable, Optional.empty());
+        assertThat(afterDeleted.getTotalElements()).isEqualTo(0);
+        Page<Cluster> afterNotDeleted = clusterRepository.search(criteriaNotDelete, pageable, Optional.empty());
+        assertThat(afterNotDeleted.getTotalElements()).isEqualTo(4);
+    }
+
+    @Test
+    public void should_delete_by_organization_id() throws Exception {
+        String organizationIdToDelete = "org-2";
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        // Given
+        ClusterCriteria criteriaMatchingToDelete = ClusterCriteria.builder().environmentId("env-3").build();
+        Page<Cluster> toBeDeleted = clusterRepository.search(criteriaMatchingToDelete, pageable, Optional.empty());
+        assertThat(toBeDeleted.getTotalElements()).isEqualTo(2);
+        assertThat(toBeDeleted.getContent()).allMatch(cluster -> organizationIdToDelete.equals(cluster.getOrganizationId()));
+
+        ClusterCriteria criteriaMatchingNotDelete = ClusterCriteria.builder().environmentId("env-1").build();
+        Page<Cluster> notToBeDeleted = clusterRepository.search(criteriaMatchingNotDelete, pageable, Optional.empty());
+        assertThat(notToBeDeleted.getTotalElements()).isEqualTo(4);
+        assertThat(notToBeDeleted.getContent()).noneMatch(cluster -> organizationIdToDelete.equals(cluster.getOrganizationId()));
+
+        // When
+        clusterRepository.deleteByOrganizationId(organizationIdToDelete);
+
+        // Then
+        Page<Cluster> afterDeleted = clusterRepository.search(criteriaMatchingToDelete, pageable, Optional.empty());
+        assertThat(afterDeleted.getTotalElements()).isEqualTo(0);
+        Page<Cluster> afterNotDeleted = clusterRepository.search(criteriaMatchingNotDelete, pageable, Optional.empty());
+        assertThat(afterNotDeleted.getTotalElements()).isEqualTo(4);
+    }
 }

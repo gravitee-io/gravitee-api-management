@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.NestedExceptionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -75,7 +76,7 @@ public abstract class AbstractReactorHandler<T extends Reactable>
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while processing request", ex);
 
-            context.request().metrics().setMessage(Throwables.getStackTraceAsString(ex));
+            context.request().metrics().setMessage(NestedExceptionUtils.getMostSpecificCause(ex).getMessage());
 
             // Send an INTERNAL_SERVER_ERROR (500)
             context.response().status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);

@@ -69,13 +69,7 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
     return this.apiLogsService
       .searchConnectionLogDetail(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.requestId)
       .pipe(
-        catchError((err) => {
-          // normally 404 is intercepted by the HttpErrorInterceptor and displayed as a snack error, but on this page, it should be dismissed.
-          if (err.status === 404) {
-            this.matSnackBar.dismiss();
-          }
-          return of(undefined);
-        }),
+        catchError(() => of(undefined)),
         takeUntil(this.unsubscribe$),
       );
   }

@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.9.0_00-add_parent_hrid_page_table
+      id: 4.9.0_07-add_parent_hrid_page_table
       author: GraviteeSource Team
       changes:
         - addColumn:

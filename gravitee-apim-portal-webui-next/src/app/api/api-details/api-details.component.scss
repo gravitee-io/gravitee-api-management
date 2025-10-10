@@ -18,8 +18,17 @@
 
   &__header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: 16px;
+
+    &__api-info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+    }
 
     &__content {
       display: flex;
@@ -41,7 +50,6 @@
   &__header-button {
     display: flex;
     align-items: center;
-    margin-left: auto;
     gap: 16px;
   }
 

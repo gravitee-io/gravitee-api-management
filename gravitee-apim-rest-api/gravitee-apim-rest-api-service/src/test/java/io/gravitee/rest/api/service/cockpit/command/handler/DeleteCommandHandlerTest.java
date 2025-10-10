@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.junit.Assert.assertEquals;
 
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import io.gravitee.repository.management.api.AlertEventRepository;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.api.CrudRepository;
@@ -26,9 +28,6 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.FindAllRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Set;
@@ -57,7 +56,7 @@ public class DeleteCommandHandlerTest {
      * The purpose of this test is to raise an alert.
      */
     @Test
-    public void should_check_if_we_use_all_repositories_when_delete_an_organization() {
+    public void should_check_if_we_use_all_repositories_when_delete_an_organization() throws Exception {
         Set<Class> deleteCommandRepositories = Stream.concat(
             Arrays.stream(DeleteOrganizationCommandHandler.class.getDeclaredFields()),
             Arrays.stream(DeleteEnvironmentCommandHandler.class.getDeclaredFields())
@@ -75,22 +74,20 @@ public class DeleteCommandHandlerTest {
     }
 
     public static Set<Class> findAllClassesUsingClassLoader(String packageName) {
-        InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream(packageName.replaceAll("[.]", "/"));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-        return reader
-            .lines()
-            .filter(line -> line.endsWith(".class"))
-            .map(line -> getClass(line, packageName))
-            .filter(c -> !c.isRecord())
-            .collect(Collectors.toSet());
-    }
+        ClassFileImporter classFileImporter = new ClassFileImporter();
+        JavaClasses javaClasses = classFileImporter.importPackages(packageName);
 
-    private static Class getClass(String className, String packageName) {
-        try {
-            return Class.forName(packageName + "." + className.substring(0, className.lastIndexOf('.')));
-        } catch (ClassNotFoundException e) {
-            // handle the exception
-        }
-        return null;
+        return javaClasses
+            .stream()
+            .filter(javaClass -> javaClass.getSimpleName().endsWith("Repository"))
+            .map(javaClass -> {
+                try {
+                    return Class.forName(javaClass.getName());
+                } catch (ClassNotFoundException e) {
+                    return null;
+                }
+            })
+            .filter(clazz -> clazz != null)
+            .collect(Collectors.toSet());
     }
 }

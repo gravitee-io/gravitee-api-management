@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
@@ -27,4 +28,8 @@ public interface ClusterRepository extends CrudRepository<Cluster, String> {
     Page<Cluster> search(ClusterCriteria criteria, Pageable pageable, Optional<Sortable> sortable);
 
     void updateGroups(String clusterId, Set<String> groups);
+
+    void deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    void deleteByOrganizationId(String organizationId) throws TechnicalException;
 }

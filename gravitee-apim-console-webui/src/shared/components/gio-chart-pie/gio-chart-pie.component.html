@@ -20,7 +20,7 @@
     *ngIf="input && input.length > 0; else noData"
     [Highcharts]="Highcharts"
     [options]="chartOptions"
-    [callbackFunction]="callbackFunction"
+    (chartInstance)="chartInstance($event)"
     class="gio-chart-pie__chart"
   ></highcharts-chart>
   <ng-template #noData>

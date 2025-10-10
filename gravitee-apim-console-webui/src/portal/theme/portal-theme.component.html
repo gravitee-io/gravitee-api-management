@@ -124,14 +124,14 @@
               </mat-form-field>
             </div>
           </mat-expansion-panel>
-          <mat-expansion-panel class="portal-theme__left__form__content__panel">
+          <mat-expansion-panel class="portal-theme__left__form__content__panel" expanded>
             <mat-expansion-panel-header>
               <mat-panel-title class="portal-theme__left__form__content__panel__editor-title">
                 Advanced CSS
                 <a
                   (click)="$event.stopPropagation()"
                   aria-label="view available tokens in documentation"
-                  mat-button
+                  mat-stroked-button
                   href="https://documentation.gravitee.io/apim/developer-portal/new-developer-portal/layout-and-theme#available-css-tokens"
                   target="_blank"
                   >View available tokens</a
@@ -139,15 +139,20 @@
               </mat-panel-title>
             </mat-expansion-panel-header>
             <div class="portal-theme__left__form__content__panel__editor">
-              This will override the configuration made in the Basic Theme tab.
-              <mat-form-field>
-                <gio-monaco-editor
-                  gioMonacoEditorFormField
-                  formControlName="customCSS"
-                  [languageConfig]="{ language: 'css' }"
-                  [disableMiniMap]="true"
-                ></gio-monaco-editor>
-              </mat-form-field>
+              <div class="portal-theme__info-message">
+                <mat-icon svgIcon="gio:info"></mat-icon>This will override the configuration above.
+              </div>
+              @if (showMonacoEditor) {
+                <mat-form-field>
+                  <gio-monaco-editor
+                    gioMonacoEditorFormField
+                    formControlName="customCSS"
+                    [languageConfig]="{ language: 'css' }"
+                    [disableMiniMap]="true"
+                    [disableAutoFormat]="true"
+                  ></gio-monaco-editor>
+                </mat-form-field>
+              }
             </div>
           </mat-expansion-panel>
         </mat-accordion>

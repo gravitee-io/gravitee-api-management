@@ -18,6 +18,8 @@ import { Component, Input, OnInit } from '@angular/core';
 import { HighchartsChartModule } from 'highcharts-angular';
 import * as Highcharts from 'highcharts';
 
+import { GioChartAbstractComponent } from '../gio-chart-abstract/gio-chart-abstract.component';
+
 export interface GioChartBarData {
   name: string;
   values: number[];
@@ -47,22 +49,14 @@ export const defineBarColors = (code: string | number) => {
   standalone: true,
   imports: [HighchartsChartModule],
 })
-export class GioChartBarComponent implements OnInit {
+export class GioChartBarComponent extends GioChartAbstractComponent implements OnInit {
   @Input()
   public data: GioChartBarData[];
 
   @Input()
   public options: GioChartBarOptions;
 
-  Highcharts: typeof Highcharts = Highcharts;
   chartOptions: Highcharts.Options;
-
-  callbackFunction: Highcharts.ChartCallbackFunction = function (chart) {
-    // Redraw the chart after the component is loaded. to fix the issue of the chart display with bad size
-    setTimeout(() => {
-      chart?.reflow();
-    }, 0);
-  };
 
   ngOnInit() {
     this.chartOptions = {

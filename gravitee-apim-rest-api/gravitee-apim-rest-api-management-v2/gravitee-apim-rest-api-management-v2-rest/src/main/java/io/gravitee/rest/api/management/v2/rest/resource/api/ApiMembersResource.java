@@ -79,8 +79,9 @@ public class ApiMembersResource extends AbstractResource {
             throw new InvalidDataException("Request must specify either userId or externalReference");
         }
 
-        var createdMember = membershipService.createNewMembershipForApi(
+        var createdMember = membershipService.createNewMembership(
             GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.API,
             apiId,
             apiMembership.getUserId(),
             apiMembership.getExternalReference(),

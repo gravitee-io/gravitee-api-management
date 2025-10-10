@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalPageRepository;
 import io.gravitee.repository.management.model.ExpandsViewContext;
@@ -98,6 +99,18 @@ public class JdbcPortalPageRepository extends JdbcAbstractCrudRepository<PortalP
         } catch (Exception ex) {
             LOGGER.error("Failed to find PortalPages by ids {} with expands {}", ids, expands, ex);
             return List.of();
+        }
+    }
+
+    @Override
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        LOGGER.debug("Deleting PortalPage by environmentId {}", environmentId);
+        try {
+            jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
+        } catch (final Exception ex) {
+            final String error = "Failed to delete PortalPage by environmentId:" + environmentId;
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
         }
     }
 }

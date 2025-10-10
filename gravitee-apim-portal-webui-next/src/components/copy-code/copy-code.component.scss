@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @use '../../scss/m3-adapter';
+@use '../../scss/theme' as theme;
 
 .copy-code {
   &__copy-block {
@@ -27,10 +28,10 @@
     flex-flow: row;
     align-items: center;
     padding: 8px 8px 8px 16px;
-    border-width: var(--mdc-outlined-card-outline-width);
+    border-width: theme.$border-width;
     border-style: solid;
-    border-color: var(--mdc-outlined-text-field-outline-color);
-    border-radius: var(--mdc-outlined-card-container-shape);
+    border-color: theme.$border-color;
+    border-radius: theme.$container-shape;
     background-color: m3-adapter.$surface-variant;
     gap: 4px;
 

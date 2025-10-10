@@ -91,6 +91,8 @@ public class NewPlanEntity {
 
     private String generalConditions;
 
+    private String generalConditionsHrid;
+
     private int order;
 
     public void setName(String name) {

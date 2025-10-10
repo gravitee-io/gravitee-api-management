@@ -94,6 +94,7 @@ public class Plan implements GenericPlanEntity {
     private boolean commentRequired;
     private String commentMessage;
     private String generalConditions;
+    private String generalConditionsHrid;
 
     private io.gravitee.definition.model.v4.plan.Plan planDefinitionHttpV4;
     private io.gravitee.definition.model.v4.nativeapi.NativePlan planDefinitionNativeV4;
@@ -247,14 +248,17 @@ public class Plan implements GenericPlanEntity {
         };
     }
 
+    @Override
     public boolean isClosed() {
         return getPlanStatus() == PlanStatus.CLOSED;
     }
 
+    @Override
     public boolean isDeprecated() {
         return getPlanStatus() == PlanStatus.DEPRECATED;
     }
 
+    @Override
     public boolean isPublished() {
         return getPlanStatus() == PlanStatus.PUBLISHED;
     }
@@ -298,6 +302,7 @@ public class Plan implements GenericPlanEntity {
             .commentRequired(updated.commentRequired)
             .commentMessage(updated.commentMessage)
             .generalConditions(updated.generalConditions)
+            .generalConditionsHrid(updated.generalConditionsHrid)
             .excludedGroups(updated.excludedGroups)
             .characteristics(updated.characteristics)
             .crossId(updated.crossId == null ? crossId : updated.crossId)
