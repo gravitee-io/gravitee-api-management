@@ -98,3 +98,31 @@ tests:
             \s ssl:
             \s   keystore:
             \s     secret: secret://kubernetes/my-secret
+
+  - it: Keystore with empty password should render password field
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            type: pkcs12
+            path: ${gravitee.home}/security/internal-cert.pfx
+            password: ""
+          sni: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s secured: true
+            \s ssl:
+            \s   keystore:
+            \s     type: pkcs12
+            \s     path: \$\{gravitee\.home\}/security/internal-cert\.pfx
+            \s     password: ""
+            \s   clientAuth: false
+            \s   sni: true

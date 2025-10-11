@@ -132,7 +132,7 @@ data:
           {{- if .Values.gateway.ssl.keystore.path }}
           path: {{ .Values.gateway.ssl.keystore.path }}
           {{- end }}
-          {{- if .Values.gateway.ssl.keystore.password }}
+          {{- if hasKey .Values.gateway.ssl.keystore "password" }}
           password: {{ .Values.gateway.ssl.keystore.password | quote }}
           {{- end }}
           {{- if .Values.gateway.ssl.keystore.kubernetes }}
