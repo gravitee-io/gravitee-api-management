@@ -94,6 +94,14 @@ export class EndpointHttpConfigComponent implements OnDestroy, OnChanges {
         value: endpointGroup.httpClientOptions?.clearTextUpgrade,
         disabled: isReadonly,
       }),
+      maxHeaderSize: new UntypedFormControl({
+        value: endpointGroup.httpClientOptions?.maxHeaderSize ?? 8192,
+        disabled: isReadonly,
+      }),
+      maxChunkSize: new UntypedFormControl({
+        value: endpointGroup.httpClientOptions?.maxChunkSize ?? 8192,
+        disabled: isReadonly,
+      }),
     });
 
     const httpProxy = new UntypedFormGroup({

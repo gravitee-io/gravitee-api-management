@@ -230,7 +230,7 @@ public class EndpointDiscoveryVerticleTest {
             "\"propagateClientAcceptEncoding\":false," +
             "\"followRedirects\":false," +
             "\"clearTextUpgrade\":true," +
-            "\"version\":\"HTTP_1_1\"" +
+            "\"version\":\"HTTP_1_1\",\"maxHeaderSize\":8192,\"maxChunkSize\":8192" +
             "}," +
             "\"proxy\":{" +
             "\"enabled\":true," +

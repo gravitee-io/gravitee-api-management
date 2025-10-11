@@ -91,6 +91,8 @@ spec:
         maxConcurrentConnections: 100
         useCompression: true
         followRedirects: false
+        maxHeaderSize: 8192
+        maxChunkSize: 8192
   response_templates:
     API_KEY_MISSING:
       '*/*':

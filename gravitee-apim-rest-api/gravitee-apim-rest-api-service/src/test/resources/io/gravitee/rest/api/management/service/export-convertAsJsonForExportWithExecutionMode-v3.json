@@ -195,7 +195,9 @@
           "pipelining": false,
           "maxConcurrentConnections": 100,
           "useCompression": true,
-          "followRedirects": false
+          "followRedirects": false,
+          "maxHeaderSize": 8192,
+          "maxChunkSize": 8192
         }
       }
     ]

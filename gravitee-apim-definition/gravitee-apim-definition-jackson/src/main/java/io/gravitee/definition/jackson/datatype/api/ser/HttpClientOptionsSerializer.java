@@ -54,6 +54,9 @@ public class HttpClientOptionsSerializer extends StdScalarSerializer<HttpClientO
             jgen.writeBooleanField("clearTextUpgrade", httpClientOptions.isClearTextUpgrade());
         }
 
+        jgen.writeNumberField("maxHeaderSize", httpClientOptions.getMaxHeaderSize());
+        jgen.writeNumberField("maxChunkSize", httpClientOptions.getMaxChunkSize());
+
         jgen.writeEndObject();
     }
 }
