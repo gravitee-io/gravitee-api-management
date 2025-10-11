@@ -24,13 +24,11 @@ import static org.assertj.core.api.Assertions.atIndex;
 import static org.assertj.core.api.Assertions.not;
 import static org.assertj.core.api.Assertions.offset;
 import static org.assertj.core.api.Assertions.withPrecision;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
-import io.gravitee.repository.elasticsearch.TimeProvider;
 import io.gravitee.repository.log.v4.model.analytics.Aggregation;
 import io.gravitee.repository.log.v4.model.analytics.AggregationType;
 import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
@@ -61,6 +59,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -1092,7 +1092,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
         private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
-        private static final TimeProvider TIME_PROVIDER = new TimeProvider();
+        private static final Instant NOW = Instant.now();
 
         @Value("${search.type:" + DEFAULT_SEARCH_TYPE + "}")
         private String searchType;
@@ -1104,301 +1104,211 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Test
-        void should_search_top_value_hits_for_active_connections() {
+        void should_return_latest_value_summed_per_key() {
+            // VALUE = sum(latest per key ≤ end) → 2 (gw=1 at now-1) + 4 (gw=2 at now+1, end includes) = 6
             Aggregation agg1 = new Aggregation("downstream-active-connections", AggregationType.VALUE);
             Aggregation agg2 = new Aggregation("upstream-active-connections", AggregationType.VALUE);
 
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-active-connections_latest");
-                assertThat(data).containsKey("upstream-active-connections_latest");
-                Map<String, List<Long>> downstreamConnectionsBucket = data.get("downstream-active-connections_latest");
-                assertThat(downstreamConnectionsBucket).containsKey("downstream-active-connections");
-                assertThat(downstreamConnectionsBucket.get("downstream-active-connections").getFirst()).isEqualTo(3L);
-                Map<String, List<Long>> upstreamConnectionsBucket = data.get("upstream-active-connections_latest");
-                assertThat(upstreamConnectionsBucket).containsKey("upstream-active-connections");
-                assertThat(upstreamConnectionsBucket.get("upstream-active-connections").getFirst()).isEqualTo(3L);
-            });
-        }
-
-        @Test
-        void should_search_top_value_hits_for_messages_consumed() {
-            Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.VALUE);
-            Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.VALUE);
-            Aggregation agg3 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.VALUE);
-            Aggregation agg4 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.VALUE);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-subscribe-messages-total_latest");
-                assertThat(data).containsKey("upstream-subscribe-messages-total_latest");
-                assertThat(data).containsKey("downstream-subscribe-message-bytes_latest");
-                assertThat(data).containsKey("upstream-subscribe-message-bytes_latest");
-                Map<String, List<Long>> downstreamMessagesConsumedBucket = data.get("downstream-subscribe-messages-total_latest");
-                assertThat(downstreamMessagesConsumedBucket).containsKey("downstream-subscribe-messages-total");
-                assertThat(downstreamMessagesConsumedBucket.get("downstream-subscribe-messages-total").getFirst()).isEqualTo(4056L);
-                Map<String, List<Long>> downstreamMessageBytesConsumedBucket = data.get("downstream-subscribe-message-bytes_latest");
-                assertThat(downstreamMessageBytesConsumedBucket).containsKey("downstream-subscribe-message-bytes");
-                assertThat(downstreamMessageBytesConsumedBucket.get("downstream-subscribe-message-bytes").getFirst()).isEqualTo(40638L);
-                Map<String, List<Long>> upstreamMessagesConsumedBucket = data.get("upstream-subscribe-messages-total_latest");
-                assertThat(upstreamMessagesConsumedBucket).containsKey("upstream-subscribe-messages-total");
-                assertThat(upstreamMessagesConsumedBucket.get("upstream-subscribe-messages-total").getFirst()).isEqualTo(4056L);
-                Map<String, List<Long>> upstreamMessageBytesConsumedBucket = data.get("upstream-subscribe-message-bytes_latest");
-                assertThat(upstreamMessageBytesConsumedBucket).containsKey("upstream-subscribe-message-bytes");
-                assertThat(upstreamMessageBytesConsumedBucket.get("upstream-subscribe-message-bytes").getFirst()).isEqualTo(40638L);
-            });
-        }
-
-        @Test
-        void should_search_top_value_hits_for_messages_produced() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.VALUE);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.VALUE);
-            Aggregation agg3 = new Aggregation("downstream-publish-message-bytes", AggregationType.VALUE);
-            Aggregation agg4 = new Aggregation("upstream-publish-message-bytes", AggregationType.VALUE);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-messages-total_latest");
-                assertThat(data).containsKey("upstream-publish-messages-total_latest");
-                assertThat(data).containsKey("downstream-publish-message-bytes_latest");
-                assertThat(data).containsKey("upstream-publish-message-bytes_latest");
-                Map<String, List<Long>> downstreamMessagesPublishedBucket = data.get("downstream-publish-messages-total_latest");
-                assertThat(downstreamMessagesPublishedBucket).containsKey("downstream-publish-messages-total");
-                assertThat(downstreamMessagesPublishedBucket.get("downstream-publish-messages-total").getFirst()).isEqualTo(4056L);
-                Map<String, List<Long>> downstreamMessageBytesPublishedBucket = data.get("downstream-publish-message-bytes_latest");
-                assertThat(downstreamMessageBytesPublishedBucket).containsKey("downstream-publish-message-bytes");
-                assertThat(downstreamMessageBytesPublishedBucket.get("downstream-publish-message-bytes").getFirst()).isEqualTo(42749L);
-                Map<String, List<Long>> upstreamMessagesPublishedBucket = data.get("upstream-publish-messages-total_latest");
-                assertThat(upstreamMessagesPublishedBucket).containsKey("upstream-publish-messages-total");
-                assertThat(upstreamMessagesPublishedBucket.get("upstream-publish-messages-total").getFirst()).isEqualTo(4056L);
-                Map<String, List<Long>> upstreamMessageBytesPublishedBucket = data.get("upstream-publish-message-bytes_latest");
-                assertThat(upstreamMessageBytesPublishedBucket).containsKey("upstream-publish-message-bytes");
-                assertThat(upstreamMessageBytesPublishedBucket.get("upstream-publish-message-bytes").getFirst()).isEqualTo(42749L);
-            });
-        }
-
-        @Test
-        void should_search_top_delta_hits_for_messages_produced() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-messages-total_delta");
-                assertThat(data).containsKey("upstream-publish-messages-total_delta");
-                Map<String, List<Long>> downstreamMessagesPublishedBucket = data.get("downstream-publish-messages-total_delta");
-                assertThat(downstreamMessagesPublishedBucket).containsKey("downstream-publish-messages-total");
-                assertThat(downstreamMessagesPublishedBucket.get("downstream-publish-messages-total").getFirst()).isEqualTo(2256L);
-                Map<String, List<Long>> upstreamMessagesPublishedBucket = data.get("upstream-publish-messages-total_delta");
-                assertThat(upstreamMessagesPublishedBucket).containsKey("upstream-publish-messages-total");
-                assertThat(upstreamMessagesPublishedBucket.get("upstream-publish-messages-total").getFirst()).isEqualTo(2256L);
-            });
-        }
-
-        @Test
-        void should_search_top_delta_hits_for_messages_consumed() {
-            Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.DELTA);
-            Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.DELTA);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-subscribe-messages-total_delta");
-                assertThat(data).containsKey("upstream-subscribe-messages-total_delta");
-                Map<String, List<Long>> downstreamMessagesConsumedBucket = data.get("downstream-subscribe-messages-total_delta");
-                assertThat(downstreamMessagesConsumedBucket).containsKey("downstream-subscribe-messages-total");
-                assertThat(downstreamMessagesConsumedBucket.get("downstream-subscribe-messages-total").getFirst()).isEqualTo(4044L);
-                Map<String, List<Long>> upstreamMessagesConsumedBucket = data.get("upstream-subscribe-messages-total_delta");
-                assertThat(upstreamMessagesConsumedBucket).containsKey("upstream-subscribe-messages-total");
-                assertThat(upstreamMessagesConsumedBucket.get("upstream-subscribe-messages-total").getFirst()).isEqualTo(4044L);
-            });
-        }
-
-        @Test
-        void should_search_top_delta_hits_for_message_bytes_produced() {
-            Aggregation agg1 = new Aggregation("downstream-publish-message-bytes", AggregationType.DELTA);
-            Aggregation agg2 = new Aggregation("upstream-publish-message-bytes", AggregationType.DELTA);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-message-bytes_delta");
-                assertThat(data).containsKey("upstream-publish-message-bytes_delta");
-                Map<String, List<Long>> downstreamMessageBytesPublishedBucket = data.get("downstream-publish-message-bytes_delta");
-                assertThat(downstreamMessageBytesPublishedBucket).containsKey("downstream-publish-message-bytes");
-                assertThat(downstreamMessageBytesPublishedBucket.get("downstream-publish-message-bytes").getFirst()).isEqualTo(24059L);
-                Map<String, List<Long>> upstreamMessageBytesPublishedBucket = data.get("upstream-publish-message-bytes_delta");
-                assertThat(upstreamMessageBytesPublishedBucket).containsKey("upstream-publish-message-bytes");
-                assertThat(upstreamMessageBytesPublishedBucket.get("upstream-publish-message-bytes").getFirst()).isEqualTo(24059L);
-            });
-        }
-
-        @Test
-        void should_search_top_delta_hits_for_message_bytes_consumed() {
-            Aggregation agg1 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.DELTA);
-            Aggregation agg2 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.DELTA);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID));
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-subscribe-message-bytes_delta");
-                assertThat(data).containsKey("upstream-subscribe-message-bytes_delta");
-                Map<String, List<Long>> downstreamMessageBytesConsumedBucket = data.get("downstream-subscribe-message-bytes_delta");
-                assertThat(downstreamMessageBytesConsumedBucket).containsKey("downstream-subscribe-message-bytes");
-                assertThat(downstreamMessageBytesConsumedBucket.get("downstream-subscribe-message-bytes").getFirst()).isEqualTo(40518L);
-                Map<String, List<Long>> upstreamMessageBytesConsumedBucket = data.get("upstream-subscribe-message-bytes_delta");
-                assertThat(upstreamMessageBytesConsumedBucket).containsKey("upstream-subscribe-message-bytes");
-                assertThat(upstreamMessageBytesConsumedBucket.get("upstream-subscribe-message-bytes").getFirst()).isEqualTo(40518L);
-            });
-        }
-
-        @Test
-        void should_search_top_delta_buckets_for_messages_consumed() {
-            Aggregation agg1 = new Aggregation("downstream-subscribe-messages-total", AggregationType.TREND);
-            Aggregation agg2 = new Aggregation("upstream-subscribe-messages-total", AggregationType.TREND);
-            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-subscribe-messages-total_delta");
-                assertThat(data).containsKey("upstream-subscribe-messages-total_delta");
-                Map<String, List<Long>> downstreamConsumptionTrend = data.get("downstream-subscribe-messages-total_delta");
-                assertThat(downstreamConsumptionTrend).containsKey("downstream-subscribe-messages-total");
-                Map<String, List<Long>> upstreamConsumptionTrend = data.get("upstream-subscribe-messages-total_delta");
-                assertThat(upstreamConsumptionTrend).containsKey("upstream-subscribe-messages-total");
-                List<Long> trendValues1 = downstreamConsumptionTrend.get("downstream-subscribe-messages-total");
-                List<Long> trendValues2 = upstreamConsumptionTrend.get("upstream-subscribe-messages-total");
-                assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues1);
-                assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues2);
-            });
-        }
-
-        @Test
-        void should_search_top_delta_buckets_for_messages_produced() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.TREND);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.TREND);
-            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-messages-total_delta");
-                assertThat(data).containsKey("upstream-publish-messages-total_delta");
-                Map<String, List<Long>> downstreamConsumptionTrend = data.get("downstream-publish-messages-total_delta");
-                assertThat(downstreamConsumptionTrend).containsKey("downstream-publish-messages-total");
-                Map<String, List<Long>> upstreamConsumptionTrend = data.get("upstream-publish-messages-total_delta");
-                assertThat(upstreamConsumptionTrend).containsKey("upstream-publish-messages-total");
-                List<Long> trendValues1 = downstreamConsumptionTrend.get("downstream-publish-messages-total");
-                List<Long> trendValues2 = upstreamConsumptionTrend.get("upstream-publish-messages-total");
-                assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues1);
-                assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues2);
-            });
-        }
-
-        @Test
-        void should_search_top_delta_buckets_for_bytes_consumed() {
-            Aggregation agg1 = new Aggregation("downstream-subscribe-message-bytes", AggregationType.TREND);
-            Aggregation agg2 = new Aggregation("upstream-subscribe-message-bytes", AggregationType.TREND);
-            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-subscribe-message-bytes_delta");
-                assertThat(data).containsKey("upstream-subscribe-message-bytes_delta");
-                Map<String, List<Long>> downstreamConsumptionTrend = data.get("downstream-subscribe-message-bytes_delta");
-                assertThat(downstreamConsumptionTrend).containsKey("downstream-subscribe-message-bytes");
-                Map<String, List<Long>> upstreamConsumptionTrend = data.get("upstream-subscribe-message-bytes_delta");
-                assertThat(upstreamConsumptionTrend).containsKey("upstream-subscribe-message-bytes");
-                List<Long> trendValues1 = downstreamConsumptionTrend.get("downstream-subscribe-message-bytes");
-                List<Long> trendValues2 = upstreamConsumptionTrend.get("upstream-subscribe-message-bytes");
-                assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues1);
-                assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues2);
-            });
-        }
-
-        @Test
-        void should_search_top_delta_buckets_for_bytes_produced() {
-            Aggregation agg1 = new Aggregation("downstream-publish-message-bytes", AggregationType.TREND);
-            Aggregation agg2 = new Aggregation("upstream-publish-message-bytes", AggregationType.TREND);
-            HistogramQuery query = buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID);
-
-            var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
-
-            assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-message-bytes_delta");
-                assertThat(data).containsKey("upstream-publish-message-bytes_delta");
-                Map<String, List<Long>> downstreamConsumptionTrend = data.get("downstream-publish-message-bytes_delta");
-                assertThat(downstreamConsumptionTrend).containsKey("downstream-publish-message-bytes");
-                Map<String, List<Long>> upstreamConsumptionTrend = data.get("upstream-publish-message-bytes_delta");
-                assertThat(upstreamConsumptionTrend).containsKey("upstream-publish-message-bytes");
-                List<Long> trendValues1 = downstreamConsumptionTrend.get("downstream-publish-message-bytes");
-                List<Long> trendValues2 = upstreamConsumptionTrend.get("upstream-publish-message-bytes");
-                assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues1);
-                assertEquals(List.of(0L, 0L, 0L, 0L, 0L, 0L), trendValues2);
-            });
-        }
-
-        @Test
-        void should_apply_optional_filters() {
-            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.VALUE);
-            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.VALUE);
-            Aggregation agg3 = new Aggregation("downstream-publish-message-bytes", AggregationType.VALUE);
-            Aggregation agg4 = new Aggregation("upstream-publish-message-bytes", AggregationType.VALUE);
-            Term appIdFilter1 = new Term("app-id", "yyy-yyy-yyy");
-            Term appIdFilter2 = new Term("app-id", "kkkk-yyy-yyy");
-            Term planIdFilter = new Term("plan-id", "ec3c2f14-b669-4b4c-bc2f-14b6694b4c10");
-
             var result = cut.searchEventAnalytics(
                 QUERY_CONTEXT,
-                buildHistogramQuery(List.of(agg1, agg2, agg3, agg4), List.of(appIdFilter1, appIdFilter2, planIdFilter), "xxx-xxx-xxx")
+                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, NOW.minusSeconds(360), NOW.plusSeconds(360), null)
             );
 
             assertThat(result).hasValueSatisfying(aggregate -> {
-                Map<String, Map<String, List<Long>>> data = aggregate.values();
-                assertThat(data).containsKey("downstream-publish-messages-total_latest");
-                assertThat(data).containsKey("upstream-publish-messages-total_latest");
-                assertThat(data).containsKey("downstream-publish-message-bytes_latest");
-                assertThat(data).containsKey("upstream-publish-message-bytes_latest");
-                Map<String, List<Long>> downstreamMessagesPublishedBucket = data.get("downstream-publish-messages-total_latest");
-                assertThat(downstreamMessagesPublishedBucket).containsKey("downstream-publish-messages-total");
-                assertThat(downstreamMessagesPublishedBucket.get("downstream-publish-messages-total").getFirst()).isEqualTo(157L);
-                Map<String, List<Long>> downstreamMessageBytesPublishedBucket = data.get("downstream-publish-message-bytes_latest");
-                assertThat(downstreamMessageBytesPublishedBucket).containsKey("downstream-publish-message-bytes");
-                assertThat(downstreamMessageBytesPublishedBucket.get("downstream-publish-message-bytes").getFirst()).isEqualTo(8421L);
-                Map<String, List<Long>> upstreamMessagesPublishedBucket = data.get("upstream-publish-messages-total_latest");
-                assertThat(upstreamMessagesPublishedBucket).containsKey("upstream-publish-messages-total");
-                assertThat(upstreamMessagesPublishedBucket.get("upstream-publish-messages-total").getFirst()).isEqualTo(157L);
-                Map<String, List<Long>> upstreamMessageBytesPublishedBucket = data.get("upstream-publish-message-bytes_latest");
-                assertThat(upstreamMessageBytesPublishedBucket).containsKey("upstream-publish-message-bytes");
-                assertThat(upstreamMessageBytesPublishedBucket.get("upstream-publish-message-bytes").getFirst()).isEqualTo(8421L);
+                Map<String, List<Long>> data = aggregate.values();
+                assertThat(data).containsKey("downstream-active-connections");
+                assertThat(data).containsKey("upstream-active-connections");
+                assertThat(data.get("downstream-active-connections").getFirst()).isEqualTo(6L);
+                assertThat(data.get("upstream-active-connections").getFirst()).isEqualTo(6L);
             });
         }
 
-        private static @NotNull HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms, String apiId) {
-            var now = TIME_PROVIDER.getNow();
-            var from = now.minusSeconds(4 * 60);
-            var to = now.plusSeconds(6 * 60);
+        @Test
+        void should_return_latest_value_ignoring_keys_with_no_snapshot_at_end_time() {
+            // VALUE = sum(latest per key ≤ end) → gw=1: 2 (now-1), gw=2: 0 (latest at end is 0; now+1 is excluded) ⇒ 2
+            var now = Instant.now();
+            var from = now.minus(Duration.ofMinutes(6));
+            var to = now; // excludes the NOW+1 sample
+            Aggregation valueAgg = new Aggregation("downstream-active-connections", AggregationType.VALUE);
 
+            var result = cut.searchEventAnalytics(
+                new QueryContext("DEFAULT", "DEFAULT"),
+                buildHistogramQuery(List.of(valueAgg), null, "273f4728-1e30-4c78-bf47-281e304c78a5", from, to, null)
+            );
+
+            assertThat(result).hasValueSatisfying(aggregate -> {
+                Map<String, List<Long>> data = aggregate.values();
+                assertThat(data).containsKey("downstream-active-connections");
+                assertThat(data.get("downstream-active-connections").getFirst()).isEqualTo(2L);
+            });
+        }
+
+        @Test
+        void should_return_empty_as_delta_when_no_documents_before_end_time() {
+            // DELTA requires at least one snapshot ≤ end; none found ⇒ empty result
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(
+                QUERY_CONTEXT,
+                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, NOW.minusSeconds(600), NOW.minusSeconds(540), null)
+            );
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_compute_monotonic_increase_happy_path_for_single_key_both_directions() {
+            // Monotonic DELTA (single key) = 50 − 10 = 40 per direction for gw-id=1, topic=1.
+            Aggregation deltaDown = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation deltaUp = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+
+            // Pick start strictly after the 10 snapshot, end just after the 50 snapshot.
+            Instant from = NOW.minusSeconds(4 * 60 - 1); // 1s after nowMinus4
+            Instant to = NOW.plusSeconds(4 * 60 + 1); // just after nowPlus4, still before nowPlus5
+
+            var result = cut.searchEventAnalytics(
+                QUERY_CONTEXT,
+                buildHistogramQuery(
+                    List.of(deltaDown, deltaUp),
+                    List.of(new Term("gw-id", "1"), new Term("topic", "1")),
+                    NATIVE_API_ID,
+                    from,
+                    to,
+                    null
+                )
+            );
+
+            assertThat(result).hasValueSatisfying(aggregate -> {
+                Map<String, List<Long>> data = aggregate.values();
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(40L);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(40L);
+            });
+        }
+
+        @Test
+        void should_return_end_value_when_no_documents_before_start_time() {
+            // DELTA (no start snapshot) over window covering end=50 for gw=1 and gw=2 ⇒ sum per direction = 50 + 50 = 100
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+            var start = NOW.minusSeconds(360);
+            var end = NOW.plusSeconds(360);
+
+            var result = cut.searchEventAnalytics(
+                QUERY_CONTEXT,
+                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, start, end, null)
+            );
+
+            assertThat(result).hasValueSatisfying(aggregate -> {
+                Map<String, List<Long>> data = aggregate.values();
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(100L);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(100L);
+            });
+        }
+
+        @Test
+        void should_return_delta_when_documents_present_before_start_time() {
+            // DELTA = end − start when start snapshot exists
+            // Here: 90 − 10 = 80 per direction (monotonic window)
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(
+                QUERY_CONTEXT,
+                buildHistogramQuery(List.of(agg1, agg2), null, NATIVE_API_ID, NOW.minusSeconds(180), NOW.plusSeconds(360), null)
+            );
+
+            assertThat(result).hasValueSatisfying(aggregate -> {
+                Map<String, List<Long>> data = aggregate.values();
+                assertThat(data).containsKey("downstream-publish-messages-total");
+                assertThat(data).containsKey("upstream-publish-messages-total");
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(80L);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(80L);
+            });
+        }
+
+        @Test
+        void should_handle_counter_reset_with_reset_aware_end_value() {
+            // Reset-aware: if end < start for a key, delta = end (not negative)
+            // Here: 5 < 50 ⇒ delta=5 per direction
+            Aggregation deltaDown = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation deltaUp = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+
+            Instant from = NOW.minusSeconds(13 * 60);
+            Instant to = NOW.minusSeconds(10 * 60);
+
+            var result = cut.searchEventAnalytics(
+                new QueryContext("DEFAULT", "DEFAULT"),
+                buildHistogramQuery(List.of(deltaDown, deltaUp), List.of(new Term("topic", "reset-key")), NATIVE_API_ID, from, to, null)
+            );
+
+            assertThat(result).hasValueSatisfying(aggregate -> {
+                Map<String, List<Long>> data = aggregate.values();
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(5L);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(5L);
+            });
+        }
+
+        @Test
+        void should_build_trend_series_aligned_to_interval() {
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.TREND);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.TREND);
+            HistogramQuery query = buildHistogramQuery(
+                List.of(agg1, agg2),
+                null,
+                NATIVE_API_ID,
+                NOW.minusSeconds(360),
+                NOW.plusSeconds(360),
+                Duration.ofMinutes(1)
+            );
+
+            var result = cut.searchEventAnalytics(QUERY_CONTEXT, query);
+
+            assertThat(result).hasValueSatisfying(aggregate -> {
+                Map<String, List<Long>> data = aggregate.values();
+                List<Long> trend = new ArrayList<>(Arrays.asList(null, 0L, 0L, null, null, null, null, null, null, null, 40L, 0L, null));
+                assertThat(data.get("downstream-publish-messages-total")).isEqualTo(trend);
+                assertThat(data.get("upstream-publish-messages-total")).isEqualTo(trend);
+            });
+        }
+
+        @Test
+        void should_apply_optional_terms_filters_with_or_semantics() {
+            Aggregation agg1 = new Aggregation("downstream-publish-messages-total", AggregationType.DELTA);
+            Aggregation agg2 = new Aggregation("upstream-publish-messages-total", AggregationType.DELTA);
+
+            var result = cut.searchEventAnalytics(
+                QUERY_CONTEXT,
+                buildHistogramQuery(
+                    List.of(agg1, agg2),
+                    List.of(new Term("topic", "2")),
+                    NATIVE_API_ID,
+                    NOW.minusSeconds(360),
+                    NOW.minusSeconds(180),
+                    null
+                )
+            );
+
+            assertThat(result).hasValueSatisfying(aggregate -> {
+                Map<String, List<Long>> data = aggregate.values();
+                assertThat(data).containsKey("downstream-publish-messages-total");
+                assertThat(data).containsKey("upstream-publish-messages-total");
+                assertThat(data.get("downstream-publish-messages-total").getFirst()).isEqualTo(10L);
+                assertThat(data.get("upstream-publish-messages-total").getFirst()).isEqualTo(10L);
+            });
+        }
+
+        private static @NotNull HistogramQuery buildHistogramQuery(
+            List<Aggregation> aggregations,
+            List<Term> terms,
+            String apiId,
+            Instant from,
+            Instant to,
+            Duration interval
+        ) {
             return new HistogramQuery(
                 new SearchTermId(SearchTermId.SearchTerm.API, apiId),
-                new TimeRange(from, to, Duration.ofMillis(2 * 60 * 1000)),
+                new TimeRange(from, to, interval == null ? Optional.empty() : Optional.of(interval)),
                 aggregations,
                 null,
                 terms

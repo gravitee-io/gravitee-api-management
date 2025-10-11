@@ -30,11 +30,12 @@ import { GroupByField, GroupByResponse } from '../entities/management-api-v2/ana
 import { AnalyticsStatsResponse, StatsField } from '../entities/management-api-v2/analytics/analyticsStats';
 import { ApiMetricsDetailResponse } from '../entities/management-api-v2/analytics/apiMetricsDetailResponse';
 
-interface UrlParamsData {
+export interface UrlQueryParamsData {
   field?: GroupByField | StatsField;
   order?: string;
   ranges?: string;
   query?: string;
+  terms?: string;
 }
 
 @Injectable({
@@ -106,17 +107,22 @@ export class ApiAnalyticsV2Service {
     );
   }
 
-  getHistogramAnalytics(apiId: string, aggregations: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
+  getHistogramAnalytics(
+    apiId: string,
+    aggregations: string,
+    { from, to, interval }: TimeRangeParams,
+    urlParamsData: UrlQueryParamsData = {},
+  ) {
     const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=HISTOGRAM&from=${from}&to=${to}&interval=${interval}&aggregations=${aggregations}${this.buildUrlParams({ ...urlParamsData })}`;
     return this.http.get<HistogramAnalyticsResponse>(url);
   }
 
-  getGroupBy(apiId: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
+  getGroupBy(apiId: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlQueryParamsData = {}) {
     const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=GROUP_BY&from=${from}&to=${to}&interval=${interval}${this.buildUrlParams({ ...urlParamsData })}`;
     return this.http.get<GroupByResponse>(url);
   }
 
-  getStats(apiId: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlParamsData = {}) {
+  getStats(apiId: string, { from, to, interval }: TimeRangeParams, urlParamsData: UrlQueryParamsData = {}) {
     const url = `${this.constants.env.v2BaseURL}/apis/${apiId}/analytics?type=STATS&from=${from}&to=${to}&interval=${interval}${this.buildUrlParams({ ...urlParamsData })}`;
     return this.http.get<AnalyticsStatsResponse>(url);
   }
@@ -125,8 +131,8 @@ export class ApiAnalyticsV2Service {
     return this.http.get<ApiMetricsDetailResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/analytics/${requestId}`);
   }
 
-  buildUrlParams(params: UrlParamsData) {
-    const { order, ranges, field, query } = params;
+  buildUrlParams(params: UrlQueryParamsData) {
+    const { order, ranges, field, query, terms } = params;
 
     let url = '';
 
@@ -144,6 +150,10 @@ export class ApiAnalyticsV2Service {
 
     if (query) {
       url += `&query=${query}`;
+    }
+
+    if (terms) {
+      url += `&terms=${terms}`;
     }
 
     return url;

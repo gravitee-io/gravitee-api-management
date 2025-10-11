@@ -18,4 +18,4 @@ package io.gravitee.repository.analytics.query.events;
 import java.util.List;
 import java.util.Map;
 
-public record EventAnalyticsAggregate(Map<String, Map<String, List<Long>>> values) {}
+public record EventAnalyticsAggregate(Map<String, List<Long>> values) {}

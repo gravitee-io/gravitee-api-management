@@ -84,6 +84,7 @@ export class GioChartLineComponent extends GioChartAbstractComponent implements 
 
       plotOptions: {
         series: {
+          connectNulls: true,
           marker: {
             enabled: markersEnabled,
             radius: markersEnabled ? 4 : 0,

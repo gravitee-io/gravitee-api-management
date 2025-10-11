@@ -16,11 +16,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, map, merge, Observable, of, switchMap } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
+import { isFunction } from 'lodash';
 
 import { ApiAnalyticsWidgetConfig } from './components/api-analytics-widget/api-analytics-widget.component';
 import { ApiAnalyticsDashboardWidgetConfig } from './api-analytics-proxy/api-analytics-proxy.component';
 
-import { ApiAnalyticsV2Service } from '../../../../services-ngx/api-analytics-v2.service';
+import { ApiAnalyticsV2Service, UrlQueryParamsData } from '../../../../services-ngx/api-analytics-v2.service';
 import { GroupByResponse } from '../../../../entities/management-api-v2/analytics/analyticsGroupBy';
 import { HistogramAnalyticsResponse } from '../../../../entities/management-api-v2/analytics/analyticsHistogram';
 import { GioWidgetLayoutState } from '../../../../shared/components/gio-widget-layout/gio-widget-layout.component';
@@ -35,10 +36,9 @@ import { MultiStatsWidgetData } from '../../../../shared/components/analytics-mu
 // Interface expected from component that transforms query params to UrlParamsData
 export interface ApiAnalyticsWidgetUrlParamsData {
   timeRangeParams: TimeRangeParams;
-  httpStatuses: string[];
-  applications: string[];
-  plans: string[];
-  terms?: string[];
+  httpStatuses?: string[];
+  applications?: string[];
+  plans?: string[];
 }
 
 // Colors for charts
@@ -55,7 +55,6 @@ export class ApiAnalyticsWidgetService {
     httpStatuses: [],
     applications: [],
     plans: [],
-    terms: [],
   });
 
   // Cache for stats requests to avoid multiple backend calls
@@ -97,6 +96,10 @@ export class ApiAnalyticsWidgetService {
   ): Observable<ApiAnalyticsWidgetConfig> {
     return this.urlParamsData$().pipe(
       switchMap((urlParamsData: ApiAnalyticsWidgetUrlParamsData) => {
+        if (isFunction(widgetConfig.filterQueryParams)) {
+          urlParamsData = widgetConfig.filterQueryParams(urlParamsData);
+        }
+
         if (!urlParamsData.timeRangeParams) {
           return of(this.createErrorConfig(widgetConfig, 'No time range selected'));
         }
@@ -128,27 +131,32 @@ export class ApiAnalyticsWidgetService {
     urlParamsData: ApiAnalyticsWidgetUrlParamsData,
   ): Observable<ApiAnalyticsWidgetConfig> {
     const { timeRangeParams } = urlParamsData;
-    const params: any = {};
+    const defaultQueryParams: any = {};
 
     if (widgetConfig.statsField) {
-      params.field = widgetConfig.statsField;
+      defaultQueryParams.field = widgetConfig.statsField;
     }
 
     const query = this.queryOf(urlParamsData);
-    if (query) {
-      params.query = query;
+    let queryParams: UrlQueryParamsData = {
+      ...(query ? { query } : {}),
+    };
+    if (isFunction(widgetConfig.mapQueryParams)) {
+      queryParams = widgetConfig.mapQueryParams(urlParamsData);
     }
 
-    const cacheKey = this.createStatsCacheKey(widgetConfig.apiId, timeRangeParams, params);
+    const cacheKey = this.createStatsCacheKey(widgetConfig.apiId, timeRangeParams, { ...defaultQueryParams, ...queryParams });
 
     if (!this.statsCache.has(cacheKey)) {
-      const statsRequest$ = this.apiAnalyticsV2Service.getStats(widgetConfig.apiId, timeRangeParams, params).pipe(
-        shareReplay(1),
-        catchError((error) => {
-          this.statsCache.delete(cacheKey);
-          throw error;
-        }),
-      );
+      const statsRequest$ = this.apiAnalyticsV2Service
+        .getStats(widgetConfig.apiId, timeRangeParams, { ...defaultQueryParams, ...queryParams })
+        .pipe(
+          shareReplay(1),
+          catchError((error) => {
+            this.statsCache.delete(cacheKey);
+            throw error;
+          }),
+        );
       this.statsCache.set(cacheKey, statsRequest$);
     }
 
@@ -184,27 +192,30 @@ export class ApiAnalyticsWidgetService {
     urlParamsData: ApiAnalyticsWidgetUrlParamsData,
   ): Observable<ApiAnalyticsWidgetConfig> {
     const { timeRangeParams } = urlParamsData;
-    const params: any = {};
+    const defaultQueryParams: UrlQueryParamsData = {};
 
     if (widgetConfig.groupByField) {
-      params.field = widgetConfig.groupByField;
+      defaultQueryParams.field = widgetConfig.groupByField;
     }
 
     if (widgetConfig.ranges) {
-      params.ranges = widgetConfig.ranges.map((range) => `${range.value}`).join(';');
+      defaultQueryParams.ranges = widgetConfig.ranges.map((range) => `${range.value}`).join(';');
     }
 
     if (widgetConfig.orderBy) {
-      params.order = widgetConfig.orderBy;
+      defaultQueryParams.order = widgetConfig.orderBy;
     }
 
     const query = this.queryOf(urlParamsData);
-    if (query) {
-      params.query = query;
+    let queryParams: UrlQueryParamsData = {
+      ...(query ? { query } : {}),
+    };
+    if (isFunction(widgetConfig.mapQueryParams)) {
+      queryParams = widgetConfig.mapQueryParams(urlParamsData);
     }
 
     return this.apiAnalyticsV2Service
-      .getGroupBy(widgetConfig.apiId, timeRangeParams, params)
+      .getGroupBy(widgetConfig.apiId, timeRangeParams, { ...defaultQueryParams, ...queryParams })
       .pipe(map((response: GroupByResponse) => this.transformGroupByResponseToApiAnalyticsWidgetConfig(response, widgetConfig)));
   }
 
@@ -338,10 +349,16 @@ export class ApiAnalyticsWidgetService {
 
     const aggregationsString = widgetConfig.aggregations.map((agg) => `${agg.type}:${agg.field}`).join(',');
 
+    const query = this.queryOf(urlParamsData);
+    let queryParams: UrlQueryParamsData = {
+      ...(query ? { query } : {}),
+    };
+    if (isFunction(widgetConfig.mapQueryParams)) {
+      queryParams = widgetConfig.mapQueryParams(urlParamsData);
+    }
+
     return this.apiAnalyticsV2Service
-      .getHistogramAnalytics(widgetConfig.apiId, aggregationsString, timeRangeParams, {
-        query: this.queryOf(urlParamsData),
-      })
+      .getHistogramAnalytics(widgetConfig.apiId, aggregationsString, timeRangeParams, queryParams)
       .pipe(
         map((response: HistogramAnalyticsResponse) => this.transformHistogramResponseToApiAnalyticsWidgetConfig(response, widgetConfig)),
       );
@@ -359,11 +376,11 @@ export class ApiAnalyticsWidgetService {
       filters.push({ type: 'isin', field: 'application-id', values: urlParamsData.applications });
     }
 
-    let queryString = toQuery(filters);
+    const queryString = toQuery(filters);
 
-    if (urlParamsData.terms && urlParamsData.terms.length > 0) {
-      queryString = queryString + '&terms=' + urlParamsData.terms;
-    }
+    // if (urlParamsData.terms && urlParamsData.terms.length > 0) {
+    //   queryString = queryString + '&terms=' + urlParamsData.terms;
+    // }
 
     return queryString;
   }
@@ -456,6 +473,7 @@ export class ApiAnalyticsWidgetService {
     if (widgetConfig.type === 'bar') {
       const hasMultipleAggregations = widgetConfig.aggregations && widgetConfig.aggregations.length > 1;
 
+      // TODO: Improve it to move this logic to native-analytics component side
       const isAuthenticationChart = widgetConfig.aggregations?.some(
         (agg) => agg.field.includes('authentication-successes') || agg.field.includes('authentication-failures'),
       );
@@ -463,10 +481,14 @@ export class ApiAnalyticsWidgetService {
       let barData: GioChartBarData[];
 
       if (isAuthenticationChart && widgetConfig.aggregations?.length === 4) {
-        const downstreamFailure = histogramResponse.values[0]?.buckets[0]?.data || [];
-        const upstreamFailure = histogramResponse.values[1]?.buckets[0]?.data || [];
-        const upstreamSuccess = histogramResponse.values[2]?.buckets[0]?.data || [];
-        const downstreamSuccess = histogramResponse.values[3]?.buckets[0]?.data || [];
+        const downstreamFailure =
+          histogramResponse.values.find((v) => v.field === 'downstream-authentication-failures-total')?.buckets[0]?.data || [];
+        const upstreamFailure =
+          histogramResponse.values.find((v) => v.field === 'upstream-authentication-failures-total')?.buckets[0]?.data || [];
+        const upstreamSuccess =
+          histogramResponse.values.find((v) => v.field === 'upstream-authentication-successes-total')?.buckets[0]?.data || [];
+        const downstreamSuccess =
+          histogramResponse.values.find((v) => v.field === 'downstream-authentication-successes-total')?.buckets[0]?.data || [];
 
         // Sum downstream + upstream for success and failure for each time point
         const totalSuccess = downstreamSuccess.map((value, index) => value + (upstreamSuccess[index] || 0));

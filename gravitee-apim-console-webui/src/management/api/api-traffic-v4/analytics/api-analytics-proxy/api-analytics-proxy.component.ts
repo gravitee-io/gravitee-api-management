@@ -47,6 +47,7 @@ import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.servic
 import { StatsUnitType } from '../../../../../shared/components/analytics-stats/analytics-stats.component';
 import { ApiNavigationModule } from '../../../api-navigation/api-navigation.module';
 import { MenuItemHeader } from '../../../api-navigation/MenuGroupItem';
+import { UrlQueryParamsData } from '../../../../../services-ngx/api-analytics-v2.service';
 
 type WidgetDisplayConfig = {
   title: string;
@@ -79,6 +80,8 @@ type WidgetDataConfig = {
   statsField?: StatsField;
   ranges?: Range[];
   orderBy?: string;
+  filterQueryParams?: (queryParams: ApiAnalyticsWidgetUrlParamsData) => ApiAnalyticsWidgetUrlParamsData;
+  mapQueryParams?: (queryParams: ApiAnalyticsWidgetUrlParamsData) => UrlQueryParamsData;
   tableData?: {
     columns: WidgetDataConfigColumn[];
   };
