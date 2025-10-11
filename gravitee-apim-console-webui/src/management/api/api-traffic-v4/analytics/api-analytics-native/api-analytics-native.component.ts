@@ -22,6 +22,7 @@ import { CommonModule } from '@angular/common';
 import { Observable, of } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, shareReplay } from 'rxjs/operators';
+import { omit } from 'lodash';
 
 import { timeFrames } from '../../../../../shared/utils/timeFrameRanges';
 import {
@@ -43,7 +44,6 @@ interface QueryParamsBase {
   period?: string;
   plans?: string;
   applications?: string;
-  terms: string;
 }
 
 @Component({
@@ -81,6 +81,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       title: 'Active Connections',
       tooltip: 'Number of active connections from clients and to broker',
       analyticsType: 'HISTOGRAM',
+      filterQueryParams: (params) => omit(params, ['plans', 'applications']),
       aggregations: [
         {
           type: AggregationTypes.VALUE,
@@ -100,6 +101,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       title: 'Messages Produced',
       tooltip: 'Messages published from clients to gateway and from gateway to broker',
       analyticsType: 'HISTOGRAM',
+      mapQueryParams: mapQueryParams,
       aggregations: [
         {
           type: AggregationTypes.DELTA,
@@ -119,6 +121,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       title: 'Messages Consumed',
       tooltip: 'Messages consumed from broker by gateway and delivered to clients',
       analyticsType: 'HISTOGRAM',
+      mapQueryParams: mapQueryParams,
       aggregations: [
         {
           type: AggregationTypes.DELTA,
@@ -141,6 +144,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       title: 'Message Production Rate',
       tooltip: 'Messages published from clients to gateway and from gateway to broker over time',
       analyticsType: 'HISTOGRAM',
+      mapQueryParams: mapQueryParams,
       aggregations: [
         {
           type: AggregationTypes.TREND,
@@ -161,6 +165,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       title: 'Data Production Rate',
       tooltip: 'Data volume published from clients to gateway and from gateway to broker over time',
       analyticsType: 'HISTOGRAM',
+      mapQueryParams: mapQueryParams,
       aggregations: [
         {
           type: AggregationTypes.TREND,
@@ -184,6 +189,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       title: 'Message Consumption Rate',
       tooltip: 'Messages consumed from broker by gateway and delivered to clients over time',
       analyticsType: 'HISTOGRAM',
+      mapQueryParams: mapQueryParams,
       aggregations: [
         {
           type: AggregationTypes.TREND,
@@ -204,6 +210,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       title: 'Data Consumption Rate',
       tooltip: 'Data volume consumed from broker by gateway and delivered to clients over time',
       analyticsType: 'HISTOGRAM',
+      mapQueryParams: mapQueryParams,
       aggregations: [
         {
           type: AggregationTypes.TREND,
@@ -227,6 +234,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       title: 'Authentication Success vs. Failure',
       tooltip: 'Total authentication successes and failures over time (combined downstream + upstream)',
       analyticsType: 'HISTOGRAM',
+      mapQueryParams: mapQueryParams,
       aggregations: [
         {
           type: AggregationTypes.TREND,
@@ -322,18 +330,12 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       params.period = filters.period;
     }
 
-    let plans: string = null;
-    let applications: string = null;
-
     if (filters.plans?.length) {
       params.plans = filters.plans.join(',');
-      plans = filters.plans.map((planId) => `plan-id:${planId}`).join(',');
     }
     if (filters.applications?.length) {
       params.applications = filters.applications.join(',');
-      applications = filters.applications.map((appId) => `app-id:${appId}`).join(',');
     }
-    params.terms = [plans, applications].filter((term) => term).join(',');
 
     return params as QueryParamsBase;
   }
@@ -367,28 +369,12 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     const normalizedPeriod = params.period || '1d';
     const filters = this.getFilterFields(params);
 
-    const filterBucket: Record<string, string[]> = {
-      'app-id': [],
-      'plan-id': [],
-    };
-
-    if (filters.terms?.length) {
-      for (const term of filters.terms) {
-        const [key, value] = term.split(':', 2);
-
-        if (value && filterBucket[key] && !filterBucket[key].includes(value)) {
-          filterBucket[key].push(value);
-        }
-      }
-    }
-
     if (normalizedPeriod === 'custom' && params.from && params.to) {
       return <ApiAnalyticsNativeFilters>{
         period: normalizedPeriod,
         from: +params.from,
         to: +params.to,
-        plans: filterBucket['plan-id'],
-        applications: filterBucket['app-id'],
+        ...filters,
       };
     }
 
@@ -396,8 +382,7 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
       period: normalizedPeriod,
       from: null,
       to: null,
-      plans: filterBucket['plan-id'],
-      applications: filterBucket['app-id'],
+      ...filters,
     };
   }
 
@@ -405,7 +390,6 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     return {
       plans: this.processFilter(queryParams.plans),
       applications: this.processFilter(queryParams.applications),
-      terms: this.processFilter(queryParams.terms),
     };
   }
 
@@ -421,3 +405,12 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
     return Math.floor(range / nbValuesByBucket);
   }
 }
+
+const mapQueryParams: ApiAnalyticsDashboardWidgetConfig['mapQueryParams'] = (params) => {
+  const plansTerm = params.plans?.map((p) => `plan-id:${p}`).join(',');
+  const appsTerm = params.applications?.map((a) => `app-id:${a}`).join(',');
+
+  return {
+    terms: [plansTerm, appsTerm].filter((t) => t).join(','),
+  };
+};
