@@ -25,6 +25,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.G
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.INSERT_ZEROS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MAX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MISSING_BUCKET;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SCRIPT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SOURCES;
@@ -33,6 +34,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.A
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.BOOL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.FILTER;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.QUERY;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SHOULD;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SIZE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TIMESTAMP;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
@@ -270,8 +272,6 @@ class EventMetricsQueryAdapterTest {
         assertTrue(hasTermsFilter(filters, "plan-id", Set.of("p1")));
     }
 
-    // ----------------- Helpers -----------------
-
     private static boolean hasTermFilter(JsonNode filters, String field, String value) {
         for (JsonNode f : filters) {
             if (f.has(TERM) && f.get(TERM).has(field) && value.equals(f.get(TERM).get(field).asText())) {
@@ -308,13 +308,14 @@ class EventMetricsQueryAdapterTest {
         // OR semantics block: check exists under a bool.should with minimum_should_match=1
         // First, collect root-level exists (legacy AND path)
         Set<String> found = new HashSet<>();
+
         for (JsonNode f : filters) {
             if (f.has(EXISTS) && f.get(EXISTS).has(FIELD)) {
                 found.add(f.get(EXISTS).get(FIELD).asText());
             }
             // Also inspect bool.should containers
-            if (f.has("bool") && f.get("bool").has("should")) {
-                JsonNode shouldArr = f.get("bool").get("should");
+            if (f.has(BOOL) && f.get(BOOL).has(SHOULD)) {
+                JsonNode shouldArr = f.get(BOOL).get(SHOULD);
 
                 if (shouldArr.isArray()) {
                     for (JsonNode s : shouldArr) {
@@ -397,6 +398,10 @@ class EventMetricsQueryAdapterTest {
             for (JsonNode src : sources) {
                 String wrapperKey = src.fieldNames().next();
                 fields.add(src.get(wrapperKey).get(TERMS).get(FIELD).asText());
+
+                if (wrapperKey.equals("topic")) {
+                    assertTrue(src.get(wrapperKey).get(TERMS).get(MISSING_BUCKET).asBoolean());
+                }
             }
         }
 

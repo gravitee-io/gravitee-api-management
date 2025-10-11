@@ -21,11 +21,10 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.D
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.KEY;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DERIVATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.NON_NEGATIVE_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOP;
@@ -147,7 +146,7 @@ class EventMetricsResponseAdapterTest {
     class DeltaTests {
 
         @Test
-        void should_compute_delta_and_sum_across_buckets() {
+        void should_compute_delta_sum_across_buckets() {
             // Bucket #1: start downstream=10, end downstream=25 -> delta 15
             ObjectNode bucket1 = MAPPER.createObjectNode();
             bucket1.put(KEY, 1);
@@ -236,43 +235,27 @@ class EventMetricsResponseAdapterTest {
     class TrendTests {
 
         @Test
-        void should_sum_trend_values_per_timestamp_preferring_non_negative() {
+        void should_sum_trend_values_reset_aware_per_timestamp() {
             long timestamp1 = 1000L;
             long timestamp2 = 2000L;
-
             // Dimension A intervals:
             ArrayNode downstreamIntervalsA = MAPPER.createArrayNode();
-            downstreamIntervalsA.add(
-                intervalBucket(
-                    timestamp1,
-                    Map.of(
-                        NON_NEGATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
-                        2.4,
-                        DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
-                        10.0
-                    )
-                )
-            );
-            downstreamIntervalsA.add(intervalBucket(timestamp2, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 3.6)));
-
+            downstreamIntervalsA.add(intervalBucket(timestamp1, Map.of(MAX_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 10L)));
+            downstreamIntervalsA.add(intervalBucket(timestamp2, Map.of(MAX_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 3L)));
             ObjectNode dimensionABucket = MAPPER.createObjectNode();
-            dimensionABucket.put(DOC_COUNT, 2);
+            dimensionABucket.put(DOC_COUNT, 1);
             dimensionABucket.set(PER_INTERVAL, MAPPER.createObjectNode().set(BUCKETS, downstreamIntervalsA));
-
             // Dimension B intervals:
             ArrayNode downstreamIntervalsB = MAPPER.createArrayNode();
-            downstreamIntervalsB.add(intervalBucket(timestamp1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 7.0)));
-            downstreamIntervalsB.add(intervalBucket(timestamp2, Map.of(NON_NEGATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 1.49)));
-
+            downstreamIntervalsB.add(intervalBucket(timestamp1, Map.of(MAX_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 7L)));
             ObjectNode dimensionBBucket = MAPPER.createObjectNode();
-            dimensionBBucket.put(DOC_COUNT, 2);
+            dimensionBBucket.put(DOC_COUNT, 1);
             dimensionBBucket.set(PER_INTERVAL, MAPPER.createObjectNode().set(BUCKETS, downstreamIntervalsB));
-
             SearchResponse response = buildResponse(List.of(dimensionABucket, dimensionBBucket));
             HistogramQuery query = buildHistogramQuery(
                 List.of(
                     new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
+                        FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
                         AggregationType.TREND
                     )
                 )
@@ -282,42 +265,7 @@ class EventMetricsResponseAdapterTest {
 
             assertTrue(aggregate.isPresent());
             Map<String, List<Long>> valuesByField = aggregate.get().values();
-            assertEquals(List.of(9L, 5L), valuesByField.get(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS));
-        }
-
-        @Test
-        void should_round_trend_values_and_clamp_negatives() {
-            long t1 = 1_000L;
-            long t2 = 2_000L;
-            long t3 = 3_000L;
-
-            ArrayNode intervals = MAPPER.createArrayNode();
-            // 0.49 -> round to 0
-            intervals.add(intervalBucket(t1, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 0.49)));
-            // 0.5 -> round to 1
-            intervals.add(intervalBucket(t2, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 0.5)));
-            // -0.4 -> round to 0 then clamp to 0
-            intervals.add(intervalBucket(t3, Map.of(DERIVATIVE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, -0.4)));
-
-            ObjectNode dimension = MAPPER.createObjectNode();
-            dimension.put(DOC_COUNT, 3);
-            dimension.set(PER_INTERVAL, MAPPER.createObjectNode().set(BUCKETS, intervals));
-
-            SearchResponse response = buildResponse(List.of(dimension));
-            HistogramQuery query = buildHistogramQuery(
-                List.of(
-                    new io.gravitee.repository.log.v4.model.analytics.Aggregation(
-                        FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
-                        AggregationType.TREND
-                    )
-                )
-            );
-
-            var result = EventMetricsResponseAdapter.adapt(response, query);
-
-            assertTrue(result.isPresent());
-            // Expect [0, 1, 0]
-            assertEquals(List.of(0L, 1L, 0L), result.get().values().get(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS));
+            assertEquals(List.of(0L, 3L), valuesByField.get(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL));
         }
     }
 
@@ -363,7 +311,7 @@ class EventMetricsResponseAdapterTest {
         return metrics;
     }
 
-    private static ObjectNode intervalBucket(long ts, Map<String, Double> series) {
+    private static ObjectNode intervalBucket(long ts, Map<String, Long> series) {
         ObjectNode bucket = MAPPER.createObjectNode();
         bucket.put(KEY, ts);
         bucket.put(DOC_COUNT, (long) 1);

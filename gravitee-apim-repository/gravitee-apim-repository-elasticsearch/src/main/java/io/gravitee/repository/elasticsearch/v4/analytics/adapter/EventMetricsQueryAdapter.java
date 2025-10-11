@@ -27,7 +27,9 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.I
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MAX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MIN;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MINIMUM_SHOULD_MATCH;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MIN_DOC_COUNT;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MISSING_BUCKET;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SCRIPT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SOURCES;
@@ -36,6 +38,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.A
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.BOOL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.FILTER;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.QUERY;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SHOULD;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SIZE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TIMESTAMP;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
@@ -123,8 +126,6 @@ public final class EventMetricsQueryAdapter {
         return root.toString();
     }
 
-    // ---------------- VALUE ----------------
-
     private static void applyLatestValueAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
         ObjectNode dimensionsNode = aggregationsNode.putObject(BY_DIMENSIONS);
         ObjectNode compositeNode = dimensionsNode.putObject(COMPOSITE);
@@ -141,8 +142,6 @@ public final class EventMetricsQueryAdapter {
                 applyTopMetricsAggregation(latestValueNode, field);
             });
     }
-
-    // ---------------- DELTA ----------------
 
     private static void applyDeltaAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
         ObjectNode bucketAggregations = applyCompositeWithExtras(aggregationsNode, "app-id", "plan-id", "topic");
@@ -171,8 +170,6 @@ public final class EventMetricsQueryAdapter {
             });
     }
 
-    // ---------------- TREND ----------------
-
     private static void applyTrendAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
         ObjectNode bucketAggregations = applyCompositeWithExtras(aggregationsNode, "app-id", "plan-id", "topic");
         ObjectNode intervalAggregations = applyFixedIntervalAggregations(query, bucketAggregations);
@@ -195,8 +192,6 @@ public final class EventMetricsQueryAdapter {
         path.put("d", derivative);
         scriptNode.put(SCRIPT, "params.d != null ? Math.max(params.d, 0) : 0");
     }
-
-    // ---------------- Composite helpers ----------------
 
     private static ObjectNode applyCompositeWithExtras(ObjectNode aggregationsNode, String... additionalKeys) {
         ObjectNode dimensionsNode = aggregationsNode.putObject(BY_DIMENSIONS);
@@ -224,13 +219,15 @@ public final class EventMetricsQueryAdapter {
         ObjectNode termsNode = MAPPER.createObjectNode();
         ObjectNode fieldNode = MAPPER.createObjectNode();
         fieldNode.put(FIELD, fieldName);
-        fieldNode.put("missing_bucket", true);
+
+        if (fieldName.equals("topic")) {
+            fieldNode.put(MISSING_BUCKET, true);
+        }
+
         termsNode.set(TERMS, fieldNode);
         sourceNode.set(fieldName, termsNode);
         node.add(sourceNode);
     }
-
-    // ---------------- top_metrics and fixed interval histogram ----------------
 
     private static void applyTopMetricsAggregation(ObjectNode container, String field) {
         ObjectNode tm = container.putObject(TOP_METRICS);
@@ -257,8 +254,6 @@ public final class EventMetricsQueryAdapter {
 
         return intervalNode.putObject(AGGS);
     }
-
-    // ---------------- Filters ----------------
 
     private static void applyDefaultFilters(HistogramQuery query, ArrayNode filters, AggregationType type) {
         if (query.searchTermId() != null && query.searchTermId().id() != null) {
@@ -287,11 +282,11 @@ public final class EventMetricsQueryAdapter {
         }
 
         ObjectNode boolNode = MAPPER.createObjectNode();
-        boolNode.set("should", shouldNode);
-        boolNode.put("minimum_should_match", 1);
+        boolNode.set(SHOULD, shouldNode);
+        boolNode.put(MINIMUM_SHOULD_MATCH, 1);
 
         ObjectNode wrapper = MAPPER.createObjectNode();
-        wrapper.set("bool", boolNode);
+        wrapper.set(BOOL, boolNode);
 
         filters.add(wrapper);
     }

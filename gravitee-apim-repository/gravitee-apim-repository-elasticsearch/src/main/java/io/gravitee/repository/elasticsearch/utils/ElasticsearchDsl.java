@@ -24,6 +24,7 @@ public final class ElasticsearchDsl {
 
         public static final String QUERY = "query";
         public static final String BOOL = "bool";
+        public static final String SHOULD = "should";
         public static final String FILTER = "filter";
         public static final String AGGS = "aggs";
         public static final String SIZE = "size";
@@ -68,6 +69,7 @@ public final class ElasticsearchDsl {
         public static final String DATE_HISTOGRAM = "date_histogram";
         public static final String FIXED_INTERVAL = "fixed_interval";
         public static final String MIN_DOC_COUNT = "min_doc_count";
+        public static final String MINIMUM_SHOULD_MATCH = "minimum_should_match";
         public static final String EXTENDED_BOUNDS = "extended_bounds";
         public static final String MIN = "min";
         public static final String MAX = "max";
@@ -79,6 +81,7 @@ public final class ElasticsearchDsl {
         public static final String GAP_POLICY = "gap_policy";
         public static final String SCRIPT = "script";
         public static final String INSERT_ZEROS = "insert_zeros";
+        public static final String MISSING_BUCKET = "missing_bucket";
 
         private Aggs() {}
     }
@@ -102,7 +105,6 @@ public final class ElasticsearchDsl {
         public static final String MILLISECONDS = "ms";
         public static final String TOP = "top";
         public static final String BEFORE_START = "before_start_time";
-        public static final String BEFORE_END = "before_end_time";
         public static final String END_IN_RANGE = "end_in_range";
         // Added for trend naming conventions
         public static final String MAX_PREFIX = "max_";
