@@ -46,13 +46,17 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
 public interface PageMapper {
     PageMapper INSTANCE = Mappers.getMapper(PageMapper.class);
     ObjectMapper mapper = new GraviteeMapper();
+    Logger logger = LoggerFactory.getLogger(PageMapper.class);
+    String SENSITIVE_DATA_REPLACEMENT = "********";
 
-    @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfigurationWithSensitiveDataMasking")
     Page mapPage(io.gravitee.apim.core.documentation.model.Page page);
 
     List<Page> mapPageList(List<io.gravitee.apim.core.documentation.model.Page> page);
@@ -168,5 +172,130 @@ public interface PageMapper {
             }
         }
         return null;
+    }
+
+    /**
+     * Deserialize configuration and mask sensitive data using field names.
+     * This method masks known sensitive field names like privateToken, password, etc.
+     * This is a simple and reliable approach that doesn't require custom annotations.
+     */
+    @Named("deserializeConfigurationWithSensitiveDataMasking")
+    default Object deserializeConfigurationWithSensitiveDataMasking(String configuration) {
+        if (Objects.isNull(configuration)) {
+            return null;
+        }
+
+        try {
+            LinkedHashMap<String, Object> config = mapper.readValue(configuration, LinkedHashMap.class);
+            maskSensitiveFieldsInMap(config);
+
+            return config;
+        } catch (JsonProcessingException jse) {
+            logger.debug(jse.getMessage());
+        }
+
+        try {
+            return mapper.readValue(configuration, List.class);
+        } catch (JsonProcessingException jse) {
+            logger.debug(jse.getMessage());
+        }
+
+        return configuration;
+    }
+
+    /**
+     * Get the list of sensitive field names that should be masked.
+     * This centralizes the sensitive field definitions to avoid duplication.
+     *
+     * @return array of sensitive field names
+     */
+    private String[] getSensitiveFieldNames() {
+        return new String[] {
+            "privateToken", // GitLab fetcher
+            "password", // HTTP, Git fetchers
+            "secret", // Various fetchers
+            "token", // Various fetchers
+            "apiKey", // API fetchers
+            "accessToken", // OAuth fetchers
+            "clientSecret", // OAuth fetchers
+            "personalAccessToken", // GitHub, GitLab
+            "authToken", // Generic auth tokens
+        };
+    }
+
+    /**
+     * Mask sensitive fields in a configuration map.
+     * This method checks for known sensitive field names and replaces them with "********".
+     */
+    default void maskSensitiveFieldsInMap(LinkedHashMap<String, Object> configMap) {
+        for (String fieldName : getSensitiveFieldNames()) {
+            if (configMap.containsKey(fieldName)) {
+                configMap.put(fieldName, SENSITIVE_DATA_REPLACEMENT);
+            }
+        }
+    }
+
+    /**
+     * Parse configuration JSON string to LinkedHashMap.
+     *
+     * @param configuration the configuration JSON string
+     * @return parsed configuration map or null if parsing fails
+     */
+    private LinkedHashMap<String, Object> parseConfigurationToMap(String configuration) {
+        if (Objects.isNull(configuration)) {
+            return null;
+        }
+
+        try {
+            LinkedHashMap<String, Object> config = mapper.readValue(configuration, LinkedHashMap.class);
+            return config;
+        } catch (JsonProcessingException e) {
+            logger.debug("Cannot parse configuration: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Unmasks sensitive data in configuration by restoring original values from the original configuration.
+     * This method is used during updates to prevent masked values from overwriting real sensitive data.
+     *
+     * @param newConfiguration the new configuration JSON string (may contain masked values)
+     * @param originalConfiguration the original configuration JSON string (contains real values)
+     * @return the configuration map with sensitive data unmasked
+     */
+    @Named("unmaskSensitiveDataInConfiguration")
+    default Object unmaskSensitiveDataInConfiguration(String newConfiguration, String originalConfiguration) {
+        LinkedHashMap<String, Object> newConfigMap = parseConfigurationToMap(newConfiguration);
+        LinkedHashMap<String, Object> originalConfigMap = parseConfigurationToMap(originalConfiguration);
+
+        if (newConfigMap != null && originalConfigMap != null) {
+            unmaskSensitiveFieldsInMap(newConfigMap, originalConfigMap);
+            return newConfigMap;
+        }
+
+        return newConfigMap;
+    }
+
+    /**
+     * Unmasks sensitive fields in the configuration map by restoring original values.
+     * This method checks if new values are masked and restores them from the original configuration.
+     *
+     * @param newConfigMap the new configuration map (may contain masked values)
+     * @param originalConfigMap the original configuration map (contains real values)
+     */
+    default void unmaskSensitiveFieldsInMap(LinkedHashMap<String, Object> newConfigMap, LinkedHashMap<String, Object> originalConfigMap) {
+        for (String fieldName : getSensitiveFieldNames()) {
+            if (newConfigMap.containsKey(fieldName)) {
+                Object newValue = newConfigMap.get(fieldName);
+
+                // If new value is masked, restore original value
+                if (SENSITIVE_DATA_REPLACEMENT.equals(newValue)) {
+                    Object originalValue = originalConfigMap.get(fieldName);
+                    if (originalValue != null) {
+                        newConfigMap.put(fieldName, originalValue);
+                    }
+                }
+            }
+        }
     }
 }
