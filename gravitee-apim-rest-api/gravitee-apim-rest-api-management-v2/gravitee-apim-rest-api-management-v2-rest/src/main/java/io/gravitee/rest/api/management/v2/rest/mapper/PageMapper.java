@@ -185,10 +185,9 @@ public interface PageMapper {
             return null;
         }
 
-        ObjectMapper objectMapper = new GraviteeMapper();
         try {
             // Try to parse as LinkedHashMap first
-            Object config = objectMapper.readValue(configuration, LinkedHashMap.class);
+            Object config = mapper.readValue(configuration, LinkedHashMap.class);
 
             // If we have a fetcher configuration, we need to mask sensitive fields
             if (config instanceof LinkedHashMap) {
@@ -201,13 +200,13 @@ public interface PageMapper {
 
             return config;
         } catch (JsonProcessingException jse) {
-            logger.debug("Cannot parse configuration as LinkedHashMap: " + configuration);
+            logger.debug(jse.getMessage());
         }
 
         try {
-            return objectMapper.readValue(configuration, List.class);
+            return mapper.readValue(configuration, List.class);
         } catch (JsonProcessingException jse) {
-            logger.debug("Cannot parse configuration as List: " + configuration);
+            logger.debug(jse.getMessage());
         }
 
         return configuration;
@@ -256,9 +255,8 @@ public interface PageMapper {
             return null;
         }
 
-        ObjectMapper objectMapper = new GraviteeMapper();
         try {
-            Object config = objectMapper.readValue(configuration, LinkedHashMap.class);
+            Object config = mapper.readValue(configuration, LinkedHashMap.class);
             if (config instanceof LinkedHashMap) {
                 @SuppressWarnings("unchecked")
                 LinkedHashMap<String, Object> configMap = (LinkedHashMap<String, Object>) config;

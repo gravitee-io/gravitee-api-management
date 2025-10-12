@@ -107,7 +107,7 @@ class PageMapperTest extends AbstractMapperTest {
             LinkedHashMap<String, Object> configMap = (LinkedHashMap<String, Object>) config;
 
             // Verify that privateToken is masked
-            assertEquals("********", configMap.get("privateToken"));
+            assertThat(configMap.get("privateToken")).isEqualTo("********");
 
             // Verify that other non-sensitive data is preserved
             assertEquals("https://gitlab.com/api/v4", configMap.get("gitlabUrl"));
