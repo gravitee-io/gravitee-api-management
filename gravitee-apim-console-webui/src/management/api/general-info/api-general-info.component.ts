@@ -17,7 +17,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { combineLatest, EMPTY, of, Subject } from 'rxjs';
+import { combineLatest, EMPTY, of, Subject, merge } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { NewFile } from '@gravitee/ui-particles-angular';
 
@@ -108,12 +108,14 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
+  private refresh$ = new Subject<void>();
+
   ngOnInit(): void {
     this.labelsAutocompleteOptions = this.constants.env?.settings?.api?.labelsDictionary ?? [];
 
     this.isQualityEnabled = this.constants.env?.settings?.apiQualityMetrics?.enabled;
 
-    this.activatedRoute.params
+    merge(this.activatedRoute.params, this.refresh$.pipe(map(() => this.activatedRoute.snapshot.params)))
       .pipe(
         switchMap((params) => {
           this.apiId = params.apiId;
@@ -341,8 +343,10 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             })
             .afterClosed(),
         ),
-        filter((confirm) => confirm === true),
-        tap(() => this.ngOnInit()),
+        filter((apiId) => !!apiId),
+        tap(() => {
+          this.refresh$.next();
+        }),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
           return EMPTY;
