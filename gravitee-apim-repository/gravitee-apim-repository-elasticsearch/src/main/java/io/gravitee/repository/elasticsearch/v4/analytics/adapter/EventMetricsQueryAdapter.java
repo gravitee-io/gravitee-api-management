@@ -220,7 +220,7 @@ public final class EventMetricsQueryAdapter {
         ObjectNode fieldNode = MAPPER.createObjectNode();
         fieldNode.put(FIELD, fieldName);
 
-        if (fieldName.equals("topic")) {
+        if (fieldName.equals("topic") || fieldName.equals("plan-id") || fieldName.equals("app-id")) {
             fieldNode.put(MISSING_BUCKET, true);
         }
 

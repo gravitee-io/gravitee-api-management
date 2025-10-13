@@ -402,6 +402,14 @@ class EventMetricsQueryAdapterTest {
                 if (wrapperKey.equals("topic")) {
                     assertTrue(src.get(wrapperKey).get(TERMS).get(MISSING_BUCKET).asBoolean());
                 }
+
+                if (wrapperKey.equals("app-id")) {
+                    assertTrue(src.get(wrapperKey).get(TERMS).get(MISSING_BUCKET).asBoolean());
+                }
+
+                if (wrapperKey.equals("plan-id")) {
+                    assertTrue(src.get(wrapperKey).get(TERMS).get(MISSING_BUCKET).asBoolean());
+                }
             }
         }
 
