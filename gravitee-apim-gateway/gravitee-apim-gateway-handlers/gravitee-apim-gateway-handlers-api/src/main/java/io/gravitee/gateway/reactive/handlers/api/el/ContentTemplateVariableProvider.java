@@ -19,6 +19,7 @@ import static io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionCo
 import static io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
 import static io.reactivex.rxjava3.core.Single.defer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -26,6 +27,7 @@ import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.HttpResponse;
@@ -33,10 +35,15 @@ import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.gravitee.gateway.reactive.core.context.ExecutionContextTemplateVariableProvider;
+import java.io.ByteArrayInputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  * {@link TemplateVariableProvider} allowing to add access to request and response content from the template engine.
@@ -45,6 +52,7 @@ import java.util.regex.Pattern;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ContentTemplateVariableProvider implements ExecutionContextTemplateVariableProvider {
 
     protected static final String TEMPLATE_ATTRIBUTE_REQUEST_CONTENT = TEMPLATE_ATTRIBUTE_REQUEST + ".content";
@@ -54,12 +62,10 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
     protected static final String TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON = TEMPLATE_ATTRIBUTE_RESPONSE + ".jsonContent";
     protected static final String TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML = TEMPLATE_ATTRIBUTE_RESPONSE + ".xmlContent";
 
-    private static final Pattern EXTRACTING_ROOT_TAG_PATTERN = java.util.regex.Pattern.compile(
-        "(?s)(?:<\\?[^>]*+>\\s*+)?<([^?!/][^>]*+)>.*+"
-    );
     private static final TypeReference<HashMap<String, Object>> MAPPER_TYPE_REFERENCE = new TypeReference<>() {};
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
-    private static final XmlMapper XML_MAPPER = new XmlMapper();
+    private static final XMLInputFactory XML_INPUT_FACTORY = XMLInputFactory.newFactory();
+    private static final XmlMapper XML_MAPPER = new XmlMapper(XML_INPUT_FACTORY);
 
     @Override
     public <T extends BaseExecutionContext> void provide(T executionContext) {
@@ -86,7 +92,10 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
 
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML,
-                bodyRequestDefer.map(this::xmlToMap).doOnSuccess(evaluableRequest::setXmlContent).ignoreElement()
+                bodyRequestDefer
+                    .map(buffer -> xmlToMap(ctx, buffer))
+                    .doOnSuccess(evaluableRequest::setXmlContent)
+                    .ignoreElement()
             );
         }
 
@@ -104,7 +113,10 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
 
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML,
-                bodyResponseDefer.map(this::xmlToMap).doOnSuccess(evaluableResponse::setXmlContent).ignoreElement()
+                bodyResponseDefer
+                    .map(buffer -> xmlToMap(ctx, buffer))
+                    .doOnSuccess(evaluableResponse::setXmlContent)
+                    .ignoreElement()
             );
         }
     }
@@ -121,30 +133,53 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
         }
     }
 
-    private Map<String, Object> xmlToMap(Buffer buffer) {
+    private Map<String, Object> xmlToMap(HttpExecutionContext executionContext, Buffer buffer) {
         try {
             if (buffer.length() == 0) {
                 return Collections.emptyMap();
             }
-
-            var xml = buffer.toString();
-            var rootTagName = extractRootTagName(xml);
-
-            HashMap<String, Object> parsed = XML_MAPPER.readValue(xml, MAPPER_TYPE_REFERENCE);
-            // Specific case for <root>content</root>, to avoid creating { "root": { "": "content" } }
-            if (parsed.size() == 1 && parsed.containsKey("")) {
-                return Map.of(rootTagName, parsed.get(""));
+            String sanitizedContent = sanitizeContent(buffer);
+            if (sanitizedContent.isEmpty()) {
+                return Collections.emptyMap();
             }
-
-            return Map.of(rootTagName, parsed);
-        } catch (Exception e) {
+            String wrappedContent = wrapContent(sanitizedContent);
+            return XML_MAPPER.readValue(wrappedContent, MAPPER_TYPE_REFERENCE);
+        } catch (XMLStreamException | JsonProcessingException e) {
+            executionContext.warnWith(new ExecutionWarn("INVALID_XML").message("XML content is invalid").cause(e));
             return Collections.emptyMap();
         }
     }
 
-    private static String extractRootTagName(String xml) {
-        var matcher = EXTRACTING_ROOT_TAG_PATTERN.matcher(xml.trim().replaceAll("\\s+", " "));
-        // To deal with tag containing attributes like <users xmlns="http://example.com" version="1.0"> we take the 1st element
-        return matcher.replaceFirst("$1").split("\\s+")[0];
+    /**
+     * Remove XML prolog and DocType tags
+     * @param buffer the XML content to sanitized
+     * @return the sanitized XML
+     */
+    private String sanitizeContent(Buffer buffer) throws XMLStreamException {
+        XMLStreamReader sr = XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(buffer.getBytes()));
+        while (!sr.isStartElement() && sr.hasNext()) {
+            try {
+                sr.next();
+            } catch (Exception e) {
+                log.debug("Ignoring error while parsing XML content to find a start element", e);
+            }
+        }
+        if (sr.isStartElement()) {
+            return buffer.toString().substring(sr.getLocation().getCharacterOffset());
+        }
+        return "";
+    }
+
+    /**
+     * Wrap xml content into a randomly generated xml tag.
+     * This generated tag allow to handle multiple root tag in the initial content.
+     *
+     * @param content the XML content to wrap
+     * @return the wrapped XML
+     */
+    private String wrapContent(String content) {
+        String generatedString = RandomStringUtils.insecure().next(10, true, false);
+
+        return "<" + generatedString + ">" + content + "</" + generatedString + ">";
     }
 }
