@@ -22,6 +22,7 @@ import static io.gravitee.gateway.debug.utils.Stubs.getAnEvent;
 import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -73,6 +74,7 @@ import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -145,7 +147,7 @@ class DebugReactorEventListenerTest {
 
     @Test
     void should_register_reactor_event_listener() throws Exception {
-        eventManager = new EventManagerImpl();
+        eventManager = spy(new EventManagerImpl());
         debugReactorEventListener = spy(
             new DebugReactorEventListener(
                 vertx,
@@ -340,7 +342,7 @@ class DebugReactorEventListenerTest {
             final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
             when(mockHttpClient.rxRequest(any())).thenReturn(Single.just(httpClientRequest));
             when(httpClientRequest.setChunked(true)).thenReturn(httpClientRequest);
-            when(httpClientRequest.rxSend()).thenReturn(Single.error(new RuntimeException()));
+            when(httpClientRequest.rxSend(any(String.class))).thenReturn(Single.error(new RuntimeException()));
 
             debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
@@ -415,7 +417,7 @@ class DebugReactorEventListenerTest {
             final ReactableEvent<Event> reactableWrapper = new ReactableEvent<>(anEvent.getId(), anEvent);
 
             when(reactorHandlerRegistry.contains(any(DebugApiV2.class))).thenReturn(false);
-            when(eventRepository.update(any())).thenThrow(TechnicalException.class);
+            when(eventRepository.update(any())).thenThrow(new TechnicalException("error"));
 
             debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
@@ -473,9 +475,17 @@ class DebugReactorEventListenerTest {
             final HttpClient mockHttpClient = mock(HttpClient.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
+            // Mock successful Buffer body in HttpClientResponse
+            final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
+            when(httpClientResponse.statusCode()).thenReturn(200);
+            final Buffer bodyBuffer = Buffer.buffer("response body");
+            when(httpClientResponse.rxBody()).thenReturn(Single.just(bodyBuffer));
+
             // Mock successful HttpClientRequest
             final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
             when(mockHttpClient.rxRequest(any())).thenReturn(Single.just(httpClientRequest));
+            when(httpClientRequest.setChunked(true)).thenReturn(httpClientRequest);
+            when(httpClientRequest.rxSend(any(String.class))).thenReturn(Single.just(httpClientResponse));
 
             debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
@@ -487,6 +497,13 @@ class DebugReactorEventListenerTest {
                         .noneMatch(plan -> plan.getStatus().equals("CLOSED"))
                 )
             );
+
+            await()
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
+                    verify(reactorHandlerRegistry).remove(any());
+                });
         }
     }
 
@@ -640,7 +657,6 @@ class DebugReactorEventListenerTest {
                             .build()
                     )
                 );
-
             when(objectMapper.readValue(anyString(), any(DebugApiV4.class.getClass()))).thenReturn(debugApiModel);
 
             Event anEvent = getAnEvent(EVENT_ID, PAYLOAD, new HashMap<>(Map.of("definition_version", "V4")));
@@ -652,8 +668,16 @@ class DebugReactorEventListenerTest {
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
             // Mock successful HttpClientRequest
+            final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
+            when(httpClientResponse.statusCode()).thenReturn(200);
+            final Buffer bodyBuffer = Buffer.buffer("response body");
+            when(httpClientResponse.rxBody()).thenReturn(Single.just(bodyBuffer));
+
+            // Mock successful HttpClientRequest
             final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
             when(mockHttpClient.rxRequest(any())).thenReturn(Single.just(httpClientRequest));
+            when(httpClientRequest.setChunked(true)).thenReturn(httpClientRequest);
+            when(httpClientRequest.rxSend(any(String.class))).thenReturn(Single.just(httpClientResponse));
 
             debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
@@ -665,6 +689,13 @@ class DebugReactorEventListenerTest {
                         .noneMatch(plan -> plan.getStatus().equals(PlanStatus.CLOSED))
                 )
             );
+
+            await()
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
+                    verify(reactorHandlerRegistry).remove(any());
+                });
         }
     }
 
