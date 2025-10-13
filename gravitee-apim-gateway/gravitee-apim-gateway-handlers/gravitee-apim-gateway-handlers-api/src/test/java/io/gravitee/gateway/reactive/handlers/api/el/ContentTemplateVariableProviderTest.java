@@ -29,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,13 +41,11 @@ import io.gravitee.gateway.reactive.api.context.HttpResponse;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -423,6 +420,206 @@ class ContentTemplateVariableProviderTest {
             verify(evaluableRequest).setXmlContent(
                 ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
             );
+        }
+
+        @Test
+        void should_provide_request_xml_content_with_wrap_tag() {
+            when(request.bodyOrEmpty()).thenReturn(
+                Single.just(
+                    Buffer.buffer(
+                        """
+                        <wrap>
+                            <user>1</user>
+                        </wrap>
+                        <root>ok</root>
+                        """
+                    )
+                )
+            );
+            when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+
+            cut.provide(ctx);
+
+            ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
+            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+
+            final Completable contentCompletable = completableCaptor.getValue();
+            final TestObserver<Void> obs = contentCompletable.test();
+            obs.assertComplete();
+
+            verify(evaluableRequest).setXmlContent(ofEntries(entry("wrap", ofEntries(entry("user", "1"))), entry("root", "ok")));
+        }
+
+        @Test
+        void should_provide_request_xml_content_with_multiple_key() {
+            when(request.bodyOrEmpty()).thenReturn(
+                Single.just(
+                    Buffer.buffer(
+                        """
+                        <root><key>1</key><key>2</key></root>
+                        """
+                    )
+                )
+            );
+            when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+
+            cut.provide(ctx);
+
+            ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
+            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+
+            final Completable contentCompletable = completableCaptor.getValue();
+            final TestObserver<Void> obs = contentCompletable.test();
+            obs.assertComplete();
+
+            verify(evaluableRequest).setXmlContent(ofEntries(entry("root", ofEntries(entry("key", List.of("1", "2"))))));
+        }
+
+        @Test
+        void should_provide_request_xml_content_with_tag_having_namespaces() {
+            when(request.bodyOrEmpty()).thenReturn(
+                Single.just(
+                    Buffer.buffer(
+                        """
+                        <foo:users xmlns:foo="http://example.com" version="1.0" from="api">
+                           <user>John</user>
+                        </foo:users>
+                        """
+                    )
+                )
+            );
+            when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+
+            cut.provide(ctx);
+
+            ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
+            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+
+            final Completable contentCompletable = completableCaptor.getValue();
+            final TestObserver<Void> obs = contentCompletable.test();
+            obs.assertComplete();
+
+            verify(evaluableRequest).setXmlContent(
+                ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
+            );
+        }
+
+        @Test
+        void should_provide_request_xml_content_with_doctype() {
+            when(request.bodyOrEmpty()).thenReturn(
+                Single.just(
+                    Buffer.buffer(
+                        """
+                        <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "http://docs.oasis-open.org/dita/v1.1/OS/dtd/topic.dtd">
+                        <users xmlns="http://example.com" version="1.0" from="api">
+                           <user>John</user>
+                        </users>
+                        """
+                    )
+                )
+            );
+            when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+
+            cut.provide(ctx);
+
+            ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
+            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+
+            final Completable contentCompletable = completableCaptor.getValue();
+            final TestObserver<Void> obs = contentCompletable.test();
+            obs.assertComplete();
+
+            verify(evaluableRequest).setXmlContent(
+                ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
+            );
+        }
+
+        @Test
+        void should_provide_request_xml_content_with_tag_having_namespaces_and_prologue() {
+            when(request.bodyOrEmpty()).thenReturn(
+                Single.just(
+                    Buffer.buffer(
+                        """
+                        <?xml version="1.0"?>
+                        <foo:users xmlns:foo="http://example.com" version="1.0" from="api">
+                           <user>John</user>
+                        </foo:users>
+                        """
+                    )
+                )
+            );
+            when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+
+            cut.provide(ctx);
+
+            ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
+            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+
+            final Completable contentCompletable = completableCaptor.getValue();
+            final TestObserver<Void> obs = contentCompletable.test();
+            obs.assertComplete();
+
+            verify(evaluableRequest).setXmlContent(
+                ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
+            );
+        }
+
+        @Test
+        void should_provide_request_xml_content_with_doctype_and_prologue() {
+            when(request.bodyOrEmpty()).thenReturn(
+                Single.just(
+                    Buffer.buffer(
+                        """
+                        <?xml version="1.0"?>
+                        <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "http://docs.oasis-open.org/dita/v1.1/OS/dtd/topic.dtd">
+                        <users xmlns="http://example.com" version="1.0" from="api">
+                           <user>John</user>
+                        </users>
+                        """
+                    )
+                )
+            );
+            when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+
+            cut.provide(ctx);
+
+            ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
+            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+
+            final Completable contentCompletable = completableCaptor.getValue();
+            final TestObserver<Void> obs = contentCompletable.test();
+            obs.assertComplete();
+
+            verify(evaluableRequest).setXmlContent(
+                ofEntries(entry("users", ofEntries(entry("version", "1.0"), entry("from", "api"), entry("user", "John"))))
+            );
+        }
+
+        @Test
+        void should_provide_empty_map_when_prolog_and_doctype_only() {
+            when(request.bodyOrEmpty()).thenReturn(
+                Single.just(
+                    Buffer.buffer(
+                        """
+                        <?xml version="1.0"?>
+                        <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "http://docs.oasis-open.org/dita/v1.1/OS/dtd/topic.dtd">
+                        """
+                    )
+                )
+            );
+            when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+
+            cut.provide(ctx);
+
+            ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
+            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+
+            final Completable contentCompletable = completableCaptor.getValue();
+            final TestObserver<Void> obs = contentCompletable.test();
+            obs.assertComplete();
+
+            // An empty map is expected if the content isn't a valid xml.
+            verify(evaluableRequest).setXmlContent(Collections.emptyMap());
         }
     }
 }
