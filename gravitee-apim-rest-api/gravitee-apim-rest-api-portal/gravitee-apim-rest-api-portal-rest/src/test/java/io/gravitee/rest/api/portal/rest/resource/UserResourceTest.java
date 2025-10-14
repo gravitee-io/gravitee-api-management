@@ -207,7 +207,7 @@ public class UserResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void shouldNotUpdateCurrentUser() {
+    public void shouldNotUpdateCurrentUser() {
         UserInput user = new UserInput().firstName("any").lastName("name");
 
         target().request().put(Entity.json(user));
