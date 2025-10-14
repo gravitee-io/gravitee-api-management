@@ -22,28 +22,24 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
-import io.gravitee.definition.model.debug.DebugApiV2;
 import io.gravitee.definition.model.debug.DebugApiV4;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.debug.definition.ReactableDebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.ReactableEvent;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.secrets.api.discovery.DefinitionMetadata;
 import io.gravitee.secrets.api.event.SecretDiscoveryEvent;
 import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientOptions;
@@ -107,61 +103,59 @@ public class DebugReactorEventListener extends ReactorEventListener {
                     return;
                 }
 
-                try {
-                    reactorHandlerRegistry.create(debugApi);
+                reactorHandlerRegistry.create(debugApi);
 
-                    var secretDiscoveryEvent = new SecretDiscoveryEvent(
-                        debugApi.getEnvironmentId(),
-                        debugApi.getDefinition(),
-                        new DefinitionMetadata(debugApi.getRevision())
+                var secretDiscoveryEvent = new SecretDiscoveryEvent(
+                    debugApi.getEnvironmentId(),
+                    debugApi.getDefinition(),
+                    new DefinitionMetadata(debugApi.getRevision())
+                );
+                eventManager.publishEvent(SecretDiscoveryEventType.DISCOVER, secretDiscoveryEvent);
+
+                HttpRequest debugApiRequest = debugApi.getRequest();
+
+                updateEvent(debugEvent, ApiDebugStatus.DEBUGGING)
+                    .andThen(
+                        Completable.defer(() -> {
+                            logger.info("Sending request to debug");
+                            HttpClient httpClient = vertx.createHttpClient(buildClientOptions());
+                            return httpClient
+                                .rxRequest(
+                                    new RequestOptions()
+                                        .setMethod(HttpMethod.valueOf(debugApiRequest.getMethod()))
+                                        .setHeaders(buildHeaders(debugApi, debugApiRequest))
+                                        .setURI(debugApi.extractUri())
+                                        .setTimeout(debugHttpClientConfiguration.getRequestTimeout())
+                                )
+                                .map(httpClientRequest ->
+                                    // Always set chunked mode for gRPC transport
+                                    httpClientRequest.setChunked(true)
+                                )
+                                .flatMap(httpClientRequest ->
+                                    debugApiRequest.getBody() == null
+                                        ? httpClientRequest.rxSend()
+                                        : httpClientRequest.rxSend(debugApiRequest.getBody())
+                                )
+                                .doOnSuccess(httpClientResponse -> logger.debug("Response status: {}", httpClientResponse.statusCode()))
+                                .flatMap(io.vertx.rxjava3.core.http.HttpClientResponse::rxBody)
+                                .doFinally(httpClient::close)
+                                .ignoreElement();
+                        })
+                    )
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(
+                        () -> {
+                            logger.info("Debugging successful, removing the handler.");
+                            eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
+                            reactorHandlerRegistry.remove(debugApi);
+                        },
+                        throwable -> {
+                            logger.error("Debugging API has failed, removing the handler.", throwable);
+                            eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
+                            reactorHandlerRegistry.remove(debugApi);
+                            failEvent(debugEvent);
+                        }
                     );
-                    eventManager.publishEvent(SecretDiscoveryEventType.DISCOVER, secretDiscoveryEvent);
-
-                    HttpRequest debugApiRequest = debugApi.getRequest();
-                    updateEvent(debugEvent, ApiDebugStatus.DEBUGGING);
-
-                    logger.info("Sending request to debug");
-                    HttpClient httpClient = vertx.createHttpClient(buildClientOptions());
-
-                    httpClient
-                        .rxRequest(
-                            new RequestOptions()
-                                .setMethod(HttpMethod.valueOf(debugApiRequest.getMethod()))
-                                .setHeaders(buildHeaders(debugApi, debugApiRequest))
-                                .setURI(debugApi.extractUri())
-                                .setTimeout(debugHttpClientConfiguration.getRequestTimeout())
-                        )
-                        .map(httpClientRequest ->
-                            // Always set chunked mode for gRPC transport
-                            httpClientRequest.setChunked(true)
-                        )
-                        .flatMap(httpClientRequest ->
-                            debugApiRequest.getBody() == null
-                                ? httpClientRequest.rxSend()
-                                : httpClientRequest.rxSend(debugApiRequest.getBody())
-                        )
-                        .doOnSuccess(httpClientResponse -> logger.debug("Response status: {}", httpClientResponse.statusCode()))
-                        .flatMap(io.vertx.rxjava3.core.http.HttpClientResponse::rxBody)
-                        .doFinally(httpClient::close)
-                        .subscribeOn(Schedulers.io())
-                        .subscribe(
-                            body -> {
-                                logger.info("Debugging successful, removing the handler.");
-                                eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
-                                reactorHandlerRegistry.remove(debugApi);
-                            },
-                            throwable -> {
-                                logger.error("Debugging API has failed, removing the handler.", throwable);
-                                eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
-                                reactorHandlerRegistry.remove(debugApi);
-                                failEvent(debugEvent);
-                            }
-                        );
-                } catch (TechnicalException e) {
-                    logger.error("An error occurred when debugging api for event {}, removing the handler.", debugApi.getEventId(), e);
-                    reactorHandlerRegistry.remove(debugApi);
-                    failEvent(debugEvent);
-                }
             }
         }
     }
@@ -291,21 +285,20 @@ public class DebugReactorEventListener extends ReactorEventListener {
     }
 
     private void failEvent(io.gravitee.repository.management.model.Event debugEvent) {
-        try {
-            if (debugEvent != null) {
-                updateEvent(debugEvent, ApiDebugStatus.ERROR);
-            }
-        } catch (TechnicalException e) {
-            logger.error("Error when updating event {}", debugEvent.getId(), e);
+        if (debugEvent != null) {
+            updateEvent(debugEvent, ApiDebugStatus.ERROR)
+                .subscribeOn(Schedulers.io())
+                .subscribe(() -> {}, throwable -> logger.error("Failed to update event {} to ERROR status", debugEvent.getId(), throwable));
         }
     }
 
-    private void updateEvent(io.gravitee.repository.management.model.Event debugEvent, ApiDebugStatus apiDebugStatus)
-        throws TechnicalException {
-        debugEvent
-            .getProperties()
-            .put(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name());
-        eventRepository.update(debugEvent);
+    private Completable updateEvent(io.gravitee.repository.management.model.Event debugEvent, ApiDebugStatus apiDebugStatus) {
+        return Completable.fromAction(() -> {
+            debugEvent
+                .getProperties()
+                .put(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name());
+            eventRepository.update(debugEvent);
+        });
     }
 
     private void decryptProperties(final Properties properties) {
