@@ -109,6 +109,9 @@ secrets:
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
 #      watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#    crl:
+#      path: # Path to the CRL file or folder. CRL checking is disabled if not set. Supports DER and PEM formats.
+#      watch: true # Watch for any updates on the CRL and reload it. Default is true.
 #    sni: false
 #    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
 #  websocket:
@@ -158,6 +161,9 @@ secrets:
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
 #      watch: true # Watch for any updates on the keystore/pem and reload it. Default is true.
+#    crl:
+#      path: # Path to the CRL file or folder. CRL checking is disabled if not set. Supports DER and PEM formats.
+#      watch: true # Watch for any updates on the CRL and reload it. Default is true.
 #    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
 #  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
 #    proxyProtocol: false
