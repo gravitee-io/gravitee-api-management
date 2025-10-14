@@ -558,8 +558,8 @@ public class DeleteEnvironmentCommandHandlerTest {
     }
 
     private void verifyDisableEnvironment(ExecutionContext executionContext) {
-        verify(apiStateService).stop(executionContext, API_ID_1, USER_ID);
-        verify(apiStateService).stop(executionContext, API_ID_2, USER_ID);
+        verify(apiStateService).stopWithoutNotification(executionContext, API_ID_1, USER_ID);
+        verify(apiStateService).stopWithoutNotification(executionContext, API_ID_2, USER_ID);
         verify(dictionaryService).stop(executionContext, DICTIONARY_ID);
         verify(identityProviderActivationService).removeAllIdpsFromTarget(
             executionContext,

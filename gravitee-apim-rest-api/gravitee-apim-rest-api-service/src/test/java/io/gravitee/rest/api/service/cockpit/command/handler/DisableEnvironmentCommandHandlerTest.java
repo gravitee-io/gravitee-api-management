@@ -115,7 +115,7 @@ class DisableEnvironmentCommandHandlerTest {
             .awaitDone(1, TimeUnit.SECONDS)
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        verify(apiStateService).stop(eq(context), eq(API_ID), eq(USER_ID));
+        verify(apiStateService).stopWithoutNotification(eq(context), eq(API_ID), eq(USER_ID));
         verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, ENV_APIM_ID);
         verify(dictionaryService).stop(context, DICTIONARY_ID);
         verify(idpActivationService).removeAllIdpsFromTarget(
