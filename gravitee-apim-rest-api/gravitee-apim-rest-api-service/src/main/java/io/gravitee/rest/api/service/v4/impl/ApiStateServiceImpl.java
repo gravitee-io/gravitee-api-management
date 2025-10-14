@@ -269,14 +269,24 @@ public class ApiStateServiceImpl implements ApiStateService {
 
     @Override
     public GenericApiEntity stop(ExecutionContext executionContext, String apiId, String userId) {
+        return stopApi(executionContext, apiId, userId, true);
+    }
+
+    @Override
+    public GenericApiEntity stopWithoutNotification(ExecutionContext executionContext, String apiId, String userId) {
+        return stopApi(executionContext, apiId, userId, false);
+    }
+
+    private GenericApiEntity stopApi(ExecutionContext executionContext, String apiId, String userId, boolean sendNotification) {
         try {
             log.debug("Stop API {}", apiId);
             GenericApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
             GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
-            apiNotificationService.triggerStopNotification(executionContext, genericApiEntity);
+            if (sendNotification) {
+                apiNotificationService.triggerStopNotification(executionContext, genericApiEntity);
+            }
             return apiEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to stop API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
         }
     }
