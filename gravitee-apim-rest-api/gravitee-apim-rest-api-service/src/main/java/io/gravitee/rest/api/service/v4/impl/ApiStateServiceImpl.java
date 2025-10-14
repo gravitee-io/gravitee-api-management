@@ -62,7 +62,6 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -302,16 +301,12 @@ public class ApiStateServiceImpl implements ApiStateService {
 
     @Override
     public GenericApiEntity stop(ExecutionContext executionContext, String apiId, String userId) {
-        try {
-            log.debug("Stop API {}", apiId);
-            GenericApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
-            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
-            apiNotificationService.triggerStopNotification(executionContext, genericApiEntity);
-            return apiEntity;
-        } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to stop API {}", apiId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
-        }
+        return stopApi(executionContext, apiId, userId, true);
+    }
+
+    @Override
+    public GenericApiEntity stopWithoutNotification(ExecutionContext executionContext, String apiId, String userId) {
+        return stopApi(executionContext, apiId, userId, false);
     }
 
     @Override
@@ -337,6 +332,20 @@ public class ApiStateServiceImpl implements ApiStateService {
             return true;
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("Fail to stop Dynamic properties for API " + apiId, ex);
+        }
+    }
+
+    private GenericApiEntity stopApi(ExecutionContext executionContext, String apiId, String userId, boolean sendNotification) {
+        try {
+            log.debug("Stop API {}", apiId);
+            GenericApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
+            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            if (sendNotification) {
+                apiNotificationService.triggerStopNotification(executionContext, genericApiEntity);
+            }
+            return apiEntity;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
         }
     }
 

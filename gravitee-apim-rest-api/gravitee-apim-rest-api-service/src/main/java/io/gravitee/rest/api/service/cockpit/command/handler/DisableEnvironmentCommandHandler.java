@@ -82,7 +82,7 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
                     new ApiCriteria.Builder().state(LifecycleState.STARTED).environmentId(environment.getId()).build(),
                     new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
                 )
-                .forEach(api -> apiStateService.stop(executionContext, api.getId(), payload.userId()));
+                .forEach(api -> apiStateService.stopWithoutNotification(executionContext, api.getId(), payload.userId()));
 
             // Delete related access points
             this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environment.getId());
