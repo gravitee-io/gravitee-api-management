@@ -543,7 +543,7 @@ export class ApiAnalyticsWidgetService {
         } else if (intervalHours >= 1) {
           categories.push(date.toLocaleDateString() + ' ' + date.getHours().toString().padStart(2, '0') + ':00');
         } else {
-          categories.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+          categories.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         }
       }
 
