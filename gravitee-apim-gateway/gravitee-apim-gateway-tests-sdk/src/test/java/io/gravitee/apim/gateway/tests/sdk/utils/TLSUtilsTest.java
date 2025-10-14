@@ -95,4 +95,77 @@ class TLSUtilsTest {
         assertThat(trustStore.isKeyEntry("foo")).isFalse();
         assertThatCode(() -> trustStore.getEntry("foo", null)).doesNotThrowAnyException();
     }
+
+    @Test
+    void should_create_CA_certificate() throws Exception {
+        TLSUtils.X509Pair ca = TLSUtils.createCA("Test CA");
+        assertThat(ca.certificate()).isNotNull();
+        assertThat(ca.certificate().data()).isNotNull();
+        assertThat(ca.certificate().data().getSubjectX500Principal().getName()).contains("CN=Test CA");
+        assertThat(ca.privateKey()).isNotNull();
+        assertThat(ca.privateKey().data()).isNotNull();
+        assertThat(ca.privateKey().data().getAlgorithm()).isEqualTo("RSA");
+
+        assertThat(ca.certificate().data().getBasicConstraints()).isGreaterThanOrEqualTo(0); // is CA
+        assertThat(ca.certificate().data().getKeyUsage()).isNotNull();
+        assertThat(ca.certificate().data().getKeyUsage()[5]).isTrue(); // keyCertSign
+        assertThat(ca.certificate().data().getKeyUsage()[6]).isTrue(); // cRLSign
+    }
+
+    @Test
+    void should_create_CA_signed_certificate() throws Exception {
+        TLSUtils.X509Pair ca = TLSUtils.createCA("Test CA");
+        TLSUtils.X509Pair client = TLSUtils.createCASignedCertificate(ca, "client");
+
+        assertThat(client.certificate()).isNotNull();
+        assertThat(client.certificate().data()).isNotNull();
+        assertThat(client.certificate().data().getSubjectX500Principal().getName()).contains("CN=client");
+        assertThat(client.privateKey()).isNotNull();
+
+        assertThatCode(() -> client.certificate().data().verify(ca.certificate().data().getPublicKey())).doesNotThrowAnyException();
+
+        assertThat(client.certificate().data().getBasicConstraints()).isEqualTo(-1);
+    }
+
+    @Test
+    void should_generate_empty_CRL() throws Exception {
+        TLSUtils.X509Pair ca = TLSUtils.createCA("Test CA");
+        var crl = TLSUtils.generateCRL(ca);
+
+        assertThat(crl).isNotNull();
+        assertThat(crl.getIssuerX500Principal()).isEqualTo(ca.certificate().data().getSubjectX500Principal());
+        assertThat(crl.getRevokedCertificates()).isNullOrEmpty();
+
+        assertThatCode(() -> crl.verify(ca.certificate().data().getPublicKey())).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_generate_CRL_with_revoked_certificates() throws Exception {
+        TLSUtils.X509Pair ca = TLSUtils.createCA("Test CA");
+        TLSUtils.X509Pair client1 = TLSUtils.createCASignedCertificate(ca, "client1");
+        TLSUtils.X509Pair client2 = TLSUtils.createCASignedCertificate(ca, "client2");
+
+        var crl = TLSUtils.generateCRL(ca, client1.certificate().data(), client2.certificate().data());
+
+        assertThat(crl).isNotNull();
+        assertThat(crl.getRevokedCertificates()).hasSize(2);
+        assertThat(crl.isRevoked(client1.certificate().data())).isTrue();
+        assertThat(crl.isRevoked(client2.certificate().data())).isTrue();
+
+        // Verify CRL is signed by CA
+        assertThatCode(() -> crl.verify(ca.certificate().data().getPublicKey())).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_write_CRL_to_PEM_file() throws Exception {
+        TLSUtils.X509Pair ca = TLSUtils.createCA("Test CA");
+        TLSUtils.X509Pair client = TLSUtils.createCASignedCertificate(ca, "revoked-client");
+        var crl = TLSUtils.generateCRL(ca, client.certificate().data());
+
+        Path crlFile = Files.createTempFile("test-crl", ".pem");
+        TLSUtils.writeCrlToPemFile(crl, crlFile);
+
+        assertThat(crlFile).exists();
+        assertThat(crlFile).content().startsWith("-----BEGIN X509 CRL").endsWith("-----END X509 CRL-----\n");
+    }
 }

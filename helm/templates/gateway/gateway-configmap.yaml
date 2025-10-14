@@ -96,6 +96,13 @@ data:
             path: {{ $server.ssl.truststore.path }}
             password: {{ $server.ssl.truststore.password | quote }}
           {{- end }}
+          {{- if $server.ssl.crl }}
+          crl:
+            path: {{ $server.ssl.crl.path }}
+            {{- if hasKey $server.ssl.crl "watch" }}
+            watch: {{ $server.ssl.crl.watch }}
+            {{- end }}
+          {{- end }}
           {{- if $server.ssl.sni }}
           sni: true
           {{- end }}
@@ -152,6 +159,13 @@ data:
           {{- end }}
           path: {{ .Values.gateway.ssl.truststore.path }}
           password: {{ .Values.gateway.ssl.truststore.password | quote }}
+        {{- end }}
+        {{- if .Values.gateway.ssl.crl }}
+        crl:
+          path: {{ .Values.gateway.ssl.crl.path }}
+          {{- if hasKey .Values.gateway.ssl.crl "watch" }}
+          watch: {{ .Values.gateway.ssl.crl.watch }}
+          {{- end }}
         {{- end }}
         {{- if .Values.gateway.ssl.sni }}
         sni: true
