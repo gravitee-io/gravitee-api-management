@@ -3069,6 +3069,8 @@ components:
                     type: string
                     description: API's description. A short description of your API.
                     example: I can use many characters to describe this API.
+                visibility:
+                    $ref: "#/components/schemas/Visibility"
                 definitionVersion:
                     $ref: "#/components/schemas/DefinitionVersion"
                 groups:
