@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, input } from '@angular/core';
+import { Component, effect, input, ViewEncapsulation } from '@angular/core';
 import DOMPurify from 'dompurify';
 import { HookParserEntry } from 'ngx-dynamic-hooks';
 
@@ -27,6 +27,7 @@ import { GraviteeMarkdownRendererService } from '../services/gravitee-markdown-r
   templateUrl: './gravitee-markdown-viewer.component.html',
   // eslint-disable-next-line @angular-eslint/prefer-standalone
   standalone: false,
+  encapsulation: ViewEncapsulation.ShadowDom,
 })
 export class GraviteeMarkdownViewerComponent {
   content = input<string>('');

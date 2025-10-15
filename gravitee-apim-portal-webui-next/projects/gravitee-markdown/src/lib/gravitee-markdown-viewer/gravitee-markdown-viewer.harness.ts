@@ -19,7 +19,10 @@ export class GraviteeMarkdownViewerHarness extends ComponentHarness {
   static hostSelector = 'gmd-viewer';
 
   async getRenderedHtml(): Promise<string> {
-    const innerContainer = await this.locatorFor('ngx-dynamic-hooks')();
-    return innerContainer.getProperty('innerHTML');
+    const host = await this.host();
+    const nativeEl = (host as unknown as { element: HTMLElement }).element;
+    const shadow = nativeEl.shadowRoot;
+    const innerContainer = shadow?.querySelector('ngx-dynamic-hooks');
+    return innerContainer?.innerHTML ?? '';
   }
 }
