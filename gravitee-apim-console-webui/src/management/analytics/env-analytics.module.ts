@@ -22,6 +22,7 @@ import { EnvAnalyticsLayoutComponent } from './env-analytics-layout.component';
 import { AnalyticsDashboardComponent } from './analytics-dashboard/analytics-dashboard.component';
 import { PlatformLogsComponent } from './logs/platform-logs.component';
 import { PlatformLogComponent } from './logs/platform-log.component';
+import { AnalyticsViewerComponent } from './analytics-viewer/analytics-viewer.component';
 
 const routes: Routes = [
   {
@@ -54,6 +55,10 @@ const routes: Routes = [
             page: 'management-api-log',
           },
         },
+      },
+      {
+        path: 'dashboard-v4',
+        component: AnalyticsViewerComponent,
       },
 
       {
