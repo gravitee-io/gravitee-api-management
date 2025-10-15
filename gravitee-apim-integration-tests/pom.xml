@@ -543,6 +543,12 @@
             <version>${gravitee-reactor-native-kafka.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.graviteesource.reactor</groupId>
+            <artifactId>gravitee-reactor-mcp-proxy</artifactId>
+            <version>${gravitee-reactor-mcp-proxy.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- Entrypoints -->
         <dependency>
             <groupId>com.graviteesource.entrypoint</groupId>

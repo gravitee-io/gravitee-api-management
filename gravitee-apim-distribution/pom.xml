@@ -1383,6 +1383,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-mcp-proxy</artifactId>
+                    <version>${gravitee-reactor-mcp-proxy.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
 
                 <!-- Endpoints -->
@@ -1455,6 +1468,19 @@
                     <groupId>com.graviteesource.endpoint</groupId>
                     <artifactId>gravitee-endpoint-agent-to-agent</artifactId>
                     <version>${gravitee-endpoint-agent-to-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-mcp-proxy</artifactId>
+                    <version>${gravitee-reactor-mcp-proxy.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -1630,6 +1656,19 @@
                     <groupId>com.graviteesource.reactor</groupId>
                     <artifactId>gravitee-reactor-native-kafka</artifactId>
                     <version>${gravitee-reactor-native-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.reactor</groupId>
+                    <artifactId>gravitee-reactor-mcp-proxy</artifactId>
+                    <version>${gravitee-reactor-mcp-proxy.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
