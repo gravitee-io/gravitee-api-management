@@ -19,23 +19,28 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import fixtures.ApiFixtures;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.FailoverV4;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
+import io.gravitee.rest.api.management.v2.rest.model.Visibility;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.factory.Mappers;
 
@@ -116,6 +121,39 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(updateApi.getLifecycleState().name());
         assertThat(updateApiEntity.isDisableMembershipNotifications()).isEqualTo(updateApi.getDisableMembershipNotifications());
         assertThat(updateApiEntity.getExecutionMode().name()).isEqualTo(updateApi.getExecutionMode().getValue());
+    }
+
+    @ParameterizedTest
+    @EnumSource(Visibility.class)
+    void shouldMapCreateApiV4Visibility(Visibility visibility) {
+        CreateApiV4 newApi = CreateApiV4.builder()
+            .name("Test API")
+            .apiVersion("1.0.0")
+            .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
+            .type(io.gravitee.rest.api.management.v2.rest.model.ApiType.PROXY)
+            .visibility(visibility)
+            .tags(Set.of("tag1"))
+            .build();
+        var mapped = apiMapper.mapToNewHttpApi(newApi);
+        assertThat(mapped).isNotNull();
+        assertThat(mapped.getVisibility()).isEqualTo(Api.Visibility.valueOf(visibility.name()));
+    }
+
+    @ParameterizedTest
+    @EnumSource(Visibility.class)
+    void shouldMapCreateNativeApiV4Visibility(Visibility visibility) {
+        CreateApiV4 newApi = CreateApiV4.builder()
+            .name("Test Native API")
+            .apiVersion("1.0.0")
+            .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
+            .type(io.gravitee.rest.api.management.v2.rest.model.ApiType.NATIVE)
+            .visibility(visibility)
+            .tags(Set.of("tag2"))
+            .build();
+
+        var mapped = apiMapper.mapToNewNativeApi(newApi);
+        assertThat(mapped).isNotNull();
+        assertThat(mapped.getVisibility()).isEqualTo(Api.Visibility.valueOf(visibility.name()));
     }
 
     @Nested
