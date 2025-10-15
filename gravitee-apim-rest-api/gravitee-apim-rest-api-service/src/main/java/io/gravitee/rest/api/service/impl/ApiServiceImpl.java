@@ -430,6 +430,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         apiEntity.setPathMappings(new HashSet<>(declaredPaths));
+        apiEntity.setVisibility(newApiEntity.getVisibility());
 
         return createFromUpdateApiEntity(executionContext, apiEntity, userId, null);
     }
