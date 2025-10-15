@@ -25,15 +25,13 @@ $token-mapping: overrides.tokens();
   background-color: #fff;
 
   &__inner-border {
+    position: relative;
+    overflow: auto;
     width: calc(50% - 6.5px);
-    padding: 4px 0;
+    padding: 16px;
     border: 1px solid token-utils.slot(container-outline-color, $token-mapping);
     border-radius: 4px;
-
-    &--viewer {
-      overflow: auto;
-      padding: 12px 16px;
-    }
+    contain: layout style;
   }
 
   .hr {
