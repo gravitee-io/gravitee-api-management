@@ -23,5 +23,7 @@
     (valueChange)="onValueChange($event)"
     (touched)="onTouched()" />
   <hr class="hr" />
-  <gmd-viewer class="container__inner-border container__inner-border--viewer" [content]="value" />
+  <div class="container__inner-border">
+    <gmd-viewer [content]="value" />
+  </div>
 </div>
