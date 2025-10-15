@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
+import { GraviteeDashboardComponent } from '@gravitee/gravitee-dashboard';
 
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
+import { Component } from '@angular/core';
 
-export * from './lib/components/grid/grid.component';
+@Component({
+  selector: 'analytics-viewer',
+  imports: [GraviteeDashboardComponent],
+  templateUrl: './analytics-viewer.component.html',
+  styleUrl: './analytics-viewer.component.scss',
+})
+export class AnalyticsViewerComponent {}

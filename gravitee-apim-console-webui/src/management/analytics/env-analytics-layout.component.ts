@@ -25,6 +25,9 @@ import { Component } from '@angular/core';
       <a mat-tab-link routerLinkActive #rla2="routerLinkActive" [active]="rla2.isActive" routerLink="logs"
         ><mat-icon class="navigation-tabs__icon" svgIcon="gio:table-rows"></mat-icon> Logs</a
       >
+      <a mat-tab-link routerLinkActive #rla3="routerLinkActive" [active]="rla3.isActive" routerLink="dashboard-v4"
+        ><mat-icon class="navigation-tabs__icon" svgIcon="gio:dashboard-dots"></mat-icon> Analytics (beta)</a
+      >
     </nav>
     <mat-tab-nav-panel #tabPanel>
       <router-outlet></router-outlet>

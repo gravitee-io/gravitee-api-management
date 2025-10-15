@@ -1,6 +1,6 @@
 const { execSync } = require('child_process');
 module.exports = {
-  name: 'yarn-doctor',
+  name: 'gravitee-portal',
   factory: () => {
     return {
       hooks: {

@@ -192,6 +192,10 @@
             "development": {
               "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.json",
               "project": "projects/gravitee-dashboard/ng-package.portal-next.json"
+            },
+            "console": {
+              "tsConfig": "projects/gravitee-dashboard/tsconfig.lib.prod.json",
+              "project": "projects/gravitee-dashboard/ng-package.console.json"
             }
           },
           "defaultConfiguration": "production"
