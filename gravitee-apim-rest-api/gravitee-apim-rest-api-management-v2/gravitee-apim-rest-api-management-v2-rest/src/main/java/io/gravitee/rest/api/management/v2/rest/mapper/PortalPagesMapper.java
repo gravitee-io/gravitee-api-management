@@ -18,7 +18,9 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.apim.core.portal_page.use_case.CreatePortalPageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageUseCase;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalPageRequest;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPagesResponse;
 import java.util.List;
@@ -52,4 +54,6 @@ public interface PortalPagesMapper {
     }
 
     PortalPagesResponse map(GetPortalPageUseCase.Output page);
+
+    CreatePortalPageUseCase.Input map(CreatePortalPageRequest request, String environmentId);
 }

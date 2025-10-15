@@ -20,10 +20,12 @@ import static java.util.Optional.ofNullable;
 import io.gravitee.apim.core.portal_page.model.ExpandsViewContext;
 import io.gravitee.apim.core.portal_page.model.PageId;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.apim.core.portal_page.use_case.CreatePortalPageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageViewPublicationStatusUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalPagesMapper;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalPageRequest;
 import io.gravitee.rest.api.management.v2.rest.model.PatchPortalPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPagesResponse;
@@ -55,6 +57,9 @@ public class PortalPagesResource extends AbstractResource {
 
     @Inject
     UpdatePortalPageViewPublicationStatusUseCase updatePortalPageViewPublicationStatusUseCase;
+
+    @Inject
+    private CreatePortalPageUseCase createPortalPageUseCase;
 
     @PathParam("envId")
     private String envId;
@@ -111,5 +116,16 @@ public class PortalPagesResource extends AbstractResource {
         var input = new UpdatePortalPageViewPublicationStatusUseCase.Input(PageId.of(pageId), false);
         var updatedHomepage = updatePortalPageViewPublicationStatusUseCase.execute(input);
         return PortalPagesMapper.INSTANCE.map(updatedHomepage.portalPage());
+    }
+
+    @POST
+    @Produces("application/json")
+    @Consumes("application/json")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    public PortalPageWithDetails createPortalPage(CreatePortalPageRequest createPortalPageRequest) {
+        var input = PortalPagesMapper.INSTANCE.map(createPortalPageRequest, envId);
+        var createdPage = createPortalPageUseCase.execute(input);
+
+        return PortalPagesMapper.INSTANCE.map(createdPage.portalPage());
     }
 }
