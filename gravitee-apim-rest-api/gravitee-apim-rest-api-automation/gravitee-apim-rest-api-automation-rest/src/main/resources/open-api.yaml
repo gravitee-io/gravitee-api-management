@@ -1668,7 +1668,6 @@ components:
         - name
         - type
         - visibility
-        - order
 
     PageType:
       type: string
