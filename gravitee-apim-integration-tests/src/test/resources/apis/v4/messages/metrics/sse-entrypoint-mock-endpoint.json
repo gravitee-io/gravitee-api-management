@@ -1,6 +1,6 @@
 {
-  "id": "metrics-message-api",
-  "name": "metrics-message-api",
+  "id": "sse-metrics-message-api",
+  "name": "sse-metrics-message-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
   "type": "message",

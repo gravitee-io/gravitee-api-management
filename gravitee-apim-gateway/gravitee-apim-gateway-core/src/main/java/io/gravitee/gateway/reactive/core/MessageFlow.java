@@ -25,31 +25,45 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class MessageFlow<T extends Message> implements OnMessagesInterceptor<T> {
 
     private Map<String, MessagesInterceptor<T>> onMessagesInterceptorsMapping;
     private List<MessagesInterceptor<T>> messagesInterceptorsPrioritized;
 
-    @Getter
-    @Setter
-    @Accessors(fluent = true)
     private Flowable<T> messages = Flowable.empty();
 
+    public void messages(Flowable<T> messages) {
+        this.messages = messages;
+    }
+
+    public Flowable<T> messages() {
+        applyMessageInterceptors(m -> m);
+
+        return this.messages;
+    }
+
     public void onMessages(final FlowableTransformer<T, T> onMessages) {
+        applyMessageInterceptors(onMessages);
+    }
+
+    private void applyMessageInterceptors(FlowableTransformer<T, T> onMessages) {
         if (messagesInterceptorsPrioritized != null) {
             FlowableTransformer<T, T> composedTransformers = onMessages;
             for (MessagesInterceptor<T> messagesInterceptor : messagesInterceptorsPrioritized) {
                 composedTransformers = messagesInterceptor.transformersFunction().apply(composedTransformers);
             }
             this.messages = this.messages.compose(composedTransformers);
+
+            // Make sure to apply the interceptors once.
+            messagesInterceptorsPrioritized.clear();
+            onMessagesInterceptorsMapping.clear();
         } else {
             this.messages = this.messages.compose(onMessages);
         }
