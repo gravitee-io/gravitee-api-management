@@ -1396,7 +1396,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
-
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-llm-proxy</artifactId>
+                    <version>${gravitee-reactor-llm-proxy.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Endpoints -->
                 <dependency>
@@ -1490,7 +1502,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
-
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-llm-proxy</artifactId>
+                    <version>${gravitee-reactor-llm-proxy.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
                 <!-- Reporters -->
                 <dependency>
                     <groupId>com.graviteesource.reporter</groupId>
@@ -1678,7 +1702,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
-
+                <dependency>
+                    <groupId>com.graviteesource.reactor</groupId>
+                    <artifactId>gravitee-reactor-llm-proxy</artifactId>
+                    <version>${gravitee-reactor-llm-proxy.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
                 <!-- Repositories -->
                 <dependency>
                     <groupId>com.graviteesource.apim</groupId>
