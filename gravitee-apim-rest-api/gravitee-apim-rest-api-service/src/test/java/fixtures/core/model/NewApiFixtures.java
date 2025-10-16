@@ -108,4 +108,38 @@ public class NewApiFixtures {
             )
             .build();
     }
+
+    public static NewHttpApi aMcpProxyApiV4() {
+        return BASE_HTTP.get()
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.MCP_PROXY)
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(Path.builder().path("/mcp_proxy").build()))
+                        .entrypoints(List.of(Entrypoint.builder().type("mcp-proxy").configuration("{}").build()))
+                        .build()
+                )
+            )
+            .endpointGroups(
+                List.of(
+                    EndpointGroup.builder()
+                        .name("default-group")
+                        .type("mcp-proxy")
+                        .sharedConfiguration("{}")
+                        .endpoints(
+                            List.of(
+                                Endpoint.builder()
+                                    .name("default-endpoint")
+                                    .type("mcp-proxy")
+                                    .inheritConfiguration(true)
+                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+            )
+            .build();
+    }
 }

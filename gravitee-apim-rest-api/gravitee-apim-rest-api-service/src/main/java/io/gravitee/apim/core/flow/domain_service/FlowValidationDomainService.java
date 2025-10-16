@@ -77,6 +77,14 @@ public class FlowValidationDomainService {
                 .selectorByType(SelectorType.CHANNEL)
                 .stream()
                 .map(selector -> ((ChannelSelector) selector).getChannel())
+                .findFirst(),
+        ApiType.MCP_PROXY,
+        flow ->
+            flow
+                // TODO(MCP_PROXY): Add a specific MCP selector and use it here
+                .selectorByType(SelectorType.HTTP)
+                .stream()
+                .map(selector -> ((HttpSelector) selector).getPath())
                 .findFirst()
     );
 
