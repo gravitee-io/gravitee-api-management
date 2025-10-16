@@ -19,18 +19,17 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.rest.api.service.common.IdBuilder;
-import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,9 +44,10 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
 
     private final PlanValidatorDomainService planValidator;
 
-    public record Input(AuditInfo auditInfo, ApiCRDSpec apiCRDSpec, Map<String, PlanCRD> plans) implements Validator.Input {
-        ValidatePlanDomainService.Input sanitized(Map<String, PlanCRD> sanitizedPages) {
-            return new ValidatePlanDomainService.Input(auditInfo, apiCRDSpec, sanitizedPages);
+    public record Input(AuditInfo auditInfo, ApiCRDSpec apiCRDSpec, Map<String, PlanCRD> plans, List<Page> pages) implements
+        Validator.Input {
+        ValidatePlanDomainService.Input sanitized(Map<String, PlanCRD> sanitizedPlans) {
+            return new ValidatePlanDomainService.Input(auditInfo, apiCRDSpec, sanitizedPlans, pages);
         }
     }
 
@@ -70,12 +70,17 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
                 }
 
                 plan.setHrid(k);
-                if (plan.getGeneralConditionsHrid() != null && !plan.getGeneralConditionsHrid().isEmpty()) {
-                    plan.setGeneralConditions(
+                if (
+                    (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
+                    (planCRD.getGeneralConditionsHrid() != null && !planCRD.getGeneralConditionsHrid().isEmpty())
+                ) {
+                    planCRD.setGeneralConditions(
                         IdBuilder.builder(input.auditInfo, input.apiCRDSpec.getHrid())
                             .withExtraId(plan.getGeneralConditionsHrid())
                             .buildId()
                     );
+                    plan.setGeneralConditionsHrid(planCRD.getGeneralConditionsHrid());
+                    plan.setGeneralConditions(planCRD.getGeneralConditions());
                 }
 
                 planValidator.validatePlanSecurity(
@@ -85,7 +90,7 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
                     ApiType.valueOf(input.apiCRDSpec.getType())
                 );
                 planValidator.validatePlanTagsAgainstApiTags(plan.getPlanTags(), input.apiCRDSpec.getTags());
-                planValidator.validateGeneralConditionsPageStatus(plan);
+                planValidator.validateGeneralConditionsPage(plan, input.pages);
                 planValidator.validatePlanSecurityAgainstEntrypoints(
                     plan.getPlanSecurity(),
                     input.apiCRDSpec.getListeners().stream().map(AbstractListener::getType).toList()

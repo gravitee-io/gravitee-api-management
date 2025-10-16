@@ -66,6 +66,7 @@ public class ValidatePagesDomainService implements Validator<ValidatePagesDomain
                 page.setReferenceId(input.apiId());
                 if (page.getId() == null) {
                     page.setId(IdBuilder.builder(input.auditInfo, input.apiHrid).withExtraId(k).buildId());
+                    v.setId(page.getId());
                 }
                 page.setHrid(k);
                 if (v.getParentId() == null && v.getParentHrid() != null) {

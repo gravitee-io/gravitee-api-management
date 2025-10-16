@@ -144,7 +144,7 @@ class ValidateApiCRDDomainServiceTest {
             pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any()))
         ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any()))).thenAnswer(call ->
+        when(planValidator.validateAndSanitize(any(ValidatePlanDomainService.Input.class))).thenAnswer(call ->
             Validator.Result.ofValue(call.getArgument(0))
         );
 
@@ -195,7 +195,7 @@ class ValidateApiCRDDomainServiceTest {
             pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any()))
         ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any()))).thenAnswer(call ->
+        when(planValidator.validateAndSanitize(any(ValidatePlanDomainService.Input.class))).thenAnswer(call ->
             Validator.Result.ofValue(call.getArgument(0))
         );
 
@@ -245,7 +245,7 @@ class ValidateApiCRDDomainServiceTest {
             pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any()))
         ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        when(planValidator.validateAndSanitize(new ValidatePlanDomainService.Input(AUDIT_INFO, spec, any()))).thenAnswer(call ->
+        when(planValidator.validateAndSanitize(any(ValidatePlanDomainService.Input.class))).thenAnswer(call ->
             Validator.Result.ofValue(call.getArgument(0))
         );
 
