@@ -1,3 +1,10 @@
+# [3.6.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.5.6...3.6.0) (2025-10-16)
+
+
+### Features
+
+* add failure and warnings metrics to v2 and v4 ([#135](https://github.com/gravitee-io/gravitee-reporter-file/issues/135)) ([28b6578](https://github.com/gravitee-io/gravitee-reporter-file/commit/28b6578008076c76e3d62d3aaa83bb9f26daf7a2))
+
 ## [3.5.6](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.5.5...3.5.6) (2025-10-01)
 
 
