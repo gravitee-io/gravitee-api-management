@@ -1722,6 +1722,8 @@ components:
                     description: Content type
                     enum:
                         - gravitee_markdown
+                        - link
+                        - section
                 context:
                     type: string
                     description: The portal context (eg. "homepage", "top_navbar")
