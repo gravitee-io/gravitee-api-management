@@ -15,7 +15,14 @@
  */
 package io.gravitee.apim.integration.tests.messages.webhook;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToIgnoreCase;
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThan;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -293,6 +300,10 @@ public class WebhookTestingActions {
 
     public void verifyMessages(int messageCount, String callbackPath, String message) {
         wiremock.verify(messageCount, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo(message)));
+    }
+
+    public void verifyMessagesAtLeast(int messageCount, String callbackPath, String message) {
+        wiremock.verify(moreThan(1), postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo(message)));
     }
 
     public void verifyMessagesWithHeaders(int messageCount, String callbackPath, String message, List<HttpHeader> headers) {
