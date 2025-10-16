@@ -95,6 +95,7 @@ export class Step1ApiDetailsComponent implements OnInit {
       this.stepService.validStep((previousPayload) => ({
         ...previousPayload,
         ...apiDetailsValue,
+        architecture: 'PROXY',
         type: 'PROXY',
       }));
 

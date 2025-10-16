@@ -19,7 +19,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { ComponentFixture, discardPeriodicTasks, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, discardPeriodicTasks, fakeAsync, flush, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
@@ -29,16 +29,12 @@ import { ApiCreationV4SpecHttpExpects } from './api-creation-v4-spec-http-expect
 import { ApiCreationV4SpecStepperHelper } from './api-creation-v4-spec-stepper-helper';
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { ApiCreationV4Module } from './api-creation-v4.module';
-import { Step2Entrypoints1ListHarness } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.harness';
-import { Step2Entrypoints2ConfigHarness } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.harness';
 import { Step5SummaryHarness } from './steps/step-5-summary/step-5-summary.harness';
-import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoints-1-list.harness';
 
 import { Constants } from '../../../entities/Constants';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { AGENT_TO_AGENT } from '../../../entities/management-api-v2/api/v4/agentToAgent';
 
-describe('ApiCreationV4Component - Message - Agent Proxy', () => {
+describe('ApiCreationV4Component - PROXY - MCP Proxy', () => {
   let fixture: ComponentFixture<ApiCreationV4Component>;
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -111,10 +107,10 @@ describe('ApiCreationV4Component - Message - Agent Proxy', () => {
     stepperHelper = new ApiCreationV4SpecStepperHelper(harnessLoader, httpExpects, httpTestingController);
   };
 
-  const agentToAgent: Partial<ConnectorPlugin> = {
-    id: AGENT_TO_AGENT.id,
-    supportedApiType: 'MESSAGE',
-    name: AGENT_TO_AGENT.name,
+  const mcpConnector: Partial<ConnectorPlugin> = {
+    id: 'mcp-proxy',
+    supportedApiType: 'MCP_PROXY',
+    name: 'MCP Proxy',
     supportedListenerType: 'HTTP',
   };
 
@@ -127,95 +123,42 @@ describe('ApiCreationV4Component - Message - Agent Proxy', () => {
   });
 
   describe('Entrypoint and endpoint validation', () => {
-    /* We save the A2A or the Agent proxy as MESSAGE only but if Protocol Mediation is selected,
-    agent-to-agent entry/end point is not visible and vice versa. */
-
-    it('should not show the agent-to-agent entrypoint when Protocol Mediation is selected', fakeAsync(async () => {
-      await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
-      await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
-
-      httpExpects.expectEntrypointsGetRequest([
-        { id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'HTTP' },
-        { id: AGENT_TO_AGENT.id, supportedApiType: 'MESSAGE', name: AGENT_TO_AGENT.name, supportedListenerType: 'HTTP' },
-      ]);
-
-      const asyncList = await step2Harness.getAsyncEntrypoints();
-      const values = await asyncList.getListValues();
-
-      // agent-to-agent has been removed
-      expect(values).not.toContain(AGENT_TO_AGENT.id);
-      expect(values).toContain('sse');
-    }));
-
-    it('should select the agent-to-agent entrypoint automatically when Agent Proxy is selected', fakeAsync(async () => {
+    it('should select the MCP entrypoint automatically when AI is selected', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       // Select AI architecture
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('AI');
-      // Select A2A and validate the expected entry/end point get request
-      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('AI', [agentToAgent]);
+      // Select MCP and validate the expected entry/end point get request
+      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('AI', [mcpConnector]);
       fixture.detectChanges();
-      // agent-to-agent entrypoint gets selected automatically
+      // MCP entrypoint gets selected automatically
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
         {
-          icon: 'gio-literal:agent-to-agent',
-          id: AGENT_TO_AGENT.id,
-          name: AGENT_TO_AGENT.name,
+          icon: 'gio-literal:mcp-proxy',
+          id: mcpConnector.id,
+          name: mcpConnector.name,
           supportedListenerType: 'HTTP',
           deployed: true,
-          selectedQos: 'NONE',
         },
       ]);
       httpExpects.expectRestrictedDomainsGetRequest([]);
-      httpExpects.expectSchemaGetRequest([agentToAgent]);
+      httpExpects.expectSchemaGetRequest([mcpConnector]);
       httpExpects.expectApiGetPortalConfiguration();
       flush();
       discardPeriodicTasks();
     }));
 
-    it('should not show the agent-to-agent endpoint when Protocol Mediation is selected', fakeAsync(async () => {
-      await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
-      await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
-
-      httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'HTTP' }]);
-
-      await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
-      await step2Harness.clickValidate();
-      httpExpects.expectRestrictedDomainsGetRequest([]);
-      httpExpects.expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      httpExpects.expectApiGetPortalConfiguration();
-      tick(500);
-      const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      await step21Harness.fillPaths('/api/my-api-3');
-      httpExpects.expectVerifyContextPath();
-      expect(await step21Harness.hasValidationDisabled()).toBeFalsy();
-      await step21Harness.clickValidate();
-      const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
-
-      httpExpects.expectEndpointsGetRequest([
-        { id: AGENT_TO_AGENT.id, supportedApiType: 'MESSAGE', name: AGENT_TO_AGENT.name, supportedListenerType: 'HTTP' },
-      ]);
-
-      const asyncList = await step3Harness.getEndpoints();
-      const values = await asyncList.getListValues();
-
-      // agent-to-agent has been removed
-      expect(values).not.toContain(AGENT_TO_AGENT.id);
-    }));
-
-    it('should select the agent-to-agent endpoint automatically when Agent Proxy is selected', fakeAsync(async () => {
+    it('should select the mcp endpoint automatically when MCP Proxy is selected', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('AI');
-      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('AI', [agentToAgent]);
-      await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig([agentToAgent]);
-      await stepperHelper.fillAndValidateStep3_2_EndpointsConfig([agentToAgent]);
-      // agent-to-agent endpoint gets selected automatically
+      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('AI', [mcpConnector]);
+      await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig([mcpConnector]);
+      await stepperHelper.fillAndValidateStep3_2_EndpointsConfig([mcpConnector]);
+      // mcp-proxy' endpoint gets selected automatically
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
         {
-          icon: 'gio-literal:agent-to-agent',
-          id: AGENT_TO_AGENT.id,
-          name: AGENT_TO_AGENT.name,
+          icon: 'gio-literal:mcp-proxy',
+          id: mcpConnector.id,
+          name: mcpConnector.name,
           configuration: {},
           sharedConfiguration: {},
           deployed: true,
@@ -230,9 +173,9 @@ describe('ApiCreationV4Component - Message - Agent Proxy', () => {
     it('should create the API', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API name', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('AI');
-      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('AI', [agentToAgent]);
-      await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig([agentToAgent]);
-      await stepperHelper.fillAndValidateStep3_2_EndpointsConfig([agentToAgent]);
+      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('AI', [mcpConnector]);
+      await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig([mcpConnector]);
+      await stepperHelper.fillAndValidateStep3_2_EndpointsConfig([mcpConnector]);
       await stepperHelper.validateStep4_1_SecurityPlansList();
 
       discardPeriodicTasks();
@@ -245,10 +188,10 @@ describe('ApiCreationV4Component - Message - Agent Proxy', () => {
 
       const step2Summary = await step5Harness.getStepSummaryTextContent(2);
       expect(step2Summary).toContain('Type:' + 'HTTP');
-      expect(step2Summary).toContain('Entrypoints:' + ' Agent to agent');
+      expect(step2Summary).toContain('Entrypoints:' + ' MCP Proxy');
 
       const step3Summary = await step5Harness.getStepSummaryTextContent(3);
-      expect(step3Summary).toContain('Endpoints' + 'Endpoints: ' + AGENT_TO_AGENT.name);
+      expect(step3Summary).toContain('Endpoints' + 'Endpoints: ' + mcpConnector.name);
 
       const step4Summary = await step5Harness.getStepSummaryTextContent(4);
       expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');

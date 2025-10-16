@@ -379,6 +379,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         httpExpects.expectVerifyContextPath();
 
         expect(component.currentStep.payload).toEqual({
+          architecture: 'PROXY',
           name: 'API',
           description: 'Description',
           version: '1.0',
@@ -448,10 +449,10 @@ describe('ApiCreationV4Component - Navigation', () => {
 
         httpExpects.expectEntrypointsGetRequest([]);
         expect(component.currentStep.payload).toEqual({
+          architecture: 'MESSAGE',
           name: 'API',
           description: 'Description',
           version: '1.0',
-          type: 'MESSAGE',
         });
 
         flush();
@@ -508,6 +509,7 @@ describe('ApiCreationV4Component - Navigation', () => {
         httpExpects.expectVerifyContextPath();
 
         expect(component.currentStep.payload).toEqual({
+          architecture: 'PROXY',
           name: 'API',
           description: 'Description',
           version: '1.0',
@@ -592,6 +594,7 @@ describe('ApiCreationV4Component - Navigation', () => {
           name: 'API',
           description: 'Description',
           version: '1.0',
+          architecture: 'PROXY',
           type: 'PROXY',
           hosts: [
             {
@@ -679,6 +682,7 @@ describe('ApiCreationV4Component - Navigation', () => {
           name: 'API',
           description: 'Description',
           version: '1.0',
+          architecture: 'MESSAGE',
           type: 'MESSAGE',
           paths: [
             {
@@ -771,6 +775,7 @@ describe('ApiCreationV4Component - Navigation', () => {
           name: 'API',
           description: 'Description',
           version: '1.0',
+          architecture: 'MESSAGE',
           type: 'MESSAGE',
           paths: [
             {

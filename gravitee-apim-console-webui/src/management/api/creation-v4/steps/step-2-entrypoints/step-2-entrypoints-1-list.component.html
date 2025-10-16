@@ -28,7 +28,7 @@
         *ngIf="entrypoints; else loadingTpl"
         formControlName="selectedEntrypointsIds"
         [entrypoints]="entrypoints"
-        [singleChoice]="apiType === 'PROXY'"
+        [singleChoice]="architecture === 'PROXY' || architecture === 'AI'"
       ></gio-entrypoints-selection-list>
 
       <mat-card class="step-2-entrypoints-1-list__banner">
