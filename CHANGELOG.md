@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.1...1.7.2) (2025-10-16)
+
+
+### Bug Fixes
+
+* update reporter-api to 1.35.1 ([#81](https://github.com/gravitee-io/gravitee-reporter-common/issues/81)) ([7b61a1d](https://github.com/gravitee-io/gravitee-reporter-common/commit/7b61a1d2eb568cb72b3b7b79d675c73ea2fbb7d9))
+
 ## [1.7.1](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.7.0...1.7.1) (2025-10-01)
 
 
