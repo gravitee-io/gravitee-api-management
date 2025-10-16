@@ -1,4 +1,4 @@
-import { ConnectorPlugin, ListenerType, Qos } from '../../index';
+import { ApiType, ConnectorPlugin, ListenerType, Qos } from '../../index';
 import { IconService } from '../../../../services-ngx/icon.service';
 
 /*
@@ -26,6 +26,7 @@ export type ConnectorVM = {
    */
   isEnterprise: boolean;
   supportedListenerType: ListenerType;
+  supportedApiType?: ApiType;
   supportedQos: Qos[];
   icon: string;
   deployed: boolean;
@@ -38,6 +39,7 @@ export const fromConnector: (iconService, connector: ConnectorPlugin) => Connect
     description: connector.description,
     isEnterprise: connector.id.endsWith('-advanced'),
     supportedListenerType: connector.supportedListenerType,
+    supportedApiType: connector.supportedApiType,
     supportedQos: connector.supportedQos,
     icon: iconService.registerSvg(connector.id, connector.icon),
     deployed: connector.deployed,
