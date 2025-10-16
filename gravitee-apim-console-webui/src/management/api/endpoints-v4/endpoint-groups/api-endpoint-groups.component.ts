@@ -19,7 +19,7 @@ import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operato
 import { find, remove } from 'lodash';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { EndpointGroup, toEndpoints } from './api-endpoint-groups.adapter';
 
@@ -31,6 +31,7 @@ import { IconService } from '../../../../services-ngx/icon.service';
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { disableDlqEntrypoint, getMatchingDlqEntrypoints, getMatchingDlqEntrypointsForGroup } from '../api-endpoint-v4-matching-dlq';
 import { AGENT_TO_AGENT } from '../../../../entities/management-api-v2/api/v4/agentToAgent';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-endpoint-groups',
@@ -62,7 +63,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   };
 
   constructor(
-    private readonly router: Router,
+    private permissionService: GioPermissionService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly matDialog: MatDialog,
     private readonly apiService: ApiV2Service,
@@ -80,8 +81,8 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
           this.isA2ASelcted = this.api.listeners?.some((listener) => listener.entrypoints?.some((ep) => ep.type === AGENT_TO_AGENT.id));
           this.groupsTableData = toEndpoints(apiV4);
 
-          this.isReadOnly = this.api.definitionContext?.origin === 'KUBERNETES';
-
+          const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
+          this.isReadOnly = this.api.definitionContext?.origin === 'KUBERNETES' || !canUpdate;
           this.plugins = new Map(
             plugins.map((plugin) => [
               plugin.id,
