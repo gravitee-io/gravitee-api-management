@@ -32,6 +32,8 @@ import java.util.List;
 @UseCase
 public class CreateHttpApiUseCase {
 
+    private static final List<ApiType> SUPPORTED_API_TYPES = List.of(ApiType.PROXY, ApiType.MESSAGE, ApiType.MCP_PROXY, ApiType.LLM_PROXY);
+
     private final ValidateApiDomainService validateApiDomainService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final CreateApiDomainService createApiDomainService;
@@ -51,7 +53,7 @@ public class CreateHttpApiUseCase {
     public record Output(ApiWithFlows api) {}
 
     public Output execute(Input input) {
-        if (input.newHttpApi == null || (input.newHttpApi.getType() != ApiType.PROXY && input.newHttpApi.getType() != ApiType.MESSAGE)) {
+        if (input.newHttpApi == null || !SUPPORTED_API_TYPES.contains(input.newHttpApi.getType())) {
             throw new ApiInvalidTypeException(List.of(ApiType.PROXY, ApiType.MESSAGE));
         }
         var auditInfo = input.auditInfo;
