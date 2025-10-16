@@ -138,6 +138,7 @@ describe('ApiCreationV4Component - PROXY - LLM Proxy', () => {
           name: llmConnector.name,
           supportedListenerType: 'HTTP',
           deployed: true,
+          selectedQos: 'NONE',
         },
       ]);
       httpExpects.expectRestrictedDomainsGetRequest([]);
