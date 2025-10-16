@@ -125,7 +125,7 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
             <td mat-cell *matCellDef="let element; let j = index">
-              <div class="endpoint-group-card__table__actions" *gioPermission="{ anyOf: ['api-definition-u'] }">
+              <div class="endpoint-group-card__table__actions">
                 <a
                   mat-icon-button
                   [attr.aria-label]="isReadOnly ? 'View endpoint' : 'Edit endpoint'"
@@ -137,6 +137,7 @@
                 <button
                   mat-icon-button
                   aria-label="Delete endpoint"
+                  *gioPermission="{ anyOf: ['api-definition-u'] }"
                   (click)="deleteEndpoint(group.name, element.name)"
                   [disabled]="isReadOnly || (groupsTableData?.length === 1 && group.endpoints.length === 1)"
                 >
