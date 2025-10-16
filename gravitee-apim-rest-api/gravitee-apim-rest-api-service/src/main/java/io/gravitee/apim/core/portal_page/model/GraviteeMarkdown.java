@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 public record GraviteeMarkdown(@Nonnull String content) {
     public boolean isEmpty() {

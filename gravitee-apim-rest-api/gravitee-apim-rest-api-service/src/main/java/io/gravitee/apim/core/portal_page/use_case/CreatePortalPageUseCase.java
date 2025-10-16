@@ -17,8 +17,8 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
+import io.gravitee.apim.core.portal_page.model.PageElement;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -27,16 +27,7 @@ public class CreatePortalPageUseCase {
 
     private final PortalPageCrudService portalPageCrudService;
 
-    public record Input(
-        String environmentId,
-        String name,
-        String type,
-        String context,
-        Integer order,
-        String content,
-        String url,
-        List<String> pageIds
-    ) {}
+    public record Input(String environmentId, String name, String context, Integer order, PageElement<?> element) {}
 
     public record Output(PortalPageWithViewDetails portalPage) {}
 

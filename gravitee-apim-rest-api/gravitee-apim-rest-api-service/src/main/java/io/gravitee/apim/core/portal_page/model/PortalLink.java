@@ -16,23 +16,24 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
+import java.net.URL;
 
-public final class PortalPage extends PageElement<GraviteeMarkdown> {
+public final class PortalLink extends PageElement<URL> {
 
-    public PortalPage(@Nonnull PageId id, @Nonnull GraviteeMarkdown pageContent) {
-        super(id, pageContent);
+    public PortalLink(@Nonnull PageId id, @Nonnull URL url) {
+        super(id, url);
     }
 
-    public static PortalPage create(GraviteeMarkdown pageContent) {
-        return new PortalPage(PageId.random(), pageContent);
+    public static PortalLink create(URL url) {
+        return new PortalLink(PageId.random(), url);
     }
 
     @Nonnull
-    public GraviteeMarkdown getPageContent() {
+    public URL getUrl() {
         return getContent();
     }
 
-    public void setContent(@Nonnull GraviteeMarkdown pageContent) {
-        super.setContent(pageContent);
+    public void setUrl(@Nonnull URL url) {
+        super.setContent(url);
     }
 }
