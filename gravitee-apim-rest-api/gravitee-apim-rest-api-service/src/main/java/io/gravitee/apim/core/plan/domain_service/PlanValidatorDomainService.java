@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
@@ -90,13 +91,29 @@ public class PlanValidatorDomainService {
         }
     }
 
+    public void validateGeneralConditionsPage(Plan plan, List<Page> pages) {
+        if (plan.getGeneralConditions() != null && !plan.getGeneralConditions().isEmpty() && (plan.isPublished() || plan.isDeprecated())) {
+            Optional<Page> candidate = pages
+                .stream()
+                .filter(page -> page.getId().equals(plan.getGeneralConditions()))
+                .findFirst();
+            if (candidate.isEmpty()) {
+                throw new ValidationDomainException("Plan references a non existing page as general conditions");
+            }
+            var isPublished = candidate.get().isPublished();
+            if (!isPublished) {
+                throw new ValidationDomainException("Plan references a non published page as general conditions");
+            }
+        }
+    }
+
     public void validateGeneralConditionsPageStatus(Plan plan) {
         if (plan.getGeneralConditions() != null && !plan.getGeneralConditions().isEmpty() && (plan.isPublished() || plan.isDeprecated())) {
             var page = pageCrudService.findById(plan.getGeneralConditions());
             if (page.isEmpty()) {
                 return;
             }
-            var isPublished = page.map(Page::isPublished).orElse(false);
+            boolean isPublished = page.map(Page::isPublished).orElse(false);
             if (!isPublished) {
                 throw new ValidationDomainException("Plan references a non published page as general conditions");
             }

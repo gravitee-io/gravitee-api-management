@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.api.use_case;
 
 import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -275,6 +274,10 @@ public class ImportApiCRDUseCase {
                     .build()
             );
 
+            // Pages
+            createOrUpdatePages(input.spec.getPages(), updatedApi.getId(), input.auditInfo);
+            deleteRemovedPages(input.spec.getPages(), updatedApi.getId());
+
             // Plans
             Map<String, String> planKeyIdMapping = handlePlanUpdate(input, api);
 
@@ -283,10 +286,6 @@ public class ImportApiCRDUseCase {
 
             // Members
             membersDomainService.updateApiMembers(input.auditInfo, updatedApi.getId(), input.spec().getMembers());
-
-            // Pages
-            createOrUpdatePages(input.spec.getPages(), updatedApi.getId(), input.auditInfo);
-            deleteRemovedPages(input.spec.getPages(), updatedApi.getId());
 
             // Metadata
             apiMetadataDomainService.importApiMetadata(api.getId(), input.spec.getMetadata(), input.auditInfo);

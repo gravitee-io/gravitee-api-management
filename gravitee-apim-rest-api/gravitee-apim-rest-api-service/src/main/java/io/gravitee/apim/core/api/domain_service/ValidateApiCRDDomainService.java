@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.documentation.model.factory.PageModelFactory;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
@@ -33,6 +34,8 @@ import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.service.common.IdBuilder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -139,7 +142,19 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             .peek(sanitized -> sanitizedBuilder.pages(sanitized.pages()), errors::addAll);
 
         planValidator
-            .validateAndSanitize(new ValidatePlanDomainService.Input(input.auditInfo, input.spec, input.spec.getPlans()))
+            .validateAndSanitize(
+                new ValidatePlanDomainService.Input(
+                    input.auditInfo,
+                    input.spec,
+                    input.spec.getPlans(),
+                    Optional.ofNullable(input.spec().getPages())
+                        .orElse(Map.of())
+                        .entrySet()
+                        .stream()
+                        .map(entry -> PageModelFactory.fromCRDSpec(entry.getKey(), entry.getValue()))
+                        .toList()
+                )
+            )
             .peek(sanitized -> sanitizedBuilder.plans(sanitized.plans()), errors::addAll);
 
         return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
