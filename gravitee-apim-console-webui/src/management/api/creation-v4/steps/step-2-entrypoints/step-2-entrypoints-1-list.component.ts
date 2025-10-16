@@ -31,6 +31,7 @@ import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { MCP_ENTRYPOINT_ID } from '../../../../../entities/entrypoint/mcp';
+import { LLM_PROXY, MCP_PROXY } from '../../../../../entities/management-api-v2/api/v4/aiTypes';
 
 @Component({
   selector: 'step-2-entrypoints-1-list',
@@ -72,17 +73,17 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     });
 
     const connectorPlugins$: Observable<ConnectorPlugin[]> = (
-      currentStepPayload.type === 'MESSAGE'
+      ['MESSAGE', 'AI', 'LLM_PROXY', 'MCP_PROXY'].includes(currentStepPayload.type)
         ? this.connectorPluginsV2Service.listAsyncEntrypointPlugins()
         : this.connectorPluginsV2Service.listSyncEntrypointPlugins()
     ).pipe(
       map((plugins) => {
         // For PROXY, we filter out the MCP entrypoint plugin. MCP is manageable after the API creation.
         plugins = plugins.filter((p) => p.id !== MCP_ENTRYPOINT_ID);
-
+        const allowedIds = [AGENT_TO_AGENT.id, LLM_PROXY.id, MCP_PROXY.id];
         return currentStepPayload.isA2ASelected
-          ? plugins.filter((p) => p.id === AGENT_TO_AGENT.id)
-          : plugins.filter((p) => p.id !== AGENT_TO_AGENT.id);
+          ? plugins.filter((p) => allowedIds.includes(p.id))
+          : plugins.filter((p) => !allowedIds.includes(p.id));
       }),
     );
 
@@ -149,10 +150,10 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   }
 
   private saveChanges() {
-    this.apiType === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
+    ['PROXY', 'AI'].includes(this.apiType) ? this.doSaveSync(this.apiType) : this.doSaveAsync();
   }
 
-  private doSaveSync() {
+  private doSaveSync(apiType: ApiType) {
     const selectedEntrypointId = this.formGroup.getRawValue().selectedEntrypointsIds[0];
     const selectedEntrypoint = this.entrypoints.find((e) => selectedEntrypointId.includes(e.id));
 
@@ -163,7 +164,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
         tap((proxyEndpoint) => {
           this.stepService.validStep((previousPayload) => ({
             ...previousPayload,
-            type: 'PROXY',
+            type: apiType === 'PROXY' ? 'PROXY' : proxyEndpoint.supportedApiType,
             selectedEntrypoints: [
               {
                 id: selectedEntrypoint.id,

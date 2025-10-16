@@ -106,20 +106,25 @@
             ></gio-license-banner>
           </div>
         </mat-radio-button>
-        <mat-radio-button value="A2A" [class.gio-selection__selected]="form.controls['type'].value === 'A2A'">
+        <mat-radio-button
+          value="AI"
+          [class.gio-selection__selected]="['MCP_PROXY', 'LLM_PROXY', 'MESSAGE'].includes(form.controls['type'].value)"
+        >
           <gio-selection-list-option-layout>
             <gio-selection-list-option-layout-title>
               <div class="option__badges">
-                <div>Agent Proxy</div>
+                <div>AI Gateway</div>
                 <span class="gio-badge-accent">New</span>
               </div>
             </gio-selection-list-option-layout-title>
 
             <gio-selection-list-option-layout-body>
-              <p>Choose this mode if you want to proxy the A2A protocol.</p>
+              <p>Choose this mode if you want to proxy certain AI definitions.</p>
               <div class="option__badges">
-                Can expose
+                Supports
                 <span class="gio-badge-neutral gio-caption-2">A2A Protocol</span>
+                <span class="gio-badge-neutral gio-caption-2">MCP Proxy</span>
+                <span class="gio-badge-neutral gio-caption-2">LLM Connector</span>
               </div>
             </gio-selection-list-option-layout-body>
           </gio-selection-list-option-layout>

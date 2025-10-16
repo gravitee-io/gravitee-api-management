@@ -62,7 +62,9 @@ export class ConnectorPluginsV2Service {
 
   listAsyncEntrypointPlugins(): Observable<ConnectorPlugin[]> {
     return this.listEntrypointPlugins().pipe(
-      map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'MESSAGE')),
+      map((entrypointPlugins) =>
+        entrypointPlugins.filter((entrypoint) => ['MESSAGE', 'LLM_PROXY', 'MCP_PROXY'].includes(entrypoint.supportedApiType)),
+      ),
     );
   }
 

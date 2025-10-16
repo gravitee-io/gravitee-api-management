@@ -23,6 +23,7 @@ import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, Lic
 import { isEqual } from 'lodash';
 
 import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.component';
+import { Step3Endpoints3ConfigComponent } from './step-3-endpoints-3-config.component';
 
 import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4/agentToAgent';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
@@ -148,8 +149,11 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       ...previousPayload,
       selectedEndpoints,
     }));
-
-    this.stepService.goToNextStep({ groupNumber: 3, component: Step3Endpoints2ConfigComponent });
+    const typesForStep3 = ['AI', 'LLM_PROXY', 'MCP_PROXY'];
+    this.stepService.goToNextStep({
+      groupNumber: 3,
+      component: typesForStep3.includes(this.stepService.payload.type) ? Step3Endpoints3ConfigComponent : Step3Endpoints2ConfigComponent,
+    });
   }
 
   goBack(): void {
