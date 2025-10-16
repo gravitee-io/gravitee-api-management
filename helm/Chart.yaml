@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.9.0
-appVersion: 4.9.0
+version: 4.9.1
+appVersion: 4.9.1
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,23 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: fixed
-      description: 'Update the default log file path'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/10524
-    - kind: fixed
-      description: 'The portal.entrypoint env var is set accordingly to the list of servers (http, tcp...) configured'
-    - kind: changed
-      description: 'Changed default behavior to enable multi-tenant support in dictionaries'
-    - kind: changed
-      description: 'Enhance secret renewal settings configuration and documentation in values.yaml'
-    - kind: changed
-      description: 'BREAKING CHANGE: now the federation ingress will not inherit anymore some management-api ingress definition (annotation, hosts, and tls)'
-    - kind: changed
-      description: 'BREAKING CHANGE: Upgrade MongoDB and Elastic database to newer release to make them deployable on OpenShift cluster.'
-    - kind: changed
-      description: 'BREAKING CHANGE: Disable file logging by default for Openshift compatibility'
-    - kind: changed
-      description: 'BREAKING CHANGE: Introduce modular utilities for performance and concurrency with default concurrent limit 3'
+  artifacthub.io/changes: 
