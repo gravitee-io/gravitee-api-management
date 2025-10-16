@@ -269,6 +269,42 @@ class CreateHttpApiUseCaseTest {
     }
 
     @Test
+    void should_create_and_index_a_new_mcp_api() {
+        // Given
+        var newApi = NewApiFixtures.aMcpProxyApiV4();
+
+        // When
+        var output = useCase.execute(new Input(newApi, AUDIT_INFO));
+
+        // Then
+        var expectedApi = newApi
+            .toApiBuilder()
+            .id("generated-id")
+            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .environmentId(ENVIRONMENT_ID)
+            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+            .lifecycleState(Api.LifecycleState.STOPPED)
+            .visibility(Api.Visibility.PRIVATE)
+            .apiDefinitionHttpV4(newApi.toApiDefinitionBuilder().id("generated-id").build())
+            .build();
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));
+            soft.assertThat(apiCrudService.storage()).contains(expectedApi);
+            soft
+                .assertThat(indexer.storage())
+                .containsExactly(
+                    new IndexableApi(
+                        expectedApi,
+                        new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
+                        Collections.emptySet()
+                    )
+                );
+        });
+    }
+
+    @Test
     void should_create_an_audit() {
         // Given
         var newApi = NewApiFixtures.aProxyApiV4();

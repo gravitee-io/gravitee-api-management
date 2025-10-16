@@ -138,6 +138,7 @@ describe('ApiCreationV4Component - PROXY - MCP Proxy', () => {
           name: mcpConnector.name,
           supportedListenerType: 'HTTP',
           deployed: true,
+          selectedQos: 'NONE',
         },
       ]);
       httpExpects.expectRestrictedDomainsGetRequest([]);
