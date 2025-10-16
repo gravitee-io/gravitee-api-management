@@ -26,11 +26,11 @@
     </div>
 
     <form *ngIf="form" [formGroup]="form">
-      <mat-radio-group class="gio-selection-list" formControlName="type">
+      <mat-radio-group class="gio-selection-list" formControlName="architecture">
         <mat-radio-button
           data-testid="api_creation_proxy_checkbox"
           value="PROXY"
-          [class.gio-selection__selected]="form.controls['type'].value === 'PROXY'"
+          [class.gio-selection__selected]="form.controls['architecture'].value === 'PROXY'"
         >
           <gio-selection-list-option-layout>
             <gio-selection-list-option-layout-title> Proxy Generic Protocol </gio-selection-list-option-layout-title>
@@ -54,7 +54,7 @@
           </gio-selection-list-option-layout>
         </mat-radio-button>
 
-        <mat-radio-button value="MESSAGE" [class.gio-selection__selected]="form.controls['type'].value === 'MESSAGE'">
+        <mat-radio-button value="MESSAGE" [class.gio-selection__selected]="form.controls['architecture'].value === 'MESSAGE'">
           <gio-selection-list-option-layout>
             <gio-selection-list-option-layout-title>
               <div class="option__badges">Protocol Mediation</div>
@@ -82,7 +82,7 @@
             ></gio-license-banner>
           </div>
         </mat-radio-button>
-        <mat-radio-button value="KAFKA" [class.gio-selection__selected]="form.controls['type'].value === 'KAFKA'">
+        <mat-radio-button value="KAFKA" [class.gio-selection__selected]="form.controls['architecture'].value === 'KAFKA'">
           <gio-selection-list-option-layout>
             <gio-selection-list-option-layout-title>
               <div class="option__kafka-title option__badges">
@@ -106,20 +106,22 @@
             ></gio-license-banner>
           </div>
         </mat-radio-button>
-        <mat-radio-button value="A2A" [class.gio-selection__selected]="form.controls['type'].value === 'A2A'">
+        <mat-radio-button value="AI" [class.gio-selection__selected]="form.controls['architecture'].value === 'AI'">
           <gio-selection-list-option-layout>
             <gio-selection-list-option-layout-title>
               <div class="option__badges">
-                <div>Agent Proxy</div>
+                <div>AI Gateway</div>
                 <span class="gio-badge-accent">New</span>
               </div>
             </gio-selection-list-option-layout-title>
 
             <gio-selection-list-option-layout-body>
-              <p>Choose this mode if you want to proxy the A2A protocol.</p>
+              <p>Choose this mode if you want to proxy certain AI definitions.</p>
               <div class="option__badges">
-                Can expose
+                Supports
                 <span class="gio-badge-neutral gio-caption-2">A2A Protocol</span>
+                <span class="gio-badge-neutral gio-caption-2">MCP Proxy</span>
+                <span class="gio-badge-neutral gio-caption-2">LLM Connector</span>
               </div>
             </gio-selection-list-option-layout-body>
           </gio-selection-list-option-layout>
