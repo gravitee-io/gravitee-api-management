@@ -39,7 +39,6 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
                 resideInAnyPackage(
                     anyPackageThatContains(GRAVITEE_APIM_PACKAGE + "." + CORE_PACKAGE),
                     "java..",
-                    "javax.annotation..",
                     "org.slf4j..",
                     "lombok..",
                     "com.fasterxml..",

@@ -16,14 +16,22 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PageId;
+import io.gravitee.apim.core.portal_page.model.PortalLink;
 import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.apim.core.portal_page.use_case.CreatePortalPageUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageUseCase;
+import io.gravitee.rest.api.management.v2.rest.model.CreateGraviteeMarkdownPage;
+import io.gravitee.rest.api.management.v2.rest.model.CreateLinkPage;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalPageRequest;
+import io.gravitee.rest.api.management.v2.rest.model.CreateSectionPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -80,5 +88,59 @@ class PortalPagesMapperTest {
         assertThat(response).isNotNull();
         assertThat(response.getPages()).hasSize(1);
         assertThat(response.getPages().getFirst().getId()).isEqualTo(page.getId().toString());
+    }
+
+    @Test
+    void should_map_create_gravitee_markdown_page_to_input() {
+        CreateGraviteeMarkdownPage request = new CreateGraviteeMarkdownPage();
+        request.setName("My Page");
+        request.setContext(CreatePortalPageRequest.ContextEnum.HOMEPAGE);
+        request.setOrder(1);
+        request.setContent("Page content");
+        request.setType(CreatePortalPageRequest.TypeEnum.GRAVITEE_MARKDOWN);
+
+        CreatePortalPageUseCase.Input input = PortalPagesMapper.INSTANCE.map(request, "env-1");
+
+        assertEquals("env-1", input.environmentId());
+        assertEquals("My Page", input.name());
+        assertEquals("HOMEPAGE", input.context());
+        assertEquals(1, input.order());
+        assertThat(input.element()).isNotNull();
+        assertThat(input.element()).isInstanceOf(PortalPage.class);
+        PortalPage element = (PortalPage) input.element();
+        assertEquals("Page content", element.getPageContent().content());
+    }
+
+    @Test
+    void should_map_create_link_page_to_input() {
+        CreateLinkPage request = new CreateLinkPage();
+        request.setName("My Link");
+        request.setContext(CreatePortalPageRequest.ContextEnum.HOMEPAGE);
+        request.setOrder(2);
+        request.setUrl(java.net.URI.create("http://example.com"));
+        request.setType(CreatePortalPageRequest.TypeEnum.LINK);
+
+        CreatePortalPageUseCase.Input input = PortalPagesMapper.INSTANCE.map(request, "env-2");
+
+        assertEquals("env-2", input.environmentId());
+        assertEquals("My Link", input.name());
+        assertEquals("HOMEPAGE", input.context());
+        assertEquals(2, input.order());
+        assertThat(input.element()).isNotNull();
+        assertThat(input.element()).isInstanceOf(PortalLink.class);
+        PortalLink linkElement = (PortalLink) input.element();
+        assertEquals("http://example.com", linkElement.getUrl().toString());
+    }
+
+    @Test
+    void should_throw_for_create_section_page() {
+        CreateSectionPage request = new CreateSectionPage();
+        request.setName("My Section");
+        request.setContext(CreatePortalPageRequest.ContextEnum.HOMEPAGE);
+        request.setOrder(3);
+        request.setPageIds(java.util.List.of("page1", "page2"));
+        request.setType(CreatePortalPageRequest.TypeEnum.SECTION);
+
+        assertThrows(UnsupportedOperationException.class, () -> PortalPagesMapper.INSTANCE.map(request, "env-3"));
     }
 }
