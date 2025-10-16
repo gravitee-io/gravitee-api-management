@@ -1163,7 +1163,7 @@ const apisRoutes: Routes = [
         component: ApiEndpointComponent,
         data: {
           permissions: {
-            anyOf: ['api-definition-u'],
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy-endpoints',

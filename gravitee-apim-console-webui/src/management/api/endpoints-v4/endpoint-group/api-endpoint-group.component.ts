@@ -153,12 +153,10 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
         value: this.endpointGroup.services?.healthCheck?.enabled ?? false,
         disabled: this.isReadOnly,
       }),
-      configuration: new FormControl(
-        {
-          value: this.endpointGroup.services?.healthCheck?.configuration ?? {},
-          disabled: this.isReadOnly,
-        } ?? {},
-      ),
+      configuration: new FormControl({
+        value: this.endpointGroup.services?.healthCheck?.configuration ?? {},
+        disabled: this.isReadOnly,
+      }),
     });
 
     if (this.isHttpProxyApi) {

@@ -78,7 +78,7 @@ describe('ApiEndpointComponent', () => {
   let componentHarness: ApiEndpointHarness;
   let routerNavigationSpy: jest.SpyInstance;
 
-  const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }) => {
+  const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }, canUpdate: boolean = true) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointModule, MatIconTestingModule],
@@ -87,7 +87,7 @@ describe('ApiEndpointComponent', () => {
         {
           provide: GioPermissionService,
           useValue: {
-            hasAnyMatching: Boolean,
+            hasAnyMatching: () => canUpdate,
           },
         },
       ],
@@ -210,6 +210,22 @@ describe('ApiEndpointComponent', () => {
     });
 
     describe('should update endpoint', () => {
+      it('should disable general components', async () => {
+        const apiV4 = fakeApiV4({ id: API_ID });
+
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 }, false);
+
+        const formGroup = fixture.componentInstance.apiEndpoint.formGroup;
+        const name = formGroup.get('name');
+        const targetUrl = formGroup.get('configuration');
+        const weight = formGroup.get('weight');
+        const tenants = formGroup.get('tenants');
+        expect(name?.disabled).toBe(true);
+        expect(targetUrl?.disabled).toBe(true);
+        expect(weight?.disabled).toBe(true);
+        expect(tenants?.disabled).toBe(true);
+      });
+
       it('should edit and save an existing endpoint', async () => {
         const apiV4 = fakeApiV4({
           id: API_ID,
@@ -402,9 +418,9 @@ describe('ApiEndpointComponent', () => {
                   configuration: {
                     bootstrapServers: undefined,
                   },
-                  inheritConfiguration: null,
-                  weight: null,
-                  tenants: null,
+                  inheritConfiguration: undefined,
+                  weight: undefined,
+                  tenants: undefined,
                 },
               ],
             },
