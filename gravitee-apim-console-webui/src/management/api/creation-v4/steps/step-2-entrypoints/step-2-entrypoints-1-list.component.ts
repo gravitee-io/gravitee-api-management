@@ -17,7 +17,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable, Subject } from 'rxjs';
+import { EMPTY, Observable, Subject } from 'rxjs';
 import { map, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
@@ -31,6 +31,7 @@ import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { MCP_ENTRYPOINT_ID } from '../../../../../entities/entrypoint/mcp';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
   selector: 'step-2-entrypoints-1-list',
@@ -48,7 +49,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   public shouldUpgrade = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
-  public apiType: ApiType;
+  public architecture: ApiCreationPayload['architecture'];
 
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
@@ -63,7 +64,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     const currentSelectedEntrypointIds = (currentStepPayload.selectedEntrypoints ?? []).map((p) => p.id);
-    this.apiType = currentStepPayload.type;
+    this.architecture = currentStepPayload.architecture;
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
 
@@ -71,18 +72,25 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       selectedEntrypointsIds: this.formBuilder.control(currentSelectedEntrypointIds, [Validators.required]),
     });
 
-    const connectorPlugins$: Observable<ConnectorPlugin[]> = (
-      currentStepPayload.type === 'MESSAGE'
-        ? this.connectorPluginsV2Service.listAsyncEntrypointPlugins()
-        : this.connectorPluginsV2Service.listSyncEntrypointPlugins()
-    ).pipe(
-      map((plugins) => {
-        // For PROXY, we filter out the MCP entrypoint plugin. MCP is manageable after the API creation.
-        plugins = plugins.filter((p) => p.id !== MCP_ENTRYPOINT_ID);
+    const listEntrypointPlugins: Record<ApiCreationPayload['architecture'], Observable<ConnectorPlugin[]>> = {
+      MESSAGE: this.connectorPluginsV2Service.listAsyncEntrypointPlugins(),
+      PROXY: this.connectorPluginsV2Service.listSyncEntrypointPlugins(),
+      AI: this.connectorPluginsV2Service.listAIEntrypointPlugins(),
+      // Not happening for Kafka, this step are skipped
+      KAFKA: EMPTY,
+    };
 
-        return currentStepPayload.isA2ASelected
-          ? plugins.filter((p) => p.id === AGENT_TO_AGENT.id)
-          : plugins.filter((p) => p.id !== AGENT_TO_AGENT.id);
+    const connectorPlugins$: Observable<ConnectorPlugin[]> = listEntrypointPlugins[currentStepPayload.architecture].pipe(
+      map((plugins) => {
+        if (currentStepPayload.architecture === 'PROXY') {
+          // For PROXY, we filter out the MCP entrypoint plugin. MCP is manageable after the API creation.
+          return plugins.filter((p) => p.id !== MCP_ENTRYPOINT_ID);
+        }
+        if (currentStepPayload.architecture === 'MESSAGE') {
+          // For MESSAGE, we filter out the AGENT_TO_AGENT entrypoint plugin. A2A is manageable with AI architecture only.
+          return plugins.filter((p) => p.id !== AGENT_TO_AGENT.id);
+        }
+        return plugins;
       }),
     );
 
@@ -149,7 +157,17 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   }
 
   private saveChanges() {
-    this.apiType === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
+    switch (this.architecture) {
+      case 'PROXY':
+        this.doSaveSync();
+        break;
+      case 'MESSAGE':
+        this.doSaveAsync();
+        break;
+      case 'AI':
+        this.doSaveAI();
+        break;
+    }
   }
 
   private doSaveSync() {
@@ -207,6 +225,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
+      type: 'MESSAGE',
       selectedEntrypoints,
     }));
 
@@ -214,6 +233,48 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       groupNumber: 2,
       component: Step2Entrypoints2ConfigComponent,
     });
+  }
+
+  private doSaveAI() {
+    const selectedEntrypointsId = this.formGroup.getRawValue().selectedEntrypointsIds[0];
+    const selectedEntrypoint = this.entrypoints.find((e) => selectedEntrypointsId === e.id);
+
+    const apiType: ApiType = selectedEntrypoint.id === AGENT_TO_AGENT.id ? 'MESSAGE' : selectedEntrypoint.supportedApiType;
+
+    this.connectorPluginsV2Service
+      .getEndpointPlugin(selectedEntrypoint.id)
+      .pipe(
+        tap((proxyEndpoint) => {
+          this.stepService.validStep((previousPayload) => ({
+            ...previousPayload,
+            type: apiType,
+            selectedEntrypoints: [
+              {
+                id: selectedEntrypoint.id,
+                name: selectedEntrypoint.name,
+                icon: this.iconService.registerSvg(proxyEndpoint.id, selectedEntrypoint.icon),
+                supportedListenerType: selectedEntrypoint.supportedListenerType,
+                deployed: selectedEntrypoint.deployed,
+                selectedQos: 'NONE',
+              },
+            ],
+            selectedEndpoints: [
+              {
+                id: proxyEndpoint.id,
+                name: proxyEndpoint.name,
+                icon: this.iconService.registerSvg(proxyEndpoint.id, proxyEndpoint.icon),
+                deployed: proxyEndpoint.deployed,
+              },
+            ],
+          }));
+          this.stepService.goToNextStep({
+            groupNumber: 2,
+            component: Step2Entrypoints2ConfigComponent,
+          });
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   public onRequestUpgrade() {
