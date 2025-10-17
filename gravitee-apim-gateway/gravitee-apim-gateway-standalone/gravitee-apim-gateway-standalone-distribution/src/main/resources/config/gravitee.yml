@@ -65,6 +65,9 @@ secrets:
 #      enabled: true
 #      pollIntervalSec: 30
 
+#vertx:
+#  # Native transport is prefered by default but can be disabled in case of network instabilities such as with Azure Private Link.
+#  preferNativeTransport: true
 
 # Gateway HTTP server
 #http:
