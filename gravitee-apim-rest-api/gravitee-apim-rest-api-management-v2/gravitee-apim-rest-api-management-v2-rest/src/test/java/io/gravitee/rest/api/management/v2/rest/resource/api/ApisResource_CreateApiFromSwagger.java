@@ -116,7 +116,7 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
     @SneakyThrows
     public void should_throw_invalid_paths_exception() {
         // Given
-        when(oaiDomainService.convert(any(), any(), any())).thenReturn(
+        when(oaiDomainService.convert(any(), any(), any(), any(), any())).thenReturn(
             ImportDefinition.builder()
                 .apiExport(
                     ApiExport.builder()

@@ -39,7 +39,7 @@ class OAIDomainServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager);
+        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, null);
     }
 
     @ParameterizedTest
@@ -51,7 +51,7 @@ class OAIDomainServiceImplTest {
         importSwaggerDescriptor.setPayload(payload);
 
         // When
-        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor))
+        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
             .isExactlyInstanceOf(SwaggerDescriptorException.class)
             .hasMessage("Payload cannot be null");
     }
@@ -63,8 +63,8 @@ class OAIDomainServiceImplTest {
         importSwaggerDescriptor.setPayload("{ \"openapi\": \"3.0.0\" }");
 
         // When
-        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor)).isExactlyInstanceOf(
-            SwaggerDescriptorException.class
-        );
+        assertThatThrownBy(() ->
+            oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false)
+        ).isExactlyInstanceOf(SwaggerDescriptorException.class);
     }
 }

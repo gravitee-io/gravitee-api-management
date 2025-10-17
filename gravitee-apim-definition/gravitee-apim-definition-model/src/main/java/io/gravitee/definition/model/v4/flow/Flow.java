@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,11 +45,13 @@ import lombok.experimental.SuperBuilder;
 @With
 public class Flow extends AbstractFlow {
 
+    @Builder.Default
     @Valid
-    private List<Step> request;
+    private List<Step> request = new ArrayList<>();
 
+    @Builder.Default
     @Valid
-    private List<Step> response;
+    private List<Step> response = new ArrayList<>();
 
     @Valid
     private List<Step> subscribe;
