@@ -54,6 +54,9 @@ set JAVA_OPTS=%JAVA_OPTS% -XX:+DisableExplicitGC
 REM Ensure UTF-8 encoding by default (e.g. filenames)
 set JAVA_OPTS=%JAVA_OPTS% -Dfile.encoding=UTF-8
 
+REM Add flags to enable Vector API and Native Access
+set JAVA_OPTS=%JAVA_OPTS% --add-modules jdk.incubator.vector --enable-native-access=ALL-UNNAMED
+
 REM Display our environment
 echo "=============================================================="
 echo ""
