@@ -126,3 +126,43 @@ tests:
             \s     password: ""
             \s   clientAuth: false
             \s   sni: true
+
+  - it: CRL not configured
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            type: jks
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\\s   crl:"
+
+  - it: CRL configured
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            type: jks
+          crl:
+            path: ${gravitee.home}/security/crl.pem
+            watch: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s   crl:
+            \s     path: \$\{gravitee\.home\}/security/crl\.pem
+            \s     watch: true
