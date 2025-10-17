@@ -72,6 +72,29 @@ public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageC
     }
 
     @Override
+    public List<Page> findByApiId(String apiId) {
+        return pages
+            .stream()
+            .filter(page -> apiId.equals(page.getReferenceId()) && Page.ReferenceType.API.equals(page.getReferenceType()))
+            .toList();
+    }
+
+    @Override
+    public void updateCrossIds(List<Page> pages) {
+        if (pages == null || pages.isEmpty()) {
+            return;
+        }
+
+        for (Page updatedPage : pages) {
+            pages
+                .stream()
+                .filter(existing -> existing.getId().equals(updatedPage.getId()))
+                .findFirst()
+                .ifPresent(existing -> existing.setCrossId(updatedPage.getCrossId()));
+        }
+    }
+
+    @Override
     public void initWith(List<Page> items) {
         this.pages.addAll(items);
     }

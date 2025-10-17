@@ -60,6 +60,21 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     }
 
     @Override
+    public void updateCrossIds(List<Plan> plans) {
+        if (plans == null || plans.isEmpty()) {
+            return;
+        }
+
+        for (Plan updatedPlan : plans) {
+            storage
+                .stream()
+                .filter(existing -> existing.getId().equals(updatedPlan.getId()))
+                .findFirst()
+                .ifPresent(existing -> existing.setCrossId(updatedPlan.getCrossId()));
+        }
+    }
+
+    @Override
     public Collection<Plan> findByApiId(String apiId) {
         return storage
             .stream()
