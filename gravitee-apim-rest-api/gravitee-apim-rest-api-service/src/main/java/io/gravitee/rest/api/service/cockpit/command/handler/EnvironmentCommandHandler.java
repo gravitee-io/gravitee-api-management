@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
+import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalHomepageUseCase;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommandPayload;
@@ -24,7 +25,6 @@ import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.PortalPageService;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
 
     private final EnvironmentService environmentService;
     private final AccessPointCrudService accessPointService;
-    private final PortalPageService portalPageService;
+    private final CreateDefaultPortalHomepageUseCase createDefaultPortalHomepageUseCase;
 
     @Override
     public String supportType() {
@@ -96,7 +96,7 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
                 accessPointsToCreate
             );
 
-            portalPageService.createDefaultPortalHomePage(environment.getId());
+            createDefaultPortalHomepageUseCase.execute(environment.getId());
 
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
             return Single.just(new EnvironmentReply(command.getId()));
