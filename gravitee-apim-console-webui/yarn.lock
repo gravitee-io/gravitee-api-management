@@ -3115,6 +3115,9 @@ __metadata:
   peerDependencies:
     "@angular/common": 19.2.0
     "@angular/core": 19.2.0
+    angular-gridster2: 20.2.3
+    chart.js: 4.3.0
+    ng2-charts: 8.0.0
   languageName: node
   linkType: soft
 
@@ -3984,6 +3987,13 @@ __metadata:
   version: 3.4.0
   resolution: "@juggle/resize-observer@npm:3.4.0"
   checksum: 10c0/12930242357298c6f2ad5d4ec7cf631dfb344ca7c8c830ab7f64e6ac11eb1aae486901d8d880fd08fb1b257800c160a0da3aee1e7ed9adac0ccbb9b7c5d93347
+  languageName: node
+  linkType: hard
+
+"@kurkle/color@npm:^0.3.0":
+  version: 0.3.4
+  resolution: "@kurkle/color@npm:0.3.4"
+  checksum: 10c0/0e9fd55c614b005c5f0c4c755bca19ec0293bc7513b4ea3ec1725234f9c2fa81afbc78156baf555c8b9cb0d305619253c3f5bca016067daeebb3d00ebb4ea683
   languageName: node
   linkType: hard
 
@@ -7846,6 +7856,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"angular-gridster2@npm:20.2.3":
+  version: 20.2.3
+  resolution: "angular-gridster2@npm:20.2.3"
+  dependencies:
+    tslib: "npm:^2.4.0"
+  peerDependencies:
+    "@angular/common": ^20.0.0
+    "@angular/core": ^20.0.0
+    rxjs: ^7.0.0
+  checksum: 10c0/5dfec3567a4d71ff8520037ca23701996810a255119ebaaa11ef64f4f1122de5f872d213bb3cef90f474018ff1dd645ddf649510738b86837b6b62fa107f261e
+  languageName: node
+  linkType: hard
+
 "angular-gridster@npm:0.13.14":
   version: 0.13.14
   resolution: "angular-gridster@npm:0.13.14"
@@ -8898,6 +8921,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chart.js@npm:4.3.0":
+  version: 4.3.0
+  resolution: "chart.js@npm:4.3.0"
+  dependencies:
+    "@kurkle/color": "npm:^0.3.0"
+  checksum: 10c0/2f04485cc1a7e7af5063114f1c27309569a29707c68d0a775662cd2d8daf6358c68e276548330e793cbecf104a5dc393ecdf984969ad133b85668a4474aabb80
+  languageName: node
+  linkType: hard
+
 "chokidar@npm:^3.5.3, chokidar@npm:^3.6.0":
   version: 3.6.0
   resolution: "chokidar@npm:3.6.0"
@@ -9167,7 +9199,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-name@npm:~1.1.4":
+"color-name@npm:^1.1.4, color-name@npm:~1.1.4":
   version: 1.1.4
   resolution: "color-name@npm:1.1.4"
   checksum: 10c0/a1a3f914156960902f46f7f56bc62effc6c94e84b2cae157a526b1c1f74b677a47ec602bf68a61abfa2b42d15b7c5651c6dbe72a43af720bc588dff885b10f95
@@ -9596,6 +9628,13 @@ __metadata:
   bin:
     cssesc: bin/cssesc
   checksum: 10c0/6bcfd898662671be15ae7827120472c5667afb3d7429f1f917737f3bf84c4176003228131b643ae74543f17a394446247df090c597bb9a728cce298606ed0aa7
+  languageName: node
+  linkType: hard
+
+"cssfontparser@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "cssfontparser@npm:1.2.1"
+  checksum: 10c0/ceb9b2976d503dbff3ac2aff0229b263affb4fb221a6947b357682cd8a952f6995253646ca5f820020d2fe05b5e29b56dbdd2343388c32203e8dd0ed15bdc1ca
   languageName: node
   linkType: hard
 
@@ -12338,6 +12377,7 @@ __metadata:
     angular-aria: "npm:1.8.3"
     angular-drag-and-drop-lists: "npm:2.1.0"
     angular-gridster: "npm:0.13.14"
+    angular-gridster2: "npm:20.2.3"
     angular-highlightjs: "npm:0.7.1"
     angular-loading-bar: "npm:0.9.0"
     angular-material: "npm:1.2.5"
@@ -12355,6 +12395,7 @@ __metadata:
     angular-ui-validate: "npm:1.2.3"
     asciidoctor: "npm:3.0.4"
     asciidoctor-highlight.js: "npm:0.4.0"
+    chart.js: "npm:4.3.0"
     chromatic: "npm:11.27.0"
     codemirror: "npm:5.65.19"
     codemirror-asciidoc: "npm:1.0.4"
@@ -12376,6 +12417,7 @@ __metadata:
     html-loader: "npm:5.1.0"
     jdenticon: "npm:3.3.0"
     jest: "npm:29.7.0"
+    jest-canvas-mock: "npm:2.5.2"
     jest-environment-jsdom: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
     jest-preset-angular: "npm:14.6.1"
@@ -12391,6 +12433,7 @@ __metadata:
     moment: "npm:2.30.1"
     monaco-editor: "npm:0.46.0"
     ng-file-upload: "npm:12.2.13"
+    ng2-charts: "npm:8.0.0"
     ngclipboard: "npm:2.0.0"
     ngx-file-helpers: "npm:12.0.0"
     ngx-markdown: "npm:17.2.1"
@@ -13696,6 +13739,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jest-canvas-mock@npm:2.5.2":
+  version: 2.5.2
+  resolution: "jest-canvas-mock@npm:2.5.2"
+  dependencies:
+    cssfontparser: "npm:^1.2.1"
+    moo-color: "npm:^1.0.2"
+  checksum: 10c0/6a4190354b1e9aedcb3045273f13f6f1d2d1efb00cfe6458707fae538a8f91f6afdf72b9e201b653666863054edc783428bdc0c1a2c71d66d9ac364b4893f6d6
+  languageName: node
+  linkType: hard
+
 "jest-changed-files@npm:^29.7.0":
   version: 29.7.0
   resolution: "jest-changed-files@npm:29.7.0"
@@ -14858,7 +14911,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:^4.17.21":
+"lodash-es@npm:^4.17.15, lodash-es@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash-es@npm:4.17.21"
   checksum: 10c0/fb407355f7e6cd523a9383e76e6b455321f0f153a6c9625e21a8827d10c54c2a2341bd2ae8d034358b60e07325e1330c14c224ff582d04612a46a4f0479ff2f2
@@ -15759,6 +15812,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"moo-color@npm:^1.0.2":
+  version: 1.0.3
+  resolution: "moo-color@npm:1.0.3"
+  dependencies:
+    color-name: "npm:^1.1.4"
+  checksum: 10c0/778c82f67f638c03a1d0fa78dcd6ea376a9f17b5e78e349c7e34a290b496dbdb43fd0b1c38070e2062d5e784bcf08e57f499015fcbcf52b3a1887d7825ebb80d
+  languageName: node
+  linkType: hard
+
 "moo@npm:^0.5.1":
   version: 0.5.2
   resolution: "moo@npm:0.5.2"
@@ -15930,6 +15992,23 @@ __metadata:
   version: 12.2.13
   resolution: "ng-file-upload@npm:12.2.13"
   checksum: 10c0/812a11b5c2388dc550d6b4a68c83c570f191ec4acaf458951f3a1e0705bdc0d015bef90dddf2ec96b9e5fc7a5ece2387a2fc7a7239b614c7fdf9b51bdb4826bd
+  languageName: node
+  linkType: hard
+
+"ng2-charts@npm:8.0.0":
+  version: 8.0.0
+  resolution: "ng2-charts@npm:8.0.0"
+  dependencies:
+    lodash-es: "npm:^4.17.15"
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/cdk": ">=19.0.0"
+    "@angular/common": ">=19.0.0"
+    "@angular/core": ">=19.0.0"
+    "@angular/platform-browser": ">=19.0.0"
+    chart.js: ^3.4.0 || ^4.0.0
+    rxjs: ^6.5.3 || ^7.4.0
+  checksum: 10c0/15b3a9d382017e9db3dfdbfd28230f4702dd7d60180bfb998de2a3d1752c33aaed79f2e9270a9056cdaf406f5f2dabb3549ca3db365bb82fea815706f5f437be
   languageName: node
   linkType: hard
 
@@ -19924,7 +20003,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.6.3, tslib@npm:^2.8.1":
+"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.4.0, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.6.3, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62

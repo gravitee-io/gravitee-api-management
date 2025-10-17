@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,18 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AnalyticsViewerComponent } from './analytics-viewer.component';
+import { WidgetComponent } from './widget.component';
 
-// Mock ResizeObserver to avoid errors in tests using canvas (Chartjs)
-globalThis.ResizeObserver =
-  globalThis.ResizeObserver ||
-  jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-  }));
-
-describe('AnalyticsViewerComponent', () => {
-  let component: AnalyticsViewerComponent;
-  let fixture: ComponentFixture<AnalyticsViewerComponent>;
+describe('WidgetComponent', () => {
+  let component: WidgetComponent;
+  let fixture: ComponentFixture<WidgetComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AnalyticsViewerComponent],
+      imports: [WidgetComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AnalyticsViewerComponent);
+    fixture = TestBed.createComponent(WidgetComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

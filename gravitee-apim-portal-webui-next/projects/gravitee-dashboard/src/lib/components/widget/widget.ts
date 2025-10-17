@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GraviteeDashboardService, GridComponent, Widget } from '@gravitee/gravitee-dashboard';
+import { GridsterItem } from 'angular-gridster2';
 
-import { Component, inject } from '@angular/core';
+import { PieType } from '../chart/pie-chart/pie-chart.component';
 
-@Component({
-  selector: 'analytics-viewer',
-  imports: [GridComponent],
-  templateUrl: './analytics-viewer.component.html',
-  styleUrl: './analytics-viewer.component.scss',
-})
-export class AnalyticsViewerComponent {
-  widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
+export type WidgetType = PieType | 'kpi' | 'top';
+
+export interface Widget {
+  id: string;
+  label: string;
+  type: WidgetType;
+  filter?: string;
+  layout: GridsterItem;
 }

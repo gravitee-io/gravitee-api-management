@@ -13,18 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject } from '@angular/core';
+import { Component, input } from '@angular/core';
 
-import { GridComponent } from './components/grid/grid.component';
-import { Widget } from './components/widget/widget';
-import { GraviteeDashboardService } from './gravitee-dashboard.service';
+import { Widget } from './widget';
 
 @Component({
-  selector: 'gd-dashboard',
-  imports: [GridComponent],
-  template: `<gd-grid [items]="widgets" />`,
-  styles: ``,
+  selector: 'gd-widget-title',
+  template: `<ng-content>widget-title</ng-content>`,
+  styleUrl: './widget.component.scss',
 })
-export class GraviteeDashboardComponent {
-  widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
+export class WidgetTitleComponent {}
+
+@Component({
+  selector: 'gd-widget-body',
+  template: `<ng-content>widget-body</ng-content>`,
+  styleUrl: './widget.component.scss',
+})
+export class WidgetBodyComponent {}
+
+@Component({
+  selector: 'gd-widget',
+  imports: [],
+  templateUrl: './widget.component.html',
+  styleUrl: './widget.component.scss',
+})
+export class WidgetComponent {
+  item = input<Widget>();
 }

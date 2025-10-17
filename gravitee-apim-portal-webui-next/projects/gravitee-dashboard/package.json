@@ -3,10 +3,16 @@
   "version": "0.0.1",
   "peerDependencies": {
     "@angular/common": "19.2.0",
-    "@angular/core": "19.2.0"
+    "@angular/core": "19.2.0",
+    "angular-gridster2": "20.2.3",
+    "chart.js": "4.3.0",
+    "ng2-charts": "8.0.0"
   },
   "dependencies": {
     "tslib": "2.3.1"
+  },
+  "devDependencies": {
+    "jest-canvas-mock": "2.5.2"
   },
   "sideEffects": false
 }
