@@ -25,7 +25,6 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { Step3Endpoints2ConfigComponent } from '../step-3-endpoints/step-3-endpoints-2-config.component';
-import { Step3Endpoints3ConfigComponent } from '../step-3-endpoints/step-3-endpoints-3-config.component';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { KafkaHost, PathV4, Qos } from '../../../../../entities/management-api-v2';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
@@ -103,7 +102,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       this.formGroup.addControl(`${id}-config`, this.formBuilder.control(configuration ?? {}));
       this.formGroup.addControl(`${id}-qos`, this.formBuilder.control(selectedQos ?? 'AUTO'));
     });
-    const allowedTypes = ['MESSAGE', 'AI', 'LLM_PROXY', 'MCP_PROXY', 'NATIVE'];
+    const allowedTypes = ['MESSAGE', 'LLM_PROXY', 'MCP_PROXY', 'NATIVE'];
     if (allowedTypes.includes(this.apiType)) {
       this.shouldUpgrade = currentStepPayload.selectedEntrypoints.some(({ deployed }) => !deployed);
       this.license$ = this.licenseService.getLicense$();
@@ -201,15 +200,14 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
           component: Step3Endpoints1ListComponent,
         });
         break;
-      case 'AI':
       case 'LLM_PROXY':
       case 'MCP_PROXY':
         this.stepService.goToNextStep({
           groupNumber: 3,
-          component: Step3Endpoints3ConfigComponent,
+          component: Step3Endpoints2ConfigComponent,
+
         });
         break;
-
       case 'PROXY':
       case 'NATIVE':
         this.stepService.goToNextStep({

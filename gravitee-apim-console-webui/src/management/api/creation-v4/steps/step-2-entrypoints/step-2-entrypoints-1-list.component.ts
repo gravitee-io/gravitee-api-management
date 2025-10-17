@@ -17,7 +17,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable, Subject } from 'rxjs';
+import {combineLatest, Observable, Subject} from 'rxjs';
 import { map, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
@@ -73,16 +73,18 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     });
 
     const connectorPlugins$: Observable<ConnectorPlugin[]> = (
-      ['MESSAGE', 'AI', 'LLM_PROXY', 'MCP_PROXY'].includes(currentStepPayload.type)
-        ? this.connectorPluginsV2Service.listAsyncEntrypointPlugins()
-        : this.connectorPluginsV2Service.listSyncEntrypointPlugins()
+      currentStepPayload.isAISelected
+        ? this.connectorPluginsV2Service.listAIEntrypointPlugins()
+        : currentStepPayload.type === 'MESSAGE'
+          ? this.connectorPluginsV2Service.listAsyncEntrypointPlugins()
+          : this.connectorPluginsV2Service.listSyncEntrypointPlugins()
     ).pipe(
       map((plugins) => {
         // For PROXY, we filter out the MCP entrypoint plugin. MCP is manageable after the API creation.
         plugins = plugins.filter((p) => p.id !== MCP_ENTRYPOINT_ID);
         const allowedIds = [AGENT_TO_AGENT.id, LLM_PROXY.id, MCP_PROXY.id];
-        return currentStepPayload.isA2ASelected
-          ? plugins.filter((p) => allowedIds.includes(p.id))
+        return currentStepPayload.isAISelected
+          ? plugins.filter((p) =>  allowedIds.includes(p.id))
           : plugins.filter((p) => !allowedIds.includes(p.id));
       }),
     );
@@ -150,73 +152,120 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   }
 
   private saveChanges() {
-    ['PROXY', 'AI'].includes(this.apiType) ? this.doSaveSync(this.apiType) : this.doSaveAsync();
+    this.isAISelected() ? this.doSaveAI():
+      this.apiType === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
   }
 
-  private doSaveSync(apiType: ApiType) {
-    const selectedEntrypointId = this.formGroup.getRawValue().selectedEntrypointsIds[0];
-    const selectedEntrypoint = this.entrypoints.find((e) => selectedEntrypointId.includes(e.id));
-
-    // pre-select the endpoint associated to current proxy entrypoint
-    this.connectorPluginsV2Service
-      .getEndpointPlugin(selectedEntrypoint.id)
-      .pipe(
-        tap((proxyEndpoint) => {
-          this.stepService.validStep((previousPayload) => ({
-            ...previousPayload,
-            type: apiType === 'PROXY' ? 'PROXY' : proxyEndpoint.supportedApiType,
-            selectedEntrypoints: [
-              {
-                id: selectedEntrypoint.id,
-                name: selectedEntrypoint.name,
-                icon: this.iconService.registerSvg(proxyEndpoint.id, selectedEntrypoint.icon),
-                supportedListenerType: selectedEntrypoint.supportedListenerType,
-                deployed: selectedEntrypoint.deployed,
-              },
-            ],
-            selectedEndpoints: [
-              {
-                id: proxyEndpoint.id,
-                name: proxyEndpoint.name,
-                icon: this.iconService.registerSvg(proxyEndpoint.id, proxyEndpoint.icon),
-                deployed: proxyEndpoint.deployed,
-              },
-            ],
-          }));
-          this.stepService.goToNextStep({
-            groupNumber: 2,
-            component: Step2Entrypoints2ConfigComponent,
-          });
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
-  }
-
-  private doSaveAsync() {
-    const selectedEntrypointsIds = this.formGroup.getRawValue().selectedEntrypointsIds ?? [];
-    const selectedEntrypoints = this.entrypoints
-      .map(({ id, name, supportedListenerType, supportedQos, icon, deployed }) => ({
-        id,
-        name,
-        supportedListenerType,
-        supportedQos,
-        icon,
-        deployed,
-      }))
-      .filter((e) => selectedEntrypointsIds.includes(e.id));
-
+  private doSaveSync() {
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
-      selectedEntrypoints,
+      type: 'PROXY',
     }));
-
-    return this.stepService.goToNextStep({
+    this.stepService.goToNextStep({
       groupNumber: 2,
-      component: Step2Entrypoints2ConfigComponent,
+      component: Step2Entrypoints1ListComponent,
     });
   }
 
+  private doSaveAsync() {
+    this.stepService.validStep((previousPayload) => ({
+      ...previousPayload,
+      type: 'MESSAGE',
+    }));
+    this.stepService.goToNextStep({
+      groupNumber: 2,
+      component: Step2Entrypoints1ListComponent,
+    });
+  }
+  private doSaveAI() {
+    const selectedEntrypointsIds = this.formGroup.getRawValue().selectedEntrypointsIds ?? [];
+
+    if(selectedEntrypointsIds.includes(AGENT_TO_AGENT.id)) {
+      combineLatest([
+        this.connectorPluginsV2Service.getEntrypointPlugin(AGENT_TO_AGENT.id),
+        this.connectorPluginsV2Service.getEndpointPlugin(AGENT_TO_AGENT.id),
+      ])
+        .pipe(
+          tap(([agentToAgentEntrypoint, agentToAgentEndpoint]) => {
+            this.stepService.validStep((previousPayload) => ({
+              ...previousPayload,
+              selectedEntrypoints: [
+                {
+                  id: agentToAgentEntrypoint.id,
+                  name: agentToAgentEntrypoint.name,
+                  icon: this.iconService.registerSvg(agentToAgentEntrypoint.id, agentToAgentEntrypoint.icon),
+                  supportedListenerType: agentToAgentEntrypoint.supportedListenerType,
+                  deployed: agentToAgentEntrypoint.deployed,
+                  selectedQos: 'NONE',
+                },
+              ],
+              selectedEndpoints: [
+                {
+                  id: agentToAgentEndpoint.id,
+                  name: agentToAgentEndpoint.name,
+                  icon: this.iconService.registerSvg(agentToAgentEndpoint.id, agentToAgentEndpoint.icon),
+                  supportedListenerType: agentToAgentEndpoint.supportedListenerType,
+                  deployed: agentToAgentEndpoint.deployed,
+                },
+              ],
+              type: 'MESSAGE', // We save the A2A or the Agent proxy as  MESSAGE only
+              isA2ASelected: true,
+            }));
+            this.stepService.goToNextStep({
+              groupNumber: 2,
+              component: Step2Entrypoints2ConfigComponent,
+            });
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+    }
+    else {
+      const selectedEntrypoints = this.entrypoints
+        .map(({id, name, supportedListenerType, supportedQos, icon, deployed}) => ({
+          id,
+          name,
+          supportedListenerType,
+          supportedQos,
+          icon,
+          deployed,
+        }))
+        .filter((e) => {
+
+          return selectedEntrypointsIds.includes(e.id);
+        });
+      this.connectorPluginsV2Service
+        .getEndpointPlugin(selectedEntrypoints[0].id)
+        .pipe(
+          tap((proxyEndpoint) => {
+            this.stepService.validStep((previousPayload) => ({
+              ...previousPayload,
+              selectedEntrypoints,
+              type: proxyEndpoint.supportedApiType,
+              selectedEndpoints: [
+                {
+                  id: proxyEndpoint.id,
+                  name: proxyEndpoint.name,
+                  icon: this.iconService.registerSvg(proxyEndpoint.id, proxyEndpoint.icon),
+                  deployed: proxyEndpoint.deployed,
+                },
+              ],
+            }));
+            this.stepService.goToNextStep({
+              groupNumber: 2,
+              component: Step2Entrypoints2ConfigComponent,
+            });
+
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+    }
+  }
+
+  isAISelected() {
+    return this.stepService.payload.isAISelected;
+  }
   public onRequestUpgrade() {
     this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT });
   }

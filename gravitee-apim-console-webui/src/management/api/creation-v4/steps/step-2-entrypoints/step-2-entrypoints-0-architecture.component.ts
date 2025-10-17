@@ -140,7 +140,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
         this.doSaveKafka();
         break;
       case 'AI':
-        this.doSaveA2A();
+        this.doSaveAI();
         break;
     }
   }
@@ -155,16 +155,19 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
       component: Step2Entrypoints1ListComponent,
     });
   }
-  private doSaveA2A() {
+  private doSaveAI() {
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
-      type: 'AI',
-      isA2ASelected: true,
+
+      isAISelected: true,
     }));
     this.stepService.goToNextStep({
       groupNumber: 2,
       component: Step2Entrypoints1ListComponent,
     });
+  }
+  public isAISelected(){
+    return this.stepService.payload.isAISelected;
   }
 
   private doSaveAsync() {

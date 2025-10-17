@@ -50,7 +50,6 @@ import { Step4Security1PlansListComponent } from './steps/step-4-security/step-4
 import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
 import { Step3Endpoints1ListComponent } from './steps/step-3-endpoints/step-3-endpoints-1-list.component';
 import { Step3Endpoints2ConfigComponent } from './steps/step-3-endpoints/step-3-endpoints-2-config.component';
-import { Step3Endpoints3ConfigComponent } from './steps/step-3-endpoints/step-3-endpoints-3-config.component';
 import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-item/step-entrypoint-menu-item.component';
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
 import { Step2Entrypoints0ArchitectureComponent } from './steps/step-2-entrypoints/step-2-entrypoints-0-architecture.component';
@@ -123,7 +122,6 @@ import { GioFormListenersKafkaHostComponent } from '../component/gio-form-listen
     Step2Entrypoints2ConfigComponent,
     Step3Endpoints1ListComponent,
     Step3Endpoints2ConfigComponent,
-    Step3Endpoints3ConfigComponent,
     StepEndpointMenuItemComponent,
     Step4MenuItemComponent,
     Step4Security1PlansComponent,

@@ -106,11 +106,10 @@
             ></gio-license-banner>
           </div>
         </mat-radio-button>
-        <mat-radio-button
-          value="AI"
-          [class.gio-selection__selected]="['MCP_PROXY', 'LLM_PROXY', 'MESSAGE'].includes(form.controls['type'].value)"
-        >
-          <gio-selection-list-option-layout>
+        <mat-radio-button value="AI" [checked]="isAISelected()"
+                          [class.gio-selection__selected]="isAISelected() || ['MCP_PROXY', 'LLM_PROXY', 'MESSAGE'].includes(form.controls['type'].value)">
+
+        <gio-selection-list-option-layout>
             <gio-selection-list-option-layout-title>
               <div class="option__badges">
                 <div>AI Gateway</div>
