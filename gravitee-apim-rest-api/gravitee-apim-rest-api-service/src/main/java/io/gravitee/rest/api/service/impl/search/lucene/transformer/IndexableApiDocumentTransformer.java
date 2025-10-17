@@ -25,6 +25,7 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
@@ -168,7 +169,22 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
     String generateApiType(Api api) {
         String apiType;
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            String type = api.getType() == ApiType.NATIVE ? "KAFKA" : api.getType() == ApiType.PROXY ? "HTTP_PROXY" : "MESSAGE";
+            String type = switch (api.getType()) {
+                case MESSAGE -> "MESSAGE";
+                case LLM_PROXY -> "LLM_PROXY";
+                case MCP_PROXY -> "MCP_PROXY";
+                case NATIVE -> "KAFKA";
+                case PROXY -> {
+                    boolean isTcpApi = api
+                        .getApiListeners()
+                        .stream()
+                        .anyMatch(listener -> listener.getType() == ListenerType.TCP);
+                    if (isTcpApi) {
+                        yield "TCP_PROXY";
+                    }
+                    yield "HTTP_PROXY";
+                }
+            };
             apiType = api.getDefinitionVersion().name() + "_" + type;
         } else {
             apiType = api.getDefinitionVersion().name();
@@ -193,7 +209,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         switch (apiDefinitionV4) {
             case io.gravitee.definition.model.v4.Api v4Api -> transformV4ApiHttpListeners(doc, v4Api);
-            case io.gravitee.definition.model.v4.nativeapi.NativeApi v4NativeApi -> transformV4ApiNativeListeners(doc, v4NativeApi);
+            case NativeApi v4NativeApi -> transformV4ApiNativeListeners(doc, v4NativeApi);
             default -> {}
         }
 
@@ -228,7 +244,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         }
     }
 
-    private void transformV4ApiNativeListeners(Document doc, io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefinitionV4) {
+    private void transformV4ApiNativeListeners(Document doc, NativeApi apiDefinitionV4) {
         if (apiDefinitionV4 != null && apiDefinitionV4.getListeners() != null) {
             apiDefinitionV4
                 .getListeners()

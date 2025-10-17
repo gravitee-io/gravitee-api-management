@@ -459,6 +459,72 @@ describe('ApisListComponent', () => {
     });
   });
 
+  describe('with MCP Proxy API', () => {
+    describe('without quality score', () => {
+      beforeEach(() => {
+        TestBed.configureTestingModule({
+          imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
+          providers: [
+            { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
+            { provide: Constants, useValue: fakeConstants },
+          ],
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(ApiListComponent);
+        httpTestingController = TestBed.inject(HttpTestingController);
+      });
+
+      it('should display a table with one row', fakeAsync(async () => {
+        const api = fakeApiV4({ type: 'MCP_PROXY', listeners: [] });
+        await initComponent([api]);
+
+        const { rowCells } = await computeApisTableCells();
+        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'V4 - MCP Proxy Gravitee', '', '', '', '', '', 'admin', '', 'public', 'edit']]);
+        expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
+      }));
+
+      async function initComponent(apis: Api[]) {
+        // APIs are sorted by name by default
+        expectApisListRequest(apis, 'name');
+        loader = TestbedHarnessEnvironment.loader(fixture);
+        fixture.detectChanges();
+      }
+    });
+  });
+
+  describe('with LLM Proxy API', () => {
+    describe('without quality score', () => {
+      beforeEach(() => {
+        TestBed.configureTestingModule({
+          imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
+          providers: [
+            { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
+            { provide: Constants, useValue: fakeConstants },
+          ],
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(ApiListComponent);
+        httpTestingController = TestBed.inject(HttpTestingController);
+      });
+
+      it('should display a table with one row', fakeAsync(async () => {
+        const api = fakeApiV4({ type: 'LLM_PROXY', listeners: [] });
+        await initComponent([api]);
+
+        const { rowCells } = await computeApisTableCells();
+        expect(rowCells).toEqual([['', '🪐 Planets (1.0)', 'V4 - LLM Proxy Gravitee', '', '', '', '', '', 'admin', '', 'public', 'edit']]);
+        expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
+      }));
+
+      async function initComponent(apis: Api[]) {
+        // APIs are sorted by name by default
+        expectApisListRequest(apis, 'name');
+        loader = TestbedHarnessEnvironment.loader(fixture);
+        fixture.detectChanges();
+      }
+    });
+  });
+
   async function computeApisTableCells() {
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#apisTable' }));
 
