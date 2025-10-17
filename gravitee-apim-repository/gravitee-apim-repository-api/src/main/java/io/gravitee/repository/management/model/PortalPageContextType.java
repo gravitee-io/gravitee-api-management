@@ -20,4 +20,5 @@ package io.gravitee.repository.management.model;
  */
 public enum PortalPageContextType {
     HOMEPAGE,
+    TOPBAR,
 }
