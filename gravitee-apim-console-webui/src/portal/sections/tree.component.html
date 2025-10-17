@@ -1,0 +1,87 @@
+<div class="sections-card">
+  <div class="sections-card__header">
+    <div class="sections-card__title">Sections</div>
+    <button mat-flat-button color="primary" [matMenuTriggerFor]="addMenu">Add Section ▾</button>
+    <mat-menu #addMenu="matMenu">
+      <button mat-menu-item (click)="onAddSectionMenu()">Section</button>
+      <button mat-menu-item (click)="onAddPageMenu()">Page</button>
+      <button mat-menu-item (click)="onAddLinkMenu()">Link</button>
+    </mat-menu>
+  </div>
+
+  <div class="sections-group">
+    <div class="sections-group__header" (click)="toggleApi()" role="button" tabindex="0"
+         [attr.aria-expanded]="apiExpanded()">
+      <span class="sections-group__chevron" [class.-open]="apiExpanded()"><mat-icon
+        svgIcon="gio:nav-arrow-right"></mat-icon></span>
+      <span class="sections-group__title">Top Bar Links</span>
+      <span class="spacer"></span>
+      <div class="sections-card__actions" (click)="$event.stopPropagation()">
+        <button mat-stroked-button color="warn" (click)="delete()">
+          <mat-icon svgIcon="gio:trash"></mat-icon>
+        </button>
+        <button mat-stroked-button (click)="link()">
+          <mat-icon svgIcon="gio:link"></mat-icon>
+        </button>
+        <button mat-stroked-button (click)="addFolder()">
+          <mat-icon svgIcon="gio:file-plus"></mat-icon>
+        </button>
+        <button mat-stroked-button (click)="addFolder()">
+          <mat-icon svgIcon="gio:folder-plus"></mat-icon>
+        </button>
+        <button mat-stroked-button (click)="edit()">
+          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="sections-group__content" *ngIf="apiExpanded()">
+      <div class="tree" role="tree">
+        <ng-container *ngFor="let node of tree(); trackBy: trackById">
+          <ng-container [ngTemplateOutlet]="nodeTpl"
+                        [ngTemplateOutletContext]="{ node: node, level: 0 }"></ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #nodeTpl let-node="node" let-level="level">
+  <div class="tree__row" role="treeitem" [attr.aria-level]="level + 1"
+       [class.-selected]="selectedId() === node.id"
+       [style.paddingLeft.px]="16 + level * 20">
+    <div class="tree__row__connector" [style.left.px]="level * 20"></div>
+    <button class="tree__toggle" *ngIf="node.type === 'folder'" (click)="toggle(node)" aria-label="Toggle">
+      <span class="arrow" [class.-open]="isExpanded(node.id)"><mat-icon
+        svgIcon="gio:nav-arrow-right"></mat-icon></span>
+    </button>
+    <span class="tree__icon" [attr.data-type]="node.type"></span>
+
+    <button class="tree__label" (click)="select(node)">{{ node.label }}</button>
+
+    <div class="tree__badges">
+      <span class="badge -link" *ngIf="node.link">Link</span>
+      <span class="badge -unpublished" *ngIf="node.unpublished">Unpublished</span>
+    </div>
+
+    <div class="tree__inline-actions">
+      <button mat-icon-button title="Add" (click)="addSection(node)">
+        <mat-icon svgIcon="gio:link"></mat-icon>
+      </button>
+      <button mat-icon-button title="Edit" (click)="edit(node)">
+        <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+        ️
+      </button>
+      <button mat-icon-button title="Delete" (click)="delete(node)">
+        <mat-icon svgIcon="gio:trash"></mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="tree__children" *ngIf="node.children?.length && isExpanded(node.id)">
+    <ng-container *ngFor="let child of node.children; trackBy: trackById">
+      <ng-container [ngTemplateOutlet]="nodeTpl"
+                    [ngTemplateOutletContext]="{ node: child, level: level + 1 }"></ng-container>
+    </ng-container>
+  </div>
+</ng-template>
