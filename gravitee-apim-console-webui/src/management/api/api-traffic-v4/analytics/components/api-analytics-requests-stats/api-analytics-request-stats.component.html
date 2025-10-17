@@ -16,7 +16,9 @@
 
 -->
 <mat-card class="card">
-  <div class="title">{{ title }}</div>
+  <mat-card-header class="title">
+    <mat-card-title>{{ title }}</mat-card-title>
+  </mat-card-header>
   <div class="list">
     @for (requestStat of requestsStats; track requestStat.label) {
       <div class="list__row">
