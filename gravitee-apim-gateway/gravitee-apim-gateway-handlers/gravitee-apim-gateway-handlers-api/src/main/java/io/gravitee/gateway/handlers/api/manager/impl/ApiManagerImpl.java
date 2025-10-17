@@ -40,6 +40,7 @@ import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -149,7 +150,9 @@ public class ApiManagerImpl implements ApiManager {
         // Keep the check of Sharding Tags for io.gravitee.gateway.services.localregistry.LocalApiDefinitionRegistry
         if (gatewayConfiguration.hasMatchingTags(api.getTags())) {
             boolean apiToDeploy = deployedApi == null || force;
-            boolean apiToUpdate = !apiToDeploy && deployedApi.getDeployedAt().before(api.getDeployedAt());
+            boolean apiToUpdate =
+                !apiToDeploy &&
+                (deployedApi.getDeployedAt().before(api.getDeployedAt()) || !Objects.equals(deployedApi.getRevision(), api.getRevision()));
 
             // if API will be deployed or updated
             if (apiToDeploy || apiToUpdate) {
