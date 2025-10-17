@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.api.PortalPageRepository;
+import io.gravitee.repository.management.model.ElementType;
 import io.gravitee.repository.management.model.PortalPage;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
@@ -69,6 +70,7 @@ public class PortalPageServiceImpl implements PortalPageService {
                     .contextType(PortalPageContextType.HOMEPAGE)
                     .environmentId(environmentId)
                     .published(true)
+                    .type(ElementType.PAGE)
                     .build()
             );
         }

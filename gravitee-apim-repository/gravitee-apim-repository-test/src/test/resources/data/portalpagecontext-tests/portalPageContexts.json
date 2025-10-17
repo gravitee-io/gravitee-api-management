@@ -4,20 +4,23 @@
       "pageId":"test-portal-page-id",
       "contextType":"HOMEPAGE",
       "environmentId":"test-environment",
-      "published": true
+      "published": true,
+     "type": "PAGE"
    },
    {
       "id":"update-portal-page-context-id",
       "pageId":"update-portal-page",
       "contextType":"HOMEPAGE",
       "environmentId":"test-environment",
-      "published": false
+      "published": false,
+     "type": "PAGE"
    },
   {
     "id":"delete-by-env-portal-page-context-id",
     "pageId":"delete-portal-page",
     "contextType":"HOMEPAGE",
     "environmentId":"delete-environment",
-    "published": false
+    "published": false,
+    "type": "PAGE"
   }
 ]

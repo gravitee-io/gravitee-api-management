@@ -15,32 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
-/**
- * @author GraviteeSource Team
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString
-@Getter
-@Setter
-public class PortalPageContext {
-
-    @EqualsAndHashCode.Include
-    private String id;
-
-    private String pageId;
-    private PortalPageContextType contextType;
-    private String environmentId;
-    private ElementType type;
-    private boolean published;
+public enum ElementType {
+    PAGE,
+    LINK,
 }

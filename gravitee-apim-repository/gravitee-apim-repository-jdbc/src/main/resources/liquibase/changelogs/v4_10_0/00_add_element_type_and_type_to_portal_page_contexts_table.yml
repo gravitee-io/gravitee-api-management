@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.10.0_00_add_element_type_and_type_to_portal_page_contexts_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portal_page_contexts
+            columns:
+              - column: { name: type, type: nvarchar(64), defaultValue: 'PAGE', constraints: { nullable: false } }
+      rollback:
+        - dropColumn:
+            columnName: type
+            tableName: ${gravitee_prefix}portal_page_contexts
+

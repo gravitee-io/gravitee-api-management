@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.ElementType;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import java.util.List;
@@ -48,6 +49,7 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
         portalPageContext.setPageId("new-portal-page");
         portalPageContext.setContextType(PortalPageContextType.HOMEPAGE);
         portalPageContext.setPublished(true);
+        portalPageContext.setType(ElementType.PAGE);
 
         // When
         PortalPageContext created = portalPageContextRepository.create(portalPageContext);
@@ -139,6 +141,7 @@ public class PortalPageContextRepositoryTest extends AbstractManagementRepositor
             .contextType(existing.getContextType())
             .environmentId(existing.getEnvironmentId())
             .published(true)
+            .type(ElementType.PAGE)
             .build();
 
         // When
