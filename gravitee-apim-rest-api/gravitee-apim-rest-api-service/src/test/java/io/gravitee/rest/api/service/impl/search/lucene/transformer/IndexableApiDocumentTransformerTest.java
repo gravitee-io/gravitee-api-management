@@ -60,6 +60,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.service.ApiService;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -398,6 +399,35 @@ public class IndexableApiDocumentTransformerTest {
         Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.PROXY).build();
         String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
         assertThat(apiType).isEqualTo("V4_HTTP_PROXY");
+    }
+
+    @Test
+    public void generate_api_type_v4_tcp_proxy() {
+        Api api = Api.builder()
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.PROXY)
+            .apiDefinitionHttpV4(
+                io.gravitee.definition.model.v4.Api.builder()
+                    .listeners(List.of(TcpListener.builder().entrypoints(List.of()).build()))
+                    .build()
+            )
+            .build();
+        String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
+        assertThat(apiType).isEqualTo("V4_TCP_PROXY");
+    }
+
+    @Test
+    public void generate_api_type_v4_mcp_proxy() {
+        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.MCP_PROXY).build();
+        String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
+        assertThat(apiType).isEqualTo("V4_MCP_PROXY");
+    }
+
+    @Test
+    public void generate_api_type_v4_llm_proxy() {
+        Api api = Api.builder().definitionVersion(DefinitionVersion.V4).type(ApiType.LLM_PROXY).build();
+        String apiType = new IndexableApiDocumentTransformer().generateApiType(api);
+        assertThat(apiType).isEqualTo("V4_LLM_PROXY");
     }
 
     @Test
