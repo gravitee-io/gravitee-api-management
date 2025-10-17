@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
 import java.util.Set;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -53,6 +54,7 @@ public class DeployModelToApiCreateUseCase {
             .security(PlanSecurity.builder().type("key-less").build())
             .build();
 
+    @Builder
     public record Input(String swaggerDefinition, AuditInfo auditInfo, String apiCrossId, Mode mode, List<String> labels) {}
 
     public record Output(Api api) {}
