@@ -28,6 +28,10 @@ import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
+import io.gravitee.rest.api.management.v2.rest.model.CreateGraviteeMarkdownPage;
+import io.gravitee.rest.api.management.v2.rest.model.CreateLinkPage;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalPageRequest;
+import io.gravitee.rest.api.management.v2.rest.model.CreateSectionPage;
 import io.gravitee.rest.api.management.v2.rest.model.PatchPortalPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageWithDetails;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPagesResponse;
@@ -38,6 +42,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -140,6 +145,17 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         ).thenReturn(hasPermission);
     }
 
+    private void setupPermissionForCreate(boolean hasPermission) {
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_DOCUMENTATION),
+                any(),
+                eq(RolePermissionAction.CREATE)
+            )
+        ).thenReturn(hasPermission);
+    }
+
     @Nested
     class PatchPortalPageTest {
 
@@ -236,6 +252,58 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         void should_return_403_for_unauthorized_user() {
             setupPermissionForUpdate(false);
             Response response = target.path("/_homepage/_unpublish").request().post(null);
+            assertThat(response).hasStatus(403);
+        }
+    }
+
+    @Nested
+    class CreatePortalPageTest {
+
+        @Test
+        void should_create_gravitee_markdown_page() {
+            setupPermissionForCreate(true);
+            var request = new CreateGraviteeMarkdownPage();
+            request.setName("My Page");
+            request.setType(CreatePortalPageRequest.TypeEnum.GRAVITEE_MARKDOWN);
+            request.setContext(CreatePortalPageRequest.ContextEnum.HOMEPAGE);
+            request.setContent("Page content");
+            Response response = target.request().post(jakarta.ws.rs.client.Entity.json(request));
+            assertThat(response).hasStatus(500);
+        }
+
+        @Test
+        void should_create_link_page() {
+            setupPermissionForCreate(true);
+            var request = new CreateLinkPage();
+            request.setName("My Link");
+            request.setType(CreatePortalPageRequest.TypeEnum.LINK);
+            request.setContext(CreatePortalPageRequest.ContextEnum.HOMEPAGE);
+            request.setUrl(URI.create("http://example.com"));
+            Response response = target.request().post(jakarta.ws.rs.client.Entity.json(request));
+            assertThat(response).hasStatus(500);
+        }
+
+        @Test
+        void should_create_section_page() {
+            setupPermissionForCreate(true);
+            var request = new CreateSectionPage();
+            request.setName("My Section");
+            request.setType(CreatePortalPageRequest.TypeEnum.SECTION);
+            request.setContext(CreatePortalPageRequest.ContextEnum.HOMEPAGE);
+            request.setPageIds(List.of("page1", "page2"));
+            Response response = target.request().post(jakarta.ws.rs.client.Entity.json(request));
+            assertThat(response).hasStatus(500);
+        }
+
+        @Test
+        void should_return_403_for_unauthorized_user() {
+            setupPermissionForCreate(false);
+            var request = new CreateGraviteeMarkdownPage();
+            request.setName("My Page");
+            request.setType(CreatePortalPageRequest.TypeEnum.GRAVITEE_MARKDOWN);
+            request.setContext(CreatePortalPageRequest.ContextEnum.HOMEPAGE);
+            request.setContent("Page content");
+            Response response = target.request().post(jakarta.ws.rs.client.Entity.json(request));
             assertThat(response).hasStatus(403);
         }
     }
