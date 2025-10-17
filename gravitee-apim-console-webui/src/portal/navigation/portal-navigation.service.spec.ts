@@ -54,9 +54,9 @@ describe('PortalNavigationService', () => {
           icon: 'gio:report-columns',
         },
         {
-          displayName: 'Top Bar',
-          routerLink: 'top-bar',
-          icon: 'gio:top-bar',
+          displayName: 'Pages',
+          routerLink: 'pages',
+          icon: 'gio:page',
         },
         {
           displayName: 'API',
