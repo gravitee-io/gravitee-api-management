@@ -71,6 +71,7 @@ describe('ApiGeneralInfoComponent', () => {
           provide: ActivatedRoute,
           useValue: {
             params: of({ apiId: API_ID }),
+            snapshot: { params: { apiId: 'apiId' } },
           },
         },
         {
