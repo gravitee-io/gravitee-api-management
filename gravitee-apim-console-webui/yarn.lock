@@ -3115,6 +3115,7 @@ __metadata:
   peerDependencies:
     "@angular/common": 19.2.0
     "@angular/core": 19.2.0
+    angular-gridster2: 20.2.3
   languageName: node
   linkType: soft
 
@@ -7846,6 +7847,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"angular-gridster2@npm:20.2.3":
+  version: 20.2.3
+  resolution: "angular-gridster2@npm:20.2.3"
+  dependencies:
+    tslib: "npm:^2.4.0"
+  peerDependencies:
+    "@angular/common": ^20.0.0
+    "@angular/core": ^20.0.0
+    rxjs: ^7.0.0
+  checksum: 10c0/5dfec3567a4d71ff8520037ca23701996810a255119ebaaa11ef64f4f1122de5f872d213bb3cef90f474018ff1dd645ddf649510738b86837b6b62fa107f261e
+  languageName: node
+  linkType: hard
+
 "angular-gridster@npm:0.13.14":
   version: 0.13.14
   resolution: "angular-gridster@npm:0.13.14"
@@ -12338,6 +12352,7 @@ __metadata:
     angular-aria: "npm:1.8.3"
     angular-drag-and-drop-lists: "npm:2.1.0"
     angular-gridster: "npm:0.13.14"
+    angular-gridster2: "npm:20.2.3"
     angular-highlightjs: "npm:0.7.1"
     angular-loading-bar: "npm:0.9.0"
     angular-material: "npm:1.2.5"
@@ -19924,7 +19939,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.6.3, tslib@npm:^2.8.1":
+"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.4.0, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.6.3, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62

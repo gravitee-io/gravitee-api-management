@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import { GraviteeDashboardService } from './gravitee-dashboard.service';
+import { Widget } from './components/widget/widget';
+import { GridComponent } from './components/grid/grid.component';
 
 @Component({
   selector: 'gd-dashboard',
-  imports: [],
-  template: ` <p>gravitee-dashboard works!</p> `,
+  imports: [GridComponent],
+  template: ` <p>gravitee-dashboard works!</p>
+    <gd-grid [items]="widgets" />`,
   styles: ``,
 })
-export class GraviteeDashboardComponent {}
+export class GraviteeDashboardComponent {
+  widgets: Widget[];
+
+  constructor(private readonly dashboardService: GraviteeDashboardService) {
+    this.widgets = this.dashboardService.getWidgets();
+  }
+}

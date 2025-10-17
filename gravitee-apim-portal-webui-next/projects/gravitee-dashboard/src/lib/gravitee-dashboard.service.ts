@@ -14,10 +14,117 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
+import { Widget } from './components/widget/widget';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GraviteeDashboardService {
   constructor() {}
+
+  public getWidgets(): Widget[] {
+    return [
+      {
+        id: 'min-response-time-01',
+        label: 'Min Response Time',
+        type: 'metric',
+        layout: {
+          cols: 1,
+          rows: 3,
+          y: 0,
+          x: 2,
+        },
+      },
+      {
+        id: 'avg-response-time-02',
+        label: 'Avg Response Time',
+        type: 'metric',
+        layout: {
+          cols: 1,
+          rows: 3,
+          y: 0,
+          x: 3,
+        },
+      },
+      {
+        id: 'requests-per-second-03',
+        label: 'Requests Per Second',
+        type: 'metric',
+        layout: {
+          cols: 1,
+          rows: 3,
+          y: 0,
+          x: 4,
+        },
+      },
+      {
+        id: 'http-status-repartition-04',
+        label: 'HTTP Status Repartition',
+        type: 'chart',
+        filter: 'status-code',
+        layout: {
+          cols: 4,
+          rows: 4,
+          y: 1,
+          x: 0,
+        },
+      },
+      {
+        id: 'top-applications-05',
+        label: 'Top Applications',
+        type: 'table',
+        layout: {
+          cols: 2,
+          rows: 4,
+          y: 1,
+          x: 4,
+        },
+      },
+      {
+        id: 'response-status-over-time-06',
+        label: 'Response Status Over Time',
+        type: 'chart',
+        filter: 'status-over-time',
+        layout: {
+          cols: 4,
+          rows: 4,
+          y: 2,
+          x: 0,
+        },
+      },
+      {
+        id: 'top-api-plans-07',
+        label: 'Top API Plans',
+        type: 'table',
+        layout: {
+          cols: 2,
+          rows: 4,
+          y: 2,
+          x: 4,
+        },
+      },
+      {
+        id: 'empty-widget-08',
+        label: 'Custom Widget',
+        type: 'custom',
+        layout: {
+          cols: 3,
+          rows: 4,
+          y: 3,
+          x: 0,
+        },
+      },
+      {
+        id: 'empty-widget-09',
+        label: 'Custom Widget',
+        type: 'custom',
+        layout: {
+          cols: 3,
+          rows: 4,
+          y: 3,
+          x: 3,
+        },
+      },
+    ];
+  }
 }

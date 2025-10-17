@@ -13,12 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
+
+import { Widget } from '../widget/widget';
+import { WidgetComponent } from '../widget/widget.component';
 
 @Component({
   selector: 'gd-grid',
-  imports: [],
+  imports: [GridsterComponent, GridsterItemComponent, WidgetComponent],
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.css',
 })
-export class GridComponent {}
+export class GridComponent implements OnInit {
+  @Input()
+  public items: Widget[] = [];
+  public options: GridsterConfig = {} as GridsterConfig;
+
+  public ngOnInit(): void {
+    this.options = {
+      gridType: GridType.VerticalFixed,
+      maxCols: 6,
+      minCols: 6,
+      minRows: 16,
+      itemAspectRatio: 4 / 3,
+      compactType: CompactType.CompactUp,
+      displayGrid: DisplayGrid.None,
+      pushItems: true,
+      draggable: {
+        enabled: true,
+      },
+      resizable: {
+        enabled: true,
+      },
+      outerMargin: true,
+      setGridSize: true,
+      fixedColWidth: 50,
+      fixedRowHeight: 50,
+    };
+  }
+}
