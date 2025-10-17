@@ -15,13 +15,18 @@
  */
 package io.gravitee.apim.infra.crud_service.document;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PageFixtures;
 import io.gravitee.apim.core.documentation.exception.ApiPageNotDeletedException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.crud_service.documentation.PageCrudServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
@@ -31,6 +36,7 @@ import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.*;
+import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -276,6 +282,85 @@ public class PageCrudServiceImplTest {
                 .isInstanceOf(ApiPageNotDeletedException.class)
                 .hasMessage("Page page-id not deleted");
             verify(pageRepository).delete(PAGE_ID);
+        }
+    }
+
+    @Nested
+    class FindByApiId {
+
+        @Test
+        void should_get_a_page_by_api_id() throws TechnicalException {
+            var apiId = "api-id";
+            var exisitingPage = io.gravitee.repository.management.model.Page.builder()
+                .id(PAGE_ID)
+                .type("MARKDOWN")
+                .name(PAGE_NAME)
+                .createdAt(DATE)
+                .updatedAt(DATE)
+                .content("content")
+                .homepage(false)
+                .referenceId(apiId)
+                .referenceType(PageReferenceType.API)
+                .order(42)
+                .visibility("PRIVATE")
+                .lastContributor("John Doe")
+                .published(true)
+                .parentId("parent-id")
+                .build();
+
+            when(pageRepository.search(any())).thenReturn(List.of(exisitingPage));
+
+            var expectedPage = Page.builder()
+                .id(PAGE_ID)
+                .type(Page.Type.MARKDOWN)
+                .name(PAGE_NAME)
+                .createdAt(DATE)
+                .updatedAt(DATE)
+                .content("content")
+                .homepage(false)
+                .referenceId(apiId)
+                .referenceType(Page.ReferenceType.API)
+                .order(42)
+                .visibility(Page.Visibility.PRIVATE)
+                .lastContributor("John Doe")
+                .published(true)
+                .parentId("parent-id")
+                .build();
+
+            var foundPages = service.findByApiId(apiId);
+
+            Assertions.assertThat(foundPages).hasSize(1).first().usingRecursiveComparison().isEqualTo(expectedPage);
+        }
+
+        @Test
+        void should_throw_exception_if_page_not_found() throws TechnicalException {
+            when(pageRepository.search(any())).thenThrow(new TechnicalException("exception"));
+
+            assertThatThrownBy(() -> service.findByApiId("api-id")).isInstanceOf(TechnicalDomainException.class);
+        }
+    }
+
+    @Nested
+    class updateCrossIds {
+
+        @Test
+        @SneakyThrows
+        void should_call_cross_ids_update() {
+            service.updateCrossIds(List.of(PageFixtures.aPage()));
+
+            verify(pageRepository).updateCrossIds(any());
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            doThrow(TechnicalException.class).when(pageRepository).updateCrossIds(any());
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.updateCrossIds(List.of(PageFixtures.aPage())));
+
+            // Then
+            assertThat(throwable).isInstanceOf(TechnicalDomainException.class);
         }
     }
 }

@@ -75,4 +75,10 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @throws TechnicalException in case of error
      */
     void updateOrder(String planId, int order) throws TechnicalException;
+
+    /**
+     * Update cross ids of plans.
+     * @param plans the plans to update.
+     */
+    void updateCrossIds(List<Plan> plans) throws TechnicalException;
 }

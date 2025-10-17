@@ -18,6 +18,10 @@ package io.gravitee.repository.mongodb.management.internal.page;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.Updates;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -25,6 +29,7 @@ import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import java.util.Collection;
 import java.util.List;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -128,5 +133,21 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
         query.addCriteria(where("_id").in(ids));
         UpdateDefinition upd = new Update().set("homepage", false);
         mongoTemplate.upsert(query, upd, PageMongo.class);
+    }
+
+    @Override
+    public void updateCrossIds(List<io.gravitee.repository.management.model.Page> pages) {
+        if (pages == null || pages.isEmpty()) {
+            return;
+        }
+
+        var updates = pages
+            .stream()
+            .map(page -> new UpdateOneModel<Document>(Filters.eq("_id", page.getId()), Updates.set("crossId", page.getCrossId())))
+            .toList();
+
+        mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(PageMongo.class))
+            .bulkWrite(updates, new BulkWriteOptions().ordered(false));
     }
 }

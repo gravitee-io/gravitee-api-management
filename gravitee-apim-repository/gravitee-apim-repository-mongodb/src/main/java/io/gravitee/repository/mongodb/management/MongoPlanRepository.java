@@ -150,4 +150,14 @@ public class MongoPlanRepository implements PlanRepository {
             throw new TechnicalException("Failed to update plan order", e);
         }
     }
+
+    @Override
+    public void updateCrossIds(List<Plan> plans) throws TechnicalException {
+        LOGGER.debug("Update plans  cross Ids [{}]", plans);
+        try {
+            internalPlanRepository.updateCrossIds(plans);
+        } catch (Exception e) {
+            throw new TechnicalException("Failed to update plans cross IDs", e);
+        }
+    }
 }

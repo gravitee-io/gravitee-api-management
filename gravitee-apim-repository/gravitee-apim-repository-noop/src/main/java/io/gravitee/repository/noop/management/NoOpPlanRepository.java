@@ -57,4 +57,9 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
     public void updateOrder(String planId, int order) throws TechnicalException {
         // no-op
     }
+
+    @Override
+    public void updateCrossIds(List<Plan> plans) {
+        // no-op
+    }
 }
