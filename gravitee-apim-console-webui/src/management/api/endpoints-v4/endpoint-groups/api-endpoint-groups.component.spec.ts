@@ -467,6 +467,7 @@ describe('ApiEndpointGroupsComponent', () => {
       expect(await componentHarness.isEndpointDeleteButtonVisible()).toEqual(false);
       expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(false);
       expect(await componentHarness.isEditEndpointButtonVisible()).toEqual(false);
+      expect(await componentHarness.isViewEndpointButtonVisible()).toEqual(true);
     });
   });
 
