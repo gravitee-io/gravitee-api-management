@@ -20,16 +20,41 @@ import static io.gravitee.rest.api.service.cockpit.services.ImportSwaggerDescrip
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.*;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.rest.api.model.NewPlanEntity;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.UpdatePageEntity;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntityResult;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.cockpit.model.ContextPathValidationResult;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -60,6 +85,8 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     private final PlanService planService;
     private final PageConverter pageConverter;
     private final VerifyApiPathDomainService verifyApiPathDomainService;
+    private final io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
+    private final ApiStateDomainService apiStateDomainService;
 
     public ApiServiceCockpitImpl(
         ObjectMapper objectMapper,
@@ -70,7 +97,9 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         PlanService planService,
         ApiConverter apiConverter,
         PageConverter pageConverter,
-        VerifyApiPathDomainService verifyApiPathDomainService
+        VerifyApiPathDomainService verifyApiPathDomainService,
+        io.gravitee.rest.api.service.v4.ApiService apiServiceV4,
+        ApiStateDomainService apiStateDomainService
     ) {
         this.objectMapper = objectMapper;
         this.apiService = apiService;
@@ -81,6 +110,8 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         this.apiConverter = apiConverter;
         this.pageConverter = pageConverter;
         this.verifyApiPathDomainService = verifyApiPathDomainService;
+        this.apiServiceV4 = apiServiceV4;
+        this.apiStateDomainService = apiStateDomainService;
     }
 
     @Override
@@ -129,6 +160,61 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
         logger.debug("Update Published Api [{}].", apiId);
         return updatePublishedApi(executionContext, apiId, userId, swaggerDefinition, environmentId, labels);
+    }
+
+    @Override
+    public void manageV4Api(
+        ExecutionContext executionContext,
+        AuditInfo audit,
+        DeploymentMode mode,
+        Api api,
+        String apiCrossId,
+        List<String> labels
+    ) {
+        var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
+
+        updateApiEntity.setCrossId(apiCrossId);
+        updateApiEntity.setLabels(labels);
+
+        if (updateApiEntity.getPlans() == null || updateApiEntity.getPlans().isEmpty()) {
+            updateApiEntity.setPlans(
+                Set.of(
+                    io.gravitee.rest.api.model.v4.plan.PlanEntity.builder()
+                        .id(UuidString.generateRandom())
+                        .name("Default plan")
+                        .apiId(api.getId())
+                        .apiType(ApiType.PROXY)
+                        .type(io.gravitee.rest.api.model.v4.plan.PlanType.API)
+                        .mode(PlanMode.STANDARD)
+                        .status(io.gravitee.definition.model.v4.plan.PlanStatus.PUBLISHED)
+                        .definitionVersion(DefinitionVersion.V4)
+                        .security(PlanSecurity.builder().type("key-less").build())
+                        .crossId(api.getCrossId())
+                        .build()
+                )
+            );
+        }
+
+        // API should be published
+        if (mode == DeploymentMode.API_PUBLISHED) {
+            logger.debug("Published v4 API.");
+
+            updateApiEntity.setVisibility(Visibility.PUBLIC);
+            updateApiEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
+        }
+
+        apiServiceV4.update(executionContext, api.getId(), updateApiEntity, audit.actor().userId());
+
+        // API should be started
+        if (mode == DeploymentMode.API_MOCKED || mode == DeploymentMode.API_PUBLISHED) {
+            logger.debug("Started v4 API.");
+            apiStateDomainService.start(api, audit);
+        }
+
+        // Force API deployment if out of sync
+        if (!apiStateDomainService.isSynchronized(api, audit)) {
+            apiStateDomainService.deploy(api, "Managed by Gravitee Cloud", audit);
+        }
     }
 
     private ApiEntityResult createDocumentedApi(
