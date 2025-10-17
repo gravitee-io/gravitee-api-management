@@ -26,7 +26,17 @@ public class PathMapping {
     private PathMapping() {}
 
     public static Pattern buildPattern(String mappingExpression) {
-        var regex = mappingExpression.replaceAll(":[^/]*", "[^/]*") + "/*";
+        if (mappingExpression == null || mappingExpression.isBlank()) return Pattern.compile(".*");
+
+        var regex =
+            mappingExpression
+                .replaceAll("([+?^$\\[\\]{}|])", "\\\\$1")
+                .replace("(", "\\(")
+                .replace(")", "\\)")
+                .replaceAll("\\.(?!\\*)", "\\\\.")
+                .replaceAll(":[^/]*", "[^/]*") +
+            "/*";
+
         return Pattern.compile(regex);
     }
 }
