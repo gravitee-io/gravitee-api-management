@@ -13,22 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.apim.core.promotion.crud_service;
 
 import io.gravitee.apim.core.promotion.model.Promotion;
-import io.gravitee.apim.core.promotion.model.PromotionAuthor;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
-@Mapper
-public interface PromotionAdapter {
-    PromotionAdapter INSTANCE = Mappers.getMapper(PromotionAdapter.class);
-
-    Promotion toCoreModel(io.gravitee.repository.management.model.Promotion promotion);
-
-    PromotionAuthor toCoreModel(io.gravitee.repository.management.model.PromotionAuthor promotionAuthor);
-
-    io.gravitee.repository.management.model.Promotion toRepository(Promotion promotion);
-
-    io.gravitee.repository.management.model.PromotionAuthor toRepository(PromotionAuthor promotionAuthor);
+public interface PromotionCrudService {
+    Promotion create(Promotion promotion);
 }
