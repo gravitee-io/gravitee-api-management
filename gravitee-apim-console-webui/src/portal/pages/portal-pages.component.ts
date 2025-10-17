@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 
 @Component({
-  selector: 'portal-top-bar',
-  templateUrl: './portal-top-bar.component.html',
-  styleUrls: ['./portal-top-bar.component.scss'],
-  imports: [PortalHeaderComponent, RouterOutlet],
+  selector: 'portal-pages',
+  templateUrl: './portal-pages.component.html',
+  styleUrls: ['./portal-pages.component.scss'],
+  imports: [PortalHeaderComponent],
 })
-export class PortalTopBarComponent {}
+export class PortalPagesComponent {}
