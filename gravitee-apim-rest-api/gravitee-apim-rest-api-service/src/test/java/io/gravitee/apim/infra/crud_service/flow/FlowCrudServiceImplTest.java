@@ -125,6 +125,8 @@ class FlowCrudServiceImplTest {
                         .createdAt(Date.from(INSTANT_NOW))
                         .updatedAt(Date.from(INSTANT_NOW))
                         .selectors(List.of(FlowHttpSelector.builder().path("/").pathOperator(FlowOperator.STARTS_WITH).build()))
+                        .request(List.of())
+                        .response(List.of())
                         .build()
                 );
         }
@@ -282,6 +284,8 @@ class FlowCrudServiceImplTest {
                         .name("My flow")
                         .createdAt(Date.from(INSTANT_NOW))
                         .updatedAt(Date.from(INSTANT_NOW))
+                        .request(List.of())
+                        .response(List.of())
                         .build()
                 );
         }
@@ -495,6 +499,8 @@ class FlowCrudServiceImplTest {
                     .enabled(true)
                     .createdAt(Date.from(INSTANT_NOW))
                     .updatedAt(Date.from(INSTANT_NOW))
+                    .request(List.of())
+                    .response(List.of())
                     .build()
             );
             when(flowRepository.findByReference(FlowReferenceType.API, API_ID)).thenReturn(repoFlows);
@@ -505,7 +511,9 @@ class FlowCrudServiceImplTest {
             // Then
             assertThat(result)
                 .usingRecursiveComparison()
-                .isEqualTo(List.of(Flow.builder().id("flow-id").name("My flow").enabled(true).build()));
+                .isEqualTo(
+                    List.of(Flow.builder().id("flow-id").name("My flow").enabled(true).request(List.of()).response(List.of()).build())
+                );
         }
 
         @Test
@@ -613,6 +621,8 @@ class FlowCrudServiceImplTest {
                     .enabled(true)
                     .createdAt(Date.from(INSTANT_NOW))
                     .updatedAt(Date.from(INSTANT_NOW))
+                    .request(List.of())
+                    .response(List.of())
                     .build()
             );
             when(flowRepository.findByReference(FlowReferenceType.PLAN, PLAN_ID)).thenReturn(repoFlows);

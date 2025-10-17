@@ -183,6 +183,9 @@ public class ApiStateServiceImpl implements ApiStateService {
 
         // FIXME: improvement: what about updating deployedAt only when the user trigger it manually ?
         this.updateDeploymentDate(apiFromDb);
+        if (apiToDeploy.getDeployedAt() == null) {
+            apiToDeploy.setDeployedAt(apiFromDb.getDeployedAt());
+        }
         this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, apiToDeploy);
 
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), apiToDeploy.getId());

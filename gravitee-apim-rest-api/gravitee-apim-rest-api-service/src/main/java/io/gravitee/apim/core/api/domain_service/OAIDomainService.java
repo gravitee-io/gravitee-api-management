@@ -19,5 +19,11 @@ import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 
 public interface OAIDomainService {
-    ImportDefinition convert(String organizationId, String environmentId, ImportSwaggerDescriptorEntity importSwaggerDescriptor);
+    ImportDefinition convert(
+        String organizationId,
+        String environmentId,
+        ImportSwaggerDescriptorEntity importSwaggerDescriptor,
+        boolean withDocumentation,
+        boolean withOASValidationPolicy
+    );
 }
