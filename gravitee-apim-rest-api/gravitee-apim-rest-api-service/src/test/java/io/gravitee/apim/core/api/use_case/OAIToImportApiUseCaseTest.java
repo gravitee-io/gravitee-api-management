@@ -68,7 +68,6 @@ class OAIToImportApiUseCaseTest {
     private static final String USER_EMAIL = "jane.doe@gravitee.io";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
-    private final OAIDomainServiceImpl oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager);
     private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
     private OAIToImportApiUseCase useCase;
     ImportDefinitionCreateDomainServiceTestInitializer importDefinitionCreateDomainServiceTestInitializer;
@@ -97,7 +96,7 @@ class OAIToImportApiUseCaseTest {
                     ParameterReferenceType.ENVIRONMENT,
                     ApiPrimaryOwnerMode.USER.name()
                 ),
-                new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
             )
         );
         importDefinitionCreateDomainServiceTestInitializer.userCrudService.initWith(
@@ -113,12 +112,14 @@ class OAIToImportApiUseCaseTest {
         ).thenAnswer(invocation -> invocation.getArgument(0));
 
         useCase = new OAIToImportApiUseCase(
-            oaiDomainService,
-            groupQueryService,
-            tagQueryService,
-            endpointConnectorPluginService,
-            importDefinitionCreateDomainServiceTestInitializer.initialize(),
-            policyPluginCrudService
+            new OAIDomainServiceImpl(
+                policyOperationVisitorManager,
+                groupQueryService,
+                tagQueryService,
+                endpointConnectorPluginService,
+                policyPluginCrudService
+            ),
+            importDefinitionCreateDomainServiceTestInitializer.initialize()
         );
     }
 

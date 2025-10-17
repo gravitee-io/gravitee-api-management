@@ -34,6 +34,7 @@ public interface ApiServiceCockpit {
         DeploymentMode mode,
         List<String> labels
     );
+
     ApiEntityResult updateApi(
         ExecutionContext executionContext,
         String apiId,

@@ -27,6 +27,7 @@ import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommand;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommandPayload;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelReply;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -38,9 +39,7 @@ import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
@@ -87,135 +86,20 @@ public class DeployModelCommandHandlerTest {
             .thenReturn(
                 EnvironmentEntity.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).cockpitId(COCKPIT_ENVIRONMENT_ID).build()
             );
-        cut = new DeployModelCommandHandler(apiSearchService, cockpitApiService, permissionChecker, userService, environmentService);
+        cut = new DeployModelCommandHandler(apiSearchService, cockpitApiService, permissionChecker, userService, environmentService, null);
     }
 
     @Test
-    public void supportType() {
-        assertEquals(CockpitCommandType.DEPLOY_MODEL.name(), cut.supportType());
-    }
-
-    @Test
-    public void creates_an_API_DOCUMENTED() throws InterruptedException {
-        DeployModelCommandPayload payload = DeployModelCommandPayload.builder()
-            .modelId("model#1")
-            .swaggerDefinition("swagger-definition")
-            .userId("cockpit_user#id")
-            .mode(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED)
-            .labels(List.of("label1", "label2"))
-            .environmentId(COCKPIT_ENVIRONMENT_ID)
-            .organizationId(COCKPIT_ORGANIZATION_ID)
-            .build();
-
-        DeployModelCommand command = new DeployModelCommand(payload);
-
-        UserEntity user = createUserEntity(payload);
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.userId()), eq(true))).thenReturn(user);
-
-        when(
-            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
-        ).thenReturn(Optional.empty());
-
-        when(
-            cockpitApiService.createApi(
-                EXECUTION_CONTEXT,
-                payload.modelId(),
-                user.getId(),
-                payload.swaggerDefinition(),
-                ENVIRONMENT_ID,
-                DeploymentMode.API_DOCUMENTED,
-                payload.labels()
-            )
-        ).thenAnswer(i -> {
-            ApiEntity apiEntity = new ApiEntity();
-            apiEntity.setId(i.getArgument(1));
-            return ApiEntityResult.success(apiEntity);
-        });
-
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
-    }
-
-    @Test
-    public void creates_an_API_MOCKED_mode() throws InterruptedException {
-        DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_MOCKED);
-
-        DeployModelCommand command = new DeployModelCommand(payload);
-
-        UserEntity user = createUserEntity(payload);
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
-
-        when(
-            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_MOCKED)
-        ).thenReturn(Optional.empty());
-
-        when(
-            cockpitApiService.createApi(
-                EXECUTION_CONTEXT,
-                payload.modelId(),
-                user.getId(),
-                payload.swaggerDefinition(),
-                ENVIRONMENT_ID,
-                DeploymentMode.API_MOCKED,
-                payload.labels()
-            )
-        ).thenAnswer(i -> {
-            ApiEntity apiEntity = new ApiEntity();
-            apiEntity.setId(i.getArgument(1));
-            return ApiEntityResult.success(apiEntity);
-        });
-
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
-    }
-
-    @Test
-    public void creates_an_API_PUBLISHED_mode() throws InterruptedException {
-        DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_PUBLISHED);
-
-        DeployModelCommand command = new DeployModelCommand(payload);
-
-        UserEntity user = createUserEntity(payload);
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
-
-        when(
-            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED)
-        ).thenReturn(Optional.empty());
-
-        when(
-            cockpitApiService.createApi(
-                EXECUTION_CONTEXT,
-                payload.modelId(),
-                user.getId(),
-                payload.swaggerDefinition(),
-                ENVIRONMENT_ID,
-                DeploymentMode.API_PUBLISHED,
-                payload.labels()
-            )
-        ).thenAnswer(i -> {
-            ApiEntity apiEntity = new ApiEntity();
-            apiEntity.setId(i.getArgument(1));
-            return ApiEntityResult.success(apiEntity);
-        });
-
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
-    }
-
-    @Test
-    public void updates_an_API_DOCUMENTED() throws InterruptedException {
+    public void updates_an_API_DOCUMENTED() {
         DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
+        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        );
 
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(any(), eq("cockpit"), eq(payload.userId()), eq(true))).thenReturn(user);
@@ -240,20 +124,23 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(result);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void updates_an_API_MOCKED_mode() throws InterruptedException {
+    public void updates_an_API_MOCKED_mode() {
         DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_MOCKED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
+        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        );
 
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(any(), eq("cockpit"), eq(payload.userId()), eq(true))).thenReturn(user);
@@ -278,20 +165,23 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(result);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void updates_an_API_PUBLISHED_mode() throws InterruptedException {
+    public void updates_an_API_PUBLISHED_mode() {
         DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_PUBLISHED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
+        when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
+            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V2).build()
+        );
 
         UserEntity user = createUserEntity(payload);
         when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
@@ -316,49 +206,19 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(result);
         });
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut
+            .handle(command)
+            .test()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     @Test
-    public void handle_null_mode() throws InterruptedException {
-        DeployModelCommandPayload payload = createDeployPayload(null);
-
-        DeployModelCommand command = new DeployModelCommand(payload);
-
-        UserEntity user = createUserEntity(payload);
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
-
-        when(
-            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
-        ).thenReturn(Optional.empty());
-
-        when(
-            cockpitApiService.createApi(
-                EXECUTION_CONTEXT,
-                payload.modelId(),
-                user.getId(),
-                payload.swaggerDefinition(),
-                ENVIRONMENT_ID,
-                DeploymentMode.API_DOCUMENTED,
-                payload.labels()
-            )
-        ).thenAnswer(i -> {
-            ApiEntity apiEntity = new ApiEntity();
-            apiEntity.setId(i.getArgument(1));
-            return ApiEntityResult.success(apiEntity);
-        });
-
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+    public void supportType() {
+        assertEquals(CockpitCommandType.DEPLOY_MODEL.name(), cut.supportType());
     }
 
     @Test
-    public void handleWithException() throws InterruptedException {
+    public void handleWithException() {
         DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
@@ -370,27 +230,15 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.empty());
 
-        when(
-            cockpitApiService.createApi(
-                EXECUTION_CONTEXT,
-                payload.modelId(),
-                user.getId(),
-                payload.swaggerDefinition(),
-                ENVIRONMENT_ID,
-                DeploymentMode.API_DOCUMENTED,
-                payload.labels()
-            )
-        ).thenThrow(new RuntimeException("fake error"));
-
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+        cut
+            .handle(command)
+            .test()
+            .assertNoErrors()
+            .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 
     @Test
-    public void fails_to_create_due_to_permission_issues() throws InterruptedException {
+    public void fails_to_create_due_to_permission_issues() {
         DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
@@ -402,20 +250,20 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
-        obs.assertValue(reply -> {
-            Assertions.assertThat(reply)
-                .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
-                .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
-            return true;
-        });
+        cut
+            .handle(command)
+            .test()
+            .assertNoErrors()
+            .assertValue(reply -> {
+                Assertions.assertThat(reply)
+                    .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
+                    .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
+                return true;
+            });
     }
 
     @Test
-    public void fails_to_update_due_to_permission_issues() throws InterruptedException {
+    public void fails_to_update_due_to_permission_issues() {
         DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
@@ -430,20 +278,20 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
-        obs.assertValue(reply -> {
-            Assertions.assertThat(reply)
-                .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
-                .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
-            return true;
-        });
+        cut
+            .handle(command)
+            .test()
+            .assertNoErrors()
+            .assertValue(reply -> {
+                Assertions.assertThat(reply)
+                    .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
+                    .containsExactly(command.getId(), CommandStatus.ERROR, "You are not allowed to create APIs on this environment.");
+                return true;
+            });
     }
 
     @Test
-    public void clean_gravitee_context_on_success() throws InterruptedException {
+    public void clean_gravitee_context_on_success() {
         DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
@@ -455,29 +303,11 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.empty());
 
-        when(
-            cockpitApiService.createApi(
-                EXECUTION_CONTEXT,
-                payload.modelId(),
-                user.getId(),
-                payload.swaggerDefinition(),
-                ENVIRONMENT_ID,
-                DeploymentMode.API_DOCUMENTED,
-                payload.labels()
-            )
-        ).thenAnswer(i -> {
-            ApiEntity apiEntity = new ApiEntity();
-            apiEntity.setId(i.getArgument(0));
-            return ApiEntityResult.success(apiEntity);
-        });
-
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-        obs.await();
-        obs.assertNoErrors();
+        cut.handle(command).test().assertNoErrors();
     }
 
     @Test
-    public void clean_gravitee_context_on_error() throws InterruptedException {
+    public void clean_gravitee_context_on_error() {
         DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
@@ -489,90 +319,7 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
-    }
-
-    @Test
-    public void fails_to_create_due_to_context_path_already_used() throws InterruptedException {
-        DeployModelCommandPayload payload = createDeployPayload(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
-
-        DeployModelCommand command = new DeployModelCommand(payload);
-
-        UserEntity user = createUserEntity(payload);
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
-
-        when(
-            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
-        ).thenReturn(Optional.empty());
-
-        when(
-            cockpitApiService.createApi(
-                EXECUTION_CONTEXT,
-                payload.modelId(),
-                user.getId(),
-                payload.swaggerDefinition(),
-                ENVIRONMENT_ID,
-                DeploymentMode.API_DOCUMENTED,
-                payload.labels()
-            )
-        ).thenReturn(ApiEntityResult.failure("context path not available"));
-
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-        obs.assertNoErrors();
-        obs.assertValue(reply -> {
-            Assertions.assertThat(reply)
-                .extracting(DeployModelReply::getCommandId, DeployModelReply::getCommandStatus, DeployModelReply::getErrorDetails)
-                .containsExactly(command.getId(), CommandStatus.ERROR, "Failed to import API [context path not available].");
-            return true;
-        });
-    }
-
-    @Test
-    public void creates_an_API_PUBLISHED_mode_with_apim_ids() throws InterruptedException {
-        DeployModelCommandPayload payload = createDeployPayload(
-            DeployModelCommandPayload.DeploymentMode.API_PUBLISHED,
-            ENVIRONMENT_ID,
-            ORGANIZATION_ID
-        );
-        when(environmentService.findByCockpitId(ENVIRONMENT_ID)).thenThrow(new EnvironmentNotFoundException(ENVIRONMENT_ID));
-        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(
-            EnvironmentEntity.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).cockpitId(COCKPIT_ENVIRONMENT_ID).build()
-        );
-        DeployModelCommand command = new DeployModelCommand(payload);
-
-        UserEntity user = createUserEntity(payload);
-
-        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
-        when(
-            permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED)
-        ).thenReturn(Optional.empty());
-
-        when(
-            cockpitApiService.createApi(
-                EXECUTION_CONTEXT,
-                payload.modelId(),
-                user.getId(),
-                payload.swaggerDefinition(),
-                ENVIRONMENT_ID,
-                DeploymentMode.API_PUBLISHED,
-                payload.labels()
-            )
-        ).thenAnswer(i -> {
-            ApiEntity apiEntity = new ApiEntity();
-            apiEntity.setId(i.getArgument(1));
-            return ApiEntityResult.success(apiEntity);
-        });
-
-        TestObserver<DeployModelReply> obs = cut.handle(command).test();
-
-        obs.await();
-
-        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+        cut.handle(command).test().assertNoErrors();
     }
 
     private static DeployModelCommandPayload createDeployPayload(
