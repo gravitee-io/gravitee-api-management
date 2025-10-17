@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,3 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.widget-container {
+  display: flex;
+  height: 100%;
+  flex-flow: column;
+}
+
+.widget-title {
+  display: flex;
+  height: 50px;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 0 15px;
+  border-bottom: 1px solid #eee;
+  cursor: move;
+}
+
+.widget-content {
+  overflow: hidden;
+  height: 80%;
+  min-height: 0;
+  flex-grow: 1;
+}

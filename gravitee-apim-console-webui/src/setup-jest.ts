@@ -15,6 +15,8 @@
  */
 
 import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
+import 'chart.js/auto';
+import 'jest-canvas-mock';
 
 setupZoneTestEnv();
 
