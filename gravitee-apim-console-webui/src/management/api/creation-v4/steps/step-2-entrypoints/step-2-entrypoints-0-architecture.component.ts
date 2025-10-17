@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
@@ -24,12 +24,10 @@ import { Step2Entrypoints1ListComponent } from './step-2-entrypoints-1-list.comp
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { ApiType } from '../../../../../entities/management-api-v2';
 import { UTMTags, ApimFeature } from '../../../../../shared/components/gio-license/gio-license-data';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
-import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4/agentToAgent';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -39,9 +37,11 @@ import { AGENT_TO_AGENT } from '../../../../../entities/management-api-v2/api/v4
 })
 export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
-  private initialValue: { type: ApiType };
+  private initialValue: { architecture: ApiCreationPayload['architecture'] };
 
-  public form: UntypedFormGroup;
+  public form: FormGroup<{
+    architecture: FormControl<ApiCreationPayload['architecture']>;
+  }>;
 
   public isMissingMessageReactor$: Observable<boolean>;
   public license$: Observable<License>;
@@ -52,7 +52,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private nativeKafkaLicenseOptions = { feature: ApimFeature.APIM_NATIVE_KAFKA_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
 
   constructor(
-    private readonly formBuilder: UntypedFormBuilder,
+    private readonly formBuilder: FormBuilder,
     private readonly stepService: ApiCreationStepService,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly matDialog: MatDialog,
@@ -64,7 +64,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     const currentStepPayload = this.stepService.payload;
 
     this.form = this.formBuilder.group({
-      type: this.formBuilder.control(this.getArchitectureOptionFromPayload(currentStepPayload), [Validators.required]),
+      architecture: this.formBuilder.control(this.getArchitectureOptionFromPayload(currentStepPayload), [Validators.required]),
     });
 
     this.initialValue = this.form.getRawValue();
@@ -111,27 +111,19 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     this.saveByApiType();
   }
 
-  private getArchitectureOptionFromPayload(payload: ApiCreationPayload): string {
-    if (payload.type === 'NATIVE') {
-      return payload.selectedNativeType;
-    }
-    return payload.type ?? null;
+  private getArchitectureOptionFromPayload(payload: ApiCreationPayload): ApiCreationPayload['architecture'] {
+    return payload.architecture ?? null;
   }
 
   private hasArchitectureOptionChanged(payload: ApiCreationPayload): boolean {
-    const previousType = payload.type;
-    const previousSelectedNativeType = payload.selectedNativeType;
-    const selectedType = this.form.value.type;
+    const previousArchitecture = payload.architecture;
+    const selectedType = this.form.value.architecture;
 
-    if (previousType === 'NATIVE') {
-      return previousSelectedNativeType && previousSelectedNativeType !== selectedType;
-    }
-
-    return previousType && selectedType !== previousType;
+    return previousArchitecture && selectedType !== previousArchitecture;
   }
 
   private saveByApiType(): void {
-    switch (this.form.value.type) {
+    switch (this.form.value.architecture) {
       case 'PROXY':
         this.doSaveSync();
         break;
@@ -141,8 +133,8 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
       case 'KAFKA':
         this.doSaveKafka();
         break;
-      case 'A2A':
-        this.doSaveA2A();
+      case 'AI':
+        this.doSaveAI();
         break;
     }
   }
@@ -150,7 +142,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private doSaveSync() {
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
-      type: 'PROXY',
+      architecture: 'PROXY',
     }));
     this.stepService.goToNextStep({
       groupNumber: 2,
@@ -161,7 +153,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private doSaveAsync() {
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
-      type: 'MESSAGE',
+      architecture: 'MESSAGE',
     }));
     this.stepService.goToNextStep({
       groupNumber: 2,
@@ -196,8 +188,8 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
                 deployed: nativeKafkaEndpoint.deployed,
               },
             ],
+            architecture: 'KAFKA',
             type: 'NATIVE',
-            selectedNativeType: 'KAFKA',
           }));
           this.stepService.goToNextStep({
             groupNumber: 2,
@@ -209,45 +201,15 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
       .subscribe();
   }
 
-  private doSaveA2A() {
-    combineLatest([
-      this.connectorPluginsV2Service.getEntrypointPlugin(AGENT_TO_AGENT.id),
-      this.connectorPluginsV2Service.getEndpointPlugin(AGENT_TO_AGENT.id),
-    ])
-      .pipe(
-        tap(([agentToAgentEntrypoint, agentToAgentEndpoint]) => {
-          this.stepService.validStep((previousPayload) => ({
-            ...previousPayload,
-            selectedEntrypoints: [
-              {
-                id: agentToAgentEntrypoint.id,
-                name: agentToAgentEntrypoint.name,
-                icon: this.iconService.registerSvg(agentToAgentEntrypoint.id, agentToAgentEntrypoint.icon),
-                supportedListenerType: agentToAgentEntrypoint.supportedListenerType,
-                deployed: agentToAgentEntrypoint.deployed,
-                selectedQos: 'NONE',
-              },
-            ],
-            selectedEndpoints: [
-              {
-                id: agentToAgentEndpoint.id,
-                name: agentToAgentEndpoint.name,
-                icon: this.iconService.registerSvg(agentToAgentEndpoint.id, agentToAgentEndpoint.icon),
-                supportedListenerType: agentToAgentEndpoint.supportedListenerType,
-                deployed: agentToAgentEndpoint.deployed,
-              },
-            ],
-            type: 'MESSAGE', // We save the A2A or the Agent proxy as  MESSAGE only
-            isA2ASelected: true,
-          }));
-          this.stepService.goToNextStep({
-            groupNumber: 2,
-            component: Step2Entrypoints2ConfigComponent,
-          });
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
+  private doSaveAI() {
+    this.stepService.validStep((previousPayload) => ({
+      ...previousPayload,
+      architecture: 'AI',
+    }));
+    this.stepService.goToNextStep({
+      groupNumber: 2,
+      component: Step2Entrypoints1ListComponent,
+    });
   }
 
   public onRequestMessageUpgrade() {

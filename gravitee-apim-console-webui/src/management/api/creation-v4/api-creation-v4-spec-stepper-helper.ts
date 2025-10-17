@@ -28,7 +28,6 @@ import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-secur
 import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoints-1-list.harness';
 
 import { ConnectorPlugin, fakeConnectorPlugin } from '../../../entities/management-api-v2';
-import { AGENT_TO_AGENT } from '../../../entities/management-api-v2/api/v4/agentToAgent';
 
 export class ApiCreationV4SpecStepperHelper {
   private ossLicense: License = { tier: 'oss', features: [], packs: [] };
@@ -51,7 +50,7 @@ export class ApiCreationV4SpecStepperHelper {
     await apiDetails.fillAndValidate(name, version, description);
   }
 
-  async fillAndValidateStep2_0_EntrypointsArchitecture(type: 'PROXY' | 'MESSAGE' | 'A2A' | 'KAFKA' = 'MESSAGE') {
+  async fillAndValidateStep2_0_EntrypointsArchitecture(type: 'PROXY' | 'MESSAGE' | 'AI' | 'KAFKA' = 'MESSAGE') {
     const architecture = await this.harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
     if (type === 'MESSAGE' || type === 'KAFKA') {
       expect(await architecture.isLicenseBannerShown()).toEqual(true);
@@ -76,29 +75,11 @@ export class ApiCreationV4SpecStepperHelper {
           supportedListenerType: 'KAFKA',
         }),
       );
-    } else if (type === 'A2A') {
-      this.httpExpects.expectEntrypointGetRequest(
-        fakeConnectorPlugin({
-          id: AGENT_TO_AGENT.id,
-          supportedApiType: 'MESSAGE',
-          name: AGENT_TO_AGENT.name,
-          supportedListenerType: 'HTTP',
-          deployed: true,
-        }),
-      );
-      this.httpExpects.expectEndpointGetRequest(
-        fakeConnectorPlugin({
-          id: AGENT_TO_AGENT.id,
-          supportedApiType: 'MESSAGE',
-          name: AGENT_TO_AGENT.name,
-          supportedListenerType: 'HTTP',
-        }),
-      );
     }
   }
 
   async fillAndValidateStep2_1_EntrypointsList(
-    architecture: 'PROXY' | 'MESSAGE',
+    architecture: 'PROXY' | 'MESSAGE' | 'AI',
     entrypoints: Partial<ConnectorPlugin>[] = [
       { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP' },
       { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION' },
@@ -106,9 +87,16 @@ export class ApiCreationV4SpecStepperHelper {
   ) {
     const entrypointsList = await this.harnessLoader.getHarness(Step2Entrypoints1ListHarness);
     this.httpExpects.expectEntrypointsGetRequest(entrypoints);
-
     if (architecture === 'MESSAGE') {
       await entrypointsList.fillAsyncAndValidate(entrypoints.map((entrypoint) => entrypoint.id));
+    } else if (architecture === 'AI') {
+      if (entrypoints.length !== 1) {
+        throw new Error('Only one entrypoint is supported for AI api');
+      }
+
+      await entrypointsList.fillSyncAndValidate(entrypoints[0].id);
+
+      this.httpExpects.expectEndpointGetRequest(entrypoints[0]);
     } else {
       if (entrypoints.length !== 1) {
         throw new Error('Only one entrypoint is supported for PROXY api');

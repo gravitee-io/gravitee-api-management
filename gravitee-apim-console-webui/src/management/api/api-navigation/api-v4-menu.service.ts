@@ -159,7 +159,7 @@ export class ApiV4MenuService implements ApiMenuService {
       },
     };
 
-    if (api.type === 'NATIVE') {
+    if (api.type === 'NATIVE' || api.type === 'MCP_PROXY' || api.type === 'LLM_PROXY') {
       return {
         ...menuItem,
         routerLink: 'v4/entrypoints',

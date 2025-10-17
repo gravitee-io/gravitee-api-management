@@ -128,7 +128,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   }
 
   public get isA2ASelected(): boolean {
-    return this.stepService.payload.isA2ASelected;
+    return this.stepService.payload.selectedEntrypoints.find((entrypoint) => entrypoint.id === 'agent-to-agent') != null;
   }
 
   private initFormForSyncEntrypoints(currentStepPayload: ApiCreationPayload, paths: PathV4[], tcpHosts: TcpHost[], kafkaHost: KafkaHost) {
@@ -203,6 +203,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         });
         break;
       case 'PROXY':
+      case 'MCP_PROXY':
+      case 'LLM_PROXY':
       case 'NATIVE':
         this.stepService.goToNextStep({
           groupNumber: 3,
