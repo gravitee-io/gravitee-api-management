@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.model.event;
+package fixtures.core.model;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum ApiAuditEvent implements AuditEvent {
-    API_CREATED,
-    API_UPDATED,
-    API_DELETED,
-    API_ROLLBACKED,
-    API_LOGGING_ENABLED,
-    API_LOGGING_DISABLED,
-    API_LOGGING_UPDATED,
-    METADATA_DELETED,
-    METADATA_CREATED,
-    METADATA_UPDATED,
-    PUBLISH_API,
-    PROMOTION_CREATED,
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+
+public class BaseUserEntityFixtures {
+
+    private BaseUserEntityFixtures() {}
+
+    public static BaseUserEntity aBaseUserEntity(String userId) {
+        return BaseUserEntity.builder()
+            .id(userId)
+            .source("test")
+            .sourceId("test-source-id")
+            .email("user@example.com")
+            .firstname("John")
+            .lastname("Smith")
+            .build();
+    }
 }
