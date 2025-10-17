@@ -186,17 +186,9 @@ public interface PageMapper {
         }
 
         try {
-            // Try to parse as LinkedHashMap first
-            Object config = mapper.readValue(configuration, LinkedHashMap.class);
 
-            // If we have a fetcher configuration, we need to mask sensitive fields
-            if (config instanceof LinkedHashMap) {
-                @SuppressWarnings("unchecked")
-                LinkedHashMap<String, Object> configMap = (LinkedHashMap<String, Object>) config;
-
-                // Apply sensitive data masking
-                maskSensitiveFieldsInMap(configMap);
-            }
+            LinkedHashMap<String, Object> config = mapper.readValue(configuration, LinkedHashMap.class);
+            maskSensitiveFieldsInMap(config);
 
             return config;
         } catch (JsonProcessingException jse) {
@@ -256,12 +248,8 @@ public interface PageMapper {
         }
 
         try {
-            Object config = mapper.readValue(configuration, LinkedHashMap.class);
-            if (config instanceof LinkedHashMap) {
-                @SuppressWarnings("unchecked")
-                LinkedHashMap<String, Object> configMap = (LinkedHashMap<String, Object>) config;
-                return configMap;
-            }
+            LinkedHashMap<String, Object> config = mapper.readValue(configuration, LinkedHashMap.class);
+            return config;
         } catch (JsonProcessingException e) {
             logger.debug("Cannot parse configuration: " + e.getMessage());
         }
