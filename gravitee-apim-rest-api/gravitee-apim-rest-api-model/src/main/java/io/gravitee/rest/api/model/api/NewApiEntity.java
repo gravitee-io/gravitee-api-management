@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
@@ -72,6 +73,9 @@ public class NewApiEntity {
     @JsonProperty(value = "gravitee")
     @Schema(description = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
+
+    @Schema(description = "API's visibility. Can be PUBLIC or PRIVATE.", example = "PUBLIC", allowableValues = { "PUBLIC", "PRIVATE" })
+    private Visibility visibility;
 
     public String getName() {
         return name;
@@ -153,6 +157,14 @@ public class NewApiEntity {
         this.graviteeDefinitionVersion = graviteeDefinitionVersion;
     }
 
+    public Visibility getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Visibility visibility) {
+        this.visibility = visibility;
+    }
+
     @Override
     public String toString() {
         return (
@@ -177,6 +189,9 @@ public class NewApiEntity {
             '\'' +
             ", flowMode='" +
             flowMode +
+            '\'' +
+            ", visibility='" +
+            visibility +
             '\'' +
             '}'
         );

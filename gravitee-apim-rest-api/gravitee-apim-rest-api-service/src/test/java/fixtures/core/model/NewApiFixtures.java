@@ -15,6 +15,7 @@
  */
 package fixtures.core.model;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewHttpApi;
 import io.gravitee.apim.core.api.model.NewNativeApi;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -46,6 +47,7 @@ public class NewApiFixtures {
         return BASE_HTTP.get()
             .definitionVersion(DefinitionVersion.V4)
             .type(ApiType.PROXY)
+            .visibility(Api.Visibility.PRIVATE)
             .listeners(
                 List.of(
                     HttpListener.builder()
@@ -80,6 +82,7 @@ public class NewApiFixtures {
         return BASE_NATIVE.get()
             .definitionVersion(DefinitionVersion.V4)
             .type(ApiType.NATIVE)
+            .visibility(Api.Visibility.PRIVATE)
             .listeners(
                 List.of(
                     KafkaListener.builder()

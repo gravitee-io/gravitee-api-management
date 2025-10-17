@@ -45,6 +45,8 @@ public abstract class AbstractNewApi {
     @Builder.Default
     protected Set<String> groups = Set.of();
 
+    private Api.Visibility visibility;
+
     /**
      * @return An instance of {@link Api.ApiBuilder} based on the current state of this NewApi.
      */
@@ -56,6 +58,7 @@ public abstract class AbstractNewApi {
             .type(type)
             .definitionVersion(definitionVersion)
             .description(description)
+            .visibility(visibility)
             .groups(groups);
     }
 }
