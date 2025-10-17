@@ -1,0 +1,1630 @@
+kind: Analytics
+group: analytics.gravitee.io
+version: v2alpha1
+spec:
+  # Types define a partition of metrics across different API types.
+  # This is to shorten the path when the end user defines a widget, a filter, a group ...
+  apis:
+    - http_proxy
+    - message
+    - kafka
+    - llm
+    - mcp
+
+  # Metrics are data that will eventually be reported / graphed.
+  # They are bound to a datasource so that we can infer where to apply queries from the metrics themselves.
+  # Metrics have a type from which we can infer the vizualization to use.
+  # counter: a value that can only increase in time
+  #   visualizations: histogram, counter, pie_chart ...
+  # gauge: a value that can increase and decrease in time
+  #   visualizations: gauge, line_chart ...
+
+  metrics:
+    types:
+      - name: counter
+      - name: gauge
+    intervals:
+      - auto
+    values:
+      - name: http_request_count
+        label: Request count
+        apis:
+          - http_proxy
+          - llm
+        type: counter
+        aggregations:
+          - rps
+        defaultAggregation: count
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metrics
+              - requests
+
+      - name: http_request_content_length
+        label: Request content length
+        apis:
+          - http_proxy
+          - llm
+        type: gauge
+        unit: bytes
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metrics
+              - requests
+
+      - name: http_response_content_length
+        label: Response content length
+        apis:
+          - http_proxy
+          - llm
+        type: gauge
+        unit: bytes
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metrics
+              - requests
+
+      - name: http_endpoint_response_time
+        label: Endpoint response time
+        apis:
+          - http_proxy
+          - llm
+        type: gauge
+        unit: ms
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metrics
+              - requests
+
+      - name: http_gateway_response_time
+        label: Gateway response time
+        apis:
+          - http_proxy
+          - llm
+        type: gauge
+        unit: ms
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metric
+              - requests
+
+      - name: http_gateway_latency
+        label: Latency
+        apis:
+          - http_proxy
+          - llm
+        type: gauge
+        unit: ms
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metrics
+
+      - name: llm_prompt_token_sent
+        label: Sent token count
+        apis:
+          - llm
+        type: counter
+        aggregations:
+          - sum
+          - count
+        defaultAggregation: sum
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - llm_prompt_token_sent
+          - llm_prompt_token_receive
+          - llm_prompt_token_sent_cost
+          - llm_prompt_token_receive_cost
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metrics
+            fields:
+              - llm_additional-metrics.long_ai-prompt-token-sent
+
+      - name: llm_prompt_token_receive
+        label: Received token count
+        apis:
+          - llm
+        type: counter
+        aggregations:
+          - sum
+          - count
+        defaultAggregation: sum
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - llm_prompt_token_sent
+          - llm_prompt_token_receive
+          - llm_prompt_token_sent_cost
+          - llm_prompt_token_receive_cost
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metrics
+            fields:
+              - llm_additional-metrics.long_ai-prompt-token-sent
+
+      - name: llm_prompt_token_sent_cost
+        label: Sent token cost
+        apis:
+          - llm
+        type: counter
+        aggregations:
+          - sum
+          - count
+        defaultAggregation: sum
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - llm_prompt_token_sent
+          - llm_prompt_token_receive
+          - llm_prompt_token_sent_cost
+          - llm_prompt_token_receive_cost
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metrics
+            fields:
+              - llm_additional-metrics.double_ai-prompt-token-sent-cost
+
+      - name: llm_prompt_token_receive_cost
+        label: Received token cost
+        apis:
+          - llm
+        type: counter
+        aggregations:
+          - sum
+          - count
+        defaultAggregation: sum
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - llm_prompt_token_sent
+          - llm_prompt_token_receive
+          - llm_prompt_token_sent_cost
+          - llm_prompt_token_receive_cost
+        backend:
+          elasticsearch:
+            indices:
+              - v4-metrics
+            fields:
+              - llm_additional-metrics.double_ai-prompt-token-receive-cost
+
+      - name: message_payload_size
+        label: Message Payload Size
+        apis:
+          - message
+        type: gauge
+        unit: ms
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - message_connector_id
+          - message_connector_type
+          - message_operation_type
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - message_connector_id
+          - message_connector_type
+          - message_operation_type
+          - message_error_count
+          - message_count
+          - message_gateway_latency
+        backend:
+          elasticsearch:
+            indices:
+              - v4-message-metrics
+
+      - name: message_count
+        label: Message count
+        apis:
+          - message
+        type: counter
+        # aggregations:
+        #   - sum
+        # defaultAggregation: sum
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - message_connector_id
+          - message_connector_type
+          - message_operation_type
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - message_connector_id
+          - message_connector_type
+          - message_operation_type
+          - message_error_count
+          - message_count
+          - message_gateway_latency
+        backend:
+          elasticsearch:
+            indices:
+              - v4-message-metrics
+
+      - name: message_error_count
+        label: Message Error Count
+        apis:
+          - message
+        type: counter
+        aggregations:
+          - sum
+          - count
+        defaultAggregation: sum
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - message_connector_id
+          - message_connector_type
+          - message_operation_type
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - message_connector_id
+          - message_connector_type
+          - message_operation_type
+          - message_error_count
+          - message_count
+          - message_gateway_latency
+        backend:
+          elasticsearch:
+            indices:
+              - v4-message-metrics
+
+      - name: message_gateway_latency
+        label: Message processing time
+        apis:
+          - message
+        type: gauge
+        unit: ms
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_method
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - message_connector_id
+          - message_connector_type
+          - message_operation_type
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - tenant
+          - zone
+          - http_status_code_group
+          - http_status
+          - http_path
+          - http_path_mapping
+          - http_user_agent_os_name
+          - http_user_agent_device
+          - http_endpoint_response_time
+          - http_gateway_latency
+          - http_gateway_response_time
+          - host
+          - geo_ip_country
+          - geo_ip_region
+          - geo_ip_city
+          - geo_ip_continent
+          - consumer_ip
+          - message_connector_id
+          - message_connector_type
+          - message_operation_type
+          - message_error_count
+          - message_count
+          - message_gateway_latency
+        backend:
+          elasticsearch:
+            indices:
+              - v4-message-metrics
+
+      - name: kafka_downstream_publish_messages
+        label: Downstream Publish Messages
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - rps
+        defaultAggregation: rps
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_downstream_subscribe_messages
+        label: Downstream Subscribe Messages
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_downstream_publish_messages_bytes
+        label: Downstream Publish Message Bytes
+        apis:
+          - kafka
+        type: gauge
+        unit: bytes
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_downstream_subscribe_message_bytes
+        label: Downstream Subscribe Message Bytes
+        apis:
+          - kafka
+        type: gauge
+        unit: bytes
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_upstream_publish_messages
+        label: Upstream Publish Messages
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_upstream_subscribe_messages
+        label: Upstream Subscribe Messages
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_upstream_publish_message_bytes
+        label: Upstream Publish Message Bytes
+        apis:
+          - kafka
+        type: gauge
+        unit: bytes
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_upstream_subscribe_message_bytes
+        label: Upstream Subscribe Message Bytes
+        apis:
+          - kafka
+        type: gauge
+        unit: bytes
+        aggregations:
+          - avg
+          - min
+          - max
+          - p50
+          - p90
+          - p95
+          - p99
+        defaultAggregation: avg
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+          - kafka_topic
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_downstream_authentication_successes
+        label: Downstream Authentication Successes
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_downstream_authenticated_connections
+        label: Downstream Authenticated Connections
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_upstream_authentication_successes
+        label: Upstream Authentication Successes
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_upstream_authenticated_connections
+        label: Upstream Authenticated Connections
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_upstream_authentication_errors
+        label: Upstream Authentication Errors
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - application
+          - plan
+          - gateway
+        filter:
+          - api
+          - application
+          - plan
+          - gateway
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_downstream_authentication_errors
+        label: Downstream Authentication Errors
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - gateway
+        filter:
+          - api
+          - gateway
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_downstream_active_connections
+        label: Downstream Active Connections
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - gateway
+        filter:
+          - api
+          - gateway
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+      - name: kafka_upstream_active_connections
+        label: Upstream Active Connections
+        apis:
+          - kafka
+        type: counter
+        aggregations:
+          - count
+        defaultAggregation: count
+        by:
+          - api
+          - gateway
+        filter:
+          - api
+          - gateway
+        backend:
+          elasticsearch:
+            indices:
+              - event-metrics
+
+  # Used when grouping data
+  by:
+    - name: api
+      label: API
+
+    - name: application
+      label: Application
+
+    - name: plan
+      label: Plan
+
+    - name: gateway
+      label: Gateway
+
+    - name: tenant
+      label: Tenant
+
+    - name: zone
+      label: Zone
+
+    - name: http_method
+      label: HTTP Method
+
+    - name: http_status_code_group
+      label: Status Code Group
+
+    - name: http_status
+      label: Status Code
+
+    - name: http_path
+      label: HTTP Path
+
+    - name: http_path_mapping
+      label: Path Mapping
+
+    - name: host
+      label: Host
+
+    - name: geo_ip_country
+      label: Country
+
+    - name: geo_ip_region
+      label: Region
+
+    - name: geo_ip_city
+      label: City
+
+    - name: geo_ip_continent
+      label: Continent
+
+    - name: consumer_ip
+      label: Consumer IP
+
+    - name: user_agent_os_name
+      label: User Agent OS
+
+    - name: user_agent_device
+      label: User Agent Device
+
+    - name: message_connector_type
+      label: Connector Type
+
+    - name: message_operation_type
+      label: Operation
+
+    - name: kafka_topic
+      label: Topic
+
+  # Used when filtering data
+  filter:
+    - name: api
+      label: API
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: application
+      label: Application
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: plan
+      label: Plan
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: gateway
+      label: Gateway
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: tenant
+      label: Tenant
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: zone
+      label: Zone
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: http_method
+      label: HTTP Method
+      type: enum
+      enum:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - HEAD
+        - OPTION
+        - UPGRADE
+      operators:
+        - eq
+        - in
+
+    - name: http_status_code_group
+      label: Status Code Group
+      type: enum
+      enum:
+        - 1xx
+        - 2xx
+        - 3xx
+        - 4xx
+        - 5xx
+      operators:
+        - eq
+        - in
+
+    - name: http_status
+      label: Status Code
+      type: integer
+      range:
+        min: 100
+        max: 600
+      operators:
+        - eq
+        - lte
+        - gte
+
+    - name: http_path
+      label: HTTP Path
+      type: string
+      operators:
+        - eq
+        - in
+
+    - name: http_path_mapping
+      label: Path Mapping
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: host
+      label: Host
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: geo_ip_country
+      label: Country
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: geo_ip_region
+      label: Region
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: geo_ip_city
+      label: City
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: geo_ip_continent
+      label: Continent
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: consumer_ip
+      label: Consumer IP
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: http_user_agent_os_name
+      label: User Agent OS
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: http_user_agent_device
+      label: User Agent Device
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: http_endpoint_response_time
+      label: Endpoint Response Time
+      type: long
+      operators:
+        - eq
+        - lte
+        - gte
+
+    - name: http_gateway_latency
+      label: Latency
+      type: long
+      operators:
+        - eq
+        - lte
+        - gte
+
+    - name: http_gateway_response_time
+      label: Gateway Response Time
+      type: long
+      operators:
+        - eq
+        - lte
+        - gte
+
+    - name: http_request_content_length
+      label: Request Size
+      type: long
+      operators:
+        - eq
+        - lte
+        - gte
+
+    - name: http_response_content_length
+      label: Response Size
+      type: long
+      operators:
+        - eq
+        - lte
+        - gte
+
+    - name: message_connector_type
+      label: Connector Type
+      type: keyword
+      operators:
+        - eq
+        - in
+
+    - name: message_operation_type
+      label: Operation
+      type: enum
+      enum:
+        - Publish
+        - Subscribe
+      operators:
+        - eq
+        - in
+
+    - name: message_size
+      label: Message Size
+      type: long
+      operators:
+        - eq
+        - lte
+        - gte
+
+    - name: message_count
+      label: Message Count
+      operators:
+        - eq
+        - lte
+        - gte
+
+    - name: message_error_count
+      label: Errors
+      type: long
+      operators:
+        - eq
+        - lte
+        - gte
+
+    - name: kafka_topic
+      label: Topic
+      type: keyword
+      operators:
+        - eq
+        - in
