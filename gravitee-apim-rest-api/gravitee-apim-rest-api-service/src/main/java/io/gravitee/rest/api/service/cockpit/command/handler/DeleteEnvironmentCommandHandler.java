@@ -319,7 +319,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
                 new ApiCriteria.Builder().state(LifecycleState.STARTED).environmentId(executionContext.getEnvironmentId()).build(),
                 new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
             )
-            .forEach(api -> apiStateService.stop(executionContext, api.getId(), userId));
+            .forEach(api -> apiStateService.stopWithoutNotification(executionContext, api.getId(), userId));
 
         // Delete related access points
         this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());

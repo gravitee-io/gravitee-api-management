@@ -64,6 +64,8 @@ public interface ApiStateService {
 
     GenericApiEntity stop(ExecutionContext executionContext, String apiId, String userId);
 
+    GenericApiEntity stopWithoutNotification(ExecutionContext executionContext, String apiId, String userId);
+
     boolean stopV2DynamicProperties(String apiId);
 
     boolean stopV4DynamicProperties(String apiId);
