@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Date;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -72,6 +73,36 @@ class PromotionCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurred while trying to create a Promotion with id promotion-id");
+        }
+    }
+
+    @Nested
+    class Update {
+
+        @Test
+        @SneakyThrows
+        void should_update_promotion() {
+            when(repository.update(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+
+            var updatedAt = new Date();
+            var aPromotion = fixtures.core.model.PromotionFixtures.aPromotion();
+            aPromotion.setId("promotion-id");
+            aPromotion.setUpdatedAt(updatedAt);
+            var result = service.update(aPromotion);
+
+            assertThat(result).isEqualTo(aPromotion);
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_a_technical_exception_when_updating_promotion() {
+            when(repository.update(any())).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.update(fixtures.core.model.PromotionFixtures.aPromotion()));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurred while trying to update the Promotion with id promotion-id");
         }
     }
 }

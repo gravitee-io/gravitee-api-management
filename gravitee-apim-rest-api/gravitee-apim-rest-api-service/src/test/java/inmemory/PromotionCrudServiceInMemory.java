@@ -20,6 +20,7 @@ import io.gravitee.apim.core.promotion.model.Promotion;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.OptionalInt;
 
 public class PromotionCrudServiceInMemory implements PromotionCrudService, InMemoryAlternative<Promotion> {
 
@@ -44,5 +45,16 @@ public class PromotionCrudServiceInMemory implements PromotionCrudService, InMem
     public Promotion create(Promotion promotion) {
         storage.add(promotion);
         return promotion;
+    }
+
+    @Override
+    public Promotion update(Promotion promotion) {
+        OptionalInt index = this.findIndex(this.storage, saved -> saved.getId().equals(promotion.getId()));
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), promotion);
+            return promotion;
+        }
+
+        throw new IllegalStateException("Promotion not found");
     }
 }

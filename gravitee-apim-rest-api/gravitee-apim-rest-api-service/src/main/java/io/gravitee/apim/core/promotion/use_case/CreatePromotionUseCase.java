@@ -22,10 +22,12 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
+import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.promotion.crud_service.PromotionCrudService;
+import io.gravitee.apim.core.promotion.domain_service.CockpitPromotionLegacyWrapper;
 import io.gravitee.apim.core.promotion.domain_service.PromotionValidationDomainService;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionAuthor;
@@ -51,8 +53,11 @@ public class CreatePromotionUseCase {
     private final GraviteeDefinitionSerializer graviteeDefinitionSerializer;
     private final PromotionCrudService promotionCrudService;
     private final AuditDomainService auditService;
+    private final CockpitPromotionLegacyWrapper cockpitPromotionLegacyWrapper;
 
     public record Input(String apiId, PromotionRequest promotionRequest, BaseUserEntity authenticatedUser, AuditInfo auditInfo) {}
+
+    public record Output(Promotion promotion) {}
 
     public CreatePromotionUseCase(
         ApiExportDomainService apiExportDomainService,
@@ -60,7 +65,8 @@ public class CreatePromotionUseCase {
         PromotionValidationDomainService promotionValidationDomainService,
         GraviteeDefinitionSerializer graviteeDefinitionSerializer,
         PromotionCrudService promotionCrudService,
-        AuditDomainService auditService
+        AuditDomainService auditService,
+        CockpitPromotionLegacyWrapper cockpitPromotionLegacyWrapper
     ) {
         this.apiExportDomainService = apiExportDomainService;
         this.environmentCrudService = environmentCrudService;
@@ -68,13 +74,21 @@ public class CreatePromotionUseCase {
         this.graviteeDefinitionSerializer = graviteeDefinitionSerializer;
         this.promotionCrudService = promotionCrudService;
         this.auditService = auditService;
+        this.cockpitPromotionLegacyWrapper = cockpitPromotionLegacyWrapper;
     }
 
-    public void execute(Input input) {
-        createPromotion(input.apiId, input.promotionRequest, input.auditInfo, input.authenticatedUser);
+    public Output execute(Input input) {
+        var createdPromotion = createPromotion(input.apiId, input.promotionRequest, input.auditInfo, input.authenticatedUser);
+        var updatedPromotion = sendCockpitCommand(createdPromotion, input.auditInfo);
+        return new Output(updatedPromotion);
     }
 
-    private void createPromotion(String apiId, PromotionRequest promotionRequest, AuditInfo auditInfo, BaseUserEntity authenticatedUser) {
+    private Promotion createPromotion(
+        String apiId,
+        PromotionRequest promotionRequest,
+        AuditInfo auditInfo,
+        BaseUserEntity authenticatedUser
+    ) {
         var apiDefinition = apiExportDomainService.export(apiId, auditInfo, Set.of(Excludable.GROUPS, Excludable.MEMBERS));
         var sourceEnvironment = environmentCrudService.get(auditInfo.environmentId());
 
@@ -121,5 +135,29 @@ public class CreatePromotionUseCase {
                 .properties(Collections.emptyMap())
                 .build()
         );
+
+        return createdPromotion;
+    }
+
+    private Promotion sendCockpitCommand(Promotion promotion, AuditInfo auditInfo) {
+        var cockpitReplyStatus = cockpitPromotionLegacyWrapper.requestPromotion(
+            auditInfo.organizationId(),
+            auditInfo.environmentId(),
+            promotion
+        );
+
+        var updated = promotionCrudService.update(
+            promotion
+                .toBuilder()
+                .status(cockpitReplyStatus != CockpitReplyStatus.SUCCEEDED ? PromotionStatus.ERROR : PromotionStatus.TO_BE_VALIDATED)
+                .updatedAt(new Date())
+                .build()
+        );
+
+        if (cockpitReplyStatus != CockpitReplyStatus.SUCCEEDED) {
+            throw new TechnicalManagementException("An error occurs while sending promotion request to cockpit");
+        }
+
+        return updated;
     }
 }

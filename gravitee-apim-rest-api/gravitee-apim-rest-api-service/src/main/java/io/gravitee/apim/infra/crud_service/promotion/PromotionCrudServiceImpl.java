@@ -44,4 +44,14 @@ public class PromotionCrudServiceImpl implements PromotionCrudService {
             throw TechnicalManagementException.ofTryingToCreateWithId(Promotion.class, promotion.getId(), e);
         }
     }
+
+    @Override
+    public Promotion update(Promotion promotion) {
+        try {
+            var updated = promotionRepository.update(PromotionAdapter.INSTANCE.toRepository(promotion));
+            return PromotionAdapter.INSTANCE.toCoreModel(updated);
+        } catch (TechnicalException e) {
+            throw TechnicalManagementException.ofTryingToUpdateWithId(Promotion.class, promotion.getId(), e);
+        }
+    }
 }

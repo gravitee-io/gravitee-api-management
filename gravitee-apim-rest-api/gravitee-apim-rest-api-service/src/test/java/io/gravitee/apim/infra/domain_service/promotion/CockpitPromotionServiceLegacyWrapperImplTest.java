@@ -1,0 +1,63 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.infra.domain_service.promotion;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import io.gravitee.apim.core.promotion.domain_service.CockpitPromotionLegacyWrapper;
+import io.gravitee.apim.core.promotion.model.Promotion;
+import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
+import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
+import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class CockpitPromotionServiceLegacyWrapperImplTest {
+
+    private static final String ORGANIZATION_ID = "organization-id";
+    private static final String ENVIRONMENT_ID = "environment-id";
+    private static final Promotion PROMOTION = fixtures.core.model.PromotionFixtures.aPromotion();
+    private final CockpitPromotionService cockpitPromotionService = mock(CockpitPromotionService.class);
+
+    CockpitPromotionLegacyWrapper service;
+
+    @BeforeEach
+    void setUp() {
+        service = new CockpitPromotionServiceLegacyWrapperImpl(cockpitPromotionService);
+    }
+
+    @Test
+    void should_succeed() {
+        when(cockpitPromotionService.requestPromotion(any(), any())).thenReturn(new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED));
+        assertThat(service.requestPromotion(ORGANIZATION_ID, ENVIRONMENT_ID, PROMOTION)).isEqualTo(
+            io.gravitee.apim.core.cockpit.model.CockpitReplyStatus.SUCCEEDED
+        );
+    }
+
+    @Test
+    void should_fail() {
+        when(cockpitPromotionService.requestPromotion(any(), any())).thenReturn(new CockpitReply<>(null, CockpitReplyStatus.ERROR));
+        assertThat(service.requestPromotion(ORGANIZATION_ID, ENVIRONMENT_ID, PROMOTION)).isEqualTo(
+            io.gravitee.apim.core.cockpit.model.CockpitReplyStatus.ERROR
+        );
+    }
+}

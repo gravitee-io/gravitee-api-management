@@ -17,6 +17,10 @@ package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionAuthor;
+import io.gravitee.apim.core.promotion.model.PromotionStatus;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
+import io.gravitee.rest.api.model.promotion.PromotionEntityAuthor;
+import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -31,4 +35,10 @@ public interface PromotionAdapter {
     io.gravitee.repository.management.model.Promotion toRepository(Promotion promotion);
 
     io.gravitee.repository.management.model.PromotionAuthor toRepository(PromotionAuthor promotionAuthor);
+
+    PromotionEntity toRestApiModel(Promotion promotion);
+
+    PromotionEntityAuthor toRestApiModel(PromotionAuthor promotionAuthor);
+
+    PromotionEntityStatus toRestApiModel(PromotionStatus promotionStatus);
 }
