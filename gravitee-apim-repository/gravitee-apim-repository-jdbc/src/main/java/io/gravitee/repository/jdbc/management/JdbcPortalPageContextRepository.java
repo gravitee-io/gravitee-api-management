@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
+import io.gravitee.repository.management.model.ElementType;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import java.sql.Types;
@@ -48,6 +49,7 @@ public class JdbcPortalPageContextRepository
             .addColumn("page_id", Types.NVARCHAR, String.class)
             .addColumn("context_type", Types.NVARCHAR, PortalPageContextType.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, ElementType.class)
             .addColumn("published", Types.BOOLEAN, boolean.class)
             .build();
     }
@@ -70,7 +72,7 @@ public class JdbcPortalPageContextRepository
 
         try {
             final List<PortalPageContext> portalPageContexts = jdbcTemplate.query(
-                "select id, page_id, context_type, environment_id, published from " +
+                "select id, page_id, context_type, environment_id, type, published from " +
                     this.tableName +
                     " where context_type = ? and environment_id = ?",
                 getOrm().getRowMapper(),
@@ -96,7 +98,7 @@ public class JdbcPortalPageContextRepository
 
         try {
             final PortalPageContext portalPageContext = jdbcTemplate.queryForObject(
-                "select id, page_id, context_type, environment_id, published from " + this.tableName + " where page_id = ?",
+                "select id, page_id, context_type, environment_id, type, published from " + this.tableName + " where page_id = ?",
                 getOrm().getRowMapper(),
                 string
             );
@@ -114,8 +116,9 @@ public class JdbcPortalPageContextRepository
 
         try {
             final int rows = jdbcTemplate.update(
-                "update " + this.tableName + " set context_type = ?, published = ? where page_id = ?",
-                item.getContextType().name(),
+                "update " + this.tableName + " set context_type = ?, type = ?, published = ? where page_id = ?",
+                item.getContextType() != null ? item.getContextType().name() : null,
+                item.getType() != null ? item.getType().name() : null,
                 item.isPublished(),
                 item.getPageId()
             );

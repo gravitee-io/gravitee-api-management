@@ -32,7 +32,10 @@ public class PortalPageContextMongoRepositoryImpl implements PortalPageContextMo
     @Override
     public void updateByPageId(PortalPageContextMongo item) throws TechnicalException {
         Query query = Query.query(Criteria.where("pageId").is(item.getPageId()));
-        Update update = new Update().set("contextType", item.getContextType()).set("published", item.isPublished());
+        Update update = new Update()
+            .set("contextType", item.getContextType())
+            .set("type", item.getType())
+            .set("published", item.isPublished());
         try {
             UpdateResult result = mongoTemplate.updateFirst(query, update, PortalPageContextMongo.class);
             if (result.getMatchedCount() == 0) {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.repository.management.model.ElementType;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,5 +40,6 @@ public class PortalPageContextMongo {
     private String pageId;
     private PortalPageContextType contextType;
     private String environmentId;
+    private ElementType type;
     private boolean published;
 }

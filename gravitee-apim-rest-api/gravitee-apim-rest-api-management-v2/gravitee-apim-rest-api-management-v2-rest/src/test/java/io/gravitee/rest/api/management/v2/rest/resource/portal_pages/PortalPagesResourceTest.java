@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageView;
 import io.gravitee.apim.core.portal_page.model.PortalPageWithViewDetails;
 import io.gravitee.apim.core.portal_page.model.PortalViewContext;
+import io.gravitee.repository.management.model.ElementType;
 import io.gravitee.repository.management.model.PortalPageContext;
 import io.gravitee.repository.management.model.PortalPageContextType;
 import io.gravitee.rest.api.management.v2.rest.model.CreateGraviteeMarkdownPage;
@@ -115,7 +116,16 @@ public class PortalPagesResourceTest extends AbstractResourceTest {
         PortalPageView view = new PortalPageView(PortalViewContext.HOMEPAGE, published);
         PortalPageWithViewDetails details = new PortalPageWithViewDetails(page, view);
         portalPageContextCrudService.initWith(
-            List.of(new PortalPageContext("x", page.getId().toString(), PortalPageContextType.HOMEPAGE, ENVIRONMENT, published))
+            List.of(
+                new PortalPageContext(
+                    "x",
+                    page.getId().toString(),
+                    PortalPageContextType.HOMEPAGE,
+                    ENVIRONMENT,
+                    ElementType.PAGE,
+                    published
+                )
+            )
         );
         portalPageQueryService.initWith(List.of(details));
         portalPageCrudService.initWith(List.of(page));
