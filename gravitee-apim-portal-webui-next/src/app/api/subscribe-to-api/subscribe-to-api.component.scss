@@ -32,8 +32,13 @@
 
   &__actions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     padding: 24px 16px;
+
+    @media (width <= 768px) {
+      gap: 16px;
+    }
 
     &__selected-application {
       display: flex;
@@ -43,8 +48,13 @@
 
     &__next {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 48px;
+
+      @media (width <= 768px) {
+        gap: 16px;
+      }
     }
   }
 }
