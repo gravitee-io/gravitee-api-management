@@ -1,0 +1,159 @@
+.sections-card {
+  border: 1px solid #e5e7eb; /* light gray */
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: #fff;
+  overflow: hidden;
+}
+
+.sections-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.sections-card__title {
+  font-weight: 600;
+}
+
+.sections-card__actions button + button {
+  margin-left: 8px;
+}
+
+/* Collapsible group */
+.sections-group {
+  border-top: 1px solid #f1f1f1;
+}
+
+.sections-group__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.sections-group__chevron {
+  display: inline-block;
+  transition: transform 120ms ease-in-out;
+}
+
+.sections-group__chevron.-open {
+  transform: rotate(90deg);
+}
+
+.sections-group__title {
+  font-weight: 600;
+}
+
+.sections-group .spacer {
+  flex: 1;
+}
+
+.sections-group__content {
+  border-top: 1px solid #f5f5f5;
+}
+
+/* Tree */
+.tree {
+  position: relative;
+  padding: 8px 0;
+}
+
+.tree__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  gap: 6px;
+}
+
+.tree__row.-selected {
+  background: #fff7ed; /* light orange */
+}
+
+.tree__row:hover .tree__inline-actions {
+  opacity: 1;
+}
+
+.tree__row__connector {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  border-left: 1px dashed #d1d5db; /* gray-300 */
+}
+
+.tree__toggle {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow {
+  display: inline-block;
+  transform: rotate(0deg);
+  transition: transform 120ms ease-in-out;
+}
+
+.arrow.-open {
+  transform: rotate(90deg);
+}
+
+.tree__icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+}
+
+.tree__label {
+  flex: 1;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.tree__badges {
+  display: flex;
+  gap: 6px;
+}
+
+.badge {
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid;
+}
+
+.badge.-unpublished {
+  color: #92400e;
+  background: #fff7ed;
+  border-color: #fcd34d;
+}
+
+.badge.-link {
+  color: #1f2937;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.tree__inline-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 120ms ease-in-out;
+}
+
+.tree__children {
+  margin-left: 20px;
+}
