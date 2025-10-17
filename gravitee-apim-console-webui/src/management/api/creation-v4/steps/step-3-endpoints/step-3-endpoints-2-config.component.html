@@ -17,11 +17,15 @@
 -->
 <mat-card class="api-creation-v4__step">
   <mat-card-content>
-    <div class="api-creation-v4__step__header">
+    <div class="api-creation-v4__step__header" >
       <div class="api-creation-v4__step__header__step-number">Step 3</div>
-      <div class="api-creation-v4__step__header__subtitle">Configure your API endpoints access</div>
-      <p class="api-creation-v4__step__header__paragraph-light">
+      <div class="api-creation-v4__step__header__subtitle"  *ngIf="!isAI()">Configure your API endpoints access</div>
+      <div class="api-creation-v4__step__header__subtitle"  *ngIf="isAI()">Configure your LLM Models</div>
+      <p class="api-creation-v4__step__header__paragraph-light" *ngIf="!isAI()">
         Choose the type of event-brokers/backend that will be exposed through the API
+      </p>
+      <p class="api-creation-v4__step__header__paragraph-light" *ngIf="isAI()">
+        Choose the Llm Models that will be exposed through the API
       </p>
     </div>
 
@@ -35,8 +39,11 @@
           ></gio-form-json-schema>
           <gio-form-json-schema
             [jsonSchema]="endpointSchemas[endpoint.id].sharedConfig"
-            [formControlName]="endpoint.id + '-sharedConfiguration'"
+            [formControlName]="endpoint.id + '-sharedConfiguration'" *ngIf="isA2ASelected() || !isAI();"
           ></gio-form-json-schema>
+          <ng-template #aiOnly>
+
+          </ng-template>
         </div>
       </ng-container>
 

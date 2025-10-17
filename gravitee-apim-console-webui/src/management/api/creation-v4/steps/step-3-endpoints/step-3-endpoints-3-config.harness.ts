@@ -13,8 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
-/**
- * API's type.
- */
-export type ApiType = 'MESSAGE' | 'LLM_PROXY' | 'MCP_PROXY' | 'PROXY' | 'NATIVE' | 'AI';
+export class Step3Endpoints3ConfigHarness extends ComponentHarness {
+  static hostSelector = 'step-3-endpoints-3-config';
+
+  protected getButtonByText = (text: string) =>
+    this.locatorFor(
+      MatButtonHarness.with({
+        text: text,
+      }),
+    )();
+
+  async clickPrevious() {
+    return this.getButtonByText('Previous').then((button) => button.click());
+  }
+
+  async clickValidate() {
+    return this.getButtonByText('Validate my endpoints').then((button) => button.click());
+  }
+}

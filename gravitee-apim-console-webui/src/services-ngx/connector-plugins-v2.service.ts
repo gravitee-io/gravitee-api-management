@@ -62,10 +62,18 @@ export class ConnectorPluginsV2Service {
 
   listAsyncEntrypointPlugins(): Observable<ConnectorPlugin[]> {
     return this.listEntrypointPlugins().pipe(
-      map((entrypointPlugins) => entrypointPlugins.filter((entrypoint) => entrypoint.supportedApiType === 'MESSAGE')),
+      map((entrypointPlugins) =>
+        entrypointPlugins.filter((entrypoint) => ['MESSAGE', 'LLM_PROXY', 'MCP_PROXY'].includes(entrypoint.supportedApiType)),
+      ),
     );
   }
-
+  listAIEntrypointPlugins(): Observable<ConnectorPlugin[]> {
+    return this.listEntrypointPlugins().pipe(
+      map((entrypointPlugins) =>
+        entrypointPlugins.filter((entrypoint) => ['MESSAGE', 'LLM_PROXY', 'MCP_PROXY'].includes(entrypoint.supportedApiType)),
+      ),
+    );
+  }
   getEndpointPlugin(id: string): Observable<ConnectorPlugin> {
     return this.http.get<ConnectorPlugin>(`${this.constants.org.v2BaseURL}/plugins/endpoints/${id}`);
   }

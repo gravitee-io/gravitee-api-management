@@ -26,15 +26,14 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { Step4Security1PlansComponent } from '../step-4-security/step-4-security-1-plans.component';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { LLM_PROXY,MCP_PROXY} from "../../../../../entities/management-api-v2/api/v4/aiTypes";
-import { ApiType } from "../../../../../entities/management-api-v2/api/v4/apiType";
+
 @Component({
-  selector: 'step-3-endpoints-2-config',
-  templateUrl: './step-3-endpoints-2-config.component.html',
-  styleUrls: ['./step-3-endpoints-2-config.component.scss', '../api-creation-steps-common.component.scss'],
+  selector: 'step-3-endpoints-3-config',
+  templateUrl: './step-3-endpoints-3-config.component.html',
+  styleUrls: ['./step-3-endpoints-3-config.component.scss', '../api-creation-steps-common.component.scss'],
   standalone: false,
 })
-export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
+export class Step3Endpoints3ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: UntypedFormGroup;
@@ -56,7 +55,6 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     this.apiType = currentStepPayload.type;
-
     forkJoin(
       currentStepPayload.selectedEndpoints.reduce((map: Record<string, Observable<[GioJsonSchema, GioJsonSchema]>>, { id }) => {
         return {
@@ -78,7 +76,6 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
         this.endpointSchemas = omitBy(displayableSchemas, ({ config, sharedConfig }) => {
           return !config && !sharedConfig;
         });
-
         this.selectedEndpoints = currentStepPayload.selectedEndpoints;
         this.shouldUpgrade = this.selectedEndpoints.some(({ deployed }) => !deployed);
         this.license$ = this.licenseService.getLicense$();
@@ -120,15 +117,6 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     this.stepService.goToPreviousStep();
-  }
-  isAI() {
-    return this.apiType === 'LLM_PROXY' || this.apiType === 'MCP_PROXY';
-  }
-  isA2ASelected() {
-    if(this.stepService.payload.isA2ASelected == undefined)
-      return false;
-
-    return this.stepService.payload.isA2ASelected;
   }
 
   public onRequestUpgrade() {

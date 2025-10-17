@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export const LLM_PROXY = {
+  id: 'llm-proxy',
+  name: 'LLM Proxy',
+};
 
-/**
- * API's type.
- */
-export type ApiType = 'MESSAGE' | 'LLM_PROXY' | 'MCP_PROXY' | 'PROXY' | 'NATIVE' | 'AI';
+export const MCP_PROXY = {
+  id: 'mcp-proxy',
+  name: 'MCP Proxy',
+};
