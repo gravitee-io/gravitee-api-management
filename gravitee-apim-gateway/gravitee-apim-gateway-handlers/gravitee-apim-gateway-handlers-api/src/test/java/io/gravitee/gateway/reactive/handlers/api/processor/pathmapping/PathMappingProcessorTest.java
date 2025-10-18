@@ -16,9 +16,13 @@
 package io.gravitee.gateway.reactive.handlers.api.processor.pathmapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.definition.model.PathMapping;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.v4.log.Log;
 import java.util.Map;
@@ -70,5 +74,40 @@ class PathMappingProcessorTest extends AbstractProcessorTest {
         api.setPathMappings(Map.of(PATH_INFO, Pattern.compile("/path/.*/info/")));
         pathMappingProcessor.execute(spyCtx).test().assertResult();
         verify(spyCtx, never()).metrics();
+    }
+
+    @Test
+    public void shouldBuildPatternWithParenthesesWithoutError() {
+        String path = "/Trunks(Pbx)/:id/Export()";
+        Pattern pattern = PathMapping.buildPattern(path);
+        assertDoesNotThrow(() -> pattern.matcher("/Trunks(Pbx)/123/Export()").matches());
+    }
+
+    @Test
+    public void shouldBuildPatternWithDotsAndMultipleParams() {
+        String path = "/api/:version/user.:id/info";
+        Pattern pattern = PathMapping.buildPattern(path);
+        assertTrue(pattern.matcher("/api/v1/user.42/info").matches());
+    }
+
+    @Test
+    public void shouldBuildPatternWithNestedParamsAndTrailingSlash() {
+        String path = "/root/:param1/:param2/";
+        Pattern pattern = PathMapping.buildPattern(path);
+
+        assertTrue(pattern.matcher("/root/a/b/").matches());
+        assertFalse(pattern.matcher("/root/a/b").matches()); // trailing slash required, as before
+    }
+
+    @Test
+    public void shouldNotThrowWhenSpecialCharactersPresent() {
+        String path = "/weird(path)/file(name):id";
+        assertDoesNotThrow(() -> PathMapping.buildPattern(path));
+    }
+
+    @Test
+    public void shouldNotThrowForExportTrunkLikePath() {
+        String path = "/Trunks([^/]*/Pbx.ExportTrunk()/*";
+        assertDoesNotThrow(() -> PathMapping.buildPattern(path));
     }
 }
