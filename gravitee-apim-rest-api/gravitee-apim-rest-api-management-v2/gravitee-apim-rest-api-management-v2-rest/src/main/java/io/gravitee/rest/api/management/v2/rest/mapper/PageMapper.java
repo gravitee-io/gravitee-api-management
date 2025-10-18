@@ -186,7 +186,6 @@ public interface PageMapper {
         }
 
         try {
-
             LinkedHashMap<String, Object> config = mapper.readValue(configuration, LinkedHashMap.class);
             maskSensitiveFieldsInMap(config);
 
