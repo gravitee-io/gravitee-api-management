@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.kubernetes.fetcher;
 import static io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEventFetcher.API_DEFINITIONS_KIND;
 import static io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEventFetcher.DATA_API_DEFINITION_VERSION;
 import static io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEventFetcher.DATA_DEFINITION;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
@@ -48,6 +49,7 @@ import java.util.Map;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -212,6 +214,32 @@ class ConfigMapEventFetcherTest {
         cut.fetchLatest(API_DEFINITIONS_KIND).test().assertNoValues();
     }
 
+    @Nested
+    class ApiDefinitionCheck {
+
+        @Test
+        void should_set_deployment_number_with_revision_for_v4() {
+            cut = new ConfigMapEventFetcher(kubernetesClient, null, objectMapper);
+            KubernetesConfig.getInstance().setCurrentNamespace("current");
+            ConfigMap configMap = createConfigMap(DefinitionVersion.V4, "apiV4", "current");
+
+            when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current")))).thenReturn(
+                Flowable.just(createEvent(configMap))
+            );
+
+            cut
+                .fetchLatest(API_DEFINITIONS_KIND)
+                .test()
+                .assertComplete()
+                .assertValue(events -> {
+                    assertThat(events)
+                        .extracting(io.gravitee.repository.management.model.Event::getProperties)
+                        .containsExactlyInAnyOrder(Map.of("api_id", "api-id-v4", "deployment_number", "resource-version"));
+                    return true;
+                });
+        }
+    }
+
     private Flowable<Event<? extends Watchable>> mockFlowableEvents() {
         ConfigMap configMap1 = createConfigMap("service1", "default");
         ConfigMap configMap2 = createConfigMap("service2", "dev");
@@ -228,6 +256,7 @@ class ConfigMapEventFetcherTest {
         ObjectMeta objectMeta = new ObjectMeta();
         objectMeta.setName(name);
         objectMeta.setNamespace(namespace);
+        objectMeta.setResourceVersion("resource-version");
         OwnerReference ownerReference = new OwnerReference();
         ownerReference.setApiVersion(String.format("%s/%s", ConfigMapEventFetcher.RESOURCE_GROUP, ConfigMapEventFetcher.RESOURCE_VERSION));
         objectMeta.setOwnerReferences(List.of(ownerReference));
@@ -248,7 +277,7 @@ class ConfigMapEventFetcherTest {
     private static String definitionV4() {
         return """
             {
-                      "id": "d56923f4-d2e0-c56e-83cb-6670bf8759f9",
+                      "id": "api-id-v4",
                       "definitionVersion": "4.0.0",
                       "type": "proxy",
                       "listeners": [],

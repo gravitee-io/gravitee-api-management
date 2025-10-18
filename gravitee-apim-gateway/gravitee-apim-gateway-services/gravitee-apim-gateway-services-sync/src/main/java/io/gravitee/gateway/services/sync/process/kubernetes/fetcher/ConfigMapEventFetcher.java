@@ -16,8 +16,11 @@
 package io.gravitee.gateway.services.sync.process.kubernetes.fetcher;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
+import static io.gravitee.repository.management.model.Event.EventProperties.DEPLOYMENT_NUMBER;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.kubernetes.client.KubernetesClient;
@@ -180,7 +183,13 @@ public class ConfigMapEventFetcher {
 
                 // Need to deserialize api definition in order to recreate a regular Event which can be handled by the ApiSynchronizer.
                 final io.gravitee.repository.management.model.Event event = new io.gravitee.repository.management.model.Event();
-                event.setProperties(Collections.singletonMap(API_ID.getValue(), apiId));
+                event.setProperties(
+                    Map.ofEntries(
+                        Map.entry(API_ID.getValue(), apiId),
+                        // simulate a deployment number to define a revision in the reactable
+                        Map.entry(DEPLOYMENT_NUMBER.getValue(), configMap.getMetadata().getResourceVersion())
+                    )
+                );
                 event.setCreatedAt(new Date());
 
                 final io.gravitee.repository.management.model.Api api = new io.gravitee.repository.management.model.Api();
