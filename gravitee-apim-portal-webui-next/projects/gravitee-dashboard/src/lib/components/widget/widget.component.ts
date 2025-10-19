@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { Widget } from './widget';
+import { Component, input } from '@angular/core';
+import { Widget, WidgetType } from './widget';
 import { DoughnutChartComponent } from './doughnut-chart/doughnut-chart.component';
 
 @Component({
@@ -9,5 +9,6 @@ import { DoughnutChartComponent } from './doughnut-chart/doughnut-chart.componen
   styleUrl: './widget.component.scss',
 })
 export class WidgetComponent {
-  @Input() item: Widget = {} as Widget;
+  item = input.required<Widget>();
+  type = input<WidgetType>();
 }

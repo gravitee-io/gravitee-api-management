@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { GraviteeDashboardService } from './gravitee-dashboard.service';
 import { Widget } from './components/widget/widget';
 import { GridComponent } from './components/grid/grid.component';
@@ -26,9 +26,5 @@ import { GridComponent } from './components/grid/grid.component';
   styles: ``,
 })
 export class GraviteeDashboardComponent {
-  widgets: Widget[];
-
-  constructor(private readonly dashboardService: GraviteeDashboardService) {
-    this.widgets = this.dashboardService.getWidgets();
-  }
+  widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
 }

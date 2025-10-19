@@ -37,7 +37,7 @@ export class GridComponent implements OnInit {
       minCols: 6,
       minRows: 8,
       itemAspectRatio: 4 / 3,
-      compactType: CompactType.CompactUp,
+      compactType: CompactType.None,
       displayGrid: DisplayGrid.None,
       pushItems: true,
       draggable: {

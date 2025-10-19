@@ -15,10 +15,12 @@
  */
 import { GridsterItem } from 'angular-gridster2';
 
+export type WidgetType = 'doughnut';
+
 export interface Widget {
   id: string;
   label: string;
-  type: string;
+  type: WidgetType;
   filter?: string;
   layout: GridsterItem;
 }

@@ -20,13 +20,8 @@ gridster{
 
 gridster-item{
   border-radius: 7px;
-  border: solid lightgrey;
+  border: 1px solid #C7C7C7;
   background: white;
-
-}
-
-.widget-content{
-  height: 80%;
 }
 
 .widget-header {
@@ -37,4 +32,23 @@ gridster-item{
   border-bottom: 1px solid #eee;
   flex-shrink: 0;
   cursor: move;
+}
+
+.widget-content {
+  height: 80%;
+  flex-grow: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chart-container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.widget-container {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
 }
