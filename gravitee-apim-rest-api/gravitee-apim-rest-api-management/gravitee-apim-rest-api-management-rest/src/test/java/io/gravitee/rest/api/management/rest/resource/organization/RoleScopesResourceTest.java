@@ -69,6 +69,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "QUALITY_RULE",
             "SETTINGS",
             "SHARED_POLICY_GROUP",
+            "SHARED_POLICY_GROUP_CONFIGURATION",
             "TAG",
             "TENANT",
             "THEME",

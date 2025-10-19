@@ -104,7 +104,7 @@ export class SharedPolicyGroupsComponent implements OnInit {
     isLoading: true,
   });
 
-  protected isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']);
+  protected isReadOnly = !this.permissionService.hasAnyMatching(['environment-shared_policy_group_configuration-u']);
 
   ngOnInit(): void {
     this.refreshPageTableVM$
