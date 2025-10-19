@@ -19,13 +19,13 @@
 <gridster [options]="options">
   @for (item of items; track item) {
     <gridster-item [item]="item.layout">
-      <div class="gridster-item__header">
-        header?
+      <div class="widget-header">
+        {{item.label}}
       </div>
 
-            <div class="gridster-item__content">
-              <gd-widget [item]="item" />
-            </div>
+      <div class="widget-content gridster-item-content">
+        <gd-widget [item]="item" />
+      </div>
     </gridster-item>
   }
 </gridster>

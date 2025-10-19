@@ -29,6 +29,7 @@ import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalMenuLinksService } from '../services/portal-menu-links.service';
 import { ThemeService } from '../services/theme.service';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 function initApp(
   configService: ConfigService,
@@ -80,5 +81,6 @@ export const appConfig: ApplicationConfig = {
       provide: DATE_PIPE_DEFAULT_OPTIONS,
       useValue: { dateFormat: 'YYYY-MM-dd HH:mm:ss.SSS' },
     },
+    provideCharts(withDefaultRegisterables()),
   ],
 };

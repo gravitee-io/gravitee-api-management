@@ -17,3 +17,24 @@
 gridster{
   background: unset;
 }
+
+gridster-item{
+  border-radius: 7px;
+  border: solid lightgrey;
+  background: white;
+
+}
+
+.widget-content{
+  height: 80%;
+}
+
+.widget-header {
+  height: 50px;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+  cursor: move;
+}

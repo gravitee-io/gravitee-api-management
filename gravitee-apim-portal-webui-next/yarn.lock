@@ -4117,6 +4117,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@kurkle/color@npm:^0.3.0":
+  version: 0.3.4
+  resolution: "@kurkle/color@npm:0.3.4"
+  checksum: 10c0/0e9fd55c614b005c5f0c4c755bca19ec0293bc7513b4ea3ec1725234f9c2fa81afbc78156baf555c8b9cb0d305619253c3f5bca016067daeebb3d00ebb4ea683
+  languageName: node
+  linkType: hard
+
 "@leichtgewicht/ip-codec@npm:^2.0.1":
   version: 2.0.5
   resolution: "@leichtgewicht/ip-codec@npm:2.0.5"
@@ -9253,6 +9260,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chart.js@npm:4.3.0":
+  version: 4.3.0
+  resolution: "chart.js@npm:4.3.0"
+  dependencies:
+    "@kurkle/color": "npm:^0.3.0"
+  checksum: 10c0/2f04485cc1a7e7af5063114f1c27309569a29707c68d0a775662cd2d8daf6358c68e276548330e793cbecf104a5dc393ecdf984969ad133b85668a4474aabb80
+  languageName: node
+  linkType: hard
+
 "check-error@npm:^2.1.1":
   version: 2.1.1
   resolution: "check-error@npm:2.1.1"
@@ -12605,6 +12621,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:7.18.0"
     angular-gridster2: "npm:20.2.3"
     asciidoctor: "npm:3.0.4"
+    chart.js: "npm:4.3.0"
     dompurify: "npm:3.2.7"
     eslint: "npm:8.57.1"
     eslint-config-prettier: "npm:9.1.0"
@@ -12628,6 +12645,7 @@ __metadata:
     marked-highlight: "npm:2.2.1"
     monaco-editor: "npm:0.50.0"
     ng-packagr: "npm:19.2.0"
+    ng2-charts: "npm:8.0.0"
     ngx-dynamic-hooks: "npm:3.1.2"
     ngx-infinite-scroll: "npm:19.0.0"
     prettier: "npm:3.5.3"
@@ -15086,6 +15104,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash-es@npm:^4.17.15":
+  version: 4.17.21
+  resolution: "lodash-es@npm:4.17.21"
+  checksum: 10c0/fb407355f7e6cd523a9383e76e6b455321f0f153a6c9625e21a8827d10c54c2a2341bd2ae8d034358b60e07325e1330c14c224ff582d04612a46a4f0479ff2f2
+  languageName: node
+  linkType: hard
+
 "lodash.debounce@npm:^4, lodash.debounce@npm:^4.0.8":
   version: 4.0.8
   resolution: "lodash.debounce@npm:4.0.8"
@@ -16036,6 +16061,23 @@ __metadata:
   bin:
     ng-packagr: cli/main.js
   checksum: 10c0/69fec8f09c5d4da4889332f0f7a1816f290a13cdf2c91cdabcbf6366a764da580fbfcd33280e38179c59f251d1196572918acece20fd2c57548b5bab125a90e7
+  languageName: node
+  linkType: hard
+
+"ng2-charts@npm:8.0.0":
+  version: 8.0.0
+  resolution: "ng2-charts@npm:8.0.0"
+  dependencies:
+    lodash-es: "npm:^4.17.15"
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/cdk": ">=19.0.0"
+    "@angular/common": ">=19.0.0"
+    "@angular/core": ">=19.0.0"
+    "@angular/platform-browser": ">=19.0.0"
+    chart.js: ^3.4.0 || ^4.0.0
+    rxjs: ^6.5.3 || ^7.4.0
+  checksum: 10c0/15b3a9d382017e9db3dfdbfd28230f4702dd7d60180bfb998de2a3d1752c33aaed79f2e9270a9056cdaf406f5f2dabb3549ca3db365bb82fea815706f5f437be
   languageName: node
   linkType: hard
 

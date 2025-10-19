@@ -36,6 +36,7 @@ import { UserComponent } from './user/my-accout/user.component';
 import { AuthModule } from './auth/auth.module';
 import { GioFormJsonSchemaExtendedModule } from './shared/components/form-json-schema-extended/form-json-schema-extended.module';
 import { ClusterRoutingModule } from './management/clusters/cluster-routing.module';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
@@ -82,10 +83,11 @@ import { ClusterRoutingModule } from './management/clusters/cluster-routing.modu
         headerName: 'none',
       }),
     ),
+    provideCharts(withDefaultRegisterables()),
   ],
 })
 export class AppModule implements DoBootstrap {
-  constructor(private upgrade: UpgradeModule) {}
+  constructor(private readonly upgrade: UpgradeModule) {}
 
   ngDoBootstrap(app: ApplicationRef) {
     setAngularJSGlobal(angular);

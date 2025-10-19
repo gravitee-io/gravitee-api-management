@@ -35,7 +35,7 @@ export class GridComponent implements OnInit {
       gridType: GridType.VerticalFixed,
       maxCols: 6,
       minCols: 6,
-      minRows: 16,
+      minRows: 8,
       itemAspectRatio: 4 / 3,
       compactType: CompactType.CompactUp,
       displayGrid: DisplayGrid.None,
@@ -49,7 +49,7 @@ export class GridComponent implements OnInit {
       outerMargin: true,
       setGridSize: true,
       fixedColWidth: 50,
-      fixedRowHeight: 50,
+      fixedRowHeight: 150,
     };
   }
 }

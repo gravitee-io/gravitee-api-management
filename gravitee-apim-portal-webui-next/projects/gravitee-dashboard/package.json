@@ -4,7 +4,9 @@
   "peerDependencies": {
     "@angular/common": "19.2.0",
     "@angular/core": "19.2.0",
-    "angular-gridster2": "20.2.3"
+    "angular-gridster2": "20.2.3",
+    "chart.js": "4.3.0",
+    "ng2-charts": "8.0.0"
   },
   "dependencies": {
     "tslib": "2.3.1"

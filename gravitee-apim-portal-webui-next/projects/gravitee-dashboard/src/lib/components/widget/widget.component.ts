@@ -1,10 +1,10 @@
 import { Component, Input } from '@angular/core';
 import { Widget } from './widget';
-import { GridsterItemComponent } from 'angular-gridster2';
+import { DoughnutChartComponent } from './doughnut-chart/doughnut-chart.component';
 
 @Component({
   selector: 'gd-widget',
-  imports: [GridsterItemComponent],
+  imports: [DoughnutChartComponent],
   templateUrl: './widget.component.html',
   styleUrl: './widget.component.scss',
 })

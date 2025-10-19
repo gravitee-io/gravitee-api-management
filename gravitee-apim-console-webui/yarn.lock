@@ -3116,6 +3116,8 @@ __metadata:
     "@angular/common": 19.2.0
     "@angular/core": 19.2.0
     angular-gridster2: 20.2.3
+    chart.js: 4.3.0
+    ng2-charts: 8.0.0
   languageName: node
   linkType: soft
 
@@ -3985,6 +3987,13 @@ __metadata:
   version: 3.4.0
   resolution: "@juggle/resize-observer@npm:3.4.0"
   checksum: 10c0/12930242357298c6f2ad5d4ec7cf631dfb344ca7c8c830ab7f64e6ac11eb1aae486901d8d880fd08fb1b257800c160a0da3aee1e7ed9adac0ccbb9b7c5d93347
+  languageName: node
+  linkType: hard
+
+"@kurkle/color@npm:^0.3.0":
+  version: 0.3.4
+  resolution: "@kurkle/color@npm:0.3.4"
+  checksum: 10c0/0e9fd55c614b005c5f0c4c755bca19ec0293bc7513b4ea3ec1725234f9c2fa81afbc78156baf555c8b9cb0d305619253c3f5bca016067daeebb3d00ebb4ea683
   languageName: node
   linkType: hard
 
@@ -8912,6 +8921,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chart.js@npm:^4.3.0":
+  version: 4.5.1
+  resolution: "chart.js@npm:4.5.1"
+  dependencies:
+    "@kurkle/color": "npm:^0.3.0"
+  checksum: 10c0/3f2a11dcaae9079e8e6b8ad077e2ae311f04996f9da14815730891e66215ee8b5f2c0eb70b5a156e5bde0f89a41bae13506dc6153e50fd22dcb282b21eec706f
+  languageName: node
+  linkType: hard
+
 "chokidar@npm:^3.5.3, chokidar@npm:^3.6.0":
   version: 3.6.0
   resolution: "chokidar@npm:3.6.0"
@@ -12370,6 +12388,7 @@ __metadata:
     angular-ui-validate: "npm:1.2.3"
     asciidoctor: "npm:3.0.4"
     asciidoctor-highlight.js: "npm:0.4.0"
+    chart.js: "npm:^4.3.0"
     chromatic: "npm:11.27.0"
     codemirror: "npm:5.65.19"
     codemirror-asciidoc: "npm:1.0.4"
@@ -12406,6 +12425,7 @@ __metadata:
     moment: "npm:2.30.1"
     monaco-editor: "npm:0.46.0"
     ng-file-upload: "npm:12.2.13"
+    ng2-charts: "npm:8.0.0"
     ngclipboard: "npm:2.0.0"
     ngx-file-helpers: "npm:12.0.0"
     ngx-markdown: "npm:17.2.1"
@@ -14873,7 +14893,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:^4.17.21":
+"lodash-es@npm:^4.17.15, lodash-es@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash-es@npm:4.17.21"
   checksum: 10c0/fb407355f7e6cd523a9383e76e6b455321f0f153a6c9625e21a8827d10c54c2a2341bd2ae8d034358b60e07325e1330c14c224ff582d04612a46a4f0479ff2f2
@@ -15945,6 +15965,23 @@ __metadata:
   version: 12.2.13
   resolution: "ng-file-upload@npm:12.2.13"
   checksum: 10c0/812a11b5c2388dc550d6b4a68c83c570f191ec4acaf458951f3a1e0705bdc0d015bef90dddf2ec96b9e5fc7a5ece2387a2fc7a7239b614c7fdf9b51bdb4826bd
+  languageName: node
+  linkType: hard
+
+"ng2-charts@npm:8.0.0":
+  version: 8.0.0
+  resolution: "ng2-charts@npm:8.0.0"
+  dependencies:
+    lodash-es: "npm:^4.17.15"
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/cdk": ">=19.0.0"
+    "@angular/common": ">=19.0.0"
+    "@angular/core": ">=19.0.0"
+    "@angular/platform-browser": ">=19.0.0"
+    chart.js: ^3.4.0 || ^4.0.0
+    rxjs: ^6.5.3 || ^7.4.0
+  checksum: 10c0/15b3a9d382017e9db3dfdbfd28230f4702dd7d60180bfb998de2a3d1752c33aaed79f2e9270a9056cdaf406f5f2dabb3549ca3db365bb82fea815706f5f437be
   languageName: node
   linkType: hard
 

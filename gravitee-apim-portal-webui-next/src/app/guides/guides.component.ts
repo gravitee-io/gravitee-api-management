@@ -22,10 +22,11 @@ import { map, startWith, switchMap } from 'rxjs';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { PageTreeComponent } from '../../components/page-tree/page-tree.component';
 import { PageService } from '../../services/page.service';
+import { GraviteeDashboardComponent } from '@gravitee/gravitee-dashboard';
 
 @Component({
   selector: 'app-guides',
-  imports: [LoaderComponent, PageTreeComponent, MatCard, MatCardContent, RouterOutlet],
+  imports: [LoaderComponent, PageTreeComponent, MatCard, MatCardContent, RouterOutlet, GraviteeDashboardComponent],
   templateUrl: './guides.component.html',
   styleUrls: ['./guides.component.scss'],
 })
