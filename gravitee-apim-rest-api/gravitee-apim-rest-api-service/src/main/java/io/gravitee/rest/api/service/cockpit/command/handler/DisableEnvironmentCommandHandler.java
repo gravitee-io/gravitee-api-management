@@ -22,6 +22,7 @@ import io.gravitee.cockpit.api.command.v1.environment.DisableEnvironmentCommand;
 import io.gravitee.cockpit.api.command.v1.environment.DisableEnvironmentReply;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -46,6 +47,7 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
     private final AccessPointCrudService accessPointService;
     private final IdentityProviderActivationService identityProviderActivationService;
     private final DictionaryService dictionaryService;
+    private final UserRepository userRepository;
 
     public DisableEnvironmentCommandHandler(
         EnvironmentService environmentService,
@@ -53,7 +55,8 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
         @Lazy ApiRepository apiRepository,
         AccessPointCrudService accessPointService,
         IdentityProviderActivationService identityProviderActivationService,
-        DictionaryService dictionaryService
+        DictionaryService dictionaryService,
+        @Lazy UserRepository userRepository
     ) {
         this.environmentService = environmentService;
         this.apiStateService = apiStateService;
@@ -61,6 +64,7 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
         this.accessPointService = accessPointService;
         this.identityProviderActivationService = identityProviderActivationService;
         this.dictionaryService = dictionaryService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -75,6 +79,7 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
         try {
             var environment = environmentService.findByCockpitId(payload.cockpitId());
             var executionContext = new ExecutionContext(environment);
+            String userId = CockpitUserHelper.resolveApimUserId(userRepository, executionContext, payload.userId());
 
             // Stop all Environment APIs
             apiRepository
@@ -82,7 +87,7 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
                     new ApiCriteria.Builder().state(LifecycleState.STARTED).environmentId(environment.getId()).build(),
                     new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
                 )
-                .forEach(api -> apiStateService.stopWithoutNotification(executionContext, api.getId(), payload.userId()));
+                .forEach(api -> apiStateService.stopWithoutNotification(executionContext, api.getId(), userId));
 
             // Delete related access points
             this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environment.getId());

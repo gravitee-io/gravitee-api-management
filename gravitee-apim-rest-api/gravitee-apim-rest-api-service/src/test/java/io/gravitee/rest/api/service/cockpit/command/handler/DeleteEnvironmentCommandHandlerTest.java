@@ -73,6 +73,7 @@ import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.api.TicketRepository;
+import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -92,6 +93,7 @@ import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.ThemeReferenceType;
+import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -113,6 +115,7 @@ import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
@@ -126,7 +129,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     private static final String EMPTY_ENV_ID = "env#1";
 
     private static final String ENV_ID = "env#2";
-    private static final String USER_ID = "user#1";
+    private static final String COCKPIT_SOURCE = "cockpit";
+    private static final String COCKPIT_USER_ID = "cockpitUser#1";
+    private static final String RESOLVED_APIM_USER_ID = "user#1";
     private static final String API_ID_1 = "api#1";
     private static final String API_ID_2 = "api#2";
     private static final String APP_ID_1 = "app#1";
@@ -308,6 +313,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Mock
     private ClusterRepository clusterRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
     private DeleteEnvironmentCommandHandler cut;
 
     @Before
@@ -363,6 +371,9 @@ public class DeleteEnvironmentCommandHandlerTest {
         when(alertService.findByReference(AlertReferenceType.ENVIRONMENT, ENV_ID)).thenReturn(List.of(alert));
         when(groupRepository.deleteByEnvironmentId(ENV_ID)).thenReturn(List.of(GROUP_ID_1, GROUP_ID_2));
         when(subscriptionRepository.deleteByEnvironmentId(ENV_ID)).thenReturn(List.of(SUBSCRIPTION_ID_1, SUBSCRIPTION_ID_2));
+        when(userRepository.findBySource(COCKPIT_SOURCE, COCKPIT_USER_ID, ORG_ID)).thenReturn(
+            Optional.ofNullable(User.builder().id(RESOLVED_APIM_USER_ID).build())
+        );
         cut = new DeleteEnvironmentCommandHandler(
             accessPointRepository,
             apiCategoryOrderRepository,
@@ -418,14 +429,15 @@ public class DeleteEnvironmentCommandHandlerTest {
             dictionaryService,
             environmentService,
             identityProviderActivationService,
-            searchEngineService
+            searchEngineService,
+            userRepository
         );
     }
 
     @Test
     public void should_delete_empty_environment() {
         DeleteEnvironmentReply reply = cut
-            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-empty-env", EMPTY_ENV_ID, USER_ID)))
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-empty-env", EMPTY_ENV_ID, COCKPIT_USER_ID)))
             .blockingGet();
 
         verify(environmentService).delete(EMPTY_ENV_ID);
@@ -435,7 +447,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Test
     public void should_reply_succeeded_if_environment_not_found() {
         DeleteEnvironmentReply reply = cut
-            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-empty-env", NOT_FOUND_ENV_ID, USER_ID)))
+            .handle(
+                new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-empty-env", NOT_FOUND_ENV_ID, COCKPIT_USER_ID))
+            )
             .blockingGet();
 
         assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
@@ -444,7 +458,7 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Test
     public void should_reply_error_if_throw_an_error() {
         DeleteEnvironmentReply reply = cut
-            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-empty-env", ERROR_ENV_ID, USER_ID)))
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-empty-env", ERROR_ENV_ID, COCKPIT_USER_ID)))
             .blockingGet();
 
         assertEquals(CommandStatus.ERROR, reply.getCommandStatus());
@@ -453,7 +467,7 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Test
     public void should_delete_environment() throws TechnicalException {
         DeleteEnvironmentReply reply = cut
-            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, USER_ID)))
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
             .blockingGet();
 
         ExecutionContext executionContext = new ExecutionContext(ORG_ID, ENV_ID);
@@ -558,8 +572,8 @@ public class DeleteEnvironmentCommandHandlerTest {
     }
 
     private void verifyDisableEnvironment(ExecutionContext executionContext) {
-        verify(apiStateService).stopWithoutNotification(executionContext, API_ID_1, USER_ID);
-        verify(apiStateService).stopWithoutNotification(executionContext, API_ID_2, USER_ID);
+        verify(apiStateService).stopWithoutNotification(executionContext, API_ID_1, RESOLVED_APIM_USER_ID);
+        verify(apiStateService).stopWithoutNotification(executionContext, API_ID_2, RESOLVED_APIM_USER_ID);
         verify(dictionaryService).stop(executionContext, DICTIONARY_ID);
         verify(identityProviderActivationService).removeAllIdpsFromTarget(
             executionContext,
