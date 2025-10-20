@@ -20,15 +20,16 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.TaskEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityAuthor;
@@ -39,18 +40,19 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PromotionTasksServiceImplTest {
 
     @Mock
@@ -65,14 +67,11 @@ public class PromotionTasksServiceImplTest {
     @Mock
     private ApiSearchService apiSearchService;
 
-    @Mock
-    private ObjectMapper objectMapper;
-
     private PromotionTasksService cut;
 
-    @Before
-    public void setUp() {
-        cut = new PromotionTasksServiceImpl(promotionService, permissionService, environmentService, objectMapper, apiSearchService);
+    @BeforeEach
+    void setUp() {
+        cut = new PromotionTasksServiceImpl(promotionService, permissionService, environmentService, apiSearchService);
     }
 
     @Test
@@ -162,7 +161,7 @@ public class PromotionTasksServiceImplTest {
             )
         ).thenReturn(false);
 
-        when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
+        when(apiSearchService.findRepositoryApiById(any(), any())).thenReturn(getAnApi());
 
         when(apiSearchService.exists("api#target")).thenReturn(true);
 
@@ -215,7 +214,7 @@ public class PromotionTasksServiceImplTest {
             )
         ).thenReturn(false);
 
-        when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
+        when(apiSearchService.findRepositoryApiById(any(), any())).thenReturn(getAnApi());
 
         final List<TaskEntity> result = cut.getPromotionTasks(GraviteeContext.getExecutionContext());
         assertThat(result).hasSize(1);
@@ -267,7 +266,7 @@ public class PromotionTasksServiceImplTest {
                 eq(UPDATE)
             )
         ).thenReturn(false);
-        when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
+        when(apiSearchService.findRepositoryApiById(any(), any())).thenReturn(getAnApi());
 
         when(apiSearchService.exists("api#target")).thenReturn(false);
 
@@ -322,8 +321,7 @@ public class PromotionTasksServiceImplTest {
             )
         ).thenReturn(false);
 
-        when(objectMapper.readValue(promotionEntity1.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
-        when(objectMapper.readValue(promotionEntity2.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
+        when(apiSearchService.findRepositoryApiById(any(), any())).thenReturn(getAnApi());
 
         when(apiSearchService.exists("api#target")).thenReturn(true);
 
@@ -350,12 +348,8 @@ public class PromotionTasksServiceImplTest {
         return promotion;
     }
 
-    private ApiEntity getAnApiEntity() {
-        final ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId("api#1");
-        apiEntity.setName("API Name");
-
-        return apiEntity;
+    private Api getAnApi() {
+        return Api.builder().id("api#target").name("API Name").build();
     }
 
     private EnvironmentEntity getAnEnvironmentEntity() {
