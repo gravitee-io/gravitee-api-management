@@ -76,6 +76,8 @@ import inmemory.PolicyPluginQueryServiceInMemory;
 import inmemory.PortalMenuLinkCrudServiceInMemory;
 import inmemory.PortalMenuLinkQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
+import inmemory.PromotionCrudServiceInMemory;
+import inmemory.PromotionQueryServiceInMemory;
 import inmemory.ResourcePluginCrudServiceInMemory;
 import inmemory.ResourcePluginQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -558,5 +560,15 @@ public class InMemoryConfiguration {
     @Bean
     public NewtAIProvider newtAIProvider() {
         return new NewtAIProviderInMemory();
+    }
+
+    @Bean
+    public PromotionQueryServiceInMemory promotionQueryService() {
+        return new PromotionQueryServiceInMemory();
+    }
+
+    @Bean
+    public PromotionCrudServiceInMemory promotionCrudService() {
+        return new PromotionCrudServiceInMemory();
     }
 }
