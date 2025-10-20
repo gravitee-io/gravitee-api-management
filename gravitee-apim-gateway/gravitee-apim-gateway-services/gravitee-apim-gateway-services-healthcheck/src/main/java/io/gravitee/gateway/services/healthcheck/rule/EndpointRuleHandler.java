@@ -124,7 +124,12 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         try {
             MDC.put("api", rule.api().getId());
             T endpoint = rule.endpoint();
-            logger.debug("Running health-check for endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
+            logger.debug(
+                "Running API '{}' health-check for endpoint: {} [{}]",
+                rule.api().getId(),
+                endpoint.getName(),
+                endpoint.getTarget()
+            );
 
             // We only allow one step per rule. To support more than one step implement healthCheckResponseHandler accordingly
             runStep(endpoint, rule.steps().get(0));
@@ -136,9 +141,13 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     protected abstract HttpClientOptions createHttpClientOptions(final T endpoint, final URL requestUrl) throws Exception;
 
     protected Future<HttpClientRequest> createHttpClientRequest(final HttpClient httpClient, URL request, HealthCheckStep step) {
-        logger.debug("Health-check Request host {}", request.getHost());
+        logger.debug("Health-check Request for API '{}' host {}", rule.api().getId(), request.getHost());
         RequestOptions options = prepareHttpClientRequest(request, step);
-        logger.debug("Health-check create HttpClient Request with options {}", options.toJson().encodePrettily());
+        logger.debug(
+            "Health-check create HttpClient Request for API '{}' with options {}",
+            rule.api().getId(),
+            options.toJson().encodePrettily()
+        );
         return httpClient.request(options);
     }
 
@@ -165,7 +174,11 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     try {
                         resolvedHeader = templateEngine.getValue(httpHeader.getValue(), String.class);
                     } catch (ExpressionEvaluationException e) {
-                        logger.warn("Expression {} cannot be evaluated", httpHeader.getValue());
+                        logger.warn(
+                            "Expression {} cannot be evaluated for healthcheck of API {}",
+                            httpHeader.getValue(),
+                            rule.api().getId()
+                        );
                     }
 
                     options.putHeader(httpHeader.getName(), resolvedHeader == null ? "" : resolvedHeader);
@@ -177,7 +190,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     protected URL createRequest(T endpoint, HealthCheckStep step) throws MalformedURLException {
         URL targetURL = new URL(null, templateEngine.getValue(endpoint.getTarget(), String.class));
-        logger.debug("Health-check step request{}", step.getRequest());
+        logger.debug("Health-check step request for API '{}' {}", rule.api().getId(), step.getRequest());
         if (step.getRequest().isFromRoot()) {
             targetURL = new URL(targetURL.getProtocol(), targetURL.getHost(), targetURL.getPort(), "/");
         }
@@ -196,7 +209,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         }
 
         URL resultURL = new URL(null, DUPLICATE_SLASH_REMOVER.matcher(url).replaceAll("/"));
-        logger.debug("Health-check URL {}", resultURL);
+        logger.debug("Health-check URL for API '{}' {}", rule.api().getId(), resultURL);
         return resultURL;
     }
 
@@ -228,7 +241,11 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                             HttpClientResponse response = healthRequestEvent.result();
                             response.bodyHandler(buffer -> {
                                 long endTime = currentTimeMillis();
-                                logger.debug("Health-check endpoint returns a response with a {} status code", response.statusCode());
+                                logger.debug(
+                                    "Health-check endpoint for API '{}' returns a response with a {} status code",
+                                    rule.api().getId(),
+                                    response.statusCode()
+                                );
 
                                 String body = buffer.toString();
 
@@ -241,11 +258,19 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                                 report(healthBuilder.build());
                             });
                             response.exceptionHandler(throwable -> {
-                                logger.error("An error has occurred during Health check response handler", throwable);
+                                logger.error(
+                                    "An error has occurred during Health check response handler for API '{}'",
+                                    rule.api().getId(),
+                                    throwable
+                                );
                                 rescheduleHandler.handle(null);
                             });
                         } else {
-                            logger.error("An error has occurred during Health check request", healthRequestEvent.cause());
+                            logger.error(
+                                "An error has occurred during Health check request for API '{}'",
+                                rule.api().getId(),
+                                healthRequestEvent.cause()
+                            );
                             rescheduleHandler.handle(null);
                             reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
                         }
@@ -257,7 +282,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     });
 
                     // Send request
-                    logger.debug("Execute health-check request: {}", healthRequest);
+                    logger.debug("Execute health-check request for API '{}': {}", rule.api().getId(), healthRequest);
                     if (step.getRequest().getBody() != null && !step.getRequest().getBody().isEmpty()) {
                         healthRequest.end(step.getRequest().getBody());
                     } else {
@@ -338,7 +363,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             healthResponse.setStatus(HttpStatusCode.BAD_GATEWAY_502);
         }
 
-        logger.debug("Health-check failing step because", throwable);
+        logger.debug("Health-check failing step for API '{}' because", rule.api().getId(), throwable);
 
         stepBuilder.response(healthResponse);
         return stepBuilder.build();

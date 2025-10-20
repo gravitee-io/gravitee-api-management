@@ -121,7 +121,7 @@ public class HttpHealthCheckService implements ApiService {
 
     @Override
     public Completable stop() {
-        log.info("Stopping health check service for api {}.", api.getName());
+        log.info("Stopping health check service for api {}.", api.getId());
 
         // Stop listening to endpoint events.
         endpointManager.removeListener(listenerId);
@@ -157,7 +157,7 @@ public class HttpHealthCheckService implements ApiService {
                 jobs.computeIfAbsent(endpoint, managedEndpoint -> scheduleInBackground(endpoint, hcConfiguration));
             }
         } catch (PluginConfigurationException e) {
-            log.warn("Unable to start healthcheck for api [{}] and endpoint [{}].", api.getName(), endpoint.getDefinition().getName());
+            log.warn("Unable to start healthcheck for api [{}] and endpoint [{}].", api.getId(), endpoint.getDefinition().getName());
         }
     }
 
@@ -202,7 +202,7 @@ public class HttpHealthCheckService implements ApiService {
             .subscribe(
                 () -> {},
                 throwable -> {
-                    log.error("Unable to run health check", throwable);
+                    log.error("Unable to run health check for API {}", api.getId(), throwable);
                     jobs.remove(endpoint);
                 }
             );
@@ -254,7 +254,7 @@ public class HttpHealthCheckService implements ApiService {
 
     private CompletableSource ignoreConnectionError(HttpHealthCheckExecutionContext ctx, Throwable err) {
         if (err instanceof UnknownHostException || err instanceof SocketException) {
-            log.debug("HealthCheck failed, unable to connect to the Service", err);
+            log.debug("HealthCheck failed for API {}, unable to connect to the Service", api.getId(), err);
             final Response response = ctx.response();
             response.status(UNREACHABLE_SERVICE);
             if (!Strings.isNullOrEmpty(err.getMessage())) {
