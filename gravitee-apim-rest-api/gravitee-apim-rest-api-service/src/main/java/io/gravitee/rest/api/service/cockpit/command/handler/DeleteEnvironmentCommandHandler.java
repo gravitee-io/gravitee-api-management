@@ -69,6 +69,7 @@ import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.api.TicketRepository;
+import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -168,6 +169,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final TicketRepository ticketRepository;
     private final WorkflowRepository workflowRepository;
     private final ClusterRepository clusterRepository;
+    private final UserRepository userRepository;
 
     public DeleteEnvironmentCommandHandler(
         @Lazy AccessPointRepository accessPointRepository,
@@ -224,7 +226,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         DictionaryService dictionaryService,
         EnvironmentService environmentService,
         IdentityProviderActivationService identityProviderActivationService,
-        SearchEngineService searchEngineService
+        SearchEngineService searchEngineService,
+        @Lazy UserRepository userRepository
     ) {
         this.accessPointRepository = accessPointRepository;
         this.accessPointService = accessPointService;
@@ -281,6 +284,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.ticketRepository = ticketRepository;
         this.workflowRepository = workflowRepository;
         this.clusterRepository = clusterRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -296,8 +300,9 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
             log.info("Delete environment with id [{}]", payload.cockpitId());
             var environment = environmentService.findByCockpitId(payload.cockpitId());
             var executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
+            String resolvedUserId = CockpitUserHelper.resolveApimUserId(userRepository, executionContext, payload.userId());
 
-            disableEnvironment(executionContext, payload.userId());
+            disableEnvironment(executionContext, resolvedUserId);
             deleteEnvironment(executionContext, environment);
 
             log.info("Environment [{}] with id [{}] has been deleted.", environment.getName(), environment.getId());
