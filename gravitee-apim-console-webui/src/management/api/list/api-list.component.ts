@@ -407,9 +407,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
   private getDefinitionVersion(api: Api) {
     switch (api.definitionVersion) {
       case 'V2':
-        return { label: this.titleCasePipe.transform(api.definitionVersion) };
+        return { label: 'V2 HTTP Proxy' };
       case 'V4':
-        return { label: `${api.definitionVersion} -${this.getLabelType(api)}` };
+        return { label: this.getLabelType(api) };
       case 'FEDERATED':
         return { label: 'Federated API' };
       case 'FEDERATED_AGENT':
@@ -421,19 +421,19 @@ export class ApiListComponent implements OnInit, OnDestroy {
 
   private getLabelType(api: ApiV4): string {
     if (api.type === 'MESSAGE') {
-      return ' Message';
+      return 'Message';
     }
     if (api.type === 'NATIVE') {
-      return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('KAFKA') ? ' Kafka' : '';
+      return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('KAFKA') ? 'Kafka Native' : 'Native';
     }
     if (api.type === 'MCP_PROXY') {
-      return ' MCP Proxy';
+      return 'MCP Proxy';
     }
     if (api.type === 'LLM_PROXY') {
-      return ' LLM Proxy';
+      return 'LLM Proxy';
     }
 
-    return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('TCP') ? ' TCP Proxy' : ' HTTP Proxy';
+    return api.listeners.map((listener: Listener): ListenerType => listener.type).includes('TCP') ? 'TCP Proxy' : 'HTTP Proxy';
   }
 
   displayFirstTag(element) {
