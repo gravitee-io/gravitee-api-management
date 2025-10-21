@@ -17,8 +17,14 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -36,7 +42,6 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -46,11 +51,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
@@ -58,7 +64,7 @@ import org.springframework.context.ApplicationContext;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PageService_AutoFetchTest {
 
     private static final String PAGE_ID = "ba01aef0-e3da-4499-81ae-f0e3daa4995a";
@@ -91,9 +97,6 @@ public class PageService_AutoFetchTest {
     private GraviteeDescriptorServiceImpl graviteeDescriptorService;
 
     @Mock
-    private ObjectMapper mockMapper;
-
-    @Mock
     private ImportConfiguration importConfiguration;
 
     @Mock
@@ -103,6 +106,11 @@ public class PageService_AutoFetchTest {
     private Page mockRootPage;
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        pageService.setObjectMapper(mapper);
+    }
 
     @Test
     public void shouldNotFetch_NoSourcePage() throws Exception {

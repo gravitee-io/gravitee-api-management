@@ -83,6 +83,8 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.AccessLevel;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -167,6 +169,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private ImportConfiguration importConfiguration;
 
     @Autowired
+    @Setter(AccessLevel.PACKAGE)
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -2449,7 +2452,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 if (removeSensitiveData) {
                     removeSensitiveData(pageId, fetcherConfiguration);
                 }
-                entity.setConfiguration((new ObjectMapper()).valueToTree(fetcherConfiguration));
+                entity.setConfiguration(objectMapper.valueToTree(fetcherConfiguration));
             } catch (FetcherException e) {
                 log.error("Unable to get the fetcher for page '{}'", pageId, e);
             }

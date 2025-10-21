@@ -18,8 +18,14 @@ package io.gravitee.rest.api.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.plugin.core.api.PluginManager;
@@ -46,12 +52,13 @@ import io.swagger.v3.oas.models.info.Info;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -60,7 +67,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PageService_ImportDescriptorTest {
 
     @InjectMocks
@@ -91,12 +98,14 @@ public class PageService_ImportDescriptorTest {
     private PageRevisionService pageRevisionService;
 
     @Mock
-    private ObjectMapper mockMapper;
-
-    @Mock
     private ImportConfiguration importConfiguration;
 
     private ObjectMapper mapper = new ObjectMapper();
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        pageService.setObjectMapper(mapper);
+    }
 
     @Test
     public void shouldImportDescriptor() throws Exception {
