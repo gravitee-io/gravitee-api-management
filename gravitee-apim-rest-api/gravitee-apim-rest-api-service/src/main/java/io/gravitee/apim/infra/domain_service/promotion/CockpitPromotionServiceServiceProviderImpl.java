@@ -16,19 +16,19 @@
 package io.gravitee.apim.infra.domain_service.promotion;
 
 import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
-import io.gravitee.apim.core.promotion.domain_service.CockpitPromotionLegacyWrapper;
 import io.gravitee.apim.core.promotion.model.Promotion;
+import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.infra.adapter.PromotionAdapter;
 import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CockpitPromotionServiceLegacyWrapperImpl implements CockpitPromotionLegacyWrapper {
+public class CockpitPromotionServiceServiceProviderImpl implements CockpitPromotionServiceProvider {
 
     private final CockpitPromotionService cockpitPromotionService;
 
-    public CockpitPromotionServiceLegacyWrapperImpl(CockpitPromotionService cockpitPromotionService) {
+    public CockpitPromotionServiceServiceProviderImpl(CockpitPromotionService cockpitPromotionService) {
         this.cockpitPromotionService = cockpitPromotionService;
     }
 

@@ -27,7 +27,7 @@ import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.promotion.crud_service.PromotionCrudService;
-import io.gravitee.apim.core.promotion.domain_service.CockpitPromotionLegacyWrapper;
+import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.domain_service.PromotionValidationDomainService;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionAuthor;
@@ -53,7 +53,7 @@ public class CreatePromotionUseCase {
     private final GraviteeDefinitionSerializer graviteeDefinitionSerializer;
     private final PromotionCrudService promotionCrudService;
     private final AuditDomainService auditService;
-    private final CockpitPromotionLegacyWrapper cockpitPromotionLegacyWrapper;
+    private final CockpitPromotionServiceProvider cockpitPromotionServiceProvider;
 
     public record Input(String apiId, PromotionRequest promotionRequest, BaseUserEntity authenticatedUser, AuditInfo auditInfo) {}
 
@@ -66,7 +66,7 @@ public class CreatePromotionUseCase {
         GraviteeDefinitionSerializer graviteeDefinitionSerializer,
         PromotionCrudService promotionCrudService,
         AuditDomainService auditService,
-        CockpitPromotionLegacyWrapper cockpitPromotionLegacyWrapper
+        CockpitPromotionServiceProvider cockpitPromotionServiceProvider
     ) {
         this.apiExportDomainService = apiExportDomainService;
         this.environmentCrudService = environmentCrudService;
@@ -74,7 +74,7 @@ public class CreatePromotionUseCase {
         this.graviteeDefinitionSerializer = graviteeDefinitionSerializer;
         this.promotionCrudService = promotionCrudService;
         this.auditService = auditService;
-        this.cockpitPromotionLegacyWrapper = cockpitPromotionLegacyWrapper;
+        this.cockpitPromotionServiceProvider = cockpitPromotionServiceProvider;
     }
 
     public Output execute(Input input) {
@@ -140,7 +140,7 @@ public class CreatePromotionUseCase {
     }
 
     private Promotion sendCockpitCommand(Promotion promotion, AuditInfo auditInfo) {
-        var cockpitReplyStatus = cockpitPromotionLegacyWrapper.requestPromotion(
+        var cockpitReplyStatus = cockpitPromotionServiceProvider.requestPromotion(
             auditInfo.organizationId(),
             auditInfo.environmentId(),
             promotion

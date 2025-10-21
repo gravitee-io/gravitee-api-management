@@ -20,8 +20,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.promotion.domain_service.CockpitPromotionLegacyWrapper;
 import io.gravitee.apim.core.promotion.model.Promotion;
+import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
@@ -31,18 +31,18 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class CockpitPromotionServiceLegacyWrapperImplTest {
+class CockpitPromotionServiceServiceProviderImplTest {
 
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final Promotion PROMOTION = fixtures.core.model.PromotionFixtures.aPromotion();
     private final CockpitPromotionService cockpitPromotionService = mock(CockpitPromotionService.class);
 
-    CockpitPromotionLegacyWrapper service;
+    CockpitPromotionServiceProvider service;
 
     @BeforeEach
     void setUp() {
-        service = new CockpitPromotionServiceLegacyWrapperImpl(cockpitPromotionService);
+        service = new CockpitPromotionServiceServiceProviderImpl(cockpitPromotionService);
     }
 
     @Test

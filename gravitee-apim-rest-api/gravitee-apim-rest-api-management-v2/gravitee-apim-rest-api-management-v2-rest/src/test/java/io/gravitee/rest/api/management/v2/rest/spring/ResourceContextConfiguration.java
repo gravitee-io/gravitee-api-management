@@ -108,7 +108,7 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
-import io.gravitee.apim.core.promotion.domain_service.CockpitPromotionLegacyWrapper;
+import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
@@ -860,8 +860,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public CockpitPromotionLegacyWrapper cockpitPromotionLegacyWrapper() {
-        return mock(CockpitPromotionLegacyWrapper.class);
+    public CockpitPromotionServiceProvider cockpitPromotionServiceProvider() {
+        return mock(CockpitPromotionServiceProvider.class);
     }
 
     @Bean

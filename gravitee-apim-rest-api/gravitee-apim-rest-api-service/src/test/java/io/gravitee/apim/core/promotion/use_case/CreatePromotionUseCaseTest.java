@@ -40,7 +40,7 @@ import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
-import io.gravitee.apim.core.promotion.domain_service.CockpitPromotionLegacyWrapper;
+import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.domain_service.PromotionValidationDomainService;
 import io.gravitee.apim.core.promotion.model.PromotionAuthor;
 import io.gravitee.apim.core.promotion.model.PromotionRequest;
@@ -83,7 +83,7 @@ class CreatePromotionUseCaseTest {
     private ApiExportDomainService apiExportDomainService;
     private AuditDomainService auditService;
     private PromotionValidationDomainService promotionValidationDomainService;
-    private final CockpitPromotionLegacyWrapper cockpitPromotionLegacyWrapper = mock(CockpitPromotionLegacyWrapper.class);
+    private final CockpitPromotionServiceProvider cockpitPromotionServiceProvider = mock(CockpitPromotionServiceProvider.class);
 
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
@@ -144,7 +144,7 @@ class CreatePromotionUseCaseTest {
     @Test
     @SneakyThrows
     void should_create_a_promotion_and_an_audit() {
-        when(cockpitPromotionLegacyWrapper.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
 
         var input = new CreatePromotionUseCase.Input(
             API_ID,
@@ -200,7 +200,7 @@ class CreatePromotionUseCaseTest {
     @Test
     @SneakyThrows
     void should_throw_an_exception_when_cockpit_command_fails() {
-        when(cockpitPromotionLegacyWrapper.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.ERROR);
+        when(cockpitPromotionServiceProvider.requestPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.ERROR);
 
         var input = new CreatePromotionUseCase.Input(
             API_ID,
@@ -225,7 +225,7 @@ class CreatePromotionUseCaseTest {
             serializer,
             promotionCrudService,
             auditService,
-            cockpitPromotionLegacyWrapper
+            cockpitPromotionServiceProvider
         );
     }
 }

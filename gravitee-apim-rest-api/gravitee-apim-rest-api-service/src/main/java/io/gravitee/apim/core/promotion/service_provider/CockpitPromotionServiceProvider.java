@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.promotion.domain_service;
+package io.gravitee.apim.core.promotion.service_provider;
 
 import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.promotion.model.Promotion;
 
-public interface CockpitPromotionLegacyWrapper {
+public interface CockpitPromotionServiceProvider {
     CockpitReplyStatus requestPromotion(String organizationId, String environmentId, Promotion promotion);
 }
