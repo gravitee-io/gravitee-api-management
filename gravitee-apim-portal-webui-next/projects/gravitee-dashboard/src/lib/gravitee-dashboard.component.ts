@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 import { Component, inject } from '@angular/core';
-import { GraviteeDashboardService } from './gravitee-dashboard.service';
-import { Widget } from './components/widget/widget';
+
 import { GridComponent } from './components/grid/grid.component';
+import { Widget } from './components/widget/widget';
+import { GraviteeDashboardService } from './gravitee-dashboard.service';
 
 @Component({
   selector: 'gd-dashboard',
   imports: [GridComponent],
-  template: ` <p>gravitee-dashboard works!</p>
-    <gd-grid [items]="widgets" />`,
+  template: `<gd-grid [items]="widgets" />`,
   styles: ``,
 })
 export class GraviteeDashboardComponent {

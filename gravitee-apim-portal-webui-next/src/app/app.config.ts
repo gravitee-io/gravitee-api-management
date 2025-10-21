@@ -19,6 +19,7 @@ import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core'
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -29,7 +30,6 @@ import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalMenuLinksService } from '../services/portal-menu-links.service';
 import { ThemeService } from '../services/theme.service';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 function initApp(
   configService: ConfigService,

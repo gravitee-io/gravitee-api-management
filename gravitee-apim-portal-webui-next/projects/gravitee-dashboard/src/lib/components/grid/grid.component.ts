@@ -16,14 +16,15 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
 
+import { DoughnutChartComponent } from '../widget/doughnut-chart/doughnut-chart.component';
 import { Widget } from '../widget/widget';
-import { WidgetComponent } from '../widget/widget.component';
+import { WidgetBody, WidgetComponent, WidgetTitle } from '../widget/widget.component';
 
 @Component({
   selector: 'gd-grid',
-  imports: [GridsterComponent, GridsterItemComponent, WidgetComponent],
+  imports: [GridsterComponent, GridsterItemComponent, WidgetComponent, WidgetTitle, WidgetBody, DoughnutChartComponent],
   templateUrl: './grid.component.html',
-  styleUrl: './grid.component.css',
+  styleUrl: './grid.component.scss',
 })
 export class GridComponent implements OnInit {
   @Input()

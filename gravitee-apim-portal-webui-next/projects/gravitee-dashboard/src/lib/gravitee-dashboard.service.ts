@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
+
 import { Widget } from './components/widget/widget';
 
 @Injectable({
