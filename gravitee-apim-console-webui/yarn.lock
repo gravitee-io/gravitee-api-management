@@ -8921,12 +8921,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chart.js@npm:^4.3.0":
-  version: 4.5.1
-  resolution: "chart.js@npm:4.5.1"
+"chart.js@npm:4.3.0":
+  version: 4.3.0
+  resolution: "chart.js@npm:4.3.0"
   dependencies:
     "@kurkle/color": "npm:^0.3.0"
-  checksum: 10c0/3f2a11dcaae9079e8e6b8ad077e2ae311f04996f9da14815730891e66215ee8b5f2c0eb70b5a156e5bde0f89a41bae13506dc6153e50fd22dcb282b21eec706f
+  checksum: 10c0/2f04485cc1a7e7af5063114f1c27309569a29707c68d0a775662cd2d8daf6358c68e276548330e793cbecf104a5dc393ecdf984969ad133b85668a4474aabb80
   languageName: node
   linkType: hard
 
@@ -12388,7 +12388,7 @@ __metadata:
     angular-ui-validate: "npm:1.2.3"
     asciidoctor: "npm:3.0.4"
     asciidoctor-highlight.js: "npm:0.4.0"
-    chart.js: "npm:^4.3.0"
+    chart.js: "npm:4.3.0"
     chromatic: "npm:11.27.0"
     codemirror: "npm:5.65.19"
     codemirror-asciidoc: "npm:1.0.4"
