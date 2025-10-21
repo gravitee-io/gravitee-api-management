@@ -17,12 +17,14 @@ package io.gravitee.rest.api.model.documentation;
 
 import io.gravitee.rest.api.model.PageType;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @EqualsAndHashCode
+@ToString
 public class PageQuery {
 
     private String api;
