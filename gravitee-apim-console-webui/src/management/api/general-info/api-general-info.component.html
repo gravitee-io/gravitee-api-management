@@ -186,7 +186,7 @@
           *gioPermission="{ anyOf: ['api-definition-u'] }"
           mat-button
           class="details-card__actions_btn"
-          [disabled]="cannotPromote || apiType === 'NATIVE'"
+          [disabled]="cannotPromote"
           data-testid="api_info_promote"
           (click)="promoteApi()"
         >

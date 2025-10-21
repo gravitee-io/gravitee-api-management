@@ -20,6 +20,7 @@ import { Observable } from 'rxjs';
 import { Constants } from '../entities/Constants';
 import { Promotion, PromotionRequest, PromotionTarget } from '../entities/promotion';
 import { PromotionSearchParams } from '../entities/promotion/promotionSearchParams';
+import { DefinitionVersion } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -34,12 +35,19 @@ export class PromotionService {
     return this.http.get<PromotionTarget[]>(`${this.constants.env.baseURL}/promotion-targets`);
   }
 
-  promote(apiId: string, promotionTarget: { id: string; name: string }): Observable<Promotion> {
+  promote(apiId: string, definitionVersion: DefinitionVersion, promotionTarget: { id: string; name: string }): Observable<Promotion> {
     const promotionRequest: PromotionRequest = {
       targetEnvCockpitId: promotionTarget.id,
       targetEnvName: promotionTarget.name,
     };
-    return this.http.post<Promotion>(`${this.constants.env.baseURL}/apis/${apiId}/_promote`, promotionRequest);
+
+    if (definitionVersion === 'V2') {
+      return this.http.post<Promotion>(`${this.constants.env.baseURL}/apis/${apiId}/_promote`, promotionRequest);
+    } else if (definitionVersion === 'V4') {
+      return this.http.post<Promotion>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_promote`, promotionRequest);
+    } else {
+      throw new Error('Definition version not supported: ' + definitionVersion + ' for promotion');
+    }
   }
 
   processPromotion(promotionId: string, isAccepted: boolean): Observable<Promotion> {

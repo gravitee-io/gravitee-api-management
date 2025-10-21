@@ -21,6 +21,7 @@ import { PromotionService } from './promotion.service';
 
 import { PromotionTarget, fakePromotion, fakePromotionTarget } from '../entities/promotion';
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
+import { DefinitionVersion } from '../entities/management-api-v2';
 
 describe('PromotionService', () => {
   let httpTestingController: HttpTestingController;
@@ -58,14 +59,14 @@ describe('PromotionService', () => {
   });
 
   describe('promote', () => {
-    it('should call the API', (done) => {
+    it('should ask for V2 API promotion', (done) => {
       const promotionTarget = fakePromotionTarget({
         installationId: 'inst#1',
         id: 'env#1',
       });
       const promotion = fakePromotion();
 
-      promotionService.promote('apiId', promotionTarget).subscribe((result) => {
+      promotionService.promote('apiId', 'V2', promotionTarget).subscribe((result) => {
         expect(result).toEqual(promotion);
         done();
       });
@@ -80,6 +81,43 @@ describe('PromotionService', () => {
       });
       req.flush(promotion);
     });
+
+    it('should ask for V4 API promotion', (done) => {
+      const promotionTarget = fakePromotionTarget({
+        installationId: 'inst#1',
+        id: 'env#1',
+      });
+      const promotion = fakePromotion();
+
+      promotionService.promote('apiId', 'V4', promotionTarget).subscribe((result) => {
+        expect(result).toEqual(promotion);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/apiId/_promote`,
+      });
+      expect(req.request.body).toEqual({
+        targetEnvCockpitId: 'env#1',
+        targetEnvName: 'A name',
+      });
+      req.flush(promotion);
+    });
+
+    it.each(['V1', 'FEDERATED', 'FEDERATED_AGENT'])(
+      'should throw error for unsupported definition version: %s',
+      (definitionVersion: DefinitionVersion) => {
+        const promotionTarget = fakePromotionTarget({
+          installationId: 'inst#1',
+          id: 'env#1',
+        });
+
+        expect(() => {
+          promotionService.promote('apiId', definitionVersion, promotionTarget);
+        }).toThrow(new Error(`Definition version not supported: ${definitionVersion} for promotion`));
+      },
+    );
   });
 
   describe('processPromotion', () => {
