@@ -46,13 +46,16 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
 public interface PageMapper {
     PageMapper INSTANCE = Mappers.getMapper(PageMapper.class);
     ObjectMapper mapper = new GraviteeMapper();
+    Logger logger = LoggerFactory.getLogger(PageMapper.class);
 
-    @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "source.configuration", qualifiedByName = "deserializeConfigurationWithSensitiveDataMasking", source = "source")
     Page mapPage(io.gravitee.apim.core.documentation.model.Page page);
 
     List<Page> mapPageList(List<io.gravitee.apim.core.documentation.model.Page> page);
@@ -154,6 +157,21 @@ public interface PageMapper {
         String pageId,
         AuditInfo auditInfo
     );
+
+    /**
+     * Custom method to handle sensitive data masking based on page source.
+     * This method delegates to ConfigurationSerializationMapper for the actual masking logic.
+     */
+    @Named("deserializeConfigurationWithSensitiveDataMasking")
+    default Object deserializeConfigurationWithSensitiveDataMasking(io.gravitee.apim.core.documentation.model.PageSource source) {
+        if (source == null || source.getConfiguration() == null) {
+            return null;
+        }
+
+        // Get the mapper instance and delegate to it
+        ConfigurationSerializationMapper configMapper = Mappers.getMapper(ConfigurationSerializationMapper.class);
+        return configMapper.deserializeConfigurationWithSensitiveDataMasking(source.getConfiguration(), source.getType());
+    }
 
     @Named("deserializeJsonConfiguration")
     default JsonNode deserializeJsonConfiguration(Object configuration) throws JsonProcessingException {
