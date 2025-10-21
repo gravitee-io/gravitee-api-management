@@ -21,10 +21,6 @@
   margin-bottom: 18px;
 }
 
-.table-mobile {
-  overflow-x: auto;
-}
-
 .form-headers {
   &__table {
     margin-top: 10px;
@@ -47,4 +43,8 @@
       width: 5%;
     }
   }
+}
+
+.table-mobile {
+  overflow-x: auto;
 }

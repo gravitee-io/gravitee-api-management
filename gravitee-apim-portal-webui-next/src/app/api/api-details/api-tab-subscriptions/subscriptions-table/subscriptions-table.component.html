@@ -36,7 +36,7 @@
       }
     </div>
   } @else {
-    <div [class.table-mobile]="isMobile()">
+    <div [appIsMobile]="'table-mobile'">
       <table mat-table [dataSource]="subscriptions" class="api-tab-subscriptions__table">
         <ng-container matColumnDef="application">
           <th mat-header-cell *matHeaderCellDef i18n="@@subscriptionTableColumnApplication" class="m3-title-medium">Application</th>

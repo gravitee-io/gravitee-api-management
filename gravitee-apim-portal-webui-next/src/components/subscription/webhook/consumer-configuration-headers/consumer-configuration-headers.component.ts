@@ -16,7 +16,7 @@
 
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { AsyncPipe } from '@angular/common';
-import { Component, ElementRef, forwardRef, inject, input, InputSignal, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, forwardRef, input, InputSignal, OnInit, ViewChild } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -42,8 +42,8 @@ import { Observable, of } from 'rxjs';
 import { map, startWith, tap } from 'rxjs/operators';
 
 import { FormHeaderFieldMapper, HEADER_NAMES } from './consumer-configuration-headers.model';
+import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { Header } from '../../../../entities/subscription';
-import { ObservabilityBreakpointService } from '../../../../services/observability-breakpoint.service';
 import { AccordionModule } from '../../../accordion/accordion.module';
 
 /**
@@ -77,6 +77,7 @@ import { AccordionModule } from '../../../accordion/accordion.module';
     AsyncPipe,
     MatTableModule,
     AccordionModule,
+    MobileClassDirective,
   ],
 })
 export class ConsumerConfigurationHeadersComponent implements OnInit, ControlValueAccessor, Validator {
@@ -97,8 +98,6 @@ export class ConsumerConfigurationHeadersComponent implements OnInit, ControlVal
     headers: this.headersFormArray,
   });
   displayedColumns: string[] = ['name', 'value', 'actions'];
-
-  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
   private headers: Header[] = [];
   private filteredHeaderNames: Observable<string[]>[] = [];

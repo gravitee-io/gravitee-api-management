@@ -20,7 +20,7 @@
     <span class="m3-title-medium" i18n="@@subscriptionConfigurationHeaderTitle">Headers</span>
   </app-accordion-title>
   <form [formGroup]="mainForm">
-    <div [class.table-mobile]="isMobile()">
+    <div [appIsMobile]="'table-mobile'">
       <table mat-table [dataSource]="headersFormArray.controls" formArrayName="headers" class="form-headers__table">
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef i18n="@@subscriptionConfigurationHeaderName">Name</th>
