@@ -126,6 +126,17 @@ export class GraviteeDashboardService {
           x: 5,
         },
       },
+      {
+        id: '9',
+        label: 'Top API',
+        type: 'doughnut',
+        layout: {
+          cols: 1,
+          rows: 3,
+          y: 2,
+          x: 0,
+        },
+      },
     ];
   }
 }

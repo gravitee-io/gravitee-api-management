@@ -15,23 +15,23 @@
  */
 .widget-container {
   display: flex;
-  flex-flow: column;
   height: 100%;
+  flex-flow: column;
 }
 
 .widget-title {
-  height: 50px;
-  padding: 0 15px;
   display: flex;
-  align-items: center;
-  border-bottom: 1px solid #eee;
+  height: 50px;
   flex-shrink: 0;
+  align-items: center;
+  padding: 0 15px;
+  border-bottom: 1px solid #eee;
   cursor: move;
 }
 
 .widget-content {
-  height: 80%;
-  flex-grow: 1;
-  min-height: 0;
   overflow: hidden;
+  height: 80%;
+  min-height: 0;
+  flex-grow: 1;
 }

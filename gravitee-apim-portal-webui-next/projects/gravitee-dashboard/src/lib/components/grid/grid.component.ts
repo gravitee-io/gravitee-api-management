@@ -18,11 +18,11 @@ import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterIt
 
 import { DoughnutChartComponent } from '../widget/doughnut-chart/doughnut-chart.component';
 import { Widget } from '../widget/widget';
-import { WidgetBody, WidgetComponent, WidgetTitle } from '../widget/widget.component';
+import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../widget/widget.component';
 
 @Component({
   selector: 'gd-grid',
-  imports: [GridsterComponent, GridsterItemComponent, WidgetComponent, WidgetTitle, WidgetBody, DoughnutChartComponent],
+  imports: [GridsterComponent, GridsterItemComponent, WidgetComponent, WidgetTitleComponent, WidgetBodyComponent, DoughnutChartComponent],
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.scss',
 })

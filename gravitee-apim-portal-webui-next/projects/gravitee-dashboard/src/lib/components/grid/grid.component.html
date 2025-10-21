@@ -16,7 +16,7 @@
 
 -->
 
-<gridster [options]="options">
+<gridster [options]="options" class="grid">
   @for (item of items; track item) {
     <gridster-item [item]="item.layout">
       <gd-widget [item]="item" [type]="item.type">

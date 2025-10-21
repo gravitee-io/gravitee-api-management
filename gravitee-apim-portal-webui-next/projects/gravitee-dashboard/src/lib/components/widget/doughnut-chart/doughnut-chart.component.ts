@@ -33,16 +33,6 @@ export class DoughnutChartComponent {
     datasets: [{ data: [350, 450, 100] }, { data: [50, 150, 120] }, { data: [250, 130, 70] }],
   };
   public doughnutChartType = 'doughnut' as const;
-
-  // events
-  public chartClicked({ event, active }: { event: ChartEvent; active: object[] }): void {
-    console.log(event, active);
-  }
-
-  public chartHovered({ event, active }: { event: ChartEvent; active: object[] }): void {
-    console.log(event, active);
-  }
-
   public doughnutChartOptions: ChartConfiguration<'doughnut'>['options'] = {
     responsive: true,
 
@@ -54,4 +44,12 @@ export class DoughnutChartComponent {
       },
     },
   };
+
+  public chartClicked({ event, active }: { event: ChartEvent; active: object[] }): void {
+    console.log(event, active);
+  }
+
+  public chartHovered({ event, active }: { event: ChartEvent; active: object[] }): void {
+    console.log(event, active);
+  }
 }

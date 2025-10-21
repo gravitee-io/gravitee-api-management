@@ -22,14 +22,14 @@ import { Widget, WidgetType } from './widget';
   template: `<ng-content>widget-title</ng-content>`,
   styleUrl: './widget.component.scss',
 })
-export class WidgetTitle {}
+export class WidgetTitleComponent {}
 
 @Component({
   selector: 'gd-widget-body',
   template: `<ng-content>widget-body</ng-content>`,
   styleUrl: './widget.component.scss',
 })
-export class WidgetBody {}
+export class WidgetBodyComponent {}
 
 @Component({
   selector: 'gd-widget',
