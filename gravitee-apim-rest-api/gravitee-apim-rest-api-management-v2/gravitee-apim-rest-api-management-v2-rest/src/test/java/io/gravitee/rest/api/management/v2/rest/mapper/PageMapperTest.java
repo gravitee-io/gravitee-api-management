@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.gravitee.rest.api.management.v2.rest.model.SourceConfiguration;
 import java.util.LinkedHashMap;
@@ -62,5 +61,41 @@ class PageMapperTest extends AbstractMapperTest {
             }""";
         assertNotNull(pageSource.getConfiguration());
         assertEquals(expectedConfig, pageSource.getConfiguration().toString());
+    }
+
+    @Test
+    void shouldMaskSensitiveDataInConfiguration() throws Exception {
+        var sourceConfiguration = new SourceConfiguration();
+        sourceConfiguration.setType("gitlab-fetcher");
+
+        Map<String, Object> configMap = new LinkedHashMap<>();
+        configMap.put("gitlabUrl", "https://gitlab.com/api/v4");
+        configMap.put("useSystemProxy", false);
+        configMap.put("namespace", "group");
+        configMap.put("project", "project");
+        configMap.put("branchOrTag", "main");
+        configMap.put("filepath", "/petstore");
+        configMap.put("privateToken", "exposedTokenHere");
+        configMap.put("apiVersion", "V4");
+        configMap.put("autoFetch", false);
+        sourceConfiguration.setConfiguration(configMap);
+
+        var pageSource = pageMapper.mapSourceConfigurationToPageSource(sourceConfiguration);
+
+        assertNotNull(pageSource);
+        assertEquals("gitlab-fetcher", pageSource.getType());
+
+        // Verify that the privateToken is masked
+        var configurationJson = pageSource.getConfiguration().toString();
+        assertNotNull(configurationJson);
+
+        // Debug: print the actual configuration
+        System.out.println("Actual configuration: " + configurationJson);
+
+        // The privateToken should be masked with "********"
+        assertEquals(true, configurationJson.contains("\"privateToken\" : \"********\""));
+        // Other fields should remain unchanged
+        assertEquals(true, configurationJson.contains("\"gitlabUrl\" : \"https://gitlab.com/api/v4\""));
+        assertEquals(true, configurationJson.contains("\"namespace\" : \"group\""));
     }
 }
