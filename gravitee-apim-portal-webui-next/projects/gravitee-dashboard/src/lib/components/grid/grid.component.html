@@ -16,16 +16,19 @@
 
 -->
 
-<gridster [options]="options" class="grid">
-  @for (item of items; track item) {
+<gridster [options]="options()" class="grid">
+  @for (item of items(); track item) {
     <gridster-item [item]="item.layout">
-      <gd-widget [item]="item" [type]="item.type">
+      <gd-widget [item]="item">
         <gd-widget-title>{{ item.label }}</gd-widget-title>
 
         <gd-widget-body>
           @switch (item.type) {
             @case ('doughnut') {
               <gd-doughnut-chart />
+            }
+            @default {
+              <div>Not yet implemented</div>
             }
           }
         </gd-widget-body>

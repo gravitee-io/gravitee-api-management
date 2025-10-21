@@ -15,7 +15,7 @@
  */
 import { GridsterItem } from 'angular-gridster2';
 
-export type WidgetType = 'doughnut';
+export type WidgetType = 'doughnut' | 'top';
 
 export interface Widget {
   id: string;

@@ -118,7 +118,7 @@ export class GraviteeDashboardService {
       {
         id: '8',
         label: 'Top Application',
-        type: 'doughnut',
+        type: 'top',
         layout: {
           cols: 1,
           rows: 3,
@@ -129,7 +129,7 @@ export class GraviteeDashboardService {
       {
         id: '9',
         label: 'Top API',
-        type: 'doughnut',
+        type: 'top',
         layout: {
           cols: 1,
           rows: 3,

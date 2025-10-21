@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
 
 import { DoughnutChartComponent } from '../widget/doughnut-chart/doughnut-chart.component';
@@ -26,13 +26,12 @@ import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../w
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.scss',
 })
-export class GridComponent implements OnInit {
-  @Input()
-  public items: Widget[] = [];
-  public options: GridsterConfig = {} as GridsterConfig;
+export class GridComponent {
+  items = input<Widget[]>();
+  options = input<GridsterConfig>(this.getGridsterOptions());
 
-  public ngOnInit(): void {
-    this.options = {
+  private getGridsterOptions(): GridsterConfig {
+    return {
       gridType: GridType.VerticalFixed,
       maxCols: 6,
       minCols: 6,
