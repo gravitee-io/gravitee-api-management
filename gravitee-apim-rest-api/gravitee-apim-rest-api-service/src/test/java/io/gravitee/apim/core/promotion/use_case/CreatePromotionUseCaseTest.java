@@ -23,9 +23,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.BaseUserEntityFixtures;
 import fixtures.core.model.GraviteeDefinitionFixtures;
+import fixtures.core.model.PromotionFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -33,6 +36,8 @@ import inmemory.PromotionCrudServiceInMemory;
 import inmemory.PromotionQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
+import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -40,7 +45,7 @@ import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
-import io.gravitee.apim.core.promotion.domain_service.PromotionValidationDomainService;
+import io.gravitee.apim.core.promotion.exception.PromotionAlreadyInProgressException;
 import io.gravitee.apim.core.promotion.model.PromotionAuthor;
 import io.gravitee.apim.core.promotion.model.PromotionRequest;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
@@ -70,9 +75,11 @@ class CreatePromotionUseCaseTest {
 
     private static final String UUID = "generated-id";
     private static final String API_ID = "api-id";
+    private static final Api API = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
+    private static final String ENVIRONMENT_COCKPIT_ID = "environment-cockpit-id";
     private static final String USER_ID = "user-id";
     private static final String COCKPIT_TARGET_ENV_ID = "cockpit-target-env-id";
     private static final String COCKPIT_TARGET_ENV_NAME = "cockpit-target-env-name";
@@ -82,7 +89,6 @@ class CreatePromotionUseCaseTest {
 
     private ApiExportDomainService apiExportDomainService;
     private AuditDomainService auditService;
-    private PromotionValidationDomainService promotionValidationDomainService;
     private final CockpitPromotionServiceProvider cockpitPromotionServiceProvider = mock(CockpitPromotionServiceProvider.class);
 
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
@@ -90,14 +96,15 @@ class CreatePromotionUseCaseTest {
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
     private final PromotionQueryServiceInMemory promotionQueryService = new PromotionQueryServiceInMemory();
     private final PromotionCrudServiceInMemory promotionCrudService = new PromotionCrudServiceInMemory();
+    private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
 
     @BeforeEach
     public void setUp() {
         auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         apiExportDomainService = mock(ApiExportDomainServiceImpl.class);
-        promotionValidationDomainService = new PromotionValidationDomainService(promotionQueryService);
-        environmentCrudService.initWith(List.of(Environment.builder().id(ENVIRONMENT_ID).build()));
+        environmentCrudService.initWith(List.of(Environment.builder().id(ENVIRONMENT_ID).cockpitId(ENVIRONMENT_COCKPIT_ID).build()));
         userCrudService.initWith(List.of(BaseUserEntityFixtures.aBaseUserEntity(USER_ID)));
+        apiCrudServiceInMemory.initWith(List.of(API));
 
         when(apiExportDomainService.export(eq(API_ID), eq(AUDIT_INFO), anyCollection())).thenReturn(
             GraviteeDefinitionFixtures.aGraviteeDefinitionProxy()
@@ -168,7 +175,7 @@ class CreatePromotionUseCaseTest {
             assertThat(promotion.getStatus()).isEqualTo(PromotionStatus.TO_BE_VALIDATED);
             assertThat(promotion.getTargetEnvCockpitId()).isEqualTo(COCKPIT_TARGET_ENV_ID);
             assertThat(promotion.getTargetEnvName()).isEqualTo(COCKPIT_TARGET_ENV_NAME);
-            assertThat(promotion.getSourceEnvCockpitId()).isEqualTo(ENVIRONMENT_ID);
+            assertThat(promotion.getSourceEnvCockpitId()).isEqualTo(ENVIRONMENT_COCKPIT_ID);
             assertThat(promotion.getAuthor())
                 .usingRecursiveComparison()
                 .isEqualTo(
@@ -215,16 +222,61 @@ class CreatePromotionUseCaseTest {
             .hasMessage("An error occurs while sending promotion request to cockpit");
     }
 
+    @Test
+    @SneakyThrows
+    void should_throw_an_exception_when_api_definition_version_is_not_supported() {
+        apiCrudServiceInMemory.reset();
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build()));
+
+        var input = new CreatePromotionUseCase.Input(
+            API_ID,
+            PromotionRequest.builder().targetEnvName(COCKPIT_TARGET_ENV_NAME).targetEnvCockpitId(COCKPIT_TARGET_ENV_ID).build(),
+            AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID)
+        );
+
+        useCase = createUseCase(new GraviteeDefinitionJacksonJsonSerializer());
+        Throwable throwable = catchThrowable(() -> useCase.execute(input));
+
+        assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    @SneakyThrows
+    void should_throw_an_exception_when_api_promotion_is_already_in_progress() {
+        promotionQueryService.initWith(
+            List.of(
+                PromotionFixtures.aPromotion()
+                    .toBuilder()
+                    .apiId(API_ID)
+                    .status(PromotionStatus.TO_BE_VALIDATED)
+                    .targetEnvCockpitId(COCKPIT_TARGET_ENV_ID)
+                    .build()
+            )
+        );
+
+        var input = new CreatePromotionUseCase.Input(
+            API_ID,
+            PromotionRequest.builder().targetEnvName(COCKPIT_TARGET_ENV_NAME).targetEnvCockpitId(COCKPIT_TARGET_ENV_ID).build(),
+            AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID)
+        );
+
+        useCase = createUseCase(new GraviteeDefinitionJacksonJsonSerializer());
+        Throwable throwable = catchThrowable(() -> useCase.execute(input));
+
+        assertThat(throwable).isInstanceOf(PromotionAlreadyInProgressException.class);
+    }
+
     private CreatePromotionUseCase createUseCase(GraviteeDefinitionSerializer serializer) {
         return new CreatePromotionUseCase(
             apiExportDomainService,
             environmentCrudService,
-            promotionValidationDomainService,
+            promotionQueryService,
             serializer,
             promotionCrudService,
             auditService,
             cockpitPromotionServiceProvider,
-            userCrudService
+            userCrudService,
+            apiCrudServiceInMemory
         );
     }
 }

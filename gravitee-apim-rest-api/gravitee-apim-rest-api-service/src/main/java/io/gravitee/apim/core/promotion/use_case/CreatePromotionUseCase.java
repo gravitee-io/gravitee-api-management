@@ -16,7 +16,9 @@
 package io.gravitee.apim.core.promotion.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
+import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -27,19 +29,23 @@ import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.promotion.crud_service.PromotionCrudService;
-import io.gravitee.apim.core.promotion.domain_service.PromotionValidationDomainService;
+import io.gravitee.apim.core.promotion.exception.PromotionAlreadyInProgressException;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionAuthor;
+import io.gravitee.apim.core.promotion.model.PromotionQuery;
 import io.gravitee.apim.core.promotion.model.PromotionRequest;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
+import io.gravitee.apim.core.promotion.query_service.PromotionQueryService;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,12 +55,13 @@ public class CreatePromotionUseCase {
 
     private final ApiExportDomainService apiExportDomainService;
     private final EnvironmentCrudService environmentCrudService;
-    private final PromotionValidationDomainService promotionValidationDomainService;
+    private final PromotionQueryService promotionQueryService;
     private final GraviteeDefinitionSerializer graviteeDefinitionSerializer;
     private final PromotionCrudService promotionCrudService;
     private final AuditDomainService auditService;
     private final CockpitPromotionServiceProvider cockpitPromotionServiceProvider;
     private final UserCrudService userCrudService;
+    private final ApiCrudService apiCrudService;
 
     public record Input(String apiId, PromotionRequest promotionRequest, AuditInfo auditInfo) {}
 
@@ -63,24 +70,31 @@ public class CreatePromotionUseCase {
     public CreatePromotionUseCase(
         ApiExportDomainService apiExportDomainService,
         EnvironmentCrudService environmentCrudService,
-        PromotionValidationDomainService promotionValidationDomainService,
+        PromotionQueryService promotionQueryService,
         GraviteeDefinitionSerializer graviteeDefinitionSerializer,
         PromotionCrudService promotionCrudService,
         AuditDomainService auditService,
         CockpitPromotionServiceProvider cockpitPromotionServiceProvider,
-        UserCrudService userCrudService
+        UserCrudService userCrudService,
+        ApiCrudService apiCrudService
     ) {
         this.apiExportDomainService = apiExportDomainService;
         this.environmentCrudService = environmentCrudService;
-        this.promotionValidationDomainService = promotionValidationDomainService;
+        this.promotionQueryService = promotionQueryService;
         this.graviteeDefinitionSerializer = graviteeDefinitionSerializer;
         this.promotionCrudService = promotionCrudService;
         this.auditService = auditService;
         this.cockpitPromotionServiceProvider = cockpitPromotionServiceProvider;
         this.userCrudService = userCrudService;
+        this.apiCrudService = apiCrudService;
     }
 
     public Output execute(Input input) {
+        var api = apiCrudService.get(input.apiId);
+        if (!DefinitionVersion.V4.equals(api.getDefinitionVersion())) {
+            throw new ApiInvalidDefinitionVersionException(input.apiId);
+        }
+
         var createdPromotion = createPromotion(input.apiId, input.promotionRequest, input.auditInfo);
         var updatedPromotion = sendCockpitCommand(createdPromotion, input.auditInfo);
         return new Output(updatedPromotion);
@@ -91,7 +105,17 @@ public class CreatePromotionUseCase {
         var apiDefinition = apiExportDomainService.export(apiId, auditInfo, Set.of(Excludable.GROUPS, Excludable.MEMBERS));
         var sourceEnvironment = environmentCrudService.get(auditInfo.environmentId());
 
-        promotionValidationDomainService.validate(apiId, promotionRequest.getTargetEnvCockpitId());
+        var promotionQuery = PromotionQuery.builder()
+            .apiId(apiId)
+            .statuses(Set.of(PromotionStatus.CREATED, PromotionStatus.TO_BE_VALIDATED))
+            .targetEnvCockpitIds(Set.of(promotionRequest.getTargetEnvCockpitId()))
+            .build();
+
+        List<Promotion> inProgressPromotions = promotionQueryService.search(promotionQuery).getContent();
+        if (!inProgressPromotions.isEmpty()) {
+            Promotion promotion = inProgressPromotions.getFirst();
+            throw new PromotionAlreadyInProgressException(promotion.getId());
+        }
 
         Promotion toSave;
         try {
@@ -109,7 +133,7 @@ public class CreatePromotionUseCase {
                 .status(PromotionStatus.CREATED)
                 .apiId(apiId)
                 .apiDefinition(graviteeDefinitionSerializer.serialize(apiDefinition))
-                .sourceEnvCockpitId(sourceEnvironment.getId())
+                .sourceEnvCockpitId(sourceEnvironment.getCockpitId())
                 .sourceEnvName(sourceEnvironment.getName())
                 .targetEnvCockpitId(promotionRequest.getTargetEnvCockpitId())
                 .targetEnvName(promotionRequest.getTargetEnvName())
