@@ -169,7 +169,7 @@ public interface PageMapper {
         }
 
         // Get the mapper instance and delegate to it
-        ConfigurationSerializationMapper configMapper = Mappers.getMapper(ConfigurationSerializationMapper.class);
+        ConfigurationSerializationMapper configMapper = ConfigurationSerializationMapper.INSTANCE;
         return configMapper.deserializeConfigurationWithSensitiveDataMasking(source.getConfiguration(), source.getType());
     }
 
