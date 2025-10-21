@@ -47,6 +47,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHosts;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHostsResponse;
@@ -168,8 +169,11 @@ public class ApisResource extends AbstractResource {
             : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit)).api();
 
         boolean isSynchronized = apiStateDomainService.isSynchronized(createdApi, audit);
+        GenericApi.DeploymentStateEnum deploymentState = isSynchronized
+            ? GenericApi.DeploymentStateEnum.DEPLOYED
+            : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
         return Response.created(this.getLocationHeader(createdApi.getId()))
-            .entity(ApiMapper.INSTANCE.map(createdApi, uriInfo, isSynchronized))
+            .entity(ApiMapper.INSTANCE.mapToV4(createdApi, uriInfo, deploymentState))
             .build();
     }
 
