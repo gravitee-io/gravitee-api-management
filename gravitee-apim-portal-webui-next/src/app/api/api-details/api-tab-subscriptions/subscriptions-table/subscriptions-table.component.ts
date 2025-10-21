@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -25,10 +25,10 @@ import { catchError, map, Observable, startWith, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { LoaderComponent } from '../../../../../components/loader/loader.component';
+import { MobileClassDirective } from '../../../../../directives/mobile-class.directive';
 import { Subscription, SubscriptionStatusEnum } from '../../../../../entities/subscription/subscription';
 import { SubscriptionMetadata } from '../../../../../entities/subscription/subscriptions-response';
 import { CapitalizeFirstPipe } from '../../../../../pipe/capitalize-first.pipe';
-import { ObservabilityBreakpointService } from '../../../../../services/observability-breakpoint.service';
 import { SubscriptionService } from '../../../../../services/subscription.service';
 
 @Component({
@@ -45,6 +45,7 @@ import { SubscriptionService } from '../../../../../services/subscription.servic
     MatOption,
     RouterLink,
     LoaderComponent,
+    MobileClassDirective,
   ],
   providers: [CapitalizeFirstPipe],
   styleUrl: './subscriptions-table.component.scss',
@@ -59,8 +60,6 @@ export class SubscriptionsTableComponent implements OnInit {
   public subscriptionsStatus: FormControl<SubscriptionStatusEnum[] | null> = new FormControl<SubscriptionStatusEnum[]>([]);
   public subscriptionsList$!: Observable<Subscription[]>;
   public subscriptionsExist: boolean = false;
-
-  protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
 
   constructor(
     private capitalizeFirstPipe: CapitalizeFirstPipe,
