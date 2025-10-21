@@ -409,7 +409,10 @@ class ApisResourceTest extends AbstractResourceTest {
 
             when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
                 Api api = invocation.getArgument(0);
-                return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionNativeV4().getFlows());
+                return new ApiWithFlows(
+                    api.toBuilder().id("api-id").build(),
+                    api.getApiDefinitionNativeV4() != null ? api.getApiDefinitionNativeV4().getFlows() : List.of()
+                );
             });
 
             var newApi = aValidNativeV4Api();
@@ -448,7 +451,10 @@ class ApisResourceTest extends AbstractResourceTest {
 
             when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
                 Api api = invocation.getArgument(0);
-                return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionNativeV4().getFlows());
+                return new ApiWithFlows(
+                    api.toBuilder().id("api-id").build(),
+                    api.getApiDefinitionNativeV4() != null ? api.getApiDefinitionNativeV4().getFlows() : List.of()
+                );
             });
 
             var newApi = aValidNativeV4Api();
