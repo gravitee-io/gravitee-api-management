@@ -44,6 +44,7 @@ import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.ExposedEntrypoint;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
@@ -232,6 +233,19 @@ public interface ApiMapper {
     @Mapping(target = "state", source = "source.lifecycleState")
     @Mapping(target = "analytics", source = "source.apiDefinitionNativeV4.analytics")
     ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+
+    @Mapping(target = "definitionContext", source = "source.originContext")
+    @Mapping(target = "apiVersion", source = "source.version")
+    @Mapping(target = "analytics", source = "source.apiDefinitionHttpV4.analytics")
+    @Mapping(target = "deploymentState", source = "deploymentState")
+    @Mapping(target = "endpointGroups", source = "source.apiDefinitionHttpV4.endpointGroups")
+    @Mapping(target = "flowExecution", source = "source.apiDefinitionHttpV4.flowExecution")
+    @Mapping(target = "flows", source = "source.flows", qualifiedByName = "mapToFlowV4List")
+    @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
+    @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
+    @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
+    @Mapping(target = "state", source = "source.lifecycleState")
+    ApiV4 mapToV4(io.gravitee.apim.core.api.model.ApiWithFlows source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
@@ -468,4 +482,23 @@ public interface ApiMapper {
     ExposedEntrypoint map(io.gravitee.apim.core.api.model.ExposedEntrypoint entrypoint);
 
     List<ExposedEntrypoint> map(List<io.gravitee.apim.core.api.model.ExposedEntrypoint> entrypoints);
+
+    @Named("mapToFlowV4List")
+    default List<FlowV4> mapToFlowV4List(List<? extends AbstractFlow> flows) {
+        if (flows == null) {
+            return null;
+        }
+        return flows
+            .stream()
+            .map(flow -> {
+                if (flow instanceof io.gravitee.definition.model.v4.flow.Flow httpFlow) {
+                    return FlowMapper.INSTANCE.mapFromHttpV4(httpFlow);
+                } else if (flow instanceof io.gravitee.definition.model.v4.nativeapi.NativeFlow nativeFlow) {
+                    return FlowMapper.INSTANCE.mapFromNativeV4(nativeFlow);
+                }
+                return null;
+            })
+            .filter(Objects::nonNull)
+            .collect(java.util.stream.Collectors.toList());
+    }
 }
