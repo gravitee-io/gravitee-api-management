@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GridComponent } from '@gravitee/gravitee-dashboard';
+import { GridComponent, Widget } from '@gravitee/gravitee-dashboard';
 
 import { Component } from '@angular/core';
-import { Widget } from '@gravitee/gravitee-dashboard/lib/components/widget/widget';
 
 @Component({
   selector: 'analytics-viewer',

@@ -21,5 +21,6 @@ export * from './lib/gravitee-dashboard.service';
 export * from './lib/gravitee-dashboard.component';
 
 export * from './lib/components/grid/grid.component';
+export * from './lib/components/widget/widget';
 export * from './lib/components/widget/widget.component';
 export * from './lib/components/widget/doughnut-chart/doughnut-chart.component';

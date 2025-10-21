@@ -24,6 +24,7 @@ import { setAngularJSGlobal, UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
 import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
 import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { currentUserProvider, ajsScopeProvider } from './ajs-upgraded-providers';
 import { Constants } from './entities/Constants';
@@ -36,7 +37,6 @@ import { UserComponent } from './user/my-accout/user.component';
 import { AuthModule } from './auth/auth.module';
 import { GioFormJsonSchemaExtendedModule } from './shared/components/form-json-schema-extended/form-json-schema-extended.module';
 import { ClusterRoutingModule } from './management/clusters/cluster-routing.module';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
