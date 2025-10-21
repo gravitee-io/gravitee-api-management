@@ -1,32 +1,42 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.fetcher.api.FetcherConfiguration;
-import io.gravitee.fetcher.api.Sensitive;
-import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
-import io.gravitee.rest.api.fetcher.impl.FetcherConfigurationFactoryImpl;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Mapper
-public abstract class ConfigurationSerializationMapper {
-
-    private static final Logger logger = LoggerFactory.getLogger(ConfigurationSerializationMapper.class);
-    private static final String SENSITIVE_DATA_REPLACEMENT = "********";
+public interface ConfigurationSerializationMapper {
+    ConfigurationSerializationMapper INSTANCE = Mappers.getMapper(ConfigurationSerializationMapper.class);
+    Logger logger = LoggerFactory.getLogger(ConfigurationSerializationMapper.class);
 
     @Named("serializeConfiguration")
-    public String serializeConfiguration(Object configuration) {
+    default String serializeConfiguration(Object configuration) {
         if (Objects.isNull(configuration)) {
             return null;
         }
@@ -44,7 +54,7 @@ public abstract class ConfigurationSerializationMapper {
     }
 
     @Named("convertToMapConfiguration")
-    public Map<String, Object> convertToMapConfiguration(Object configuration) {
+    default Map<String, Object> convertToMapConfiguration(Object configuration) {
         if (Objects.isNull(configuration)) {
             return Map.of();
         }
@@ -56,7 +66,7 @@ public abstract class ConfigurationSerializationMapper {
     }
 
     @Named("deserializeConfiguration")
-    public Object deserializeConfiguration(String configuration) {
+    default Object deserializeConfiguration(String configuration) {
         if (Objects.isNull(configuration)) {
             return null;
         }
@@ -78,7 +88,7 @@ public abstract class ConfigurationSerializationMapper {
     }
 
     @Named("deserializeConfigurationWithSensitiveDataMasking")
-    public Object deserializeConfigurationWithSensitiveDataMasking(String configuration, String fetcherType) {
+    default Object deserializeConfigurationWithSensitiveDataMasking(String configuration, String sourceType) {
         if (Objects.isNull(configuration)) {
             return null;
         }
@@ -86,113 +96,25 @@ public abstract class ConfigurationSerializationMapper {
         ObjectMapper mapper = new GraviteeMapper();
         try {
             LinkedHashMap<String, Object> configMap = mapper.readValue(configuration, LinkedHashMap.class);
-
-            if (fetcherType != null) {
-                // Try annotation-based masking with FetcherConfigurationFactory
-                try {
-                    Class<? extends FetcherConfiguration> fetcherConfigClass = getFetcherConfigurationClass(fetcherType);
-                    if (fetcherConfigClass != null) {
-                        // Create factory instance
-                        FetcherConfigurationFactory factory = new FetcherConfigurationFactoryImpl();
-
-                        // Convert to actual configuration object
-                        FetcherConfiguration configObj = factory.create(fetcherConfigClass, configuration);
-
-                        if (configObj != null) {
-                            // Mask sensitive fields using annotations
-                            maskSensitiveFields(configObj);
-
-                            // Convert back to map
-                            String maskedJson = mapper.writeValueAsString(configObj);
-                            return mapper.readValue(maskedJson, LinkedHashMap.class);
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.debug("Annotation-based masking failed for fetcher type: " + fetcherType, e);
-                }
-            }
-
-            // Fallback to field name-based masking
             maskSensitiveFieldsInMap(configMap);
             return configMap;
-        } catch (JsonProcessingException e) {
-            logger.debug("Cannot parse configuration: " + e.getMessage());
-        }
-
-        return configuration;
-    }
-
-    /**
-     * Get the fetcher configuration class based on fetcher type.
-     */
-    private Class<? extends FetcherConfiguration> getFetcherConfigurationClass(String fetcherType) {
-        switch (fetcherType.toLowerCase()) {
-            case "github":
-                return getClassSafely("io.gravitee.fetcher.github.GitHubFetcherConfiguration");
-            case "gitlab":
-                return getClassSafely("io.gravitee.fetcher.gitlab.GitLabFetcherConfiguration");
-            case "git":
-                return getClassSafely("io.gravitee.fetcher.git.GitFetcherConfiguration");
-            case "http":
-            case "http-fetcher":
-                return getClassSafely("io.gravitee.fetcher.http.HttpFetcherConfiguration");
-            default:
-                logger.debug("Unknown fetcher type: " + fetcherType);
-                return null;
+        } catch (JsonProcessingException jse) {
+            logger.debug("Cannot parse configuration: " + jse.getMessage());
+            return configuration;
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Class<? extends FetcherConfiguration> getClassSafely(String className) {
-        try {
-            Class<?> clazz = Class.forName(className);
-            if (FetcherConfiguration.class.isAssignableFrom(clazz)) {
-                return (Class<? extends FetcherConfiguration>) clazz;
-            }
-        } catch (ClassNotFoundException e) {
-            logger.debug("Fetcher configuration class not found: " + className);
+    default void maskSensitiveFieldsInMap(Map<String, Object> configMap) {
+        if (configMap == null) {
+            return;
         }
-        return null;
-    }
 
-    /**
-     * Mask sensitive fields in a configuration object using @Sensitive annotations.
-     */
-    private void maskSensitiveFields(Object configuration) {
-        Class<?> configClass = configuration.getClass();
-        Field[] fields = configClass.getDeclaredFields();
+        // List of sensitive field names that should be masked
+        String[] sensitiveFields = { "privateToken", "password", "secret", "token", "apiKey", "accessToken", "clientSecret" };
 
-        for (Field field : fields) {
-            if (field.isAnnotationPresent(Sensitive.class)) {
-                try {
-                    field.setAccessible(true);
-                    field.set(configuration, SENSITIVE_DATA_REPLACEMENT);
-                } catch (IllegalAccessException e) {
-                    logger.debug("Could not mask sensitive field: " + field.getName(), e);
-                }
-            }
-        }
-    }
-
-    /**
-     * Fallback method to mask sensitive fields by field name.
-     */
-    private void maskSensitiveFieldsInMap(LinkedHashMap<String, Object> configMap) {
-        String[] sensitiveFieldNames = {
-            "privateToken", // GitLab fetcher
-            "password", // HTTP, Git fetchers
-            "secret", // Various fetchers
-            "token", // Various fetchers
-            "apiKey", // API fetchers
-            "accessToken", // OAuth fetchers
-            "clientSecret", // OAuth fetchers
-            "personalAccessToken", // GitHub, GitLab
-            "authToken", // Generic auth tokens
-        };
-
-        for (String fieldName : sensitiveFieldNames) {
-            if (configMap.containsKey(fieldName)) {
-                configMap.put(fieldName, SENSITIVE_DATA_REPLACEMENT);
+        for (String field : sensitiveFields) {
+            if (configMap.containsKey(field) && configMap.get(field) != null) {
+                configMap.put(field, "********");
             }
         }
     }
