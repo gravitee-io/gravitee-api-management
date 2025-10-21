@@ -58,7 +58,7 @@ describe('PromotionService', () => {
   });
 
   describe('promote', () => {
-    it('should call the API', (done) => {
+    it('should ask for API promotion', (done) => {
       const promotionTarget = fakePromotionTarget({
         installationId: 'inst#1',
         id: 'env#1',
@@ -72,7 +72,7 @@ describe('PromotionService', () => {
 
       const req = httpTestingController.expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/apiId/_promote`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/apiId/_promote`,
       });
       expect(req.request.body).toEqual({
         targetEnvCockpitId: 'env#1',
