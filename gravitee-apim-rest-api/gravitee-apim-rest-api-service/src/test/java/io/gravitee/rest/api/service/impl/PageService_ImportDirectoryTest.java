@@ -17,8 +17,15 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.plugin.core.api.PluginManager;
@@ -35,17 +42,17 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GraviteeDescriptorService;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
@@ -53,7 +60,7 @@ import org.springframework.context.ApplicationContext;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PageService_ImportDirectoryTest {
 
     @InjectMocks
@@ -87,6 +94,11 @@ public class PageService_ImportDirectoryTest {
     private PageRevisionService pageRevisionService;
 
     private ObjectMapper mapper = new ObjectMapper();
+
+    @BeforeEach
+    void setUp() {
+        pageService.setObjectMapper(mapper);
+    }
 
     @Test
     public void shouldImportDirectory() throws Exception {
