@@ -66,6 +66,7 @@ public class FlowMapperTest {
     }
 
     private void assertFlowV4Equals(Flow flowEntityV4, FlowV4 flowV4) throws JsonProcessingException {
+        assertEquals(flowEntityV4.getId(), flowV4.getId());
         assertEquals(flowEntityV4.getName(), flowV4.getName());
 
         final var flowSelectors = flowEntityV4.getSelectors();
