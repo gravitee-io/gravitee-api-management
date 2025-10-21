@@ -34,7 +34,6 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
-import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
@@ -924,20 +923,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response promoteAPI(@RequestBody @Valid @NotNull final PromotionRequest promotionRequest, @PathParam("apiId") String apiId) {
-        var authenticatedUser = getAuthenticatedUserDetails();
-        var input = new CreatePromotionUseCase.Input(
-            apiId,
-            PromotionMapper.INSTANCE.map(promotionRequest),
-            BaseUserEntity.builder()
-                .id(authenticatedUser.getId())
-                .firstname(authenticatedUser.getFirstname())
-                .lastname(authenticatedUser.getLastname())
-                .email(authenticatedUser.getEmail())
-                .source(authenticatedUser.getSource())
-                .sourceId(authenticatedUser.getSourceId())
-                .build(),
-            getAuditInfo()
-        );
+        var input = new CreatePromotionUseCase.Input(apiId, PromotionMapper.INSTANCE.map(promotionRequest), getAuditInfo());
         var output = promotionUseCase.execute(input);
         return Response.ok(PromotionMapper.INSTANCE.map(output.promotion())).build();
     }

@@ -27,13 +27,13 @@ import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
 import io.gravitee.apim.core.promotion.crud_service.PromotionCrudService;
-import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.domain_service.PromotionValidationDomainService;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionAuthor;
 import io.gravitee.apim.core.promotion.model.PromotionRequest;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
-import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -54,8 +54,9 @@ public class CreatePromotionUseCase {
     private final PromotionCrudService promotionCrudService;
     private final AuditDomainService auditService;
     private final CockpitPromotionServiceProvider cockpitPromotionServiceProvider;
+    private final UserCrudService userCrudService;
 
-    public record Input(String apiId, PromotionRequest promotionRequest, BaseUserEntity authenticatedUser, AuditInfo auditInfo) {}
+    public record Input(String apiId, PromotionRequest promotionRequest, AuditInfo auditInfo) {}
 
     public record Output(Promotion promotion) {}
 
@@ -66,7 +67,8 @@ public class CreatePromotionUseCase {
         GraviteeDefinitionSerializer graviteeDefinitionSerializer,
         PromotionCrudService promotionCrudService,
         AuditDomainService auditService,
-        CockpitPromotionServiceProvider cockpitPromotionServiceProvider
+        CockpitPromotionServiceProvider cockpitPromotionServiceProvider,
+        UserCrudService userCrudService
     ) {
         this.apiExportDomainService = apiExportDomainService;
         this.environmentCrudService = environmentCrudService;
@@ -75,20 +77,17 @@ public class CreatePromotionUseCase {
         this.promotionCrudService = promotionCrudService;
         this.auditService = auditService;
         this.cockpitPromotionServiceProvider = cockpitPromotionServiceProvider;
+        this.userCrudService = userCrudService;
     }
 
     public Output execute(Input input) {
-        var createdPromotion = createPromotion(input.apiId, input.promotionRequest, input.auditInfo, input.authenticatedUser);
+        var createdPromotion = createPromotion(input.apiId, input.promotionRequest, input.auditInfo);
         var updatedPromotion = sendCockpitCommand(createdPromotion, input.auditInfo);
         return new Output(updatedPromotion);
     }
 
-    private Promotion createPromotion(
-        String apiId,
-        PromotionRequest promotionRequest,
-        AuditInfo auditInfo,
-        BaseUserEntity authenticatedUser
-    ) {
+    private Promotion createPromotion(String apiId, PromotionRequest promotionRequest, AuditInfo auditInfo) {
+        var authenticatedUser = userCrudService.getBaseUser(auditInfo.actor().userId());
         var apiDefinition = apiExportDomainService.export(apiId, auditInfo, Set.of(Excludable.GROUPS, Excludable.MEMBERS));
         var sourceEnvironment = environmentCrudService.get(auditInfo.environmentId());
 

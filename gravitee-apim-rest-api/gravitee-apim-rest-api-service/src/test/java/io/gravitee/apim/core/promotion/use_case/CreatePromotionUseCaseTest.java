@@ -40,11 +40,11 @@ import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
-import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.domain_service.PromotionValidationDomainService;
 import io.gravitee.apim.core.promotion.model.PromotionAuthor;
 import io.gravitee.apim.core.promotion.model.PromotionRequest;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
+import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.infra.domain_service.api.ApiExportDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.GraviteeDefinitionJacksonJsonSerializer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -97,6 +97,7 @@ class CreatePromotionUseCaseTest {
         apiExportDomainService = mock(ApiExportDomainServiceImpl.class);
         promotionValidationDomainService = new PromotionValidationDomainService(promotionQueryService);
         environmentCrudService.initWith(List.of(Environment.builder().id(ENVIRONMENT_ID).build()));
+        userCrudService.initWith(List.of(BaseUserEntityFixtures.aBaseUserEntity(USER_ID)));
 
         when(apiExportDomainService.export(eq(API_ID), eq(AUDIT_INFO), anyCollection())).thenReturn(
             GraviteeDefinitionFixtures.aGraviteeDefinitionProxy()
@@ -131,7 +132,6 @@ class CreatePromotionUseCaseTest {
         var input = new CreatePromotionUseCase.Input(
             API_ID,
             PromotionRequest.builder().targetEnvName(COCKPIT_TARGET_ENV_NAME).targetEnvCockpitId(COCKPIT_TARGET_ENV_ID).build(),
-            BaseUserEntityFixtures.aBaseUserEntity(USER_ID),
             AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID)
         );
 
@@ -149,7 +149,6 @@ class CreatePromotionUseCaseTest {
         var input = new CreatePromotionUseCase.Input(
             API_ID,
             PromotionRequest.builder().targetEnvName(COCKPIT_TARGET_ENV_NAME).targetEnvCockpitId(COCKPIT_TARGET_ENV_ID).build(),
-            BaseUserEntityFixtures.aBaseUserEntity(USER_ID),
             AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID)
         );
 
@@ -205,7 +204,6 @@ class CreatePromotionUseCaseTest {
         var input = new CreatePromotionUseCase.Input(
             API_ID,
             PromotionRequest.builder().targetEnvName(COCKPIT_TARGET_ENV_NAME).targetEnvCockpitId(COCKPIT_TARGET_ENV_ID).build(),
-            BaseUserEntityFixtures.aBaseUserEntity(USER_ID),
             AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID)
         );
 
@@ -225,7 +223,8 @@ class CreatePromotionUseCaseTest {
             serializer,
             promotionCrudService,
             auditService,
-            cockpitPromotionServiceProvider
+            cockpitPromotionServiceProvider,
+            userCrudService
         );
     }
 }
