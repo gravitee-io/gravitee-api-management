@@ -409,8 +409,10 @@ class ApisResourceTest extends AbstractResourceTest {
 
             when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
                 Api api = invocation.getArgument(0);
+                // Create a new Api object with the same fields but with a new ID
+                Api apiWithId = api.toBuilder().id("api-id").build();
                 return new ApiWithFlows(
-                    api.toBuilder().id("api-id").build(),
+                    apiWithId,
                     api.getApiDefinitionNativeV4() != null ? api.getApiDefinitionNativeV4().getFlows() : List.of()
                 );
             });
@@ -451,8 +453,10 @@ class ApisResourceTest extends AbstractResourceTest {
 
             when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any(), any())).thenAnswer(invocation -> {
                 Api api = invocation.getArgument(0);
+                // Create a new Api object with the same fields but with a new ID
+                Api apiWithId = api.toBuilder().id("api-id").build();
                 return new ApiWithFlows(
-                    api.toBuilder().id("api-id").build(),
+                    apiWithId,
                     api.getApiDefinitionNativeV4() != null ? api.getApiDefinitionNativeV4().getFlows() : List.of()
                 );
             });
