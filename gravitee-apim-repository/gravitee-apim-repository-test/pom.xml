@@ -28,7 +28,7 @@
 
     <artifactId>gravitee-apim-repository-test</artifactId>
 
-    <name>Gravitee.io APIM - Repository - Test</name>
+    <name>Gravitee.io APIM - Repository - n cTest</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
