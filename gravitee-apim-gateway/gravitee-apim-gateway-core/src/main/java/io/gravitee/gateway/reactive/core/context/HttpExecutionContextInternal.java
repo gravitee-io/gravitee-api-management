@@ -22,7 +22,10 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 
 public interface HttpExecutionContextInternal extends HttpExecutionContext {
     @Override
@@ -50,4 +53,10 @@ public interface HttpExecutionContextInternal extends HttpExecutionContext {
     HttpExecutionContextInternal templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders);
 
     HttpExecutionContextInternal tracer(Tracer tracer);
+
+    /**
+     * Get the list of actions to be executed at the response phase.
+     * @return a list of actions to be executed at the response phase.
+     */
+    List<Function<HttpExecutionContext, Completable>> getOnResponseActions();
 }
