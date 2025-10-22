@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.service.Service;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
@@ -32,6 +33,7 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
+import io.gravitee.rest.api.service.impl.search.lucene.utils.LuceneTransformerUtils;
 import jakarta.annotation.Nullable;
 import java.text.CollationKey;
 import java.text.Collator;
@@ -117,8 +119,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public Document transform(GenericApiEntity api) {
         Document doc = new Document();
 
-        doc.add(new StringField(FIELD_ID, api.getId(), YES));
-        doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, YES));
+        doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
+        doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
 
         // If no definition version or name, the api is being deleted. No need for more info in doc.
         if (api.getDefinitionVersion() == null && api.getName() == null) {
@@ -138,33 +140,36 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
 
         if (api.getDefinitionVersion() != null) {
-            doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), NO));
-            doc.add(new StringField(FIELD_API_TYPE, api.getDefinitionVersion().name(), NO));
-            doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(api.getDefinitionVersion().name())));
+            doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
+            String apiType = LuceneTransformerUtils.generateApiType(api);
+            doc.add(new StringField(FIELD_API_TYPE, apiType, Field.Store.NO));
+            doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(apiType)));
         }
 
         if (api.getReferenceId() != null) {
-            doc.add(new StringField(FIELD_REFERENCE_TYPE, api.getReferenceType(), NO));
-            doc.add(new StringField(FIELD_REFERENCE_ID, api.getReferenceId(), NO));
+            doc.add(new StringField(FIELD_REFERENCE_TYPE, api.getReferenceType(), Field.Store.NO));
+            doc.add(new StringField(FIELD_REFERENCE_ID, api.getReferenceId(), Field.Store.NO));
         }
 
         if (api.getName() != null) {
-            doc.add(new StringField(FIELD_NAME, api.getName(), NO));
+            doc.add(new StringField(FIELD_NAME, api.getName(), Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_NAME_SORTED, toSortedValue(api.getName())));
-            doc.add(new StringField(FIELD_NAME_LOWERCASE, api.getName().toLowerCase(), NO));
-            doc.add(new TextField(FIELD_NAME_SPLIT, api.getName(), NO));
+            doc.add(new StringField(FIELD_NAME_LOWERCASE, api.getName().toLowerCase(), Field.Store.NO));
+            doc.add(new TextField(FIELD_NAME_SPLIT, api.getName(), Field.Store.NO));
         }
         if (api.getDescription() != null) {
-            doc.add(new StringField(FIELD_DESCRIPTION, api.getDescription(), NO));
-            doc.add(new StringField(FIELD_DESCRIPTION_LOWERCASE, api.getDescription().toLowerCase(), NO));
-            doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, api.getDescription(), NO));
+            doc.add(new StringField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
+            doc.add(new StringField(FIELD_DESCRIPTION_LOWERCASE, api.getDescription().toLowerCase(), Field.Store.NO));
+            doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, api.getDescription(), Field.Store.NO));
         }
-        if (api.getPrimaryOwner() != null) {
-            doc.add(new StringField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), NO));
-            doc.add(new SortedDocValuesField(FIELD_OWNER_SORTED, toSortedValue(api.getPrimaryOwner().getDisplayName())));
-            doc.add(new StringField(FIELD_OWNER_LOWERCASE, api.getPrimaryOwner().getDisplayName().toLowerCase(), NO));
-            if (api.getPrimaryOwner().getEmail() != null) {
-                doc.add(new TextField(FIELD_OWNER_MAIL, api.getPrimaryOwner().getEmail(), NO));
+
+        PrimaryOwnerEntity primaryOwner = api.getPrimaryOwner();
+        if (primaryOwner != null) {
+            doc.add(new StringField(FIELD_OWNER, primaryOwner.getDisplayName(), Field.Store.NO));
+            doc.add(new SortedDocValuesField(FIELD_OWNER_SORTED, toSortedValue(primaryOwner.getDisplayName())));
+            doc.add(new StringField(FIELD_OWNER_LOWERCASE, primaryOwner.getDisplayName().toLowerCase(), Field.Store.NO));
+            if (primaryOwner.getEmail() != null) {
+                doc.add(new TextField(FIELD_OWNER_MAIL, primaryOwner.getEmail(), Field.Store.NO));
             }
         }
 
