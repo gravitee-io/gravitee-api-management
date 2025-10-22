@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowConditionSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
+import io.gravitee.repository.management.model.flow.selector.FlowMcpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import java.util.Date;
 import java.util.List;
@@ -73,7 +74,7 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("{#response.headers != null}", flow.getSubscribe().get(0).getCondition());
         assertEquals("{#message.headers != null}", flow.getSubscribe().get(0).getMessageCondition());
 
-        assertEquals(3, flow.getSelectors().size());
+        assertEquals(4, flow.getSelectors().size());
         flow
             .getSelectors()
             .forEach(flowSelector -> {
@@ -95,7 +96,9 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
                             .containsAll(Set.of(FlowChannelSelector.Operation.SUBSCRIBE, FlowChannelSelector.Operation.PUBLISH))
                     );
                     assertTrue(channelSelector.getEntrypoints().contains("entrypoint"));
-                }
+                } else if (flowSelector instanceof FlowMcpSelector mcpSelector) {
+                    assertEquals(Set.of("tools/call"), mcpSelector.getMethods());
+                }mvn
             });
     }
 
@@ -191,7 +194,9 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         flowHttpSelector.setPathOperator(FlowOperator.STARTS_WITH);
         FlowConditionSelector flowConditionSelector = new FlowConditionSelector();
         flowConditionSelector.setCondition("my-condition");
-        flow.setSelectors(List.of(flowHttpSelector, flowConditionSelector));
+        FlowMcpSelector flowMcpSelector = new FlowMcpSelector();
+        flowMcpSelector.setMethods(Set.of("tools/call"));
+        flow.setSelectors(List.of(flowHttpSelector, flowConditionSelector, flowMcpSelector));
 
         FlowStep postStep = new FlowStep();
         postStep.setName("post-step");

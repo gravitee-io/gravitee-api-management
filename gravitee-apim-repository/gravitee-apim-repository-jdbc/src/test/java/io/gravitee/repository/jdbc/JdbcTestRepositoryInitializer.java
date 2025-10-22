@@ -137,6 +137,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "flow_selector_http_methods",
         "flow_selector_channel_operations",
         "flow_selector_channel_entrypoints",
+        "flow_selector_mcp_methods",
         "flow_tags",
         "upgraders",
         "integrations",
