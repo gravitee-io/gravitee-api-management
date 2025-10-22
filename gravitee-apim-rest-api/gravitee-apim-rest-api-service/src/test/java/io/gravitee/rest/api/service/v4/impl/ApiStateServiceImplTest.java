@@ -205,7 +205,8 @@ public class ApiStateServiceImplTest {
             planSearchService,
             apiConverter,
             synchronizationService,
-            eventManager
+            eventManager,
+            searchEngineService
         );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -278,6 +279,7 @@ public class ApiStateServiceImplTest {
             eq(executionContext),
             argThat(argApi -> argApi.getId().equals(API_ID))
         );
+        verify(searchEngineService, times(1)).index(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)), eq(false));
     }
 
     @Test
@@ -321,6 +323,7 @@ public class ApiStateServiceImplTest {
             eq(executionContext),
             argThat(argApi -> argApi.getId().equals(API_ID))
         );
+        verify(searchEngineService, times(1)).index(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)), eq(false));
     }
 
     @Test
@@ -368,6 +371,7 @@ public class ApiStateServiceImplTest {
             eq(executionContext),
             argThat(argApi -> argApi.getId().equals(API_ID))
         );
+        verify(searchEngineService, times(1)).index(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)), eq(false));
     }
 
     @ParameterizedTest
@@ -419,6 +423,7 @@ public class ApiStateServiceImplTest {
         } else {
             verify(apiNotificationService, never()).triggerStopNotification(any(), any());
         }
+        verify(searchEngineService, times(1)).index(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)), eq(false));
     }
 
     @Test
@@ -462,6 +467,7 @@ public class ApiStateServiceImplTest {
             eq(executionContext),
             argThat(argApi -> argApi.getId().equals(API_ID))
         );
+        verify(searchEngineService, times(1)).index(eq(executionContext), argThat(argApi -> argApi.getId().equals(API_ID)), eq(false));
     }
 
     @Test

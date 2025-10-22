@@ -396,7 +396,8 @@ public class ApiServiceImplTest {
             planSearchService,
             apiConverter,
             synchronizationService,
-            eventManager
+            eventManager,
+            searchEngineService
         );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);
