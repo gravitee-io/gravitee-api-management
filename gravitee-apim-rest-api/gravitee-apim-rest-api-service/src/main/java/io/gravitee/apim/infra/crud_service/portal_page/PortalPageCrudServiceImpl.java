@@ -59,17 +59,6 @@ public class PortalPageCrudServiceImpl implements PortalPageCrudService {
     }
 
     @Override
-    public PortalPage create(PortalPage page) {
-        try {
-            var repoPage = portalPageAdapter.toRepository(page);
-            var created = portalPageRepository.create(repoPage);
-            return portalPageAdapter.toEntity(created);
-        } catch (TechnicalException e) {
-            throw new TechnicalDomainException(e.getMessage(), e);
-        }
-    }
-
-    @Override
     public Optional<PortalPage> findById(PageId pageId) {
         try {
             return portalPageRepository.findById(pageId.toString()).map(portalPageAdapter::toEntity);
