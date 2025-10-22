@@ -18,6 +18,7 @@ package io.gravitee.definition.model.v4.flow.selector;
 import static io.gravitee.definition.model.v4.flow.selector.Selector.CHANNEL_LABEL;
 import static io.gravitee.definition.model.v4.flow.selector.Selector.CONDITION_LABEL;
 import static io.gravitee.definition.model.v4.flow.selector.Selector.HTTP_LABEL;
+import static io.gravitee.definition.model.v4.flow.selector.Selector.MCP_LABEL;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,7 +35,8 @@ import lombok.RequiredArgsConstructor;
 public enum SelectorType {
     HTTP(HTTP_LABEL),
     CHANNEL(CHANNEL_LABEL),
-    CONDITION(CONDITION_LABEL);
+    CONDITION(CONDITION_LABEL),
+    MCP(MCP_LABEL);
 
     @JsonValue
     private final String label;
