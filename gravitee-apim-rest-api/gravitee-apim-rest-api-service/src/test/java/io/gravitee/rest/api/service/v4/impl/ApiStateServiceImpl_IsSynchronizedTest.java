@@ -200,7 +200,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             planSearchService,
             apiConverter,
             synchronizationService,
-            eventManager
+            eventManager,
+            searchEngineService
         );
         reset(searchEngineService);
     }

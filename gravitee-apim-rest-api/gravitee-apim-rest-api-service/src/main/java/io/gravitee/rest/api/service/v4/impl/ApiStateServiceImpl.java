@@ -54,6 +54,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
@@ -98,6 +99,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final ApiConverter apiConverter;
     private final SynchronizationService synchronizationService;
     private final EventManager eventManager;
+    private final SearchEngineService searchEngineService;
 
     public ApiStateServiceImpl(
         @Lazy final ApiSearchService apiSearchService,
@@ -115,7 +117,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         final PlanSearchService planSearchService,
         final ApiConverter apiConverter,
         final SynchronizationService synchronizationService,
-        final EventManager eventManager
+        final EventManager eventManager,
+        final SearchEngineService searchEngineService
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
@@ -133,6 +136,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.apiConverter = apiConverter;
         this.synchronizationService = synchronizationService;
         this.eventManager = eventManager;
+        this.searchEngineService = searchEngineService;
     }
 
     @Override
@@ -266,6 +270,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             GenericApiEntity api = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
             GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, api);
             apiNotificationService.triggerStartNotification(executionContext, genericApiEntity);
+            searchEngineService.index(executionContext, genericApiEntity, false);
             return api;
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to start API {}", apiId, ex);
@@ -343,6 +348,9 @@ public class ApiStateServiceImpl implements ApiStateService {
             if (sendNotification) {
                 apiNotificationService.triggerStopNotification(executionContext, genericApiEntity);
             }
+
+            searchEngineService.index(executionContext, genericApiEntity, false);
+
             return apiEntity;
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);

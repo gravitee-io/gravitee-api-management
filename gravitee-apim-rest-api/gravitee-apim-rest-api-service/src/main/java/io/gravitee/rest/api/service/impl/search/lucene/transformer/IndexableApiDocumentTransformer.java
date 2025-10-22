@@ -28,6 +28,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
+import io.gravitee.rest.api.service.impl.search.lucene.utils.LuceneTransformerUtils;
 import java.text.CollationKey;
 import java.text.Collator;
 import java.util.Comparator;
@@ -84,7 +85,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         if (api.getDefinitionVersion() != null) {
             doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
-            String apiType = generateApiType(api);
+            String apiType = LuceneTransformerUtils.generateApiType(api);
             doc.add(new StringField(FIELD_API_TYPE, apiType, Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(apiType)));
         }
@@ -163,17 +164,6 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         }
 
         return doc;
-    }
-
-    String generateApiType(Api api) {
-        String apiType;
-        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            String type = api.getType() == ApiType.NATIVE ? "KAFKA" : api.getType() == ApiType.PROXY ? "HTTP_PROXY" : "MESSAGE";
-            apiType = api.getDefinitionVersion().name() + "_" + type;
-        } else {
-            apiType = api.getDefinitionVersion().name();
-        }
-        return apiType;
     }
 
     private boolean accept(IndexableApi indexableApi) {

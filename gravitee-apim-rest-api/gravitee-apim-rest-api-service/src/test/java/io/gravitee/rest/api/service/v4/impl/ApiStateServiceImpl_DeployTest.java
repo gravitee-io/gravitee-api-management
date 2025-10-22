@@ -194,7 +194,8 @@ public class ApiStateServiceImpl_DeployTest {
             planSearchService,
             apiConverter,
             synchronizationService,
-            eventManager
+            eventManager,
+            searchEngineService
         );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -334,6 +335,7 @@ public class ApiStateServiceImpl_DeployTest {
             null,
             null,
             eventLatestRepository,
+            null,
             null,
             null,
             null,
