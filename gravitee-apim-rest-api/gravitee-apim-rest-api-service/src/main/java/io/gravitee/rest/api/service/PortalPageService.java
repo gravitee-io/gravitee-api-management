@@ -13,26 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.rest.api.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import io.gravitee.repository.exceptions.TechnicalException;
 
-/**
- * @author GraviteeSource Team
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Getter
-public class PortalPageContext {
-
-    private String id;
-
-    private String pageId;
-    private PortalViewContext contextType;
-    private String environmentId;
-    private boolean published;
+public interface PortalPageService {
+    void createDefaultPortalHomePage(String environmentId) throws TechnicalException;
 }

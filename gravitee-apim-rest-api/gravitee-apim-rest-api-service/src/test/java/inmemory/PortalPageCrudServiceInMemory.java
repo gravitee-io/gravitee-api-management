@@ -61,12 +61,6 @@ public class PortalPageCrudServiceInMemory implements PortalPageCrudService, InM
     }
 
     @Override
-    public PortalPage create(PortalPage page) {
-        storage.put(page.getId(), page);
-        return page;
-    }
-
-    @Override
     public Optional<PortalPage> findById(PageId pageId) {
         return Optional.ofNullable(storage.get(pageId));
     }

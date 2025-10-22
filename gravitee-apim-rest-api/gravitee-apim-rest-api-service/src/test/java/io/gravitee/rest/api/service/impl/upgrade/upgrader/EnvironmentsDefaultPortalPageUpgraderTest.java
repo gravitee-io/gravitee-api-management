@@ -21,10 +21,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalHomepageUseCase;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
+import io.gravitee.rest.api.service.PortalPageService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -53,13 +53,13 @@ public class EnvironmentsDefaultPortalPageUpgraderTest {
     EnvironmentRepository environmentRepository;
 
     @Mock
-    CreateDefaultPortalHomepageUseCase createDefaultPortalHomepageUseCase;
+    PortalPageService portalPageService;
 
     private EnvironmentsDefaultPortalPageUpgrader upgrader;
 
     @BeforeEach
     public void setUp() {
-        upgrader = new EnvironmentsDefaultPortalPageUpgrader(environmentRepository, createDefaultPortalHomepageUseCase);
+        upgrader = new EnvironmentsDefaultPortalPageUpgrader(environmentRepository, portalPageService);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class EnvironmentsDefaultPortalPageUpgraderTest {
     void should_do_nothing_when_there_is_no_environment() {
         when(environmentRepository.findAll()).thenReturn(Collections.emptySet());
         assertThat(upgrader.upgrade()).isTrue();
-        verifyNoInteractions(createDefaultPortalHomepageUseCase);
+        verifyNoInteractions(portalPageService);
     }
 
     @Test
@@ -84,10 +84,10 @@ public class EnvironmentsDefaultPortalPageUpgraderTest {
 
         assertThat(upgrader.upgrade()).isTrue();
 
-        ArgumentCaptor<String> envCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> portalPageCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(createDefaultPortalHomepageUseCase, times(2)).execute(envCaptor.capture());
-        List<String> capturedValues = envCaptor.getAllValues();
+        verify(portalPageService, times(2)).createDefaultPortalHomePage(portalPageCaptor.capture());
+        List<String> capturedValues = portalPageCaptor.getAllValues();
         assertThat(capturedValues).containsExactlyInAnyOrder("DEFAULT", "ANOTHER_ENVIRONMENT");
     }
 }
