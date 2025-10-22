@@ -28,6 +28,7 @@ import io.gravitee.apim.rest.api.automation.model.HttpListener;
 import io.gravitee.apim.rest.api.automation.model.HttpSelector;
 import io.gravitee.apim.rest.api.automation.model.KafkaListener;
 import io.gravitee.apim.rest.api.automation.model.Listener;
+import io.gravitee.apim.rest.api.automation.model.McpSelector;
 import io.gravitee.apim.rest.api.automation.model.PageV4;
 import io.gravitee.apim.rest.api.automation.model.PlanV4;
 import io.gravitee.apim.rest.api.automation.model.ResponseTemplate;
@@ -121,11 +122,15 @@ public interface ApiMapper {
 
     io.gravitee.rest.api.management.v2.rest.model.ConditionSelector map(ConditionSelector selector);
 
+    io.gravitee.rest.api.management.v2.rest.model.McpSelector map(McpSelector selector);
+
     HttpSelector map(io.gravitee.rest.api.management.v2.rest.model.HttpSelector selector);
 
     ChannelSelector map(io.gravitee.rest.api.management.v2.rest.model.ChannelSelector selector);
 
     ConditionSelector map(io.gravitee.rest.api.management.v2.rest.model.ConditionSelector selector);
+
+    McpSelector map(io.gravitee.rest.api.management.v2.rest.model.McpSelector selector);
 
     PlanCRD map(PlanV4 planV4, int order);
 
