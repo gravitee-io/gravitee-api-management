@@ -37,6 +37,7 @@ import lombok.experimental.SuperBuilder;
         @JsonSubTypes.Type(value = HttpSelector.class, name = HTTP_LABEL),
         @JsonSubTypes.Type(value = ChannelSelector.class, name = CHANNEL_LABEL),
         @JsonSubTypes.Type(value = ConditionSelector.class, name = CONDITION_LABEL),
+        @JsonSubTypes.Type(value = McpSelector.class, name = MCP_LABEL),
     }
 )
 @SuperBuilder(toBuilder = true)
@@ -45,6 +46,7 @@ public abstract class Selector extends AbstractSelector {
     public static final String HTTP_LABEL = "http";
     public static final String CHANNEL_LABEL = "channel";
     public static final String CONDITION_LABEL = "condition";
+    public static final String MCP_LABEL = "mcp";
 
     public Selector(SelectorType type) {
         super(type);
