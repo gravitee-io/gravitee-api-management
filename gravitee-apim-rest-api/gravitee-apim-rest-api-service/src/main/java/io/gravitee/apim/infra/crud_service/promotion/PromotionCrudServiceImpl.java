@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.crud_service.promotion;
 
+import io.gravitee.apim.core.exception.DbEntityNotFoundException;
 import io.gravitee.apim.core.promotion.crud_service.PromotionCrudService;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.infra.adapter.PromotionAdapter;
@@ -52,6 +53,19 @@ public class PromotionCrudServiceImpl implements PromotionCrudService {
             return PromotionAdapter.INSTANCE.toCoreModel(updated);
         } catch (TechnicalException e) {
             throw TechnicalManagementException.ofTryingToUpdateWithId(Promotion.class, promotion.getId(), e);
+        }
+    }
+
+    @Override
+    public Promotion getById(String id) {
+        try {
+            log.debug("Get promotion by id : {}", id);
+            return promotionRepository
+                .findById(id)
+                .map(PromotionAdapter.INSTANCE::toCoreModel)
+                .orElseThrow(() -> new DbEntityNotFoundException(io.gravitee.repository.management.model.Promotion.class, id));
+        } catch (TechnicalException e) {
+            throw TechnicalManagementException.ofTryingToFindById(Promotion.class, id, e);
         }
     }
 }
