@@ -22,10 +22,12 @@ import static org.junit.Assert.assertNotNull;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.McpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
+import io.gravitee.repository.management.model.flow.selector.FlowMcpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +47,9 @@ public class FlowMapperTest {
         HttpSelector httpSelector = new HttpSelector();
         httpSelector.setPath("/");
         httpSelector.setPathOperator(Operator.STARTS_WITH);
-        return List.of(httpSelector);
+        McpSelector mcpSelector = new McpSelector();
+        mcpSelector.setMethods(Set.of("mcp"));
+        return List.of(httpSelector, mcpSelector);
     }
 
     private static Set<String> tags() {
@@ -113,7 +117,9 @@ public class FlowMapperTest {
         FlowHttpSelector flowHttpSelector = new FlowHttpSelector();
         flowHttpSelector.setPath("/");
         flowHttpSelector.setPathOperator(FlowOperator.STARTS_WITH);
-        flow.setSelectors(List.of(flowHttpSelector));
+        FlowMcpSelector flowMcpSelector = new FlowMcpSelector();
+        flowMcpSelector.setMethods(Set.of("mcp"));
+        flow.setSelectors(List.of(flowHttpSelector, flowMcpSelector));
         flow.setTags(Set.of());
 
         Flow flowDefinition = flowMapper.toDefinition(flow);

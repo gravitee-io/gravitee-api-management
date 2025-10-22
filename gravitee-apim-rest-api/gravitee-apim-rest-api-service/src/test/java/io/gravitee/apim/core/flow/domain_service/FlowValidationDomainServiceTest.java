@@ -176,6 +176,20 @@ public class FlowValidationDomainServiceTest {
         }
 
         @Test
+        public void should_throw_exception_with_invalid_selector_for_mcp_api() {
+            var flow = Flow.builder().name("bad_flow").selectors(List.of(new HttpSelector(), new ChannelSelector())).build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.MCP_PROXY, List.of(flow)));
+
+            assertThat(throwable)
+                .isInstanceOf(InvalidFlowException.class)
+                .hasMessage("The flow [bad_flow] contains selectors that couldn't apply to mcp-proxy API")
+                .extracting(th -> ((InvalidFlowException) th).getParameters())
+                .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+                .contains(entry("flowName", "bad_flow"), entry("invalidSelectors", "channel,http"));
+        }
+
+        @Test
         public void should_throw_exception_with_invalid_entrypoints() {
             var flow = Flow.builder()
                 .name("bad_flow")

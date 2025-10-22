@@ -1937,12 +1937,14 @@ components:
         - $ref: "#/components/schemas/HttpSelector"
         - $ref: "#/components/schemas/ChannelSelector"
         - $ref: "#/components/schemas/ConditionSelector"
+        - $ref: "#/components/schemas/McpSelector"
       discriminator:
         propertyName: type
         mapping:
           HTTP: "#/components/schemas/HttpSelector"
           CHANNEL: "#/components/schemas/ChannelSelector"
           CONDITION: "#/components/schemas/ConditionSelector"
+          MCP: "#/components/schemas/McpSelector"
     BaseSelector:
       description: Base selector
       properties:
@@ -1955,12 +1957,14 @@ components:
             - HTTP
             - CHANNEL
             - CONDITION
+            - MCP
       discriminator:
         propertyName: type
         mapping:
           HTTP: "#/components/schemas/HttpSelector"
           CHANNEL: "#/components/schemas/ChannelSelector"
           CONDITION: "#/components/schemas/ConditionSelector"
+          MCP: "#/components/schemas/McpSelector"
       required:
         - type
     ServiceV4:
@@ -2014,6 +2018,21 @@ components:
       required:
         - enabled
         - policy
+    McpSelector:
+      type: object
+      title: "McpSelector"
+      required:
+        - methods
+      allOf:
+        - $ref: "#/components/schemas/BaseSelector"
+        - type: object
+          properties:
+            methods:
+              type: array
+              description: MCP Methods to select on
+              items:
+                type: string
+              uniqueItems: true
 
     StepV4:
       description: Flow step

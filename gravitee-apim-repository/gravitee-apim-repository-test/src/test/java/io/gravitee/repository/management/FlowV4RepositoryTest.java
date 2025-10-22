@@ -98,7 +98,7 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
                     assertTrue(channelSelector.getEntrypoints().contains("entrypoint"));
                 } else if (flowSelector instanceof FlowMcpSelector mcpSelector) {
                     assertEquals(Set.of("tools/call"), mcpSelector.getMethods());
-                }mvn
+                }
             });
     }
 

@@ -25,6 +25,7 @@ import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.McpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowConsumer;
@@ -34,6 +35,7 @@ import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowConditionSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
+import io.gravitee.repository.management.model.flow.selector.FlowMcpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
@@ -77,7 +79,8 @@ class FlowAdapterTest {
                         .entrypoints(Set.of("sse"))
                         .operations(Set.of(ChannelSelector.Operation.PUBLISH))
                         .build(),
-                    ConditionSelector.builder().condition("my-condition").build()
+                    ConditionSelector.builder().condition("my-condition").build(),
+                    McpSelector.builder().methods(Set.of("mcp")).build()
                 )
             )
             .request(
@@ -140,7 +143,7 @@ class FlowAdapterTest {
             soft.assertThat(result.getTags()).containsExactly("tag1");
             soft
                 .assertThat(result.getSelectors())
-                .hasSize(3)
+                .hasSize(4)
                 .containsOnly(
                     FlowHttpSelector.builder().path("/").pathOperator(FlowOperator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
                     FlowChannelSelector.builder()
@@ -149,7 +152,8 @@ class FlowAdapterTest {
                         .entrypoints(Set.of("sse"))
                         .operations(Set.of(FlowChannelSelector.Operation.PUBLISH))
                         .build(),
-                    FlowConditionSelector.builder().condition("my-condition").build()
+                    FlowConditionSelector.builder().condition("my-condition").build(),
+                    FlowMcpSelector.builder().methods(Set.of("mcp")).build()
                 );
             soft
                 .assertThat(result.getRequest())
@@ -212,7 +216,8 @@ class FlowAdapterTest {
                         .entrypoints(Set.of("sse"))
                         .operations(Set.of(ChannelSelector.Operation.PUBLISH))
                         .build(),
-                    ConditionSelector.builder().condition("my-condition").build()
+                    ConditionSelector.builder().condition("my-condition").build(),
+                    McpSelector.builder().methods(Set.of("mcp")).build()
                 )
             )
             .request(
@@ -395,7 +400,8 @@ class FlowAdapterTest {
                         .entrypoints(Set.of("sse"))
                         .operations(Set.of(FlowChannelSelector.Operation.PUBLISH))
                         .build(),
-                    FlowConditionSelector.builder().condition("my-condition").build()
+                    FlowConditionSelector.builder().condition("my-condition").build(),
+                    FlowMcpSelector.builder().methods(Set.of("mcp")).build()
                 )
             )
             .request(
@@ -452,7 +458,7 @@ class FlowAdapterTest {
             soft.assertThat(result.getTags()).containsExactly("tag1");
             soft
                 .assertThat(result.getSelectors())
-                .hasSize(3)
+                .hasSize(4)
                 .containsOnly(
                     HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
                     ChannelSelector.builder()
@@ -461,7 +467,8 @@ class FlowAdapterTest {
                         .entrypoints(Set.of("sse"))
                         .operations(Set.of(ChannelSelector.Operation.PUBLISH))
                         .build(),
-                    ConditionSelector.builder().condition("my-condition").build()
+                    ConditionSelector.builder().condition("my-condition").build(),
+                    McpSelector.builder().methods(Set.of("mcp")).build()
                 );
             soft
                 .assertThat(result.getRequest())

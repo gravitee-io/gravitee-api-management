@@ -5701,12 +5701,14 @@ components:
                 - $ref: "#/components/schemas/HttpSelector"
                 - $ref: "#/components/schemas/ChannelSelector"
                 - $ref: "#/components/schemas/ConditionSelector"
+                - $ref: "#/components/schemas/McpSelector"
             discriminator:
                 propertyName: type
                 mapping:
                     HTTP: "#/components/schemas/HttpSelector"
                     CHANNEL: "#/components/schemas/ChannelSelector"
                     CONDITION: ConditionSelector
+                    MCP: McpSelector
         BaseSelector:
             properties:
                 type:
@@ -5717,12 +5719,14 @@ components:
                         - HTTP
                         - CHANNEL
                         - CONDITION
+                        - MCP
             discriminator:
                 propertyName: type
                 mapping:
                     HTTP: "#/components/schemas/HttpSelector"
                     CHANNEL: "#/components/schemas/ChannelSelector"
                     CONDITION: "#/components/schemas/ConditionSelector"
+                    MCP: "#/components/schemas/McpSelector"
             required:
                 - type
         ServiceV4:
@@ -5823,7 +5827,6 @@ components:
                     items:
                         $ref: "#/components/schemas/Path"
             required: [paths]
-
         VerifyApiHosts:
             title: "VerifyApiHosts"
             properties:
@@ -5838,6 +5841,23 @@ components:
                     items:
                         type: string
             required: [hosts]
+
+        McpSelector:
+          type: object
+          title: "McpSelector"
+          required:
+            - methods
+          allOf:
+            - $ref: "#/components/schemas/BaseSelector"
+            - type: object
+              properties:
+                methods:
+                  type: array
+                  description: MCP Methods to select on
+                  items:
+                    type: string
+                  uniqueItems: true
+
 
         ## API V2 specific schemas
         ApiEntrypoint:
