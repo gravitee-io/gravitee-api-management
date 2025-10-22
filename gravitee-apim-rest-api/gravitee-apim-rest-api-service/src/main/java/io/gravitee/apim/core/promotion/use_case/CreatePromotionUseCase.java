@@ -39,7 +39,6 @@ import io.gravitee.apim.core.promotion.query_service.PromotionQueryService;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.ZoneId;
@@ -91,11 +90,15 @@ public class CreatePromotionUseCase {
 
     public Output execute(Input input) {
         var api = apiCrudService.get(input.apiId);
-        if (!DefinitionVersion.V4.equals(api.getDefinitionVersion())) {
-            throw new ApiInvalidDefinitionVersionException(input.apiId);
-        }
-
-        var createdPromotion = createPromotion(input.apiId, input.promotionRequest, input.auditInfo);
+        var createdPromotion = switch (api.getDefinitionVersion()) {
+            case V2 -> cockpitPromotionServiceProvider.createPromotion(
+                input.apiId,
+                input.promotionRequest,
+                input.auditInfo.actor().userId()
+            );
+            case V4 -> createPromotion(input.apiId, input.promotionRequest, input.auditInfo);
+            default -> throw new ApiInvalidDefinitionVersionException(input.apiId);
+        };
         var updatedPromotion = sendCockpitCommand(createdPromotion, input.auditInfo);
         return new Output(updatedPromotion);
     }
@@ -173,7 +176,7 @@ public class CreatePromotionUseCase {
             promotion
                 .toBuilder()
                 .status(cockpitReplyStatus != CockpitReplyStatus.SUCCEEDED ? PromotionStatus.ERROR : PromotionStatus.TO_BE_VALIDATED)
-                .updatedAt(new Date())
+                .updatedAt(Date.from(TimeProvider.now().toInstant()))
                 .build()
         );
 

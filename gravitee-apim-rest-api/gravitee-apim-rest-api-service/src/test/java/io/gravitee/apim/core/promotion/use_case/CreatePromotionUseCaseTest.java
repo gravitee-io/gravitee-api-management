@@ -226,7 +226,7 @@ class CreatePromotionUseCaseTest {
     @SneakyThrows
     void should_throw_an_exception_when_api_definition_version_is_not_supported() {
         apiCrudServiceInMemory.reset();
-        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build()));
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().id(API_ID).build()));
 
         var input = new CreatePromotionUseCase.Input(
             API_ID,

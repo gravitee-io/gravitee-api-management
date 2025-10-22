@@ -17,7 +17,9 @@ package io.gravitee.apim.core.promotion.service_provider;
 
 import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.promotion.model.Promotion;
+import io.gravitee.apim.core.promotion.model.PromotionRequest;
 
 public interface CockpitPromotionServiceProvider {
     CockpitReplyStatus requestPromotion(String organizationId, String environmentId, Promotion promotion);
+    Promotion createPromotion(String apiId, PromotionRequest promotionRequest, String userId);
 }

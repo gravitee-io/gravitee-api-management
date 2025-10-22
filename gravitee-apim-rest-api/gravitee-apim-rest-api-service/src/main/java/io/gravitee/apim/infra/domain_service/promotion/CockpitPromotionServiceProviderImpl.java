@@ -17,19 +17,25 @@ package io.gravitee.apim.infra.domain_service.promotion;
 
 import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.promotion.model.Promotion;
+import io.gravitee.apim.core.promotion.model.PromotionRequest;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.infra.adapter.PromotionAdapter;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.promotion.PromotionService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CockpitPromotionServiceServiceProviderImpl implements CockpitPromotionServiceProvider {
+public class CockpitPromotionServiceProviderImpl implements CockpitPromotionServiceProvider {
 
     private final CockpitPromotionService cockpitPromotionService;
+    private final PromotionService promotionService;
 
-    public CockpitPromotionServiceServiceProviderImpl(CockpitPromotionService cockpitPromotionService) {
+    public CockpitPromotionServiceProviderImpl(CockpitPromotionService cockpitPromotionService, PromotionService promotionService) {
         this.cockpitPromotionService = cockpitPromotionService;
+        this.promotionService = promotionService;
     }
 
     @Override
@@ -41,5 +47,17 @@ public class CockpitPromotionServiceServiceProviderImpl implements CockpitPromot
         return cockpitReply.getStatus() == io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus.SUCCEEDED
             ? CockpitReplyStatus.SUCCEEDED
             : CockpitReplyStatus.ERROR;
+    }
+
+    @Override
+    public Promotion createPromotion(String apiId, PromotionRequest promotionRequest, String userId) {
+        PromotionEntity created = promotionService.create(
+            GraviteeContext.getExecutionContext(),
+            GraviteeContext.getCurrentEnvironment(),
+            apiId,
+            PromotionAdapter.INSTANCE.toRestApiModel(promotionRequest),
+            userId
+        );
+        return PromotionAdapter.INSTANCE.toCoreModel(created);
     }
 }

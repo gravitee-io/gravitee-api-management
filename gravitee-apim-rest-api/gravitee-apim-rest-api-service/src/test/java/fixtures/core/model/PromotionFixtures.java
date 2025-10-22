@@ -23,14 +23,18 @@ public class PromotionFixtures {
 
     private PromotionFixtures() {}
 
-    public static Promotion aPromotion() {
-        var author = PromotionAuthor.builder()
+    public static PromotionAuthor aPromotionAuthor() {
+        return PromotionAuthor.builder()
             .displayName("John Smith")
             .userId("user-id")
             .source("source")
             .sourceId("source-id")
             .email("foo@example.com")
             .build();
+    }
+
+    public static Promotion aPromotion() {
+        var author = aPromotionAuthor();
 
         return Promotion.builder()
             .id("promotion-id")
