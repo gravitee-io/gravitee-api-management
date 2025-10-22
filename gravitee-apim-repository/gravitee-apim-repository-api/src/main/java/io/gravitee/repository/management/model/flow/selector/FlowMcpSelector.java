@@ -15,13 +15,34 @@
  */
 package io.gravitee.repository.management.model.flow.selector;
 
-/**ê
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
+/**
  * @author GraviteeSource Team
  */
-public enum FlowSelectorType {
-    HTTP,
-    CHANNEL,
-    CONDITION,
-    MCP,
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@SuperBuilder(toBuilder = true)
+public class FlowMcpSelector extends FlowSelector {
+
+    private Set<String> methods;
+
+    public FlowMcpSelector() {
+        super(FlowSelectorType.MCP);
+    }
+
+    public abstract static class FlowMcpSelectorBuilder<C extends FlowMcpSelector, B extends FlowMcpSelector.FlowMcpSelectorBuilder<C, B>>
+        extends FlowSelectorBuilder<C, B> {
+
+        FlowMcpSelectorBuilder() {
+            type(FlowSelectorType.MCP);
+        }
+    }
 }

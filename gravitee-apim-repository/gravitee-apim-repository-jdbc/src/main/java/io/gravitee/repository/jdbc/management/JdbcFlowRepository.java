@@ -29,6 +29,7 @@ import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowConditionSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
+import io.gravitee.repository.management.model.flow.selector.FlowMcpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowSelectorType;
@@ -69,6 +70,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     private final String FLOW_SELECTOR_HTTP_METHODS;
     private final String FLOW_SELECTOR_CHANNEL_OPERATIONS;
     private final String FLOW_SELECTOR_CHANNEL_ENTRYPOINTS;
+    private final String FLOW_SELECTOR_MCP_METHODS;
     private final String FLOW_TAGS;
     private final JdbcObjectMapper<FlowStep> stepsOrm;
 
@@ -81,6 +83,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         FLOW_SELECTOR_HTTP_METHODS = getTableNameFor("flow_selector_http_methods");
         FLOW_SELECTOR_CHANNEL_OPERATIONS = getTableNameFor("flow_selector_channel_operations");
         FLOW_SELECTOR_CHANNEL_ENTRYPOINTS = getTableNameFor("flow_selector_channel_entrypoints");
+        FLOW_SELECTOR_MCP_METHODS = getTableNameFor("flow_selector_mcp_methods");
         FLOW_TAGS = getTableNameFor("flow_tags");
         FLOW_CONSUMERS = getTableNameFor("flow_consumers");
         this.stepsOrm = JdbcObjectMapper.builder(FlowStep.class, FLOW_STEPS)
@@ -169,6 +172,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         jdbcTemplate.update("delete from " + FLOW_SELECTOR_HTTP_METHODS + " where flow_id = ?", id);
         jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id = ?", id);
         jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_ENTRYPOINTS + " where flow_id = ?", id);
+        jdbcTemplate.update("delete from " + FLOW_SELECTOR_MCP_METHODS + " where flow_id = ?", id);
         jdbcTemplate.update("delete from " + FLOW_TAGS + " where flow_id = ?", id);
         // deprecated data
         jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id = ?", id);
@@ -229,7 +233,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
             selectQueryBuilder.append(" fc.consumer_id as \"flowConsumers.consumerId\",");
             selectQueryBuilder.append(" fsce.channel_entrypoint as \"flowSelectorChannelEntrypoints.channelEntrypoint\",");
             selectQueryBuilder.append(" fsco.channel_operation as \"flowSelectorChannelOperations.channelOperation\",");
-            selectQueryBuilder.append(" fshm.method as \"flowSelectorHttpMethods.method\"");
+            selectQueryBuilder.append(" fshm.method as \"flowSelectorHttpMethods.method\",");
+            selectQueryBuilder.append(" fsmm.method as \"flowSelectorMcpMethods.method\"");
             selectQueryBuilder.append(" from ").append(FLOWS).append(" f");
             selectQueryBuilder.append(" left join ").append(FLOW_STEPS).append(" fs on f.id = fs.flow_id");
             selectQueryBuilder.append(" left join ").append(FLOW_SELECTORS).append(" fse on f.id = fse.flow_id");
@@ -245,6 +250,10 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 .append(" left join ")
                 .append(FLOW_SELECTOR_HTTP_METHODS)
                 .append(" fshm on f.id = fshm.flow_id  and fse.type = 'HTTP'");
+            selectQueryBuilder
+                .append(" left join ")
+                .append(FLOW_SELECTOR_MCP_METHODS)
+                .append(" fsmm on f.id = fsmm.flow_id  and fse.type = 'MCP'");
             selectQueryBuilder.append(" left join ").append(FLOW_TAGS).append(" ft on f.id = ft.flow_id");
             selectQueryBuilder.append(" left join ").append(FLOW_METHODS).append(" fm on f.id = fm.flow_id");
             selectQueryBuilder.append(" left join ").append(FLOW_CONSUMERS).append(" fc on f.id = fc.flow_id");
@@ -410,6 +419,11 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                             flowChannelSelector.setOperations(new HashSet<>());
                             flow.getSelectors().add(flowChannelSelector);
                             return flowChannelSelector;
+                        case MCP:
+                            FlowMcpSelector flowMcpSelector = new FlowMcpSelector();
+                            flowMcpSelector.setMethods(new HashSet<>());
+                            flow.getSelectors().add(flowMcpSelector);
+                            return flowMcpSelector;
                         default:
                             return null;
                     }
@@ -433,6 +447,13 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     String method = rs.getString("flowSelectorHttpMethods.method");
                     if (method != null && !method.isEmpty()) {
                         methods.add(HttpMethod.valueOf(method));
+                    }
+                } else if (flowSelector != null && flowSelector.getType() == FlowSelectorType.MCP) {
+                    FlowMcpSelector flowMcpSelector = (FlowMcpSelector) flowSelector;
+                    Set<String> methods = flowMcpSelector.getMethods();
+                    String method = rs.getString("flowSelectorMcpMethods.method");
+                    if (method != null && !method.isEmpty()) {
+                        methods.add(method);
                     }
                 }
             }
@@ -496,6 +517,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     "delete from " + FLOW_SELECTOR_CHANNEL_ENTRYPOINTS + " where flow_id in (" + buildInClause + ")",
                     flowIds
                 );
+                jdbcTemplate.update("delete from " + FLOW_SELECTOR_MCP_METHODS + " where flow_id in (" + buildInClause + ")", flowIds);
                 jdbcTemplate.update("delete from " + FLOW_TAGS + " where flow_id in (" + buildInClause + ")", flowIds);
                 // deprecated data
                 jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id in (" + buildInClause + ")", flowIds);
@@ -537,6 +559,9 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                         flowChannelSelector.setChannel(resultSet.getString(5));
                         flowChannelSelector.setChannelOperator(FlowOperator.valueOf(resultSet.getString(6)));
                         return flowChannelSelector;
+                    case MCP:
+                        FlowMcpSelector flowMcpSelector = new FlowMcpSelector();
+                        return flowMcpSelector;
                     default:
                         return null;
                 }
@@ -554,6 +579,10 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
                     flowChannelSelector.setOperations(getChannelOperations(flowId));
                     flowChannelSelector.setEntrypoints(getChannelEntrypoints(flowId));
+                } else if (flowSelector.getType() == FlowSelectorType.MCP) {
+                    FlowMcpSelector flowMcpSelector = (FlowMcpSelector) flowSelector;
+                    Set<String> methods = getSelectorMcpMethods(flowId);
+                    flowMcpSelector.setMethods(methods);
                 }
             })
             .collect(Collectors.toList());
@@ -609,20 +638,22 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     private void addMethods(Flow flow) {
-        Set<HttpMethod> methods = getMethods(FLOW_METHODS, flow.getId());
+        Set<HttpMethod> methods = getMethods(FLOW_METHODS, flow.getId()).stream().map(HttpMethod::valueOf).collect(Collectors.toSet());
         flow.setMethods(methods);
     }
 
     private Set<HttpMethod> getSelectorHttpMethods(final String flowId) {
-        return getMethods(FLOW_SELECTOR_HTTP_METHODS, flowId);
+        return getMethods(FLOW_SELECTOR_HTTP_METHODS, flowId).stream().map(HttpMethod::valueOf).collect(Collectors.toSet());
     }
 
-    private Set<HttpMethod> getMethods(final String methodTableName, final String flowId) {
-        return jdbcTemplate
-            .queryForList("select method from " + methodTableName + " where flow_id = ?", String.class, flowId)
-            .stream()
-            .map(HttpMethod::valueOf)
-            .collect(Collectors.toSet());
+    private Set<String> getSelectorMcpMethods(final String flowId) {
+        return getMethods(FLOW_SELECTOR_MCP_METHODS, flowId);
+    }
+
+    private Set<String> getMethods(final String methodTableName, final String flowId) {
+        return new HashSet<>(
+            jdbcTemplate.queryForList("select method from " + methodTableName + " where flow_id = ?", String.class, flowId)
+        );
     }
 
     @Deprecated
@@ -764,7 +795,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     FLOW_SELECTORS +
                     " ( flow_id, type, path, path_operator, " +
                     escapeReservedWord("condition") +
-                    ", channel,channel_operator ) values ( ? ,? ,? ,? ,? ,? ,?)",
+                    ", channel, channel_operator ) values ( ? ,? ,? ,? ,? ,? ,?)",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -797,6 +828,13 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                                 ps.setString(6, flowChannelSelector.getChannel());
                                 ps.setString(7, flowChannelSelector.getChannelOperator().name());
                                 break;
+                            case MCP:
+                                ps.setString(3, null);
+                                ps.setString(4, null);
+                                ps.setString(5, null);
+                                ps.setString(6, null);
+                                ps.setString(7, null);
+                                break;
                         }
                     }
 
@@ -814,38 +852,50 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     FlowChannelSelector flowChannelSelector = (FlowChannelSelector) flowSelector;
                     storeSelectorChannelOperations(flowId, flowChannelSelector.getOperations(), deleteFirst);
                     storeSelectorChannelEntrypoints(flowId, flowChannelSelector.getEntrypoints(), deleteFirst);
+                } else if (flowSelector instanceof FlowMcpSelector) {
+                    FlowMcpSelector flowMcpSelector = (FlowMcpSelector) flowSelector;
+                    storeSelectorMcpMethods(flowId, flowMcpSelector.getMethods(), deleteFirst);
                 }
             });
         }
     }
 
     private void storeSelectorHttpMethods(final String flowId, Set<HttpMethod> httpMethods, boolean deleteFirst) {
-        storeMethods(FLOW_SELECTOR_HTTP_METHODS, flowId, httpMethods, deleteFirst);
+        storeMethods(
+            FLOW_SELECTOR_HTTP_METHODS,
+            flowId,
+            httpMethods.stream().map(HttpMethod::name).collect(Collectors.toSet()),
+            deleteFirst
+        );
+    }
+
+    private void storeSelectorMcpMethods(final String flowId, Set<String> mcpMethods, boolean deleteFirst) {
+        storeMethods(FLOW_SELECTOR_MCP_METHODS, flowId, mcpMethods, deleteFirst);
     }
 
     private void storeMethods(final String flowId, Set<HttpMethod> httpMethods, boolean deleteFirst) {
-        storeMethods(FLOW_METHODS, flowId, httpMethods, deleteFirst);
+        storeMethods(FLOW_METHODS, flowId, httpMethods == null ? null : httpMethods.stream().map(HttpMethod::name).collect(Collectors.toSet()), deleteFirst);
     }
 
-    private void storeMethods(final String methodTableName, final String flowId, Set<HttpMethod> httpMethods, boolean deleteFirst) {
+    private void storeMethods(final String methodTableName, final String flowId, Set<String> methods, boolean deleteFirst) {
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + methodTableName + " where flow_id = ?", flowId);
         }
-        if (httpMethods != null && !httpMethods.isEmpty()) {
-            Iterator<HttpMethod> methods = httpMethods.iterator();
+        if (methods != null && !methods.isEmpty()) {
+            Iterator<String> methodIterator = methods.iterator();
             jdbcTemplate.batchUpdate(
                 "insert into " + methodTableName + " ( flow_id, method ) values ( ?, ? )",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        HttpMethod next = methods.next();
+                        String next = methodIterator.next();
                         ps.setString(1, flowId);
-                        ps.setString(2, next.name());
+                        ps.setString(2, next);
                     }
 
                     @Override
                     public int getBatchSize() {
-                        return httpMethods.size();
+                        return methods.size();
                     }
                 }
             );

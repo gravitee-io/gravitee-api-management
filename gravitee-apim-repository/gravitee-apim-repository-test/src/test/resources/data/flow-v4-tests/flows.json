@@ -33,6 +33,10 @@
         "entrypoints": [
           "entrypoint"
         ]
+      },
+      {
+        "type": "MCP",
+        "methods": ["tools/call"]
       }
     ],
     "tags": [ "tag-1", "tag-2" ],
