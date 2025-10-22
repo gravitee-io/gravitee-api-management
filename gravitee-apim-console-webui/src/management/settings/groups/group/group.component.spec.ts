@@ -231,6 +231,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       expect(component.groupForm.getRawValue()).toEqual({
@@ -255,6 +256,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const nameInputHarness = await getNameInput();
@@ -269,6 +271,7 @@ describe('GroupComponent', () => {
         MatInputHarness.with({ selector: '[formControlName="maxNumberOfMembers"]' }),
       );
       expect(await maxNoOfMembersHarness.isDisabled()).toEqual(true);
+      expect(component.memberColumnDefs.length).toEqual(6);
     });
 
     it('should submit form to update group', async () => {
@@ -278,6 +281,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       await getNameInput().then((input) => input.setValue('Test Group 1'));
@@ -300,6 +304,7 @@ describe('GroupComponent', () => {
     it('should add group to existing APIs', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add Group To Existing APIs' }));
@@ -318,6 +323,7 @@ describe('GroupComponent', () => {
     it('should add group to existing applications', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add Group To Existing Applications' }));
@@ -345,6 +351,7 @@ describe('GroupComponent', () => {
     it('should display list of group members', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
@@ -358,6 +365,7 @@ describe('GroupComponent', () => {
     it('should delete member', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
@@ -374,6 +382,7 @@ describe('GroupComponent', () => {
     it('should update member', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#membersDataTable' }));
@@ -422,6 +431,7 @@ describe('GroupComponent', () => {
     it('should display list of invitations', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const tabGroupHarness = await harnessLoader.getHarness(MatTabGroupHarness);
@@ -439,6 +449,7 @@ describe('GroupComponent', () => {
     it('should delete invitation', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const tabGroupHarness = await harnessLoader.getHarness(MatTabGroupHarness);
@@ -468,6 +479,7 @@ describe('GroupComponent', () => {
     it('should display list of associated applications', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#groupApplicationsDataTable' }));
@@ -490,6 +502,7 @@ describe('GroupComponent', () => {
     it('should display list of associated APIs', async () => {
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const tableHarness = await harnessLoader.getHarness(MatTableHarness.with({ selector: '#groupApisDataTable' }));
@@ -521,6 +534,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
@@ -569,6 +583,7 @@ describe('GroupComponent', () => {
           },
         },
       ]);
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
@@ -583,6 +598,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
@@ -611,6 +627,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
@@ -642,6 +659,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
@@ -673,6 +691,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
@@ -710,6 +729,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
@@ -764,6 +784,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
@@ -803,6 +824,7 @@ describe('GroupComponent', () => {
       fixture.detectChanges();
       expectGetDefaultRoles();
       expectGetGroupMembers();
+      expectGetCurrentUser();
       expectGetGroupAPIs();
       expectGetGroupApplications();
       const buttonHarness = await getButtonByTooltipText('Search and invite users to the group');
@@ -949,5 +971,9 @@ describe('GroupComponent', () => {
       application_role: 'OWNER',
     };
     expect(req.request.body).toEqual(invitation);
+  }
+
+  function expectGetCurrentUser() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/user`, method: 'GET' });
   }
 });
