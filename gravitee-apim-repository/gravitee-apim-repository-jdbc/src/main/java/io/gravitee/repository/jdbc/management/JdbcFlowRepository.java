@@ -874,7 +874,12 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     private void storeMethods(final String flowId, Set<HttpMethod> httpMethods, boolean deleteFirst) {
-        storeMethods(FLOW_METHODS, flowId, httpMethods == null ? null : httpMethods.stream().map(HttpMethod::name).collect(Collectors.toSet()), deleteFirst);
+        storeMethods(
+            FLOW_METHODS,
+            flowId,
+            httpMethods == null ? null : httpMethods.stream().map(HttpMethod::name).collect(Collectors.toSet()),
+            deleteFirst
+        );
     }
 
     private void storeMethods(final String methodTableName, final String flowId, Set<String> methods, boolean deleteFirst) {
