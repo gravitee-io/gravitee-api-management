@@ -30,6 +30,7 @@ public final class LuceneTransformerUtils {
 
     public static String generateApiType(Api api) {
         boolean isTcpApi =
+            api.getType() == ApiType.PROXY &&
             Objects.nonNull(api.getApiListeners()) &&
             api
                 .getApiListeners()
@@ -48,6 +49,7 @@ public final class LuceneTransformerUtils {
 
     private static String generateApiType(ApiEntity api) {
         boolean isTcpApi =
+            api.getType() == ApiType.PROXY &&
             Objects.nonNull(api.getListeners()) &&
             api
                 .getListeners()
