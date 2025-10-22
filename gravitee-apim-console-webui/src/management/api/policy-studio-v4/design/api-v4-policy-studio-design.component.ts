@@ -42,6 +42,7 @@ import { ResourceTypeService } from '../../../../shared/components/form-json-sch
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { SharedPolicyGroupsService } from '../../../../services-ngx/shared-policy-groups.service';
 import { getApiProtocolTypeFromApi } from '../../../../entities/management-api-v2/plugin/apiProtocolType';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 export type FlowSelection = { planIndex: number; flowIndex: number };
 
@@ -86,6 +87,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly resourceTypeService: ResourceTypeService,
     private readonly gioLicenseService: GioLicenseService,
     private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly permissionsService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
@@ -181,7 +183,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         this.selectedFlowIndexes.planIndex = Number(params['planIndex'] ?? 0);
         this.selectedFlowIndexes.flowIndex = Number(params['flowIndex'] ?? 0);
         this.checkAndAdjustIndexes();
-        this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
+        this.isReadOnly = !this.permissionsService.hasAnyMatching(['api-definition-u']) || api.definitionContext.origin === 'KUBERNETES';
         this.isLoading = false;
       });
     this.trialURL = this.gioLicenseService.getTrialURL({ feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V4 });

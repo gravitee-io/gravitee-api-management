@@ -47,6 +47,7 @@ import {
   PlanV4,
 } from '../../../../entities/management-api-v2';
 import { expectGetSharedPolicyGroupPolicyPluginRequest } from '../../../../services-ngx/shared-policy-groups.service.spec';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiV4PolicyStudioDesignComponent', () => {
   const API_ID = 'api-id';
@@ -58,6 +59,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     snapshot: { params: { apiId: API_ID } },
     params: routeParams$.asObservable(),
   };
+  const permissions = ['api-definition-u'];
 
   let fixture: ComponentFixture<ApiV4PolicyStudioDesignComponent>;
   let component: ApiV4PolicyStudioDesignComponent;
@@ -68,7 +70,14 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule, GioLicenseTestingModule],
-      providers: [{ provide: ActivatedRoute, useValue: activatedRouteStub }, importProvidersFrom(GioFormJsonSchemaModule)],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: activatedRouteStub,
+        },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
+        importProvidersFrom(GioFormJsonSchemaModule),
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
