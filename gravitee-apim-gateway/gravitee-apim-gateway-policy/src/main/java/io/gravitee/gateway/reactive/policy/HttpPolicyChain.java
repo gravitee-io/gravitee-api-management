@@ -23,8 +23,10 @@ import io.gravitee.gateway.reactive.api.hook.HttpHook;
 import io.gravitee.gateway.reactive.api.hook.PolicyHook;
 import io.gravitee.gateway.reactive.api.hook.PolicyMessageHook;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +72,19 @@ public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements 
                 this.policyMessageHooks.add((PolicyMessageHook) hook);
             }
         });
+    }
+
+    @Override
+    public Completable execute(BaseExecutionContext ctx) {
+        if (phase == ExecutionPhase.RESPONSE) {
+            final var onResponseActions = ((HttpExecutionContextInternal) ctx).getOnResponseActions();
+            if (onResponseActions != null) {
+                return Flowable.fromIterable(onResponseActions)
+                    .concatMapCompletable(action -> action.apply((HttpExecutionContext) ctx))
+                    .andThen(super.execute(ctx));
+            }
+        }
+        return super.execute(ctx);
     }
 
     @Override

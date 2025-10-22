@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
@@ -76,10 +77,11 @@ class PolicyChainTest {
     public void shouldExecutePoliciesOnResponse() {
         final Policy policy1 = mock(Policy.class);
         final Policy policy2 = mock(Policy.class);
-        final HttpExecutionContext ctx = mock(HttpExecutionContext.class);
+        final HttpExecutionContextInternal ctx = mock(HttpExecutionContextInternal.class);
 
         final HttpPolicyChain cut = new HttpPolicyChain(CHAIN_ID, asList(policy1, policy2), ExecutionPhase.RESPONSE);
 
+        when(ctx.getOnResponseActions()).thenReturn(null);
         when(policy1.onResponse(ctx)).thenReturn(Completable.complete());
         when(policy2.onResponse(ctx)).thenReturn(Completable.complete());
 

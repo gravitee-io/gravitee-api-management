@@ -24,6 +24,7 @@ import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.TlsSession;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.el.EvaluableMessage;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
@@ -36,12 +37,13 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import lombok.Getter;
 import lombok.Setter;
 
 public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse>
@@ -58,6 +60,9 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     private EvaluableRequest evaluableRequest;
     private EvaluableResponse evaluableResponse;
     private EvaluableExecutionContext evaluableExecutionContext;
+
+    @Getter
+    private List<Function<HttpExecutionContext, Completable>> onResponseActions = null;
 
     public AbstractExecutionContext(final RQ request, final RS response) {
         this.request = request;
@@ -268,6 +273,15 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
         }
         engine.getTemplateContext().setVariable(TEMPLATE_ATTRIBUTE_MESSAGE, new EvaluableMessage(message));
         return engine;
+    }
+
+    @Override
+    public void addActionOnResponse(Function<HttpExecutionContext, Completable> function) {
+        if (onResponseActions == null) {
+            onResponseActions = new ArrayList<>();
+        }
+
+        onResponseActions.addFirst(function);
     }
 
     private void prepareTemplateEngine(final TemplateEngine templateEngine) {
