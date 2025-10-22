@@ -65,6 +65,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { Group } from '../../../../entities/group/group';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { CurrentUserService } from '../../../../services-ngx/current-user.service';
 
 export interface EditMemberDialogData {
   group: Group;
@@ -221,6 +222,7 @@ export class GroupComponent implements OnInit {
     private router: Router,
     private permissionService: GioPermissionService,
     private matDialog: MatDialog,
+    private currentUserService: CurrentUserService,
   ) {}
 
   ngOnInit(): void {
@@ -234,7 +236,6 @@ export class GroupComponent implements OnInit {
         this.group.next(group);
         this.initializeForm(group);
         this.initialFormValues = this.groupForm.getRawValue();
-        this.hideActionsForReadOnlyUser();
         this.initializeDependents();
         this.disableForm();
       }),
@@ -290,10 +291,11 @@ export class GroupComponent implements OnInit {
     this.groupMembers$ = this.groupService.getMembers(this.groupId).pipe(
       tap((members: Member[]) => {
         this.groupMembers.next(members.sort((a, b) => a.displayName.localeCompare(b.displayName)));
-        this.disableDeleteMember();
         this.maxInvitationsLimitReached = this.group.value.max_invitation <= this.groupMembers.value.length;
-        this.shouldAllowAddMembers();
         this.filterGroupMembers(this.membersDefaultFilters);
+        this.shouldAllowAddMembers();
+        this.hideActionsForReadOnlyUser();
+        this.disableDeleteMember();
       }),
       takeUntilDestroyed(this.destroyRef),
     );
@@ -342,9 +344,20 @@ export class GroupComponent implements OnInit {
   }
 
   private hideActionsForReadOnlyUser(): void {
-    if (!this.canUpdateGroup()) {
-      this.memberColumnDefs.pop();
-    }
+    const groupMembers = this.groupMembers.value;
+
+    this.currentUserService
+      .current()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => {
+        if (user) {
+          const index = groupMembers.findIndex((member) => member.id === user.id && member.roles['GROUP'] === 'ADMIN');
+
+          if (!this.canUpdateGroup() && index === -1) {
+            this.memberColumnDefs.pop();
+          }
+        }
+      });
   }
 
   private updateEventRules(): void {
