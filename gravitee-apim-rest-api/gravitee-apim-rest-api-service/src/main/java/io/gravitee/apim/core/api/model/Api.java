@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -268,9 +269,15 @@ public class Api {
         }
 
         if (type == ApiType.NATIVE) {
+            if (Objects.isNull(apiDefinitionNativeV4)) {
+                return List.of();
+            }
             return Optional.ofNullable(apiDefinitionNativeV4.getListeners()).orElse(List.of());
         }
 
+        if (Objects.isNull(apiDefinitionHttpV4)) {
+            return List.of();
+        }
         return Optional.ofNullable(apiDefinitionHttpV4.getListeners()).orElse(List.of());
     }
 
