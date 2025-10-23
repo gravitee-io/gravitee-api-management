@@ -59,12 +59,19 @@
         text-decoration: underline;
       }
     }
+  }
+
+  &__sso {
+    display: flex;
+    flex-flow: column;
+    gap: 16px;
 
     &__separator {
       position: relative;
       display: flex;
       height: 30px;
       align-items: center;
+      margin: 16px 0 0;
 
       &__line {
         width: 100%;

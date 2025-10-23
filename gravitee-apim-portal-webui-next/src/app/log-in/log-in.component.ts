@@ -31,6 +31,7 @@ import { AuthService } from '../../services/auth.service';
 import { CurrentUserService } from '../../services/current-user.service';
 import { IdentityProviderService } from '../../services/identity-provider.service';
 import { PortalMenuLinksService } from '../../services/portal-menu-links.service';
+import {ConfigService} from "../../services/config.service";
 
 @Component({
   selector: 'app-log-in',
@@ -58,6 +59,7 @@ export class LogInComponent implements OnInit {
   private redirectUrl: string = '';
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly authService: AuthService,
     private readonly currentUserService: CurrentUserService,
     private readonly identityProviderService: IdentityProviderService,
@@ -109,5 +111,9 @@ export class LogInComponent implements OnInit {
   getProviderLogo(provider: IdentityProvider) {
     const type = provider.type ?? IdentityProviderType.OIDC;
     return `${type?.toLowerCase()}.svg`;
+  }
+
+  isLocalLoginEnabled() {
+    return this.configService.configuration.authentication?.localLogin?.enabled;
   }
 }
