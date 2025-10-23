@@ -407,4 +407,33 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             throw new TechnicalException("Failed to update plan order", ex);
         }
     }
+
+    @Override
+    public void updateCrossIds(List<Plan> plans) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.updateCrossIds({})", plans);
+        if (plans == null || plans.isEmpty()) {
+            return;
+        }
+
+        try {
+            jdbcTemplate.batchUpdate(
+                "UPDATE " + tableName + " SET cross_id = ? WHERE id = ?",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        Plan plan = plans.get(i);
+                        ps.setString(1, plan.getCrossId());
+                        ps.setString(2, plan.getId());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return plans.size();
+                    }
+                }
+            );
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to update plans cross IDs", ex);
+        }
+    }
 }

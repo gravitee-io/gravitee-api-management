@@ -228,6 +228,16 @@ public class MongoPageRepository implements PageRepository {
         }
     }
 
+    @Override
+    public void updateCrossIds(List<Page> pages) throws TechnicalException {
+        logger.debug("Update pages cross Ids [{}]", pages);
+        try {
+            internalPageRepo.updateCrossIds(pages);
+        } catch (Exception e) {
+            throw new TechnicalException("Failed to update pages cross IDs", e);
+        }
+    }
+
     private PageSourceMongo convert(PageSource pageSource) {
         PageSourceMongo pageSourceMongo = new PageSourceMongo();
         pageSourceMongo.setType(pageSource.getType());

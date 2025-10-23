@@ -486,6 +486,30 @@ public class PlanCrudServiceImplTest {
         }
     }
 
+    @Nested
+    class updateCrossIds {
+
+        @Test
+        @SneakyThrows
+        void should_call_cross_ids_update() {
+            service.updateCrossIds(List.of(PlanFixtures.aPlanHttpV4()));
+
+            verify(planRepository).updateCrossIds(any());
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            doThrow(TechnicalException.class).when(planRepository).updateCrossIds(any());
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.updateCrossIds(List.of(PlanFixtures.aPlanHttpV4())));
+
+            // Then
+            assertThat(throwable).isInstanceOf(TechnicalDomainException.class);
+        }
+    }
+
     private Plan.PlanBuilder planV4() {
         return Plan.builder()
             .definitionVersion(DefinitionVersion.V4)

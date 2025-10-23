@@ -19,15 +19,18 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.promotion.crud_service.PromotionCrudService;
 import io.gravitee.apim.core.promotion.exception.PromotionAlreadyInProgressException;
 import io.gravitee.apim.core.promotion.model.Promotion;
@@ -38,6 +41,7 @@ import io.gravitee.apim.core.promotion.model.PromotionStatus;
 import io.gravitee.apim.core.promotion.query_service.PromotionQueryService;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -61,6 +65,8 @@ public class CreatePromotionUseCase {
     private final CockpitPromotionServiceProvider cockpitPromotionServiceProvider;
     private final UserCrudService userCrudService;
     private final ApiCrudService apiCrudService;
+    private final PlanCrudService planCrudService;
+    private final PageCrudService pageCrudService;
 
     public record Input(String apiId, PromotionRequest promotionRequest, AuditInfo auditInfo) {}
 
@@ -75,7 +81,9 @@ public class CreatePromotionUseCase {
         AuditDomainService auditService,
         CockpitPromotionServiceProvider cockpitPromotionServiceProvider,
         UserCrudService userCrudService,
-        ApiCrudService apiCrudService
+        ApiCrudService apiCrudService,
+        PlanCrudService planCrudService,
+        PageCrudService pageCrudService
     ) {
         this.apiExportDomainService = apiExportDomainService;
         this.environmentCrudService = environmentCrudService;
@@ -86,6 +94,8 @@ public class CreatePromotionUseCase {
         this.cockpitPromotionServiceProvider = cockpitPromotionServiceProvider;
         this.userCrudService = userCrudService;
         this.apiCrudService = apiCrudService;
+        this.planCrudService = planCrudService;
+        this.pageCrudService = pageCrudService;
     }
 
     public Output execute(Input input) {
@@ -96,14 +106,16 @@ public class CreatePromotionUseCase {
                 input.promotionRequest,
                 input.auditInfo.actor().userId()
             );
-            case V4 -> createPromotion(input.apiId, input.promotionRequest, input.auditInfo);
+            case V4 -> createPromotion(api, input.promotionRequest, input.auditInfo);
             default -> throw new ApiInvalidDefinitionVersionException(input.apiId);
         };
         var updatedPromotion = sendCockpitCommand(createdPromotion, input.auditInfo);
         return new Output(updatedPromotion);
     }
 
-    private Promotion createPromotion(String apiId, PromotionRequest promotionRequest, AuditInfo auditInfo) {
+    private Promotion createPromotion(Api api, PromotionRequest promotionRequest, AuditInfo auditInfo) {
+        generateCrossIds(api);
+        var apiId = api.getId();
         var authenticatedUser = userCrudService.getBaseUser(auditInfo.actor().userId());
         var apiDefinition = apiExportDomainService.export(apiId, auditInfo, Set.of(Excludable.GROUPS, Excludable.MEMBERS));
         var sourceEnvironment = environmentCrudService.get(auditInfo.environmentId());
@@ -185,5 +197,33 @@ public class CreatePromotionUseCase {
         }
 
         return updated;
+    }
+
+    public void generateCrossIds(Api api) {
+        if (StringUtils.isEmpty(api.getCrossId())) {
+            api.setCrossId(UuidString.generateRandom());
+            apiCrudService.update(api);
+        }
+        var plans = planCrudService
+            .findByApiId(api.getId())
+            .stream()
+            .peek(plan -> {
+                if (StringUtils.isEmpty(plan.getCrossId())) {
+                    plan.setCrossId(UuidString.generateRandom());
+                }
+            })
+            .toList();
+        planCrudService.updateCrossIds(plans);
+
+        var pages = pageCrudService
+            .findByApiId(api.getId())
+            .stream()
+            .peek(page -> {
+                if (StringUtils.isEmpty(page.getCrossId())) {
+                    page.setCrossId(UuidString.generateRandom());
+                }
+            })
+            .toList();
+        pageCrudService.updateCrossIds(pages);
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.plan;
 
+import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import java.util.List;
 import java.util.Set;
@@ -29,4 +30,6 @@ public interface PlanMongoRepositoryCustom {
     List<PlanMongo> findByApiInAndEnvironments(List<String> apis, Set<String> environments);
 
     void updateOrder(String planId, int order);
+
+    void updateCrossIds(List<Plan> plans);
 }

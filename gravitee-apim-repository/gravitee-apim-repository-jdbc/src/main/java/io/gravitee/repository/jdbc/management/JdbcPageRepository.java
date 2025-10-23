@@ -569,6 +569,35 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     @Override
+    public void updateCrossIds(List<Page> pages) throws TechnicalException {
+        LOGGER.debug("JdbcPageRepository.updateCrossIds({})", pages);
+        if (pages == null || pages.isEmpty()) {
+            return;
+        }
+
+        try {
+            jdbcTemplate.batchUpdate(
+                "UPDATE " + tableName + " SET cross_id = ? WHERE id = ?",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        Page page = pages.get(i);
+                        ps.setString(1, page.getCrossId());
+                        ps.setString(2, page.getId());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return pages.size();
+                    }
+                }
+            );
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to update pages cross IDs", ex);
+        }
+    }
+
+    @Override
     public List<Page> search(PageCriteria criteria) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.search()");
         try {

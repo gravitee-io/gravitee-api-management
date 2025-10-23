@@ -76,6 +76,16 @@ public class PlanCrudServiceImpl implements PlanCrudService {
     }
 
     @Override
+    public void updateCrossIds(List<Plan> plans) {
+        log.debug("Update plans cross IDs : {}", plans);
+        try {
+            planRepository.updateCrossIds(plans.stream().map(PlanAdapter.INSTANCE::toRepository).toList());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(String.format("An error occurred while trying to update plans cross IDs %s", plans), e);
+        }
+    }
+
+    @Override
     public Collection<Plan> findByApiId(String apiId) {
         try {
             log.debug("Find a plan by API id : {}", apiId);

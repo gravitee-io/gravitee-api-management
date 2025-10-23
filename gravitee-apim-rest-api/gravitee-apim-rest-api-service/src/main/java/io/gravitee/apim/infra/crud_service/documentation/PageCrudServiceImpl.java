@@ -23,8 +23,11 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -92,6 +95,29 @@ public class PageCrudServiceImpl implements PageCrudService {
         } catch (TechnicalException e) {
             logger.error("An error occurred while deleting Page by id {}", ids, e);
             throw new ApiPageInvalidReferenceTypeException(ids.iterator().next(), e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Page> findByApiId(String apiId) {
+        try {
+            log.debug("Find a pages by API id : {}", apiId);
+            var pages = pageRepository.search(
+                new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId(apiId).build()
+            );
+            return PageAdapter.INSTANCE.toEntityList(pages);
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException(String.format("An error occurred while trying to find a pages by API id: %s", apiId), ex);
+        }
+    }
+
+    @Override
+    public void updateCrossIds(List<Page> pages) {
+        log.debug("Update pages cross IDs : {}", pages);
+        try {
+            pageRepository.updateCrossIds(pages.stream().map(PageAdapter.INSTANCE::toRepository).toList());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(String.format("An error occurred while trying to update pages cross IDs %s", pages), e);
         }
     }
 

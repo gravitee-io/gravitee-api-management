@@ -59,4 +59,10 @@ public interface PageRepository extends FindAllRepository<Page> {
      */
     Map<String, List<String>> deleteByReferenceIdAndReferenceType(String referenceId, PageReferenceType referenceType)
         throws TechnicalException;
+
+    /**
+     * Update cross ids of pages.
+     * @param pages the pages to update.
+     */
+    void updateCrossIds(List<Page> pages) throws TechnicalException;
 }

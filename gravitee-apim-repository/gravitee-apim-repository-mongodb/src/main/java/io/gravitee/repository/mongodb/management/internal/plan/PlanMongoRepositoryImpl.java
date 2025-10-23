@@ -18,12 +18,19 @@ package io.gravitee.repository.mongodb.management.internal.plan;
 import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.in;
 
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.Updates;
+import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +71,23 @@ public class PlanMongoRepositoryImpl implements PlanMongoRepositoryCustom {
     public void updateOrder(String planId, int order) {
         Query query = Query.query(Criteria.where("_id").is(planId));
         Update update = new Update().set("order", order);
-        mongoTemplate.updateFirst(query, update, PlanMongo.class);
+        mongoTemplate.updateMulti(query, update, PlanMongo.class);
+    }
+
+    @Override
+    public void updateCrossIds(List<Plan> plans) {
+        if (plans == null || plans.isEmpty()) {
+            return;
+        }
+
+        var updates = plans
+            .stream()
+            .map(plan -> new UpdateOneModel<Document>(Filters.eq("_id", plan.getId()), Updates.set("crossId", plan.getCrossId())))
+            .toList();
+
+        mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(PlanMongo.class))
+            .bulkWrite(updates, new BulkWriteOptions().ordered(false));
     }
 
     private List<PlanMongo> getListFromAggregate(AggregateIterable<Document> aggregate) {
