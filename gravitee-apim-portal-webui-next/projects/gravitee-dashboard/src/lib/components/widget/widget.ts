@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { GridsterItem } from 'angular-gridster2';
-import { PieType } from './doughnut-chart/doughnut-chart.component';
+import { PieType } from '../chart/pie-chart/pie-chart.component';
 
-export type WidgetType = PieType | 'top';
+export type WidgetType = PieType | 'kpi' | 'top';
 
 export interface Widget {
   id: string;

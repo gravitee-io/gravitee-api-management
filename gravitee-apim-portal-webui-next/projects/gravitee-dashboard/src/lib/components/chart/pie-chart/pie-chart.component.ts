@@ -20,12 +20,12 @@ import { BaseChartDirective } from 'ng2-charts';
 export type PieType = 'doughnut' | 'pie' | 'polarArea';
 
 @Component({
-  selector: 'gd-doughnut-chart',
+  selector: 'gd-pie-chart',
   imports: [BaseChartDirective],
-  templateUrl: './doughnut-chart.component.html',
-  styleUrl: './doughnut-chart.component.scss',
+  templateUrl: './pie-chart.component.html',
+  styleUrl: './pie-chart.component.scss',
 })
-export class DoughnutChartComponent<T extends PieType> {
+export class PieChartComponent<T extends PieType> {
   type = input.required<T>();
   option = input<ChartConfiguration<T>['options']>(this.getDefaultOptions());
   data = input<ChartData<T>>(this.getDataMock());
@@ -41,7 +41,7 @@ export class DoughnutChartComponent<T extends PieType> {
   private getDataMock(): ChartData<T> {
     return {
       labels: ['Download Sales', 'In-Store Sales', 'Mail-Order Sales'],
-      datasets: [{ data: [350, 450, 100] }, { data: [50, 150, 120] }, { data: [250, 130, 70] }],
+      datasets: [{ data: [350, 450, 100] }],
     } as ChartData<T>;
   }
 

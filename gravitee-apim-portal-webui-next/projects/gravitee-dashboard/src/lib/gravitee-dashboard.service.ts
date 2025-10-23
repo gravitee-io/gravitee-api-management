@@ -28,7 +28,7 @@ export class GraviteeDashboardService {
       {
         id: '1',
         label: 'Requests',
-        type: 'doughnut',
+        type: 'kpi',
         layout: {
           cols: 1,
           rows: 1,
@@ -39,7 +39,7 @@ export class GraviteeDashboardService {
       {
         id: '2',
         label: 'Error Rate',
-        type: 'doughnut',
+        type: 'kpi',
         layout: {
           cols: 1,
           rows: 1,
@@ -50,7 +50,7 @@ export class GraviteeDashboardService {
       {
         id: '3',
         label: 'Average Latency',
-        type: 'doughnut',
+        type: 'kpi',
         layout: {
           cols: 1,
           rows: 1,
@@ -59,7 +59,7 @@ export class GraviteeDashboardService {
         },
       },
       {
-        id: '4',
+        id: 'kpi',
         label: 'Subscriptions',
         type: 'doughnut',
         layout: {
@@ -84,7 +84,7 @@ export class GraviteeDashboardService {
       {
         id: '6',
         label: 'Response Time',
-        type: 'polarArea',
+        type: 'pie',
         layout: {
           cols: 3,
           rows: 2,
@@ -107,7 +107,7 @@ export class GraviteeDashboardService {
       {
         id: '8',
         label: 'Consumption by Application',
-        type: 'pie',
+        type: 'polarArea',
         layout: {
           cols: 1,
           rows: 2,
