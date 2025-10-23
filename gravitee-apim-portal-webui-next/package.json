@@ -60,6 +60,7 @@
     "@fontsource/montserrat": "5.2.5",
     "@fontsource/roboto": "5.2.5",
     "@types/swagger-ui": "3.52.4",
+    "angular-oauth2-oidc": "^20.0.2",
     "asciidoctor": "3.0.4",
     "dompurify": "3.2.7",
     "highlight.js": "11.11.1",

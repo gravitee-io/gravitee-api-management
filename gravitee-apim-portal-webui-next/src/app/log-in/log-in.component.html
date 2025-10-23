@@ -50,7 +50,26 @@
           class="log-in__form__submit secondary-button">
           Log in
         </button>
-        <a mat-stroked-button i18n="@@resetPasswordAction" routerLink="reset-password"> Forgot password? </a>
+        <a class="log-in__form__forgot-password" i18n="@@resetPasswordAction" routerLink="reset-password"> Forgot password? </a>
+        @if (identityProviders.length > 0) {
+          <div class="log-in__form__separator">
+            <div class="log-in__form__separator__line"></div>
+            <div class="log-in__form__separator__label" i18n="@@orSeparator">OR</div>
+          </div>
+          @for (provider of identityProviders; track provider.id) {
+            <button
+              type="button"
+              mat-stroked-button
+              class="log-in__form__idp secondary-button"
+              [style.background-color]="getProviderColor(provider)"
+              (click)="authenticateSSO(provider)">
+              <div class="log-in__form__idp__container">
+                <img class="log-in__form__idp__logo" [src]="'../../assets/images/idp/' + getProviderLogo(provider)" alt="Provider Logo" />
+                {{ provider.name }}
+              </div>
+            </button>
+          }
+        }
       </div>
     </mat-card-content>
   </mat-card>
