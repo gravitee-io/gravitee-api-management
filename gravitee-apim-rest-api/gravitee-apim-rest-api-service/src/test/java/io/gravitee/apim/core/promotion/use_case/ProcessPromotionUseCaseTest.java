@@ -17,6 +17,7 @@ package io.gravitee.apim.core.promotion.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -25,12 +26,14 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PromotionFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PromotionCrudServiceInMemory;
-import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
-import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
+import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.promotion.model.Promotion;
+import io.gravitee.apim.core.promotion.model.PromotionStatus;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
@@ -45,18 +48,35 @@ import org.junit.jupiter.api.Test;
 class ProcessPromotionUseCaseTest {
 
     private static final String API_ID = "api-id";
+    private static final String ORGANIZATION_ID = "DEFAULT";
+    private static final String ENVIRONMENT_ID = "DEFAULT";
     private static final Api API_V2 = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-    private static final Promotion PROMOTION = PromotionFixtures.aPromotion().toBuilder().apiId(API_ID).build();
+    private static final Promotion PROMOTION = PromotionFixtures.aPromotion()
+        .toBuilder()
+        .apiId(API_ID)
+        .status(PromotionStatus.TO_BE_VALIDATED)
+        .build();
+    private static final Environment ENVIRONMENT = Environment.builder()
+        .id(ENVIRONMENT_ID)
+        .cockpitId(PROMOTION.getTargetEnvCockpitId())
+        .organizationId(ORGANIZATION_ID)
+        .build();
 
     private final PromotionCrudServiceInMemory promotionCrudService = new PromotionCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
+    private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
     private CockpitPromotionServiceProvider cockpitPromotionServiceProvider;
     private ProcessPromotionUseCase useCase;
 
     @BeforeEach
     public void setUp() {
         cockpitPromotionServiceProvider = mock(CockpitPromotionServiceProvider.class);
-        useCase = new ProcessPromotionUseCase(promotionCrudService, apiCrudServiceInMemory, cockpitPromotionServiceProvider);
+        useCase = new ProcessPromotionUseCase(
+            promotionCrudService,
+            apiCrudServiceInMemory,
+            cockpitPromotionServiceProvider,
+            environmentCrudService
+        );
     }
 
     @AfterEach
@@ -70,7 +90,7 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
 
         when(cockpitPromotionServiceProvider.process(PROMOTION.getId(), true)).thenReturn(PROMOTION);
-        var result = useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION.getId(), true));
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION.getId(), true, ORGANIZATION_ID));
 
         verify(cockpitPromotionServiceProvider).process(eq(PROMOTION.getId()), eq(true));
         assertThat(result.promotion()).isEqualTo(PROMOTION);
@@ -82,8 +102,64 @@ class ProcessPromotionUseCaseTest {
         apiCrudServiceInMemory.initWith(List.of(federatedApi));
         promotionCrudService.initWith(List.of(PROMOTION));
 
-        Throwable throwable = catchThrowable(() -> useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION.getId(), true)));
+        Throwable throwable = catchThrowable(() ->
+            useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION.getId(), true, ORGANIZATION_ID))
+        );
 
         assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessage("Only V2 and V4 API definition are supported");
+    }
+
+    @Test
+    void should_throw_exception_when_v4_api_promotion_is_accepted() {
+        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
+        apiCrudServiceInMemory.initWith(List.of(v4proxyApi));
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        Throwable throwable = catchThrowable(() ->
+            useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION.getId(), true, ORGANIZATION_ID))
+        );
+
+        assertThat(throwable)
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessage("Coming soon - V4 API promotion can only be rejected");
+    }
+
+    @Test
+    void should_reject_v4_api_promotion() {
+        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
+        apiCrudServiceInMemory.initWith(List.of(v4proxyApi));
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        when(cockpitPromotionServiceProvider.requestPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
+            CockpitReplyStatus.SUCCEEDED
+        );
+
+        var result = useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION.getId(), false, ORGANIZATION_ID));
+
+        assertThat(result).isNotNull();
+        assertThat(result.promotion()).isNotNull();
+        assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.REJECTED);
+    }
+
+    @Test
+    void should_throw_exception_when_v4_api_promotion_command_fails() {
+        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build();
+        apiCrudServiceInMemory.initWith(List.of(v4proxyApi));
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        when(cockpitPromotionServiceProvider.requestPromotion(eq(ORGANIZATION_ID), eq(ENVIRONMENT_ID), any())).thenReturn(
+            CockpitReplyStatus.ERROR
+        );
+
+        Throwable throwable = catchThrowable(() ->
+            useCase.execute(new ProcessPromotionUseCase.Input(PROMOTION.getId(), false, ORGANIZATION_ID))
+        );
+
+        assertThat(throwable)
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessage("An error occurs while sending promotion request to cockpit");
     }
 }
