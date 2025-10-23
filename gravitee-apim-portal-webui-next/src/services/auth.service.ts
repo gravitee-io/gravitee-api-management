@@ -16,7 +16,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
-import { Observable } from 'rxjs';
+import {firstValueFrom, Observable} from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { IdentityProviderService } from './identity-provider.service';
@@ -119,9 +119,8 @@ export class AuthService {
 
   private _fetchProviderAndConfigure(): Promise<boolean> {
     return new Promise<boolean>(resolve => {
-      this.identityProviderService
-        .getPortalIdentityProvider(this.getProviderId())
-        .toPromise() // TODO transform to Obs
+      firstValueFrom(this.identityProviderService
+        .getPortalIdentityProvider(this.getProviderId()))
         .then(
           identityProvider => {
             if (identityProvider) {

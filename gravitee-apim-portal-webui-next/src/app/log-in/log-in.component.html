@@ -70,7 +70,7 @@
             [style.background-color]="getProviderColor(provider)"
             (click)="authenticateSSO(provider)">
             <div class="log-in__sso__idp__container">
-              <img class="log-in__sso__idp__logo" [src]="'../../assets/images/idp/' + getProviderLogo(provider)" alt="Provider Logo" />
+              <img class="log-in__sso__idp__logo" [src]="'assets/images/idp/' + getProviderLogo(provider)" alt="Provider Logo" />
               {{ provider.name }}
             </div>
           </button>
