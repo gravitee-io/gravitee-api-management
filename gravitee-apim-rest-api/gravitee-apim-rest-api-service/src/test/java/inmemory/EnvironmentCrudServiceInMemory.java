@@ -49,4 +49,13 @@ public class EnvironmentCrudServiceInMemory implements EnvironmentCrudService, I
             .findFirst()
             .orElseThrow(() -> new EnvironmentNotFoundException(environmentId));
     }
+
+    @Override
+    public Environment getByCockpitId(String cockpitId) {
+        return storage
+            .stream()
+            .filter(env -> cockpitId.equals(env.getCockpitId()))
+            .findFirst()
+            .orElseThrow(() -> new EnvironmentNotFoundException(cockpitId));
+    }
 }

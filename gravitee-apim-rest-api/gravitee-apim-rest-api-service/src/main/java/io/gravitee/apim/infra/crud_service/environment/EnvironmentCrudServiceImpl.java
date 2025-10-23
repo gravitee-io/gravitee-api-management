@@ -48,4 +48,17 @@ public class EnvironmentCrudServiceImpl implements EnvironmentCrudService {
             throw new TechnicalManagementException(e);
         }
     }
+
+    @Override
+    public Environment getByCockpitId(String cockpitId) {
+        try {
+            log.debug("Find environment by cockpit id: {}", cockpitId);
+
+            return this.environmentRepository.findByCockpitId(cockpitId)
+                .map(EnvironmentAdapter.INSTANCE::toModel)
+                .orElseThrow(() -> new EnvironmentNotFoundException(cockpitId));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
+    }
 }
