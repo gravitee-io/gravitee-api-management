@@ -57,8 +57,6 @@ export class LogInComponent implements OnInit {
   identityProviders: IdentityProvider[] = [];
   private redirectUrl: string = '';
 
-  private readonly destroyRef = inject(DestroyRef);
-
   constructor(
     private readonly authService: AuthService,
     private readonly currentUserService: CurrentUserService,
@@ -66,18 +64,17 @@ export class LogInComponent implements OnInit {
     private readonly portalMenuLinksService: PortalMenuLinksService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
+    private readonly destroyRef: DestroyRef,
   ) {}
 
   ngOnInit(): void {
     this.redirectUrl = this.activatedRoute.snapshot.queryParams['redirectUrl'] || '';
     this.identityProviderService.getPortalIdentityProviders().subscribe({
       next: configurationIdentitiesResponse => {
-        console.log(configurationIdentitiesResponse);
         this.identityProviders = configurationIdentitiesResponse.data ?? [];
-        console.log('this.providers', this.identityProviders);
       },
       error: error => {
-        console.error('something wrong occurred with identity providers: ' + error.statusText);
+        console.error('Cannot retrieve identity providers: ' + error.statusText);
       },
     });
   }
