@@ -227,7 +227,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         EnvironmentService environmentService,
         IdentityProviderActivationService identityProviderActivationService,
         SearchEngineService searchEngineService,
-        UserRepository userRepository
+        @Lazy UserRepository userRepository
     ) {
         this.accessPointRepository = accessPointRepository;
         this.accessPointService = accessPointService;

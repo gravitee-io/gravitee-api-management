@@ -56,7 +56,7 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
         AccessPointCrudService accessPointService,
         IdentityProviderActivationService identityProviderActivationService,
         DictionaryService dictionaryService,
-        UserRepository userRepository
+        @Lazy UserRepository userRepository
     ) {
         this.environmentService = environmentService;
         this.apiStateService = apiStateService;
