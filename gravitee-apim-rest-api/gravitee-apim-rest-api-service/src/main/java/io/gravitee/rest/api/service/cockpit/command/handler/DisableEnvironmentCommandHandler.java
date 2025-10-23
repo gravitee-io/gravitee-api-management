@@ -53,7 +53,12 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
         @Lazy ApiRepository apiRepository,
         AccessPointCrudService accessPointService,
         IdentityProviderActivationService identityProviderActivationService,
+<<<<<<< HEAD
         DictionaryService dictionaryService
+=======
+        DictionaryService dictionaryService,
+        @Lazy UserRepository userRepository
+>>>>>>> 2f6c7caa84 (fix: add @Lazy to UserRepository in CockpitCommandHandler)
     ) {
         this.environmentService = environmentService;
         this.apiStateService = apiStateService;

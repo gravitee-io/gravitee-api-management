@@ -224,7 +224,12 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         DictionaryService dictionaryService,
         EnvironmentService environmentService,
         IdentityProviderActivationService identityProviderActivationService,
+<<<<<<< HEAD
         SearchEngineService searchEngineService
+=======
+        SearchEngineService searchEngineService,
+        @Lazy UserRepository userRepository
+>>>>>>> 2f6c7caa84 (fix: add @Lazy to UserRepository in CockpitCommandHandler)
     ) {
         this.accessPointRepository = accessPointRepository;
         this.accessPointService = accessPointService;
