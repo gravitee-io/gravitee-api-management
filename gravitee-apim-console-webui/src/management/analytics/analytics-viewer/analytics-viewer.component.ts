@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GridComponent, Widget } from '@gravitee/gravitee-dashboard';
+import { GraviteeDashboardService, GridComponent, Widget } from '@gravitee/gravitee-dashboard';
 
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 @Component({
   selector: 'analytics-viewer',
@@ -24,126 +24,5 @@ import { Component } from '@angular/core';
   styleUrl: './analytics-viewer.component.scss',
 })
 export class AnalyticsViewerComponent {
-  widgets: Widget[];
-
-  constructor() {
-    this.widgets = this.getWidgets();
-  }
-
-  public getWidgets(): Widget[] {
-    return [
-      {
-        id: '1',
-        label: 'Requests',
-        type: 'doughnut',
-        layout: {
-          cols: 1,
-          rows: 1,
-          y: 0,
-          x: 1,
-        },
-      },
-      {
-        id: '2',
-        label: 'Error Rate',
-        type: 'doughnut',
-        layout: {
-          cols: 1,
-          rows: 1,
-          y: 0,
-          x: 2,
-        },
-      },
-      {
-        id: '3',
-        label: 'Average Latency',
-        type: 'doughnut',
-        layout: {
-          cols: 1,
-          rows: 1,
-          y: 0,
-          x: 3,
-        },
-      },
-      {
-        id: '4',
-        label: 'Subscriptions',
-        type: 'doughnut',
-        layout: {
-          cols: 1,
-          rows: 1,
-          y: 0,
-          x: 4,
-        },
-      },
-      {
-        id: '5',
-        label: 'HTTP Statuses',
-        type: 'doughnut',
-        filter: 'status-code',
-        layout: {
-          cols: 1,
-          rows: 2,
-          y: 1,
-          x: 1,
-        },
-      },
-      {
-        id: '5',
-        label: 'Response Time',
-        type: 'doughnut',
-        layout: {
-          cols: 3,
-          rows: 2,
-          y: 1,
-          x: 2,
-        },
-      },
-      {
-        id: '6',
-        label: 'Response Statuses',
-        type: 'doughnut',
-        filter: 'status-over-time',
-        layout: {
-          cols: 3,
-          rows: 2,
-          y: 3,
-          x: 1,
-        },
-      },
-      {
-        id: '7',
-        label: 'Consumption by Application',
-        type: 'doughnut',
-        layout: {
-          cols: 1,
-          rows: 2,
-          y: 3,
-          x: 4,
-        },
-      },
-      {
-        id: '8',
-        label: 'Top Application',
-        type: 'doughnut',
-        layout: {
-          cols: 1,
-          rows: 3,
-          y: 1,
-          x: 5,
-        },
-      },
-      {
-        id: '9',
-        label: 'Top API',
-        type: 'doughnut',
-        layout: {
-          cols: 1,
-          rows: 3,
-          y: 2,
-          x: 0,
-        },
-      },
-    ];
-  }
+  widgets: Widget[] = inject(GraviteeDashboardService).getWidgets();
 }

@@ -17,33 +17,18 @@ import { Component, input } from '@angular/core';
 import { ChartConfiguration, ChartData, ChartEvent } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
+export type PieType = 'doughnut' | 'pie' | 'polarArea';
+
 @Component({
   selector: 'gd-doughnut-chart',
   imports: [BaseChartDirective],
   templateUrl: './doughnut-chart.component.html',
   styleUrl: './doughnut-chart.component.scss',
 })
-export class DoughnutChartComponent {
-  data = input<ChartData>();
-  option = input<ChartConfiguration>();
-
-  public doughnutChartLabels: string[] = ['Download Sales', 'In-Store Sales', 'Mail-Order Sales'];
-  public doughnutChartData: ChartData<'doughnut'> = {
-    labels: this.doughnutChartLabels,
-    datasets: [{ data: [350, 450, 100] }, { data: [50, 150, 120] }, { data: [250, 130, 70] }],
-  };
-  public doughnutChartType = 'doughnut' as const;
-  public doughnutChartOptions: ChartConfiguration<'doughnut'>['options'] = {
-    responsive: true,
-
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'bottom',
-      },
-    },
-  };
+export class DoughnutChartComponent<T extends PieType> {
+  type = input.required<T>();
+  option = input<ChartConfiguration<T>['options']>(this.getDefaultOptions());
+  data = input<ChartData<T>>(this.getDataMock());
 
   public chartClicked({ event, active }: { event: ChartEvent; active: object[] }): void {
     console.log(event, active);
@@ -51,5 +36,25 @@ export class DoughnutChartComponent {
 
   public chartHovered({ event, active }: { event: ChartEvent; active: object[] }): void {
     console.log(event, active);
+  }
+
+  private getDataMock(): ChartData<T> {
+    return {
+      labels: ['Download Sales', 'In-Store Sales', 'Mail-Order Sales'],
+      datasets: [{ data: [350, 450, 100] }, { data: [50, 150, 120] }, { data: [250, 130, 70] }],
+    } as ChartData<T>;
+  }
+
+  private getDefaultOptions(): ChartConfiguration<T>['options'] {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+        },
+      },
+    } as ChartConfiguration<T>['options'];
   }
 }

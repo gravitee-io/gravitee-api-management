@@ -82,9 +82,9 @@ export class GraviteeDashboardService {
         },
       },
       {
-        id: '5',
+        id: '6',
         label: 'Response Time',
-        type: 'doughnut',
+        type: 'polarArea',
         layout: {
           cols: 3,
           rows: 2,
@@ -93,7 +93,7 @@ export class GraviteeDashboardService {
         },
       },
       {
-        id: '6',
+        id: '7',
         label: 'Response Statuses',
         type: 'doughnut',
         filter: 'status-over-time',
@@ -105,9 +105,9 @@ export class GraviteeDashboardService {
         },
       },
       {
-        id: '7',
+        id: '8',
         label: 'Consumption by Application',
-        type: 'doughnut',
+        type: 'pie',
         layout: {
           cols: 1,
           rows: 2,
@@ -116,7 +116,7 @@ export class GraviteeDashboardService {
         },
       },
       {
-        id: '8',
+        id: '9',
         label: 'Top Application',
         type: 'top',
         layout: {
@@ -127,7 +127,7 @@ export class GraviteeDashboardService {
         },
       },
       {
-        id: '9',
+        id: '10',
         label: 'Top API',
         type: 'top',
         layout: {

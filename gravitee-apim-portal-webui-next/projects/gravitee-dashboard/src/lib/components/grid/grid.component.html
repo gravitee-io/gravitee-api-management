@@ -24,8 +24,14 @@
 
         <gd-widget-body>
           @switch (item.type) {
+            @case ('pie') {
+              <gd-doughnut-chart type="pie"/>
+            }
+            @case ('polarArea') {
+              <gd-doughnut-chart type="polarArea"/>
+            }
             @case ('doughnut') {
-              <gd-doughnut-chart />
+              <gd-doughnut-chart type="doughnut"/>
             }
             @default {
               <div>Not yet implemented</div>
