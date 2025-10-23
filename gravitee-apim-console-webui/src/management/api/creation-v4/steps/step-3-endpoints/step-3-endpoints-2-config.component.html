@@ -26,7 +26,22 @@
     </div>
 
     <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
+
       <ng-container *ngFor="let endpoint of selectedEndpoints">
+        <mat-form-field appearance="outline" *ngIf="apiType === 'LLM_PROXY'">
+
+          <input
+            id="epg_name"
+            type="text"
+            matInput
+            formControlName="epg_name"
+            maxlength="50"
+            required="true"
+            data-testid="api_creation_v4_ep_name_input"
+          />
+          <mat-label>Name</mat-label>
+
+        </mat-form-field>
         <div class="api-creation-v4__form-container" *ngIf="endpointSchemas[endpoint.id]">
           <h3>{{ endpoint.name }}</h3>
           <gio-form-json-schema

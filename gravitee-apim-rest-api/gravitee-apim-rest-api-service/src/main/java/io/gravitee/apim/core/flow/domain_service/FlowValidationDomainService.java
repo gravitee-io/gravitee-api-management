@@ -85,6 +85,14 @@ public class FlowValidationDomainService {
                 .selectorByType(SelectorType.HTTP)
                 .stream()
                 .map(selector -> ((HttpSelector) selector).getPath())
+                .findFirst(),
+        ApiType.LLM_PROXY,
+    flow ->
+            flow
+                // TODO(llm_proxy): Add a specific LLM selector and use it here
+                .selectorByType(SelectorType.HTTP)
+                .stream()
+                .map(selector -> ((HttpSelector) selector).getPath())
                 .findFirst()
     );
 

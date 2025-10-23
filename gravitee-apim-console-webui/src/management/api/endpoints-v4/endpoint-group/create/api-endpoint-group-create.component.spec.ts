@@ -517,7 +517,43 @@ describe('ApiEndpointGroupCreateComponent', () => {
       });
     });
   });
+  describe('V4 API - LLM Proxy', () => {
+    beforeEach(async () => {
+      await initComponent(fakeApiV4({ id: API_ID, type: 'LLM_PROXY' }));
+      expectConfigurationSchemaGet('llm-proxy', fakeHttpProxySchema);
+      expectSharedConfigurationSchemaGet('llm-proxy', fakeHttpProxySharedSchema);
+    });
 
+    describe('Stepper', () => {
+      it('should go back to endpoint groups page on exit', async () => {
+        expect(await isStepActive(harness.getGeneralStep())).toEqual(true);
+        await harness.goBackToEndpointGroups();
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], { relativeTo: expect.anything() });
+      });
+    });
+
+    describe('When creating a LLM-proxy endpoint group', () => {
+      it('should be possible', async () => {
+        await fillOutAndValidateGeneralInformation();
+        expect(await harness.canCreateEndpointGroup()).toEqual(false);
+        await harness.setConfigurationInputValue('proxyParam', 'my-proxy-param');
+        await harness.setConfigurationInputValue('target', 'http://target.gio');
+        expect(await harness.isConfigurationStepValid()).toEqual(true);
+
+        await createEndpointGroup({
+          name: ENDPOINT_GROUP_NAME,
+          type: 'llm-proxy',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          endpoints: [
+            { ...EndpointV4Default.byTypeAndGroupName('llm-proxy', ENDPOINT_GROUP_NAME), configuration: { target: 'http://target.gio' } },
+          ],
+          sharedConfiguration: {
+            proxyParam: 'my-proxy-param',
+          },
+        });
+      });
+    });
+  });
   /**
    * Expect requests
    */

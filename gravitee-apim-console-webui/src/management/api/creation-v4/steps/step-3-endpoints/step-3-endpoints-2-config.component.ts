@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import { combineLatest, forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { takeUntil } from 'rxjs/operators';
@@ -44,7 +44,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
 
-  private apiType: ApiCreationPayload['type'];
+  public apiType: ApiCreationPayload['type'];
 
   constructor(
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
@@ -55,7 +55,6 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
     this.apiType = currentStepPayload.type;
-
     forkJoin(
       currentStepPayload.selectedEndpoints.reduce((map: Record<string, Observable<[GioJsonSchema, GioJsonSchema]>>, { id }) => {
         return {
@@ -84,6 +83,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
         this.isOEM$ = this.licenseService.isOEM$();
 
         this.formGroup = new UntypedFormGroup({
+          epg_name: new UntypedFormControl(currentStepPayload?.customGroupName),
           ...(currentStepPayload.selectedEndpoints?.reduce(
             (map, { id, configuration, sharedConfiguration }) => ({
               ...map,
@@ -94,6 +94,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
           ) ?? {}),
         });
       });
+
   }
 
   ngOnDestroy() {
@@ -104,6 +105,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   save(): void {
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
+      customGroupName: this.formGroup.get('epg_name')?.value,
       selectedEndpoints: previousPayload.selectedEndpoints.map(({ id, name, icon, deployed }) => ({
         id,
         name,
