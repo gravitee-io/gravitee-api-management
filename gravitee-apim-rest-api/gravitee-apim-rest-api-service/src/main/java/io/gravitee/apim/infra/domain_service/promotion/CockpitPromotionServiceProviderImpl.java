@@ -60,4 +60,10 @@ public class CockpitPromotionServiceProviderImpl implements CockpitPromotionServ
         );
         return PromotionAdapter.INSTANCE.toCoreModel(created);
     }
+
+    @Override
+    public Promotion process(String promotionId, boolean isAccepted) {
+        var processed = promotionService.processPromotion(GraviteeContext.getExecutionContext(), promotionId, isAccepted);
+        return PromotionAdapter.INSTANCE.toCoreModel(processed);
+    }
 }
