@@ -1,0 +1,194 @@
+#
+# Copyright © 2015 The Gravitee team (http://gravitee.io)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+networks:
+  frontend:
+    name: frontend
+  storage:
+    name: storage
+
+volumes:
+  data-elasticsearch:
+  data-mongo:
+
+services:
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: redis_stack
+    ports:
+      - "6379:6379"
+    networks:
+      - storage
+      - frontend
+
+  mongodb:
+    image: mongo:${MONGODB_VERSION:-6.0}
+    container_name: gio_apim_mongodb
+    restart: always
+    volumes:
+      - data-mongo:/data/db
+      - ./.logs/apim-mongodb:/var/log/mongodb
+    healthcheck:
+      test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - storage
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.17.2}
+    container_name: gio_apim_elasticsearch
+    restart: always
+    volumes:
+      - data-elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=0.0.0.0
+      - xpack.security.enabled=false
+      - cluster.name=elasticsearch
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile: 65536
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - storage
+
+  gateway_server:
+    image: graviteeio.azurecr.io/apim-gateway:master-latest
+    container_name: gio_apim_gateway_server
+    restart: always
+    ports:
+      - "18092:18092"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./.logs/apim-gateway-server:/opt/graviteeio-gateway/logs
+      - ./.license:/opt/graviteeio-gateway/license
+      - ./.config/gateway-server:/opt/graviteeio-gateway/config
+    environment:
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_reporters_elasticsearch_enabled=false
+      - gravitee_services_bridge_http_enabled=true
+      - gravitee_services_bridge_http_port=18092
+      - gravitee_services_bridge_http_host=0.0.0.0
+      - gravitee_services_bridge_http_secured=false
+      - gravitee_services_bridge_http_ssl_clientAuth=false
+      - gravitee_services_gatewaydebug_enabled=false
+    networks:
+      - storage
+      - frontend
+
+  gateway_client:
+    image: graviteeio.azurecr.io/apim-gateway:master-latest
+    container_name: gio_apim_gateway_client
+    restart: always
+    ports:
+      - "8082:8082"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./.logs/apim-gateway-client:/opt/graviteeio-gateway/logs
+      - ./.license:/opt/graviteeio-gateway/license
+      - ./.config/gateway-client:/opt/graviteeio-gateway/config
+    environment:
+      - gravitee_management_type=http
+      - gravitee_management_http_url=http://gateway-server:18092
+      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_reporters_elasticsearch_enabled=true
+      - gravitee_management_http_ssl_verifyHostName=false
+    networks:
+      - storage
+      - frontend
+
+
+  gateway_client_2:
+    image: graviteeio.azurecr.io/apim-gateway:master-latest
+    container_name: gio_apim_gateway_client_2
+    restart: always
+    ports:
+      - "8081:8082"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./.logs/apim-gateway-client-2:/opt/graviteeio-gateway/logs
+      - ./.license:/opt/graviteeio-gateway/license
+      - ./.config/gateway-client:/opt/graviteeio-gateway/config
+    environment:
+      - gravitee_management_type=http
+      - gravitee_management_http_url=http://gateway-server:18092
+      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_reporters_elasticsearch_enabled=true
+      - gravitee_management_http_ssl_verifyHostName=false
+    networks:
+      - storage
+      - frontend
+
+  management_api:
+    image: graviteeio.azurecr.io/apim-management-api:master-latest
+    container_name: gio_apim_management_api
+    restart: always
+    ports:
+      - "8083:8083"
+    links:
+      - mongodb
+      - elasticsearch
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+      - ./.license:/opt/graviteeio-management-api/license
+    environment:
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+    networks:
+      - storage
+      - frontend
+
+  management_ui:
+    image: graviteeio.azurecr.io/apim-management-ui:master-latest
+    container_name: gio_apim_management_ui
+    restart: always
+    ports:
+      - "8084:8080"
+    depends_on:
+      - management_api
+    environment:
+      - MGMT_API_URL=http://localhost:8083/management/
+    volumes:
+      - ./.logs/apim-management-ui:/var/log/nginx
+    networks:
+      - frontend

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    The following is given as a simple example to enable hazelcast cluster on local environment.
+    It will be used when cluster.type: hazelcast is set in gravitee.yml.
+
+    For advanced configuration, please refer to official documentation: https://docs.hazelcast.com/imdg/4.2/clusters/discovery-mechanisms
+-->
+<hazelcast xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.hazelcast.com/schema/config
+           http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+
+    <cluster-name>gio-apim-gateway-cluster-bridge</cluster-name>
+    <network>
+        <port auto-increment="true" port-count="100">5701</port>
+        <join>
+            <auto-detection enabled="true"/>
+            <multicast enabled="false"/>
+            <tcp-ip enabled="true">
+                <member>gateway_client</member>
+                <member>gateway_client_2</member>
+                <member>gateway_server</member>
+            </tcp-ip>
+        </join>
+    </network>
+</hazelcast>
