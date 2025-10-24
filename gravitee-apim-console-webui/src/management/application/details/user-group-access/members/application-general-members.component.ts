@@ -90,10 +90,11 @@ export class ApplicationGeneralMembersComponent {
     combineLatest([
       this.applicationService.getById(this.activatedRoute.snapshot.params.applicationId),
       this.applicationMembersService.get(this.activatedRoute.snapshot.params.applicationId),
+      this.groupService.list(1, 9999),
       this.roleService.list('APPLICATION'),
     ])
       .pipe(
-        tap(([application, members, roles]) => {
+        tap(([application, members, groups, roles]) => {
           this.isReadOnly = application.origin === 'KUBERNETES';
           this.members = members;
           this.application = application;
@@ -108,8 +109,11 @@ export class ApplicationGeneralMembersComponent {
               notSaved: false,
             };
           });
-
-          this.fetchGroupsForApp(application.groups)?.pipe(takeUntil(this.unsubscribe$)).subscribe();
+          this.groupData = application.groups?.map((id) => ({
+            id,
+            name: groups?.data.find((g) => g.id === id)?.name,
+            isVisible: true,
+          }));
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -134,24 +138,6 @@ export class ApplicationGeneralMembersComponent {
           this.form.disable({ emitEvent: false });
         }
       });
-  }
-
-  fetchGroupsForApp(groups: string[]) {
-    if (!groups?.length) {
-      this.groupData = [];
-      return EMPTY;
-    }
-
-    return this.groupService.listById(groups, 1, groups.length).pipe(
-      tap((res) => {
-        const groupArray = res ? res.data : [];
-        this.groupData = groupArray.map((g) => ({
-          id: g.id,
-          name: g.name,
-          isVisible: true,
-        }));
-      }),
-    );
   }
 
   ngOnDestroy() {
