@@ -19,6 +19,7 @@ import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core'
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -80,5 +81,6 @@ export const appConfig: ApplicationConfig = {
       provide: DATE_PIPE_DEFAULT_OPTIONS,
       useValue: { dateFormat: 'YYYY-MM-dd HH:mm:ss.SSS' },
     },
+    provideCharts(withDefaultRegisterables()),
   ],
 };

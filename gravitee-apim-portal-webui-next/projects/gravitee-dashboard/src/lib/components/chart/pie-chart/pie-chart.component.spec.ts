@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Public API Surface of gravitee-dashboard
- */
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-export * from './lib/gravitee-dashboard.service';
-export * from './lib/gravitee-dashboard.component';
+import { PieChartComponent } from './pie-chart.component';
 
-export * from './lib/components/grid/grid.component';
-export * from './lib/components/widget/widget';
-export * from './lib/components/widget/widget.component';
-export * from './lib/components/chart/pie-chart/pie-chart.component';
+describe('PieChartComponent', () => {
+  let component: PieChartComponent<'pie'>;
+  let fixture: ComponentFixture<PieChartComponent<'pie'>>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [PieChartComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(PieChartComponent<'pie'>);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

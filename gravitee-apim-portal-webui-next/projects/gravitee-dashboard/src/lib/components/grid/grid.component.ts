@@ -13,12 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
+import { CompactType, DisplayGrid, GridsterComponent, GridsterConfig, GridsterItemComponent, GridType } from 'angular-gridster2';
+
+import { PieChartComponent } from '../chart/pie-chart/pie-chart.component';
+import { Widget } from '../widget/widget';
+import { WidgetBodyComponent, WidgetComponent, WidgetTitleComponent } from '../widget/widget.component';
 
 @Component({
   selector: 'gd-grid',
-  imports: [],
+  imports: [GridsterComponent, GridsterItemComponent, WidgetComponent, WidgetTitleComponent, WidgetBodyComponent, PieChartComponent],
   templateUrl: './grid.component.html',
-  styleUrl: './grid.component.css',
+  styleUrl: './grid.component.scss',
 })
-export class GridComponent {}
+export class GridComponent {
+  items = input<Widget[]>();
+  options = input<GridsterConfig>(this.getGridsterOptions());
+
+  private getGridsterOptions(): GridsterConfig {
+    return {
+      gridType: GridType.VerticalFixed,
+      maxCols: 6,
+      minCols: 6,
+      minRows: 8,
+      itemAspectRatio: 4 / 3,
+      compactType: CompactType.None,
+      displayGrid: DisplayGrid.None,
+      pushItems: true,
+      draggable: {
+        enabled: true,
+      },
+      resizable: {
+        enabled: true,
+      },
+      outerMargin: true,
+      setGridSize: true,
+      fixedColWidth: 50,
+      fixedRowHeight: 150,
+    };
+  }
+}

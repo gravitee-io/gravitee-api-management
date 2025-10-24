@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2025 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,4 +15,30 @@
     limitations under the License.
 
 -->
-<p>grid works!</p>
+
+<gridster [options]="options()" class="grid">
+  @for (item of items(); track item) {
+    <gridster-item [item]="item.layout">
+      <gd-widget [item]="item">
+        <gd-widget-title>{{ item.label }}</gd-widget-title>
+
+        <gd-widget-body>
+          @switch (item.type) {
+            @case ('pie') {
+              <gd-pie-chart type="pie" />
+            }
+            @case ('polarArea') {
+              <gd-pie-chart type="polarArea" />
+            }
+            @case ('doughnut') {
+              <gd-pie-chart type="doughnut" />
+            }
+            @default {
+              <div>Not yet implemented</div>
+            }
+          }
+        </gd-widget-body>
+      </gd-widget>
+    </gridster-item>
+  }
+</gridster>

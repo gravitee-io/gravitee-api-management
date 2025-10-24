@@ -19,13 +19,15 @@ import { MatCard, MatCardContent } from '@angular/material/card';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { map, startWith, switchMap } from 'rxjs';
 
+import { GraviteeDashboardComponent } from '@gravitee/gravitee-dashboard';
+
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { PageTreeComponent } from '../../components/page-tree/page-tree.component';
 import { PageService } from '../../services/page.service';
 
 @Component({
   selector: 'app-guides',
-  imports: [LoaderComponent, PageTreeComponent, MatCard, MatCardContent, RouterOutlet],
+  imports: [LoaderComponent, PageTreeComponent, MatCard, MatCardContent, RouterOutlet, GraviteeDashboardComponent],
   templateUrl: './guides.component.html',
   styleUrls: ['./guides.component.scss'],
 })

@@ -1,4 +1,6 @@
 import '@angular/localize/init';
+import 'chart.js/auto';
+import 'jest-canvas-mock';
 import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
 
 setupZoneTestEnv();
@@ -15,3 +17,12 @@ jest.useFakeTimers({ advanceTimers: 1, now: MOCK_DATE }); // advance 1ms every 1
 
 // Mock Date.now() so that it always returns the same date
 Date.now = jest.fn(() => MOCK_DATE.getTime());
+
+// Mock ResizeObserver to avoid errors in tests using canvas (Chartjs)
+globalThis.ResizeObserver =
+  globalThis.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));

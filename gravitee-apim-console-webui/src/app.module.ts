@@ -24,6 +24,7 @@ import { setAngularJSGlobal, UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
 import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
 import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { currentUserProvider, ajsScopeProvider } from './ajs-upgraded-providers';
 import { Constants } from './entities/Constants';
@@ -82,10 +83,11 @@ import { ClusterRoutingModule } from './management/clusters/cluster-routing.modu
         headerName: 'none',
       }),
     ),
+    provideCharts(withDefaultRegisterables()),
   ],
 })
 export class AppModule implements DoBootstrap {
-  constructor(private upgrade: UpgradeModule) {}
+  constructor(private readonly upgrade: UpgradeModule) {}
 
   ngDoBootstrap(app: ApplicationRef) {
     setAngularJSGlobal(angular);

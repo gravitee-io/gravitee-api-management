@@ -178,6 +178,11 @@
     },
     "gravitee-dashboard": {
       "projectType": "library",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
       "root": "projects/gravitee-dashboard",
       "sourceRoot": "projects/gravitee-dashboard/src",
       "prefix": "gd",
