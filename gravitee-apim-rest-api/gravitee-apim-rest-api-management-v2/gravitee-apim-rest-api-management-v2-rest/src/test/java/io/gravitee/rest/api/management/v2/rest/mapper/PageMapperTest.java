@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.rest.api.management.v2.rest.model.SourceConfiguration;
 import java.util.LinkedHashMap;
@@ -51,8 +49,8 @@ class PageMapperTest extends AbstractMapperTest {
 
         var pageSource = pageMapper.mapSourceConfigurationToPageSource(sourceConfiguration);
 
-        assertNotNull(pageSource);
-        assertEquals("http-fetcher", pageSource.getType());
+        assertThat(pageSource).isNotNull();
+        assertThat(pageSource.getType()).isEqualTo("http-fetcher");
 
         var expectedConfig = """
             {
@@ -60,7 +58,7 @@ class PageMapperTest extends AbstractMapperTest {
               "autoFetch" : false,
               "url" : "https://apim-master-api.team-apim.gravitee.dev/management/openapi.yaml"
             }""";
-        assertNotNull(pageSource.getConfiguration());
-        assertEquals(expectedConfig, pageSource.getConfiguration().toString());
+        assertThat(pageSource.getConfiguration()).isNotNull();
+        assertThat(pageSource.getConfiguration().toString()).isEqualTo(expectedConfig);
     }
 }
