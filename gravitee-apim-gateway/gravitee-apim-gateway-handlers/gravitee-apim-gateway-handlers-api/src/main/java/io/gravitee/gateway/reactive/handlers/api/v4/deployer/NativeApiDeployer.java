@@ -36,9 +36,7 @@ public class NativeApiDeployer extends AbstractApiDeployer<NativeApi> {
     public void initialize(final NativeApi nativeApi) {
         io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefinition = nativeApi.getDefinition();
 
-        if (apiDefinition.getPlans() == null) {
-            apiDefinition.setPlans(List.of());
-        }
+        apiDefinition.setPlans(filterPlans(apiDefinition.getPlans()));
         if (apiDefinition.getProperties() != null) {
             decryptProperties(apiDefinition.getProperties());
         }
@@ -47,5 +45,17 @@ public class NativeApiDeployer extends AbstractApiDeployer<NativeApi> {
     @Override
     public List<String> getPlans(final NativeApi nativeApi) {
         return nativeApi.getDefinition().getPlans().stream().map(NativePlan::getName).collect(Collectors.toList());
+    }
+
+    private List<NativePlan> filterPlans(final List<NativePlan> plans) {
+        if (plans == null) {
+            return List.of();
+        }
+        return plans
+            .stream()
+            .filter(plan -> plan.getStatus() != null)
+            .filter(plan -> filterPlanStatus(plan.getStatus().getLabel()))
+            .filter(plan -> filterShardingTag(plan.getName(), plan.getId(), plan.getTags()))
+            .collect(Collectors.toList());
     }
 }
