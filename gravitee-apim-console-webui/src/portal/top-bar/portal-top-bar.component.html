@@ -15,5 +15,46 @@
     limitations under the License.
 
 -->
-<portal-header title="Top Bar" subtitle="Customize the Developer Portal top bar" />
-<router-outlet></router-outlet>
+<portal-header title="Manage your top bar sections" subtitle="Manage and edit your Developer Portal pages with Markdown" />
+
+<main class="page-layout">
+  <section class="panel sections-panel">
+    <header class="panel-header sections-panel__header">
+      <h3>Sections</h3>
+      <div class="panel-header__actions">
+        <button mat-flat-button disabled>Add</button>
+      </div>
+    </header>
+
+    @if (isEmpty) {
+      <div class="empty-content">
+        <empty-state iconName="gio:page" title="Sections" message="Start by adding your first page." />
+      </div>
+    }
+  </section>
+
+  <section class="panel editor-panel">
+    <header class="panel-header editor-panel__header">
+      <div class="panel-header__actions">
+        <button mat-flat-button disabled>Save</button>
+      </div>
+    </header>
+
+    @if (isEmpty) {
+      <div class="empty-editor">
+        <div class="empty-content">
+          <empty-state iconName="gio:code" title="Editor" message="Use GMD code to customize and edit your page content." />
+        </div>
+        <div class="empty-content">
+          <empty-state
+            iconName="gio:monitor"
+            title="Preview"
+            message="Use the page preview to see exactly how your content will look before you publish it."
+          />
+        </div>
+      </div>
+    } @else {
+      <gmd-editor [formControl]="contentControl" />
+    }
+  </section>
+</main>

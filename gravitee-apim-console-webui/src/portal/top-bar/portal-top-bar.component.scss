@@ -13,8 +13,91 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 @use '../../scss/gio-layout' as gio-layout;
 
 :host {
   @include gio-layout.gio-responsive-content-container;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-layout {
+  display: grid;
+  grid-template-columns: 2fr 7fr;
+  gap: 2px;
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+  min-height: 0;
+}
+
+.panel-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+
+  &__actions {
+    margin-left: auto;
+  }
+}
+
+.sections-panel {
+  padding: 16px;
+
+  &__header {
+    padding-bottom: 16px;
+
+    h3 {
+      margin: 0;
+    }
+  }
+
+  .empty-content {
+    flex-grow: 1;
+  }
+}
+
+.editor-panel {
+  gmd-editor {
+    flex-grow: 1;
+    min-height: 0;
+  }
+
+  &__header {
+    padding: 16px 16px 0 16px;
+  }
+
+  .empty-editor {
+    flex-grow: 1;
+  }
+}
+
+.empty-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
+  height: 100%;
+}
+
+.empty-content {
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  border-radius: 4px;
+  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
