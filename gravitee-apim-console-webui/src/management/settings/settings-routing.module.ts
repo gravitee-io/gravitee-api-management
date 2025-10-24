@@ -260,7 +260,7 @@ export const settingsRoutes: Routes = [
         component: SharedPolicyGroupsComponent,
         data: {
           permissions: {
-            anyOf: ['environment-shared_policy_group-r'],
+            anyOf: ['environment-shared_policy_group_configuration-r'],
             unauthorizedFallbackTo: '../metadata',
           },
         },
@@ -285,7 +285,7 @@ export const settingsRoutes: Routes = [
         ],
         data: {
           permissions: {
-            anyOf: ['environment-shared_policy_group-r'],
+            anyOf: ['environment-shared_policy_group_configuration-r'],
             unauthorizedFallbackTo: '../metadata',
           },
         },
