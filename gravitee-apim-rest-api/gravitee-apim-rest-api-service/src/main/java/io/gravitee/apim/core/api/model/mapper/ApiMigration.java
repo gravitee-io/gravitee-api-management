@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
@@ -344,7 +345,9 @@ class ApiMigration {
             if (healthcheckNode == null || healthcheckNode.isNull() || healthcheckNode.isMissingNode()) {
                 return MigrationResult.value(config);
             }
-            ArrayNode steps = (ArrayNode) root.path("healthcheck").path("steps");
+            ArrayNode steps = root.path("healthcheck").path("steps").isArray()
+                ? (ArrayNode) root.path("healthcheck").path("steps")
+                : JsonNodeFactory.instance.arrayNode();
             for (JsonNode step : steps) {
                 ObjectNode response = (ObjectNode) step.path("response");
                 JsonNode assertionsNode = response.get("assertions");
