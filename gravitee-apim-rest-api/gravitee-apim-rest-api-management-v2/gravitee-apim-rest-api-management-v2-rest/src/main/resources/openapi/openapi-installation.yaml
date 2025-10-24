@@ -118,6 +118,41 @@ paths:
                                 $ref: "#/components/schemas/GraviteeLicense"
                 default:
                     $ref: "#/components/responses/Error"
+    /organizations/{orgId}/promotions/{promotionId}/_process:
+        servers:
+          - url: /management/v2
+            description: Gravitee.io APIM - Management API -v2
+        parameters:
+          - $ref: "#/components/parameters/orgIdParam"
+          - $ref: "#/components/parameters/promotionIdParam"
+        post:
+          tags:
+            - Promotions
+          summary: Process an API promotion.
+          description: |-
+            Accept or reject an API promotion.
+          operationId: processApiPromotion
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    accept:
+                      type: boolean
+                      description: Accept or reject the API promotion.
+                      example: true
+            required: true
+          responses:
+            "200":
+              description: The processed API promotion.
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Promotion"
+            default:
+              $ref: "#/components/responses/Error"
+
 components:
     schemas:
         Environment:
@@ -248,6 +283,85 @@ components:
                     description: Organization's description. A short description of your Organization.
                     example: I can use many characters to describe this Organization.
                     minLength: 1
+        Promotion:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The promotion id.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            apiDefinition:
+              type: string
+              description: The api definition.
+            apiId:
+              type: string
+              description: The api id.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            status:
+              type: string
+              description: The status of the promotion.
+              enum:
+                - CREATED
+                - TO_BE_VALIDATED
+                - ACCEPTED
+                - REJECTED
+                - ERROR
+            targetEnvCockpitId:
+              type: string
+              description: The target environment id where the promotion should be done.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            targetEnvName:
+              type: string
+              description: The target environment name where the promotion should be done.
+              example: prod
+            sourceEnvCockpitId:
+              type: string
+              description: The source environment id where the promotion should come from.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            sourceEnvName:
+              type: string
+              description: The source environment name where the promotion should come from.
+              example: dev
+            createdAt:
+              type: string
+              format: date-time
+              description: The datetime when the promotion was created.
+              example: 2023-05-25T12:40:46.184Z
+            updatedAt:
+              type: string
+              format: date-time
+              description: The datetime when the promotion was updated.
+              example: 2023-05-25T12:40:46.184Z
+            author:
+              $ref: "#/components/schemas/PromotionAuthor"
+            targetApiId:
+              type: string
+              description: The target api id.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+
+        PromotionAuthor:
+          type: object
+          properties:
+            userId:
+              type: string
+              description: The user id.
+              example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+            displayName:
+              type: string
+              description: The display name of the user who created the promotion.
+              example: John Doe
+            email:
+              type: string
+              description: The email of the user who created the promotion.
+              example: email@example.com
+            source:
+              type: string
+              description: The source of the use who created the promotion.
+              example: cockpit
+            sourceId:
+              type: string
+              description: The id of the user who created the promotion source.
+              example: 89eb0e39-1706-49c1-ab0e-391706d9c10a
     responses:
         EnvironmentsResponse:
             description: Page of environments
@@ -304,6 +418,13 @@ components:
             schema:
                 type: string
                 default: DEFAULT
+        promotionIdParam:
+          name: promotionId
+          in: path
+          required: true
+          description: Id of a promotion.
+          schema:
+            type: string
 
     securitySchemes:
         BasicAuth:
