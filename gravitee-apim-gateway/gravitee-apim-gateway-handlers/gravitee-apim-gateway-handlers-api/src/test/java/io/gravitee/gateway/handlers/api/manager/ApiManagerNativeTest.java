@@ -257,7 +257,7 @@ public class ApiManagerNativeTest {
     public void should_update_api() {
         final NativeApi api = buildTestApi();
         final NativePlan mockedPlan = buildMockPlan();
-
+        api.setRevision("rev1");
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
@@ -267,6 +267,7 @@ public class ApiManagerNativeTest {
         final NativeApi api2 = buildTestApi();
         Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
         api2.setDeployedAt(Date.from(deployDateInst));
+        api2.setRevision("rev2");
         api2.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api2);
@@ -362,6 +363,7 @@ public class ApiManagerNativeTest {
         final NativeApi api = buildTestApi();
         final NativePlan mockedPlan = buildMockPlan();
 
+        api.setRevision("rev1");
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
@@ -369,6 +371,7 @@ public class ApiManagerNativeTest {
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
         final NativeApi api2 = buildTestApi();
+        api2.setRevision("rev2");
         api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
         api2.getDefinition().setPlans(Collections.emptyList());
 
@@ -382,7 +385,7 @@ public class ApiManagerNativeTest {
     public void should_undeploy_disabled() {
         final NativeApi api = buildTestApi();
         final NativePlan mockedPlan = buildMockPlan();
-
+        api.setRevision("rev1");
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
@@ -392,6 +395,7 @@ public class ApiManagerNativeTest {
         final NativeApi api2 = buildTestApi();
         api2.setEnabled(false);
         api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
+        api2.setRevision("rev2");
         api2.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api2);

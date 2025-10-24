@@ -152,7 +152,7 @@ public class ApiManagerImpl implements ApiManager {
             boolean apiToDeploy = deployedApi == null || force;
             boolean apiToUpdate =
                 !apiToDeploy &&
-                (deployedApi.getDeployedAt().before(api.getDeployedAt()) || !Objects.equals(deployedApi.getRevision(), api.getRevision()));
+                (deployedApi.getDeployedAt().before(api.getDeployedAt()) && !Objects.equals(deployedApi.getRevision(), api.getRevision()));
 
             // if API will be deployed or updated
             if (apiToDeploy || apiToUpdate) {
@@ -192,7 +192,10 @@ public class ApiManagerImpl implements ApiManager {
 
         if (gatewayConfiguration.hasMatchingTags(reactableApi.getTags())) {
             boolean apiToDeploy = deployedApi == null;
-            boolean apiToUpdate = !apiToDeploy && deployedApi.getDeployedAt().before(reactableApi.getDeployedAt());
+            boolean apiToUpdate =
+                !apiToDeploy &&
+                (deployedApi.getDeployedAt().before(reactableApi.getDeployedAt()) &&
+                    !Objects.equals(deployedApi.getRevision(), reactableApi.getRevision()));
 
             // API will be deployed or updated
             if (apiToDeploy || apiToUpdate) {

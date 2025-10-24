@@ -276,7 +276,7 @@ public class ApiManagerV4Test {
     public void shouldUpdateApi() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
-
+        api.setRevision("rev1");
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
@@ -284,6 +284,7 @@ public class ApiManagerV4Test {
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
         final Api api2 = buildTestApi();
+        api2.setRevision("rev2");
         Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
         api2.setDeployedAt(Date.from(deployDateInst));
         api2.getDefinition().setPlans(singletonList(mockedPlan));
@@ -380,7 +381,7 @@ public class ApiManagerV4Test {
     public void shouldUndeployApi_noMorePlan() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
-
+        api.setRevision("rev1");
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
@@ -388,6 +389,7 @@ public class ApiManagerV4Test {
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
         final Api api2 = buildTestApi();
+        api2.setRevision("rev2");
         api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
         api2.getDefinition().setPlans(Collections.emptyList());
 
@@ -401,7 +403,7 @@ public class ApiManagerV4Test {
     public void shouldUndeployApi_disabled() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
-
+        api.setRevision("rev1");
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
@@ -410,6 +412,7 @@ public class ApiManagerV4Test {
 
         final Api api2 = buildTestApi();
         api2.setEnabled(false);
+        api2.setRevision("rev2");
         api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
         api2.getDefinition().setPlans(singletonList(mockedPlan));
 
