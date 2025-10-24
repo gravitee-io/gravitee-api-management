@@ -65,8 +65,6 @@ interface Range {
   color?: string;
 }
 
-// Other file
-
 export interface AnalyticsStatsResponse {
   count: number;
   min: number;
