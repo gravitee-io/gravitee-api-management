@@ -86,4 +86,36 @@ public interface ConfigurationSerializationMapper {
 
         return configuration;
     }
+
+    @Named("deserializeConfigurationWithSensitiveDataMasking")
+    default Object deserializeConfigurationWithSensitiveDataMasking(String configuration, String sourceType) {
+        if (Objects.isNull(configuration)) {
+            return null;
+        }
+
+        ObjectMapper mapper = new GraviteeMapper();
+        try {
+            LinkedHashMap<String, Object> configMap = mapper.readValue(configuration, LinkedHashMap.class);
+            maskSensitiveFieldsInMap(configMap);
+            return configMap;
+        } catch (JsonProcessingException jse) {
+            logger.debug("Cannot parse configuration: " + jse.getMessage());
+            return configuration;
+        }
+    }
+
+    default void maskSensitiveFieldsInMap(Map<String, Object> configMap) {
+        if (configMap == null) {
+            return;
+        }
+
+        // List of sensitive field names that should be masked
+        String[] sensitiveFields = { "privateToken", "password", "secret", "token", "apiKey", "accessToken", "clientSecret" };
+
+        for (String field : sensitiveFields) {
+            if (configMap.containsKey(field) && configMap.get(field) != null) {
+                configMap.put(field, "********");
+            }
+        }
+    }
 }
