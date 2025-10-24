@@ -16,7 +16,10 @@
 package io.gravitee.apim.core.api.model.mapper;
 
 import static io.gravitee.apim.core.api.model.utils.MigrationResultUtils.get;
-import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.*;
+import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.RANDOM;
+import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.ROUND_ROBIN;
+import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.WEIGHTED_RANDOM;
+import static io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType.WEIGHTED_ROUND_ROBIN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -52,6 +55,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.service.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -748,6 +752,95 @@ class V2ToV4MigrationOperatorTest {
                 .isEqualTo(
                     "{\"schedule\":\"0 */1 * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"GET\",\"target\":\"/hc3\",\"assertion\":\"{#response.status == 202}\",\"overrideEndpointPath\":false}"
                 );
+        });
+    }
+
+    @Test
+    void should_migrate_endpoint_group_with_non_existing_healthcheck_steps() {
+        // Setup Endpoint
+        Endpoint v2Endpoint = new Endpoint();
+        v2Endpoint.setName("endpoint-1");
+        v2Endpoint.setBackup(true);
+        v2Endpoint.setTenants(List.of("tenant-a"));
+        v2Endpoint.setWeight(5);
+        v2Endpoint.setInherit(false);
+        v2Endpoint.setConfiguration(
+            """
+            {
+              "name": "default",
+              "target": "http://test",
+              "weight": 1,
+              "backup": false,
+              "status": "UP",
+              "tenants": [],
+              "type": "http",
+              "inherit": true,
+              "headers": [],
+              "proxy": null,
+              "http": null,
+              "ssl": null,
+              "healthcheck": {
+                "enabled": false,
+                "inherit": false
+              }
+            }
+            """
+        );
+        // Setup EndpointGroup
+        EndpointGroup v2Group = new EndpointGroup();
+        v2Group.setName("default-group");
+        Set<Endpoint> endpoints = new HashSet<>();
+        endpoints.add(v2Endpoint);
+        v2Group.setEndpoints(endpoints);
+
+        ArrayList<HttpHeader> headers = new ArrayList<HttpHeader>();
+        headers.add(new HttpHeader("X-Test", "yes"));
+        v2Group.setHeaders(headers);
+
+        LoadBalancer lb = new LoadBalancer();
+        lb.setType(LoadBalancerType.RANDOM);
+        v2Group.setLoadBalancer(lb);
+
+        // Setup Proxy
+        Proxy proxy = new Proxy();
+        Set<EndpointGroup> endpointGroups = new HashSet<>();
+        endpointGroups.add(v2Group);
+        proxy.setGroups(endpointGroups);
+
+        proxy.setVirtualHosts(List.of(new VirtualHost("localhost", "/api", false)));
+        proxy.setCors(new Cors());
+        proxy.setServers(List.of("localhost"));
+
+        // Setup Api V2
+        var apiDef = new io.gravitee.definition.model.Api();
+        apiDef.setId("test-api");
+        apiDef.setName("Test API");
+        apiDef.setVersion("1.0");
+        apiDef.setProxy(proxy);
+
+        var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
+
+        // Act
+        var result = get(mapper.mapApi(api));
+
+        // Check Endpoint Group
+        var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+        assertSoftly(softly -> {
+            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(group.getName()).isEqualTo("default-group");
+            softly.assertThat(group.getType()).isEqualTo("http-proxy");
+        });
+
+        // Check Endpoint
+        var endpoint = group.getEndpoints().getFirst();
+        assertSoftly(softly -> {
+            softly.assertThat(endpoint.getType()).isEqualTo("http-proxy");
+            softly.assertThat(endpoint.getName()).isEqualTo("endpoint-1");
+            softly.assertThat(endpoint.getWeight()).isEqualTo(5);
+            softly
+                .assertThat(endpoint.getServices().getHealthCheck())
+                .extracting(Service::isOverrideConfiguration, Service::isEnabled, Service::getType, Service::getConfiguration)
+                .contains(true, false, "http-health-check", "{\"schedule\":null,\"failureThreshold\":2,\"successThreshold\":2}");
         });
     }
 
