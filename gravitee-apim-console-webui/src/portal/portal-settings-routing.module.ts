@@ -20,8 +20,6 @@ import { PortalNavigationComponent } from './navigation/portal-navigation.compon
 import { PortalBannerComponent } from './banner/portal-banner.component';
 import { PortalThemeComponent } from './theme/portal-theme.component';
 import { PortalTopBarComponent } from './top-bar/portal-top-bar.component';
-import { MenuLinkEditComponent } from './top-bar/menu-link-edit/menu-link-edit.component';
-import { MenuLinkListComponent } from './top-bar/menu-link-list/menu-link-list.component';
 import { PortalCatalogComponent } from './catalog/portal-catalog.component';
 import { CategoryCatalogComponent } from './catalog/category/category.component';
 import { CategoryListComponent } from './catalog/category-list/category-list.component';
@@ -48,26 +46,6 @@ const portalRoutes: Routes = [
             anyOf: ['environment-settings-r', 'environment-settings-u'],
           },
         },
-        children: [
-          {
-            path: '',
-            component: MenuLinkListComponent,
-            data: {
-              permissions: {
-                anyOf: ['environment-settings-r', 'environment-settings-u'],
-              },
-            },
-          },
-          {
-            path: ':menuLinkId',
-            component: MenuLinkEditComponent,
-            data: {
-              permissions: {
-                anyOf: ['environment-settings-u'],
-              },
-            },
-          },
-        ],
       },
       {
         path: 'catalog',
