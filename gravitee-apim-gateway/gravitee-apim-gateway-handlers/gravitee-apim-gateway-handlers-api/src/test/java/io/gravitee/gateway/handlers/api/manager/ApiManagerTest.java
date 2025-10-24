@@ -275,6 +275,7 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
+        api.setRevision("rev1");
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
@@ -284,6 +285,7 @@ public class ApiManagerTest {
         final Api api2 = buildTestApi();
         Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
         api2.setDeployedAt(Date.from(deployDateInst));
+        api2.setRevision("rev2");
         api2.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api2);
@@ -379,6 +381,7 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
+        api.setRevision("rev1");
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
@@ -387,6 +390,7 @@ public class ApiManagerTest {
 
         final Api api2 = buildTestApi();
         api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
+        api2.setRevision("rev2");
         api2.getDefinition().setPlans(Collections.emptyList());
 
         apiManager.register(api2);
@@ -398,6 +402,7 @@ public class ApiManagerTest {
     @Test
     public void shouldUndeployApi_disabled() {
         final Api api = buildTestApi();
+        api.setRevision("rev1");
         final Plan mockedPlan = buildMockPlan();
 
         api.getDefinition().setPlans(singletonList(mockedPlan));
@@ -408,6 +413,7 @@ public class ApiManagerTest {
 
         final Api api2 = buildTestApi();
         api2.getDefinition().setPlans(singletonList(mockedPlan));
+        api.setRevision("rev2");
         api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
         api2.setEnabled(false);
 
@@ -457,6 +463,7 @@ public class ApiManagerTest {
     @Test
     public void shouldRequireDeploymentWithUpdatedApi() {
         final Api api = buildTestApi();
+        api.setRevision("rev1");
         final Plan mockedPlan = buildMockPlan();
 
         api.getDefinition().setPlans(singletonList(mockedPlan));
@@ -468,6 +475,7 @@ public class ApiManagerTest {
         final Api api2 = buildTestApi();
         Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
         api2.setDeployedAt(Date.from(deployDateInst));
+        api.setRevision("rev2");
         api2.getDefinition().setPlans(singletonList(mockedPlan));
 
         ActionOnApi actionOnApi2 = apiManager.requiredActionFor(api2);
