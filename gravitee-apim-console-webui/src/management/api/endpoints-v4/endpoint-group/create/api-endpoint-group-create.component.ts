@@ -89,6 +89,8 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
           this.requiredQos = apiV4.listeners.flatMap((listener) => listener.entrypoints).flatMap((entrypoint) => entrypoint.qos);
           if (this.apiType === 'PROXY') {
             this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
+          } else if (this.apiType === 'LLM_PROXY') {
+            this.endpointGroupTypeForm.get('endpointGroupType').setValue('llm-proxy');
           }
           this.changeDetectorRef.detectChanges();
         },
