@@ -23,6 +23,7 @@ import java.util.Optional;
 public interface PortalPageCrudService {
     List<PortalPage> findByIds(List<PageId> pageIds);
     PortalPage update(PortalPage page);
+    PortalPage create(PortalPage page);
 
     Optional<PortalPage> findById(PageId pageId);
 }

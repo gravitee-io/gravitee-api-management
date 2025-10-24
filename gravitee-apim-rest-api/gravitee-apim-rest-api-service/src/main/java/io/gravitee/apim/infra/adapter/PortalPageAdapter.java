@@ -84,4 +84,8 @@ public interface PortalPageAdapter {
         portalPageContext.setPublished(toUpdate.published());
         return portalPageContext;
     }
+
+    PortalPageContext map(io.gravitee.apim.core.portal_page.model.PortalPageContext portalPageContext);
+
+    io.gravitee.apim.core.portal_page.model.PortalPageContext fromRepository(PortalPageContext portalPageContext);
 }
