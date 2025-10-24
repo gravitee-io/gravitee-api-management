@@ -16,13 +16,19 @@
 package io.gravitee.gateway.handlers.api.manager;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.Plan;
@@ -34,7 +40,6 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.license.ForbiddenFeatureException;
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseManager;
@@ -48,21 +53,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.SneakyThrows;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ApiManagerTest {
-
-    @Mock
-    private ObjectMapper objectMapper;
 
     @Mock
     private EventManager eventManager;
@@ -74,505 +79,484 @@ public class ApiManagerTest {
     private DataEncryptor dataEncryptor;
 
     @Mock
-    private ClusterManager clusterManager;
-
-    @Mock
     private LicenseManager licenseManager;
 
     private ApiManagerImpl apiManager;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor));
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
-        when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
+        lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
+        lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
     }
 
-    @Test
-    public void shouldNotDeployDisableApi() {
-        final Api api = buildTestApi();
-        api.setEnabled(false);
+    @Nested
+    class Register {
 
-        apiManager.register(api);
+        @Nested
+        class Deploy {
 
-        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
-    }
+            @Test
+            public void should_not_deploy_disable_api() {
+                final Api api = buildTestApi();
+                api.setEnabled(false);
 
-    @Test
-    public void shouldNotDeployApiWithoutPlan() {
-        final Api api = buildTestApi();
+                apiManager.register(api);
 
-        apiManager.register(api);
+                verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+            }
 
-        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
-        assertEquals(0, apiManager.apis().size());
-    }
+            @Test
+            public void should_not_deploy_api_without_plan() {
+                final Api api = buildTestApi();
 
-    @Test
-    public void shouldDeployApiWithPlan() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
+                apiManager.register(api);
 
-        api.getDefinition().setPlans(singletonList(mockedPlan));
+                verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+                assertThat(apiManager.apis()).isEmpty();
+            }
 
-        apiManager.register(api);
+            @Test
+            public void should_not_deploy_api_when_same_tag_defined_in_both_include_and_exclude() {
+                final Api api = buildTestApi();
+                final Plan mockedPlan = mock(Plan.class);
 
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-        assertEquals(1, apiManager.apis().size());
-    }
+                api.getDefinition().setPlans(singletonList(mockedPlan));
+                api.getDefinition().setTags(new HashSet<>(List.of("test")));
 
-    @Test
-    public void shouldNotDeployApiWithTagOnGatewayTagInInclusionAndExclusion() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+                when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(List.of("test,!test")));
 
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-        api.getDefinition().setTags(new HashSet<>(Arrays.asList("test")));
+                apiManager.register(api);
 
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test,!test")));
+                verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+            }
 
-        apiManager.register(api);
+            @Test
+            public void should_not_deploy_api_having_excluded_tag_despite_having_matching_tag() {
+                final Api api = buildTestApi();
+                final Plan mockedPlan = mock(Plan.class);
 
-        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
-    }
+                api.getDefinition().setPlans(singletonList(mockedPlan));
+                api.getDefinition().setTags(new HashSet<>(Arrays.asList("product", "international")));
 
-    @Test
-    public void shouldDeployApiWithTagOnGatewayWithoutTag() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
+                when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("product", "!international")));
 
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
+                apiManager.register(api);
 
-        apiManager.register(api);
+                verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+            }
 
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-    }
+            @Test
+            public void should_not_deploy_untagged_api_when_gateway_has_tag() {
+                final Api api = buildTestApi();
+                final Plan mockedPlan = mock(Plan.class);
 
-    @Test
-    public void shouldNotDeployApiWithTagOnGatewayTagExclusion() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+                api.getDefinition().setPlans(singletonList(mockedPlan));
 
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-        api.getDefinition().setTags(new HashSet<>(Arrays.asList("product", "international")));
+                when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("product")));
 
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("product", "!international")));
+                apiManager.register(api);
 
-        apiManager.register(api);
+                verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+            }
 
-        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
-    }
+            @Test
+            public void should_not_deploy_api_if_plan_has_non_matching_tag() {
+                final Api api = buildTestApi();
+                api.getDefinition().setTags(new HashSet<>(singletonList("test")));
 
-    @Test
-    public void shouldNotDeployApiWithTagOnGatewayWithoutTag() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = mock(Plan.class);
+                final Plan mockedPlan = mock(Plan.class);
+                when(mockedPlan.getStatus()).thenReturn("published");
+                when(mockedPlan.getTags()).thenReturn(new HashSet<>(singletonList("test2")));
+                api.getDefinition().setPlans(singletonList(mockedPlan));
 
-        api.getDefinition().setPlans(singletonList(mockedPlan));
+                when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("product")));
+                apiManager.register(api);
 
-        apiManager.register(api);
+                verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+            }
 
-        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
-    }
+            @Test
+            @SneakyThrows
+            public void should_not_deploy_if_license_is_invalid() {
+                var api = buildTestApi();
+                final String orgId = api.getOrganizationId();
+                doThrow(new InvalidLicenseException("Invalid license for test"))
+                    .when(licenseManager)
+                    .validatePluginFeatures(eq(orgId), anyCollection());
+                apiManager.register(api);
 
-    private void shouldDeployApiWithTags(final String tags, final String[] apiTags) {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
+                verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+            }
 
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-        api.getDefinition().setTags(new HashSet<>(Arrays.asList(apiTags)));
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(tags.split(","))));
-
-        apiManager.register(api);
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-    }
-
-    @Test
-    public void shouldDeployApiWithPlanMatchingTag() {
-        final Api api = buildTestApi();
-        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
-
-        final Plan mockedPlan = buildMockPlan();
-        when(mockedPlan.getTags()).thenReturn(new HashSet<>(singletonList("test")));
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
-
-        apiManager.register(api);
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-    }
-
-    @Test
-    public void shouldNotDeployApiWithoutPlanMatchingTag() {
-        final Api api = buildTestApi();
-        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
-
-        final Plan mockedPlan = mock(Plan.class);
-        when(mockedPlan.getStatus()).thenReturn("published");
-        when(mockedPlan.getTags()).thenReturn(new HashSet<>(singletonList("test2")));
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
-
-        apiManager.register(api);
-
-        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
-    }
-
-    @Test
-    public void test_deployApiWithTag() throws Exception {
-        shouldDeployApiWithTags("test,toto", new String[] { "test" });
-    }
-
-    @Test
-    public void test_deployApiWithTagExcluded() throws Exception {
-        shouldDeployApiWithTags("!test", new String[] { "toto" });
-    }
-
-    @Test
-    public void test_deployApiWithUpperCasedTag() throws Exception {
-        shouldDeployApiWithTags("test,toto", new String[] { "Test" });
-    }
-
-    @Test
-    public void test_deployApiWithAccentTag() throws Exception {
-        shouldDeployApiWithTags("test,toto", new String[] { "tést" });
-    }
-
-    @Test
-    public void test_deployApiWithUpperCasedAndAccentTag() throws Exception {
-        shouldDeployApiWithTags("test", new String[] { "Tést" });
-    }
-
-    @Test
-    public void test_deployApiWithTagExclusion() throws Exception {
-        shouldDeployApiWithTags("test,!toto", new String[] { "test" });
-    }
-
-    @Test
-    public void test_deployApiWithSpaceAfterComma() throws Exception {
-        shouldDeployApiWithTags("test, !toto", new String[] { "test" });
-    }
-
-    @Test
-    public void test_deployApiWithSpaceBeforeComma() throws Exception {
-        shouldDeployApiWithTags("test ,!toto", new String[] { "test" });
-    }
-
-    @Test
-    public void test_deployApiWithSpaceBeforeTag() throws Exception {
-        shouldDeployApiWithTags(" test,!toto", new String[] { "test" });
-    }
-
-    @Test
-    public void shouldUpdateApi() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
-
-        api.setRevision("rev1");
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-
-        apiManager.register(api);
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-
-        final Api api2 = buildTestApi();
-        Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
-        api2.setDeployedAt(Date.from(deployDateInst));
-        api2.setRevision("rev2");
-        api2.getDefinition().setPlans(singletonList(mockedPlan));
-
-        apiManager.register(api2);
-
-        verify(eventManager).publishEvent(ReactorEvent.UPDATE, api2);
-    }
-
-    @Test
-    public void shouldNotUpdateApi() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
-
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-
-        apiManager.register(api);
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-
-        final Api api2 = buildTestApi();
-        Instant deployDateInst = api.getDeployedAt().toInstant().minus(Duration.ofHours(1));
-        api2.setDeployedAt(Date.from(deployDateInst));
-
-        apiManager.register(api2);
-
-        verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
-    }
-
-    @Test
-    public void shouldUndeployApi_noMoreMatchingTag() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
-
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
-
-        apiManager.register(api);
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-
-        final Api api2 = buildTestApi();
-        api2.setDeployedAt(new Date());
-        api2.getDefinition().setTags(new HashSet<>(singletonList("other-tag")));
-
-        apiManager.register(api2);
-
-        verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
-        verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
-    }
-
-    private Plan buildMockPlan() {
-        Plan plan = mock(Plan.class);
-        when(plan.getStatus()).thenReturn("published");
-
-        return plan;
-    }
-
-    @Test
-    public void shouldUndeployApi() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
-
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-
-        apiManager.register(api);
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-
-        apiManager.unregister(api.getId());
-
-        verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
-    }
-
-    @Test
-    public void shouldNotUndeployUnknownApi() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
-
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-
-        apiManager.register(api);
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-
-        apiManager.unregister("unknown-api");
-
-        verify(eventManager, never()).publishEvent(ReactorEvent.UNDEPLOY, api);
-    }
-
-    @Test
-    public void shouldUndeployApi_noMorePlan() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
-
-        api.setRevision("rev1");
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-
-        apiManager.register(api);
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-
-        final Api api2 = buildTestApi();
-        api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
-        api2.setRevision("rev2");
-        api2.getDefinition().setPlans(Collections.emptyList());
-
-        apiManager.register(api2);
-
-        verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
-        verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
-    }
-
-    @Test
-    public void shouldUndeployApi_disabled() {
-        final Api api = buildTestApi();
-        api.setRevision("rev1");
-        final Plan mockedPlan = buildMockPlan();
-
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-
-        apiManager.register(api);
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-
-        final Api api2 = buildTestApi();
-        api2.getDefinition().setPlans(singletonList(mockedPlan));
-        api.setRevision("rev2");
-        api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
-        api2.setEnabled(false);
-
-        apiManager.register(api2);
-
-        verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
-        verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
-    }
-
-    @Test
-    public void shouldDecryptApiPropertiesOnDeployment() throws Exception {
-        final Api api = buildTestApi();
-
-        Properties properties = new Properties();
-        properties.setProperties(
-            List.of(
-                new Property("key1", "plain value 1", false),
-                new Property("key2", "value2Base64encrypted", true),
-                new Property("key3", "value3Base64encrypted", true)
+            @Test
+            @SneakyThrows
+            public void should_not_deploy_if_api_uses_feature_not_entitled_by_license() {
+                var api = buildTestApi();
+                final String orgId = api.getOrganizationId();
+                doThrow(new ForbiddenFeatureException(List.of(new LicenseManager.ForbiddenFeature("Not entitled feature", "some plugin"))))
+                    .when(licenseManager)
+                    .validatePluginFeatures(eq(orgId), anyCollection());
+                apiManager.register(api);
+
+                verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+            }
+
+            @Test
+            public void should_deploy_api_with_plan() {
+                final Api api = buildTestApi();
+                final Plan mockedPlan = aPlan();
+
+                api.getDefinition().setPlans(singletonList(mockedPlan));
+
+                apiManager.register(api);
+
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+                assertThat(apiManager.apis()).hasSize(1);
+            }
+
+            @Test
+            public void should_deploy_api_with_tag_on_tagless_gateway() {
+                final Api api = buildTestApi();
+                final Plan mockedPlan = aPlan();
+
+                api.getDefinition().setPlans(singletonList(mockedPlan));
+                api.getDefinition().setTags(new HashSet<>(singletonList("test")));
+
+                apiManager.register(api);
+
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+            }
+
+            @Test
+            public void should_deploy_api_with_plan_matching_tag() {
+                final Api api = buildTestApi();
+                api.getDefinition().setTags(new HashSet<>(singletonList("test")));
+                api.getDefinition().setPlans(singletonList(aPlan().toBuilder().tags(new HashSet<>(singletonList("test"))).build()));
+
+                when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
+
+                apiManager.register(api);
+
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+            }
+
+            @ParameterizedTest(name = "{2}")
+            @CsvSource(
+                delimiter = '|',
+                textBlock = """
+                !test       |  toto    |   test_deployApiWithTagExcluded
+                test,toto   |  test    |   test_deployApiWithTag
+                test,toto   |  Test    |   test_deployApiWithUpperCasedTag
+                test,toto   |  tést    |   test_deployApiWithAccentTag
+                test        |  Tést    |   test_deployApiWithUpperCasedAndAccentTag
+                test,!toto  |  test    |   test_deployApiWithTagExclusion
+                test, !toto |  test    |   test_deployApiWithSpaceAfterComma
+                test ,!toto |  test    |   test_deployApiWithSpaceBeforeComma
+                 test,!toto |  test    |   test_deployApiWithSpaceBeforeTag
+                """
             )
-        );
-        api.getDefinition().setProperties(properties);
+            void should_deploy_api_with_different_tag_combinations(String gatewayTags, String apiTag, String label) {
+                final Api api = buildTestApi();
+                final Plan mockedPlan = aPlan();
 
-        when(dataEncryptor.decrypt("value2Base64encrypted")).thenReturn("plain value 2");
-        when(dataEncryptor.decrypt("value3Base64encrypted")).thenReturn("plain value 3");
+                api.getDefinition().setPlans(singletonList(mockedPlan));
+                api.getDefinition().setTags(new HashSet<>(singletonList(apiTag)));
 
-        apiManager.register(api);
+                when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(gatewayTags.split(","))));
 
-        verify(dataEncryptor, times(2)).decrypt(any());
-        assertEquals(
-            Map.of("key1", "plain value 1", "key2", "plain value 2", "key3", "plain value 3"),
-            api.getDefinition().getProperties().getValues()
-        );
+                apiManager.register(api);
+
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+            }
+        }
+
+        @Nested
+        class Update {
+
+            @Test
+            public void should_update_api() {
+                final Api api = buildTestApi();
+                final Plan mockedPlan = aPlan();
+                api.setRevision("rev1");
+                api.getDefinition().setPlans(singletonList(mockedPlan));
+
+                apiManager.register(api);
+
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                final Api api2 = buildTestApi();
+                Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
+                api2.setDeployedAt(Date.from(deployDateInst));
+                api2.setRevision("rev2");
+                api2.getDefinition().setPlans(singletonList(mockedPlan));
+
+                apiManager.register(api2);
+
+                verify(eventManager).publishEvent(ReactorEvent.UPDATE, api2);
+            }
+
+            @Test
+            public void should_not_update_api_when_deployment_date_is_older() {
+                final Api api = buildTestApi();
+                final Plan mockedPlan = aPlan();
+                api.getDefinition().setPlans(singletonList(mockedPlan));
+
+                apiManager.register(api);
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                final Api api2 = buildTestApi();
+                Instant deployDateInst = api.getDeployedAt().toInstant().minus(Duration.ofHours(1));
+                api2.setDeployedAt(Date.from(deployDateInst));
+
+                apiManager.register(api2);
+
+                verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
+            }
+
+            @Test
+            public void should_not_update_api_when_revision_is_the_same() {
+                final Api api = buildTestApi();
+                final Plan mockedPlan = aPlan();
+                api.setRevision("rev1");
+                api.getDefinition().setPlans(singletonList(mockedPlan));
+
+                apiManager.register(api);
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                final Api api2 = buildTestApi();
+                api2.setRevision("rev1");
+                Instant deployDateInst = api.getDeployedAt().toInstant().minus(Duration.ofHours(1));
+                api2.setDeployedAt(Date.from(deployDateInst));
+
+                apiManager.register(api2);
+
+                verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
+            }
+        }
+
+        @Nested
+        class Undeploy {
+
+            @Test
+            public void should_undeploy_api() {
+                final Api api = buildTestApi();
+                api.getDefinition().setPlans(singletonList(aPlan()));
+                apiManager.register(api);
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                apiManager.unregister(api.getId());
+
+                verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
+            }
+
+            @Test
+            public void should_undeploy_api_when_tag_no_longer_matches_gateway_configuration() {
+                final Api api = buildTestApi();
+                api.setRevision("rev1");
+                api.getDefinition().setPlans(singletonList(aPlan()));
+                api.getDefinition().setTags(new HashSet<>(singletonList("test")));
+
+                when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
+                apiManager.register(api);
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                final Api api2 = buildTestApi();
+                api2.setRevision("rev2");
+                api2.setDeployedAt(new Date());
+                api2.getDefinition().setTags(new HashSet<>(singletonList("other-tag")));
+
+                apiManager.register(api2);
+
+                verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
+                verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
+            }
+
+            @Test
+            public void should_not_undeploy_unknown_api() {
+                final Api api = buildTestApi();
+                api.getDefinition().setPlans(singletonList(aPlan()));
+                apiManager.register(api);
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                apiManager.unregister("unknown-api");
+                verify(eventManager, never()).publishEvent(ReactorEvent.UNDEPLOY, api);
+            }
+
+            @Test
+            public void should_undeploy_api_no_more_plan() {
+                final Api api = buildTestApi();
+                api.setRevision("rev1");
+                api.getDefinition().setPlans(singletonList(aPlan()));
+                apiManager.register(api);
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                final Api api2 = buildTestApi();
+                api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
+                api2.setRevision("rev2");
+                api2.getDefinition().setPlans(Collections.emptyList());
+                apiManager.register(api2);
+
+                verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
+                verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
+            }
+
+            @Test
+            public void should_undeploy_disabled_api() {
+                var plans = singletonList(aPlan());
+
+                final Api api = buildTestApi();
+                api.setRevision("rev1");
+                api.getDefinition().setPlans(plans);
+                apiManager.register(api);
+                verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+
+                final Api api2 = buildTestApi();
+                api2.getDefinition().setPlans(plans);
+                api2.setRevision("rev2");
+                api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
+                api2.setEnabled(false);
+
+                apiManager.register(api2);
+
+                verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
+                verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
+            }
+        }
+
+        @Test
+        public void should_decrypt_api_properties_on_deployment() throws Exception {
+            final Api api = buildTestApi();
+
+            Properties properties = new Properties();
+            properties.setProperties(
+                List.of(
+                    new Property("key1", "plain value 1", false),
+                    new Property("key2", "value2Base64encrypted", true),
+                    new Property("key3", "value3Base64encrypted", true)
+                )
+            );
+            api.getDefinition().setProperties(properties);
+
+            when(dataEncryptor.decrypt("value2Base64encrypted")).thenReturn("plain value 2");
+            when(dataEncryptor.decrypt("value3Base64encrypted")).thenReturn("plain value 3");
+
+            apiManager.register(api);
+
+            verify(dataEncryptor, times(2)).decrypt(any());
+            assertThat(api.getDefinition().getProperties().getValues()).containsOnly(
+                Map.entry("key1", "plain value 1"),
+                Map.entry("key2", "plain value 2"),
+                Map.entry("key3", "plain value 3")
+            );
+        }
     }
 
-    @Test
-    public void shouldRequireDeploymentWithNoApi() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
+    @Nested
+    class RequiredActionFor {
 
-        api.getDefinition().setPlans(singletonList(mockedPlan));
+        @Test
+        public void should_require_deployment_when_api_is_not_deployed() {
+            final Api api = buildTestApi();
+            api.getDefinition().setPlans(singletonList(aPlan()));
 
-        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
-        assertEquals(ActionOnApi.DEPLOY, actionOnApi);
-    }
+            ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+            assertThat(actionOnApi).isEqualTo(ActionOnApi.DEPLOY);
+        }
 
-    @Test
-    public void shouldRequireDeploymentWithUpdatedApi() {
-        final Api api = buildTestApi();
-        api.setRevision("rev1");
-        final Plan mockedPlan = buildMockPlan();
+        @Test
+        public void should_require_deployment_with_updated_api() {
+            List<Plan> plans = singletonList(aPlan());
 
-        api.getDefinition().setPlans(singletonList(mockedPlan));
+            final Api api = buildTestApi();
+            api.setRevision("rev1");
+            api.getDefinition().setPlans(plans);
+            apiManager.register(api);
 
-        apiManager.register(api);
-        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
-        assertEquals(ActionOnApi.NONE, actionOnApi);
+            ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+            assertThat(actionOnApi).isEqualTo(ActionOnApi.NONE);
 
-        final Api api2 = buildTestApi();
-        Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
-        api2.setDeployedAt(Date.from(deployDateInst));
-        api.setRevision("rev2");
-        api2.getDefinition().setPlans(singletonList(mockedPlan));
+            final Api api2 = buildTestApi();
+            Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
+            api2.setDeployedAt(Date.from(deployDateInst));
+            api2.setRevision("rev2");
+            api2.getDefinition().setPlans(plans);
 
-        ActionOnApi actionOnApi2 = apiManager.requiredActionFor(api2);
-        assertEquals(ActionOnApi.DEPLOY, actionOnApi2);
-    }
+            ActionOnApi actionOnApi2 = apiManager.requiredActionFor(api2);
+            assertThat(actionOnApi2).isEqualTo(ActionOnApi.DEPLOY);
+        }
 
-    @Test
-    public void shouldNotRequireDeploymentWithSameApi() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
+        @Test
+        public void should_require_deployment_with_matching_tag() {
+            final Api api = buildTestApi();
+            api.getDefinition().setTags(new HashSet<>(singletonList("test")));
+            when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
-        api.getDefinition().setPlans(singletonList(mockedPlan));
+            ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+            assertThat(actionOnApi).isEqualTo(ActionOnApi.DEPLOY);
+        }
 
-        apiManager.register(api);
-        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
-        assertEquals(ActionOnApi.NONE, actionOnApi);
-    }
+        @Test
+        public void should_not_require_deployment_with_same_api() {
+            final Api api = buildTestApi();
+            api.getDefinition().setPlans(singletonList(aPlan()));
 
-    @Test
-    public void shouldRequireDeploymentWithMatchingTag() {
-        final Api api = buildTestApi();
-        api.getDefinition().setTags(new HashSet<>(singletonList("test")));
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
+            apiManager.register(api);
+            ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+            assertThat(actionOnApi).isEqualTo(ActionOnApi.NONE);
+        }
 
-        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
-        assertEquals(ActionOnApi.DEPLOY, actionOnApi);
-    }
+        @Test
+        public void should_not_require_deployment_with_same_revision() {
+            List<Plan> plans = singletonList(aPlan());
+            final Api api = buildTestApi();
+            api.getDefinition().setPlans(plans);
+            api.setRevision("rev1");
+            apiManager.register(api);
 
-    @Test
-    public void shouldNotRequireDeploymentWithoutMatchingTagAndApiNotAlreadyDeployed() {
-        final Api api = buildTestApi();
-        api.getDefinition().setTags(new HashSet<>(singletonList("test2")));
+            final Api api2 = buildTestApi();
+            Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
+            api2.setDeployedAt(Date.from(deployDateInst));
+            api2.setRevision("rev1");
+            api2.getDefinition().setPlans(plans);
 
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
+            ActionOnApi actionOnApi2 = apiManager.requiredActionFor(api2);
+            assertThat(actionOnApi2).isEqualTo(ActionOnApi.NONE);
+        }
 
-        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
-        assertEquals(ActionOnApi.NONE, actionOnApi);
-    }
+        @Test
+        public void should_not_require_deployment_without_matching_tag_and_api_not_already_deployed() {
+            final Api api = buildTestApi();
+            api.getDefinition().setTags(new HashSet<>(singletonList("test2")));
+            when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
-    @Test
-    public void shouldRequireUndeploymentWithoutMatchingTagAndApiAlreadyDeployed() {
-        final Api api = buildTestApi();
-        final Plan mockedPlan = buildMockPlan();
-        api.getDefinition().setPlans(singletonList(mockedPlan));
-        apiManager.register(api);
+            ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+            assertThat(actionOnApi).isEqualTo(ActionOnApi.NONE);
+        }
 
-        api.getDefinition().setTags(new HashSet<>(singletonList("test2")));
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
+        @Test
+        public void should_require_undeployment_without_matching_tag_and_api_already_deployed() {
+            final Api api = buildTestApi();
+            api.getDefinition().setPlans(singletonList(aPlan()));
+            apiManager.register(api);
 
-        ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
-        assertEquals(ActionOnApi.UNDEPLOY, actionOnApi);
-    }
+            api.getDefinition().setTags(new HashSet<>(singletonList("test2")));
+            when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
-    @Test
-    @SneakyThrows
-    public void shouldNotDeployIfLicenseIsInvalid() {
-        var api = buildTestApi();
-        final String orgId = api.getOrganizationId();
-        doThrow(new InvalidLicenseException("Invalid license for test"))
-            .when(licenseManager)
-            .validatePluginFeatures(eq(orgId), anyCollection());
-        apiManager.register(api);
-
-        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
-    }
-
-    @Test
-    @SneakyThrows
-    public void shouldNotDeployIfApiUsesFeatureNotEntitledByLicense() {
-        var api = buildTestApi();
-        final String orgId = api.getOrganizationId();
-        doThrow(new ForbiddenFeatureException(List.of(new LicenseManager.ForbiddenFeature("Not entitled feature", "some plugin"))))
-            .when(licenseManager)
-            .validatePluginFeatures(eq(orgId), anyCollection());
-        apiManager.register(api);
-
-        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
-    }
-
-    private Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {
-        return mockApi(api, new String[] {});
-    }
-
-    private Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags) throws Exception {
-        final io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
-        final Api api2 = new Api(definition);
-        definition.setId(api.getId());
-        definition.setName(api.getName());
-        definition.setTags(new HashSet<>(Arrays.asList(tags)));
-        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(definition);
-        return api2;
+            ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
+            assertThat(actionOnApi).isEqualTo(ActionOnApi.UNDEPLOY);
+        }
     }
 
     private Api buildTestApi() {
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(singletonList(mock(VirtualHost.class)));
         return new ApiBuilder().id("api-test").name("api-name-test").proxy(proxy).deployedAt(new Date()).build();
+    }
+
+    private Plan aPlan() {
+        return Plan.builder().status("published").build();
     }
 
     class ApiBuilder {
