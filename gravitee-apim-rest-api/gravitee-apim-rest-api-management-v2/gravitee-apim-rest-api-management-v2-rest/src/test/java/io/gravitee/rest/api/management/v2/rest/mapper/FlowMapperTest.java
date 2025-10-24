@@ -24,13 +24,16 @@ import fixtures.FlowFixtures;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
+import io.gravitee.definition.model.v4.flow.selector.McpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
+import io.gravitee.rest.api.management.v2.rest.model.Selector;
 import io.gravitee.rest.api.management.v2.rest.model.StepV2;
 import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -68,6 +71,28 @@ public class FlowMapperTest {
         assertThat(flows.size()).isEqualTo(2);
         assertHttpFlowV4Equals(flows.get(0), flow1);
         assertHttpFlowV4Equals(flows.get(1), flow2);
+    }
+
+    @Test
+    void should_map_from_HttpFlowEntityV4_with_MCP_Selector() throws JsonProcessingException {
+        var flowEntityV4 = FlowFixtures.aModelFlowHttpV4();
+        flowEntityV4.setSelectors(List.of(McpSelector.builder().methods(Set.of("mcp")).build()));
+        var flowV4 = flowMapper.mapFromHttpV4(flowEntityV4);
+        assertThat(flowV4).isNotNull();
+        assertHttpFlowV4Equals(flowEntityV4, flowV4);
+    }
+
+    @Test
+    void should_map_to_HttpFlowEntityV4_with_MCP_Selector() throws JsonProcessingException {
+        var flowV4 = FlowFixtures.aFlowHttpV4();
+        var mcpSelector = new io.gravitee.rest.api.management.v2.rest.model.McpSelector();
+        mcpSelector.type(io.gravitee.rest.api.management.v2.rest.model.BaseSelector.TypeEnum.MCP);
+        mcpSelector.methods(Set.of("mcp"));
+        flowV4.setSelectors(List.of(new Selector(mcpSelector)));
+
+        var flowEntityV4 = flowMapper.mapToHttpV4(flowV4);
+        assertThat(flowV4).isNotNull();
+        assertHttpFlowV4Equals(flowEntityV4, flowV4);
     }
 
     /**
@@ -112,18 +137,32 @@ public class FlowMapperTest {
         assertEquals(flowSelectors.size(), flowV4Selectors.size());
 
         for (int j = 0; j < flowSelectors.size(); j++) {
-            final ChannelSelector selector = (ChannelSelector) flowSelectors.get(0);
-            final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector selectorV4 = flowV4Selectors.get(0).getChannelSelector();
+            switch (flowSelectors.get(0).getType()) {
+                case MCP:
+                    final McpSelector mcpSelector = (McpSelector) flowSelectors.get(0);
+                    final io.gravitee.rest.api.management.v2.rest.model.McpSelector mcpSelectorV4 = flowV4Selectors.get(0).getMcpSelector();
 
-            assertEquals(selector.getChannel(), selectorV4.getChannel());
-            assertEquals(selector.getChannelOperator().name(), selectorV4.getChannelOperator().name());
-            assertEquals(selector.getEntrypoints(), selectorV4.getEntrypoints());
-            assertEquals(selector.getType().name(), selectorV4.getType().name());
+                    assertEquals(mcpSelector.getMethods(), mcpSelectorV4.getMethods().stream().collect(Collectors.toSet()));
+                    break;
+                case CHANNEL:
+                    final ChannelSelector selector = (ChannelSelector) flowSelectors.get(0);
+                    final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector selectorV4 = flowV4Selectors
+                        .get(0)
+                        .getChannelSelector();
 
-            assertEquals(
-                selector.getOperations().stream().map(Enum::name).collect(Collectors.toSet()),
-                selectorV4.getOperations().stream().map(Enum::name).collect(Collectors.toSet())
-            );
+                    assertEquals(selector.getChannel(), selectorV4.getChannel());
+                    assertEquals(selector.getChannelOperator().name(), selectorV4.getChannelOperator().name());
+                    assertEquals(selector.getEntrypoints(), selectorV4.getEntrypoints());
+                    assertEquals(selector.getType().name(), selectorV4.getType().name());
+
+                    assertEquals(
+                        selector.getOperations().stream().map(Enum::name).collect(Collectors.toSet()),
+                        selectorV4.getOperations().stream().map(Enum::name).collect(Collectors.toSet())
+                    );
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + flowSelectors.get(0).getType());
+            }
         }
 
         assertThat(flowV4.getConnect()).isNotNull().isEmpty();

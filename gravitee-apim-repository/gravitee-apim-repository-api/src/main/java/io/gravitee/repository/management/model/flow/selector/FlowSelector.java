@@ -44,6 +44,7 @@ import lombok.experimental.SuperBuilder;
         @JsonSubTypes.Type(value = FlowHttpSelector.class, name = "HTTP"),
         @JsonSubTypes.Type(value = FlowConditionSelector.class, name = "CONDITION"),
         @JsonSubTypes.Type(value = FlowChannelSelector.class, name = "CHANNEL"),
+        @JsonSubTypes.Type(value = FlowMcpSelector.class, name = "MCP"),
     }
 )
 public abstract class FlowSelector {

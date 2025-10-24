@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.10.0_00_add_flow_mcp_selector.yml
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Add Flow MCP Selector
+        # ################
+        - createTable:
+            tableName: ${gravitee_prefix}flow_selector_mcp_methods
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: method, type: nvarchar(256), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_selector_mcp_methods
+            columnNames: flow_id, method
+            tableName: ${gravitee_prefix}flow_selector_mcp_methods

@@ -26,6 +26,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.McpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -79,13 +80,7 @@ public class FlowValidationDomainService {
                 .map(selector -> ((ChannelSelector) selector).getChannel())
                 .findFirst(),
         ApiType.MCP_PROXY,
-        flow ->
-            flow
-                // TODO(MCP_PROXY): Add a specific MCP selector and use it here
-                .selectorByType(SelectorType.HTTP)
-                .stream()
-                .map(selector -> ((HttpSelector) selector).getPath())
-                .findFirst()
+        flow -> Optional.empty()
     );
 
     public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows) {
@@ -151,6 +146,16 @@ public class FlowValidationDomainService {
                 }
 
                 checkChannelAsyncEntrypoint(flow);
+            } else if (ApiType.MCP_PROXY == apiType) {
+                Set<String> invalidSelectors = flow
+                    .getSelectors()
+                    .stream()
+                    .filter(selector -> !(selector.getType() == SelectorType.MCP || selector.getType() == SelectorType.CONDITION))
+                    .map(selector -> selector.getType().getLabel())
+                    .collect(Collectors.toSet());
+                if (!invalidSelectors.isEmpty()) {
+                    throw InvalidFlowException.invalidSelector(flow.getName(), apiType, invalidSelectors);
+                }
             }
         }
     }

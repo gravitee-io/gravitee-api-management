@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.McpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.repository.management.model.flow.Flow;
@@ -27,6 +28,7 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.selector.FlowChannelSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowConditionSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
+import io.gravitee.repository.management.model.flow.selector.FlowMcpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
@@ -86,6 +88,8 @@ public interface FlowAdapter {
             return toRepository((ChannelSelector) source);
         } else if (source instanceof ConditionSelector) {
             return toRepository((ConditionSelector) source);
+        } else if (source instanceof McpSelector) {
+            return toRepository((McpSelector) source);
         } else {
             throw new IllegalArgumentException("Unknown selector type: " + source.getClass());
         }
@@ -98,6 +102,8 @@ public interface FlowAdapter {
             return toModel((FlowChannelSelector) source);
         } else if (source instanceof FlowConditionSelector) {
             return toModel((FlowConditionSelector) source);
+        } else if (source instanceof FlowMcpSelector) {
+            return toModel((FlowMcpSelector) source);
         } else {
             throw new IllegalArgumentException("Unknown selector type: " + source.getClass());
         }
@@ -114,6 +120,10 @@ public interface FlowAdapter {
     FlowConditionSelector toRepository(ConditionSelector source);
 
     ConditionSelector toModel(FlowConditionSelector source);
+
+    FlowMcpSelector toRepository(McpSelector source);
+
+    McpSelector toModel(FlowMcpSelector source);
 
     default Flow toRepositoryFromAbstract(AbstractFlow flow, FlowReferenceType referenceType, String referenceId, int order) {
         if (flow instanceof io.gravitee.definition.model.v4.flow.Flow) {
