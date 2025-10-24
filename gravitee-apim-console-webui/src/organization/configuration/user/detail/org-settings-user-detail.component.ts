@@ -139,6 +139,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   public isReadOnly = false;
 
+  // Store initial group roles to compare changes
+  private initialGroupRoles: Record<string, { GROUP?: string; API?: string; APPLICATION?: string; INTEGRATION?: string }> = {};
+
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly usersService: UsersService,
@@ -284,6 +287,18 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
             const groupRolesFormGroup = this.groupsRolesFormGroup.get(groupId) as UntypedFormGroup;
             if (groupRolesFormGroup.dirty) {
               const { GROUP, API, APPLICATION, INTEGRATION } = groupRolesFormGroup.value;
+              const initialRoles = this.initialGroupRoles[groupId];
+
+              // Check if any role is being changed from PRIMARY_OWNER to another value
+              const isChangingFromPrimaryOwner =
+                (initialRoles?.API === 'PRIMARY_OWNER' && API !== 'PRIMARY_OWNER') ||
+                (initialRoles?.APPLICATION === 'PRIMARY_OWNER' && APPLICATION !== 'PRIMARY_OWNER') ||
+                (initialRoles?.INTEGRATION === 'PRIMARY_OWNER' && INTEGRATION !== 'PRIMARY_OWNER');
+
+              if (isChangingFromPrimaryOwner) {
+                this.snackBarService.error('You cannot change the API role from PRIMARY OWNER to another value');
+                return EMPTY;
+              }
 
               return this.groupService.addOrUpdateMemberships(groupId, [
                 {
@@ -395,7 +410,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     let initialCollection = this.initialTableDS[tableDSPropertyKey];
 
     if (!initialCollection) {
-      // If no initial collection save the first one
       this.initialTableDS[tableDSPropertyKey] = this[tableDSPropertyKey];
       initialCollection = this[tableDSPropertyKey];
     }
@@ -538,12 +552,24 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
     this.groupsRolesFormGroup = new UntypedFormGroup({
       ...groups.reduce((result, group) => {
+        const apiControl = new UntypedFormControl({
+          value: group.roles['API'],
+          disabled: this.user.status !== 'ACTIVE' || this.isReadOnly || group.roles['API'] === 'PRIMARY_OWNER',
+        });
+
+        this.initialGroupRoles[group.id] = {
+          GROUP: group.roles['GROUP'],
+          API: group.roles['API'],
+          APPLICATION: group.roles['APPLICATION'],
+          INTEGRATION: group.roles['INTEGRATION'],
+        };
+
         return {
           ...result,
           [group.id]: new UntypedFormGroup(
             {
               GROUP: new UntypedFormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' || this.isReadOnly }),
-              API: new UntypedFormControl({ value: group.roles['API'], disabled: this.user.status !== 'ACTIVE' || this.isReadOnly }),
+              API: apiControl,
               APPLICATION: new UntypedFormControl({
                 value: group.roles['APPLICATION'],
                 disabled: this.user.status !== 'ACTIVE' || this.isReadOnly,
@@ -609,6 +635,16 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   isServiceUser(): boolean {
-    return !this.user.firstname;
+    return this.user?.source === 'management';
+  }
+
+  isApiRolePrimaryOwner(groupId: string): boolean {
+    const groupControl = this.groupsRolesFormGroup?.get(groupId);
+    if (!groupControl) return false;
+
+    const apiControl = groupControl.get('API');
+    if (!apiControl) return false;
+
+    return apiControl.value === 'PRIMARY_OWNER';
   }
 }
