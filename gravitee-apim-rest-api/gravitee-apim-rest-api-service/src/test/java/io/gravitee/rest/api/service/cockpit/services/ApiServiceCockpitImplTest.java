@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.validation.Validator;
@@ -118,6 +119,12 @@ public class ApiServiceCockpitImplTest {
     @Mock
     private VerifyApiPathDomainService verifyApiPathsDomainService;
 
+    @Mock
+    private io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
+
+    @Mock
+    private ApiStateDomainService apiStateDomainService;
+
     private ApiServiceCockpitImpl service;
 
     @Captor
@@ -160,7 +167,9 @@ public class ApiServiceCockpitImplTest {
             planService,
             apiConverter,
             pageConverter,
-            verifyApiPathsDomainService
+            verifyApiPathsDomainService,
+            apiServiceV4,
+            apiStateDomainService
         );
 
         when(verifyApiPathsDomainService.validateAndSanitize(any())).thenAnswer(invocation ->

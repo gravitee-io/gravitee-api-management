@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.cockpit.services;
 
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.model.api.ApiEntityResult;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -41,6 +43,15 @@ public interface ApiServiceCockpit {
         String swaggerDefinition,
         String environmentId,
         DeploymentMode mode,
+        List<String> labels
+    );
+
+    void manageV4Api(
+        ExecutionContext executionContext,
+        AuditInfo audit,
+        DeploymentMode mode,
+        Api api,
+        String apiCrossId,
         List<String> labels
     );
 }
