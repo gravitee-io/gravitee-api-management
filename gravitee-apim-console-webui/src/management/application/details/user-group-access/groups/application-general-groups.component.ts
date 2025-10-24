@@ -15,10 +15,10 @@
  */
 import { Group } from 'src/entities/group/group';
 
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, map, takeUntil, tap, switchMap } from 'rxjs/operators';
+import { catchError, map, takeUntil, tap, switchMap, take } from 'rxjs/operators';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 
@@ -62,6 +62,8 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
     private readonly applicationService: ApplicationService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly snackBarService: SnackBarService,
+    private readonly ngZone: NgZone,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -161,16 +163,19 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
 
   onSelectToggle(opened: boolean): void {
     if (opened) {
-      const panelElement = this.groupMatSelect?.panel?.nativeElement as HTMLElement | null;
+      this.ngZone.onStable.pipe(take(1)).subscribe(() => {
+        this.cdr.detectChanges();
 
-      if (!panelElement) {
-        return;
-      }
+        const panelElement = this.groupMatSelect?.panel?.nativeElement as HTMLElement | null;
+        if (!panelElement) {
+          return;
+        }
 
-      this.scrollContainer = panelElement;
-      const boundScrollHandler = this.onScroll.bind(this);
-      panelElement.addEventListener('scroll', boundScrollHandler);
-      this.scrollListener = () => panelElement.removeEventListener('scroll', boundScrollHandler);
+        this.scrollContainer = panelElement;
+        const boundScrollHandler = this.onScroll.bind(this);
+        panelElement.addEventListener('scroll', boundScrollHandler);
+        this.scrollListener = () => panelElement.removeEventListener('scroll', boundScrollHandler);
+      });
     } else {
       this.cleanupScrollListener();
     }
