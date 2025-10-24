@@ -94,7 +94,7 @@ describe('PromotionService', () => {
 
       httpTestingController
         .expectOne(
-          `${CONSTANTS_TESTING.org.baseURL}/promotions/${promotion.id}/_process`,
+          `${CONSTANTS_TESTING.org.v2BaseURL}/promotions/${promotion.id}/_process`,
           // Need to cast because this function doesn't accept boolean
           isPromotionAccepted as any,
         )
