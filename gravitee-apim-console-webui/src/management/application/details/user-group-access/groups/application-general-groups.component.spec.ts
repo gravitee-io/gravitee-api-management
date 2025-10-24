@@ -127,7 +127,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
       expect(new Set(idsInOrder).size).toBe(idsInOrder.length);
     });
 
-    it('should attach scroll listener on open and call load when threshold reached', () => {
+    it('should attach scroll listener on open and call load when threshold reached', async () => {
       const app = fakeApplication({ id: APPLICATION_ID, groups: ['g1'] } as any);
       httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}`, method: 'GET' }).flush(app);
 
@@ -156,6 +156,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
       const loadSpy = jest.spyOn(comp, 'loadGroups').mockReturnValue(of([]));
 
       comp.onSelectToggle(true);
+      await Promise.resolve();
       scrollDiv.dispatchEvent(new Event('scroll'));
 
       expect(loadSpy).toHaveBeenCalledWith(comp.page);
