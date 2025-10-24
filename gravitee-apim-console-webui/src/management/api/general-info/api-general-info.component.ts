@@ -192,8 +192,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           this.cannotPromote =
             !(this.dangerActions.canChangeApiLifecycle && api.lifecycleState !== 'DEPRECATED') ||
             this.isKubernetesOrigin ||
-            api.definitionVersion === 'V4' ||
-            api.definitionVersion === 'V1';
+            this.api.definitionVersion === 'V1';
 
           this.apiDetailsForm = new UntypedFormGroup({
             name: new UntypedFormControl(
@@ -417,11 +416,11 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   }
 
   promoteApi() {
-    if (this.api.definitionVersion === 'V2')
+    if (!this.cannotPromote)
       this.matDialog
         .open<ApiGeneralInfoPromoteDialogComponent, ApiPortalDetailsPromoteDialogData>(ApiGeneralInfoPromoteDialogComponent, {
           data: {
-            api: this.api as ApiV2,
+            api: this.api,
           },
           role: 'alertdialog',
           id: 'promoteApiDialog',

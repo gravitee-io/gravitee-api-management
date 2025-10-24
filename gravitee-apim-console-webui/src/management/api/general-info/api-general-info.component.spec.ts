@@ -53,9 +53,18 @@ import {
 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
+import { Promotion, PromotionTarget } from '../../../entities/promotion';
 
 describe('ApiGeneralInfoComponent', () => {
   const API_ID = 'apiId';
+  const promotionTarget: PromotionTarget = {
+    id: '42',
+    hrids: ['dev'],
+    name: 'dev',
+    description: 'a cockpit environment',
+    organizationId: 'DEFAULT',
+    installationId: 'DEFAULT',
+  };
 
   let fixture: ComponentFixture<ApiGeneralInfoComponent>;
   let loader: HarnessLoader;
@@ -900,6 +909,39 @@ describe('ApiGeneralInfoComponent', () => {
       const apiQualityInfo = await loader.getHarnessOrNull(ApiGeneralInfoQualityHarness);
       expect(apiQualityInfo).toBeNull();
     });
+
+    it('should promote V4 API', async () => {
+      const api = fakeApiV4({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+      await waitImageCheck();
+      fixture.detectChanges();
+      expectApiVerifyDeployment(api, true);
+
+      const generalInfoPromote = await loader.getHarness(MatButtonHarness.with({ text: /Promote/ }));
+      expect(await generalInfoPromote.isDisabled()).toBeFalsy();
+      await generalInfoPromote.click();
+
+      expectPromotionTargets();
+      expectExistingPromotion();
+
+      const promotionTarget = await rootLoader.getHarness(
+        MatSelectHarness.with({ selector: '[data-testid="promotion-dialog-target-environment"]' }),
+      );
+      expect(await promotionTarget.getValueText()).toEqual('dev');
+
+      const promoteDialogButton = await rootLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid="promotion-dialog-confirm-button"]' }),
+      );
+      expect(await promoteDialogButton.isDisabled()).toBeFalsy();
+      await promoteDialogButton.click();
+
+      expectPromoteRequest();
+    });
   });
 
   describe('API FEDERATED', () => {
@@ -1006,6 +1048,29 @@ describe('ApiGeneralInfoComponent', () => {
   function expectQualityRulesRequest() {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/quality-rules`, method: 'GET' });
     fixture.detectChanges();
+  }
+
+  function expectPromotionTargets(targets: PromotionTarget[] = [promotionTarget]) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/promotion-targets`, method: 'GET' }).flush(targets);
+    fixture.detectChanges();
+  }
+
+  function expectExistingPromotion(promotions: Promotion[] = []) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/promotions/_search?apiId=apiId&statuses=CREATED&statuses=TO_BE_VALIDATED`,
+        method: 'POST',
+      })
+      .flush(promotions);
+    fixture.detectChanges();
+  }
+
+  function expectPromoteRequest(apiId: string = API_ID, target = promotionTarget) {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_promote`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual({ targetEnvCockpitId: target.id, targetEnvName: target.name });
   }
 });
 
