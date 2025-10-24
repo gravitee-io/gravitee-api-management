@@ -14,7 +14,7 @@
     "@types/webpack": "5.28.5",
     "babel-loader": "10.0.0",
     "clean-webpack-plugin": "4.0.0",
-    "copy-webpack-plugin": "13.0.0",
+    "copy-webpack-plugin": "13.0.1",
     "glob": "11.0.3",
     "license-check-and-add": "4.0.5",
     "prettier": "3.5.3",
