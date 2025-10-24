@@ -37,4 +37,6 @@ public interface PageMongoRepositoryCustom {
     long countByParentIdAndIsPublished(String parentId);
 
     void unsetHomepage(Collection<String> ids);
+
+    void updateCrossIds(List<io.gravitee.repository.management.model.Page> pages);
 }

@@ -527,4 +527,32 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(updated.isPresent());
         assertEquals(newOrder, updated.get().getOrder());
     }
+
+    @Test
+    public void should_update_plans_cross_ids() throws Exception {
+        // Given existing plan with cross ids updated
+        Optional<Plan> planOptional = planRepository.findById("my-plan");
+        assertTrue(planOptional.isPresent());
+        assertNull(planOptional.get().getCrossId());
+        var plan = planOptional.get();
+        plan.setCrossId("my-plan-cross-id-updated");
+
+        Optional<Plan> planV4Optional = planRepository.findById("plan-v4");
+        assertTrue(planV4Optional.isPresent());
+        assertNull(planV4Optional.get().getCrossId());
+        var planV4 = planV4Optional.get();
+        planV4.setCrossId("plan-v4-cross-id-updated");
+
+        // When updating in the database the cross ids of the plans
+        planRepository.updateCrossIds(List.of(planV4, plan));
+
+        // Then the plans cross IDs are updated
+        Optional<Plan> updatedPlan = planRepository.findById("my-plan");
+        assertTrue(updatedPlan.isPresent());
+        assertEquals("my-plan-cross-id-updated", updatedPlan.get().getCrossId());
+
+        Optional<Plan> updatedPlanV4 = planRepository.findById("plan-v4");
+        assertTrue(updatedPlanV4.isPresent());
+        assertEquals("plan-v4-cross-id-updated", updatedPlanV4.get().getCrossId());
+    }
 }

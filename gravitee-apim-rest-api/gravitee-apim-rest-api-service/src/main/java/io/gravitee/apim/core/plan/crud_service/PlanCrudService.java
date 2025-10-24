@@ -34,4 +34,6 @@ public interface PlanCrudService {
     void delete(String planId);
 
     List<Plan> findByIds(List<String> planIds);
+
+    void updateCrossIds(List<Plan> plans);
 }

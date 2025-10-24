@@ -108,6 +108,8 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContextCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageCrudService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageQueryService;
+import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
+import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.shared_policy_group.crud_service.SharedPolicyGroupCrudService;
@@ -855,5 +857,15 @@ public class ResourceContextConfiguration {
     @Bean
     public PortalPageQueryService portalPageQueryService() {
         return new PortalPageQueryServiceInMemory();
+    }
+
+    @Bean
+    public CockpitPromotionServiceProvider cockpitPromotionServiceProvider() {
+        return mock(CockpitPromotionServiceProvider.class);
+    }
+
+    @Bean
+    public CreatePromotionUseCase createPromotionUseCase() {
+        return mock(CreatePromotionUseCase.class);
     }
 }

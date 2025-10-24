@@ -517,4 +517,32 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
                 .size()
         );
     }
+
+    @Test
+    public void should_update_pages_cross_ids() throws Exception {
+        // Given existing pages with cross ids updated
+        Optional<Page> page3Optional = pageRepository.findById("page3");
+        assertTrue(page3Optional.isPresent());
+        assertNull(page3Optional.get().getCrossId());
+        var page3 = page3Optional.get();
+        page3.setCrossId("page3-cross-id-updated");
+
+        Optional<Page> homeOptional = pageRepository.findById("home");
+        assertTrue(homeOptional.isPresent());
+        assertNull(homeOptional.get().getCrossId());
+        var homePage = homeOptional.get();
+        homePage.setCrossId("home-cross-id-updated");
+
+        // When updating in the database the cross ids of the plans
+        pageRepository.updateCrossIds(List.of(page3, homePage));
+
+        // Then the plans cross IDs are updated
+        Optional<Page> updatedPage3 = pageRepository.findById("page3");
+        assertTrue(updatedPage3.isPresent());
+        assertEquals("page3-cross-id-updated", updatedPage3.get().getCrossId());
+
+        Optional<Page> updatedHomePage = pageRepository.findById("home");
+        assertTrue(updatedHomePage.isPresent());
+        assertEquals("home-cross-id-updated", updatedHomePage.get().getCrossId());
+    }
 }
