@@ -28,30 +28,38 @@ import io.gravitee.definition.model.flow.Step;
 import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
+import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class OAIToAPIV2Converter extends OAIToAPIConverter {
+
+    private final PolicyPluginService policyPluginService;
 
     public OAIToAPIV2Converter(
         ImportSwaggerDescriptorEntity swaggerDescriptor,
         PolicyOperationVisitorManager policyOperationVisitorManager,
         GroupService groupService,
-        TagService tagService
+        TagService tagService,
+        PolicyPluginService policyPluginService
     ) {
         super(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService);
+        this.policyPluginService = policyPluginService;
     }
 
     @Override
@@ -80,8 +88,21 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
                                     Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
                                     if (policy.isPresent()) {
                                         final Step step = new Step();
-                                        step.setName(policy.get().getName());
+                                        String policyId = policy.get().getName(); // actually the plugin ID
+                                        step.setPolicy(policyId);
                                         step.setEnabled(true);
+                                        try {
+                                            PolicyPluginEntity plugin = policyPluginService.findById(policyId);
+                                            step.setName(plugin != null ? plugin.getName() : policyId);
+                                        } catch (RuntimeException e) {
+                                            log.warn(
+                                                "An error occurred while trying to retrieve the policy plugin '{}' for API '{}'. Falling back to policy id.",
+                                                policyId,
+                                                apiEntity.getName(),
+                                                e
+                                            );
+                                            step.setName(policyId);
+                                        }
                                         step.setDescription(
                                             operation.getSummary() == null
                                                 ? (operation.getOperationId() == null
@@ -90,7 +111,6 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
                                                 : operation.getSummary()
                                         );
 
-                                        step.setPolicy(policy.get().getName());
                                         String configuration = clearNullValues(policy.get().getConfiguration());
                                         step.setConfiguration(configuration);
 
