@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
+import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import java.net.MalformedURLException;
@@ -71,6 +72,9 @@ public class SwaggerServiceImpl implements SwaggerService {
     @Autowired
     private TagService tagService;
 
+    @Autowired
+    private PolicyPluginService policyPluginService;
+
     @Override
     public SwaggerApiEntity createAPI(ExecutionContext executionContext, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         return this.createAPI(executionContext, swaggerDescriptor, DefinitionVersion.V1);
@@ -95,10 +99,13 @@ public class SwaggerServiceImpl implements SwaggerService {
 
         if (descriptor != null) {
             if (definitionVersion.equals(DefinitionVersion.V2)) {
-                return new OAIToAPIV2Converter(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService).convert(
-                    executionContext,
-                    (OAIDescriptor) descriptor
-                );
+                return new OAIToAPIV2Converter(
+                    swaggerDescriptor,
+                    policyOperationVisitorManager,
+                    groupService,
+                    tagService,
+                    policyPluginService
+                ).convert(executionContext, (OAIDescriptor) descriptor);
             } else {
                 return new OAIToAPIConverter(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService).convert(
                     executionContext,
