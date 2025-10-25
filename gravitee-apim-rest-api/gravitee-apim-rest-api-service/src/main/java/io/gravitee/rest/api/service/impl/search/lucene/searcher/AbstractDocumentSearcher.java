@@ -47,7 +47,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
 
     protected static void increaseMaxClauseCountIfNecessary(int size) {
         if (size > IndexSearcher.getMaxClauseCount()) {
-            IndexSearcher.setMaxClauseCount(size);
+            IndexSearcher.setMaxClauseCount(Math.min(size + 100, Integer.MAX_VALUE));
         }
     }
 
