@@ -15,18 +15,12 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.BUCKETS_PATH;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.BUCKET_SCRIPT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.COMPOSITE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.DATE_HISTOGRAM;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.DERIVATIVE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.FIXED_INTERVAL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.GAP_POLICY;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.INSERT_ZEROS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MAX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MISSING_BUCKET;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SCRIPT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SOURCES;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.TOP_METRICS;
@@ -40,11 +34,9 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.T
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DERIVATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.NON_NEGATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.EXISTS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.GTE;
@@ -331,28 +323,11 @@ class EventMetricsQueryAdapterTest {
     }
 
     private static void assertTrendSeries(JsonNode perIntervalAggs, String field) {
-        String maxName = MAX_PREFIX + field;
-        String derivativeName = DERIVATIVE_PREFIX + field;
-        String nonNegativeName = NON_NEGATIVE_PREFIX + field;
         // max_<field>
+        String maxName = MAX_PREFIX + field;
         JsonNode maxNode = perIntervalAggs.get(maxName);
         assertNotNull(maxNode);
         assertEquals(field, maxNode.get(MAX).get(FIELD).asText());
-        // derivative_<field>
-        JsonNode derivativeNode = perIntervalAggs.get(derivativeName);
-        assertNotNull(derivativeNode);
-        assertTrue(derivativeNode.has(DERIVATIVE));
-        assertEquals(maxName, derivativeNode.get(DERIVATIVE).get(BUCKETS_PATH).asText());
-        assertEquals(INSERT_ZEROS, derivativeNode.get(DERIVATIVE).get(GAP_POLICY).asText());
-        // non_negative_<field>
-        JsonNode nonNegativeNode = perIntervalAggs.get(nonNegativeName);
-        assertNotNull(nonNegativeNode);
-        assertTrue(nonNegativeNode.has(BUCKET_SCRIPT));
-        JsonNode bucketScript = nonNegativeNode.get(BUCKET_SCRIPT);
-        assertTrue(bucketScript.has(BUCKETS_PATH));
-        assertEquals(derivativeName, bucketScript.get(BUCKETS_PATH).get("d").asText());
-        assertTrue(bucketScript.has(SCRIPT));
-        assertEquals("params.d != null ? Math.max(params.d, 0) : 0", bucketScript.get(SCRIPT).asText());
     }
 
     private static boolean hasTermsFilter(JsonNode filters, String field, Set<String> expectedValues) {
