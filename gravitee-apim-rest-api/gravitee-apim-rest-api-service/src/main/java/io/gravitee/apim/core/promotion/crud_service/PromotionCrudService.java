@@ -20,4 +20,5 @@ import io.gravitee.apim.core.promotion.model.Promotion;
 public interface PromotionCrudService {
     Promotion create(Promotion promotion);
     Promotion update(Promotion promotion);
+    Promotion getById(String id);
 }

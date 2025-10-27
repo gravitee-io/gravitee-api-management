@@ -20,12 +20,14 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.exception.DbEntityNotFoundException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -105,6 +107,69 @@ class PromotionCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurred while trying to update the Promotion with id promotion-id");
+        }
+    }
+
+    @Nested
+    class GetById {
+
+        @Test
+        @SneakyThrows
+        void should_get_promotion() {
+            var id = "promotion-id";
+            var aPromotion = fixtures.repository.PromotionFixtures.aPromotion();
+            aPromotion.setId(id);
+
+            when(repository.findById(any())).thenReturn(Optional.of(aPromotion));
+
+            var result = service.getById(id);
+
+            assertThat(result)
+                .isNotNull()
+                .satisfies(promotion -> {
+                    assertThat(promotion.getId()).isEqualTo(id);
+                    assertThat(promotion.getApiId()).isEqualTo(aPromotion.getApiId());
+                    assertThat(promotion.getStatus().name()).isEqualTo(aPromotion.getStatus().name());
+                    assertThat(promotion.getSourceEnvCockpitId()).isEqualTo(aPromotion.getSourceEnvCockpitId());
+                    assertThat(promotion.getSourceEnvName()).isEqualTo(aPromotion.getSourceEnvName());
+                    assertThat(promotion.getTargetEnvCockpitId()).isEqualTo(aPromotion.getTargetEnvCockpitId());
+                    assertThat(promotion.getTargetEnvName()).isEqualTo(aPromotion.getTargetEnvName());
+                    assertThat(promotion.getCreatedAt()).isEqualTo(aPromotion.getCreatedAt());
+                    assertThat(promotion.getUpdatedAt()).isEqualTo(aPromotion.getUpdatedAt());
+                    assertThat(promotion.getAuthor()).satisfies(promotionAuthor -> {
+                        assertThat(promotionAuthor.getUserId()).isEqualTo(aPromotion.getAuthor().getUserId());
+                        assertThat(promotionAuthor.getEmail()).isEqualTo(aPromotion.getAuthor().getEmail());
+                        assertThat(promotionAuthor.getDisplayName()).isEqualTo(aPromotion.getAuthor().getDisplayName());
+                        assertThat(promotionAuthor.getSource()).isEqualTo(aPromotion.getAuthor().getSource());
+                        assertThat(promotionAuthor.getSourceId()).isEqualTo(aPromotion.getAuthor().getSourceId());
+                    });
+                });
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_not_found_exception() {
+            var id = "promotion-id";
+            when(repository.findById(any())).thenReturn(Optional.empty());
+
+            Throwable throwable = catchThrowable(() -> service.getById(id));
+
+            assertThat(throwable)
+                .isInstanceOf(DbEntityNotFoundException.class)
+                .hasMessage("Promotion with id promotion-id cannot be found");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_throw_technical_exception() {
+            var id = "promotion-id";
+            when(repository.findById(any())).thenThrow(new TechnicalException("Unexpected error"));
+
+            Throwable throwable = catchThrowable(() -> service.getById(id));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurred while trying to find a Promotion with id promotion-id");
         }
     }
 }
