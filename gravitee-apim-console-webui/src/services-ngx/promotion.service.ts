@@ -39,7 +39,8 @@ export class PromotionService {
       targetEnvCockpitId: promotionTarget.id,
       targetEnvName: promotionTarget.name,
     };
-    return this.http.post<Promotion>(`${this.constants.env.baseURL}/apis/${apiId}/_promote`, promotionRequest);
+
+    return this.http.post<Promotion>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_promote`, promotionRequest);
   }
 
   processPromotion(promotionId: string, isAccepted: boolean): Observable<Promotion> {
