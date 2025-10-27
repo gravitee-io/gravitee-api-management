@@ -622,7 +622,6 @@ paths:
       post:
         tags:
           - APIs
-          - Promotions
         summary: Promote an API
         description: |-
           Promote the API to another environment.
