@@ -44,7 +44,7 @@
           <ng-template matStepLabel>General</ng-template>
           <api-endpoint-group-general [generalForm]="generalForm"></api-endpoint-group-general>
           <div class="api-endpoint-group-create__footer">
-            <ng-container *ngIf="apiType === 'PROXY'">
+            <ng-container *ngIf="apiType === 'PROXY' || apiType === 'LLM_PROXY'">
               <ng-container *ngTemplateOutlet="exitButton"></ng-container>
             </ng-container>
             <button *ngIf="apiType === 'MESSAGE'" mat-stroked-button type="button" matStepperPrevious>Back</button>
