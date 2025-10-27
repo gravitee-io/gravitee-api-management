@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.shared_policy_group.domain_service.ValidateSharedPolicyGroupCRDDomainService;
+import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.core.shared_policy_group.use_case.CreateSharedPolicyGroupUseCase;
 import io.gravitee.apim.core.shared_policy_group.use_case.GetSharedPolicyGroupPolicyPluginsUseCase;
@@ -50,6 +51,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -167,8 +169,17 @@ public class SharedPolicyGroupsResource extends AbstractResource {
             new SearchSharedPolicyGroupUseCase.Input(executionContext.getEnvironmentId(), q, paginationParam.toPageable(), sortBy)
         );
 
+        var data = hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP_CONFIGURATION,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ
+            )
+            ? SharedPolicyGroupMapper.INSTANCE.map(result.result().getContent())
+            : mapWithoutConfiguration(result.result().getContent());
+
         return new SharedPolicyGroupsResponse()
-            .data(SharedPolicyGroupMapper.INSTANCE.map(result.result().getContent()))
+            .data(data)
             .pagination(
                 PaginationInfo.computePaginationInfo(
                     result.result().getTotalElements(),
@@ -177,6 +188,20 @@ public class SharedPolicyGroupsResource extends AbstractResource {
                 )
             )
             .links(computePaginationLinks(result.result().getTotalElements(), paginationParam));
+    }
+
+    private List<io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup> mapWithoutConfiguration(
+        List<SharedPolicyGroup> entities
+    ) {
+        return entities
+            .stream()
+            .map(entity -> {
+                var minimal = new io.gravitee.rest.api.management.v2.rest.model.SharedPolicyGroup();
+                minimal.setId(entity.getId());
+                minimal.setName(entity.getName());
+                return minimal;
+            })
+            .toList();
     }
 
     @GET
