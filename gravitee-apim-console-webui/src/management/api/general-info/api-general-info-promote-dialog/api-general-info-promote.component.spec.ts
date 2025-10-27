@@ -132,7 +132,7 @@ describe('ApiPortalDetailsPromoteDialogComponent', () => {
   function expectPromotePostRequest(apiId: string) {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/_promote`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_promote`,
         method: 'POST',
       })
       .flush({});
