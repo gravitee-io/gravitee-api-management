@@ -1,0 +1,46 @@
+{
+  "type": "llm-proxy",
+  "plans": [
+    {
+      "id": "keyless",
+      "name": "Keyless",
+      "security": {
+        "type": "key-less"
+      },
+      "flows": [
+
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Item",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/products/:productId/items/:itemId",
+          "channelOperator": "STARTS_WITH",
+          "operations": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/:productId",
+          "channelOperator": "STARTS_WITH",
+          "operations": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    }
+  ],
+  "resources": []
+}

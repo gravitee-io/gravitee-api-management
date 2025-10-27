@@ -65,6 +65,13 @@ public class PathParametersValidationServiceImpl implements PathParametersValida
                 .selectorByType(SelectorType.CHANNEL)
                 .stream()
                 .map(selector -> ((ChannelSelector) selector).getChannel())
+                .findFirst(),
+        ApiType.LLM_PROXY,
+        flow ->
+            flow
+                .selectorByType(SelectorType.HTTP)
+                .stream()
+                .map(selector -> ((HttpSelector) selector).getPath())
                 .findFirst()
     );
 

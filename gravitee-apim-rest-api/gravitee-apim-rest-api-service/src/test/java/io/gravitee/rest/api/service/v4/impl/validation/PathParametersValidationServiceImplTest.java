@@ -97,7 +97,9 @@ class PathParametersValidationServiceImplTest {
                 Map.of(":productId", List.of("/products/:productId/items/:itemId", "/:productId"))
             ),
             Arguments.of("api-message-no-overlap", Map.of()),
-            Arguments.of("api-message-no-flows", Map.of())
+            Arguments.of("api-message-no-flows", Map.of()),
+            Arguments.of("api-llm-proxy-no-flows", Map.of()),
+            Arguments.of("api-llm-proxy-with-flows", Map.of())
         );
     }
 

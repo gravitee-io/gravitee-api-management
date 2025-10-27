@@ -50,10 +50,10 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(api),
       this.addDeploymentMenuEntry(),
-      this.addApiTrafficMenuEntry(hasTcpListeners, api.type),
+      ...(api.type !== 'LLM_PROXY' ? [this.addApiTrafficMenuEntry(hasTcpListeners, api.type)] : []),
       ...(api.type !== 'NATIVE' ? [this.addLogs(hasTcpListeners)] : []),
       ...(api.type !== 'NATIVE' ? [this.addApiRuntimeAlertsMenuEntry()] : []),
-      ...this.addAlertsMenuEntry(),
+      ...(api.type !== 'LLM_PROXY' ? this.addAlertsMenuEntry() : []),
       ...(api.type === 'PROXY' ? [this.addDebugMenuEntry()] : []),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 

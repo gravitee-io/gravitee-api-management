@@ -107,7 +107,19 @@ const fakeHttpProxySchema = {
   additionalProperties: false,
   required: ['target'],
 };
-
+const fakeLlmProxySchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {
+    target: {
+      title: 'Target',
+      type: 'string',
+      description: 'Target',
+    },
+  },
+  additionalProperties: false,
+  required: ['target'],
+};
 const fakeHttpProxySharedSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
@@ -121,7 +133,19 @@ const fakeHttpProxySharedSchema = {
   additionalProperties: false,
   required: ['proxyParam'],
 };
-
+const fakeLlmProxySharedSchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {
+    llmProxyParam: {
+      title: 'Llm Proxy Param',
+      type: 'string',
+      description: 'Some param for your Llm proxy',
+    },
+  },
+  additionalProperties: false,
+  required: ['llmProxyParam'],
+};
 const ENDPOINT_LIST = [
   {
     id: 'mock',
@@ -517,7 +541,43 @@ describe('ApiEndpointGroupCreateComponent', () => {
       });
     });
   });
+  describe('V4 API - LLM Proxy', () => {
+    beforeEach(async () => {
+      await initComponent(fakeApiV4({ id: API_ID, type: 'LLM_PROXY' }));
+      expectConfigurationSchemaGet('llm-proxy', fakeLlmProxySchema);
+      expectSharedConfigurationSchemaGet('llm-proxy', fakeLlmProxySharedSchema);
+    });
 
+    describe('Stepper', () => {
+      it('should go back to endpoint groups page on exit', async () => {
+        expect(await isStepActive(harness.getGeneralStep())).toEqual(true);
+        await harness.goBackToEndpointGroups();
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], { relativeTo: expect.anything() });
+      });
+    });
+
+    describe('When creating a llm-proxy endpoint group', () => {
+      it('should be possible', async () => {
+        await fillOutAndValidateGeneralInformation();
+        expect(await harness.canCreateEndpointGroup()).toEqual(false);
+        await harness.setConfigurationInputValue('llmProxyParam', 'my-llm-proxy-param');
+        await harness.setConfigurationInputValue('target', 'http://target.gio');
+        expect(await harness.isConfigurationStepValid()).toEqual(true);
+
+        await createEndpointGroup({
+          name: ENDPOINT_GROUP_NAME,
+          type: 'llm-proxy',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          endpoints: [
+            { ...EndpointV4Default.byTypeAndGroupName('llm-proxy', ENDPOINT_GROUP_NAME), configuration: { target: 'http://target.gio' } },
+          ],
+          sharedConfiguration: {
+            llmProxyParam: 'my-llm-proxy-param',
+          },
+        });
+      });
+    });
+  });
   /**
    * Expect requests
    */
