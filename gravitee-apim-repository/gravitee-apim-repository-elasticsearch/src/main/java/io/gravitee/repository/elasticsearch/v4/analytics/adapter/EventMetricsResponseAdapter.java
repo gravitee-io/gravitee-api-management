@@ -36,10 +36,8 @@ import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -192,98 +190,135 @@ public class EventMetricsResponseAdapter {
     private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Long>> result) {
         List<JsonNode> buckets = aggregation.getBuckets();
 
-        if (buckets == null || buckets.isEmpty()) {
-            return;
-        }
+        if (buckets == null || buckets.isEmpty()) return;
 
-        boolean hasComposite = buckets.getFirst().has(PER_INTERVAL);
-        Set<Long> timelineValues = new LinkedHashSet<>();
-        Map<String, Map<Long, Long>> maxValueByTimestampByField = new HashMap<>();
+        JsonNode first = buckets.getFirst();
+        if (first == null || !first.has(PER_INTERVAL)) return;
 
-        if (hasComposite) {
-            for (JsonNode dimensionBucket : buckets) {
-                JsonNode perInterval = dimensionBucket.get(PER_INTERVAL);
-                JsonNode intervals = (perInterval == null) ? null : perInterval.get(BUCKETS);
+        Set<Long> timeline = new HashSet<>();
+        Map<SeriesKey, Long> valuesByKey = new HashMap<>();
+        Map<String, Set<String>> metricToIds = new HashMap<>();
 
-                if (intervals == null || !intervals.isArray()) {
-                    continue;
-                }
+        parseCompositeIdBuckets(buckets, timeline, valuesByKey, metricToIds);
 
-                intervals.forEach(interval -> processPerIntervalBucket(interval, timelineValues, maxValueByTimestampByField));
-            }
-        }
+        if (timeline.isEmpty() || metricToIds.isEmpty()) return;
 
-        if (timelineValues.isEmpty() || maxValueByTimestampByField.isEmpty()) {
-            return;
-        }
+        List<Long> sortedTimeline = sortedTimeline(timeline);
 
-        // Build a sorted timeline and project each field's sparse deltas onto it
-        List<Long> sortedTimeline = new ArrayList<>(timelineValues);
-        sortedTimeline.sort(Long::compare);
-        Map<String, List<Long>> maxValuesByField = new HashMap<>();
-
-        maxValueByTimestampByField.forEach((field, maxValueByTimestamp) -> {
-            List<Long> series = new ArrayList<>(sortedTimeline.size());
-
-            for (Long ts : sortedTimeline) {
-                series.add(maxValueByTimestamp.getOrDefault(ts, null));
-            }
-
-            maxValuesByField.put(field, series);
-        });
-
-        maxValuesByField.forEach((field, maxValues) -> {
-            List<Long> trend = new ArrayList<>();
-            Long previousMax = maxValues.stream().filter(Objects::nonNull).findFirst().orElse(null);
-
-            for (Long currentMax : maxValues) {
-                if (currentMax == null) {
-                    trend.add(null);
-                } else {
-                    trend.add(previousMax > currentMax ? currentMax : Long.valueOf(currentMax - previousMax));
-                    previousMax = currentMax;
-                }
-            }
-
-            result.put(field, trend);
+        metricToIds.forEach((metric, ids) -> {
+            List<List<Long>> deltaSeriesList = buildDeltaSeriesPerId(metric, ids, sortedTimeline, valuesByKey);
+            result.put(metric, buildTrendFromDeltaSeries(deltaSeriesList));
         });
     }
 
-    private static void processPerIntervalBucket(
-        JsonNode interval,
-        Set<Long> timelineValues,
-        Map<String, Map<Long, Long>> maxValueByTimestampByField
+    private static void parseCompositeIdBuckets(
+        List<JsonNode> buckets,
+        Set<Long> timeline,
+        Map<SeriesKey, Long> valuesByKey,
+        Map<String, Set<String>> metricToIds
     ) {
-        Long timestamp = parseBucketTimestamp(interval);
+        for (JsonNode perIdBucket : buckets) {
+            JsonNode perInterval = perIdBucket.get(PER_INTERVAL);
+            JsonNode intervals = (perInterval == null) ? null : perInterval.get(BUCKETS);
 
-        if (timestamp == null) {
-            return;
+            if (intervals == null || !intervals.isArray()) continue;
+
+            String id = (perIdBucket.get(KEY) != null) ? perIdBucket.get(KEY).toString() : perIdBucket.toString();
+
+            for (JsonNode interval : intervals) {
+                Long timestamp = parseTimestamp(interval);
+
+                if (timestamp == null) continue;
+
+                timeline.add(timestamp);
+
+                interval
+                    .fieldNames()
+                    .forEachRemaining(fieldName -> {
+                        if (isMetaField(fieldName) || !fieldName.startsWith(MAX_PREFIX)) return;
+
+                        String metric = fieldName.substring(MAX_PREFIX.length());
+                        Long maxValue = parseMaxFieldValue(interval.get(fieldName));
+
+                        if (maxValue == null) return;
+
+                        valuesByKey.put(new SeriesKey(metric, id, timestamp), maxValue);
+                        metricToIds.computeIfAbsent(metric, k -> new HashSet<>()).add(id);
+                    });
+            }
+        }
+    }
+
+    private static List<Long> sortedTimeline(Set<Long> timeline) {
+        List<Long> sorted = new ArrayList<>(timeline);
+        sorted.sort(Long::compare);
+
+        return sorted;
+    }
+
+    private static List<List<Long>> buildDeltaSeriesPerId(
+        String metric,
+        Set<String> ids,
+        List<Long> timeline,
+        Map<SeriesKey, Long> valuesByKey
+    ) {
+        List<List<Long>> deltaSeriesList = new ArrayList<>(ids.size());
+
+        for (String id : ids) {
+            List<Long> deltaSeries = new ArrayList<>(timeline.size());
+            Long previous = null;
+
+            for (Long ts : timeline) {
+                Long current = valuesByKey.get(new SeriesKey(metric, id, ts));
+
+                if (current == null) {
+                    deltaSeries.add(null); // data gap
+                } else if (previous == null) {
+                    deltaSeries.add(0L); // first observation baseline
+                    previous = current;
+                } else {
+                    // reset-aware delta
+                    deltaSeries.add(current >= previous ? current - previous : current);
+                    previous = current;
+                }
+            }
+
+            deltaSeriesList.add(deltaSeries);
         }
 
-        timelineValues.add(timestamp);
-        interval
-            .fieldNames()
-            .forEachRemaining(fieldName -> {
-                if (isMetaField(fieldName) || !fieldName.startsWith(MAX_PREFIX)) {
-                    return;
+        return deltaSeriesList;
+    }
+
+    private static List<Long> buildTrendFromDeltaSeries(List<List<Long>> deltaSeriesList) {
+        if (deltaSeriesList.isEmpty()) return List.of();
+
+        int dataPoints = deltaSeriesList.getFirst().size();
+        List<Long> trend = new ArrayList<>(dataPoints);
+
+        for (int i = 0; i < dataPoints; i++) {
+            long sum = 0L;
+            boolean hasValue = false;
+
+            for (List<Long> series : deltaSeriesList) {
+                Long delta = series.get(i);
+
+                if (delta != null) {
+                    sum += delta;
+                    hasValue = true;
                 }
+            }
 
-                String metricName = fieldName.substring(MAX_PREFIX.length());
-                Long currentMax = parseMaxFieldValue(interval.get(fieldName));
+            trend.add(hasValue ? sum : null);
+        }
 
-                if (currentMax == null) {
-                    return;
-                }
-
-                maxValueByTimestampByField.computeIfAbsent(metricName, __ -> new HashMap<>()).merge(timestamp, currentMax, Long::sum);
-            });
+        return trend;
     }
 
     private static boolean isMetaField(final String name) {
         return KEY.equals(name) || DOC_COUNT.equals(name);
     }
 
-    private static Long parseBucketTimestamp(JsonNode node) {
+    private static Long parseTimestamp(JsonNode node) {
         if (node == null) {
             return null;
         }
@@ -349,7 +384,7 @@ public class EventMetricsResponseAdapter {
             return null;
         }
 
-        var types = query
+        List<AggregationType> types = query
             .aggregations()
             .stream()
             .map(io.gravitee.repository.log.v4.model.analytics.Aggregation::getType)
@@ -357,5 +392,36 @@ public class EventMetricsResponseAdapter {
             .toList();
 
         return (types.size() == 1) ? types.getFirst() : null;
+    }
+
+    private static final class SeriesKey {
+
+        private final String metric;
+        private final String id;
+        private final long ts;
+
+        SeriesKey(String metric, String id, long ts) {
+            this.metric = metric;
+            this.id = id;
+            this.ts = ts;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+
+            if (!(o instanceof SeriesKey that)) return false;
+
+            return ts == that.ts && metric.equals(that.metric) && id.equals(that.id);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = metric.hashCode();
+            result = 31 * result + id.hashCode();
+            result = 31 * result + Long.hashCode(ts);
+
+            return result;
+        }
     }
 }
