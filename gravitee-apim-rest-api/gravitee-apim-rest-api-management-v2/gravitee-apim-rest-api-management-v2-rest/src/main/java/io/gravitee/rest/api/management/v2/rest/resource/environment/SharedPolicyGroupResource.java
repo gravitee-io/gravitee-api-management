@@ -81,7 +81,9 @@ public class SharedPolicyGroupResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    @Permissions(
+        { @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP_CONFIGURATION, acls = { RolePermissionAction.READ }) }
+    )
     public Response getSharedPolicyGroup() {
         var executionContext = GraviteeContext.getExecutionContext();
 
@@ -152,7 +154,9 @@ public class SharedPolicyGroupResource extends AbstractResource {
     @GET
     @Path("/histories")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP, acls = { RolePermissionAction.READ }) })
+    @Permissions(
+        { @Permission(value = RolePermission.ENVIRONMENT_SHARED_POLICY_GROUP_CONFIGURATION, acls = { RolePermissionAction.READ }) }
+    )
     public SharedPolicyGroupHistoriesResponse getSharedPolicyGroupHistories(
         @BeanParam @Valid PaginationParam paginationParam,
         @QueryParam("sortBy") String sortBy
