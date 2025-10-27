@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BaseSelector } from './baseSelector';
 
-import { ChannelSelector } from './channelSelector';
-import { ConditionSelector } from './conditionSelector';
-import { HttpSelector } from './httpSelector';
-import { McpSelector } from './McpSelector';
-
-export type Selector = HttpSelector | ChannelSelector | ConditionSelector | McpSelector;
+export interface McpSelector extends BaseSelector {
+  methods?: string[];
+}

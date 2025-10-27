@@ -20,4 +20,4 @@ export interface BaseSelector {
   type?: BaseSelectorTypeEnum;
 }
 
-export type BaseSelectorTypeEnum = 'HTTP' | 'CHANNEL' | 'CONDITION';
+export type BaseSelectorTypeEnum = 'HTTP' | 'CHANNEL' | 'CONDITION' | 'MCP';
