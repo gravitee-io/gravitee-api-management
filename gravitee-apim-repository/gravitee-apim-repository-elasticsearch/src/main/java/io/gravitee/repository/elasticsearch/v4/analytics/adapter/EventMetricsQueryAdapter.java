@@ -15,22 +15,16 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.BUCKETS_PATH;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.BUCKET_SCRIPT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.COMPOSITE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.DATE_HISTOGRAM;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.DERIVATIVE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.EXTENDED_BOUNDS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.FIXED_INTERVAL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.GAP_POLICY;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.INSERT_ZEROS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MAX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MIN;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MINIMUM_SHOULD_MATCH;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MIN_DOC_COUNT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.MISSING_BUCKET;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SCRIPT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SOURCES;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.TOP_METRICS;
@@ -44,13 +38,11 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.T
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.DERIVATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MILLISECONDS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.NON_NEGATIVE_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.EXISTS;
@@ -144,7 +136,7 @@ public final class EventMetricsQueryAdapter {
     }
 
     private static void applyDeltaAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
-        ObjectNode bucketAggregations = applyCompositeWithExtras(aggregationsNode, "app-id", "plan-id", "topic");
+        ObjectNode bucketAggregations = applyCompositeKeys(aggregationsNode, "app-id", "plan-id", "topic");
         long start = query.timeRange().from().toEpochMilli();
         long end = query.timeRange().to().toEpochMilli();
         // before_start_time: gets the lastest doc strictly before 'start'
@@ -171,29 +163,17 @@ public final class EventMetricsQueryAdapter {
     }
 
     private static void applyTrendAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
-        ObjectNode bucketAggregations = applyCompositeWithExtras(aggregationsNode, "app-id", "plan-id", "topic");
+        ObjectNode bucketAggregations = applyCompositeKeys(aggregationsNode, "app-id", "plan-id", "topic");
         ObjectNode intervalAggregations = applyFixedIntervalAggregations(query, bucketAggregations);
-        query.aggregations().forEach(agg -> applyDerivativeAggregations(intervalAggregations, agg.getField()));
+        query.aggregations().forEach(agg -> applyMaxAggregations(intervalAggregations, agg.getField()));
     }
 
-    private static void applyDerivativeAggregations(ObjectNode aggregationsNode, String field) {
+    private static void applyMaxAggregations(ObjectNode aggregationsNode, String field) {
         String max = MAX_PREFIX + field;
-        String derivative = DERIVATIVE_PREFIX + field;
-        String nonNegative = NON_NEGATIVE_PREFIX + field;
-
         aggregationsNode.putObject(max).putObject(MAX).put(FIELD, field);
-
-        ObjectNode derivativeNode = aggregationsNode.putObject(derivative).putObject(DERIVATIVE);
-        derivativeNode.put(BUCKETS_PATH, max);
-        derivativeNode.put(GAP_POLICY, INSERT_ZEROS);
-
-        ObjectNode scriptNode = aggregationsNode.putObject(nonNegative).putObject(BUCKET_SCRIPT);
-        ObjectNode path = scriptNode.putObject(BUCKETS_PATH);
-        path.put("d", derivative);
-        scriptNode.put(SCRIPT, "params.d != null ? Math.max(params.d, 0) : 0");
     }
 
-    private static ObjectNode applyCompositeWithExtras(ObjectNode aggregationsNode, String... additionalKeys) {
+    private static ObjectNode applyCompositeKeys(ObjectNode aggregationsNode, String... additionalKeys) {
         ObjectNode dimensionsNode = aggregationsNode.putObject(BY_DIMENSIONS);
         ObjectNode compositeNode = dimensionsNode.putObject(COMPOSITE);
         compositeNode.put(SIZE, 1000);

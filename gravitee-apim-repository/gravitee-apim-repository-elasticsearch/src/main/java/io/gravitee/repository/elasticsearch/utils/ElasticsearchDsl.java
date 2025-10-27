@@ -73,14 +73,7 @@ public final class ElasticsearchDsl {
         public static final String EXTENDED_BOUNDS = "extended_bounds";
         public static final String MIN = "min";
         public static final String MAX = "max";
-        // Added for derivative-based trend aggregations
-        public static final String DERIVATIVE = "derivative";
-        public static final String BUCKET_SCRIPT = "bucket_script";
         public static final String BUCKETS = "buckets";
-        public static final String BUCKETS_PATH = "buckets_path";
-        public static final String GAP_POLICY = "gap_policy";
-        public static final String SCRIPT = "script";
-        public static final String INSERT_ZEROS = "insert_zeros";
         public static final String MISSING_BUCKET = "missing_bucket";
 
         private Aggs() {}
@@ -108,8 +101,6 @@ public final class ElasticsearchDsl {
         public static final String END_IN_RANGE = "end_in_range";
         // Added for trend naming conventions
         public static final String MAX_PREFIX = "max_";
-        public static final String DERIVATIVE_PREFIX = "derivative_";
-        public static final String NON_NEGATIVE_PREFIX = "non_negative_";
 
         private Names() {}
     }
