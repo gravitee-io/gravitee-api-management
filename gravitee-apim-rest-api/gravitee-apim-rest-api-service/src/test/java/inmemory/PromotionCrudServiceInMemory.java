@@ -15,8 +15,11 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.exception.DbEntityNotFoundException;
 import io.gravitee.apim.core.promotion.crud_service.PromotionCrudService;
 import io.gravitee.apim.core.promotion.model.Promotion;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,5 +59,17 @@ public class PromotionCrudServiceInMemory implements PromotionCrudService, InMem
         }
 
         throw new IllegalStateException("Promotion not found");
+    }
+
+    @Override
+    public Promotion getById(String id) {
+        if (id == null) {
+            throw new TechnicalManagementException("Promotion id should not be null");
+        }
+        return storage
+            .stream()
+            .filter(plan -> id.equals(plan.getId()))
+            .findFirst()
+            .orElseThrow(() -> new DbEntityNotFoundException(io.gravitee.repository.management.model.Promotion.class, id));
     }
 }

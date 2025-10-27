@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class EnvironmentCrudServiceImplTest {
@@ -41,25 +42,54 @@ class EnvironmentCrudServiceImplTest {
         service = new EnvironmentCrudServiceImpl(environmentRepository);
     }
 
-    @Test
-    void should_find_environment_by_id() {
-        Environment environment = anEnvironment();
-        givenEnvironment(environment);
+    @Nested
+    class Get {
 
-        assertThat(service.get(environment.getId())).isEqualTo(environment);
+        @Test
+        void should_find_environment_by_id() {
+            Environment environment = anEnvironment();
+            givenEnvironment(environment);
+
+            assertThat(service.get(environment.getId())).isEqualTo(environment);
+        }
+
+        @Test
+        void should_throw_exception_if_environment_not_found() {
+            var throwable = catchThrowable(() -> service.get("unknown"));
+            assertThat(throwable).isInstanceOf(EnvironmentNotFoundException.class);
+        }
+
+        @SneakyThrows
+        private void givenEnvironment(Environment environment) {
+            when(environmentRepository.findById(environment.getId())).thenReturn(
+                Optional.of(EnvironmentAdapter.INSTANCE.toRepository(environment))
+            );
+        }
     }
 
-    @Test
-    void should_throw_exception_if_environment_not_found() {
-        var throwable = catchThrowable(() -> service.get("unknown"));
-        assertThat(throwable).isInstanceOf(EnvironmentNotFoundException.class);
-    }
+    @Nested
+    class GetByCockpitId {
 
-    @SneakyThrows
-    private void givenEnvironment(Environment environment) {
-        when(environmentRepository.findById(environment.getId())).thenReturn(
-            Optional.of(EnvironmentAdapter.INSTANCE.toRepository(environment))
-        );
+        @Test
+        void should_find_environment_by_id() {
+            Environment environment = anEnvironment();
+            givenEnvironment(environment);
+
+            assertThat(service.getByCockpitId(environment.getId())).isEqualTo(environment);
+        }
+
+        @Test
+        void should_throw_exception_if_environment_not_found() {
+            var throwable = catchThrowable(() -> service.getByCockpitId("unknown"));
+            assertThat(throwable).isInstanceOf(EnvironmentNotFoundException.class);
+        }
+
+        @SneakyThrows
+        private void givenEnvironment(Environment environment) {
+            when(environmentRepository.findByCockpitId(environment.getId())).thenReturn(
+                Optional.of(EnvironmentAdapter.INSTANCE.toRepository(environment))
+            );
+        }
     }
 
     private Environment anEnvironment() {

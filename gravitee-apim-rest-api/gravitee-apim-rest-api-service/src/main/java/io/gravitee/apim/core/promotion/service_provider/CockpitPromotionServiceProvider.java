@@ -22,4 +22,5 @@ import io.gravitee.apim.core.promotion.model.PromotionRequest;
 public interface CockpitPromotionServiceProvider {
     CockpitReplyStatus requestPromotion(String organizationId, String environmentId, Promotion promotion);
     Promotion createPromotion(String apiId, PromotionRequest promotionRequest, String userId);
+    Promotion process(String promotionId, boolean isAccepted);
 }
