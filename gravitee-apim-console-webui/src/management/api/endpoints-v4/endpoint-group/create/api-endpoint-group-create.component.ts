@@ -90,6 +90,9 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
           if (this.apiType === 'PROXY') {
             this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
           }
+          if (this.apiType === 'LLM_PROXY') {
+            this.endpointGroupTypeForm.get('endpointGroupType').setValue('llm-proxy');
+          }
           this.changeDetectorRef.detectChanges();
         },
       });

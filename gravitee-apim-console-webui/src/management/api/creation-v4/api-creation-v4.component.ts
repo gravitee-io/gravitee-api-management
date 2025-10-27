@@ -208,12 +208,12 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
       endpointGroups: apiCreationPayload.selectedEndpoints.map(
         (endpoint) =>
           ({
-            name: `Default ${endpoint.name} group`,
+            name: apiCreationPayload.customGroupName ?? `Default ${endpoint.name} group`,
             type: endpoint.id,
             sharedConfiguration: endpoint.sharedConfiguration,
             endpoints: [
               {
-                name: `Default ${endpoint.name}`,
+                name: apiCreationPayload.customGroupName ? `Default ${apiCreationPayload.customGroupName}` : `Default ${endpoint.name}`,
                 type: endpoint.id,
                 weight: 1,
                 inheritConfiguration: true,

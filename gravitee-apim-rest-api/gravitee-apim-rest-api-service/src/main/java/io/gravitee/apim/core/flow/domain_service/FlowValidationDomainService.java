@@ -80,7 +80,14 @@ public class FlowValidationDomainService {
                 .map(selector -> ((ChannelSelector) selector).getChannel())
                 .findFirst(),
         ApiType.MCP_PROXY,
-        flow -> Optional.empty()
+        flow -> Optional.empty(),
+        ApiType.LLM_PROXY,
+        flow ->
+            flow
+                .selectorByType(SelectorType.HTTP)
+                .stream()
+                .map(selector -> ((HttpSelector) selector).getPath())
+                .findFirst()
     );
 
     public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows) {
@@ -124,7 +131,7 @@ public class FlowValidationDomainService {
 
     private void checkSelectorsForType(final ApiType apiType, final Flow flow) {
         if (flow.getSelectors() != null) {
-            if (ApiType.PROXY == apiType) {
+            if (ApiType.PROXY == apiType || ApiType.LLM_PROXY == apiType) {
                 Set<String> invalidSelectors = flow
                     .getSelectors()
                     .stream()

@@ -40,6 +40,7 @@ export type ApiCreationPayload = Partial<{
     deployed: boolean;
   }[];
 
+  customGroupName?: string;
   // Endpoints
   selectedEndpoints?: {
     id: string;

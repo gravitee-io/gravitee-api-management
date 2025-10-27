@@ -118,6 +118,32 @@ public class FlowValidationDomainServiceTest {
         }
 
         @Test
+        public void should_accept_flow_with_selectors_and_steps_for_llm_proxy_api() {
+            var flow = Flow.builder()
+                .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
+                .request(List.of(Step.builder().policy("policy").configuration("configuration").build()))
+                .build();
+
+            var flows = service.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(flow));
+
+            assertThat(flows).hasSize(1).containsExactly(flow);
+        }
+
+        @Test
+        public void should_throw_exception_with_invalid_selector_for_llm_proxy_api() {
+            var flow = Flow.builder().name("bad_flow").selectors(List.of(new ChannelSelector())).build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(flow)));
+
+            assertThat(throwable)
+                .isInstanceOf(InvalidFlowException.class)
+                .hasMessage("The flow [bad_flow] contains selectors that couldn't apply to llm-proxy API")
+                .extracting(th -> ((InvalidFlowException) th).getParameters())
+                .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+                .contains(entry("flowName", "bad_flow"), entry("invalidSelectors", "channel"));
+        }
+
+        @Test
         public void should_throw_exception_with_duplicated_selectors() {
             var flow = Flow.builder().name("bad_flow").selectors(List.of(new HttpSelector(), new HttpSelector())).build();
 
@@ -316,7 +342,8 @@ public class FlowValidationDomainServiceTest {
                 Arguments.of("api-message-no-overlap", Map.of()),
                 Arguments.of("api-message-no-flows", Map.of()),
                 Arguments.of("api-mcp-proxy-no-flows", Map.of()),
-                Arguments.of("api-llm-proxy-no-flows", Map.of())
+                Arguments.of("api-llm-proxy-no-flows", Map.of()),
+                Arguments.of("api-llm-proxy-with-flows", Map.of())
             );
         }
 
