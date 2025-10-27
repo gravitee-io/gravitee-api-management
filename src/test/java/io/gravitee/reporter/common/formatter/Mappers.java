@@ -55,8 +55,7 @@ public class Mappers {
   public static class JsonLinesMapper {
 
     public List<JsonNode> readLines(byte[] jsonLines) throws IOException {
-      return JSON
-        .readerFor(JsonNode.class)
+      return JSON.readerFor(JsonNode.class)
         .readValues(jsonLines)
         .readAll()
         .stream()

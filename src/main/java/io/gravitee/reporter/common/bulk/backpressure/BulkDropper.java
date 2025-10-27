@@ -36,9 +36,8 @@ public class BulkDropper {
     bulk
       .countPerType()
       .forEach((bulkType, count) ->
-        countPerType.compute(
-          bulkType,
-          (counterType, total) -> total == null ? count : total + count
+        countPerType.compute(bulkType, (counterType, total) ->
+          total == null ? count : total + count
         )
       );
 

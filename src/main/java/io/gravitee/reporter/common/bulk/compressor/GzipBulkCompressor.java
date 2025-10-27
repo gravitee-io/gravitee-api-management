@@ -42,9 +42,8 @@ public class GzipBulkCompressor implements BulkCompressor {
 
     try (final OutputStream gzip = new GZIPOutputStream(out)) {
       for (TransformedReport report : reports) {
-        countPerType.compute(
-          report.type(),
-          (clazz, integer) -> integer != null ? ++integer : 1
+        countPerType.compute(report.type(), (clazz, integer) ->
+          integer != null ? ++integer : 1
         );
 
         // In memory, not blocking.

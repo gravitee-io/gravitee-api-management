@@ -38,9 +38,8 @@ public class NoneBulkCompressor implements BulkCompressor {
     try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       final Map<String, Integer> countPerType = new HashMap<>(8);
       for (TransformedReport report : reports) {
-        countPerType.compute(
-          report.type(),
-          (clazz, integer) -> integer != null ? ++integer : 1
+        countPerType.compute(report.type(), (clazz, integer) ->
+          integer != null ? ++integer : 1
         );
 
         // In memory, not blocking.

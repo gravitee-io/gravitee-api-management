@@ -166,8 +166,8 @@ public final class FlowableBackPressureMemoryAware
     }
 
     private void increaseMemoryUsed(CompressedBulk c) {
-      totalMemoryUsed.updateAndGet(currentValue ->
-        currentValue + c.compressed().length()
+      totalMemoryUsed.updateAndGet(
+        currentValue -> currentValue + c.compressed().length()
       );
     }
 

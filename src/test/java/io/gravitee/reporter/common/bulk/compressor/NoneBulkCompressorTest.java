@@ -52,8 +52,9 @@ class NoneBulkCompressorTest {
     final CompressedBulk expectedBody = cut.compress(
       List.of(transformedReport)
     );
-    assertThat(expectedBody.compressed())
-      .isEqualTo(transformedReport.transformed());
+    assertThat(expectedBody.compressed()).isEqualTo(
+      transformedReport.transformed()
+    );
   }
 
   @Test

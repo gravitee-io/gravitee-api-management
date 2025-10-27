@@ -72,14 +72,12 @@ public class ElasticsearchFormatter<T extends Reportable>
     this.dtf = dtfWithDefaultZone("yyyy-MM-dd'T'HH:mm:ss.SSS[XXX]");
     this.sdf = dtfWithDefaultZone("yyyy.MM.dd");
 
-    this.freeMarkerComponent =
-      FreeMarkerComponent
-        .builder()
-        .classLoader(getClass().getClassLoader())
-        .classLoaderTemplateBase(
-          String.format(TEMPLATES_BASE_PATTERN, elasticSearchVersion)
-        )
-        .build();
+    this.freeMarkerComponent = FreeMarkerComponent.builder()
+      .classLoader(getClass().getClassLoader())
+      .classLoaderTemplateBase(
+        String.format(TEMPLATES_BASE_PATTERN, elasticSearchVersion)
+      )
+      .build();
   }
 
   private static DateTimeFormatter dtfWithDefaultZone(String format) {
@@ -218,9 +216,9 @@ public class ElasticsearchFormatter<T extends Reportable>
 
         if (
           monitor.getOs().cpu.getLoadAverage() != null &&
-          Arrays
-            .stream(monitor.getOs().cpu.getLoadAverage())
-            .anyMatch(load -> load != -1)
+          Arrays.stream(monitor.getOs().cpu.getLoadAverage()).anyMatch(
+            load -> load != -1
+          )
         ) {
           if (monitor.getOs().cpu.getLoadAverage()[0] != -1) {
             data.put(

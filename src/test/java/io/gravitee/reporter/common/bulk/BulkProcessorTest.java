@@ -83,17 +83,12 @@ public class BulkProcessorTest {
   public void beforeEach() {
     lenient().when(node.id()).thenReturn("nodeId");
 
-    this.bulkTransformer =
-      new BulkFormatterTransformer(
-        new FormatterFactory(
-          node,
-          FormatterFactoryConfiguration
-            .builder()
-            .elasticSearchVersion(8)
-            .build()
-        )
-          .getFormatter(Type.ELASTICSEARCH)
-      );
+    this.bulkTransformer = new BulkFormatterTransformer(
+      new FormatterFactory(
+        node,
+        FormatterFactoryConfiguration.builder().elasticSearchVersion(8).build()
+      ).getFormatter(Type.ELASTICSEARCH)
+    );
     this.bulkDropper = new BulkDropper();
     this.bulkCompressor = new NoneBulkCompressor();
   }
@@ -118,14 +113,13 @@ public class BulkProcessorTest {
       memorySize
     );
     when(bulkSender.send(any())).thenReturn(Completable.complete());
-    cut =
-      new BulkProcessor(
-        bulkSender,
-        bulkConfiguration,
-        bulkTransformer,
-        bulkCompressor,
-        bulkDropper
-      );
+    cut = new BulkProcessor(
+      bulkSender,
+      bulkConfiguration,
+      bulkTransformer,
+      bulkCompressor,
+      bulkDropper
+    );
     cut.start();
   }
 
@@ -148,8 +142,9 @@ public class BulkProcessorTest {
     await()
       .atMost(10, TimeUnit.SECONDS)
       .untilAsserted(() ->
-        verify(bulkSender)
-          .send(argThat(argument -> argument.equals(expectedBody)))
+        verify(bulkSender).send(
+          argThat(argument -> argument.equals(expectedBody))
+        )
       );
   }
 
@@ -171,16 +166,17 @@ public class BulkProcessorTest {
     await()
       .atMost(10, TimeUnit.SECONDS)
       .untilAsserted(() ->
-        verify(bulkSender)
-          .send(
-            argThat(compressedBulk -> {
-              assertThat(compressedBulk.countPerType())
-                .contains(entry("metrics", 10));
-              assertThat(compressedBulk.compressed())
-                .isEqualTo(expectedBody.compressed());
-              return true;
-            })
-          )
+        verify(bulkSender).send(
+          argThat(compressedBulk -> {
+            assertThat(compressedBulk.countPerType()).contains(
+              entry("metrics", 10)
+            );
+            assertThat(compressedBulk.compressed()).isEqualTo(
+              expectedBody.compressed()
+            );
+            return true;
+          })
+        )
       );
   }
 
@@ -198,16 +194,11 @@ public class BulkProcessorTest {
   void should_ignore_and_continue_reporting_when_send_reports_throw_non_retryable_exceptions()
     throws Exception {
     initBulkProcessor();
-    when(bulkSender.send(any()))
-      .thenReturn(
-        Completable.error(
-          new NonRetryableException("1", new RuntimeException())
-        ),
-        Completable.error(
-          new NonRetryableException("2", new RuntimeException())
-        ),
-        Completable.complete()
-      );
+    when(bulkSender.send(any())).thenReturn(
+      Completable.error(new NonRetryableException("1", new RuntimeException())),
+      Completable.error(new NonRetryableException("2", new RuntimeException())),
+      Completable.complete()
+    );
     cut.process(buildMetrics()); // expect NonRetryableException
     cut.process(buildMetrics()); // expect NonRetryableException
     cut.process(buildMetrics()); // expect ok
@@ -220,12 +211,11 @@ public class BulkProcessorTest {
   void should_retry_reporting_when_send_reports_throw_retryable_exceptions()
     throws Exception {
     initBulkProcessor();
-    when(bulkSender.send(any()))
-      .thenReturn(
-        Completable.error(new SendReportException("1", new RuntimeException())),
-        Completable.error(new SendReportException("2", new RuntimeException())),
-        Completable.complete()
-      );
+    when(bulkSender.send(any())).thenReturn(
+      Completable.error(new SendReportException("1", new RuntimeException())),
+      Completable.error(new SendReportException("2", new RuntimeException())),
+      Completable.complete()
+    );
     cut.process(buildMetrics()); // expect SendReportException
     await()
       .atMost(10, TimeUnit.SECONDS)
@@ -258,10 +248,9 @@ public class BulkProcessorTest {
   @Test
   void should_drop_report_when_max_memory_size_is_reached() throws Exception {
     initBulkProcessor(1, 0);
-    when(bulkSender.send(any()))
-      .thenReturn(
-        Maybe.just(1).delay(1000, TimeUnit.MILLISECONDS).ignoreElement()
-      );
+    when(bulkSender.send(any())).thenReturn(
+      Maybe.just(1).delay(1000, TimeUnit.MILLISECONDS).ignoreElement()
+    );
     for (int i = 0; i < 100; i++) {
       cut.process(buildMetrics());
     }
@@ -273,10 +262,9 @@ public class BulkProcessorTest {
   @Test
   void should_drain_pending_reports_when_stopping() throws Exception {
     initBulkProcessor(1, 0);
-    when(bulkSender.send(any()))
-      .thenReturn(
-        Maybe.just(1).delay(5000, TimeUnit.MILLISECONDS).ignoreElement()
-      );
+    when(bulkSender.send(any())).thenReturn(
+      Maybe.just(1).delay(5000, TimeUnit.MILLISECONDS).ignoreElement()
+    );
     for (int i = 0; i < 100; i++) {
       cut.process(buildMetrics());
     }
@@ -332,8 +320,7 @@ public class BulkProcessorTest {
   }
 
   private static Metrics buildMetrics() {
-    return Metrics
-      .builder()
+    return Metrics.builder()
       .requestId("requestId")
       .transactionId("transactionId")
       .httpMethod(HttpMethod.GET)

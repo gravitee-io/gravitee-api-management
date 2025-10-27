@@ -62,38 +62,36 @@ public class BulkProcessor extends AbstractService<BulkProcessor> {
   protected void doStart() throws Exception {
     super.doStart();
     bulkSender.start();
-    subscribe =
-      processor
-        .observeOn(Schedulers.io())
-        .flatMapMaybe(this::transform)
-        .buffer(
-          bulkConfiguration.flushInterval(),
-          TimeUnit.SECONDS,
-          bulkConfiguration.items()
+    subscribe = processor
+      .observeOn(Schedulers.io())
+      .flatMapMaybe(this::transform)
+      .buffer(
+        bulkConfiguration.flushInterval(),
+        TimeUnit.SECONDS,
+        bulkConfiguration.items()
+      )
+      .filter(reports -> !reports.isEmpty())
+      .flatMapMaybe(this::compress)
+      .compose(bulks ->
+        new FlowableBackPressureMemoryAware(
+          bulks,
+          bulkConfiguration.maxMemorySize(),
+          bulk -> bulkDropper.drop(bulk, BulkDropper.Reason.OVERFLOW)
         )
-        .filter(reports -> !reports.isEmpty())
-        .flatMapMaybe(this::compress)
-        .compose(bulks ->
-          new FlowableBackPressureMemoryAware(
-            bulks,
-            bulkConfiguration.maxMemorySize(),
-            bulk -> bulkDropper.drop(bulk, BulkDropper.Reason.OVERFLOW)
-          )
-        )
-        .flatMapCompletable(
-          this::send,
-          true,
-          bulkConfiguration.maxConcurrentSend()
-        )
-        .retry()
-        .subscribe();
+      )
+      .flatMapCompletable(
+        this::send,
+        true,
+        bulkConfiguration.maxConcurrentSend()
+      )
+      .retry()
+      .subscribe();
   }
 
   private Maybe<@NonNull TransformedReport> transform(
     final Reportable reportable
   ) {
-    return Maybe
-      .fromCallable(() -> bulkTransformer.transform(reportable))
+    return Maybe.fromCallable(() -> bulkTransformer.transform(reportable))
       .filter(transformedReport ->
         Objects.nonNull(transformedReport.transformed())
       )
@@ -106,8 +104,7 @@ public class BulkProcessor extends AbstractService<BulkProcessor> {
   private Maybe<CompressedBulk> compress(
     List<@NonNull TransformedReport> reports
   ) {
-    return Maybe
-      .fromCallable(() -> bulkCompressor.compress(reports))
+    return Maybe.fromCallable(() -> bulkCompressor.compress(reports))
       .doOnError(throwable ->
         log.warn("Unable to compress incoming reports", throwable)
       )
@@ -117,8 +114,7 @@ public class BulkProcessor extends AbstractService<BulkProcessor> {
   private Completable send(CompressedBulk bulk) {
     final AtomicInteger attempts = new AtomicInteger(0);
 
-    return Completable
-      .defer(() -> bulkSender.send(bulk))
+    return Completable.defer(() -> bulkSender.send(bulk))
       .doOnSubscribe(s ->
         log.debug(
           "Sending bulk of reports [{}] (attempt {}).",

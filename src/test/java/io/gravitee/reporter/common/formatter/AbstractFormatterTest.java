@@ -49,8 +49,7 @@ public abstract class AbstractFormatterTest {
 
   private static final FormatterFactory FACTORY = new FormatterFactory(
     NODE,
-    FormatterFactoryConfiguration
-      .builder()
+    FormatterFactoryConfiguration.builder()
       .rule(
         MetricsType.REQUEST_LOG,
         rules(
@@ -106,9 +105,9 @@ public abstract class AbstractFormatterTest {
   protected Reportable readGiven(String path, String className) {
     try {
       var fullyQualifiedClassName = BASE_API_PACKAGE + className;
-      var clazz = Class
-        .forName(fullyQualifiedClassName)
-        .asSubclass(Reportable.class);
+      var clazz = Class.forName(fullyQualifiedClassName).asSubclass(
+        Reportable.class
+      );
       return readGiven(path, clazz);
     } catch (ClassNotFoundException e) {
       throw new IllegalStateException("Unable to read class", e);
