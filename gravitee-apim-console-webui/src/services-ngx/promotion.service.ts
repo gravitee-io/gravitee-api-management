@@ -44,7 +44,7 @@ export class PromotionService {
   }
 
   processPromotion(promotionId: string, isAccepted: boolean): Observable<Promotion> {
-    return this.http.post<Promotion>(`${this.constants.org.baseURL}/promotions/${promotionId}/_process`, isAccepted);
+    return this.http.post<Promotion>(`${this.constants.org.v2BaseURL}/promotions/${promotionId}/_process`, isAccepted);
   }
 
   listPromotion(searchParams: PromotionSearchParams): Observable<Promotion[]> {
