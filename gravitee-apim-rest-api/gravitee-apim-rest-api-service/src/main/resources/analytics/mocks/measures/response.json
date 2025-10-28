@@ -1,0 +1,29 @@
+{
+    "timeRange": {
+        "from": "2025-01-01T00:00:00Z",
+        "to": "2025-01-31T23:59:59Z"
+    },
+    "type": "measures",
+    "filters": [
+        {
+            "facet": "api",
+            "operator": "eq",
+            "value": "my-api"
+        }
+    ],
+    "responses": [
+        {
+            "metric": "http_request_count",
+            "filters": [
+                {
+                    "facet": "tenant",
+                    "operator": "eq",
+                    "value": "europe"
+                }
+            ],
+            "measures": {
+                "count": 2984
+            }
+        }
+    ]
+}

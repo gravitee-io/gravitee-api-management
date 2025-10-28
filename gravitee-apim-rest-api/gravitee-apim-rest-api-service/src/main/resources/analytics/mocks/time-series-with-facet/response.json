@@ -1,0 +1,152 @@
+{
+    "timeRange": {
+        "from": "2025-01-01T00:00:00Z",
+        "to": "2025-01-31T23:59:59Z"
+    },
+    "type": "time_series",
+    "filters": [
+        {
+            "facet": "api",
+            "operator": "eq",
+            "value": "my-api"
+        }
+    ],
+    "responses": [
+        {
+            "metric": "http_request_count",
+            "interval": "1m",
+            "filters": [
+                {
+                    "facet": "tenant",
+                    "operator": "eq",
+                    "value": "europe"
+                }
+            ],
+            "timeSeries": {
+                "interval": "1m",
+                "buckets": [
+                    {
+                        "key": "2025-01-01T00:00:00Z",
+                        "facets": {
+                            "by": "api",
+                            "buckets": [
+                                {
+                                    "key": "api-1",
+                                    "measures": {
+                                        "count": 1234
+                                    }
+                                },
+                                {
+                                    "key": "api-2",
+                                    "measures": {
+                                        "count": 989
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:01:00Z",
+                        "facets": {
+                            "by": "api",
+                            "buckets": [
+                                {
+                                    "key": "api-1",
+                                    "measures": {
+                                        "count": 873
+                                    }
+                                },
+                                {
+                                    "key": "api-2",
+                                    "measures": {
+                                        "count": 938
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:02:00Z",
+                        "facets": {
+                            "by": "api",
+                            "buckets": [
+                                {
+                                    "key": "api-1",
+                                    "measures": {
+                                        "count": 736
+                                    }
+                                },
+                                {
+                                    "key": "api-2",
+                                    "measures": {
+                                        "count": 763
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:03:00Z",
+                        "facets": {
+                            "by": "api",
+                            "buckets": [
+                                {
+                                    "key": "api-1",
+                                    "measures": {
+                                        "count": 938
+                                    }
+                                },
+                                {
+                                    "key": "api-2",
+                                    "measures": {
+                                        "count": 2345
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:04:00Z",
+                        "facets": {
+                            "by": "api",
+                            "buckets": [
+                                {
+                                    "key": "api-1",
+                                    "measures": {
+                                        "count": 647
+                                    }
+                                },
+                                {
+                                    "key": "api-2",
+                                    "measures": {
+                                        "count": 236
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": "2025-01-01T00:05:00Z",
+                        "facets": {
+                            "by": "api",
+                            "buckets": [
+                                {
+                                    "key": "api-1",
+                                    "measures": {
+                                        "count": 764
+                                    }
+                                },
+                                {
+                                    "key": "api-2",
+                                    "measures": {
+                                        "count": 236
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
