@@ -179,7 +179,7 @@ services:
       - email
 
   kafkaConsole:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-kafka-console:${APIM_VERSION:-latest}
+    image: ${APIM_REGISTRY:-graviteeio}/apim-kafka-console:${APIM_KAFKA_CONSOLE_VERSION:-latest}
     container_name: gio_apim_kafka_console
     networks:
       - kafkaConsole
@@ -194,7 +194,7 @@ services:
       - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINPASSWORD=admin
 
   kafka:
-    image: docker.io/bitnami/kafka:3.9
+    image: docker.io/bitnamilegacy/kafka:3.9
     container_name: gio_apim_kafka
     volumes:
       - data-kafka:/bitnami/kafka

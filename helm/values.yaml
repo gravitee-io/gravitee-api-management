@@ -2018,12 +2018,15 @@ ui:
   #    secret:
   #      secretName: gravitee-config-secret-name
 
+# NOTE: Kafka Console is in tech preview and requires a private image.
+# Contact your technical account manager for access and the correct image reference.
 kafkaConsole:
   enabled: false
   name: kafkaConsole
   replicaCount: 1
   image:
-    repository: graviteeio/apim-kafka-console
+    repository: graviteeio/apim-kafka-console # Update with your private registry
+    # tag: latest
     pullPolicy: Always
 
   lifecycle:
