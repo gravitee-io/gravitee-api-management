@@ -51,7 +51,7 @@ public class LogResponseProcessor implements Processor {
             LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
             if (log != null && loggingContext.entrypointResponse()) {
-                ((LogEntrypointResponse) log.getEntrypointResponse()).capture();
+                ((LogEntrypointResponse) log.getEntrypointResponse()).capture(ctx);
             }
         });
     }
