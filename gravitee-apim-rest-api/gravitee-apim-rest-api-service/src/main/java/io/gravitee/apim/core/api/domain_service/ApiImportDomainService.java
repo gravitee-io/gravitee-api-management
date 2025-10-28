@@ -17,11 +17,12 @@ package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.media.model.Media;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
 
 public interface ApiImportDomainService {
-    void createPageAndMedia(List<Media> mediaList, String apiId);
+    void createMedias(List<Media> mediaList, String apiId, ExecutionContext executionContext);
 
     void createMembers(Set<ApiMember> members, String apiId);
 }
