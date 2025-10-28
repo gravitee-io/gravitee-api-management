@@ -16,18 +16,13 @@
 package io.gravitee.gateway.reactive.core.v4.analytics;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.gateway.opentelemetry.TracingContext;
-import io.gravitee.node.api.configuration.Configuration;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**

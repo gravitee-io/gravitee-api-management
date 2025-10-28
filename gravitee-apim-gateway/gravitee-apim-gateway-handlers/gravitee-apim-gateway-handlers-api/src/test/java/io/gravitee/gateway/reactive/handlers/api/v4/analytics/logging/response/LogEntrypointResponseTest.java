@@ -18,7 +18,9 @@ package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,6 +31,7 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.HttpResponse;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
@@ -37,6 +40,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -55,14 +59,20 @@ class LogEntrypointResponseTest {
     @Mock
     protected HttpResponse response;
 
+    @Mock
+    protected BaseExecutionContext ctx;
+
+    @Captor
+    ArgumentCaptor<Flowable<Buffer>> chunksCaptor;
+
     @Test
     void shouldLogStatusOnly() {
         when(response.status()).thenReturn(HttpStatusCode.OK_200);
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(false);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
-        logResponse.capture();
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
 
         assertThat(logResponse.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         assertNull(logResponse.getHeaders());
@@ -81,8 +91,8 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponseHeaders()).thenReturn(true);
         when(loggingContext.entrypointResponsePayload()).thenReturn(false);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
-        logResponse.capture();
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
 
         assertNotSame(headers, logResponse.getHeaders());
         assertThat(logResponse.getHeaders().deeplyEquals(headers)).isTrue();
@@ -92,7 +102,6 @@ class LogEntrypointResponseTest {
     @Test
     void shouldLogBody() {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
-        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
 
         when(response.chunks()).thenReturn(body);
         when(response.headers()).thenReturn(HttpHeaders.create());
@@ -100,10 +109,10 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
         when(loggingContext.isBodyLoggable()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
-        logResponse.capture();
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -121,10 +130,10 @@ class LogEntrypointResponseTest {
         when(response.headers()).thenReturn(headers);
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable("application/octet-stream")).thenReturn(false);
+        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any())).thenReturn(false);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
-        logResponse.capture();
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
         verify(response, times(0)).chunks(any(Flowable.class));
 
         assertNull(logResponse.getHeaders());
@@ -136,17 +145,16 @@ class LogEntrypointResponseTest {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
         final int maxPayloadSize = 5;
 
-        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         when(response.chunks()).thenReturn(body);
         when(response.headers()).thenReturn(HttpHeaders.create());
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxPayloadSize);
         when(loggingContext.isBodyLoggable()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
-        logResponse.capture();
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -162,11 +170,11 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
         when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.isBodyLoggable()).thenReturn(false);
-        when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
-        logResponse.capture();
-        verify(response, times(0)).chunks(any(Flowable.class));
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
+        verify(response, never()).chunks(any(Flowable.class));
 
         assertNull(logResponse.getHeaders());
         assertThat(logResponse.getBody()).isEqualTo("BODY NOT CAPTURED");

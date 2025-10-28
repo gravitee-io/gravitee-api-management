@@ -27,6 +27,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
@@ -37,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -62,6 +64,12 @@ class LogEndpointRequestTest {
     @Mock
     private Metrics metrics;
 
+    @Mock
+    BaseExecutionContext baseExecutionContext;
+
+    @Captor
+    ArgumentCaptor<Flowable<Buffer>> chunksCaptor;
+
     @BeforeEach
     void init() {
         when(ctx.request()).thenReturn(request);
@@ -71,8 +79,6 @@ class LogEndpointRequestTest {
 
     @Test
     void shouldLogMethodAndUriOnly() {
-        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
-
         when(request.method()).thenReturn(HttpMethod.POST);
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(false);
@@ -81,7 +87,7 @@ class LogEndpointRequestTest {
             .thenAnswer(i -> chunksCaptor.getValue());
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture();
+        logRequest.capture(baseExecutionContext);
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -95,7 +101,6 @@ class LogEndpointRequestTest {
 
     @Test
     void shouldLogHeaders() {
-        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         final HttpHeaders headers = new VertxHttpHeaders(new HeadersMultiMap());
 
         headers.set("X-Test1", "Value1");
@@ -111,7 +116,7 @@ class LogEndpointRequestTest {
             .thenAnswer(i -> chunksCaptor.getValue());
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture();
+        logRequest.capture(baseExecutionContext);
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -125,7 +130,6 @@ class LogEndpointRequestTest {
     @Test
     void shouldLogBody() {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
-        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
 
         when(request.chunks())
             .thenReturn(body)
@@ -136,10 +140,10 @@ class LogEndpointRequestTest {
         when(loggingContext.endpointRequestPayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
         when(loggingContext.isBodyLoggable()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture();
+        logRequest.capture(baseExecutionContext);
         verify(request, times(2)).chunks(any(Flowable.class));
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -152,7 +156,6 @@ class LogEndpointRequestTest {
     @Test
     void shouldNotLogBodyWhenContentTypeExcluded() {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
-        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         final HttpHeaders headers = HttpHeaders.create();
         headers.set(HttpHeaderNames.CONTENT_TYPE, "application/octet-stream");
 
@@ -161,10 +164,10 @@ class LogEndpointRequestTest {
         when(request.headers()).thenReturn(headers);
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable("application/octet-stream")).thenReturn(false);
+        when(loggingContext.isContentTypeLoggable(eq("application/octet-stream"), any())).thenReturn(false);
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture();
+        logRequest.capture(baseExecutionContext);
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -179,7 +182,6 @@ class LogEndpointRequestTest {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
         final int maxPayloadSize = 5;
 
-        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         when(request.chunks())
             .thenReturn(body)
             .thenAnswer(i -> chunksCaptor.getValue());
@@ -188,11 +190,11 @@ class LogEndpointRequestTest {
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(true);
         when(loggingContext.isBodyLoggable()).thenReturn(true);
-        when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxPayloadSize);
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture();
+        logRequest.capture(baseExecutionContext);
         verify(request, times(2)).chunks(any(Flowable.class));
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getAllValues().get(chunksCaptor.getAllValues().size() - 1).test();
@@ -205,7 +207,6 @@ class LogEndpointRequestTest {
     @Test
     void shouldLogBodyNotCaptureWhenBodyNotLoggable() {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
-        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
 
         when(request.chunks())
             .thenReturn(body)
@@ -215,10 +216,10 @@ class LogEndpointRequestTest {
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(true);
         when(loggingContext.isBodyLoggable()).thenReturn(false);
-        when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-        logRequest.capture();
+        logRequest.capture(baseExecutionContext);
         verify(request, times(1)).chunks(any(Flowable.class));
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
