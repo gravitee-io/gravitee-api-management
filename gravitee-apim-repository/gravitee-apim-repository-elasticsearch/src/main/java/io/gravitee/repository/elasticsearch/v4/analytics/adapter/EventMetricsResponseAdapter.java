@@ -20,11 +20,11 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.B
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.METRICS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.DOC_COUNT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.KEY;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_BUCKET_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOP;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -100,26 +100,25 @@ public class EventMetricsResponseAdapter {
                         // Ignore non-top_metrics fields
                         if (KEY.equals(fieldName) || DOC_COUNT.equals(fieldName)) return;
 
-                        if (!fieldName.startsWith(LATEST_VALUE_PREFIX)) return;
+                        if (!fieldName.startsWith(LATEST_PREFIX)) return;
 
                         // Derive the original metric field from "latest_<field>"
-                        final String metricField = fieldName.substring(LATEST_VALUE_PREFIX.length());
-                        final JsonNode topMetricsNode = bucket.get(fieldName);
-
+                        String metric = fieldName.substring(LATEST_PREFIX.length());
+                        JsonNode topMetricsNode = bucket.get(fieldName);
                         // Require a top hit AND the metric value to be present and numeric
-                        Long value = extractTopMetricValue(topMetricsNode, metricField);
+                        Long value = parseTopMetricsNode(topMetricsNode, metric);
 
                         if (value == null) return;
 
                         // Sum across composite buckets
-                        metricValueMap.merge(metricField, value, Long::sum);
+                        metricValueMap.merge(metric, value, Long::sum);
                     })
             );
 
-        metricValueMap.forEach((field, total) -> result.put(field, List.of(total)));
+        metricValueMap.forEach((metric, total) -> result.put(metric, List.of(total)));
     }
 
-    private static Long extractTopMetricValue(JsonNode topMetricsNode, String metricField) {
+    private static Long parseTopMetricsNode(JsonNode topMetricsNode, String metric) {
         if (isTopHitMissing(topMetricsNode)) {
             return null;
         }
@@ -137,7 +136,7 @@ public class EventMetricsResponseAdapter {
             return null;
         }
 
-        JsonNode valueNode = metricsNode.get(metricField);
+        JsonNode valueNode = metricsNode.get(metric);
 
         if (valueNode == null || !valueNode.isNumber()) {
             return null;
@@ -157,18 +156,18 @@ public class EventMetricsResponseAdapter {
             JsonNode startValueNode = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START);
             JsonNode endValueNode = bucket.get(io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE);
 
-            Map<String, Long> startValuesMap = collectTopMetrics(startValueNode, START_BUCKET_PREFIX);
-            Map<String, Long> endValuesMap = collectTopMetrics(endValueNode, END_BUCKET_PREFIX);
+            Map<String, Long> startValuesMap = collectTopMetrics(startValueNode, START_PREFIX);
+            Map<String, Long> endValuesMap = collectTopMetrics(endValueNode, END_PREFIX);
 
             Set<String> fields = new HashSet<>(startValuesMap.keySet());
             fields.addAll(endValuesMap.keySet());
 
-            for (String field : fields) {
-                Long endVal = endValuesMap.get(field);
+            for (String metric : fields) {
+                Long endVal = endValuesMap.get(metric);
 
                 if (endVal == null) continue;
 
-                Long startVal = startValuesMap.get(field);
+                Long startVal = startValuesMap.get(metric);
 
                 if (startVal == null) {
                     startVal = 0L; // baseline 0 when no start value
@@ -180,11 +179,11 @@ public class EventMetricsResponseAdapter {
                     delta = 0L;
                 }
 
-                metricValueMap.merge(field, delta, Long::sum);
+                metricValueMap.merge(metric, delta, Long::sum);
             }
         }
 
-        metricValueMap.forEach((field, delta) -> result.put(field, List.of(delta)));
+        metricValueMap.forEach((metric, delta) -> result.put(metric, List.of(delta)));
     }
 
     private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Long>> result) {
@@ -193,6 +192,7 @@ public class EventMetricsResponseAdapter {
         if (buckets == null || buckets.isEmpty()) return;
 
         JsonNode first = buckets.getFirst();
+
         if (first == null || !first.has(PER_INTERVAL)) return;
 
         Set<Long> timeline = new HashSet<>();
@@ -238,7 +238,7 @@ public class EventMetricsResponseAdapter {
                         if (isMetaField(fieldName) || !fieldName.startsWith(MAX_PREFIX)) return;
 
                         String metric = fieldName.substring(MAX_PREFIX.length());
-                        Long maxValue = parseMaxFieldValue(interval.get(fieldName));
+                        Long maxValue = parseMaxValueNode(interval.get(fieldName));
 
                         if (maxValue == null) return;
 
@@ -328,7 +328,7 @@ public class EventMetricsResponseAdapter {
         return (keyNode != null && keyNode.isNumber()) ? keyNode.asLong() : null;
     }
 
-    private static Long parseMaxFieldValue(final JsonNode node) {
+    private static Long parseMaxValueNode(final JsonNode node) {
         if (node == null) {
             return null;
         }
@@ -351,21 +351,11 @@ public class EventMetricsResponseAdapter {
                 if (!fieldName.startsWith(prefix)) return;
 
                 String metric = fieldName.substring(prefix.length());
-                JsonNode topMetricsNode = parent.get(fieldName);
+                Long value = parseTopMetricsNode(parent.get(fieldName), metric);
 
-                if (isTopHitMissing(topMetricsNode)) return;
-
-                JsonNode topArray = topMetricsNode.get(TOP);
-                JsonNode first = (topArray != null && topArray.isArray() && !topArray.isEmpty()) ? topArray.get(0) : null;
-
-                if (first == null || !first.has(METRICS)) return;
-
-                JsonNode metricsNode = first.get(METRICS);
-                JsonNode valueNode = metricsNode.get(metric);
-
-                if (valueNode == null || !valueNode.isNumber()) return;
-
-                values.put(metric, valueNode.asLong());
+                if (value != null) {
+                    values.put(metric, value);
+                }
             });
 
         return values;
@@ -394,25 +384,14 @@ public class EventMetricsResponseAdapter {
         return (types.size() == 1) ? types.getFirst() : null;
     }
 
-    private static final class SeriesKey {
-
-        private final String metric;
-        private final String id;
-        private final long ts;
-
-        SeriesKey(String metric, String id, long ts) {
-            this.metric = metric;
-            this.id = id;
-            this.ts = ts;
-        }
-
+    private record SeriesKey(String metric, String id, long ts) {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
 
-            if (!(o instanceof SeriesKey that)) return false;
+            if (!(o instanceof SeriesKey(String metric1, String id1, long ts1))) return false;
 
-            return ts == that.ts && metric.equals(that.metric) && id.equals(that.id);
+            return ts == ts1 && metric.equals(metric1) && id.equals(id1);
         }
 
         @Override

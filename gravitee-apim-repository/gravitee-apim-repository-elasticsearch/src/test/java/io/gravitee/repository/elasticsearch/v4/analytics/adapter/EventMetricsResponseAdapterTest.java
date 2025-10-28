@@ -21,12 +21,12 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.D
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.KEY;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_BUCKET_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.TOP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -97,30 +97,21 @@ class EventMetricsResponseAdapterTest {
             ObjectNode bucket1 = MAPPER.createObjectNode();
             bucket1.put(KEY, 1);
             bucket1.put(DOC_COUNT, 1);
-            bucket1.set(
-                LATEST_VALUE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
-                topMetricsHit(metric(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 2))
-            );
-            bucket1.set(
-                LATEST_VALUE_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS,
-                topMetricsHit(metric(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, 3))
-            );
+            bucket1.set(LATEST_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, topMetricsHit(metric(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 2)));
+            bucket1.set(LATEST_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS, topMetricsHit(metric(FIELD_UPSTREAM_ACTIVE_CONNECTIONS, 3)));
 
             // Bucket #2: downstream=5, upstream non-numeric -> ignored
             ObjectNode bucket2 = MAPPER.createObjectNode();
             bucket2.put(KEY, 2);
             bucket2.put(DOC_COUNT, 1);
-            bucket2.set(
-                LATEST_VALUE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS,
-                topMetricsHit(metric(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 5))
-            );
-            bucket2.set(LATEST_VALUE_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS, emptyTop());
+            bucket2.set(LATEST_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, topMetricsHit(metric(FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, 5)));
+            bucket2.set(LATEST_PREFIX + FIELD_UPSTREAM_ACTIVE_CONNECTIONS, emptyTop());
 
             // Bucket #3: missing top hit for downstream -> ignored for downstream
             ObjectNode bucket3 = MAPPER.createObjectNode();
             bucket3.put(KEY, 3);
             bucket3.put(DOC_COUNT, 1);
-            bucket3.set(LATEST_VALUE_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, emptyTop());
+            bucket3.set(LATEST_PREFIX + FIELD_DOWNSTREAM_ACTIVE_CONNECTIONS, emptyTop());
 
             SearchResponse response = buildResponse(List.of(bucket1, bucket2, bucket3));
             HistogramQuery query = buildHistogramQuery(
@@ -155,7 +146,7 @@ class EventMetricsResponseAdapterTest {
                 BEFORE_START,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
-                        START_BUCKET_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
+                        START_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
                         topMetricsHit(metric(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 10))
                     )
                 )
@@ -164,7 +155,7 @@ class EventMetricsResponseAdapterTest {
                 END_IN_RANGE,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
-                        END_BUCKET_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
+                        END_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
                         topMetricsHit(metric(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 25))
                     )
                 )
@@ -179,7 +170,7 @@ class EventMetricsResponseAdapterTest {
                 END_IN_RANGE,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
-                        END_BUCKET_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
+                        END_PREFIX + FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL,
                         topMetricsHit(metric(FIELD_DOWNSTREAM_PUBLISH_MESSAGES_TOTAL, 5))
                     )
                 )
@@ -193,7 +184,7 @@ class EventMetricsResponseAdapterTest {
                 BEFORE_START,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
-                        START_BUCKET_PREFIX + FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL,
+                        START_PREFIX + FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL,
                         topMetricsHit(metric(FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL, 40))
                     )
                 )
@@ -202,7 +193,7 @@ class EventMetricsResponseAdapterTest {
                 END_IN_RANGE,
                 MAPPER.createObjectNode().setAll(
                     Map.of(
-                        END_BUCKET_PREFIX + FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL,
+                        END_PREFIX + FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL,
                         topMetricsHit(metric(FIELD_UPSTREAM_PUBLISH_MESSAGES_TOTAL, 35))
                     )
                 )
