@@ -18,7 +18,9 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAs;
 
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.use_case.cockpit.AbstractDeployModelToApiUseCase;
 import io.gravitee.apim.core.api.use_case.cockpit.DeployModelToApiCreateUseCase;
+import io.gravitee.apim.core.api.use_case.cockpit.DeployModelToApiUpdateUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
@@ -61,6 +63,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
     private final UserService userService;
     private final EnvironmentService environmentService;
     private final DeployModelToApiCreateUseCase deployModelToApiCreateUseCase;
+    private final DeployModelToApiUpdateUseCase deployModelToApiUpdateUseCase;
 
     @Override
     public String supportType() {
@@ -109,7 +112,17 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                             return updateV2Api(command, apiId, executionContext, user, mode, swaggerDefinition, labels);
                         }
 
-                        return Single.just(new DeployModelReply(command.getId(), "Not yet implemented"));
+                        deployModelToApiUpdateUseCase.execute(
+                            new DeployModelToApiUpdateUseCase.Input(
+                                swaggerDefinition,
+                                audit,
+                                apiId,
+                                apiCrossId,
+                                fromDeploymentModel(mode),
+                                labels
+                            )
+                        );
+                        return Single.just(new DeployModelReply(command.getId()));
                     });
             } else {
                 var message = permissionChecker.checkCreatePermission(
@@ -139,11 +152,11 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         }
     }
 
-    private DeployModelToApiCreateUseCase.Mode fromDeploymentModel(DeploymentMode mode) {
+    private AbstractDeployModelToApiUseCase.Mode fromDeploymentModel(DeploymentMode mode) {
         return switch (mode) {
-            case API_DOCUMENTED -> DeployModelToApiCreateUseCase.Mode.DOCUMENTED;
-            case API_MOCKED -> DeployModelToApiCreateUseCase.Mode.MOCKED;
-            case API_PUBLISHED -> DeployModelToApiCreateUseCase.Mode.PUBLISHED;
+            case API_DOCUMENTED -> AbstractDeployModelToApiUseCase.Mode.DOCUMENTED;
+            case API_MOCKED -> AbstractDeployModelToApiUseCase.Mode.MOCKED;
+            case API_PUBLISHED -> AbstractDeployModelToApiUseCase.Mode.PUBLISHED;
         };
     }
 
@@ -171,7 +184,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
     }
 
     /**
-     * In order to prepare future refactoring on cockpit which will always send apim reference, we first search by cockpit id then by apim id.
+     * To prepare future refactoring on cockpit which will always send apim reference, we first search by cockpit id then by apim id.
      *
      * @param environmentId the env id which could be a cockpit id or apim environment id
      * @return {@link EnvironmentEntity} found

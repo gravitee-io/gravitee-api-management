@@ -22,12 +22,15 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.use_case.cockpit.DeployModelToApiCreateUseCase;
+import io.gravitee.apim.core.api.use_case.cockpit.DeployModelToApiUpdateUseCase;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommand;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommandPayload;
 import io.gravitee.cockpit.api.command.v1.designer.DeployModelReply;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -83,6 +86,9 @@ public class DeployModelV4CommandHandlerTest {
     @Mock
     private DeployModelToApiCreateUseCase deployModelToApiCreateUseCase;
 
+    @Mock
+    private DeployModelToApiUpdateUseCase deployModelToApiUpdateUseCase;
+
     private DeployModelCommandHandler cut;
 
     @BeforeEach
@@ -98,7 +104,8 @@ public class DeployModelV4CommandHandlerTest {
             permissionChecker,
             userService,
             environmentService,
-            deployModelToApiCreateUseCase
+            deployModelToApiCreateUseCase,
+            deployModelToApiUpdateUseCase
         );
     }
 
@@ -169,6 +176,46 @@ public class DeployModelV4CommandHandlerTest {
                         .containsExactly(command.getId(), CommandStatus.ERROR, "Failed to import API [context path not available].");
                     return true;
                 });
+        }
+    }
+
+    @Nested
+    public class Update {
+
+        @ParameterizedTest
+        @MethodSource
+        public void update_API(DeployModelCommandPayload.DeploymentMode deploymentMode, DeploymentMode expectedPermissionMode) {
+            var payload = createDeployPayload(deploymentMode);
+            var command = new DeployModelCommand(payload);
+            var user = createUserEntity(payload);
+            var apiId = "api#id";
+
+            when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.userId(), true)).thenReturn(user);
+            when(
+                permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, expectedPermissionMode)
+            ).thenReturn(Optional.empty());
+
+            when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.modelId())).thenReturn(Optional.of(apiId));
+            when(apiSearchService.findById(EXECUTION_CONTEXT, apiId)).thenReturn(
+                io.gravitee.rest.api.model.v4.api.ApiEntity.builder().definitionVersion(DefinitionVersion.V4).build()
+            );
+
+            when(deployModelToApiUpdateUseCase.execute(any())).thenReturn(new DeployModelToApiUpdateUseCase.Output(new Api()));
+
+            cut
+                .handle(command)
+                .test()
+                .assertValue(
+                    reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED)
+                );
+        }
+
+        static Stream<Arguments> update_API() {
+            return Stream.of(
+                Arguments.of(DeployModelCommandPayload.DeploymentMode.API_MOCKED, DeploymentMode.API_MOCKED),
+                Arguments.of(DeployModelCommandPayload.DeploymentMode.API_PUBLISHED, DeploymentMode.API_PUBLISHED),
+                Arguments.of(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED, DeploymentMode.API_DOCUMENTED)
+            );
         }
     }
 

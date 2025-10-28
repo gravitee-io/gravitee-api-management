@@ -86,7 +86,15 @@ public class DeployModelCommandHandlerTest {
             .thenReturn(
                 EnvironmentEntity.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).cockpitId(COCKPIT_ENVIRONMENT_ID).build()
             );
-        cut = new DeployModelCommandHandler(apiSearchService, cockpitApiService, permissionChecker, userService, environmentService, null);
+        cut = new DeployModelCommandHandler(
+            apiSearchService,
+            cockpitApiService,
+            permissionChecker,
+            userService,
+            environmentService,
+            null,
+            null
+        );
     }
 
     @Test
@@ -322,24 +330,16 @@ public class DeployModelCommandHandlerTest {
         cut.handle(command).test().assertNoErrors();
     }
 
-    private static DeployModelCommandPayload createDeployPayload(
-        final DeployModelCommandPayload.DeploymentMode deploymentMode,
-        final String environmentId,
-        final String organizationId
-    ) {
+    private static DeployModelCommandPayload createDeployPayload(final DeployModelCommandPayload.DeploymentMode deploymentMode) {
         return DeployModelCommandPayload.builder()
             .modelId("model#1")
             .swaggerDefinition("swagger-definition")
             .userId("cockpit_user#id")
             .mode(deploymentMode)
             .labels(List.of("label1", "label2"))
-            .environmentId(environmentId)
-            .organizationId(organizationId)
+            .organizationId(DeployModelCommandHandlerTest.COCKPIT_ORGANIZATION_ID)
+            .environmentId(DeployModelCommandHandlerTest.COCKPIT_ENVIRONMENT_ID)
             .build();
-    }
-
-    private static DeployModelCommandPayload createDeployPayload(final DeployModelCommandPayload.DeploymentMode deploymentMode) {
-        return createDeployPayload(deploymentMode, COCKPIT_ENVIRONMENT_ID, COCKPIT_ORGANIZATION_ID);
     }
 
     private static UserEntity createUserEntity(final DeployModelCommandPayload payload) {
