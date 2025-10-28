@@ -35,7 +35,7 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.T
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.EXISTS;
@@ -126,8 +126,8 @@ class EventMetricsQueryAdapterTest {
         // Sub-aggregations: top_metrics per metric, named "latest_" + field
         JsonNode subAggs = byDimensions.get(AGGS);
         assertNotNull(subAggs);
-        assertLatestTopMetrics(subAggs, "upstream-active-connections", LATEST_VALUE_PREFIX);
-        assertLatestTopMetrics(subAggs, "downstream-active-connections", LATEST_VALUE_PREFIX);
+        assertLatestTopMetrics(subAggs, "upstream-active-connections", LATEST_PREFIX);
+        assertLatestTopMetrics(subAggs, "downstream-active-connections", LATEST_PREFIX);
     }
 
     @Test
@@ -351,11 +351,11 @@ class EventMetricsQueryAdapterTest {
     }
 
     private void assertStartTopMetrics(JsonNode aggregations, String field) {
-        assertLatestTopMetrics(aggregations, field, ElasticsearchDsl.Names.START_BUCKET_PREFIX);
+        assertLatestTopMetrics(aggregations, field, ElasticsearchDsl.Names.START_PREFIX);
     }
 
     private void assertEndTopMetrics(JsonNode parentAggs, String field) {
-        assertLatestTopMetrics(parentAggs, field, ElasticsearchDsl.Names.END_BUCKET_PREFIX);
+        assertLatestTopMetrics(parentAggs, field, ElasticsearchDsl.Names.END_PREFIX);
     }
 
     private void assertLatestTopMetrics(JsonNode parentAggs, String field, String prefix) {

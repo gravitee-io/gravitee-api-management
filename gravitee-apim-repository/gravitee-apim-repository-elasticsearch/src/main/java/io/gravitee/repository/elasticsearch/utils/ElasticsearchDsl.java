@@ -87,19 +87,18 @@ public final class ElasticsearchDsl {
         private Sort() {}
     }
 
-    // Stable application names (prefixes/suffixes chosen by us)
+    // Stable application names (prefixes/suffixes)
     public static final class Names {
 
-        public static final String LATEST_VALUE_PREFIX = "latest_";
+        public static final String LATEST_PREFIX = "latest_";
         public static final String BY_DIMENSIONS = "by_dimensions";
         public static final String PER_INTERVAL = "per_interval";
-        public static final String START_BUCKET_PREFIX = "start_";
-        public static final String END_BUCKET_PREFIX = "end_";
+        public static final String START_PREFIX = "start_";
+        public static final String END_PREFIX = "end_";
         public static final String MILLISECONDS = "ms";
         public static final String TOP = "top";
         public static final String BEFORE_START = "before_start_time";
         public static final String END_IN_RANGE = "end_in_range";
-        // Added for trend naming conventions
         public static final String MAX_PREFIX = "max_";
 
         private Names() {}

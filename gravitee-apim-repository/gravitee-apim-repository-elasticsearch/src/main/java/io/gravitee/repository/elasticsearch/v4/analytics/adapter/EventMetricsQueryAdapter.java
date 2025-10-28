@@ -38,13 +38,13 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.T
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BEFORE_START;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.BY_DIMENSIONS;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_BUCKET_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_IN_RANGE;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_VALUE_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.END_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.LATEST_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MAX_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.MILLISECONDS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.PER_INTERVAL;
-import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_BUCKET_PREFIX;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Names.START_PREFIX;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.EXISTS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.GTE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.LT;
@@ -130,7 +130,7 @@ public final class EventMetricsQueryAdapter {
             .aggregations()
             .forEach(agg -> {
                 String field = agg.getField();
-                ObjectNode latestValueNode = bucketAggregationNode.putObject(LATEST_VALUE_PREFIX + field);
+                ObjectNode latestValueNode = bucketAggregationNode.putObject(LATEST_PREFIX + field);
                 applyTopMetricsAggregation(latestValueNode, field);
             });
     }
@@ -155,9 +155,9 @@ public final class EventMetricsQueryAdapter {
             .aggregations()
             .forEach(agg -> {
                 String field = agg.getField();
-                ObjectNode startAgg = startValueAggregations.putObject(START_BUCKET_PREFIX + field);
+                ObjectNode startAgg = startValueAggregations.putObject(START_PREFIX + field);
                 applyTopMetricsAggregation(startAgg, field);
-                ObjectNode endAgg = endValueAggregations.putObject(END_BUCKET_PREFIX + field);
+                ObjectNode endAgg = endValueAggregations.putObject(END_PREFIX + field);
                 applyTopMetricsAggregation(endAgg, field);
             });
     }
