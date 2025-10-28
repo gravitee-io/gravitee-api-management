@@ -19,7 +19,7 @@
 <gridster [options]="options()" class="grid">
   @for (item of items(); track item) {
     <gridster-item [item]="item.layout">
-      <gd-widget [item]="item">
+      <gd-widget [isDraggable]="options().draggable?.enabled ?? false">
         <gd-widget-title>{{ item.label }}</gd-widget-title>
 
         <gd-widget-body>

@@ -6,6 +6,6 @@
     "resolveJsonModule": true
   },
   "exclude": ["../**/*.spec.ts"],
-  "include": ["../src/**/*.stories.*", "./preview.ts", "../projects/gravitee-markdown/src/**/*"],
+  "include": ["../src/**/*.stories.*", "./preview.ts", "../projects/gravitee-markdown/src/**/*", "../projects/gravitee-dashboard/src/**/*"],
   "files": ["./typings.d.ts"]
 }

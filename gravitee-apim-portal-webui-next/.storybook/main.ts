@@ -5,6 +5,7 @@ const config: StorybookConfig = {
     '../src/**/*.mdx',
     '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
     '../projects/gravitee-markdown/src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
+    '../projects/gravitee-dashboard/src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
   ],
   addons: ['@storybook/addon-links', '@storybook/addon-essentials', '@chromatic-com/storybook', '@storybook/addon-interactions'],
   framework: {
