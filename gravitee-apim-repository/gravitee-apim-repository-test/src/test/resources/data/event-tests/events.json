@@ -7,8 +7,10 @@
     "payload": "{}",
     "parentId": null,
     "properties": {
-      "api_id": "api-1"
+      "api_id": "api-1",
+      "deployment_number": "1"
     },
+    "createdAt": 1451606400000,
     "updatedAt": 1451606400000
   },
   {
@@ -44,8 +46,10 @@
     "payload": "{}",
     "parentId": null,
     "properties": {
-      "api_id": "api-3"
+      "api_id": "api-3",
+      "deployment_number": "1"
     },
+    "createdAt": 1459468800000,
     "updatedAt": 1459468800000
   },
   {

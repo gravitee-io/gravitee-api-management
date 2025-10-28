@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -37,6 +38,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString
 public class Event implements Serializable {
 
     /**
