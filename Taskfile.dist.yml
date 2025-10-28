@@ -52,3 +52,10 @@ tasks:
     cmds:
       - docker build -t ${DOCKER_REGISTRY}/apim-management-ui:$DOCKER_TAG -f gravitee-apim-console-webui/docker/Dockerfile ./gravitee-apim-console-webui
       - docker build -t ${DOCKER_REGISTRY}/apim-portal-ui:$DOCKER_TAG -f gravitee-apim-portal-webui/docker/Dockerfile ./gravitee-apim-portal-webui
+
+  postgres-driver:
+    desc: "Download postgres jdbc driver"
+    cmds:
+      - curl https://jdbc.postgresql.org/download/postgresql-42.4.0.jar --create-dirs -o /tmp/postgresql-42.4.0.jar
+      - cp /tmp/postgresql-42.4.0.jar $APIM_GW_DISTRIBUTION_PATH/plugins/ext/repository-jdbc
+      - cp /tmp/postgresql-42.4.0.jar $APIM_MAPI_DISTRIBUTION_PATH/plugins/ext/repository-jdbc
