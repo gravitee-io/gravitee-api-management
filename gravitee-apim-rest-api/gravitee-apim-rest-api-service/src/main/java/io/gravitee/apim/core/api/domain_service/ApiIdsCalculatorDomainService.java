@@ -59,14 +59,14 @@ public class ApiIdsCalculatorDomainService {
         Objects.requireNonNull(toRecalculate.getApiExport(), "Api is mandatory");
         if (toRecalculate.getApiExport().getId() == null || toRecalculate.getApiExport().getId().isEmpty()) {
             findApiByEnvironmentAndCrossId(environmentId, toRecalculate.getApiExport().getCrossId()).ifPresentOrElse(
-                api -> recalculateIdsFromCrossId(environmentId, toRecalculate, api),
+                api -> recalculateIdsFromCrossId(toRecalculate, api),
                 () -> recalculateIdsFromDefinitionIds(environmentId, toRecalculate)
             );
         }
         return generateEmptyIdsForPlansAndPages(toRecalculate);
     }
 
-    private void recalculateIdsFromCrossId(String environmentId, ImportDefinition toRecalculate, Api api) {
+    private void recalculateIdsFromCrossId(ImportDefinition toRecalculate, Api api) {
         log.debug("Recalculating page and plans ids from cross id {} for api {}", api.getCrossId(), api.getId());
         toRecalculate.getApiExport().setId(api.getId());
         Map<String, String> newPageIdsByOldPageIds = recalculatePageIdsFromCrossIds(api, toRecalculate.getPages());
