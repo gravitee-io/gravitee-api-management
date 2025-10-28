@@ -37,6 +37,7 @@ import io.gravitee.apim.core.metadata.model.MetadataId;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.Date;
@@ -106,7 +107,9 @@ public class ImportDefinitionCreateDomainService {
             .addSubEntity("Metadata", () -> createMetadata(importDefinition.getMetadata(), createdApi.getId(), auditInfo))
             .addSubEntity("Pages", () -> createPages(importDefinition.getPages(), createdApi.getId(), auditInfo))
             .addSubEntity("Plans", () -> createPlans(importDefinition.getPlans(), createdApi, auditInfo))
-            .addSubEntity("Media", () -> createMedias(importDefinition.getApiMedia(), createdApi.getId()))
+            .addSubEntity("Media", () ->
+                createMedias(importDefinition.getApiMedia(), createdApi.getId(), new ExecutionContext(organizationId, environmentId))
+            )
             .addSubEntity("Members", () -> createMembers(importDefinition.getMembers(), createdApi.getId()))
             .createAll();
 
@@ -182,9 +185,9 @@ public class ImportDefinitionCreateDomainService {
             });
     }
 
-    private void createMedias(List<Media> mediaList, String apiId) {
+    private void createMedias(List<Media> mediaList, String apiId, ExecutionContext executionContext) {
         if (mediaList != null) {
-            apiImportDomainService.createPageAndMedia(mediaList, apiId);
+            apiImportDomainService.createMedias(mediaList, apiId, executionContext);
         }
     }
 
