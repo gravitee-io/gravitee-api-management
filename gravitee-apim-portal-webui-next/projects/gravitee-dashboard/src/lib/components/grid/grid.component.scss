@@ -39,3 +39,7 @@ gridster-item {
   border-radius: 7px;
   background: white;
 }
+
+.widget-title.is-draggable {
+  cursor: move;
+}

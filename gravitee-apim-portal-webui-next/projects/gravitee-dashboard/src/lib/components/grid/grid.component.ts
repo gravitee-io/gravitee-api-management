@@ -33,15 +33,13 @@ export class GridComponent {
   private getGridsterOptions(): GridsterConfig {
     return {
       gridType: GridType.VerticalFixed,
-      maxCols: 6,
-      minCols: 6,
-      minRows: 8,
-      itemAspectRatio: 4 / 3,
       compactType: CompactType.None,
       displayGrid: DisplayGrid.None,
+      itemAspectRatio: 4 / 3,
       pushItems: true,
       draggable: {
         enabled: true,
+        dragHandleClass: '.widget-title-container',
       },
       resizable: {
         enabled: true,

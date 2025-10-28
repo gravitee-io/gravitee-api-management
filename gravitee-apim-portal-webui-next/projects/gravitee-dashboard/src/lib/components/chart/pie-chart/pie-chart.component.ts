@@ -40,8 +40,8 @@ export class PieChartComponent<T extends PieType> {
 
   private getDataMock(): ChartData<T> {
     return {
-      labels: ['Download Sales', 'In-Store Sales', 'Mail-Order Sales'],
-      datasets: [{ data: [350, 450, 100] }],
+      labels: ['North America', 'Europe', 'Asia Pacific', 'South America', 'Africa', 'Middle East', 'Oceania'],
+      datasets: [{ data: [35, 28, 20, 8, 5, 3, 1] }],
     } as ChartData<T>;
   }
 

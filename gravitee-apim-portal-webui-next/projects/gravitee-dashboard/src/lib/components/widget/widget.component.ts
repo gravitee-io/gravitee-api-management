@@ -15,8 +15,6 @@
  */
 import { Component, input } from '@angular/core';
 
-import { Widget } from './widget';
-
 @Component({
   selector: 'gd-widget-title',
   template: `<ng-content>widget-title</ng-content>`,
@@ -38,5 +36,5 @@ export class WidgetBodyComponent {}
   styleUrl: './widget.component.scss',
 })
 export class WidgetComponent {
-  item = input<Widget>();
+  isDraggable = input<boolean>(false);
 }
