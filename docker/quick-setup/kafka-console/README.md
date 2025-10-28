@@ -26,7 +26,7 @@ Up docker-compose :
 
 To be sure to fetch last version of images, you can do
 `export APIM_VERSION={APIM_VERSION} && docker-compose down -v && docker-compose pull && docker-compose up`
-Or you can do `export APIM_REGISTRY=graviteeio.azurecr.io  && export APIM_VERSION=master-latest && docker-compose up -d` to use the latest version. but you need to have access to the internal registry.
+Or you can do `export APIM_REGISTRY=graviteeio.azurecr.io  && export APIM_VERSION=master-latest && export APIM_KAFKA_CONSOLE_VERSION=4.9.0-alpha.3 && docker-compose up -d` to use the latest version. but you need to have access to the internal registry.
 
 
 
