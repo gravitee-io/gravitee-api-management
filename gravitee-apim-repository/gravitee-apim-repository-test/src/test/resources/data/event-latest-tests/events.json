@@ -57,7 +57,8 @@
     "payload": "{}",
     "parentId": null,
     "properties": {
-      "api_id": "api-4"
+      "api_id": "api-4",
+      "deployment_number": "1"
     },
     "createdAt": 1464739200000,
     "updatedAt": 1464739200000

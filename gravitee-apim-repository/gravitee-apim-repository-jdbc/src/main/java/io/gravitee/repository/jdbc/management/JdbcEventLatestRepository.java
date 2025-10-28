@@ -17,11 +17,13 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.management.JdbcEventRepository.CHILD_ADDER;
-import static io.gravitee.repository.jdbc.management.JdbcEventRepository.appendCriteria;
 import static io.gravitee.repository.jdbc.management.JdbcEventRepository.criteriaToString;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.addCondition;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.addStringsWhereClause;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -35,6 +37,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -75,18 +78,75 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         final List<Object> args = new ArrayList<>();
         final StringBuilder builder = createSearchQueryBuilder();
 
-        appendCriteria(builder, criteria, args, "evt", "ev", "evo", EVENT_PROPERTIES);
-        if (group != null) {
-            builder.append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE).append("evp.property_key = ? and evp.property_value is not null ");
-            args.add(group.getValue());
+        appendCriteria(builder, criteria, args, "evt", "ev", "evo");
+        builder
+            .append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE)
+            .append("evt.id IN (")
+            .append(buildSelectIn(criteria, group, page, size, args))
+            .append(") ");
+        builder.append("order by evt.updated_at asc, evt.id asc ");
+        return queryEvents(builder.toString(), args);
+    }
+
+    /**
+     * Builds a SQL query fragment to select event IDs from a database table, optionally filtered by a specific event property
+     * and supporting pagination through the use of page and size parameters.
+     * <p>
+     * This allows us to handle pagination properly for the event because events with properties result with more than one row.
+     * </p>
+     *
+     * @param criteria the event search criteria.
+     * @param group    the specific event property to filter by. If null, no event property filter is applied.
+     * @param page     the page number used for pagination. If null, pagination is not applied.
+     * @param size     the size of each page used for pagination. If null or less than or equal to zero, pagination is not applied.
+     * @return a SQL query string selecting event IDs with optional filtering and pagination.
+     */
+    private String buildSelectIn(EventCriteria criteria, Event.EventProperties group, Long page, Long size, List<Object> args) {
+        if (group != null || !criteria.getProperties().isEmpty()) {
+            final StringBuilder where = new StringBuilder();
+            appendCriteria(where, criteria, args, "e1", "ee1", "eo1");
+
+            if (group != null) {
+                where.append(!where.isEmpty() ? AND_CLAUSE : WHERE_CLAUSE);
+                where.append("prop.property_key = ? ");
+                args.add(group.getValue());
+            }
+            if (!criteria.getProperties().isEmpty()) {
+                where.append(!where.isEmpty() ? AND_CLAUSE : WHERE_CLAUSE);
+                var first = true;
+                for (Map.Entry<String, Object> property : criteria.getProperties().entrySet()) {
+                    if (property.getValue() instanceof Collection<?> collection) {
+                        for (Object value : collection) {
+                            first = addCondition(first, where, property.getKey(), value, args);
+                        }
+                    } else {
+                        first = addCondition(first, where, property.getKey(), property.getValue(), args);
+                    }
+                }
+            }
+
+            var selectIn = """
+                select e1.id from %s e1
+                  inner join %s prop on e1.id = prop.event_id
+                  left join %s ee1 on e1.id = ee1.event_id
+                  left join %s eo1 on e1.id = eo1.event_id
+                  %s
+                  order by e1.updated_at asc, e1.id asc
+                """.formatted(tableName, EVENT_PROPERTIES, EVENT_ENVIRONMENTS, EVENT_ORGANIZATIONS, where);
+
+            if (page != null && size != null && size > 0) {
+                final int limit = size.intValue();
+                selectIn += createPagingClause(limit, (page.intValue() * limit));
+            }
+            return selectIn;
         }
 
-        builder.append("order by evt.updated_at asc, evt.id asc ");
+        var selectIn = "select e1.id from " + tableName + " e1 order by e1.updated_at asc, e1.id asc ";
         if (page != null && size != null && size > 0) {
             final int limit = size.intValue();
-            builder.append(createPagingClause(limit, (page.intValue() * limit)));
+            selectIn += createPagingClause(limit, (page.intValue() * limit));
         }
-        return queryEvents(builder.toString(), args);
+        return selectIn;
     }
 
     private StringBuilder createSearchQueryBuilder() {
@@ -270,5 +330,54 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             storeOrganizations(event, true);
         }
         return event;
+    }
+
+    protected static void appendCriteria(
+        StringBuilder builder,
+        EventCriteria filter,
+        List<Object> args,
+        String eventTableAlias,
+        String eventEnvironmentTableAlias,
+        String eventOrganizationTableAlias
+    ) {
+        var started = false;
+        if (filter.getFrom() > 0) {
+            builder.append(WHERE_CLAUSE);
+            builder.append(eventTableAlias + ".updated_at >= ?");
+            args.add(new Date(filter.getFrom()));
+            started = true;
+        }
+        if (filter.getTo() > 0) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append(eventTableAlias + ".updated_at < ?");
+            args.add(new Date(filter.getTo()));
+            started = true;
+        }
+        if (!isEmpty(filter.getEnvironments())) {
+            started = addStringsWhereClause(
+                filter.getEnvironments(),
+                eventEnvironmentTableAlias + ".environment_id",
+                args,
+                builder,
+                started
+            );
+            builder.insert(builder.lastIndexOf(")"), " or " + eventEnvironmentTableAlias + ".environment_id IS NULL");
+        }
+
+        if (!isEmpty(filter.getOrganizations())) {
+            started = addStringsWhereClause(
+                filter.getOrganizations(),
+                eventOrganizationTableAlias + ".organization_id",
+                args,
+                builder,
+                started
+            );
+            builder.insert(builder.lastIndexOf(")"), " or " + eventOrganizationTableAlias + ".organization_id IS NULL");
+        }
+
+        if (!isEmpty(filter.getTypes())) {
+            final Collection<String> types = filter.getTypes().stream().map(Enum::name).collect(toList());
+            addStringsWhereClause(types, eventTableAlias + ".type", args, builder, started);
+        }
     }
 }
